@@ -1,27 +1,53 @@
-import { Map, Package, Activity, LogOut, FileClock } from "lucide-react";
+import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-zinc-950 overflow-hidden text-zinc-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col justify-between hidden md:flex">
+      <aside className="w-64 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex items-center px-6 border-b border-zinc-800">
-            <h1 className="text-xl font-medium text-white tracking-tight">Werkit.</h1>
+             <div>
+                 <h1 className="text-xl font-bold text-white tracking-tight">Werkit.</h1>
+                 <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5">MARGAZ ERP</p>
+             </div>
           </div>
-          <nav className="p-4 space-y-1">
+          <nav className="p-4 space-y-1.5">
             <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
-              <Map className="w-4 h-4" />
-              <span>Dashboard GPS</span>
+              <Activity className="w-4 h-4 text-emerald-500" />
+              <span>Główny Pulpit</span>
             </Link>
+            
+            <div className="pt-4 pb-2 px-3">
+              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Flota i Ludzie</p>
+            </div>
+            <Link href="/admin/workers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+              <Users className="w-4 h-4" />
+              <span>Pracownicy</span>
+            </Link>
+            <Link href="/admin/machines" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+              <Wrench className="w-4 h-4" />
+              <span>Maszyny i Warsztat</span>
+            </Link>
+
+            <div className="pt-4 pb-2 px-3">
+              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Logistyka</p>
+            </div>
+            <Link href="/admin/materials" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+              <HardHat className="w-4 h-4" />
+              <span>Baza Kruszyw</span>
+            </Link>
+            <Link href="/admin/customers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+              <Package className="w-4 h-4" />
+              <span>Klienci i Adresy</span>
+            </Link>
+            
+            <div className="pt-4 pb-2 px-3">
+              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Raporty</p>
+            </div>
             <Link href="/admin/archive" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <FileClock className="w-4 h-4" />
-              <span>Historia Działań</span>
-            </Link>
-            <Link href="/admin/resources" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm opacity-50 cursor-not-allowed">
-              <Package className="w-4 h-4" />
-              <span>Zasoby i Magazyn</span>
+              <span>Ewidencja Zleceń</span>
             </Link>
           </nav>
         </div>
@@ -33,15 +59,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Mobile Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950 md:hidden">
-          <h1 className="text-lg font-medium text-white tracking-tight">Werkit.</h1>
+      <main className="flex-1 flex flex-col min-w-0 bg-[#0a0a0b] overflow-y-auto">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950 md:hidden sticky top-0 z-50">
+          <h1 className="text-lg font-bold text-white tracking-tight">Margaz ERP.</h1>
           <Activity className="text-zinc-600 w-5 h-5" />
         </header>
 
-        <div className="flex-1 bg-[#0a0a0b] relative">
+        <div className="flex-1 relative">
           {children}
         </div>
       </main>
