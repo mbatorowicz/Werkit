@@ -11,10 +11,15 @@ export const users = pgTable('users', {
   isActive: boolean('is_active').notNull().default(true),
 });
 
+export const resourceCategories = pgTable('resource_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+});
+
 export const resources = pgTable('resources', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  type: varchar('type', { length: 50 }).notNull(), // VEHICLE, MACHINE, STATIONARY
+  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }),
 });
 
 export const materials = pgTable('materials', {
@@ -101,4 +106,11 @@ export const workSessionsRelations = relations(workSessions, ({ one, many }) => 
   }),
   photos: many(sessionPhotos),
   gpsLogs: many(gpsLogs),
+}));
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  category: one(resourceCategories, {
+    fields: [resources.categoryId],
+    references: [resourceCategories.id]
+  })
 }));

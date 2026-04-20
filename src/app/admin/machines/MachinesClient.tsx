@@ -1,89 +1,112 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Wrench, Plus, X, Truck } from "lucide-react";
+import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers } from "lucide-react";
 
-type Machine = {
-  id: number;
-  name: string;
-  type: string;
-};
+type Category = { id: number, name: string };
+type Machine = { id: number, name: string, categoryId: number, categoryName?: string };
 
 export default function MachinesClient() {
   const [machines, setMachines] = useState<Machine[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [form, setForm] = useState({ name: '', type: '' });
+  // States for Machine Modal
+  const [isMMOpen, setIsMMOpen] = useState(false); // Machine Modal
+  const [mEditId, setMEditId] = useState<number | null>(null);
+  const [mForm, setMForm] = useState({ name: '', categoryId: '' });
 
-  const fetchMachines = async () => {
+  // States for Category Modal
+  const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
+  const [cEditId, setCEditId] = useState<number | null>(null);
+  const [cForm, setCForm] = useState({ name: '' });
+
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/machines");
-      const data = await res.json();
-      setMachines(data || []);
+      const [mRes, cRes] = await Promise.all([ fetch("/api/machines"), fetch("/api/categories") ]);
+      setMachines(await mRes.json() || []);
+      setCategories(await cRes.json() || []);
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
   };
 
-  useEffect(() => {
-    fetchMachines();
-  }, []);
+  useEffect(() => { fetchData() }, []);
 
-  const handleDelete = async (id: number, name: string) => {
-    if(!confirm(`Czy na pewno wycofać z floty maszynę: ${name}?`)) return;
-    try {
-      const res = await fetch(`/api/machines/${id}`, { method: 'DELETE' });
-      if(res.ok) {
-        setMachines(machines.filter(m => m.id !== id));
-      } else {
-        const errorData = await res.json();
-        alert(errorData.error || "Wystąpił błąd przy usuwaniu.");
-      }
-    } catch(e) {
-      alert("Błąd połączenia serwera.");
-    }
+  // --- Kategorie ----
+  const handleCSave = async (e: React.FormEvent) => {
+     e.preventDefault();
+     const url = cEditId ? `/api/categories/${cEditId}` : "/api/categories";
+     const method = cEditId ? "PUT" : "POST";
+     try {
+       const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(cForm) });
+       if(res.ok) { setIsCMOpen(false); fetchData(); }
+       else { alert((await res.json()).error); }
+     } catch(e) { alert("Błąd API."); }
+  };
+  const handleCDelete = async (id: number) => {
+     if(!confirm("Usunięcie trwale usunie też możliwość przypisywania maszyn do tej grupy. Jesteś pewien?")) return;
+     const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+     if(res.ok) fetchData();
+     else alert((await res.json()).error);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // --- Maszyny ---
+  const handleMSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    const url = mEditId ? `/api/machines/${mEditId}` : "/api/machines";
+    const method = mEditId ? "PUT" : "POST";
     try {
-      const res = await fetch("/api/machines", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, type: form.type.trim() }) // trim spaces for clean categories
-      });
-      const data = await res.json();
-      if(res.ok) {
-        setIsModalOpen(false);
-        setForm({ name: '', type: '' });
-        fetchMachines();
-      } else {
-        alert(data.error || "Błąd rejestracji pojazdu.");
-      }
-    } catch(e) {
-      alert("Błąd sieci.");
-    }
-    setIsSubmitting(false);
+      const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(mForm) });
+      if(res.ok) { setIsMMOpen(false); fetchData(); }
+      else { alert((await res.json()).error); }
+    } catch(e) { alert("Błąd API."); }
   };
-
-  // Znajdź wszystkie unikalne użyte do tej pory kategorie, by podpowiadać je adminowi!
-  const uniqueCategories = Array.from(new Set(machines.map(m => m.type))).filter(Boolean);
+  const handleMDelete = async (id: number) => {
+     if(!confirm("Maszyna zniknie z puli systemu. Jesteś pewien?")) return;
+     const res = await fetch(`/api/machines/${id}`, { method: 'DELETE' });
+     if(res.ok) fetchData();
+     else alert((await res.json()).error);
+  };
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      {/* SEKCJA KATEGORII SŁOWNIKOWYCH */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> Słownik Typów (Kategorie Sprzętu)</h2>
+          <p className="text-zinc-500 mt-1 text-sm">Zarządzaj słownikiem dostępnych klasyfikacji dla rejestrowanych pojazdów.</p>
+        </div>
+        <button onClick={() => {setCEditId(null); setCForm({name: ''}); setIsCMOpen(true);}} className="bg-zinc-800 text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-700 transition flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Dodaj Kategorię
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+         {categories.map(cat => (
+           <div key={cat.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
+              <span className="text-zinc-200 font-medium truncate">{cat.name}</span>
+              <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
+                 <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name}); setIsCMOpen(true);}} className="p-1.5 text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                 <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
+              </div>
+           </div>
+         ))}
+         {!isLoading && categories.length === 0 && <div className="col-span-full p-4 border border-zinc-800/50 rounded-xl bg-zinc-900/50 text-zinc-500 text-sm">Zdefiniuj z jakich rodzajów aut korzystasz (np. Ciężarówki / Koparki) dodając pierwszą kategorię słownikową.</div>}
+      </div>
+
+
+      {/* SEKCJA ZASOBÓW FIZYCZNYCH */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-zinc-800/80 pt-10">
         <div>
           <h1 className="text-2xl font-semibold text-white tracking-tight">Park Maszynowy i Sprzęt</h1>
-          <p className="text-zinc-500 mt-1">Ewidencjonuj pojazdy, sprzęty budowlane i stacjonarne powiązane ze zleceniami.</p>
+          <p className="text-zinc-500 mt-1">Ewidencjonuj pojazdy na podstawie ustawionych u góry kategorii.</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-amber-600 text-white px-5 py-2.5 text-sm font-semibold rounded-xl hover:bg-amber-500 transition shadow-sm flex items-center gap-2">
+        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryId: ''}); setIsMMOpen(true);}} className="bg-amber-600 text-white px-5 py-2.5 text-sm font-semibold rounded-xl hover:bg-amber-500 transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          Dodaj nowy sprzęt
+          Zarejestruj Nowy Pojazd
         </button>
       </div>
 
@@ -93,13 +116,13 @@ export default function MachinesClient() {
              <thead>
                <tr className="border-b border-zinc-800/50 bg-[#0a0a0b]/80">
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pojazd / Rejestracja</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kategoria / Typ</th>
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kategoria Słownikowa</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-right">Zarządzanie</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-zinc-800/50">
                {isLoading ? (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Synchronizacja tabel maszynowych...</td></tr>
+                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Konfiguracja baz...</td></tr>
                ) : machines.map(machine => (
                  <tr key={machine.id} className="hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
@@ -109,68 +132,81 @@ export default function MachinesClient() {
                          </div>
                          <div>
                            <div className="font-semibold text-zinc-200">{machine.name}</div>
-                           <div className="text-[11px] text-zinc-500 uppercase tracking-widest mt-0.5">ID: {machine.id}</div>
+                           <div className="text-[11px] text-zinc-500 uppercase tracking-widest mt-0.5">ID REJ: #{machine.id}</div>
                          </div>
                       </div>
                    </td>
                    <td className="px-6 py-4">
-                     <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
-                       {machine.type}
-                     </span>
+                     {machine.categoryName ? (
+                       <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
+                         {machine.categoryName}
+                       </span>
+                     ) : (
+                       <span className="text-zinc-500 italic text-xs">Brak Kaskady/Kategorii</span>
+                     )}
                    </td>
                    <td className="px-6 py-4 text-right">
-                     <button onClick={() => handleDelete(machine.id, machine.name)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title="Wyrejestruj / Skasuj">
-                       <Trash2 className="w-4 h-4" />
-                     </button>
+                     <div className="flex justify-end gap-1">
+                        <button onClick={() => {setMEditId(machine.id); setMForm({name: machine.name, categoryId: machine.categoryId?.toString()}); setIsMMOpen(true);}} className="p-2 text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title="Edytuj">
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleMDelete(machine.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title="Skasuj całkowicie">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                     </div>
                    </td>
                  </tr>
                ))}
                {!isLoading && machines.length === 0 && (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Garaż jest pusty. Wprowadź pierwszą maszynę flotową!</td></tr>
+                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Brak załadowanych pojazdów fizycznych do floty.</td></tr>
                )}
              </tbody>
           </table>
         </div>
       </div>
 
-      {isModalOpen && (
+      {/* MODAL KATEGORII */}
+      {isCMOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCMOpen(false)}></div>
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center bg-[#0a0a0b]/80">
+                 <h2 className="text-base font-semibold text-white">{cEditId ? 'Edycja Nagłówka' : 'Nowa Kategoria Bazy'}</h2>
+                 <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4"/></button>
+              </div>
+              <form onSubmit={handleCSave} className="p-6">
+                 <input required type="text" placeholder="Np. Sprzęt Ciężki / Naczepy" value={cForm.name} onChange={e => setCForm({name: e.target.value})} className="w-full mb-4 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                 <button type="submit" className="w-full bg-zinc-100 text-zinc-950 font-semibold py-2.5 rounded-lg hover:bg-zinc-300 transition">Zapisz Słownik</button>
+              </form>
+           </div>
+        </div>
+      )}
+
+      {/* MODAL MASZYNY */}
+      {isMMOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-white">Rejestracja Nowego Sprzętu</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white transition"><X className="w-5 h-5"/></button>
+                 <h2 className="text-lg font-semibold text-white">{mEditId ? "Karta Edycji Pojazdu" : "Rejestracja Nowego Sprzętu"}</h2>
+                 <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
               </div>
-              <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                 
+              <form onSubmit={handleMSave} className="p-6 space-y-6">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Identyfikator (Marka, Model lub Nr. Rej.)</label>
-                   <input required type="text" placeholder="Np. Wywrotka SCANIA WGR 8092" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                   <input required type="text" placeholder="Np. Wywrotka SCANIA WGR 8092" value={mForm.name} onChange={e => setMForm({...mForm, name: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  </div>
-                 
                  <div className="space-y-2">
-                   <label className="text-sm font-medium text-amber-500/80">Kategoria Systemowa</label>
-                   <p className="text-xs text-zinc-500 mb-2">Możesz wpisać własną kategorię lub wybrać jedną z użytych już wcześniej z rozwijanej listy. System zrzeszy w nią kolejne pojazdy.</p>
-                   
-                   {/* Datalist pozwala na wpisywanie WŁASNYCH lub podpowiada stare! */}
-                   <input 
-                     required 
-                     list="category-suggestions" 
-                     placeholder="Wpisz np. Transport, Koparka, albo Warsztat" 
-                     value={form.type} 
-                     onChange={e => setForm({...form, type: e.target.value})} 
-                     className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" 
-                   />
-                   <datalist id="category-suggestions">
-                     {uniqueCategories.map((c, i) => (
-                       <option key={i} value={c} />
-                     ))}
-                   </datalist>
+                   <label className="text-sm font-medium text-amber-500/80">Kategoria Słownikowa (Globalna)</label>
+                   <select required value={mForm.categoryId} onChange={e => setMForm({...mForm, categoryId: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                     <option value="" disabled>-- Wybierz kategorię docelową --</option>
+                     {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                   </select>
+                   {categories.length === 0 && <p className="text-xs text-red-400">UWAGA: Wpierw stwórz Kategorię zamykając to okno, aby móc tu przypisać auto!</p>}
                  </div>
-
-                 <div className="pt-2 border-t border-zinc-800 flex mt-4">
-                    <button disabled={isSubmitting} type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50 mt-2">
-                       {isSubmitting ? "Wprowadzanie do ewidencji..." : "Zapisz park maszynowy"}
+                 <div className="pt-4 border-t border-zinc-800">
+                    <button disabled={categories.length === 0} type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-xl hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
+                       Zapisz zmiany we Flocie
                     </button>
                  </div>
               </form>
