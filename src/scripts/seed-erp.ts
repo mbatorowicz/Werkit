@@ -1,12 +1,12 @@
 import { db } from '../db';
-import { users, resources, materials, customers, workSessions, gpsLogs } from '../db/schema';
+import { users, resources, materials, customers, workSessions, gpsLogs, resourceCategories } from '../db/schema';
 import bcrypt from 'bcrypt';
 import { sql } from 'drizzle-orm';
 
 async function seedERP() {
   console.log('Seeding ERP dummy data for Margaz...');
 
-  await db.execute(sql`TRUNCATE TABLE work_sessions, gps_logs, session_photos, customers, materials, resources, users CASCADE`);
+  await db.execute(sql`TRUNCATE TABLE work_sessions, gps_logs, session_photos, customers, materials, resources, users, resource_categories CASCADE`);
 
   console.log('Insert Admin & Workers...');
   const adminHash = await bcrypt.hash('admin123', 10);
@@ -19,14 +19,20 @@ async function seedERP() {
     { fullName: 'Tomasz (Operator koparki)', usernameEmail: 'tomek_kop', passwordHash: workerHash, role: 'worker' },
   ]).returning({ id: users.id, name: users.fullName });
 
-  console.log('Insert Resources...');
+  console.log('Insert Resource Categories & Resources...');
+  const insertedCategories = await db.insert(resourceCategories).values([
+    { name: 'Pojazdy Transportowe (Wywrotki)' },
+    { name: 'Maszyny Ciężkie (Koparki/Ładowarki)' },
+    { name: 'Stacje i Warsztaty (Nieruchomości)' }
+  ]).returning({ id: resourceCategories.id });
+  
   const insertedResources = await db.insert(resources).values([
-    { name: 'Wywrotka MAN (WGR 12345)', type: 'VEHICLE' },
-    { name: 'Koparka CAT 320', type: 'MACHINE' },
-    { name: 'Ładowarka Volvo L120', type: 'MACHINE' },
-    { name: 'Warsztat Główny - Baza Margaz', type: 'STATIONARY' },
-    { name: 'Pojazd Klienta (Hamulce przód)', type: 'VEHICLE' }
-  ]).returning({ id: resources.id, type: resources.type, name: resources.name });
+    { name: 'Wywrotka MAN (WGR 12345)', categoryId: insertedCategories[0].id },
+    { name: 'Koparka CAT 320', categoryId: insertedCategories[1].id },
+    { name: 'Ładowarka Volvo L120', categoryId: insertedCategories[1].id },
+    { name: 'Warsztat Główny - Baza Margaz', categoryId: insertedCategories[2].id },
+    { name: 'Pojazd Klienta (Hamulce przód)', categoryId: insertedCategories[0].id }
+  ]).returning({ id: resources.id, name: resources.name });
 
   console.log('Insert Materials...');
   const insertedMaterials = await db.insert(materials).values([
