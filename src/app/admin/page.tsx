@@ -1,6 +1,6 @@
 import LiveMap from "@/components/Map/LiveMap";
 import { db } from "@/db";
-import { workSessions, users, resources, materials } from "@/db/schema";
+import { workSessions, users, resources, materials, companySettings } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { HardHat, Wrench, Truck, ArrowRight } from "lucide-react";
 
@@ -22,16 +22,18 @@ export default async function DashboardPage() {
     .where(eq(workSessions.status, "IN_PROGRESS"))
     .orderBy(desc(workSessions.startTime));
 
-  const completedToday = await db.select()
-    .from(workSessions)
-    .where(eq(workSessions.status, "COMPLETED"));
+  const settingsList = await db.select().from(companySettings).limit(1);
+  const companySSOT = settingsList[0];
+  const companyCity = companySSOT?.city || "Twoim Regionie";
+  const mapLat = companySSOT?.baseLatitude ? parseFloat(companySSOT.baseLatitude) : 52.401;
+  const mapLng = companySSOT?.baseLongitude ? parseFloat(companySSOT.baseLongitude) : 22.015;
 
   return (
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-white tracking-tight">Dzień dobry, Szefie 👋</h1>
-          <p className="text-zinc-500 mt-1">Oto podsumowanie działalności i sprzętu Margaz w tym momencie.</p>
+          <p className="text-zinc-500 mt-1">Oto podsumowanie działalności i sprzętu dla {companySSOT?.companyName || "Twojej Firmy"} w tym momencie.</p>
         </div>
       </div>
 
@@ -113,11 +115,11 @@ export default async function DashboardPage() {
         <div className="xl:col-span-1 h-[400px] xl:h-[auto] min-h-[450px]">
            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden h-full flex flex-col relative shadow-sm">
               <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-zinc-950/90 to-transparent z-10 pointer-events-none">
-                 <h2 className="font-semibold text-white drop-shadow-md">Węgrów na żywo - Radary GPS</h2>
-                 <p className="text-xs text-zinc-400 mt-1 drop-shadow-md">Wykryto dostawców na terenie Łochowa.</p>
+                 <h2 className="font-semibold text-white drop-shadow-md">{companyCity} - Radary na żywo</h2>
+                 <p className="text-xs text-zinc-400 mt-1 drop-shadow-md">Wykryto dostawców w tym okręgu.</p>
               </div>
               <div className="flex-1 w-full relative h-full min-h-[450px]">
-                 <LiveMap />
+                 <LiveMap lat={mapLat} lng={mapLng} />
               </div>
            </div>
         </div>

@@ -10,7 +10,7 @@ const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLa
 const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
 const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
 
-export default function LiveMap() {
+export default function LiveMap({ lat = 52.401, lng = 22.015 }: { lat?: number, lng?: number }) {
   const [mounted, setMounted] = useState(false);
   const [L, setL] = useState<any>(null);
 
@@ -45,27 +45,25 @@ export default function LiveMap() {
     iconAnchor: [8, 8]
   });
 
-  // Środek w przybliżeniu (Polska/Mazowsze)
-  const position: [number, number] = [52.2297, 21.0122];
+  const position: [number, number] = [lat, lng];
 
   return (
     <div className="w-full h-full relative z-0">
       <MapContainer 
         center={position} 
-        zoom={6} 
+        zoom={12} 
         scrollWheelZoom={true} 
-        style={{ height: "100%", width: "100%", backgroundColor: '#0a0a0b' }}
+        style={{ height: "100%", width: "100%", backgroundColor: '#e5e7eb' }}
         zoomControl={false}
       >
-        {/* Głęboki tryb ciemny do OSM z cartodb (dark matter) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={position} icon={customIcon}>
           <Popup className="werkit-popup">
-            <div className="text-sm font-medium text-zinc-900">Baza Główna (Warsztat)</div>
-            <div className="text-xs text-zinc-500">Status: Aktywny</div>
+            <div className="text-sm font-medium text-zinc-900">Radar Główny</div>
+            <div className="text-xs text-zinc-500">SSOT: Ośrodek centralny</div>
           </Popup>
         </Marker>
       </MapContainer>

@@ -6,20 +6,27 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Zawsze trzymamy tylko jeden nadrzędny wiersz ustawień z id = 1
     await db.insert(companySettings)
       .values({ 
          id: 1, 
-         companyName: body.companyName, 
-         companyAddress: body.companyAddress, 
+         companyName: body.companyName || 'Werkit ERP', 
+         companyAddress: body.companyAddress || '', 
+         zipCode: body.zipCode || '', 
+         city: body.city || '', 
+         phone: body.phone || '', 
+         email: body.email || '', 
          baseLatitude: body.baseLatitude, 
          baseLongitude: body.baseLongitude 
       })
       .onConflictDoUpdate({
          target: companySettings.id,
          set: {
-           companyName: body.companyName, 
-           companyAddress: body.companyAddress, 
+           companyName: body.companyName || 'Werkit ERP', 
+           companyAddress: body.companyAddress || '', 
+           zipCode: body.zipCode || '', 
+           city: body.city || '', 
+           phone: body.phone || '', 
+           email: body.email || '', 
            baseLatitude: body.baseLatitude, 
            baseLongitude: body.baseLongitude 
          }
