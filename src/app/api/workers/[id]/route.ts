@@ -3,8 +3,9 @@ import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const params = await context.params;
     const id = parseInt(params.id);
     if (!id) return NextResponse.json({ error: 'Nieprawidłowy ID' }, { status: 400 });
 
