@@ -68,6 +68,7 @@ export const gpsLogs = pgTable('gps_logs', {
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey(),
   companyName: varchar('company_name', { length: 255 }).notNull().default('Margaz ERP'),
+  companyAddress: text('company_address'),
   baseLatitude: numeric('base_latitude', { precision: 10, scale: 8 }),
   baseLongitude: numeric('base_longitude', { precision: 11, scale: 8 }),
 });
