@@ -82,7 +82,7 @@ export default function WorkersClient() {
         </div>
         <button onClick={() => setIsModalOpen(true)} className="bg-white text-zinc-950 px-5 py-2.5 text-sm font-semibold rounded-xl hover:bg-zinc-200 transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          Zatrudnij / Rejestruj
+          Dodaj pracownika
         </button>
       </div>
 
