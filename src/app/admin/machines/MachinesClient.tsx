@@ -25,8 +25,14 @@ export default function MachinesClient() {
     setIsLoading(true);
     try {
       const [mRes, cRes] = await Promise.all([ fetch("/api/machines"), fetch("/api/categories") ]);
-      setMachines(await mRes.json() || []);
-      setCategories(await cRes.json() || []);
+      const mData = await mRes.json();
+      const cData = await cRes.json();
+      setMachines(Array.isArray(mData) ? mData : []);
+      setCategories(Array.isArray(cData) ? cData : []);
+      if (!Array.isArray(mData) || !Array.isArray(cData)) {
+         console.error("API Error details:", {mData, cData});
+         alert("Przechwycono błąd bazy danych w Vercel. Odśwież stronę po sekundzie.");
+      }
     } catch (e) {
       console.error(e);
     }
