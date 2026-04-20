@@ -1,4 +1,4 @@
-import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat } from "lucide-react";
+import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -43,11 +43,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
             
             <div className="pt-4 pb-2 px-3">
-              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Raporty</p>
+              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Raporty i Magazyn</p>
             </div>
             <Link href="/admin/archive" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <FileClock className="w-4 h-4" />
               <span>Ewidencja Zleceń</span>
+            </Link>
+
+            <div className="pt-4 pb-2 px-3">
+              <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">System</p>
+            </div>
+            <Link href="/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+              <Settings className="w-4 h-4" />
+              <span>Ustawienia Firmy</span>
             </Link>
           </nav>
         </div>
