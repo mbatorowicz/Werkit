@@ -8,16 +8,15 @@ export const dynamic = 'force-dynamic';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Fetch SSOT for sidebar company name
   const settings = await db.select().from(companySettings).limit(1);
-  const companyName = settings[0]?.companyName || "Werkit ERP";
-  const companyCity = settings[0]?.city || "Wprowadź miasto";
+  const companyName = settings[0]?.companyName || "Dodaj Nazwę Firmy";
 
   return (
     <div className="flex h-screen bg-zinc-950 overflow-hidden text-zinc-100">
       <aside className="w-64 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-800">
-             <h1 className="text-xl font-bold text-white tracking-tight truncate max-w-full" title={companyName}>{companyName}</h1>
-             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5 truncate">{companyCity}</p>
+             <h1 className="text-xl font-bold text-white tracking-tight">Werkit.</h1>
+             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName}</p>
           </div>
           <nav className="p-4 space-y-1.5">
             <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
@@ -76,7 +75,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <main className="flex-1 flex flex-col min-w-0 bg-[#0a0a0b] overflow-y-auto">
         <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950 md:hidden sticky top-0 z-50">
-          <h1 className="text-lg font-bold text-white tracking-tight">{companyName}</h1>
+          <div className="flex flex-col justify-center">
+             <h1 className="text-lg font-bold text-white tracking-tight leading-tight">Werkit.</h1>
+             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase">{companyName}</p>
+          </div>
           <Activity className="text-zinc-600 w-5 h-5" />
         </header>
 
