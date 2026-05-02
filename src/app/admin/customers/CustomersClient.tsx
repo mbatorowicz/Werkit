@@ -76,9 +76,8 @@ export default function CustomersClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Users className="w-6 h-6 text-indigo-500" /> Klienci i Adresy</h1>
           <p className="text-zinc-500 mt-1">Stali klienci, firmy, budowy i zrzuty powiązane z transportami.</p>
         </div>
-        <button onClick={openNewModal} className="bg-indigo-600 text-zinc-900 dark:text-white px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-indigo-500 transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Dodaj Klienta / Lokalizację
+        <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Dodaj Kontrahenta
         </button>
       </div>
 

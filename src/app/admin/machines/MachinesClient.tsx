@@ -111,7 +111,7 @@ export default function MachinesClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">Park Maszynowy i Sprzęt</h1>
           <p className="text-zinc-500 mt-1">Ewidencjonuj pojazdy na podstawie ustawionych u góry kategorii.</p>
         </div>
-        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryId: ''}); setIsMMOpen(true);}} className="bg-amber-600 text-white px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-amber-500 transition shadow-sm flex items-center gap-2">
+        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryId: ''}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Zarejestruj Nowy Pojazd
         </button>
@@ -223,6 +223,7 @@ export default function MachinesClient() {
     </>
   )
 }
+
 
 
 

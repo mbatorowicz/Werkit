@@ -71,9 +71,8 @@ export default function MaterialsClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Box className="w-6 h-6 text-emerald-500" /> Baza Kruszyw</h1>
           <p className="text-zinc-500 mt-1">Zarządzaj klasyfikacją i rodzajami materiałów dostępnych w systemie.</p>
         </div>
-        <button onClick={openNewModal} className="bg-emerald-600 text-white px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-emerald-500 transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Dodaj Kruszywo
+        <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Dodaj Asortyment
         </button>
       </div>
 
@@ -158,6 +157,7 @@ export default function MaterialsClient() {
     </>
   )
 }
+
 
 
 
