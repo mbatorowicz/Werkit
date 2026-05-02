@@ -169,7 +169,17 @@ export default function OrdersClient() {
                     </div>
                   </td>
                 </tr>
-              ) : unifiedItems.map(item => (
+              ) : unifiedItems.map(item => {
+                const isWorking = item.status === 'IN_PROGRESS';
+                let progress = 0;
+                if (isWorking && item._sortDate) {
+                  const start = new Date(item._sortDate).getTime();
+                  const now = Date.now();
+                  const elapsedMs = now - start;
+                  const expectedMs = (item.expectedDurationHours || 8) * 60 * 60 * 1000;
+                  progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
+                }
+                return (
                 <tr key={`${item._type}-${item.id}`} onClick={() => setSelectedItem(item)} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors cursor-pointer relative group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
@@ -225,15 +235,24 @@ export default function OrdersClient() {
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${item.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20' : item.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
                         {item.status === 'PENDING' ? dict.pending : item.status === 'IN_PROGRESS' ? getDictionary().admin.archive.inProgress : getDictionary().admin.archive.completed}
                       </span>
-                      {item.status === 'IN_PROGRESS' && (
-                        <div className="w-24 h-1.5 bg-blue-100 dark:bg-blue-950 rounded-full overflow-hidden mt-1">
-                          <div className="h-full bg-blue-500 animate-pulse rounded-full w-full"></div>
+                      {isWorking && (
+                        <div className="mt-3">
+                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
+                            <span>Postęp czasu</span>
+                            <span>{progress}%</span>
+                          </div>
+                          <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-1.5 overflow-hidden">
+                            <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 relative"
+                                 style={{ width: `${Math.max(5, progress)}%` }}>
+                               <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>
                   </td>
                 </tr>
-              ))}
+              );})}
             </tbody>
           </table>
         </div>

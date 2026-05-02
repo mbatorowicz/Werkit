@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions } from '@/db/schema';
+import { workSessions, sessionNotes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -23,13 +23,14 @@ export async function POST(request: Request) {
        return NextResponse.json({ error: 'No active session' }, { status: 400 });
     }
 
-    const currentDesc = existing[0].taskDescription || '';
-    const noteWithLoc = location ? `${note} (GPS: ${location.lat.toFixed(5)}, ${location.lng.toFixed(5)})` : note;
-    const newDesc = currentDesc ? `${currentDesc}\n\n[Dodatkowa notatka]: ${noteWithLoc}` : `[Notatka]: ${noteWithLoc}`;
+    await db.insert(sessionNotes).values({
+      workSessionId: existing[0].id,
+      note: note,
+      latitude: location ? location.lat.toString() : null,
+      longitude: location ? location.lng.toString() : null,
+    });
 
-    await db.update(workSessions).set({ taskDescription: newDesc }).where(eq(workSessions.id, existing[0].id));
-
-    return NextResponse.json({ success: true, newDesc });
+    return NextResponse.json({ success: true });
   } catch (err: any) {
     return NextResponse.json({ error: 'Failed to add note' }, { status: 500 });
   }

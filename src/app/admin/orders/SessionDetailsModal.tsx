@@ -12,6 +12,7 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
 export default function SessionDetailsModal({ item, onClose }: { item: any, onClose: () => void }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -22,21 +23,22 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
         .then(data => {
           if (data.logs) setLogs(data.logs);
           if (data.photos) setPhotos(data.photos);
+          if (data.notes) setNotes(data.notes);
         })
         .catch(console.error)
         .finally(() => setIsLoading(false));
     }
   }, [item]);
 
-  const hasMapData = logs.length > 0;
-  const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse(); // oldest to newest for path
-  const currentLocation = hasMapData ? pathTraveled[pathTraveled.length - 1] : { lat: 52.2297, lng: 21.0122 }; // fallback to Warsaw
-  
-  const events = photos.filter(p => p.latitude && p.longitude).map(p => ({
-    lat: parseFloat(p.latitude),
-    lng: parseFloat(p.longitude),
-    label: p.photoType === 'AD_HOC' ? 'Notatka/Zdjęcie' : (p.photoType === 'START' ? 'Start' : 'Koniec')
-  }));
+  const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse();
+  const events = [
+    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? 'Start' : (p.photoType === 'END' ? 'Koniec' : 'Zdjęcie') })),
+    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: 'Notatka' }))
+  ];
+  const hasMapData = logs.length > 0 || events.length > 0;
+  const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });
+
+  const timelineItems = [...photos.map(p => ({ ...p, type: 'photo', time: new Date(p.createdAt).getTime() })), ...notes.map(n => ({ ...n, type: 'note', time: new Date(n.createdAt).getTime() }))].sort((a, b) => b.time - a.time);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -79,31 +81,42 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
                        )}
                     </div>
 
-                    {photos.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
-                          <ImageIcon className="w-5 h-5 text-amber-500" /> Zdjęcia i Notatki
+                    {timelineItems.length > 0 && (
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
+                          <ImageIcon className="w-5 h-5 text-amber-500" /> Oś czasu: Zdjęcia i Notatki
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {photos.map(photo => (
-                            <div key={photo.id} className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-zinc-50 dark:bg-zinc-800/50">
-                              {photo.photoUrl.startsWith('data:') ? (
-                                <img src={photo.photoUrl} alt="Zdjęcie z trasy" className="w-full h-48 object-cover" />
-                              ) : (
-                                <div className="w-full h-48 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-400">
-                                  <FileText className="w-8 h-8 mb-2" />
-                                </div>
-                              )}
-                              <div className="p-3">
-                                <div className="text-xs text-zinc-500 mb-1">
-                                  {new Date(photo.createdAt).toLocaleString('pl-PL')}
-                                </div>
-                                <div className="text-sm font-medium text-zinc-900 dark:text-white">
-                                  {photo.photoType === 'START' ? 'Rozpoczęcie' : photo.photoType === 'END' ? 'Zakończenie' : 'Notatka z trasy'}
+                        <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 md:ml-[50%] space-y-8">
+                          {timelineItems.map((entry: any, index) => {
+                            const isNote = entry.type === 'note';
+                            const timeStr = new Date(entry.time).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+                            const dateStr = new Date(entry.time).toLocaleDateString('pl-PL');
+                            
+                            return (
+                              <div key={`${entry.type}-${entry.id}`} className={`relative flex items-center justify-between md:justify-normal w-full ${isNote ? 'md:flex-row-reverse left-0 md:left-2' : 'left-0 md:-left-2'}`}>
+                                <div className="absolute -left-[9px] md:left-auto md:relative md:mx-auto w-4 h-4 rounded-full bg-amber-500 border-4 border-white dark:border-zinc-900 z-10"></div>
+                                
+                                <div className={`w-[calc(100%-2rem)] md:w-[calc(50%-2rem)] pl-4 md:pl-0 ${isNote ? 'md:pr-8' : 'md:pl-8'}`}>
+                                  <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                                    <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
+                                      {isNote ? <FileText className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
+                                      {dateStr} {timeStr}
+                                    </div>
+                                    {isNote ? (
+                                      <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note}</p>
+                                    ) : (
+                                      <>
+                                        <img src={entry.photoUrl} alt="Zdjęcie z trasy" className="w-full h-auto rounded-md mb-2 object-cover" />
+                                        <p className="text-sm text-zinc-900 dark:text-zinc-200 font-medium">
+                                          {entry.photoType === 'START' ? 'Rozpoczęcie' : entry.photoType === 'END' ? 'Zakończenie' : 'Zdjęcie z trasy'}
+                                        </p>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}

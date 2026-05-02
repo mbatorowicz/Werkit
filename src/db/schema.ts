@@ -71,6 +71,15 @@ export const gpsLogs = pgTable('gps_logs', {
   timestamp: timestamp('timestamp').notNull().defaultNow(),
 });
 
+export const sessionNotes = pgTable('session_notes', {
+  id: serial('id').primaryKey(),
+  workSessionId: integer('work_session_id').notNull().references(() => workSessions.id, { onDelete: 'cascade' }),
+  note: text('note').notNull(),
+  latitude: numeric('latitude', { precision: 10, scale: 8 }),
+  longitude: numeric('longitude', { precision: 11, scale: 8 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey(),
   companyName: varchar('company_name', { length: 255 }).notNull().default('Werkit ERP'),
@@ -124,6 +133,7 @@ export const workSessionsRelations = relations(workSessions, ({ one, many }) => 
   }),
   photos: many(sessionPhotos),
   gpsLogs: many(gpsLogs),
+  notes: many(sessionNotes),
 }));
 
 export const resourcesRelations = relations(resources, ({ one }) => ({
