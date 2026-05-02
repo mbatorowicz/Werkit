@@ -3,6 +3,8 @@ import { db } from '@/db';
 import { customers } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const allCustomers = await db.select().from(customers).orderBy(desc(customers.id));
