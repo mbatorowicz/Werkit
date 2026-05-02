@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, type } = body;
 
-    if(!name || !type) {
+    if (!name || !type) {
       return NextResponse.json({ error: 'Nazwa oraz typ kruszywa są wymagane.' }, { status: 400 });
     }
 
