@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Box, Plus, X, Edit2 } from "lucide-react";
+import { Trash2, HardHat, Plus, X, Edit2 } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
 type Material = {
@@ -72,7 +72,7 @@ export default function MaterialsClient() {
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Box className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><HardHat className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
         <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">

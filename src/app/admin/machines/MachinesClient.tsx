@@ -120,7 +120,7 @@ export default function MachinesClient() {
       {/* SEKCJA ZASOBÓW FIZYCZNYCH */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-zinc-800/80 pt-10">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">{dict.fleetTitle}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Wrench className="w-6 h-6 text-emerald-500" /> {dict.fleetTitle}</h1>
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
         <button onClick={() => {setMEditId(null); setMForm({name: '', categoryId: ''}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">

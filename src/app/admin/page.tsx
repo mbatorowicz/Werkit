@@ -59,7 +59,7 @@ export default async function DashboardPage() {
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">{dict.title}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Activity className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle} {companySSOT?.companyName || "Twojej firmy"}.</p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Map, Activity } from "lucide-react";
+import { Search, Map, Activity, FileClock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
 export default function ArchiveClient() {
@@ -31,7 +31,7 @@ export default function ArchiveClient() {
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
       <div className="mb-8">
-        <h1 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-white">{dict.title}</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><FileClock className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
         <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
       </div>
 
