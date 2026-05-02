@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Shield, Plus, X, Lock, Edit2 } from "lucide-react";
+import { Trash2, Shield, Plus, X, Lock, Edit2, Loader2 } from "lucide-react";
 
 type Worker = {
   id: number;
