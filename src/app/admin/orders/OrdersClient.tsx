@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Map, Plus, X, Search } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import SessionDetailsModal from "./SessionDetailsModal";
 
 export default function OrdersClient() {
   const [workers, setWorkers] = useState<any[]>([]);
@@ -14,6 +15,7 @@ export default function OrdersClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
@@ -168,7 +170,7 @@ export default function OrdersClient() {
                   </td>
                 </tr>
               ) : unifiedItems.map(item => (
-                <tr key={`${item._type}-${item.id}`} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors relative group">
+                <tr key={`${item._type}-${item.id}`} onClick={() => setSelectedItem(item)} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors cursor-pointer relative group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
@@ -332,6 +334,10 @@ export default function OrdersClient() {
               </form>
            </div>
         </div>
+      )}
+
+      {selectedItem && (
+        <SessionDetailsModal item={selectedItem} onClose={() => setSelectedItem(null)} />
       )}
     </>
   )
