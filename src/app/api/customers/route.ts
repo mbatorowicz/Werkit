@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { firstName, lastName, defaultAddress } = body;
+    const { firstName, lastName, defaultAddress, latitude, longitude } = body;
 
     if(!lastName) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     await db.insert(customers).values({ 
       firstName: firstName || null, 
       lastName, 
-      defaultAddress: defaultAddress || null 
+      defaultAddress: defaultAddress || null,
+      latitude: latitude ? latitude.toString() : null,
+      longitude: longitude ? longitude.toString() : null
     });
     
     return NextResponse.json({ success: true });

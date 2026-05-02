@@ -9,6 +9,8 @@ type Customer = {
   firstName: string | null;
   lastName: string;
   defaultAddress: string | null;
+  latitude: string | null;
+  longitude: string | null;
 };
 
 export default function CustomersClient() {
@@ -17,7 +19,7 @@ export default function CustomersClient() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ firstName: '', lastName: '', defaultAddress: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.customers;
@@ -59,7 +61,7 @@ export default function CustomersClient() {
 
   const openNewModal = () => {
     setEditId(null);
-    setForm({ firstName: '', lastName: '', defaultAddress: '' });
+    setForm({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
     setIsModalOpen(true);
   };
 
@@ -68,7 +70,9 @@ export default function CustomersClient() {
     setForm({ 
       firstName: customer.firstName || '', 
       lastName: customer.lastName, 
-      defaultAddress: customer.defaultAddress || '' 
+      defaultAddress: customer.defaultAddress || '',
+      latitude: customer.latitude || '',
+      longitude: customer.longitude || ''
     });
     setIsModalOpen(true);
   };
@@ -158,6 +162,16 @@ export default function CustomersClient() {
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">{dict.addressLabel}</label>
                    <input type="text" placeholder={dict.addressPlaceholder} value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">Szerokość geograficzna (Latitude)</label>
+                     <input type="text" placeholder="np. 52.2297" value={form.latitude} onChange={e => setForm({...form, latitude: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">Długość geograficzna (Longitude)</label>
+                     <input type="text" placeholder="np. 21.0122" value={form.longitude} onChange={e => setForm({...form, longitude: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                   </div>
                  </div>
                  
                  <div className="pt-4 border-t border-zinc-800">

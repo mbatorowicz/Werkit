@@ -34,6 +34,8 @@ export const customers = pgTable('customers', {
   firstName: varchar('first_name', { length: 255 }),
   lastName: varchar('last_name', { length: 255 }).notNull(),
   defaultAddress: text('default_address'),
+  latitude: numeric('latitude', { precision: 10, scale: 8 }),
+  longitude: numeric('longitude', { precision: 11, scale: 8 }),
 });
 
 export const workSessions = pgTable('work_sessions', {

@@ -14,7 +14,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     await db.update(customers).set({ 
        firstName: body.firstName || null,
        lastName: body.lastName,
-       defaultAddress: body.defaultAddress || null
+       defaultAddress: body.defaultAddress || null,
+       latitude: body.latitude ? body.latitude.toString() : null,
+       longitude: body.longitude ? body.longitude.toString() : null
     }).where(eq(customers.id, id));
     
     return NextResponse.json({ success: true });
