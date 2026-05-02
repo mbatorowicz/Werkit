@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { workOrders, users, resources, materials, customers } from '@/db/schema';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, aliasedTable } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-sec
 
 export async function GET() {
   try {
+    const creator = aliasedTable(users, 'creator');
+
     const data = await db.select({
        id: workOrders.id,
        status: workOrders.status,
@@ -18,6 +20,7 @@ export async function GET() {
        taskDescription: workOrders.taskDescription,
        createdAt: workOrders.createdAt,
        workerName: users.fullName,
+       creatorName: creator.fullName,
        resourceName: resources.name,
        materialName: materials.name,
        customerFirstName: customers.firstName,
@@ -25,6 +28,7 @@ export async function GET() {
      })
      .from(workOrders)
      .leftJoin(users, eq(workOrders.userId, users.id))
+     .leftJoin(creator, eq(workOrders.createdById, creator.id))
      .leftJoin(resources, eq(workOrders.resourceId, resources.id))
      .leftJoin(materials, eq(workOrders.materialId, materials.id))
      .leftJoin(customers, eq(workOrders.customerId, customers.id))
@@ -57,7 +61,8 @@ export async function POST(request: Request) {
       materialId: materialId ? parseInt(materialId) : null,
       customerId: customerId ? parseInt(customerId) : null,
       taskDescription: taskDescription || null,
-      status: 'PENDING'
+      status: 'PENDING',
+      createdById: verified.payload.userId as number
     });
 
     return NextResponse.json({ success: true });

@@ -120,6 +120,11 @@ export default function OrdersClient() {
                   <td className="px-6 py-4">
                     <div className="font-medium text-zinc-900 dark:text-zinc-200">{order.workerName}</div>
                     <div className="text-xs text-zinc-500 mt-0.5">{new Date(order.createdAt).toLocaleDateString('pl-PL')} {new Date(order.createdAt).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}</div>
+                    {order.creatorName && (
+                      <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
+                        Zlecił: <span className="font-medium text-zinc-500">{order.creatorName}</span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
                     {order.resourceName}

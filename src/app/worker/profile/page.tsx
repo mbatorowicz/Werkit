@@ -46,7 +46,7 @@ export default async function ProfilePage() {
       <div className="space-y-4">
          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center">
             <span className="text-zinc-500 text-sm font-medium">Login Systemowy:</span>
-            <span className="text-white font-mono bg-[#f2fbfa] dark:bg-zinc-900 px-3 py-1 rounded-md border border-zinc-800">
+            <span className="text-zinc-900 dark:text-zinc-100 font-mono bg-[#f2fbfa] dark:bg-zinc-950 px-3 py-1 rounded-md border border-zinc-200 dark:border-zinc-700">
               {user?.usernameEmail}
             </span>
          </div>

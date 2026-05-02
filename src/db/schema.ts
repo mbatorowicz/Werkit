@@ -92,6 +92,7 @@ export const workOrders = pgTable('work_orders', {
   taskDescription: text('task_description'),
   status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING, COMPLETED, CANCELLED
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  createdById: integer('created_by_id').references(() => users.id, { onDelete: 'set null' }),
 });
 
 // Relacje ułatwiające zapytania ORM

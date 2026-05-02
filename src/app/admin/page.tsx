@@ -1,12 +1,15 @@
 import LiveMap from "@/components/Map/LiveMap";
 import { db } from "@/db";
 import { workSessions, users, resources, materials, companySettings } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { HardHat, Wrench, Truck, ArrowRight } from "lucide-react";
+import { eq, desc, and, gte } from "drizzle-orm";
+import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
   const activeSessions = await db.select({
     id: workSessions.id,
     type: workSessions.sessionType,
@@ -27,6 +30,28 @@ export default async function DashboardPage() {
   const companyCity = companySSOT?.city || "Twoim Regionie";
   const mapLat = companySSOT?.baseLatitude ? parseFloat(companySSOT.baseLatitude) : 52.401;
   const mapLng = companySSOT?.baseLongitude ? parseFloat(companySSOT.baseLongitude) : 22.015;
+
+  // Analytics: Fetch completed sessions this month
+  const monthSessions = await db.select({
+      id: workSessions.id,
+      tons: workSessions.quantityTons,
+      resourceName: resources.name
+    })
+    .from(workSessions)
+    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
+    .where(and(eq(workSessions.status, 'COMPLETED'), gte(workSessions.startTime, firstDayOfMonth)));
+
+  const totalSessionsThisMonth = monthSessions.length;
+  const totalTonsThisMonth = monthSessions.reduce((acc, curr) => acc + (curr.tons ? parseFloat(curr.tons as any) : 0), 0);
+  
+  const machineStats: Record<string, number> = {};
+  monthSessions.forEach(s => {
+    if (s.resourceName) {
+      machineStats[s.resourceName] = (machineStats[s.resourceName] || 0) + 1;
+    }
+  });
+  const topMachines = Object.entries(machineStats).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  const maxMachineSessions = topMachines.length > 0 ? topMachines[0][1] : 1;
 
   return (
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
@@ -121,6 +146,57 @@ export default async function DashboardPage() {
               <div className="flex-1 w-full relative h-full min-h-[450px]">
                  <LiveMap currentLocation={{lat: mapLat, lng: mapLng}} pathTraveled={[]} destination={null} />
               </div>
+           </div>
+        </div>
+      </div>
+
+      {/* Analiza i Raportowanie - Wykresy */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Podsumowanie Miesiąca */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
+           <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                 <TrendingUp className="w-5 h-5 text-emerald-500" />
+              </div>
+              <h2 className="font-semibold text-zinc-900 dark:text-white">Efektywność w tym miesiącu</h2>
+           </div>
+           
+           <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 bg-[#f2fbfa] dark:bg-zinc-950 border border-emerald-100 dark:border-zinc-800 rounded-xl">
+                 <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">Zrealizowane zadania</div>
+                 <div className="text-3xl font-black text-emerald-600 dark:text-emerald-500">{totalSessionsThisMonth}</div>
+              </div>
+              <div className="p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl">
+                 <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">Przewiezione kruszywa</div>
+                 <div className="text-3xl font-black text-zinc-900 dark:text-white">{totalTonsThisMonth.toFixed(1)} <span className="text-lg text-zinc-500">t</span></div>
+              </div>
+           </div>
+        </div>
+
+        {/* Ranking Maszyn */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
+           <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-amber-500/10 rounded-lg">
+                 <BarChart3 className="w-5 h-5 text-amber-500" />
+              </div>
+              <h2 className="font-semibold text-zinc-900 dark:text-white">Wykorzystanie Maszyn (Top 4)</h2>
+           </div>
+           
+           <div className="space-y-4">
+              {topMachines.length === 0 ? (
+                <p className="text-zinc-500 text-sm italic">Brak danych za ten miesiąc.</p>
+              ) : topMachines.map(([name, count]) => (
+                <div key={name} className="flex items-center gap-4">
+                   <div className="w-32 truncate text-sm font-medium text-zinc-700 dark:text-zinc-300" title={name}>{name}</div>
+                   <div className="flex-1 h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-amber-500 rounded-full"
+                        style={{ width: `${(count / maxMachineSessions) * 100}%` }}
+                      />
+                   </div>
+                   <div className="w-8 text-right text-xs font-bold text-zinc-500">{count}</div>
+                </div>
+              ))}
            </div>
         </div>
       </div>
