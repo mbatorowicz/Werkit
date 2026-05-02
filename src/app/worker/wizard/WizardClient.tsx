@@ -100,7 +100,7 @@ export default function WizardClient() {
             {orders.length > 0 && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-amber-500 mb-3 flex items-center gap-2">
-                  Zlecenia od Szefa
+                  Oczekujące zlecenia
                 </h2>
                 <div className="space-y-3">
                   {orders.map(order => (

@@ -32,8 +32,8 @@ export default async function DashboardPage() {
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">Dzień dobry, Szefie 👋</h1>
-          <p className="text-zinc-500 mt-1">Oto podsumowanie działalności i sprzętu dla {companySSOT?.companyName || "Twojej Firmy"} w tym momencie.</p>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">Przegląd systemu</h1>
+          <p className="text-zinc-500 mt-1">Bieżące podsumowanie floty i działalności dla {companySSOT?.companyName || "Twojej firmy"}.</p>
         </div>
       </div>
 
