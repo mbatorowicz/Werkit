@@ -23,7 +23,7 @@ export default function WorkersClient() {
   const fetchWorkers = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/workers");
+      const res = await fetch("/api/workers", { cache: "no-store" });
       const data = await res.json();
       setWorkers(data || []);
     } catch (e) {
@@ -169,12 +169,12 @@ export default function WorkersClient() {
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Imię i Nazwisko</label>
-                   <input required type="text" placeholder="Np. Jan Kowalski" value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                   <input required type="text" placeholder="Np. Jan Kowalski" value={form.fullName} onChange={e => setForm({...form, fullName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  </div>
                  
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-amber-500/80">Typ Uprawnień</label>
-                   <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                   <select value={form.role} onChange={e => setForm({...form, role: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="worker">Fizyczny Pracownik (Kierowca / Mechanik)</option>
                      <option value="admin">Administrator Biurowy (Pełen Dostęp)</option>
                    </select>
@@ -183,13 +183,13 @@ export default function WorkersClient() {
                  <div className="grid grid-cols-2 gap-4 pt-2">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-400">Login (Unikalny)</label>
-                      <input required type="text" placeholder="janek_k" value={form.usernameEmail} onChange={e => setForm({...form, usernameEmail: e.target.value.toLowerCase()})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                      <input required type="text" placeholder="janek_k" value={form.usernameEmail} onChange={e => setForm({...form, usernameEmail: e.target.value.toLowerCase()})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-400">{editId ? "Nowy PIN (puste=bez zmian)" : "Hasło (PIN)"}</label>
                       <div className="relative">
                         <Lock className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input required={!editId} type="text" placeholder={editId ? "*** (ukryte)" : "1234"} value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 pl-10 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                        <input required={!editId} type="text" placeholder={editId ? "*** (ukryte)" : "1234"} value={form.password} onChange={e => setForm({...form, password: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 pl-10 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                       </div>
                     </div>
                  </div>

@@ -16,7 +16,7 @@ export default function ArchivePage() {
             <input 
               type="text" 
               placeholder="Szukaj po operatorze lub maszynie..." 
-              className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
+              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
             />
           </div>
           <button className="text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-900 dark:text-white px-4 py-2 rounded-lg transition font-medium">

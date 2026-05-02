@@ -22,10 +22,10 @@ export default function OrdersClient() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/workers").then(r => r.json()),
-      fetch("/api/machines").then(r => r.json()),
-      fetch("/api/materials").then(r => r.json()),
-      fetch("/api/customers").then(r => r.json())
+      fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/customers", { cache: "no-store" }).then(r => r.json())
     ]).then(([wor, mac, mat, cus]) => {
       setWorkers(Array.isArray(wor) ? wor : []);
       setMachines(Array.isArray(mac) ? mac : []);
@@ -94,7 +94,7 @@ export default function OrdersClient() {
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-amber-500">Wybierz pracownika</label>
-                   <select required value={form.userId} onChange={e => setForm({...form, userId: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                   <select required value={form.userId} onChange={e => setForm({...form, userId: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="" disabled>Wybierz kogoś z listy...</option>
                      {workers.map(w => <option key={w.id} value={w.id}>{w.fullName}</option>)}
                    </select>
@@ -102,7 +102,7 @@ export default function OrdersClient() {
                  
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Typ Pracy</label>
-                   <select required value={form.sessionType} onChange={e => setForm({...form, sessionType: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                   <select required value={form.sessionType} onChange={e => setForm({...form, sessionType: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="TRANSPORT">Transport Kruszyw</option>
                      <option value="MACHINE_OP">Praca Sprzętem (Koparki/Ładowarki)</option>
                      <option value="WORKSHOP">Warsztat / Naprawy</option>
@@ -111,7 +111,7 @@ export default function OrdersClient() {
 
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Przydzielony Sprzęt / Maszyna</label>
-                   <select required value={form.resourceId} onChange={e => setForm({...form, resourceId: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                   <select required value={form.resourceId} onChange={e => setForm({...form, resourceId: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="" disabled>Wybierz pojazd/maszynę...</option>
                      {machines.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                    </select>
@@ -121,14 +121,14 @@ export default function OrdersClient() {
                    <>
                      <div className="space-y-2">
                        <label className="text-sm font-medium text-zinc-400">Towar (Kruszywo)</label>
-                       <select required value={form.materialId} onChange={e => setForm({...form, materialId: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                       <select required value={form.materialId} onChange={e => setForm({...form, materialId: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                          <option value="" disabled>Wybierz materiał...</option>
                          {materials.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                        </select>
                      </div>
                      <div className="space-y-2">
                        <label className="text-sm font-medium text-zinc-400">Klient Docelowy</label>
-                       <select required value={form.customerId} onChange={e => setForm({...form, customerId: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                       <select required value={form.customerId} onChange={e => setForm({...form, customerId: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                          <option value="" disabled>Wybierz klienta...</option>
                          {customers.map(c => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
                        </select>
@@ -139,7 +139,7 @@ export default function OrdersClient() {
                  {form.sessionType !== 'TRANSPORT' && (
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">Zadanie / Opis zlecenia</label>
-                     <textarea required placeholder="Krótki opis zadania dla pracownika..." value={form.taskDescription} onChange={e => setForm({...form, taskDescription: e.target.value})} className="w-full h-24 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none resize-none"></textarea>
+                     <textarea required placeholder="Krótki opis zadania dla pracownika..." value={form.taskDescription} onChange={e => setForm({...form, taskDescription: e.target.value})} className="w-full h-24 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none resize-none"></textarea>
                    </div>
                  )}
                  

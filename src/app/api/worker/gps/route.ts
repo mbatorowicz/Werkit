@@ -42,11 +42,11 @@ export async function POST(request: Request) {
     const { latitude, longitude } = body;
 
     if (!latitude || !longitude) {
-       return NextResponse.json({ error: 'Missing coordinates' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing coordinates' }, { status: 400 });
     }
 
     const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    
+
     if (activeSessions.length === 0) {
       return NextResponse.json({ error: 'No active session to log GPS' }, { status: 400 });
     }

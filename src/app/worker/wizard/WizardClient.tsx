@@ -24,10 +24,10 @@ export default function WizardClient() {
   useEffect(() => {
     // Fetch references
     Promise.all([
-      fetch("/api/machines").then(r => r.json()),
-      fetch("/api/materials").then(r => r.json()),
-      fetch("/api/customers").then(r => r.json()),
-      fetch("/api/worker/work-orders").then(r => r.json())
+      fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/customers", { cache: "no-store" }).then(r => r.json()),
+      fetch("/api/worker/work-orders", { cache: "no-store" }).then(r => r.json())
     ]).then(([mac, mat, cus, ord]) => {
       setMachines(mac || []);
       setMaterials(mat || []);
@@ -134,7 +134,7 @@ export default function WizardClient() {
             
             <div className="space-y-4">
               <button onClick={() => { setSessionType('TRANSPORT'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'TRANSPORT' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Truck className="w-6 h-6" />
                 </div>
                 <div className="text-left">
@@ -144,7 +144,7 @@ export default function WizardClient() {
               </button>
 
               <button onClick={() => { setSessionType('MACHINE_OP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'MACHINE_OP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Tractor className="w-6 h-6" />
                 </div>
                 <div className="text-left">
@@ -154,7 +154,7 @@ export default function WizardClient() {
               </button>
 
               <button onClick={() => { setSessionType('WORKSHOP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'WORKSHOP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Wrench className="w-6 h-6" />
                 </div>
                 <div className="text-left">

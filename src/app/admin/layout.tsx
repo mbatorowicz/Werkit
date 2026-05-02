@@ -1,5 +1,6 @@
 import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { db } from "@/db";
 import { companySettings } from "@/db/schema";
 import { APP_VERSION } from "@/lib/version";
@@ -12,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const companyName = settings[0]?.companyName || "Dodaj Nazwę Firmy";
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900 overflow-hidden text-zinc-100">
+    <div className="flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-100">
       <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-800">
@@ -73,8 +74,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           </nav>
         </div>
-        <div className="p-4 border-t border-zinc-800">
-          <button className="w-full flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/60 rounded-lg transition-all group">
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <ThemeToggle />
+          <button className="flex-1 flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 rounded-lg transition-all group">
             <LogOut className="w-4 h-4 group-hover:text-red-400 transition-colors" />
             <span className="text-sm font-medium">Wyloguj sesję</span>
           </button>
@@ -82,7 +84,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
 
       <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 overflow-y-auto">
-        <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 md:hidden sticky top-0 z-50">
+        <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 md:hidden sticky top-0 z-50">
           <div className="flex flex-col justify-center">
              <div className="flex items-center gap-2">
                <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>

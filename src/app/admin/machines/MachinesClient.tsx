@@ -24,9 +24,10 @@ export default function MachinesClient() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [mRes, cRes] = await Promise.all([ fetch("/api/machines"), fetch("/api/categories") ]);
-      const mData = await mRes.json();
-      const cData = await cRes.json();
+      const [mData, cData] = await Promise.all([
+        fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/categories", { cache: "no-store" }).then(r => r.json())
+      ]);
       setMachines(Array.isArray(mData) ? mData : []);
       setCategories(Array.isArray(cData) ? cData : []);
       if (!Array.isArray(mData) || !Array.isArray(cData)) {
@@ -133,7 +134,7 @@ export default function MachinesClient() {
                  <tr key={machine.id} className="hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
+                         <div className="w-10 h-10 rounded-lg bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
                            <Truck className="w-5 h-5" />
                          </div>
                          <div>
@@ -181,7 +182,7 @@ export default function MachinesClient() {
                  <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4"/></button>
               </div>
               <form onSubmit={handleCSave} className="p-6">
-                 <input required type="text" placeholder="Np. Sprzęt Ciężki / Naczepy" value={cForm.name} onChange={e => setCForm({name: e.target.value})} className="w-full mb-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                 <input required type="text" placeholder="Np. Sprzęt Ciężki / Naczepy" value={cForm.name} onChange={e => setCForm({name: e.target.value})} className="w-full mb-4 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  <button type="submit" className="w-full bg-zinc-100 text-zinc-50 dark:text-zinc-950 font-semibold py-2.5 rounded-lg hover:bg-zinc-300 transition">Zapisz Słownik</button>
               </form>
            </div>
@@ -200,11 +201,11 @@ export default function MachinesClient() {
               <form onSubmit={handleMSave} className="p-6 space-y-6">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Identyfikator (Marka, Model lub Nr. Rej.)</label>
-                   <input required type="text" placeholder="Np. Wywrotka SCANIA WGR 8092" value={mForm.name} onChange={e => setMForm({...mForm, name: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                   <input required type="text" placeholder="Np. Wywrotka SCANIA WGR 8092" value={mForm.name} onChange={e => setMForm({...mForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  </div>
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-amber-500/80">Kategoria Słownikowa (Globalna)</label>
-                   <select required value={mForm.categoryId} onChange={e => setMForm({...mForm, categoryId: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                   <select required value={mForm.categoryId} onChange={e => setMForm({...mForm, categoryId: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="" disabled>-- Wybierz kategorię docelową --</option>
                      {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                    </select>

@@ -75,7 +75,7 @@ export default async function HistoryPage() {
                       </span>
                    </div>
                  ) : (
-                   <div className="text-sm text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg border border-zinc-800">
+                   <div className="text-sm text-zinc-500 dark:text-zinc-400 bg-[#f2fbfa] dark:bg-zinc-900 p-3 rounded-lg border border-zinc-800">
                      {s.taskDescription || 'Brak opisu prac'}
                    </div>
                  )}

@@ -1,5 +1,6 @@
 import { Map, Clock, User, LogOut } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { db } from "@/db";
 import { companySettings } from "@/db/schema";
 import { APP_VERSION } from "@/lib/version";
@@ -11,7 +12,7 @@ export default async function WorkerLayout({ children }: { children: React.React
   const companyName = settings[0]?.companyName || "Werkit ERP";
 
   return (
-    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-100">
+    <div className="flex flex-col min-h-screen bg-[#f2fbfa] dark:bg-zinc-900 text-zinc-100">
       <header className="h-16 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 sticky top-0 z-50">
         <div>
           <div className="flex items-center gap-2">
@@ -20,9 +21,12 @@ export default async function WorkerLayout({ children }: { children: React.React
           </div>
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]" title={companyName}>{companyName}</p>
         </div>
-        <Link href="/login" className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
-           <LogOut className="w-5 h-5" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href="/login" className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+             <LogOut className="w-5 h-5" />
+          </Link>
+        </div>
       </header>
 
       <main className="flex-1 w-full max-w-md mx-auto p-4">

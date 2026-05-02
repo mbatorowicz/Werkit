@@ -21,7 +21,7 @@ export default function MaterialsClient() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/materials");
+      const res = await fetch("/api/materials", { cache: "no-store" });
       const data = await res.json();
       setMaterials(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -132,11 +132,11 @@ export default function MaterialsClient() {
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Nazwa Handlowa</label>
-                   <input required type="text" placeholder="Np. Piasek Płukany 0-2mm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none" />
+                   <input required type="text" placeholder="Np. Piasek Płukany 0-2mm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none" />
                  </div>
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Typ (Klasyfikacja w systemie)</label>
-                   <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none appearance-none">
+                   <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none appearance-none">
                      <option value="PIASEK">Piasek</option>
                      <option value="ZWIR">Żwir</option>
                      <option value="POSPOLKA">Pospółka</option>

@@ -84,22 +84,22 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                
                <div className="space-y-2">
                  <label className="text-sm font-medium text-zinc-400">Prawna nazwa firmy</label>
-                 <input type="text" placeholder="Jan-Met Konstrukcje" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                 <input type="text" placeholder="Jan-Met Konstrukcje" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-400">Ulica, numer i lokal</label>
-                    <input type="text" placeholder="Przemysłowa 12" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                    <input type="text" placeholder="Przemysłowa 12" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-400">Kod pocztowy</label>
-                      <input type="text" placeholder="00-000" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                      <input type="text" placeholder="00-000" value={zipCode} onChange={(e) => setZipCode(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-400">Miasto</label>
-                      <input type="text" placeholder="Węgrów" value={city} onChange={(e) => setCity(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                      <input type="text" placeholder="Węgrów" value={city} onChange={(e) => setCity(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                     </div>
                   </div>
                </div>
@@ -107,11 +107,11 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-400">Numer kontaktowy telefonu</label>
-                    <input type="text" placeholder="+48 ..." value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                    <input type="text" placeholder="+48 ..." value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-400">Adres Email (Korespondencja)</label>
-                    <input type="text" placeholder="biuro@firma.pl" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                    <input type="text" placeholder="biuro@firma.pl" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                   </div>
                </div>
             </div>
@@ -133,11 +133,11 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-500">Geodługość (X)</label>
-                        <input type="text" value={lng.toFixed(5)} disabled className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
+                        <input type="text" value={lng.toFixed(5)} disabled className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-500">Geoszerokość (Y)</label>
-                        <input type="text" value={lat.toFixed(5)} disabled className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
+                        <input type="text" value={lat.toFixed(5)} disabled className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
                     </div>
                 </div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
@@ -145,7 +145,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                 </div>
             </div>
 
-            <div className="h-[350px] w-full bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-700/50 overflow-hidden relative shadow-inner">
+            <div className="h-[350px] w-full bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg border border-zinc-700/50 overflow-hidden relative shadow-inner">
                <SettingsMap lat={lat} lng={lng} onLocationChange={(newLat: number, newLng: number) => { setLat(newLat); setLng(newLng); }} />
                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur shadow text-xs font-bold px-3 py-1.5 rounded-full text-zinc-800 pointer-events-none z-[1000]">
                  Celownik Bazy Głównej

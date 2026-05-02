@@ -26,6 +26,7 @@ export async function POST(request: Request) {
     await db.insert(materials).values({ name, type });
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Błąd dodawania kruszywa.' }, { status: 500 });
+    console.error('Material Insert Error:', err);
+    return NextResponse.json({ error: 'Błąd dodawania kruszywa: ' + err.message }, { status: 500 });
   }
 }

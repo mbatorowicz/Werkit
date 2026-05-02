@@ -22,7 +22,7 @@ export default function CustomersClient() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/customers");
+      const res = await fetch("/api/customers", { cache: "no-store" });
       const data = await res.json();
       setCustomers(Array.isArray(data) ? data : []);
     } catch (e) {
@@ -145,16 +145,16 @@ export default function CustomersClient() {
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">Imię (Opcjonalne)</label>
-                     <input type="text" placeholder="Jan / Spółka" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                     <input type="text" placeholder="Jan / Spółka" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                    </div>
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">Nazwisko / Nazwa Firmy*</label>
-                     <input required type="text" placeholder="Kowalski / Budpol" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                     <input required type="text" placeholder="Kowalski / Budpol" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                    </div>
                  </div>
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Domyślny Adres Zrzutu / Dostawy</label>
-                   <input type="text" placeholder="Węgrów, ul. Leśna 5" value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
+                   <input type="text" placeholder="Węgrów, ul. Leśna 5" value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                  </div>
                  
                  <div className="pt-4 border-t border-zinc-800">

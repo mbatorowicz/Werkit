@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -42,7 +43,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 flex flex-col justify-center items-center p-4 selection:bg-zinc-800">
+    <div className="min-h-screen bg-[#f2fbfa] dark:bg-zinc-900 flex flex-col justify-center items-center p-4 selection:bg-zinc-800 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8">
         <div className="mb-8 text-center pt-2">
           <div className="flex items-center justify-center gap-2 mb-4">
