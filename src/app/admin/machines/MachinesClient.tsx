@@ -86,7 +86,7 @@ export default function MachinesClient() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> Słownik Typów (Kategorie Sprzętu)</h2>
           <p className="text-zinc-500 mt-1 text-sm">Zarządzaj słownikiem dostępnych klasyfikacji dla rejestrowanych pojazdów.</p>
         </div>
-        <button onClick={() => {setCEditId(null); setCForm({name: ''}); setIsCMOpen(true);}} className="bg-zinc-800 text-zinc-900 dark:text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-700 transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: ''}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> Dodaj Kategorię
         </button>
       </div>

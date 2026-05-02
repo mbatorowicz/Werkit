@@ -95,7 +95,7 @@ export default function WorkersClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">Karty Kadrowe Pracowników</h1>
           <p className="text-zinc-500 mt-1">Dodawaj oraz Modyfikuj wygenerowane konta do autoryzacji w aplikacji.</p>
         </div>
-        <button onClick={openNewModal} className="bg-white text-zinc-50 dark:text-zinc-950 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-200 transition shadow-sm flex items-center gap-2">
+        <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Dodaj pracownika
         </button>
@@ -204,9 +204,9 @@ export default function WorkersClient() {
                     </div>
                  )}
 
-                 <div className="pt-2">
-                    <button disabled={isSubmitting} type="submit" className="w-full bg-white text-zinc-50 dark:text-zinc-950 font-bold py-3 rounded-lg hover:bg-zinc-200 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
-                       {isSubmitting ? "Szyfrowanie i Zapis..." : (editId ? "Zapisz Zmiany w Bazie" : "Dodaj Pracownika w Bazie")}
+                  <div className="pt-4">
+                    <button disabled={isSubmitting} type="submit" className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold py-3 rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition active:scale-[0.98] shadow-sm disabled:opacity-50">
+                      {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (editId ? "Zapisz zmiany" : "Utwórz pracownika")}
                     </button>
                  </div>
               </form>
