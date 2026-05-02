@@ -1,6 +1,7 @@
 import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MobileAdminNav } from "@/components/MobileAdminNav";
 import { db } from "@/db";
 import { companySettings } from "@/db/schema";
 import { APP_VERSION } from "@/lib/version";
@@ -92,7 +93,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
              </div>
              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
-          <Activity className="text-zinc-600 w-5 h-5" />
+          <MobileAdminNav companyName={companyName} version={APP_VERSION} />
         </header>
 
         <div className="flex-1 relative">
