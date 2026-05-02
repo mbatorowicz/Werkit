@@ -1,0 +1,65 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/db';
+import { workSessions, gpsLogs } from '@/db/schema';
+import { eq, and, asc } from 'drizzle-orm';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
+
+async function getUserId() {
+  const token = (await cookies()).get('auth_token')?.value;
+  if (!token) return null;
+  try {
+    const verified = await jwtVerify(token, JWT_SECRET);
+    return verified.payload.userId as number;
+  } catch {
+    return null;
+  }
+}
+
+export async function GET() {
+  try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    if (activeSessions.length === 0) return NextResponse.json({ logs: [] });
+
+    const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, activeSessions[0].id)).orderBy(asc(gpsLogs.timestamp));
+    return NextResponse.json({ logs: logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })) });
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed to fetch GPS' }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const body = await request.json();
+    const { latitude, longitude } = body;
+
+    if (!latitude || !longitude) {
+       return NextResponse.json({ error: 'Missing coordinates' }, { status: 400 });
+    }
+
+    const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    
+    if (activeSessions.length === 0) {
+      return NextResponse.json({ error: 'No active session to log GPS' }, { status: 400 });
+    }
+
+    await db.insert(gpsLogs).values({
+      workSessionId: activeSessions[0].id,
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ error: 'Failed to log GPS' }, { status: 500 });
+  }
+}

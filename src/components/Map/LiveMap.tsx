@@ -1,71 +1,113 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Ominięcie SSR dla map Leaflet
-const MapContainer = dynamic(() => import("react-leaflet").then((mod) => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), { ssr: false });
+const iconStart = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
-export default function LiveMap({ lat = 52.401, lng = 22.015 }: { lat?: number, lng?: number }) {
-  const [mounted, setMounted] = useState(false);
-  const [L, setL] = useState<any>(null);
+const iconCurrent = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
+const iconDest = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+function Recenter({ lat, lng }: { lat: number, lng: number }) {
+  const map = useMap();
   useEffect(() => {
-    setMounted(true);
-    // Dynamiczny import zasobów CSS
-    import("leaflet/dist/leaflet.css");
-    import("leaflet").then((leaflet) => {
-      setL(leaflet);
-    });
-  }, []);
+    map.setView([lat, lng]);
+  }, [lat, lng, map]);
+  return null;
+}
 
-  if (!mounted || !L) {
-    return (
-      <div className="w-full h-full flex justify-center items-center bg-[#0a0a0b]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-zinc-600" />
-          <p className="text-zinc-500 text-xs font-medium">Inicjalizacja mapy przestrzennej...</p>
-        </div>
-      </div>
-    );
-  }
+interface LiveMapProps {
+  currentLocation: { lat: number; lng: number };
+  pathTraveled: { lat: number; lng: number }[];
+  destination: { lat: number; lng: number } | null;
+  onRouteDistance?: (distanceKm: number) => void;
+}
 
-  // Tworzymy spersonalizowaną ikonę radaru na mapę z efektem świecenia HTML w Tailwindzie
-  const customIcon = L.divIcon({
-    className: "bg-transparent",
-    html: `<div class="relative w-4 h-4">
-             <div class="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
-             <div class="absolute inset-0 bg-blue-400 rounded-full border border-blue-200"></div>
-           </div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8]
-  });
+export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance }: LiveMapProps) {
+  const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
 
-  const position: [number, number] = [lat, lng];
+  // OSRM Routing
+  useEffect(() => {
+    if (currentLocation && destination) {
+      const fetchRoute = async () => {
+        try {
+          // OSRM expects: lng,lat;lng,lat
+          const url = `https://router.project-osrm.org/route/v1/driving/${currentLocation.lng},${currentLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+          const res = await fetch(url);
+          const data = await res.json();
+          if (data.routes && data.routes.length > 0) {
+            const route = data.routes[0];
+            // GeoJSON returns [lng, lat]
+            const coordinates = route.geometry.coordinates.map((coord: [number, number]) => [coord[1], coord[0]] as [number, number]);
+            setRouteToDest(coordinates);
+            
+            if (onRouteDistance) {
+              onRouteDistance(route.distance / 1000); // meters to km
+            }
+          }
+        } catch (e) {
+          console.error("OSRM Routing failed", e);
+        }
+      };
+      fetchRoute();
+    }
+  }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng]);
 
   return (
-    <div className="w-full h-full relative z-0">
-      <MapContainer 
-        center={position} 
-        zoom={12} 
-        scrollWheelZoom={true} 
-        style={{ height: "100%", width: "100%", backgroundColor: '#e5e7eb' }}
-        zoomControl={false}
-      >
+    <div className="w-full h-full rounded-2xl overflow-hidden border border-zinc-800">
+      <MapContainer center={[currentLocation.lat, currentLocation.lng]} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl={false}>
         <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; OpenStreetMap contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={position} icon={customIcon}>
-          <Popup className="werkit-popup">
-            <div className="text-sm font-medium text-zinc-900">Radar Główny</div>
-            <div className="text-xs text-zinc-500">SSOT: Ośrodek centralny</div>
-          </Popup>
+        
+        {/* Traveled Path */}
+        {pathTraveled.length > 0 && (
+           <Polyline positions={pathTraveled.map(p => [p.lat, p.lng])} color="#3b82f6" weight={5} opacity={0.7} />
+        )}
+
+        {/* Start Point */}
+        {pathTraveled.length > 0 && (
+           <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
+             <Popup>Punkt Startowy</Popup>
+           </Marker>
+        )}
+
+        {/* Route to Dest */}
+        {routeToDest.length > 0 && (
+           <Polyline positions={routeToDest} color="#ef4444" weight={4} dashArray="5, 10" opacity={0.8} />
+        )}
+
+        {/* Destination Point */}
+        {destination && (
+           <Marker position={[destination.lat, destination.lng]} icon={iconDest}>
+             <Popup>Cel</Popup>
+           </Marker>
+        )}
+
+        {/* Current Location */}
+        <Marker position={[currentLocation.lat, currentLocation.lng]} icon={iconCurrent}>
+           <Popup>Aktualna pozycja</Popup>
         </Marker>
+        <Recenter lat={currentLocation.lat} lng={currentLocation.lng} />
       </MapContainer>
     </div>
   );

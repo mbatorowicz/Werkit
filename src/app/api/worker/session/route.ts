@@ -23,14 +23,19 @@ export async function GET() {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    const activeSessions = await db.select({
+      session: workSessions,
+      customerAddress: customers.defaultAddress
+    }).from(workSessions)
+    .leftJoin(customers, eq(workSessions.customerId, customers.id))
+    .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     
     if (activeSessions.length === 0) {
       return NextResponse.json({ session: null });
     }
 
-    const session = activeSessions[0];
-    return NextResponse.json({ session });
+    const data = activeSessions[0];
+    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress } });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 });

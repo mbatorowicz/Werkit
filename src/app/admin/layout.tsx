@@ -15,7 +15,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="w-64 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-800">
-             <h1 className="text-xl font-bold text-white tracking-tight">Werkit.</h1>
+             <h1 className="text-xl font-bold text-white tracking-tight">System Logistyczny</h1>
              <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName}</p>
           </div>
           <nav className="p-4 space-y-1.5">
@@ -76,7 +76,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className="flex-1 flex flex-col min-w-0 bg-[#0a0a0b] overflow-y-auto">
         <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950 md:hidden sticky top-0 z-50">
           <div className="flex flex-col justify-center">
-             <h1 className="text-lg font-bold text-white tracking-tight leading-tight">Werkit.</h1>
+             <h1 className="text-lg font-bold text-white tracking-tight leading-tight">System Logistyczny</h1>
              <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase">{companyName}</p>
           </div>
           <Activity className="text-zinc-600 w-5 h-5" />

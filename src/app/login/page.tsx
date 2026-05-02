@@ -44,7 +44,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center p-4 selection:bg-zinc-800">
       <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8">
         <div className="mb-8 text-center pt-2">
-          <h1 className="text-3xl font-medium text-zinc-100 tracking-tight">Werkit.</h1>
+          <h1 className="text-3xl font-medium text-zinc-100 tracking-tight">System Logowania</h1>
           <p className="text-zinc-400 mt-2 text-sm leading-relaxed">
             Zaloguj się do autoryzowanego panelu<br className="max-sm:hidden"/> dowodzenia logistyki
           </p>
@@ -97,7 +97,7 @@ export default function LoginPage() {
       </div>
       
       <p className="text-zinc-600 text-xs mt-10 font-medium">
-        Werkit Internal System &copy; {new Date().getFullYear()}
+        &copy; {new Date().getFullYear()}
       </p>
     </div>
   );

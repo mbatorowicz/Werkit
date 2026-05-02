@@ -156,7 +156,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
           <div className="pt-8 border-t border-zinc-800 flex justify-end items-center gap-4">
             {saveStatus === "SAVED" && <span className="text-emerald-500 text-sm font-medium">SSOT zaktualizowane pomyślnie! ✔</span>}
             <button onClick={handleSave} disabled={saveStatus === "SAVING"} className="bg-amber-600 text-white font-bold px-8 py-3 rounded-xl hover:bg-amber-500 transition shadow-sm active:scale-95">
-               {saveStatus === "SAVING" ? "Wgrywanie SSOT..." : "Zapisz do chmury ERP"}
+               {saveStatus === "SAVING" ? "Zapisywanie..." : "Zapisz"}
             </button>
           </div>
       </div>
