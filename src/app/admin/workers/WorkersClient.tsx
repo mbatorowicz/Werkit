@@ -122,7 +122,7 @@ export default function WorkersClient() {
                            {worker.fullName.charAt(0)}
                          </div>
                          <div>
-                           <div className="font-medium text-zinc-200 flex items-center gap-2">
+                           <div className="font-medium text-zinc-900 dark:text-zinc-200 flex items-center gap-2">
                              {worker.fullName} 
                              {worker.role === 'admin' && <Shield className="w-3.5 h-3.5 text-amber-500" />}
                            </div>
@@ -163,8 +163,8 @@ export default function WorkersClient() {
            {/* Modal */}
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-white">{editId ? "Edycja Profilu" : "Tworzenie Konta Autoryzacyjnego"}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white transition"><X className="w-5 h-5"/></button>
+                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editId ? "Edycja Profilu" : "Tworzenie Konta Autoryzacyjnego"}</h2>
+                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                  <div className="space-y-2">
@@ -216,6 +216,9 @@ export default function WorkersClient() {
     </>
   )
 }
+
+
+
 
 
 

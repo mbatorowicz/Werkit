@@ -83,7 +83,7 @@ export default function MachinesClient() {
       {/* SEKCJA KATEGORII SŁOWNIKOWYCH */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> Słownik Typów (Kategorie Sprzętu)</h2>
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> Słownik Typów (Kategorie Sprzętu)</h2>
           <p className="text-zinc-500 mt-1 text-sm">Zarządzaj słownikiem dostępnych klasyfikacji dla rejestrowanych pojazdów.</p>
         </div>
         <button onClick={() => {setCEditId(null); setCForm({name: ''}); setIsCMOpen(true);}} className="bg-zinc-800 text-zinc-900 dark:text-white px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-700 transition flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function MachinesClient() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
          {categories.map(cat => (
            <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
-              <span className="text-zinc-200 font-medium truncate">{cat.name}</span>
+              <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
               <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
                  <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                  <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
@@ -138,7 +138,7 @@ export default function MachinesClient() {
                            <Truck className="w-5 h-5" />
                          </div>
                          <div>
-                           <div className="font-semibold text-zinc-200">{machine.name}</div>
+                           <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
                            <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID REJ: #{machine.id}</div>
                          </div>
                       </div>
@@ -178,8 +178,8 @@ export default function MachinesClient() {
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCMOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-base font-semibold text-white">{cEditId ? 'Edycja Nagłówka' : 'Nowa Kategoria Bazy'}</h2>
-                 <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4"/></button>
+                 <h2 className="text-base font-semibold text-zinc-900 dark:text-white">{cEditId ? 'Edycja Nagłówka' : 'Nowa Kategoria Bazy'}</h2>
+                 <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-4 h-4"/></button>
               </div>
               <form onSubmit={handleCSave} className="p-6">
                  <input required type="text" placeholder="Np. Sprzęt Ciężki / Naczepy" value={cForm.name} onChange={e => setCForm({name: e.target.value})} className="w-full mb-4 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
@@ -195,8 +195,8 @@ export default function MachinesClient() {
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-white">{mEditId ? "Karta Edycji Pojazdu" : "Rejestracja Nowego Sprzętu"}</h2>
-                 <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
+                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{mEditId ? "Karta Edycji Pojazdu" : "Rejestracja Nowego Sprzętu"}</h2>
+                 <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleMSave} className="p-6 space-y-6">
                  <div className="space-y-2">
@@ -223,5 +223,8 @@ export default function MachinesClient() {
     </>
   )
 }
+
+
+
 
 

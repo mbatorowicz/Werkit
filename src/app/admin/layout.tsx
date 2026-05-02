@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName} - System Logistyczny</p>
           </div>
           <nav className="p-4 space-y-1.5">
-            <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <Activity className="w-4 h-4 text-emerald-500" />
               <span>Główny Pulpit</span>
             </Link>
@@ -32,11 +32,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div className="pt-4 pb-2 px-3">
               <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Flota i Ludzie</p>
             </div>
-            <Link href="/admin/workers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin/workers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <Users className="w-4 h-4" />
               <span>Pracownicy</span>
             </Link>
-            <Link href="/admin/machines" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin/machines" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <Wrench className="w-4 h-4" />
               <span>Maszyny i Warsztat</span>
             </Link>
@@ -44,15 +44,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div className="pt-4 pb-2 px-3">
               <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Logistyka</p>
             </div>
-            <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm text-amber-500 hover:text-amber-400">
+            <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm text-amber-500 hover:text-amber-400">
               <Map className="w-4 h-4 text-amber-500" />
               <span>Zlecenia i Dyspozycja</span>
             </Link>
-            <Link href="/admin/materials" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin/materials" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <HardHat className="w-4 h-4" />
               <span>Baza Kruszyw</span>
             </Link>
-            <Link href="/admin/customers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin/customers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <Package className="w-4 h-4" />
               <span>Klienci i Adresy</span>
             </Link>
@@ -60,7 +60,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div className="pt-4 pb-2 px-3">
               <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Raporty i Magazyn</p>
             </div>
-            <Link href="/admin/archive" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
+            <Link href="/admin/archive" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <FileClock className="w-4 h-4" />
               <span>Ewidencja Zleceń</span>
             </Link>
@@ -102,4 +102,5 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     </div>
   );
 }
+
 

@@ -71,14 +71,14 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
       <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-950/50">
-        <h2 className="font-semibold text-white">Dane Ustrukturyzowane Firmy</h2>
+        <h2 className="font-semibold text-zinc-900 dark:text-white">Dane Ustrukturyzowane Firmy</h2>
       </div>
       
       <div className="p-6 md:p-8 space-y-8">
           <div className="space-y-6 max-w-3xl">
             <div className="space-y-4">
                <div>
-                 <h3 className="font-medium text-zinc-200 mb-1">Informacje Ogólne</h3>
+                 <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">Informacje Ogólne</h3>
                  <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Wypełnij w całości, by widlasty system odnosił się poprawnie (SSOT) do twojej Działalności Logistycznej na każdym ekranie.</p>
                </div>
                
@@ -120,7 +120,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-zinc-800/50">
             <div className="space-y-6">
                 <div>
-                   <h3 className="font-medium text-zinc-200 mb-1">Miejsce stacjonowania / Siedziba GPS</h3>
+                   <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">Miejsce stacjonowania / Siedziba GPS</h3>
                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Określ z jakiego punktu nawigowane będą wszystkie działania logistyczne i pulpit. Jeśli wpisałeś adres fizyczny powyżej - wciśnij Autonamierz.</p>
                 </div>
 
@@ -163,5 +163,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
     </div>
   )
 }
+
+
 
 

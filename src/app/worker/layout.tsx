@@ -23,7 +23,7 @@ export default async function WorkerLayout({ children }: { children: React.React
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <a href="/api/auth/logout" className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+          <a href="/api/auth/logout" className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-900 dark:hover:text-white transition-colors">
              <LogOut className="w-5 h-5" />
           </a>
         </div>
@@ -42,7 +42,7 @@ export default async function WorkerLayout({ children }: { children: React.React
           <Map className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">Historia</span>
         </Link>
-        <Link href="/worker/profile" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-white transition-colors flex-1 h-full gap-1">
+        <Link href="/worker/profile" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1">
           <User className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">Profil</span>
         </Link>
@@ -50,3 +50,4 @@ export default async function WorkerLayout({ children }: { children: React.React
     </div>
   );
 }
+

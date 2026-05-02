@@ -129,7 +129,7 @@ export default function WizardClient() {
               </div>
             )}
 
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz rodzaj zaplanowanej dla Ciebie pracy.</p>
             
             <div className="space-y-4">
@@ -168,7 +168,7 @@ export default function WizardClient() {
 
         {step === 2 && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Jakim sprzętem jedziesz?</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Jakim sprzętem jedziesz?</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz maszynę z floty firmowej.</p>
             
             <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -192,7 +192,7 @@ export default function WizardClient() {
               )}
             </div>
             <div className="mt-6">
-               <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
+               <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Wróć do wyboru typu
                </button>
             </div>
@@ -203,7 +203,7 @@ export default function WizardClient() {
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
             {sessionType === 'TRANSPORT' ? (
               <>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Szczegóły Transportu</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Szczegóły Transportu</h2>
                 <p className="text-zinc-500 text-sm mb-6">Wybierz materiał i klienta docelowego.</p>
 
                 <div className="space-y-5">
@@ -238,7 +238,7 @@ export default function WizardClient() {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Zadanie / Cel Pracy</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Zadanie / Cel Pracy</h2>
                 <p className="text-zinc-500 text-sm mb-6">Napisz krótko co będziesz robił.</p>
 
                 <textarea 
@@ -251,7 +251,7 @@ export default function WizardClient() {
             )}
 
             <div className="mt-8 flex items-center justify-between">
-               <button onClick={() => setStep(2)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
+               <button onClick={() => setStep(2)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Wróć
                </button>
                <button 
@@ -270,7 +270,7 @@ export default function WizardClient() {
             <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">Wszystko gotowe</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2 text-center">Wszystko gotowe</h2>
             <p className="text-zinc-500 text-sm mb-8 text-center">
               Podsumowanie nowej sesji. Sprawdź czy wszystko się zgadza.
             </p>
@@ -306,7 +306,7 @@ export default function WizardClient() {
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Start Pracy"}
             </button>
             
-            <button onClick={() => setStep(3)} className="mt-6 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
+            <button onClick={() => setStep(3)} className="mt-6 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Popraw Dane
             </button>
           </div>
@@ -315,4 +315,6 @@ export default function WizardClient() {
     </div>
   );
 }
+
+
 

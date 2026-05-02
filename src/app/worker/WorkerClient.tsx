@@ -209,7 +209,7 @@ export default function WorkerClient() {
             <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-8 shadow-inner">
                <Clock className="w-10 h-10 text-zinc-700" />
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
             <p className="text-zinc-500 text-center mb-10 text-sm max-w-[250px]">
               Nie masz obecnie aktywnej sesji pracy. Rozpocznij nowe zlecenie.
             </p>
@@ -284,4 +284,5 @@ export default function WorkerClient() {
     </div>
   );
 }
+
 

@@ -93,7 +93,7 @@ export default function MaterialsClient() {
                ) : materials.map(material => (
                  <tr key={material.id} className="hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
-                      <div className="font-semibold text-zinc-200">{material.name}</div>
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-200">{material.name}</div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID: #{material.id}</div>
                    </td>
                    <td className="px-6 py-4">
@@ -126,8 +126,8 @@ export default function MaterialsClient() {
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-white">{editId ? "Edycja Materiału" : "Nowe Kruszywo"}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
+                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editId ? "Edycja Materiału" : "Nowe Kruszywo"}</h2>
+                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="space-y-2">
@@ -158,5 +158,8 @@ export default function MaterialsClient() {
     </>
   )
 }
+
+
+
 
 

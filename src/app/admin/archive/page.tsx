@@ -16,7 +16,7 @@ export default function ArchivePage() {
             <input 
               type="text" 
               placeholder="Szukaj po operatorze lub maszynie..." 
-              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
+              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
             />
           </div>
           <button className="text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-900 dark:text-white px-4 py-2 rounded-lg transition font-medium">
@@ -29,13 +29,14 @@ export default function ArchivePage() {
            <div className="w-16 h-16 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-4 shadow-inner">
              <Search className="w-6 h-6 text-zinc-600" />
            </div>
-           <h3 className="text-zinc-200 font-medium">Brak zsynchronizowanej historii</h3>
+           <h3 className="text-zinc-900 dark:text-zinc-200 font-medium">Brak zsynchronizowanej historii</h3>
            <p className="text-zinc-500 text-sm mt-2 max-w-sm">Pracownicy jeszcze nie wykonali synchronizacji i nie przesłali danych z aplikacji mobilnej do platformy Vercel.</p>
         </div>
       </div>
     </div>
   );
 }
+
 
 
 

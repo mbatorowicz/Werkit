@@ -73,7 +73,7 @@ export default async function DashboardPage() {
         <div className="xl:col-span-2 space-y-6">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
             <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
-              <h2 className="font-semibold text-zinc-900 dark:text-white">Tablica Aktywnego Sprzętu</h2>
+              <h2 className="font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white">Tablica Aktywnego Sprzętu</h2>
             </div>
             
             <div className="p-0 overflow-x-auto">
@@ -89,7 +89,7 @@ export default async function DashboardPage() {
                     {activeSessions.map(session => (
                       <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                         <td className="px-6 py-4">
-                           <div className="font-medium text-zinc-900 dark:text-zinc-200">{session.userName}</div>
+                           <div className="font-medium text-zinc-900 dark:text-zinc-900 dark:text-zinc-200">{session.userName}</div>
                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{session.desc || 'Brak opisu z trasy'} {session.tons ? `(${session.tons}t)` : ''}</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-amber-500 font-medium">
@@ -115,7 +115,7 @@ export default async function DashboardPage() {
         <div className="xl:col-span-1 h-[400px] xl:h-[auto] min-h-[450px]">
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm">
               <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
-                 <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md">{companyCity} - Radary na żywo</h2>
+                 <h2 className="font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white drop-shadow-md">{companyCity} - Radary na żywo</h2>
                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">Wykryto dostawców w tym okręgu.</p>
               </div>
               <div className="flex-1 w-full relative h-full min-h-[450px]">
@@ -127,3 +127,5 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
+
