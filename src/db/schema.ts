@@ -82,6 +82,18 @@ export const companySettings = pgTable('company_settings', {
   baseLongitude: numeric('base_longitude', { precision: 11, scale: 8 }),
 });
 
+export const workOrders = pgTable('work_orders', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
+  sessionType: varchar('session_type', { length: 50 }).notNull(),
+  materialId: integer('material_id').references(() => materials.id, { onDelete: 'set null' }),
+  customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  taskDescription: text('task_description'),
+  status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING, COMPLETED, CANCELLED
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 // Relacje ułatwiające zapytania ORM
 export const usersRelations = relations(users, ({ many }) => ({
   workSessions: many(workSessions),
@@ -113,4 +125,11 @@ export const resourcesRelations = relations(resources, ({ one }) => ({
     fields: [resources.categoryId],
     references: [resourceCategories.id]
   })
+}));
+
+export const workOrdersRelations = relations(workOrders, ({ one }) => ({
+  user: one(users, { fields: [workOrders.userId], references: [users.id] }),
+  resource: one(resources, { fields: [workOrders.resourceId], references: [resources.id] }),
+  material: one(materials, { fields: [workOrders.materialId], references: [materials.id] }),
+  customer: one(customers, { fields: [workOrders.customerId], references: [customers.id] })
 }));

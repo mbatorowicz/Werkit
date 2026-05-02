@@ -12,6 +12,7 @@ export default function WizardClient() {
   const [machines, setMachines] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
 
   // Form State
   const [sessionType, setSessionType] = useState<"TRANSPORT" | "MACHINE_OP" | "WORKSHOP" | "">("");
@@ -25,11 +26,13 @@ export default function WizardClient() {
     Promise.all([
       fetch("/api/machines").then(r => r.json()),
       fetch("/api/materials").then(r => r.json()),
-      fetch("/api/customers").then(r => r.json())
-    ]).then(([mac, mat, cus]) => {
+      fetch("/api/customers").then(r => r.json()),
+      fetch("/api/worker/work-orders").then(r => r.json())
+    ]).then(([mac, mat, cus, ord]) => {
       setMachines(mac || []);
       setMaterials(mat || []);
       setCustomers(cus || []);
+      setOrders(Array.isArray(ord) ? ord : []);
     }).catch(console.error);
   }, []);
 
@@ -61,6 +64,22 @@ export default function WizardClient() {
     }
   };
 
+  const handleAcceptOrder = async (orderId: number) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
+      if (res.ok) {
+        router.push("/worker");
+      } else {
+        alert("Błąd akceptacji zlecenia.");
+        setIsLoading(false);
+      }
+    } catch(e) {
+      alert("Błąd sieci.");
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-[80vh] py-6">
       {/* Pasek postępu */}
@@ -78,7 +97,39 @@ export default function WizardClient() {
       <div className="flex-1 w-full">
         {step === 1 && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-            <h2 className="text-xl font-bold text-white mb-2">Co dzisiaj robimy?</h2>
+            {orders.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-amber-500 mb-3 flex items-center gap-2">
+                  Zlecenia od Szefa
+                </h2>
+                <div className="space-y-3">
+                  {orders.map(order => (
+                    <button 
+                      key={order.id}
+                      onClick={() => handleAcceptOrder(order.id)}
+                      className="w-full bg-amber-500/10 border border-amber-500/50 hover:bg-amber-500/20 text-left p-4 rounded-2xl transition-all"
+                    >
+                      <div className="font-bold text-amber-400 text-lg mb-1">{order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</div>
+                      <div className="text-sm text-zinc-300">
+                        <span className="text-zinc-500">Maszyna:</span> {order.resourceName}
+                      </div>
+                      {order.sessionType === 'TRANSPORT' && (
+                        <>
+                          <div className="text-sm text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName}</div>
+                          <div className="text-sm text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>
+                        </>
+                      )}
+                      {order.taskDescription && (
+                        <div className="text-sm text-zinc-300 mt-2 italic">"{order.taskDescription}"</div>
+                      )}
+                      <div className="mt-3 text-amber-400 font-semibold text-sm">Rozpocznij to zlecenie &rarr;</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <h2 className="text-xl font-bold text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz rodzaj zaplanowanej dla Ciebie pracy.</p>
             
             <div className="space-y-4">

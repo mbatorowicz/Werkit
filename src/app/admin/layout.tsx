@@ -39,6 +39,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <div className="pt-4 pb-2 px-3">
               <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Logistyka</p>
             </div>
+            <Link href="/admin/orders" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm text-amber-500 hover:text-amber-400">
+              <Map className="w-4 h-4 text-amber-500" />
+              <span>Zlecenia i Dyspozycja</span>
+            </Link>
             <Link href="/admin/materials" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
               <HardHat className="w-4 h-4" />
               <span>Baza Kruszyw</span>
