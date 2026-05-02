@@ -133,7 +133,7 @@ export default function WizardClient() {
             <p className="text-zinc-500 text-sm mb-6">Wybierz rodzaj zaplanowanej dla Ciebie pracy.</p>
             
             <div className="space-y-4">
-              <button onClick={() => { setSessionType('TRANSPORT'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'TRANSPORT' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+              <button onClick={() => { setSessionType('TRANSPORT'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'TRANSPORT' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
                 <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Truck className="w-6 h-6" />
                 </div>
@@ -143,7 +143,7 @@ export default function WizardClient() {
                 </div>
               </button>
 
-              <button onClick={() => { setSessionType('MACHINE_OP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'MACHINE_OP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+              <button onClick={() => { setSessionType('MACHINE_OP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'MACHINE_OP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
                 <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Tractor className="w-6 h-6" />
                 </div>
@@ -153,7 +153,7 @@ export default function WizardClient() {
                 </div>
               </button>
 
-              <button onClick={() => { setSessionType('WORKSHOP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'WORKSHOP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+              <button onClick={() => { setSessionType('WORKSHOP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'WORKSHOP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
                 <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Wrench className="w-6 h-6" />
                 </div>
@@ -176,7 +176,7 @@ export default function WizardClient() {
                 <button 
                   key={m.id} 
                   onClick={() => { setResourceId(m.id.toString()); setStep(3); }}
-                  className={`w-full p-4 rounded-lg border transition-all flex items-center gap-4 ${resourceId === m.id.toString() ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}
+                  className={`w-full p-4 rounded-lg border transition-all flex items-center gap-4 ${resourceId === m.id.toString() ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}
                 >
                   <div className="text-left w-full">
                     <div className="font-bold">{m.name}</div>
@@ -315,3 +315,4 @@ export default function WizardClient() {
     </div>
   );
 }
+

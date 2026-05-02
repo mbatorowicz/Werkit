@@ -38,58 +38,58 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-         <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
              <div className="flex justify-between items-start mb-4">
                <div className="p-2.5 bg-blue-500/10 rounded-lg">
-                 <Truck className="w-5 h-5 text-blue-400" />
+                 <Truck className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                </div>
              </div>
-             <h3 className="text-zinc-400 text-sm font-medium">Bieżące transporty</h3>
+             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Bieżące transporty</h3>
              <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">{activeSessions.filter(s => s.type === 'TRANSPORT').length}</p>
          </div>
 
-         <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
              <div className="flex justify-between items-start mb-4">
                <div className="p-2.5 bg-amber-500/10 rounded-lg">
-                 <HardHat className="w-5 h-5 text-amber-400" />
+                 <HardHat className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                </div>
              </div>
-             <h3 className="text-zinc-400 text-sm font-medium">Maszyny w polu</h3>
+             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Maszyny w polu</h3>
              <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">{activeSessions.filter(s => s.type === 'MACHINE_OP').length}</p>
          </div>
 
-         <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
              <div className="flex justify-between items-start mb-4">
                <div className="p-2.5 bg-rose-500/10 rounded-lg">
-                 <Wrench className="w-5 h-5 text-rose-400" />
+                 <Wrench className="w-5 h-5 text-rose-500 dark:text-rose-400" />
                </div>
              </div>
-             <h3 className="text-zinc-400 text-sm font-medium">Aut i sprzętu na warsztacie</h3>
+             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Aut i sprzętu na warsztacie</h3>
              <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">{activeSessions.filter(s => s.type === 'WORKSHOP').length}</p>
          </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-950/50">
-              <h2 className="font-semibold text-white">Tablica Aktywnego Sprzętu</h2>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
+            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
+              <h2 className="font-semibold text-zinc-900 dark:text-white">Tablica Aktywnego Sprzętu</h2>
             </div>
             
             <div className="p-0 overflow-x-auto">
                <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
-                    <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-[#0a0a0b]/80">
+                    <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-[#0a0a0b]/80">
                       <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kto i gdzie</th>
                       <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Sprzęt</th>
                       <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Czas uruchomienia</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
                     {activeSessions.map(session => (
-                      <tr key={session.id} className="hover:bg-zinc-800/20 transition-colors">
+                      <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                         <td className="px-6 py-4">
-                           <div className="font-medium text-zinc-200">{session.userName}</div>
+                           <div className="font-medium text-zinc-900 dark:text-zinc-200">{session.userName}</div>
                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{session.desc || 'Brak opisu z trasy'} {session.tons ? `(${session.tons}t)` : ''}</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-amber-500 font-medium">
@@ -113,8 +113,8 @@ export default async function DashboardPage() {
 
         {/* Small UI Map panel */}
         <div className="xl:col-span-1 h-[400px] xl:h-[auto] min-h-[450px]">
-           <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm">
-              <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-zinc-950/90 to-transparent z-10 pointer-events-none">
+           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm">
+              <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
                  <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md">{companyCity} - Radary na żywo</h2>
                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">Wykryto dostawców w tym okręgu.</p>
               </div>

@@ -93,7 +93,7 @@ export default function MachinesClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
          {categories.map(cat => (
-           <div key={cat.id} className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
+           <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
               <span className="text-zinc-200 font-medium truncate">{cat.name}</span>
               <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
                  <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
@@ -101,7 +101,7 @@ export default function MachinesClient() {
               </div>
            </div>
          ))}
-         {!isLoading && categories.length === 0 && <div className="col-span-full p-4 border border-zinc-200 dark:border-zinc-700/50 rounded-lg bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 text-sm">Zdefiniuj z jakich rodzajów aut korzystasz (np. Ciężarówki / Koparki) dodając pierwszą kategorię słownikową.</div>}
+         {!isLoading && categories.length === 0 && <div className="col-span-full p-4 border border-zinc-200 dark:border-zinc-700/50 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 text-sm">Zdefiniuj z jakich rodzajów aut korzystasz (np. Ciężarówki / Koparki) dodając pierwszą kategorię słownikową.</div>}
       </div>
 
 
@@ -117,7 +117,7 @@ export default function MachinesClient() {
         </button>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
@@ -176,7 +176,7 @@ export default function MachinesClient() {
       {isCMOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCMOpen(false)}></div>
-           <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
                  <h2 className="text-base font-semibold text-white">{cEditId ? 'Edycja Nagłówka' : 'Nowa Kategoria Bazy'}</h2>
                  <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4"/></button>
@@ -193,7 +193,7 @@ export default function MachinesClient() {
       {isMMOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
-           <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
                  <h2 className="text-lg font-semibold text-white">{mEditId ? "Karta Edycji Pojazdu" : "Rejestracja Nowego Sprzętu"}</h2>
                  <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
@@ -223,3 +223,4 @@ export default function MachinesClient() {
     </>
   )
 }
+

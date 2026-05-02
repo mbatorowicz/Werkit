@@ -77,7 +77,7 @@ export default function OrdersClient() {
         </button>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col p-10 items-center justify-center text-center shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col p-10 items-center justify-center text-center shadow-sm">
         <Map className="w-12 h-12 text-zinc-700 mb-4" />
         <h3 className="text-zinc-300 font-medium">Zarządzanie z wyprzedzeniem</h3>
         <p className="text-zinc-500 text-sm mt-2 max-w-md">Zlecenia utworzone w tym miejscu wyświetlą się na samej górze ekranu wybranego pracownika. Nie musi on sam wypełniać danych – wystarczy, że kliknie "Rozpocznij".</p>
@@ -86,7 +86,7 @@ export default function OrdersClient() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-           <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80 sticky top-0">
                  <h2 className="text-lg font-semibold text-white">Wystaw Zlecenie dla Pracownika</h2>
                  <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
@@ -155,3 +155,4 @@ export default function OrdersClient() {
     </>
   )
 }
+

@@ -30,7 +30,7 @@ export default async function ProfilePage() {
     <div className="py-6 pb-20">
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-8">Twój Profil</h1>
       
-      <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 flex flex-col items-center mb-6 shadow-inner">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 flex flex-col items-center mb-6 shadow-inner">
          <div className="w-24 h-24 bg-[#f2fbfa] dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-4">
             <UserIcon className="w-10 h-10 text-zinc-500" />
          </div>
@@ -44,7 +44,7 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-4">
-         <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center">
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center">
             <span className="text-zinc-500 text-sm font-medium">Login Systemowy:</span>
             <span className="text-white font-mono bg-[#f2fbfa] dark:bg-zinc-900 px-3 py-1 rounded-md border border-zinc-800">
               {user?.usernameEmail}
@@ -59,3 +59,4 @@ export default async function ProfilePage() {
     </div>
   );
 }
+

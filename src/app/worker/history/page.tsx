@@ -49,7 +49,7 @@ export default async function HistoryPage() {
       ) : (
          <div className="space-y-4">
            {sessions.map(s => (
-              <div key={s.id} className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+              <div key={s.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
                  <div className="flex items-center gap-2 mb-3">
                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">
@@ -86,3 +86,4 @@ export default async function HistoryPage() {
     </div>
   );
 }
+

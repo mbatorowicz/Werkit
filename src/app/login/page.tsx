@@ -98,7 +98,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-950 font-medium rounded-lg px-4 py-3.5 mt-2 transition-all flex justify-center items-center disabled:opacity-50"
+            className="w-full bg-white dark:bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-950 font-medium rounded-lg px-4 py-3.5 mt-2 transition-all flex justify-center items-center disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Rozpocznij sesję"}
           </button>
@@ -111,3 +111,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

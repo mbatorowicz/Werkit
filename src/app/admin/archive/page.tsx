@@ -8,7 +8,7 @@ export default function ArchivePage() {
         <p className="text-zinc-500 mt-1">Przeglądaj wszystkie archiwalne sesje pracy we flocie i warsztacie.</p>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex-1 flex flex-col overflow-hidden shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex-1 flex flex-col overflow-hidden shadow-sm">
         {/* Pasek filtrowania */}
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-[#0a0a0b]">
           <div className="relative flex-1 max-w-sm">
@@ -36,3 +36,4 @@ export default function ArchivePage() {
     </div>
   );
 }
+
