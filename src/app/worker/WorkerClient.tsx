@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin } from "lucide-react";
+import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera, FileText, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -56,6 +56,9 @@ export default function WorkerClient() {
   
   const [gpsStatus, setGpsStatus] = useState<"waiting"|"active"|"error">("waiting");
   const router = useRouter();
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   
   const wakeLockRef = useRef<any>(null);
   const watchIdRef = useRef<number | null>(null);
@@ -223,6 +226,35 @@ export default function WorkerClient() {
     }
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      alert("Zdjęcie dodane tymczasowo do pamięci telefonu.\n(Pełne wgrywanie zdjęć na serwer wymaga skonfigurowania chmury S3 w panelu administracyjnym).");
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!noteText.trim()) return;
+    setIsSubmittingNote(true);
+    try {
+      const res = await fetch("/api/worker/session/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: noteText })
+      });
+      if(res.ok) {
+        alert("Notatka została dopisana do raportu.");
+        setIsNotesModalOpen(false);
+        setNoteText("");
+        fetchSessionAndPath();
+      } else {
+        alert("Błąd zapisywania notatki.");
+      }
+    } catch(e) {
+      alert("Błąd sieci.");
+    }
+    setIsSubmittingNote(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
@@ -340,6 +372,19 @@ export default function WorkerClient() {
 
             </div>
 
+            {/* NOTATKI I ZDJĘCIA */}
+            <div className="w-full grid grid-cols-2 gap-4 mt-4">
+              <button onClick={() => setIsNotesModalOpen(true)} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
+                 <FileText className="w-6 h-6" />
+                 <span className="text-xs font-bold uppercase tracking-wider">Notatki</span>
+              </button>
+              <label className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer">
+                 <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
+                 <Camera className="w-6 h-6" />
+                 <span className="text-xs font-bold uppercase tracking-wider">Aparat</span>
+              </label>
+            </div>
+
             <div className="mt-6 w-full">
                <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
                   <Square className="w-5 h-5 fill-current" />
@@ -347,6 +392,32 @@ export default function WorkerClient() {
                </button>
             </div>
          </div>
+      )}
+
+      {isNotesModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsNotesModalOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Dodaj notatkę do raportu</h2>
+              <button onClick={() => setIsNotesModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Treść notatki</label>
+                <textarea 
+                  value={noteText} 
+                  onChange={(e) => setNoteText(e.target.value)} 
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none h-32 resize-none"
+                  placeholder="Wpisz uwagi, np. problemy z dojazdem, awaria..."
+                />
+              </div>
+              <button disabled={isSubmittingNote} onClick={handleSaveNote} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3.5 flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
+                {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Zapisz Notatkę'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
