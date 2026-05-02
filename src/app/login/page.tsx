@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { APP_VERSION } from "@/lib/version";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,9 +45,13 @@ export default function LoginPage() {
     <div className="min-h-screen bg-zinc-950 flex flex-col justify-center items-center p-4 selection:bg-zinc-800">
       <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8">
         <div className="mb-8 text-center pt-2">
-          <h1 className="text-3xl font-medium text-zinc-100 tracking-tight">System Logowania</h1>
-          <p className="text-zinc-400 mt-2 text-sm leading-relaxed">
-            Zaloguj się do autoryzowanego panelu<br className="max-sm:hidden"/> dowodzenia logistyki
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
+            <span className="text-[11px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-bold mt-1">v{APP_VERSION}</span>
+          </div>
+          <h2 className="text-lg font-medium text-zinc-300 tracking-tight">System Logowania</h2>
+          <p className="text-zinc-500 mt-1 text-sm">
+            Panel dowodzenia i logistyki
           </p>
         </div>
 

@@ -2,6 +2,7 @@ import { Map, Clock, User, LogOut } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
 import { companySettings } from "@/db/schema";
+import { APP_VERSION } from "@/lib/version";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +14,11 @@ export default async function WorkerLayout({ children }: { children: React.React
     <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
       <header className="h-16 flex items-center justify-between px-4 border-b border-zinc-800/50 bg-[#0a0a0b] sticky top-0 z-50">
         <div>
-          <h1 className="text-lg font-bold text-white tracking-tight leading-tight">{companyName}</h1>
-          <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase">Portal Pracowniczy</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
+            <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+          </div>
+          <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase truncate max-w-[200px]" title={companyName}>{companyName}</p>
         </div>
         <Link href="/login" className="p-2 text-zinc-500 hover:text-white transition-colors">
            <LogOut className="w-5 h-5" />

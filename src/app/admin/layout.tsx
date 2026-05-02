@@ -2,6 +2,7 @@ import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Sett
 import Link from "next/link";
 import { db } from "@/db";
 import { companySettings } from "@/db/schema";
+import { APP_VERSION } from "@/lib/version";
 
 export const dynamic = 'force-dynamic';
 
@@ -15,8 +16,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="w-64 bg-[#0a0a0b] border-r border-zinc-800 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-800">
-             <h1 className="text-xl font-bold text-white tracking-tight">System Logistyczny</h1>
-             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName}</p>
+             <div className="flex items-center gap-2">
+               <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
+               <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+             </div>
+             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName} - System Logistyczny</p>
           </div>
           <nav className="p-4 space-y-1.5">
             <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg transition-all font-medium text-sm">
@@ -80,8 +84,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <main className="flex-1 flex flex-col min-w-0 bg-[#0a0a0b] overflow-y-auto">
         <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-800 bg-zinc-950 md:hidden sticky top-0 z-50">
           <div className="flex flex-col justify-center">
-             <h1 className="text-lg font-bold text-white tracking-tight leading-tight">System Logistyczny</h1>
-             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase">{companyName}</p>
+             <div className="flex items-center gap-2">
+               <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
+               <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+             </div>
+             <p className="text-[10px] text-zinc-500 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
           <Activity className="text-zinc-600 w-5 h-5" />
         </header>
