@@ -37,7 +37,7 @@ export const en = {
       logoutSession: "Logout session"
     },
     dashboard: {
-      title: "System Overview",
+      title: "Main Dashboard",
       subtitle: "Current summary of fleet and operations for",
       activeTransports: "Active transports",
       machinesInField: "Machines in the field",
@@ -75,7 +75,7 @@ export const en = {
       none: "None"
     },
     orders: {
-      title: "Order Dispatch",
+      title: "Orders & Dispatch",
       subtitle: "Issue ready orders for specific workers in the field.",
       newOrder: "New dispatch",
       workerDate: "Worker / Date",
@@ -103,7 +103,7 @@ export const en = {
       saving: "Sending..."
     },
     workers: {
-      title: "Worker HR Cards",
+      title: "Workers",
       subtitle: "Add and Modify generated accounts for application authorization.",
       addWorker: "Add worker",
       nameRole: "Full Name / Role",
@@ -142,7 +142,7 @@ export const en = {
       dictSubtitle: "Manage the dictionary of available classifications for registered vehicles.",
       addCategory: "Add Category",
       noCategories: "Define what types of cars you use (e.g. Trucks / Excavators) by adding the first dictionary category.",
-      fleetTitle: "Machine Park and Equipment",
+      fleetTitle: "Machines & Workshop",
       fleetSubtitle: "Register vehicles based on the categories set above.",
       registerVehicle: "Register New Vehicle",
       vehicleReg: "Vehicle / Registration",

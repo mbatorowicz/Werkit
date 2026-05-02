@@ -37,7 +37,7 @@ export const pl = {
       logoutSession: "Wyloguj sesję"
     },
     dashboard: {
-      title: "Przegląd systemu",
+      title: "Główny Pulpit",
       subtitle: "Bieżące podsumowanie floty i działalności dla",
       activeTransports: "Bieżące transporty",
       machinesInField: "Maszyny w polu",
@@ -75,7 +75,7 @@ export const pl = {
       none: "Brak"
     },
     orders: {
-      title: "Dyspozytornia Zleceń",
+      title: "Zlecenia i Dyspozycja",
       subtitle: "Wydawaj gotowe zlecenia dla konkretnych pracowników w terenie.",
       newOrder: "Nowa dyspozycja",
       workerDate: "Pracownik / Data",
@@ -103,7 +103,7 @@ export const pl = {
       saving: "Wysyłanie..."
     },
     workers: {
-      title: "Karty Kadrowe Pracowników",
+      title: "Pracownicy",
       subtitle: "Dodawaj oraz Modyfikuj wygenerowane konta do autoryzacji w aplikacji.",
       addWorker: "Dodaj pracownika",
       nameRole: "Imię i Nazwisko / Rola",
@@ -142,7 +142,7 @@ export const pl = {
       dictSubtitle: "Zarządzaj słownikiem dostępnych klasyfikacji dla rejestrowanych pojazdów.",
       addCategory: "Dodaj Kategorię",
       noCategories: "Zdefiniuj z jakich rodzajów aut korzystasz (np. Ciężarówki / Koparki) dodając pierwszą kategorię słownikową.",
-      fleetTitle: "Park Maszynowy i Sprzęt",
+      fleetTitle: "Maszyny i Warsztat",
       fleetSubtitle: "Ewidencjonuj pojazdy na podstawie ustawionych u góry kategorii.",
       registerVehicle: "Zarejestruj Nowy Pojazd",
       vehicleReg: "Pojazd / Rejestracja",
