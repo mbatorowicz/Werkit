@@ -4,7 +4,7 @@ export default function ArchivePage() {
   return (
     <div className="p-8 max-w-7xl mx-auto h-full flex flex-col">
       <div className="mb-8">
-        <h1 className="text-2xl font-medium tracking-tight text-white">Historia Działań</h1>
+        <h1 className="text-2xl font-medium tracking-tight text-zinc-900 dark:text-white">Historia Działań</h1>
         <p className="text-zinc-500 mt-1">Przeglądaj wszystkie archiwalne sesje pracy we flocie i warsztacie.</p>
       </div>
 

@@ -138,8 +138,8 @@ export default function CustomersClient() {
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
               <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-white">{editId ? "Edycja Danych Klienta" : "Nowy Klient w Bazie"}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
+                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editId ? "Edycja Danych Klienta" : "Nowy Klient w Bazie"}</h2>
+                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="grid grid-cols-2 gap-4">
