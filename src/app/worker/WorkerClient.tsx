@@ -16,6 +16,15 @@ type Session = {
   customerAddress?: string;
 };
 
+type WorkOrder = {
+  id: number;
+  sessionType: string;
+  taskDescription: string | null;
+  resourceName: string | null;
+  materialName: string | null;
+  customerName: string | null;
+};
+
 type Coord = { lat: number, lng: number };
 
 // Haversine formula for distance between coords in meters
@@ -35,6 +44,7 @@ function getDistance(a: Coord, b: Coord) {
 
 export default function WorkerClient() {
   const [session, setSession] = useState<Session | null>(null);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [elapsed, setElapsed] = useState("00:00:00");
   
@@ -52,12 +62,16 @@ export default function WorkerClient() {
 
   const fetchSessionAndPath = async () => {
     try {
-      const [resSess, resPath] = await Promise.all([
+      const [resSess, resPath, resOrders] = await Promise.all([
         fetch("/api/worker/session"),
-        fetch("/api/worker/gps")
+        fetch("/api/worker/gps"),
+        fetch("/api/worker/work-orders")
       ]);
       const sessData = await resSess.json();
       const pathData = await resPath.json();
+      const ordersData = await resOrders.json();
+
+      setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
       
       if (sessData.session) {
         setSession(sessData.session);
@@ -193,6 +207,22 @@ export default function WorkerClient() {
 
 
 
+  const handleAcceptOrder = async (orderId: number) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
+      if(res.ok) {
+        await fetchSessionAndPath();
+      } else {
+        alert("Błąd akceptacji zlecenia.");
+        setIsLoading(false);
+      }
+    } catch (e) {
+      alert("Błąd sieci.");
+      setIsLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]">
@@ -205,19 +235,56 @@ export default function WorkerClient() {
   return (
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
       {!session ? (
-         <div className="w-full flex flex-col items-center justify-center mt-10">
-            <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-8 shadow-inner">
-               <Clock className="w-10 h-10 text-zinc-700" />
+         <div className="w-full flex flex-col items-center justify-center mt-10 space-y-6">
+            <div className="flex flex-col items-center">
+              <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner">
+                 <Clock className="w-10 h-10 text-zinc-700" />
+              </div>
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
+              <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">
+                Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.
+              </p>
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
-            <p className="text-zinc-500 text-center mb-10 text-sm max-w-[250px]">
-              Nie masz obecnie aktywnej sesji pracy. Rozpocznij nowe zlecenie.
-            </p>
+
+            {workOrders.length > 0 && (
+              <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Oczekujące zlecenia</h3>
+                {workOrders.map(order => (
+                  <div key={order.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3">
+                     <div className="flex flex-col">
+                       <span className="text-sm font-bold text-amber-900 dark:text-amber-500">
+                         {order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
+                       </span>
+                       <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
+                         Maszyna: <span className="font-semibold">{order.resourceName}</span>
+                       </span>
+                       {order.sessionType === 'TRANSPORT' && (
+                         <span className="text-xs text-amber-700 dark:text-amber-600/80">
+                           Kruszywo: <span className="font-semibold">{order.materialName}</span> → {order.customerName}
+                         </span>
+                       )}
+                       {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
+                         <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
+                           Zadanie: {order.taskDescription}
+                         </span>
+                       )}
+                     </div>
+                     <button onClick={() => handleAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
+                        <Play className="w-4 h-4 fill-current" />
+                        <span className="text-sm font-bold uppercase tracking-wider">Rozpocznij to zadanie</span>
+                     </button>
+                  </div>
+                ))}
+              </div>
+            )}
             
-            <Link href="/worker/wizard" className="w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
-               <Play className="w-6 h-6 fill-current" />
-               <span className="text-lg font-bold uppercase tracking-wider">Rozpocznij Pracę</span>
-            </Link>
+            <div className="w-full max-w-sm flex flex-col items-center mt-4">
+              <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">LUB</div>
+              <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
+                 <Play className="w-6 h-6 fill-current" />
+                 <span className="text-lg font-bold uppercase tracking-wider">Zdefiniuj własne</span>
+              </Link>
+            </div>
          </div>
       ) : (
          <div className="w-full flex flex-col items-center">
