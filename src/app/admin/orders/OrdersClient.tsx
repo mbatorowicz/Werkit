@@ -8,6 +8,8 @@ export default function OrdersClient() {
   const [machines, setMachines] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,18 +22,30 @@ export default function OrdersClient() {
     taskDescription: ''
   });
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
-      fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
-      fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
-      fetch("/api/customers", { cache: "no-store" }).then(r => r.json())
-    ]).then(([wor, mac, mat, cus]) => {
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const [wor, mac, mat, cus, ords] = await Promise.all([
+        fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/customers", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/admin/work-orders", { cache: "no-store" }).then(r => r.json())
+      ]);
       setWorkers(Array.isArray(wor) ? wor : []);
       setMachines(Array.isArray(mac) ? mac : []);
       setMaterials(Array.isArray(mat) ? mat : []);
       setCustomers(Array.isArray(cus) ? cus : []);
-    }).catch(console.error);
+      setOrders(Array.isArray(ords) ? ords : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -46,6 +60,7 @@ export default function OrdersClient() {
       if(res.ok) {
         alert("Zlecenie wysłane pomyślnie do pracownika!");
         setIsModalOpen(false);
+        fetchData();
         setForm({
           userId: '',
           resourceId: '',
@@ -76,10 +91,64 @@ export default function OrdersClient() {
         </button>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col p-10 items-center justify-center text-center shadow-sm">
-        <Map className="w-12 h-12 text-zinc-700 mb-4" />
-        <h3 className="text-zinc-700 dark:text-zinc-300 font-medium">Zarządzanie z wyprzedzeniem</h3>
-        <p className="text-zinc-500 text-sm mt-2 max-w-md">Zlecenia utworzone w tym miejscu wyświetlą się na samej górze ekranu wybranego pracownika. Nie musi on sam wypełniać danych – wystarczy, że kliknie "Rozpocznij".</p>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Pracownik / Data</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Maszyna</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Zadanie / Typ</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
+              {isLoading ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Pobieranie zleceń...</td></tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <Map className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />
+                      <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">Zarządzanie z wyprzedzeniem</h3>
+                      <p className="text-zinc-500 text-sm mt-2 max-w-md">Brak wystawionych zleceń. Kliknij "Nowa dyspozycja", aby przydzielić zadanie pracownikowi.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : orders.map(order => (
+                <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-zinc-900 dark:text-zinc-200">{order.workerName}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">{new Date(order.createdAt).toLocaleDateString('pl-PL')} {new Date(order.createdAt).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
+                    {order.resourceName}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-zinc-900 dark:text-zinc-200">
+                      {order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : (order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat')}
+                    </div>
+                    {order.sessionType === 'TRANSPORT' && (
+                       <div className="text-xs text-zinc-500 mt-0.5">
+                         {order.materialName} → {order.customerLastName} {order.customerFirstName}
+                       </div>
+                    )}
+                    {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
+                       <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={order.taskDescription}>
+                         {order.taskDescription}
+                       </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20' : order.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
+                      {order.status === 'PENDING' ? 'Oczekujące' : order.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isModalOpen && (
