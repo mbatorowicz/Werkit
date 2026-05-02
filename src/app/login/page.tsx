@@ -25,11 +25,12 @@ export default function LoginPage() {
         body: JSON.stringify({ usernameEmail, password }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
         router.refresh();
-        router.push("/admin");
+        router.push(data.user?.role === 'admin' ? "/admin" : "/worker");
       } else {
-        const data = await res.json();
         setError(data.error || "Wystąpił błąd krytyczny");
       }
     } catch (err) {
