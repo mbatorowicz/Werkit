@@ -13,7 +13,7 @@ export const users = pgTable('users', {
 
 export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
-  name: varchar('name', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
   icon: varchar('icon', { length: 50 }).default('Truck'),
 });
 
@@ -97,6 +97,7 @@ export const workOrders = pgTable('work_orders', {
   quantityTons: numeric('quantity_tons', { precision: 10, scale: 2 }),
   expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
   priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
+  dueDate: timestamp('due_date'),
 });
 
 // Relacje ułatwiające zapytania ORM

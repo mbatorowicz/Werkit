@@ -11,7 +11,6 @@ export default function OrdersClient() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'history'>('orders');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,13 +28,14 @@ export default function OrdersClient() {
     taskDescription: '',
     quantityTons: '',
     priority: 'NORMAL',
-    expectedDurationHours: ''
+    expectedDurationHours: '',
+    dueDate: ''
   });
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [wor, mac, mat, cus, ords] = await Promise.all([
+      const [wor, mac, mat, cus, ords, arch] = await Promise.all([
         fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
@@ -48,7 +48,7 @@ export default function OrdersClient() {
       setMaterials(Array.isArray(mat) ? mat : []);
       setCustomers(Array.isArray(cus) ? cus : []);
       setOrders(Array.isArray(ords) ? ords : []);
-      setSessions(Array.isArray(arguments[0]?.[5]) ? arguments[0][5] : []);
+      setSessions(Array.isArray(arch) ? arch : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -82,7 +82,8 @@ export default function OrdersClient() {
           taskDescription: '',
           quantityTons: '',
           priority: 'NORMAL',
-          expectedDurationHours: ''
+          expectedDurationHours: '',
+          dueDate: ''
         });
       } else {
         const data = await res.json();
@@ -94,106 +95,41 @@ export default function OrdersClient() {
     setIsSubmitting(false);
   };
 
+  const unifiedItems = [
+    ...orders.map(o => ({
+      ...o,
+      _type: 'ORDER',
+      _sortDate: new Date(o.createdAt).getTime(),
+      _statusGroup: o.status === 'PENDING' ? 1 : 2
+    })),
+    ...sessions.map(s => ({
+      ...s,
+      _type: 'SESSION',
+      _sortDate: new Date(s.startTime).getTime(),
+      _statusGroup: s.status === 'IN_PROGRESS' ? 1 : 2
+    }))
+  ]
+  .filter(item => 
+    (item.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
+    (item.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+  )
+  .sort((a, b) => {
+    if (a._statusGroup !== b._statusGroup) return a._statusGroup - b._statusGroup;
+    return b._sortDate - a._sortDate;
+  });
+
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Map className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
-        {activeTab === 'orders' && (
-          <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-            <Plus className="w-4 h-4" /> {dict.newOrder}
-          </button>
-        )}
-      </div>
-
-      <div className="flex gap-4 mb-6 border-b border-zinc-200 dark:border-zinc-800">
-        <button onClick={() => setActiveTab('orders')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'orders' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
-          Oczekujące / Aktywne
-        </button>
-        <button onClick={() => setActiveTab('history')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'history' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
-          Historia Pracy
+        <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+          <Plus className="w-4 h-4" /> {dict.newOrder}
         </button>
       </div>
 
-      {activeTab === 'orders' && (
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.workerDate}</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{getDictionary().admin.archive.machine}</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{getDictionary().admin.archive.taskType}</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{getDictionary().admin.archive.status}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
-              {isLoading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-              ) : orders.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-6 py-16">
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <Map className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />
-                      <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">{dict.proactiveManagement}</h3>
-                      <p className="text-zinc-500 text-sm mt-2 max-w-md">{dict.noOrders}</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : orders.map(order => (
-                <tr key={order.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className="font-medium text-zinc-900 dark:text-zinc-200">{order.workerName}</div>
-                      {order.priority === 'URGENT' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">PILNE</span>}
-                      {order.priority === 'HIGH' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">WAŻNE</span>}
-                    </div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{new Date(order.createdAt).toLocaleDateString('pl-PL')} {new Date(order.createdAt).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}</div>
-                    {order.creatorName && (
-                      <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
-                        {dict.orderedBy} <span className="font-medium text-zinc-500">{order.creatorName}</span>
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
-                    {order.resourceName}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-zinc-900 dark:text-zinc-200">
-                      {order.sessionType === 'TRANSPORT' ? getDictionary().admin.archive.transport : (order.sessionType === 'MACHINE_OP' ? getDictionary().admin.archive.machineOp : getDictionary().admin.archive.workshop)}
-                    </div>
-                    {order.sessionType === 'TRANSPORT' && (
-                       <div className="text-xs text-zinc-500 mt-0.5">
-                         {order.materialName} {order.quantityTons ? `(${order.quantityTons}t)` : ''} → {order.customerLastName} {order.customerFirstName}
-                       </div>
-                    )}
-                    {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
-                       <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={order.taskDescription}>
-                         {order.taskDescription}
-                       </div>
-                    )}
-                    {order.expectedDurationHours && (
-                       <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                         Czas: {order.expectedDurationHours}h
-                       </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${order.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20' : order.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
-                      {order.status === 'PENDING' ? dict.pending : order.status === 'IN_PROGRESS' ? getDictionary().admin.archive.inProgress : getDictionary().admin.archive.completed}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      )}
-
-      {activeTab === 'history' && (
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
           <div className="relative flex-1 max-w-sm">
@@ -202,7 +138,7 @@ export default function OrdersClient() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Szukaj..." 
+              placeholder="Szukaj zleceń i historii..." 
               className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
             />
           </div>
@@ -212,50 +148,87 @@ export default function OrdersClient() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Pracownik / Czas</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Maszyna</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Zadanie</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Status</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.workerDate}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{getDictionary().admin.archive.machine}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Zadanie / Termin</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{getDictionary().admin.archive.status}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
               {isLoading ? (
                 <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-              ) : sessions.filter(s => (s.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (s.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())).length === 0 ? (
-                <tr><td colSpan={4} className="px-6 py-16 text-center text-zinc-500">Brak wpisów w historii.</td></tr>
-              ) : sessions.filter(s => (s.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (s.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())).map(session => (
-                <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-zinc-900 dark:text-zinc-200">{session.workerName}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5 flex flex-col gap-1">
-                      <span>
-                        {new Date(session.startTime).toLocaleDateString('pl-PL')} {new Date(session.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                        {session.endTime && ` - ${new Date(session.endTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}`}
-                      </span>
+              ) : unifiedItems.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <Map className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />
+                      <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">Brak zleceń</h3>
+                      <p className="text-zinc-500 text-sm mt-2 max-w-md">Nie znaleziono żadnych oczekujących, ani archiwalnych zleceń pasujących do wyszukiwania.</p>
                     </div>
                   </td>
+                </tr>
+              ) : unifiedItems.map(item => (
+                <tr key={`${item._type}-${item.id}`} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors relative group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
+                      {item._type === 'ORDER' && item.priority === 'URGENT' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">PILNE</span>}
+                      {item._type === 'ORDER' && item.priority === 'HIGH' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">WAŻNE</span>}
+                    </div>
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      {item._type === 'ORDER' 
+                        ? `${new Date(item.createdAt).toLocaleDateString('pl-PL')} ${new Date(item.createdAt).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}`
+                        : `${new Date(item.startTime).toLocaleDateString('pl-PL')} ${new Date(item.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}`
+                      }
+                      {item.endTime && ` - ${new Date(item.endTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}`}
+                    </div>
+                    {item.creatorName && (
+                      <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
+                        {dict.orderedBy} <span className="font-medium text-zinc-500">{item.creatorName}</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
-                    {session.resourceName || 'Brak'}
+                    {item.resourceName || 'Brak'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-zinc-900 dark:text-zinc-200">
-                      {session.sessionType === 'TRANSPORT' ? 'Transport' : (session.sessionType === 'MACHINE_OP' ? 'Praca Maszyną' : 'Warsztat')}
+                      {item.sessionType === 'TRANSPORT' ? getDictionary().admin.archive.transport : (item.sessionType === 'MACHINE_OP' ? getDictionary().admin.archive.machineOp : getDictionary().admin.archive.workshop)}
                     </div>
-                    {session.sessionType === 'TRANSPORT' && (
+                    {item.sessionType === 'TRANSPORT' && (
                        <div className="text-xs text-zinc-500 mt-0.5">
-                         {session.materialName} {session.quantityTons ? `(${session.quantityTons}t)` : ''} → {session.customerLastName} {session.customerFirstName}
+                         {item.materialName} {item.quantityTons ? `(${item.quantityTons}t)` : ''} → {item.customerLastName} {item.customerFirstName}
                        </div>
                     )}
-                    {session.taskDescription && (
-                       <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={session.taskDescription}>
-                         {session.taskDescription}
+                    {item.sessionType !== 'TRANSPORT' && item.taskDescription && (
+                       <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={item.taskDescription}>
+                         {item.taskDescription}
                        </div>
                     )}
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {item.expectedDurationHours && (
+                         <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
+                           Szacowany czas: {item.expectedDurationHours}h
+                         </div>
+                      )}
+                      {item.dueDate && (
+                         <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
+                           Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                         </div>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${session.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
-                      {session.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'}
-                    </span>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${item.status === 'PENDING' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20' : item.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
+                        {item.status === 'PENDING' ? dict.pending : item.status === 'IN_PROGRESS' ? getDictionary().admin.archive.inProgress : getDictionary().admin.archive.completed}
+                      </span>
+                      {item.status === 'IN_PROGRESS' && (
+                        <div className="w-24 h-1.5 bg-blue-100 dark:bg-blue-950 rounded-full overflow-hidden mt-1">
+                          <div className="h-full bg-blue-500 animate-pulse rounded-full w-full"></div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -263,7 +236,6 @@ export default function OrdersClient() {
           </table>
         </div>
       </div>
-      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -329,9 +301,16 @@ export default function OrdersClient() {
                    </div>
                  )}
                  
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">Przewidywany czas (godziny)</label>
-                   <input type="number" step="0.5" placeholder="np. 4.5" value={form.expectedDurationHours} onChange={e => setForm({...form, expectedDurationHours: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                 <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">Przewidywany czas (godziny)</label>
+                     <input type="number" step="0.5" placeholder="np. 4.5" value={form.expectedDurationHours} onChange={e => setForm({...form, expectedDurationHours: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                   </div>
+                   
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">Termin wykonania (opcjonalnie)</label>
+                     <input type="datetime-local" value={form.dueDate} onChange={e => setForm({...form, dueDate: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                   </div>
                  </div>
                  
                  <div className="space-y-2">
@@ -343,6 +322,7 @@ export default function OrdersClient() {
                      <option value="URGENT">PILNE</option>
                    </select>
                  </div>
+
                  
                  <div className="pt-4 border-t border-zinc-800">
                     <button disabled={isSubmitting} type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">

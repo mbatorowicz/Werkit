@@ -27,7 +27,8 @@ export async function GET() {
       customerLastName: customers.lastName,
       quantityTons: workOrders.quantityTons,
       priority: workOrders.priority,
-      expectedDurationHours: workOrders.expectedDurationHours
+      expectedDurationHours: workOrders.expectedDurationHours,
+      dueDate: workOrders.dueDate
     })
       .from(workOrders)
       .leftJoin(users, eq(workOrders.userId, users.id))
@@ -51,7 +52,7 @@ export async function POST(request: Request) {
     if (verified.payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
-    const { userId, resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority } = body;
+    const { userId, resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate } = body;
 
     if (!userId || !resourceId || !sessionType) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
       quantityTons: quantityTons ? quantityTons.toString() : null,
       expectedDurationHours: expectedDurationHours ? expectedDurationHours.toString() : null,
       priority: priority || 'NORMAL',
+      dueDate: dueDate ? new Date(dueDate) : null,
       createdById: verified.payload.userId as number
     });
 
