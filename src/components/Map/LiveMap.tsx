@@ -72,7 +72,7 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
   }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng]);
 
   return (
-    <div className="w-full h-full rounded-2xl overflow-hidden border border-zinc-800">
+    <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800">
       <MapContainer center={[currentLocation.lat, currentLocation.lng]} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl={false}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"

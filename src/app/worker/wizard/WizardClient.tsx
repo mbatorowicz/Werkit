@@ -107,7 +107,7 @@ export default function WizardClient() {
                     <button 
                       key={order.id}
                       onClick={() => handleAcceptOrder(order.id)}
-                      className="w-full bg-amber-500/10 border border-amber-500/50 hover:bg-amber-500/20 text-left p-4 rounded-2xl transition-all"
+                      className="w-full bg-amber-500/10 border border-amber-500/50 hover:bg-amber-500/20 text-left p-4 rounded-lg transition-all"
                     >
                       <div className="font-bold text-amber-400 text-lg mb-1">{order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</div>
                       <div className="text-sm text-zinc-300">
@@ -120,7 +120,7 @@ export default function WizardClient() {
                         </>
                       )}
                       {order.taskDescription && (
-                        <div className="text-sm text-zinc-300 mt-2 italic">"{order.taskDescription}"</div>
+                        <div className="text-sm text-zinc-700 dark:text-zinc-300 mt-2 italic">"{order.taskDescription}"</div>
                       )}
                       <div className="mt-3 text-amber-400 font-semibold text-sm">Rozpocznij to zlecenie &rarr;</div>
                     </button>
@@ -129,12 +129,12 @@ export default function WizardClient() {
               </div>
             )}
 
-            <h2 className="text-xl font-bold text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz rodzaj zaplanowanej dla Ciebie pracy.</p>
             
             <div className="space-y-4">
-              <button onClick={() => { setSessionType('TRANSPORT'); setStep(2); }} className={`w-full p-5 rounded-2xl border transition-all flex items-center gap-4 ${sessionType === 'TRANSPORT' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0">
+              <button onClick={() => { setSessionType('TRANSPORT'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'TRANSPORT' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Truck className="w-6 h-6" />
                 </div>
                 <div className="text-left">
@@ -143,8 +143,8 @@ export default function WizardClient() {
                 </div>
               </button>
 
-              <button onClick={() => { setSessionType('MACHINE_OP'); setStep(2); }} className={`w-full p-5 rounded-2xl border transition-all flex items-center gap-4 ${sessionType === 'MACHINE_OP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0">
+              <button onClick={() => { setSessionType('MACHINE_OP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'MACHINE_OP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Tractor className="w-6 h-6" />
                 </div>
                 <div className="text-left">
@@ -153,8 +153,8 @@ export default function WizardClient() {
                 </div>
               </button>
 
-              <button onClick={() => { setSessionType('WORKSHOP'); setStep(2); }} className={`w-full p-5 rounded-2xl border transition-all flex items-center gap-4 ${sessionType === 'WORKSHOP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'}`}>
-                <div className="w-12 h-12 bg-zinc-950 rounded-xl flex items-center justify-center shrink-0">
+              <button onClick={() => { setSessionType('WORKSHOP'); setStep(2); }} className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${sessionType === 'WORKSHOP' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}>
+                <div className="w-12 h-12 bg-zinc-50 dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0">
                    <Wrench className="w-6 h-6" />
                 </div>
                 <div className="text-left">
@@ -168,7 +168,7 @@ export default function WizardClient() {
 
         {step === 2 && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-            <h2 className="text-xl font-bold text-white mb-2">Jakim sprzętem jedziesz?</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Jakim sprzętem jedziesz?</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz maszynę z floty firmowej.</p>
             
             <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -176,7 +176,7 @@ export default function WizardClient() {
                 <button 
                   key={m.id} 
                   onClick={() => { setResourceId(m.id.toString()); setStep(3); }}
-                  className={`w-full p-4 rounded-xl border transition-all flex items-center gap-4 ${resourceId === m.id.toString() ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700'}`}
+                  className={`w-full p-4 rounded-lg border transition-all flex items-center gap-4 ${resourceId === m.id.toString() ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700'}`}
                 >
                   <div className="text-left w-full">
                     <div className="font-bold">{m.name}</div>
@@ -186,13 +186,13 @@ export default function WizardClient() {
                 </button>
               ))}
               {machines.length === 0 && (
-                <div className="text-center p-6 text-zinc-500 bg-zinc-900 rounded-xl border border-zinc-800">
+                <div className="text-center p-6 text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 rounded-lg border border-zinc-800">
                   Brak maszyn w bazie danych. Zgłoś problem dyspozytorowi.
                 </div>
               )}
             </div>
             <div className="mt-6">
-               <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors">
+               <button onClick={() => setStep(1)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Wróć do wyboru typu
                </button>
             </div>
@@ -203,7 +203,7 @@ export default function WizardClient() {
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
             {sessionType === 'TRANSPORT' ? (
               <>
-                <h2 className="text-xl font-bold text-white mb-2">Szczegóły Transportu</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Szczegóły Transportu</h2>
                 <p className="text-zinc-500 text-sm mb-6">Wybierz materiał i klienta docelowego.</p>
 
                 <div className="space-y-5">
@@ -212,7 +212,7 @@ export default function WizardClient() {
                     <select 
                       value={materialId}
                       onChange={e => setMaterialId(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-4 text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
+                      className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
                     >
                       <option value="" disabled>Wybierz z listy...</option>
                       {materials.map(mat => (
@@ -226,7 +226,7 @@ export default function WizardClient() {
                     <select 
                       value={customerId}
                       onChange={e => setCustomerId(e.target.value)}
-                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-4 text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
+                      className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
                     >
                       <option value="" disabled>Wybierz klienta...</option>
                       {customers.map(c => (
@@ -238,26 +238,26 @@ export default function WizardClient() {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold text-white mb-2">Zadanie / Cel Pracy</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Zadanie / Cel Pracy</h2>
                 <p className="text-zinc-500 text-sm mb-6">Napisz krótko co będziesz robił.</p>
 
                 <textarea 
                   value={taskDescription}
                   onChange={e => setTaskDescription(e.target.value)}
                   placeholder="Np. Wymiana filtrów w koparce, Wykop pod fundamenty itp."
-                  className="w-full h-40 bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+                  className="w-full h-40 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
                 />
               </>
             )}
 
             <div className="mt-8 flex items-center justify-between">
-               <button onClick={() => setStep(2)} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors">
+               <button onClick={() => setStep(2)} className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Wróć
                </button>
                <button 
                  disabled={sessionType === 'TRANSPORT' ? (!materialId || !customerId) : !taskDescription}
                  onClick={() => setStep(4)} 
-                 className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2"
+                 className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
                >
                  Dalej <ChevronRight className="w-5 h-5" />
                </button>
@@ -270,27 +270,27 @@ export default function WizardClient() {
             <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2 text-center">Wszystko gotowe</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">Wszystko gotowe</h2>
             <p className="text-zinc-500 text-sm mb-8 text-center">
               Podsumowanie nowej sesji. Sprawdź czy wszystko się zgadza.
             </p>
 
-            <div className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-3 mb-10">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 space-y-3 mb-10">
                <div className="flex justify-between">
                  <span className="text-zinc-500 text-sm">Typ Pracy:</span>
                  <span className="text-white font-medium">{sessionType === 'TRANSPORT' ? 'Transport' : sessionType === 'MACHINE_OP' ? 'Praca Maszyną' : 'Warsztat'}</span>
                </div>
-               <div className="flex justify-between border-t border-zinc-800 pt-3">
+               <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
                  <span className="text-zinc-500 text-sm">Maszyna:</span>
                  <span className="text-white font-medium">{machines.find(m => m.id.toString() === resourceId)?.name}</span>
                </div>
                {sessionType === 'TRANSPORT' && (
                  <>
-                   <div className="flex justify-between border-t border-zinc-800 pt-3">
+                   <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
                      <span className="text-zinc-500 text-sm">Kruszywo:</span>
                      <span className="text-white font-medium truncate max-w-[150px] text-right">{materials.find(m => m.id.toString() === materialId)?.name}</span>
                    </div>
-                   <div className="flex justify-between border-t border-zinc-800 pt-3">
+                   <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
                      <span className="text-zinc-500 text-sm">Klient:</span>
                      <span className="text-white font-medium truncate max-w-[150px] text-right">{customers.find(m => m.id.toString() === customerId)?.lastName}</span>
                    </div>
@@ -301,12 +301,12 @@ export default function WizardClient() {
             <button 
               disabled={isLoading}
               onClick={handleStart} 
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-2xl font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-lg font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
             >
               {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Start Pracy"}
             </button>
             
-            <button onClick={() => setStep(3)} className="mt-6 flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors">
+            <button onClick={() => setStep(3)} className="mt-6 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-white transition-colors">
                  <ChevronLeft className="w-4 h-4" /> Popraw Dane
             </button>
           </div>

@@ -68,33 +68,33 @@ export default function MaterialsClient() {
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white tracking-tight flex items-center gap-2"><Box className="w-6 h-6 text-emerald-500" /> Baza Kruszyw</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Box className="w-6 h-6 text-emerald-500" /> Baza Kruszyw</h1>
           <p className="text-zinc-500 mt-1">Zarządzaj klasyfikacją i rodzajami materiałów dostępnych w systemie.</p>
         </div>
-        <button onClick={openNewModal} className="bg-emerald-600 text-white px-5 py-2.5 text-sm font-semibold rounded-xl hover:bg-emerald-500 transition shadow-sm flex items-center gap-2">
+        <button onClick={openNewModal} className="bg-emerald-600 text-white px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-emerald-500 transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           Dodaj Kruszywo
         </button>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col overflow-hidden shadow-sm">
+      <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
-               <tr className="border-b border-zinc-800/50 bg-[#0a0a0b]/80">
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Nazwa Materiału</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider">Typ (Klasyfikacja)</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 uppercase tracking-wider text-right">Zarządzanie</th>
+               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-[#0a0a0b]/80">
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Nazwa Materiału</th>
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Typ (Klasyfikacja)</th>
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Zarządzanie</th>
                </tr>
              </thead>
              <tbody className="divide-y divide-zinc-800/50">
                {isLoading ? (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Pobieranie bazy kruszyw...</td></tr>
+                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Pobieranie bazy kruszyw...</td></tr>
                ) : materials.map(material => (
                  <tr key={material.id} className="hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="font-semibold text-zinc-200">{material.name}</div>
-                      <div className="text-[11px] text-zinc-500 uppercase tracking-widest mt-0.5">ID: #{material.id}</div>
+                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID: #{material.id}</div>
                    </td>
                    <td className="px-6 py-4">
                       <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
@@ -103,10 +103,10 @@ export default function MaterialsClient() {
                    </td>
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
-                        <button onClick={() => openEditModal(material)} className="p-2 text-zinc-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition" title="Edytuj">
+                        <button onClick={() => openEditModal(material)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition" title="Edytuj">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(material.id)} className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title="Skasuj całkowicie">
+                        <button onClick={() => handleDelete(material.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title="Skasuj całkowicie">
                           <Trash2 className="w-4 h-4" />
                         </button>
                      </div>
@@ -114,7 +114,7 @@ export default function MaterialsClient() {
                  </tr>
                ))}
                {!isLoading && materials.length === 0 && (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 text-sm">Brak materiałów w bazie.</td></tr>
+                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Brak materiałów w bazie.</td></tr>
                )}
              </tbody>
           </table>
@@ -124,19 +124,19 @@ export default function MaterialsClient() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-800 flex justify-between items-center bg-[#0a0a0b]/80">
+           <div className="bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
                  <h2 className="text-lg font-semibold text-white">{editId ? "Edycja Materiału" : "Nowe Kruszywo"}</h2>
                  <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Nazwa Handlowa</label>
-                   <input required type="text" placeholder="Np. Piasek Płukany 0-2mm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none" />
+                   <input required type="text" placeholder="Np. Piasek Płukany 0-2mm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none" />
                  </div>
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">Typ (Klasyfikacja w systemie)</label>
-                   <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none appearance-none">
+                   <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none appearance-none">
                      <option value="PIASEK">Piasek</option>
                      <option value="ZWIR">Żwir</option>
                      <option value="POSPOLKA">Pospółka</option>
@@ -147,7 +147,7 @@ export default function MaterialsClient() {
                  </div>
                  
                  <div className="pt-4 border-t border-zinc-800">
-                    <button disabled={isSubmitting} type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl hover:bg-emerald-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
+                    <button disabled={isSubmitting} type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
                        {isSubmitting ? "Zapisywanie..." : (editId ? "Zapisz Zmiany" : "Dodaj Materiał")}
                     </button>
                  </div>

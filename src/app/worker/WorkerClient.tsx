@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
-const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500"/></div> });
+const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500"/></div> });
 
 type Session = {
   id: number;
@@ -206,15 +206,15 @@ export default function WorkerClient() {
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
       {!session ? (
          <div className="w-full flex flex-col items-center justify-center mt-10">
-            <div className="w-24 h-24 bg-zinc-900 border border-zinc-800 rounded-full flex items-center justify-center mb-8 shadow-inner">
+            <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-8 shadow-inner">
                <Clock className="w-10 h-10 text-zinc-700" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Gotowy do startu?</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
             <p className="text-zinc-500 text-center mb-10 text-sm max-w-[250px]">
               Nie masz obecnie aktywnej sesji pracy. Rozpocznij nowe zlecenie.
             </p>
             
-            <Link href="/worker/wizard" className="w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
+            <Link href="/worker/wizard" className="w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
                <Play className="w-6 h-6 fill-current" />
                <span className="text-lg font-bold uppercase tracking-wider">Rozpocznij Pracę</span>
             </Link>
@@ -223,10 +223,10 @@ export default function WorkerClient() {
          <div className="w-full flex flex-col items-center">
             
             {/* WIDGET STATUSU */}
-            <div className="w-full flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+            <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
                <div>
                   <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Upływ czasu</div>
-                  <div className="font-mono text-3xl font-bold text-white tracking-tighter">
+                  <div className="font-mono text-3xl font-bold text-zinc-900 dark:text-white tracking-tighter">
                      {elapsed}
                   </div>
                </div>
@@ -243,12 +243,12 @@ export default function WorkerClient() {
 
             {/* WIDGET TRASY */}
             <div className="w-full flex gap-4 mt-4">
-               <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+               <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
                   <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Przebyta Trasa</div>
                   <div className="font-mono text-xl font-bold text-emerald-400">{traveledKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
                </div>
                {destination && distanceToDestKm !== null && (
-                 <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+                 <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
                     <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Do Celu</div>
                     <div className="font-mono text-xl font-bold text-amber-500">{distanceToDestKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
                  </div>
@@ -256,7 +256,7 @@ export default function WorkerClient() {
             </div>
 
             {/* MAPA */}
-            <div className="w-full h-64 md:h-80 mt-4 relative rounded-2xl overflow-hidden border border-zinc-800 shadow-inner bg-zinc-900">
+            <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-zinc-900">
                {location ? (
                  <LiveMap 
                    currentLocation={location} 
@@ -274,7 +274,7 @@ export default function WorkerClient() {
             </div>
 
             <div className="mt-6 w-full">
-               <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-2xl py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
+               <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
                   <Square className="w-5 h-5 fill-current" />
                   <span className="font-bold uppercase tracking-wider text-sm">Zakończ Trasę</span>
                </button>
