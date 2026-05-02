@@ -119,7 +119,7 @@ export default async function DashboardPage() {
                  <p className="text-xs text-zinc-400 mt-1 drop-shadow-md">Wykryto dostawców w tym okręgu.</p>
               </div>
               <div className="flex-1 w-full relative h-full min-h-[450px]">
-                 <LiveMap lat={mapLat} lng={mapLng} />
+                 <LiveMap currentLocation={{lat: mapLat, lng: mapLng}} pathTraveled={[]} destination={null} />
               </div>
            </div>
         </div>
