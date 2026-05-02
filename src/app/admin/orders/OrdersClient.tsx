@@ -79,7 +79,7 @@ export default function OrdersClient() {
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col p-10 items-center justify-center text-center shadow-sm">
         <Map className="w-12 h-12 text-zinc-700 mb-4" />
-        <h3 className="text-zinc-300 font-medium">Zarządzanie z wyprzedzeniem</h3>
+        <h3 className="text-zinc-700 dark:text-zinc-300 font-medium">Zarządzanie z wyprzedzeniem</h3>
         <p className="text-zinc-500 text-sm mt-2 max-w-md">Zlecenia utworzone w tym miejscu wyświetlą się na samej górze ekranu wybranego pracownika. Nie musi on sam wypełniać danych – wystarczy, że kliknie "Rozpocznij".</p>
       </div>
 
@@ -155,6 +155,7 @@ export default function OrdersClient() {
     </>
   )
 }
+
 
 
 

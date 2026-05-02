@@ -91,7 +91,7 @@ export default function MaterialsClient() {
                {isLoading ? (
                  <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Pobieranie bazy kruszyw...</td></tr>
                ) : materials.map(material => (
-                 <tr key={material.id} className="hover:bg-zinc-800/20 transition-colors">
+                 <tr key={material.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="font-semibold text-zinc-900 dark:text-zinc-200">{material.name}</div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID: #{material.id}</div>
@@ -158,6 +158,7 @@ export default function MaterialsClient() {
     </>
   )
 }
+
 
 
 

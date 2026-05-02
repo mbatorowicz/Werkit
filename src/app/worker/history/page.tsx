@@ -67,10 +67,10 @@ export default async function HistoryPage() {
                  </div>
                  {s.sessionType === 'TRANSPORT' ? (
                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-300">
+                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-700 dark:text-zinc-300">
                         {s.materialName || 'Brak kruszywa'}
                       </span>
-                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-300">
+                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-700 dark:text-zinc-300">
                         Klient: {s.customerLastName || 'Brak'}
                       </span>
                    </div>
@@ -86,5 +86,6 @@ export default async function HistoryPage() {
     </div>
   );
 }
+
 
 

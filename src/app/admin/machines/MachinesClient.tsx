@@ -131,7 +131,7 @@ export default function MachinesClient() {
                {isLoading ? (
                  <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Konfiguracja baz...</td></tr>
                ) : machines.map(machine => (
-                 <tr key={machine.id} className="hover:bg-zinc-800/20 transition-colors">
+                 <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                          <div className="w-10 h-10 rounded-lg bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
@@ -223,6 +223,7 @@ export default function MachinesClient() {
     </>
   )
 }
+
 
 
 

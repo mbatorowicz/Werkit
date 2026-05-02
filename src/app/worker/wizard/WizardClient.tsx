@@ -110,13 +110,13 @@ export default function WizardClient() {
                       className="w-full bg-amber-500/10 border border-amber-500/50 hover:bg-amber-500/20 text-left p-4 rounded-lg transition-all"
                     >
                       <div className="font-bold text-amber-400 text-lg mb-1">{order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</div>
-                      <div className="text-sm text-zinc-300">
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">
                         <span className="text-zinc-500">Maszyna:</span> {order.resourceName}
                       </div>
                       {order.sessionType === 'TRANSPORT' && (
                         <>
-                          <div className="text-sm text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName}</div>
-                          <div className="text-sm text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>
+                          <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName}</div>
+                          <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>
                         </>
                       )}
                       {order.taskDescription && (
@@ -315,6 +315,7 @@ export default function WizardClient() {
     </div>
   );
 }
+
 
 
 

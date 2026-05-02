@@ -87,7 +87,7 @@ export default async function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
                     {activeSessions.map(session => (
-                      <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                      <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                         <td className="px-6 py-4">
                            <div className="font-medium text-zinc-900 dark:text-zinc-900 dark:text-zinc-200">{session.userName}</div>
                            <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{session.desc || 'Brak opisu z trasy'} {session.tons ? `(${session.tons}t)` : ''}</div>
@@ -127,5 +127,6 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
 
 

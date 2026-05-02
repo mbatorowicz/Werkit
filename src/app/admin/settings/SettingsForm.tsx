@@ -117,41 +117,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-zinc-800/50">
-            <div className="space-y-6">
-                <div>
-                   <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">Miejsce stacjonowania / Siedziba GPS</h3>
-                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Określ z jakiego punktu nawigowane będą wszystkie działania logistyczne i pulpit. Jeśli wpisałeś adres fizyczny powyżej - wciśnij Autonamierz.</p>
-                </div>
 
-                <div className="space-y-2">
-                  <button onClick={searchAddress} disabled={isSearching} className="bg-zinc-800 hover:bg-zinc-700 text-zinc-900 dark:text-white font-medium px-5 py-2.5 rounded-lg transition whitespace-nowrap w-full md:w-auto shadow-sm">
-                    {isSearching ? "Pobieram z Satelity OSM..." : "Autonamierz na podst. adresu"}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-500">Geodługość (X)</label>
-                        <input type="text" value={lng.toFixed(5)} disabled className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-500">Geoszerokość (Y)</label>
-                        <input type="text" value={lat.toFixed(5)} disabled className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-500 dark:text-zinc-400 outline-none text-sm cursor-not-allowed" />
-                    </div>
-                </div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                   * Celownik z GPS po prawej stronie jest od teraz używa map jasnych. Ręczne przesuwanie natychmiast modyfikuje koordynaty.
-                </div>
-            </div>
-
-            <div className="h-[350px] w-full bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg border border-zinc-700/50 overflow-hidden relative shadow-inner">
-               <SettingsMap lat={lat} lng={lng} onLocationChange={(newLat: number, newLng: number) => { setLat(newLat); setLng(newLng); }} />
-               <div className="absolute top-3 left-3 bg-white/90 backdrop-blur shadow text-xs font-bold px-3 py-1.5 rounded-full text-zinc-800 pointer-events-none z-[1000]">
-                 Celownik Bazy Głównej
-               </div>
-            </div>
-          </div>
           
           <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
             {saveStatus === "SAVED" && <span className="text-emerald-500 text-sm font-medium">SSOT zaktualizowane pomyślnie! ✔</span>}

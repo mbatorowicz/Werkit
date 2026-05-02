@@ -115,7 +115,7 @@ export default function WorkersClient() {
                {isLoading ? (
                  <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">Pobieranie bazy kadr...</td></tr>
                ) : workers.map(worker => (
-                 <tr key={worker.id} className="hover:bg-zinc-800/20 transition-colors">
+                 <tr key={worker.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                          <div className="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-300 font-bold">
@@ -216,6 +216,7 @@ export default function WorkersClient() {
     </>
   )
 }
+
 
 
 
