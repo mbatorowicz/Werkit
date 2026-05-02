@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Menu, X, Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings } from "lucide-react";
+import { Menu, X, Map, Users, Package, Activity, LogOut, Wrench, HardHat, Settings } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -21,8 +21,6 @@ export function MobileAdminNav({ companyName, version, dict }: { companyName: st
     { href: "/admin/orders", icon: Map, label: dict.orders.title },
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
     { href: "/admin/customers", icon: Package, label: dict.customers.title },
-    { type: "section", label: dict.sidebar.reportsAndWarehouse },
-    { href: "/admin/archive", icon: FileClock, label: dict.archive.title },
     { type: "section", label: dict.sidebar.system },
     { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
   ];

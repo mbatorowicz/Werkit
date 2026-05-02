@@ -16,8 +16,6 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
     { href: "/admin/orders", icon: Map, label: dict.orders.title },
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
     { href: "/admin/customers", icon: Package, label: dict.customers.title },
-    { type: "section", label: dict.sidebar.reportsAndWarehouse },
-    { href: "/admin/archive", icon: FileClock, label: dict.archive.title },
     { type: "section", label: dict.sidebar.system },
     { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
   ];

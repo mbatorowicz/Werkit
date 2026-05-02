@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Map, Plus, X } from "lucide-react";
+import { Map, Plus, X, Search } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
 export default function OrdersClient() {
@@ -10,6 +10,9 @@ export default function OrdersClient() {
   const [materials, setMaterials] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'orders' | 'history'>('orders');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,13 +40,15 @@ export default function OrdersClient() {
         fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/customers", { cache: "no-store" }).then(r => r.json()),
-        fetch("/api/admin/work-orders", { cache: "no-store" }).then(r => r.json())
+        fetch("/api/admin/work-orders", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/admin/archive", { cache: "no-store" }).then(r => r.json())
       ]);
       setWorkers(Array.isArray(wor) ? wor : []);
       setMachines(Array.isArray(mac) ? mac : []);
       setMaterials(Array.isArray(mat) ? mat : []);
       setCustomers(Array.isArray(cus) ? cus : []);
       setOrders(Array.isArray(ords) ? ords : []);
+      setSessions(Array.isArray(arguments[0]?.[5]) ? arguments[0][5] : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -91,16 +96,28 @@ export default function OrdersClient() {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Map className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> {dict.newOrder}
+        {activeTab === 'orders' && (
+          <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" /> {dict.newOrder}
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-4 mb-6 border-b border-zinc-200 dark:border-zinc-800">
+        <button onClick={() => setActiveTab('orders')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'orders' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+          Oczekujące / Aktywne
+        </button>
+        <button onClick={() => setActiveTab('history')} className={`pb-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'history' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>
+          Historia Pracy
         </button>
       </div>
 
+      {activeTab === 'orders' && (
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -174,6 +191,79 @@ export default function OrdersClient() {
           </table>
         </div>
       </div>
+      )}
+
+      {activeTab === 'history' && (
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Szukaj..." 
+              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Pracownik / Czas</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Maszyna</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Zadanie</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
+              {isLoading ? (
+                <tr><td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
+              ) : sessions.filter(s => (s.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (s.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())).length === 0 ? (
+                <tr><td colSpan={4} className="px-6 py-16 text-center text-zinc-500">Brak wpisów w historii.</td></tr>
+              ) : sessions.filter(s => (s.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (s.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())).map(session => (
+                <tr key={session.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-zinc-900 dark:text-zinc-200">{session.workerName}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5 flex flex-col gap-1">
+                      <span>
+                        {new Date(session.startTime).toLocaleDateString('pl-PL')} {new Date(session.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                        {session.endTime && ` - ${new Date(session.endTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}`}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
+                    {session.resourceName || 'Brak'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-zinc-900 dark:text-zinc-200">
+                      {session.sessionType === 'TRANSPORT' ? 'Transport' : (session.sessionType === 'MACHINE_OP' ? 'Praca Maszyną' : 'Warsztat')}
+                    </div>
+                    {session.sessionType === 'TRANSPORT' && (
+                       <div className="text-xs text-zinc-500 mt-0.5">
+                         {session.materialName} {session.quantityTons ? `(${session.quantityTons}t)` : ''} → {session.customerLastName} {session.customerFirstName}
+                       </div>
+                    )}
+                    {session.taskDescription && (
+                       <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={session.taskDescription}>
+                         {session.taskDescription}
+                       </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${session.status === 'IN_PROGRESS' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20'}`}>
+                      {session.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
