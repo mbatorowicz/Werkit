@@ -121,7 +121,7 @@ export default function MachinesClient() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
-               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-[#0a0a0b]/80">
+               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Pojazd / Rejestracja</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kategoria Słownikowa</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Zarządzanie</th>
@@ -177,7 +177,7 @@ export default function MachinesClient() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCMOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
+              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <h2 className="text-base font-semibold text-white">{cEditId ? 'Edycja Nagłówka' : 'Nowa Kategoria Bazy'}</h2>
                  <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-4 h-4"/></button>
               </div>
@@ -194,7 +194,7 @@ export default function MachinesClient() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
+              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <h2 className="text-lg font-semibold text-white">{mEditId ? "Karta Edycji Pojazdu" : "Rejestracja Nowego Sprzętu"}</h2>
                  <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-white"><X className="w-5 h-5"/></button>
               </div>
@@ -223,4 +223,5 @@ export default function MachinesClient() {
     </>
   )
 }
+
 

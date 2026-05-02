@@ -70,7 +70,7 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-      <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-950/50">
+      <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-950/50">
         <h2 className="font-semibold text-white">Dane Ustrukturyzowane Firmy</h2>
       </div>
       
@@ -163,4 +163,5 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
     </div>
   )
 }
+
 

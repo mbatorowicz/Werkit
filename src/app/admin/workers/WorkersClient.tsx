@@ -105,7 +105,7 @@ export default function WorkersClient() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
-               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-[#0a0a0b]/80">
+               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Imię i Nazwisko / Rola</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Login Systemowy</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">Zarządzanie</th>
@@ -131,7 +131,7 @@ export default function WorkersClient() {
                       </div>
                    </td>
                    <td className="px-6 py-4">
-                     <span className="bg-zinc-950 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-3 py-1 rounded text-sm font-mono tracking-wide">{worker.usernameEmail}</span>
+                     <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 px-3 py-1 rounded text-sm font-mono tracking-wide">{worker.usernameEmail}</span>
                    </td>
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
@@ -162,7 +162,7 @@ export default function WorkersClient() {
            
            {/* Modal */}
            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-[#0a0a0b]/80">
+              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <h2 className="text-lg font-semibold text-white">{editId ? "Edycja Profilu" : "Tworzenie Konta Autoryzacyjnego"}</h2>
                  <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white transition"><X className="w-5 h-5"/></button>
               </div>
@@ -199,7 +199,7 @@ export default function WorkersClient() {
                      Tryb nadpisywania. Nie musisz podawać starego opisu PIN, wpisz twardo wymuszone nowe, a system je zatwierdzi z automatu.
                     </div>
                  ) : (
-                    <div className="bg-zinc-950/50 p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg mt-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                    <div className="bg-zinc-100 dark:bg-zinc-950/50 p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg mt-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                      Zgodnie z protokołem bezpieczeństwa, przekazujesz wygenerowany przed chwilą login i pin pracownikowi. Hasło zostanie zaszyfrowane metodą BCRYPT.
                     </div>
                  )}
@@ -216,4 +216,6 @@ export default function WorkersClient() {
     </>
   )
 }
+
+
 
