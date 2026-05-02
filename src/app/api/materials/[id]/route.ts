@@ -9,7 +9,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const id = parseInt(params.id);
     const body = await request.json();
     
-    if(!body.name || !body.type) return NextResponse.json({ error: 'Uzupełnij pola.' }, { status: 400 });
+    if(!body.name || !body.type) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
     await db.update(materials).set({ 
        name: body.name,
@@ -18,7 +18,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Błąd aktualizacji' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
 
@@ -26,12 +26,12 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const params = await context.params;
     const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'Nieprawidłowy ID' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
     await db.delete(materials).where(eq(materials.id, id));
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Delete material error", err);
-    return NextResponse.json({ error: 'Nie można usunąć materiału. Może być przypisany do zleceń.' }, { status: 500 });
+    return NextResponse.json({ error: 'material_in_use' }, { status: 500 });
   }
 }

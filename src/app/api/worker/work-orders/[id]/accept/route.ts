@@ -29,6 +29,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       materialId: order.materialId,
       customerId: order.customerId,
       taskDescription: order.taskDescription,
+      quantityTons: order.quantityTons,
       status: 'IN_PROGRESS'
     }).returning();
 

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { getDictionary } from "@/i18n";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +34,8 @@ export default function LoginPage() {
         router.refresh();
         router.push(data.user?.role === 'admin' ? "/admin" : "/worker");
       } else {
-        setError(data.error || "Wystąpił błąd krytyczny");
+        const apiErrors = getDictionary().apiErrors as Record<string, string>;
+        setError(apiErrors[data.error] || data.error || "Wystąpił błąd krytyczny");
       }
     } catch (err) {
       setError("Brak połączenia z Vercel API. Spróbuj ponownie.");

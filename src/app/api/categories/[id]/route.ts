@@ -8,11 +8,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const params = await context.params;
     const id = parseInt(params.id);
     const body = await request.json();
-    
-    await db.update(resourceCategories).set({ name: body.name.trim() }).where(eq(resourceCategories.id, id));
+
+    await db.update(resourceCategories).set({ name: body.name.trim(), icon: body.icon || 'Truck' }).where(eq(resourceCategories.id, id));
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Kategoria jest już w użyciu lub wystąpił inny błąd.' }, { status: 500 });
+    return NextResponse.json({ error: 'category_in_use' }, { status: 500 });
   }
 }
 
@@ -23,6 +23,6 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     await db.delete(resourceCategories).where(eq(resourceCategories.id, id));
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Nie można usunąć kategorii, do której przypisane są maszyny.' }, { status: 500 });
+    return NextResponse.json({ error: 'category_has_machines' }, { status: 500 });
   }
 }

@@ -43,6 +43,7 @@ function getDistance(a: Coord, b: Coord) {
 }
 
 export default function WorkerClient() {
+  const [events, setEvents] = useState<{lat: number, lng: number, label: string}[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,9 +67,9 @@ export default function WorkerClient() {
   const fetchSessionAndPath = async () => {
     try {
       const [resSess, resPath, resOrders] = await Promise.all([
-        fetch("/api/worker/session"),
-        fetch("/api/worker/gps"),
-        fetch("/api/worker/work-orders")
+        fetch("/api/worker/session", { cache: "no-store" }),
+        fetch("/api/worker/gps", { cache: "no-store" }),
+        fetch("/api/worker/work-orders", { cache: "no-store" })
       ]);
       const sessData = await resSess.json();
       const pathData = await resPath.json();
@@ -78,6 +79,21 @@ export default function WorkerClient() {
       
       if (sessData.session) {
         setSession(sessData.session);
+        const newEvents: {lat: number, lng: number, label: string}[] = [];
+        if (sessData.events) {
+           sessData.events.forEach((ev: any) => {
+              if (ev.latitude && ev.longitude) newEvents.push({ lat: parseFloat(ev.latitude), lng: parseFloat(ev.longitude), label: 'Zdjęcie' });
+           });
+        }
+        if (sessData.session.taskDescription) {
+           const regex = /\(GPS: ([\d.-]+), ([\d.-]+)\)/g;
+           let match;
+           while ((match = regex.exec(sessData.session.taskDescription)) !== null) {
+              newEvents.push({ lat: parseFloat(match[1]), lng: parseFloat(match[2]), label: 'Notatka' });
+           }
+        }
+        setEvents(newEvents);
+
         if (pathData.logs) {
            setPathTraveled(pathData.logs);
            // calculate traveled
@@ -226,9 +242,40 @@ export default function WorkerClient() {
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      alert("Zdjęcie dodane tymczasowo do pamięci telefonu.\n(Pełne wgrywanie zdjęć na serwer wymaga skonfigurowania chmury S3 w panelu administracyjnym).");
+      const file = e.target.files[0];
+      setIsLoading(true);
+      try {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        await new Promise(resolve => img.onload = resolve);
+        const canvas = document.createElement('canvas');
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
+        else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.7);
+        
+        const res = await fetch("/api/worker/session/photos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoUrl: base64, location })
+        });
+        if (res.ok) {
+          alert("Zdjęcie zoptymalizowane i zapisane pomyślnie!");
+        } else {
+          alert("Błąd zapisu zdjęcia.");
+        }
+      } catch (err) {
+        alert("Błąd przetwarzania zdjęcia.");
+      }
+      setIsLoading(false);
     }
   };
 
@@ -239,7 +286,7 @@ export default function WorkerClient() {
       const res = await fetch("/api/worker/session/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: noteText })
+        body: JSON.stringify({ note: noteText, location })
       });
       if(res.ok) {
         alert("Notatka została dopisana do raportu.");
@@ -362,6 +409,7 @@ export default function WorkerClient() {
                    pathTraveled={pathTraveled} 
                    destination={destination} 
                    onRouteDistance={(km) => setDistanceToDestKm(km)}
+                   events={events}
                  />
                ) : (
                  <div className="w-full h-full flex items-center justify-center">
@@ -395,7 +443,7 @@ export default function WorkerClient() {
       )}
 
       {isNotesModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsNotesModalOpen(false)}></div>
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]">

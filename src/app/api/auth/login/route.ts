@@ -13,25 +13,25 @@ export async function POST(req: Request) {
     const { usernameEmail, password } = body;
 
     if (!usernameEmail || !password) {
-      return NextResponse.json({ error: 'Brak loginu lub hasła' }, { status: 400 });
+      return NextResponse.json({ error: 'missing_credentials' }, { status: 400 });
     }
 
     const existingUsers = await db.select().from(users).where(eq(users.usernameEmail, usernameEmail)).limit(1);
     
     if (existingUsers.length === 0) {
-      return NextResponse.json({ error: 'Nieprawidłowe dane logowania' }, { status: 401 });
+      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
     }
 
     const user = existingUsers[0];
 
     if (!user.isActive) {
-      return NextResponse.json({ error: 'Konto zostało zablokowane' }, { status: 403 });
+      return NextResponse.json({ error: 'account_blocked' }, { status: 403 });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     
     if (!isPasswordValid) {
-      return NextResponse.json({ error: 'Nieprawidłowe dane logowania' }, { status: 401 });
+      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
     }
 
     const jwt = await new SignJWT({
@@ -62,6 +62,6 @@ export async function POST(req: Request) {
     return response;
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Wewnętrzny Błąd Serwera' }, { status: 500 });
+    return NextResponse.json({ error: 'server_error' }, { status: 500 });
   }
 }

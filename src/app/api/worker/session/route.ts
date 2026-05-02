@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions, resources, materials, customers } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -35,7 +35,9 @@ export async function GET() {
     }
 
     const data = activeSessions[0];
-    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress } });
+    const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, activeSessions[0].session.id));
+
+    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress }, events: photos });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 });
@@ -51,13 +53,13 @@ export async function POST(request: Request) {
     const { resourceId, sessionType, materialId, customerId, taskDescription } = body;
 
     if (!resourceId || !sessionType) {
-       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
     // check if already active
     const existing = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     if (existing.length > 0) {
-       return NextResponse.json({ error: 'Session already active' }, { status: 400 });
+       return NextResponse.json({ error: 'session_active' }, { status: 400 });
     }
 
     const newSession = await db.insert(workSessions).values({
@@ -73,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, session: newSession[0] });
   } catch (err: any) {
     console.error(err);
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
 

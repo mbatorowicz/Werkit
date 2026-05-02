@@ -4,6 +4,8 @@ import { users } from '@/db/schema';
 import bcrypt from 'bcrypt';
 import { desc } from 'drizzle-orm';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const allUsers = await db.select({
@@ -16,7 +18,7 @@ export async function GET() {
     
     return NextResponse.json(allUsers);
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch workers' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
 
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
     const { fullName, usernameEmail, password, role } = body;
 
     if(!fullName || !usernameEmail || !password) {
-      return NextResponse.json({ error: 'Wypełnij wszystkie pola w tym hasło.' }, { status: 400 });
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,8 +44,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Worker register error", err);
-    let msg = 'Wystąpił błąd.';
-    if(err.code === '23505') msg = 'Ten login jest już w użyciu (musi być unikalny)';
+    let msg = 'save_error';
+    if(err.code === '23505') msg = 'user_exists';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

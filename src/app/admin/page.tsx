@@ -2,6 +2,7 @@ import LiveMap from "@/components/Map/LiveMap";
 import { db } from "@/db";
 import { workSessions, users, resources, materials, companySettings } from "@/db/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
+import { getDictionary } from "@/i18n";
 import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function DashboardPage() {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const dict = getDictionary().admin.dashboard;
 
   const activeSessions = await db.select({
     id: workSessions.id,
@@ -57,8 +59,8 @@ export default async function DashboardPage() {
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">Przegląd systemu</h1>
-          <p className="text-zinc-500 mt-1">Bieżące podsumowanie floty i działalności dla {companySSOT?.companyName || "Twojej firmy"}.</p>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight">{dict.title}</h1>
+          <p className="text-zinc-500 mt-1">{dict.subtitle} {companySSOT?.companyName || "Twojej firmy"}.</p>
         </div>
       </div>
 

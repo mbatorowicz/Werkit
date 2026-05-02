@@ -11,7 +11,8 @@ export async function GET() {
       id: resources.id,
       name: resources.name,
       categoryId: resources.categoryId,
-      categoryName: resourceCategories.name
+      categoryName: resourceCategories.name,
+      categoryIcon: resourceCategories.icon
     })
     .from(resources)
     .leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id))
@@ -19,7 +20,7 @@ export async function GET() {
     
     return NextResponse.json(allMachines);
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch machines' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
 
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     const { name, categoryId } = body;
 
     if(!name || !categoryId) {
-      return NextResponse.json({ error: 'Wypełnij nazwę oraz wybraną kategorię.' }, { status: 400 });
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
     await db.insert(resources).values({
@@ -40,6 +41,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Machine register error", err);
-    return NextResponse.json({ error: 'Wystąpił błąd podczas zapisywania maszyny do bazy.' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

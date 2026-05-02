@@ -14,6 +14,7 @@ export const users = pgTable('users', {
 export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull().unique(),
+  icon: varchar('icon', { length: 50 }).default('Truck'),
 });
 
 export const resources = pgTable('resources', {
@@ -93,6 +94,9 @@ export const workOrders = pgTable('work_orders', {
   status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING, COMPLETED, CANCELLED
   createdAt: timestamp('created_at').notNull().defaultNow(),
   createdById: integer('created_by_id').references(() => users.id, { onDelete: 'set null' }),
+  quantityTons: numeric('quantity_tons', { precision: 10, scale: 2 }),
+  expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
+  priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
 });
 
 // Relacje ułatwiające zapytania ORM

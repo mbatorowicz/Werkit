@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions } from '@/db/schema';
+import { workSessions, sessionPhotos } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -15,22 +15,24 @@ export async function POST(request: Request) {
     const userId = verified.payload.userId as number;
 
     const body = await request.json();
-    const { note, location } = body;
-    if (!note) return NextResponse.json({ error: 'Note is required' }, { status: 400 });
+    const { photoUrl, location } = body;
+    if (!photoUrl) return NextResponse.json({ error: 'Photo is required' }, { status: 400 });
 
     const existing = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     if (existing.length === 0) {
        return NextResponse.json({ error: 'No active session' }, { status: 400 });
     }
 
-    const currentDesc = existing[0].taskDescription || '';
-    const noteWithLoc = location ? `${note} (GPS: ${location.lat.toFixed(5)}, ${location.lng.toFixed(5)})` : note;
-    const newDesc = currentDesc ? `${currentDesc}\n\n[Dodatkowa notatka]: ${noteWithLoc}` : `[Notatka]: ${noteWithLoc}`;
+    await db.insert(sessionPhotos).values({
+      workSessionId: existing[0].id,
+      photoUrl,
+      photoType: 'AD_HOC',
+      latitude: location ? location.lat : null,
+      longitude: location ? location.lng : null
+    });
 
-    await db.update(workSessions).set({ taskDescription: newDesc }).where(eq(workSessions.id, existing[0].id));
-
-    return NextResponse.json({ success: true, newDesc });
+    return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to add note' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to add photo' }, { status: 500 });
   }
 }

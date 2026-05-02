@@ -26,6 +26,13 @@ const iconDest = L.icon({
   iconAnchor: [12, 41],
 });
 
+const iconEvent = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 function Recenter({ lat, lng }: { lat: number, lng: number }) {
   const map = useMap();
   useEffect(() => {
@@ -39,9 +46,10 @@ interface LiveMapProps {
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
+  events?: { lat: number; lng: number, label: string }[];
 }
 
-export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance }: LiveMapProps) {
+export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [] }: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
 
   // OSRM Routing
@@ -97,6 +105,12 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
         )}
 
         {/* Destination Point */}
+        {events.map((ev, i) => (
+           <Marker key={i} position={[ev.lat, ev.lng]} icon={iconEvent}>
+             <Popup>{ev.label}</Popup>
+           </Marker>
+        ))}
+
         {destination && (
            <Marker position={[destination.lat, destination.lng]} icon={iconDest}>
              <Popup>Cel</Popup>

@@ -10,7 +10,7 @@ export async function GET() {
     const allCustomers = await db.select().from(customers).orderBy(desc(customers.id));
     return NextResponse.json(allCustomers);
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch customers' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const { firstName, lastName, defaultAddress } = body;
 
     if(!lastName) {
-      return NextResponse.json({ error: 'Nazwisko / Nazwa firmy jest wymagana.' }, { status: 400 });
+      return NextResponse.json({ error: 'missing_name' }, { status: 400 });
     }
 
     await db.insert(customers).values({ 
@@ -31,6 +31,6 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Błąd dodawania klienta do bazy.' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

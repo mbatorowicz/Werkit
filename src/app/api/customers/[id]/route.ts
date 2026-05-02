@@ -9,7 +9,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const id = parseInt(params.id);
     const body = await request.json();
     
-    if(!body.lastName) return NextResponse.json({ error: 'Nazwisko jest wymagane.' }, { status: 400 });
+    if(!body.lastName) return NextResponse.json({ error: 'missing_name' }, { status: 400 });
 
     await db.update(customers).set({ 
        firstName: body.firstName || null,
@@ -19,7 +19,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: 'Błąd aktualizacji' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
 
@@ -27,12 +27,12 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const params = await context.params;
     const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'Nieprawidłowy ID' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
     await db.delete(customers).where(eq(customers.id, id));
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Delete customer error", err);
-    return NextResponse.json({ error: 'Nie można usunąć klienta. Może posiadać przypisane zlecenia.' }, { status: 500 });
+    return NextResponse.json({ error: 'customer_in_use' }, { status: 500 });
   }
 }

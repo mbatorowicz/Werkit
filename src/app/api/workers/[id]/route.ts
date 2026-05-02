@@ -8,7 +8,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   try {
     const params = await context.params;
     const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'Nieprawidłowy ID' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
     const body = await request.json();
     
@@ -27,7 +27,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Update user error", err);
-    return NextResponse.json({ error: 'System update failed' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
 
@@ -35,13 +35,13 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const params = await context.params;
     const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'Nieprawidłowy ID' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
     // Nieodwracalne usunięcie pracownika zgodnie z zaleceniami
     await db.delete(users).where(eq(users.id, id));
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("Delete user error", err);
-    return NextResponse.json({ error: 'Błąd podczas usuwania. Prawdopodobnie jego poprzednie jazdy blokują kaskadę usunięcia.' }, { status: 500 });
+    return NextResponse.json({ error: 'delete_error' }, { status: 500 });
   }
 }

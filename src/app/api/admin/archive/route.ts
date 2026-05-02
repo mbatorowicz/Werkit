@@ -26,7 +26,8 @@ export async function GET() {
        resourceName: resources.name,
        materialName: materials.name,
        customerFirstName: customers.firstName,
-       customerLastName: customers.lastName
+       customerLastName: customers.lastName,
+       quantityTons: workSessions.quantityTons
      })
      .from(workSessions)
      .leftJoin(users, eq(workSessions.userId, users.id))
@@ -37,6 +38,6 @@ export async function GET() {
 
      return NextResponse.json(data);
   } catch (err: any) {
-    return NextResponse.json({ error: 'Failed to fetch archive' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

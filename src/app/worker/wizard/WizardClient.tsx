@@ -103,33 +103,53 @@ export default function WizardClient() {
                   Oczekujące zlecenia
                 </h2>
                 <div className="space-y-3">
-                  {orders.map(order => (
+                  {orders.sort((a, b) => {
+                     const pMap: Record<string, number> = { URGENT: 1, HIGH: 2, NORMAL: 3, LOW: 4 };
+                     const pA = pMap[a.priority] || 3;
+                     const pB = pMap[b.priority] || 3;
+                     if (pA !== pB) return pA - pB;
+                     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                  }).map(order => (
                     <button 
                       key={order.id}
                       onClick={() => handleAcceptOrder(order.id)}
-                      className="w-full bg-amber-500/10 border border-amber-500/50 hover:bg-amber-500/20 text-left p-4 rounded-lg transition-all"
+                      className={`w-full ${order.priority === 'URGENT' ? 'bg-red-500/10 border-red-500/50 hover:bg-red-500/20' : order.priority === 'HIGH' ? 'bg-orange-500/10 border-orange-500/50 hover:bg-orange-500/20' : 'bg-amber-500/10 border-amber-500/50 hover:bg-amber-500/20'} border text-left p-4 rounded-lg transition-all`}
                     >
-                      <div className="font-bold text-amber-400 text-lg mb-1">{order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</div>
+                      <div className="flex justify-between items-start mb-1">
+                         <div className={`font-bold text-lg ${order.priority === 'URGENT' ? 'text-red-400' : order.priority === 'HIGH' ? 'text-orange-400' : 'text-amber-400'}`}>{order.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</div>
+                         {order.priority === 'URGENT' && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 animate-pulse">PILNE</span>}
+                         {order.priority === 'HIGH' && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">WAŻNE</span>}
+                      </div>
                       <div className="text-sm text-zinc-700 dark:text-zinc-300">
                         <span className="text-zinc-500">Maszyna:</span> {order.resourceName}
                       </div>
                       {order.sessionType === 'TRANSPORT' && (
                         <>
-                          <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName}</div>
+                          <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName} {order.quantityTons ? `(${order.quantityTons}t)` : ''}</div>
                           <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>
                         </>
                       )}
                       {order.taskDescription && (
                         <div className="text-sm text-zinc-700 dark:text-zinc-300 mt-2 italic">"{order.taskDescription}"</div>
                       )}
-                      <div className="mt-3 text-amber-400 font-semibold text-sm">Rozpocznij to zlecenie &rarr;</div>
+                      {order.expectedDurationHours && (
+                        <div className="text-sm text-amber-600 dark:text-amber-400 font-medium mt-1">
+                          <span className="text-zinc-500">Przewidywany czas:</span> {order.expectedDurationHours}h
+                        </div>
+                      )}
+                      {order.creatorName && (
+                        <div className="text-xs text-zinc-500 mt-2">
+                          Zlecił(a): <span className="font-medium">{order.creatorName}</span>
+                        </div>
+                      )}
+                      <div className="mt-3 text-amber-500 font-semibold text-sm">Rozpocznij to zlecenie &rarr;</div>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">{orders.length > 0 ? "Inicjatywa własna" : "Co dzisiaj robimy?"}</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz rodzaj zaplanowanej dla Ciebie pracy.</p>
             
             <div className="space-y-4">
@@ -168,7 +188,7 @@ export default function WizardClient() {
 
         {step === 2 && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Jakim sprzętem jedziesz?</h2>
+            <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Jakim sprzętem jedziesz?</h2>
             <p className="text-zinc-500 text-sm mb-6">Wybierz maszynę z floty firmowej.</p>
             
             <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -203,7 +223,7 @@ export default function WizardClient() {
           <div className="animate-in slide-in-from-right-4 fade-in duration-300">
             {sessionType === 'TRANSPORT' ? (
               <>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Szczegóły Transportu</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Szczegóły Transportu</h2>
                 <p className="text-zinc-500 text-sm mb-6">Wybierz materiał i klienta docelowego.</p>
 
                 <div className="space-y-5">
@@ -238,7 +258,7 @@ export default function WizardClient() {
               </>
             ) : (
               <>
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2">Zadanie / Cel Pracy</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">Zadanie / Cel Pracy</h2>
                 <p className="text-zinc-500 text-sm mb-6">Napisz krótko co będziesz robił.</p>
 
                 <textarea 
@@ -270,7 +290,7 @@ export default function WizardClient() {
             <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
                <CheckCircle2 className="w-10 h-10 text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-900 dark:text-white mb-2 text-center">Wszystko gotowe</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">Wszystko gotowe</h2>
             <p className="text-zinc-500 text-sm mb-8 text-center">
               Podsumowanie nowej sesji. Sprawdź czy wszystko się zgadza.
             </p>
