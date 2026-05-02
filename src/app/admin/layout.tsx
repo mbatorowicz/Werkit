@@ -12,11 +12,11 @@ import { getDictionary } from "@/i18n";
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const dict = getDictionary().admin.sidebar;
+  const dict = getDictionary().admin;
   
   // Fetch SSOT for sidebar company name
   const settings = await db.select().from(companySettings).limit(1);
-  const companyName = settings[0]?.companyName || dict.defaultCompany;
+  const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
   return (
     <div className="flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
                <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
              </div>
-             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName} - {dict.logisticsSystem}</p>
+             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName} - {dict.sidebar.logisticsSystem}</p>
           </div>
           <AdminSidebarNav dict={dict} />
         </div>
@@ -36,7 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <LogoutButton 
             className="flex-1 flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all group"
             iconClass="w-4 h-4 group-hover:text-red-400 transition-colors"
-            text={dict.logoutSession}
+            text={dict.sidebar.logoutSession}
           />
         </div>
       </aside>
@@ -50,7 +50,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
              </div>
              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
-          <MobileAdminNav companyName={companyName} version={APP_VERSION} />
+          <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} />
         </header>
 
         <div className="flex-1 relative">

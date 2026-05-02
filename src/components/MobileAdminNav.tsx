@@ -4,10 +4,28 @@ import { Menu, X, Map, Users, Package, Activity, LogOut, FileClock, Wrench, Hard
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-export function MobileAdminNav({ companyName, version }: { companyName: string; version: string }) {
+import { usePathname } from "next/navigation";
+
+export function MobileAdminNav({ companyName, version, dict }: { companyName: string; version: string; dict: any }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const pathname = usePathname();
   const closeMenu = () => setIsOpen(false);
+
+  const links = [
+    { href: "/admin", icon: Activity, label: dict.dashboard.title },
+    { type: "section", label: dict.sidebar.fleetAndPeople },
+    { href: "/admin/workers", icon: Users, label: dict.workers.title },
+    { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
+    { type: "section", label: dict.sidebar.logistics },
+    { href: "/admin/orders", icon: Map, label: dict.orders.title },
+    { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
+    { href: "/admin/customers", icon: Package, label: dict.customers.title },
+    { type: "section", label: dict.sidebar.reportsAndWarehouse },
+    { href: "/admin/archive", icon: FileClock, label: dict.archive.title },
+    { type: "section", label: dict.sidebar.system },
+    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
+  ];
 
   return (
     <>
@@ -31,54 +49,36 @@ export function MobileAdminNav({ companyName, version }: { companyName: string; 
              </div>
              
              <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1.5 custom-scrollbar">
-                <Link onClick={closeMenu} href="/admin" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <Activity className="w-4 h-4 text-emerald-500" />
-                  <span>Główny Pulpit</span>
-                </Link>
-                
-                <div className="pt-4 pb-2 px-3">
-                  <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Flota i Ludzie</p>
-                </div>
-                <Link onClick={closeMenu} href="/admin/workers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <Users className="w-4 h-4" />
-                  <span>Pracownicy</span>
-                </Link>
-                <Link onClick={closeMenu} href="/admin/machines" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <Wrench className="w-4 h-4" />
-                  <span>Maszyny i Warsztat</span>
-                </Link>
+               {links.map((link, idx) => {
+                 if (link.type === "section") {
+                   return (
+                     <div key={idx} className="pt-4 pb-2 px-3">
+                       <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">{link.label}</p>
+                     </div>
+                   );
+                 }
 
-                <div className="pt-4 pb-2 px-3">
-                  <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Logistyka</p>
-                </div>
-                <Link onClick={closeMenu} href="/admin/orders" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm text-amber-500 hover:text-amber-400">
-                  <Map className="w-4 h-4 text-amber-500" />
-                  <span>Zlecenia i Dyspozycja</span>
-                </Link>
-                <Link onClick={closeMenu} href="/admin/materials" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <HardHat className="w-4 h-4" />
-                  <span>Baza Kruszyw</span>
-                </Link>
-                <Link onClick={closeMenu} href="/admin/customers" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <Package className="w-4 h-4" />
-                  <span>Klienci i Adresy</span>
-                </Link>
-                
-                <div className="pt-4 pb-2 px-3">
-                  <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Raporty i Magazyn</p>
-                </div>
-                <Link onClick={closeMenu} href="/admin/archive" className="flex items-center gap-3 px-3 py-2.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-lg transition-all font-medium text-sm">
-                  <FileClock className="w-4 h-4" />
-                  <span>Ewidencja Zleceń</span>
-                </Link>
+                 const Icon = link.icon!;
+                 const isActive = pathname === link.href;
+                 const isSettings = link.href === "/admin/settings";
+                 const shouldHighlight = isActive && !isSettings;
 
-                <div className="pt-4 pb-2 px-3">
-                  <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">System</p>
-                </div>
-                <Link onClick={closeMenu} href="/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-amber-500 hover:text-amber-400 rounded-lg transition-all font-medium text-sm">
-                  <Settings className="w-4 h-4" />
-                  <span>Ustawienia Firmy</span>
-                </Link>
+                 return (
+                   <Link 
+                     key={link.href}
+                     onClick={closeMenu}
+                     href={link.href!}
+                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
+                       shouldHighlight
+                         ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" 
+                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
+                     }`}
+                   >
+                     <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
+                     <span>{link.label}</span>
+                   </Link>
+                 );
+               })}
              </div>
 
              <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">

@@ -8,18 +8,18 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
   const pathname = usePathname();
 
   const links = [
-    { href: "/admin", icon: Activity, label: dict.mainDashboard },
-    { type: "section", label: dict.fleetAndPeople },
-    { href: "/admin/workers", icon: Users, label: dict.workers },
-    { href: "/admin/machines", icon: Wrench, label: dict.machinesAndWorkshop },
-    { type: "section", label: dict.logistics },
-    { href: "/admin/orders", icon: Map, label: dict.ordersAndDispatch },
-    { href: "/admin/materials", icon: HardHat, label: dict.materialsBase },
-    { href: "/admin/customers", icon: Package, label: dict.customersAndAddresses },
-    { type: "section", label: dict.reportsAndWarehouse },
-    { href: "/admin/archive", icon: FileClock, label: dict.orderRegistry },
-    { type: "section", label: dict.system },
-    { href: "/admin/settings", icon: Settings, label: dict.companySettings }
+    { href: "/admin", icon: Activity, label: dict.dashboard.title },
+    { type: "section", label: dict.sidebar.fleetAndPeople },
+    { href: "/admin/workers", icon: Users, label: dict.workers.title },
+    { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
+    { type: "section", label: dict.sidebar.logistics },
+    { href: "/admin/orders", icon: Map, label: dict.orders.title },
+    { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
+    { href: "/admin/customers", icon: Package, label: dict.customers.title },
+    { type: "section", label: dict.sidebar.reportsAndWarehouse },
+    { href: "/admin/archive", icon: FileClock, label: dict.archive.title },
+    { type: "section", label: dict.sidebar.system },
+    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
   ];
 
   return (
@@ -35,18 +35,21 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
 
         const Icon = link.icon!;
         const isActive = pathname === link.href;
+        // User request: remove highlight from company settings
+        const isSettings = link.href === "/admin/settings";
+        const shouldHighlight = isActive && !isSettings;
 
         return (
           <Link 
             key={link.href}
             href={link.href!}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
-              isActive 
-                ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" 
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:bg-zinc-900/60"
+              shouldHighlight
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" 
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
             }`}
           >
-            <Icon className={`w-4 h-4 ${isActive ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500"}`} />
+            <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
             <span>{link.label}</span>
           </Link>
         );

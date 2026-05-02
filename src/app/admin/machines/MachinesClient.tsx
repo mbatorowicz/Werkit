@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box } from "lucide-react";
+import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
 type Category = { id: number, name: string, icon?: string };
 type Machine = { id: number, name: string, categoryId: number, categoryName?: string, categoryIcon?: string };
 
-const iconOptions: Record<string, any> = { Truck, HardHat, Wrench, Settings, Package, Box, Layers };
+const iconOptions: Record<string, any> = { Truck, Tractor, Wrench, CarFront, Bus, HardHat, Hammer, Cog };
 
 export default function MachinesClient() {
   const [machines, setMachines] = useState<Machine[]>([]);

@@ -1,4 +1,4 @@
-import { User as UserIcon, Shield, LogOut } from "lucide-react";
+import { User as UserIcon, Shield, LogOut, Settings } from "lucide-react";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -51,6 +51,13 @@ export default async function ProfilePage() {
               {user?.usernameEmail}
             </span>
          </div>
+
+         {user?.role === 'admin' && (
+           <Link href="/admin" className="w-full flex items-center justify-center gap-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors font-medium mt-4 shadow-sm">
+             <Settings className="w-5 h-5" />
+             Przejdź do Panelu Administratora
+           </Link>
+         )}
 
          <LogoutButton 
             className="w-full flex items-center justify-center gap-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-red-500/10 hover:text-red-400 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors group mt-8"
