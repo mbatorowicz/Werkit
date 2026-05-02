@@ -76,10 +76,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
           <ThemeToggle />
-          <button className="flex-1 flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 rounded-lg transition-all group">
+          <a href="/api/auth/logout" className="flex-1 flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900/60 rounded-lg transition-all group">
             <LogOut className="w-4 h-4 group-hover:text-red-400 transition-colors" />
             <span className="text-sm font-medium">Wyloguj sesję</span>
-          </button>
+          </a>
         </div>
       </aside>
 
