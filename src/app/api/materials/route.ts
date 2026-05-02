@@ -5,7 +5,7 @@ import { desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function GET() {
+export async function GET() {
   try {
     const allMaterials = await db.select().from(materials).orderBy(desc(materials.id));
     return NextResponse.json(allMaterials);
