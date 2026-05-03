@@ -160,7 +160,7 @@ export default function OrdersClient() {
                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors bg-zinc-100 dark:bg-zinc-800 p-2 rounded-full"><X className="w-5 h-5" /></button>
              </div>
              <div className="p-2">
-               {settingsData ? <SettingsForm initialData={settingsData} /> : <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-500"/></div>}
+               {settingsData ? <SettingsForm initialData={settingsData} mode="orders" /> : <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-500"/></div>}
              </div>
           </div>
         </div>

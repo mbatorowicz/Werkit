@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SettingsMap from "@/components/Map/SettingsMap";
 
-export default function SettingsForm({ initialData }: { initialData: any }) {
+export default function SettingsForm({ initialData, mode = 'all' }: { initialData: any, mode?: 'all' | 'company' | 'orders' }) {
   const router = useRouter();
   const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
   const [address, setAddress] = useState(initialData?.companyAddress || "");
@@ -80,10 +80,13 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
       <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-950/50">
-        <h2 className="font-semibold text-zinc-900 dark:text-white">Dane firmy</h2>
+        <h2 className="font-semibold text-zinc-900 dark:text-white">
+          {mode === 'orders' ? 'Ustawienia Zleceń' : 'Dane firmy'}
+        </h2>
       </div>
       
       <div className="p-6 md:p-8 space-y-8">
+        {(mode === 'all' || mode === 'company') && (
           <div className="space-y-6 max-w-3xl">
             <div className="space-y-4">
                <div>
@@ -124,9 +127,12 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                   </div>
                </div>
             </div>
+            </div>
           </div>
+        )}
 
-          <div className="space-y-6 max-w-3xl pt-8 border-t border-zinc-200 dark:border-zinc-800">
+        {(mode === 'all' || mode === 'orders') && (
+          <div className={`space-y-6 max-w-3xl ${mode === 'all' ? 'pt-8 border-t border-zinc-200 dark:border-zinc-800' : ''}`}>
              <div>
                <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">Ustawienia Zleceń (Anti-Błąd UX)</h3>
                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Parametry ułatwiające pracę w aplikacji mobilnej kierowców.</p>
@@ -161,10 +167,9 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                 </label>
              </div>
           </div>
+        )}
 
-
-          
-          <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
+        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
             {saveStatus === "SAVED" && <span className="text-emerald-500 text-sm font-medium">SSOT zaktualizowane pomyślnie! ✔</span>}
             <button onClick={handleSave} disabled={saveStatus === "SAVING"} className="bg-amber-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-amber-500 transition shadow-sm active:scale-95">
                {saveStatus === "SAVING" ? "Zapisywanie..." : "Zapisz"}
