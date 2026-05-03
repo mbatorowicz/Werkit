@@ -58,6 +58,7 @@ export default function WorkerClient() {
   
   const [notesList, setNotesList] = useState<any[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [settings, setSettings] = useState<any>(null);
 
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
@@ -103,6 +104,7 @@ export default function WorkerClient() {
       if (sessData.session) {
         setSession(sessData.session);
         setNotesList(sessData.notes || []);
+        setSettings(sessData.settings || null);
         
         const newEvents: {lat: number, lng: number, label: string}[] = [];
         if (sessData.events) {
@@ -280,6 +282,14 @@ export default function WorkerClient() {
   }, [session]);
 
   const handleEndSession = async () => {
+    if (settings?.requirePhotoToFinish) {
+      const hasPhoto = events.some(e => e.label === 'Zdjęcie');
+      if (!hasPhoto) {
+        alert("Wymagane jest dodanie przynajmniej jednego zdjęcia przed zakończeniem trasy!");
+        return;
+      }
+    }
+
     if (!confirm("Czy na pewno chcesz zakończyć obecną zmianę/pracę?")) return;
     setIsLoading(true);
     try {
@@ -395,6 +405,13 @@ export default function WorkerClient() {
   };
 
   const handleCheckpoint = async () => {
+    if (settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
+      const distMeters = distanceToDestKm * 1000;
+      if (distMeters > settings.geofenceRadiusMeters) {
+        if (!confirm(`Jesteś za daleko od celu (${Math.round(distMeters)}m, dozwolone: ${settings.geofenceRadiusMeters}m). Czy na pewno chcesz zameldować dotarcie na miejsce?`)) return;
+      }
+    }
+
     setIsLoading(true);
     try {
       const res = await fetch("/api/worker/session/notes", {
@@ -422,6 +439,14 @@ export default function WorkerClient() {
       </div>
     );
   }
+
+  const isCancelWindowOpen = session && settings?.cancelWindowMinutes 
+    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes 
+    : true;
+
+  const isTimeOverrun = session && session.expectedDurationHours && settings?.timeOverrunReminder 
+    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(session.expectedDurationHours)
+    : false;
 
   return (
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
@@ -527,6 +552,17 @@ export default function WorkerClient() {
                </div>
             </div>
 
+            {isTimeOverrun && (
+               <div className="w-full mt-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3 flex gap-3 items-center">
+                 <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0">
+                   <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                 </div>
+                 <div className="text-sm text-rose-800 dark:text-rose-300 font-medium">
+                   Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?
+                 </div>
+               </div>
+             )}
+
             {/* WIDGET TRASY */}
             <div className="w-full flex gap-4 mt-4">
                <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
@@ -580,11 +616,13 @@ export default function WorkerClient() {
                </button>
             </div>
 
-            <div className="mt-4 w-full grid grid-cols-2 gap-4">
-               <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
-                  <X className="w-5 h-5" />
-                  <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
-               </button>
+            <div className={`mt-4 w-full grid ${isCancelWindowOpen ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+               {isCancelWindowOpen && (
+                 <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
+                    <X className="w-5 h-5" />
+                    <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
+                 </button>
+               )}
                <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
                   <Square className="w-5 h-5 fill-current" />
                   <span className="font-bold uppercase tracking-wider text-sm">Zakończ</span>

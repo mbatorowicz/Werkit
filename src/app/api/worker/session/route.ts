@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -39,11 +39,13 @@ export async function GET() {
     const data = activeSessions[0];
     const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, activeSessions[0].session.id));
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, activeSessions[0].session.id));
+    const settingsRows = await db.select().from(companySettings).limit(1);
 
     return NextResponse.json({ 
        session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, 
        events: photos,
-       notes: notes
+       notes: notes,
+       settings: settingsRows[0] || null
     });
   } catch (err: any) {
     console.error(err);
