@@ -8,6 +8,7 @@ on:
     paths:
       - 'android/**'
       - 'capacitor.config.ts'
+      - '.github/workflows/**'
 
 jobs:
   build:
