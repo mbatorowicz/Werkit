@@ -244,6 +244,24 @@ export default function OrdersClient() {
                            Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
                          </div>
                       )}
+                      {item.status === 'COMPLETED' && item.startTime && item.endTime && (
+                         <>
+                           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
+                             Start: {new Date(item.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                           </div>
+                           <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
+                             Koniec: {new Date(item.endTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                           </div>
+                           <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-500/20 inline-block px-1.5 py-0.5 rounded">
+                             Czas łączny: {(() => {
+                                const diff = new Date(item.endTime).getTime() - new Date(item.startTime).getTime();
+                                const h = Math.floor(diff / (1000 * 60 * 60));
+                                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                return `${h}h ${m}m`;
+                             })()}
+                           </div>
+                         </>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -262,34 +280,6 @@ export default function OrdersClient() {
                                  style={{ width: `${Math.max(5, progress)}%` }}>
                                <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
                             </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {item.status === 'COMPLETED' && item.startTime && item.endTime && (
-                        <div className="mt-2 text-right bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50 w-full min-w-[140px]">
-                          <div className="text-[10px] text-zinc-500 mb-1 flex justify-between gap-3">
-                            <span>Start:</span>
-                            <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                              {new Date(item.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-zinc-500 mb-1 flex justify-between gap-3">
-                            <span>Koniec:</span>
-                            <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                              {new Date(item.endTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                            </span>
-                          </div>
-                          <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex justify-between gap-3 mt-1.5 pt-1.5 border-t border-zinc-200 dark:border-zinc-700/50">
-                            <span>Czas łączny:</span>
-                            <span>
-                              {(() => {
-                                const diff = new Date(item.endTime).getTime() - new Date(item.startTime).getTime();
-                                const h = Math.floor(diff / (1000 * 60 * 60));
-                                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                return `${h}h ${m}m`;
-                              })()}
-                            </span>
                           </div>
                         </div>
                       )}
