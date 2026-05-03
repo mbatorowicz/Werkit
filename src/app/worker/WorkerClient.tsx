@@ -56,6 +56,9 @@ export default function WorkerClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [elapsed, setElapsed] = useState("00:00:00");
   
+  const [notesList, setNotesList] = useState<any[]>([]);
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
   const [destination, setDestination] = useState<Coord | null>(null);
@@ -99,6 +102,8 @@ export default function WorkerClient() {
 
       if (sessData.session) {
         setSession(sessData.session);
+        setNotesList(sessData.notes || []);
+        
         const newEvents: {lat: number, lng: number, label: string}[] = [];
         if (sessData.events) {
            sessData.events.forEach((ev: any) => {
@@ -345,16 +350,24 @@ export default function WorkerClient() {
     if (!noteText.trim()) return;
     setIsSubmittingNote(true);
     try {
-      const res = await fetch("/api/worker/session/notes", {
-        method: "POST",
+      const isEditing = editingNoteId !== null;
+      const url = "/api/worker/session/notes";
+      const method = isEditing ? "PUT" : "POST";
+      const body = isEditing 
+        ? { noteId: editingNoteId, note: noteText }
+        : { note: noteText, location };
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: noteText, location })
+        body: JSON.stringify(body)
       });
       if(res.ok) {
-        alert("Notatka została dopisana do raportu.");
+        alert(isEditing ? "Notatka zaktualizowana." : "Notatka została dopisana do raportu.");
         setIsNotesModalOpen(false);
         setNoteText("");
-        fetchSessionAndPath();
+        setEditingNoteId(null);
+        fetchSessionAndPath(false, false);
       } else {
         alert("Błąd zapisywania notatki.");
       }
@@ -362,6 +375,43 @@ export default function WorkerClient() {
       alert("Błąd sieci.");
     }
     setIsSubmittingNote(false);
+  };
+
+  const handleCancelSession = async () => {
+    if (!confirm("Czy na pewno chcesz cofnąć rozpoczęcie tego zlecenia? To usunie obecną sesję i przywróci zlecenie do oczekujących.")) return;
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/worker/session/cancel", { method: "POST" });
+      if (res.ok) {
+        alert("Pomyślnie cofnięto zlecenie.");
+        fetchSessionAndPath(true, true);
+      } else {
+        alert("Błąd podczas cofania zlecenia.");
+      }
+    } catch(e) {
+       alert("Błąd sieci.");
+    }
+    setIsLoading(false);
+  };
+
+  const handleCheckpoint = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/worker/session/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note: "✅ Dojechał na miejsce", location })
+      });
+      if (res.ok) {
+        alert("Zapisano dotarcie na miejsce!");
+        fetchSessionAndPath(false, false);
+      } else {
+        alert("Błąd zapisu dotarcia.");
+      }
+    } catch(e) {
+      alert("Błąd sieci.");
+    }
+    setIsLoading(false);
   };
 
   if (isLoading) {
@@ -510,11 +560,13 @@ export default function WorkerClient() {
 
             </div>
 
+            </div>
+
             {/* NOTATKI I ZDJĘCIA */}
             <div className="w-full grid grid-cols-2 gap-4 mt-4">
-              <button onClick={() => setIsNotesModalOpen(true)} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
+              <button onClick={() => { setNoteText(''); setEditingNoteId(null); setIsNotesModalOpen(true); }} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
                  <FileText className="w-6 h-6" />
-                 <span className="text-xs font-bold uppercase tracking-wider">Notatki</span>
+                 <span className="text-xs font-bold uppercase tracking-wider">Dodaj Notatkę</span>
               </button>
               <label className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer">
                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
@@ -522,11 +574,22 @@ export default function WorkerClient() {
                  <span className="text-xs font-bold uppercase tracking-wider">Aparat</span>
               </label>
             </div>
+            
+            <div className="w-full mt-4">
+               <button onClick={handleCheckpoint} className="w-full bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95">
+                  <MapPin className="w-5 h-5" />
+                  <span className="font-bold uppercase tracking-wider text-sm">Zamelduj: Dojechał na miejsce</span>
+               </button>
+            </div>
 
-            <div className="mt-6 w-full">
+            <div className="mt-4 w-full grid grid-cols-2 gap-4">
+               <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
+                  <X className="w-5 h-5" />
+                  <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
+               </button>
                <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
                   <Square className="w-5 h-5 fill-current" />
-                  <span className="font-bold uppercase tracking-wider text-sm">Zakończ Trasę</span>
+                  <span className="font-bold uppercase tracking-wider text-sm">Zakończ</span>
                </button>
             </div>
          </div>
@@ -546,13 +609,33 @@ export default function WorkerClient() {
                 <textarea 
                   value={noteText} 
                   onChange={(e) => setNoteText(e.target.value)} 
-                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none h-32 resize-none"
-                  placeholder="Wpisz uwagi, np. problemy z dojazdem, awaria..."
+                  className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none h-24 resize-none"
+                  placeholder="Wpisz uwagi..."
                 />
               </div>
-              <button disabled={isSubmittingNote} onClick={handleSaveNote} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3.5 flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none">
-                {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Zapisz Notatkę'}
+              <button disabled={isSubmittingNote} onClick={handleSaveNote} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none mb-4">
+                {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingNoteId ? 'Aktualizuj' : 'Zapisz Notatkę')}
               </button>
+
+              {notesList.length > 0 && (
+                <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-800 max-h-48 overflow-y-auto">
+                  <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Twoje notatki</label>
+                  {notesList.map((n: any) => (
+                    <div key={n.id} className="flex justify-between items-start gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.note}</span>
+                        <span className="text-[9px] text-zinc-400">{new Date(n.createdAt).toLocaleTimeString('pl-PL')}</span>
+                      </div>
+                      <button 
+                        onClick={() => { setNoteText(n.note); setEditingNoteId(n.id); }}
+                        className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2 py-1"
+                      >
+                        Edytuj
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -38,8 +38,13 @@ export async function GET() {
 
     const data = activeSessions[0];
     const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, activeSessions[0].session.id));
+    const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, activeSessions[0].session.id));
 
-    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, events: photos });
+    return NextResponse.json({ 
+       session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, 
+       events: photos,
+       notes: notes
+    });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 });
