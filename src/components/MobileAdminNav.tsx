@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X, Map, Users, Package, Activity, LogOut, Wrench, HardHat, Settings } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LogoutButton } from "@/components/LogoutButton";
 
 import { usePathname } from "next/navigation";
 
@@ -87,10 +88,11 @@ export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { c
                  </div>
                )}
                <div className="flex items-center justify-between gap-2">
-                 <a href="/api/auth/logout" className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm">
-                   <LogOut className="w-4 h-4" />
-                   <span>Wyloguj</span>
-                 </a>
+                  <LogoutButton
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm"
+                    iconClass="w-4 h-4"
+                    text="Wyloguj"
+                  />
                  <ThemeToggle />
                </div>
              </div>
