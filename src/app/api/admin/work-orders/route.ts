@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { workOrders, users, resources, materials, customers } from '@/db/schema';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
-import { eq, desc, aliasedTable } from 'drizzle-orm';
+import { eq, desc, aliasedTable, ne } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,6 +36,7 @@ export async function GET() {
       .leftJoin(resources, eq(workOrders.resourceId, resources.id))
       .leftJoin(materials, eq(workOrders.materialId, materials.id))
       .leftJoin(customers, eq(workOrders.customerId, customers.id))
+      .where(ne(workOrders.status, 'COMPLETED'))
       .orderBy(desc(workOrders.createdAt));
 
     return NextResponse.json(data);
