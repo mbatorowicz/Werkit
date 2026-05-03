@@ -71,19 +71,32 @@ export default function WorkerClient() {
   const wakeLockRef = useRef<any>(null);
   const watchIdRef = useRef<any>(null);
 
-  const fetchSessionAndPath = async () => {
+  const fetchSessionAndPath = async (showLoader = true, fetchGpsPath = true) => {
+    if (showLoader) setIsLoading(true);
     try {
-      const [resSess, resPath, resOrders] = await Promise.all([
+      const [resSess, resOrders] = await Promise.all([
         fetch("/api/worker/session", { cache: "no-store" }),
-        fetch("/api/worker/gps", { cache: "no-store" }),
         fetch("/api/worker/work-orders", { cache: "no-store" })
       ]);
       const sessData = await resSess.json();
-      const pathData = await resPath.json();
       const ordersData = await resOrders.json();
-
       setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
       
+      if (fetchGpsPath) {
+         try {
+           const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
+           const pathData = await resPath.json();
+           if (pathData.logs) {
+              setPathTraveled(pathData.logs);
+              let dist = 0;
+              for (let i = 1; i < pathData.logs.length; i++) {
+                 dist += getDistance(pathData.logs[i-1], pathData.logs[i]);
+              }
+              setTraveledKm(dist / 1000);
+           }
+         } catch(e) {}
+      }
+
       if (sessData.session) {
         setSession(sessData.session);
         const newEvents: {lat: number, lng: number, label: string}[] = [];
@@ -100,16 +113,6 @@ export default function WorkerClient() {
            }
         }
         setEvents(newEvents);
-
-        if (pathData.logs) {
-           setPathTraveled(pathData.logs);
-           // calculate traveled
-           let dist = 0;
-           for (let i = 1; i < pathData.logs.length; i++) {
-              dist += getDistance(pathData.logs[i-1], pathData.logs[i]);
-           }
-           setTraveledKm(dist / 1000);
-        }
 
         // Use direct coordinates if available, otherwise fallback to geocode
         if (sessData.session.customerLat && sessData.session.customerLng) {
@@ -129,11 +132,13 @@ export default function WorkerClient() {
     } catch (e) {
       console.error(e);
     }
-    setIsLoading(false);
+    if (showLoader) setIsLoading(false);
   };
 
   useEffect(() => {
-    fetchSessionAndPath();
+    fetchSessionAndPath(true, true);
+    const interval = setInterval(() => fetchSessionAndPath(false, false), 10000);
+    return () => clearInterval(interval);
   }, []);
 
   // Timer Logic

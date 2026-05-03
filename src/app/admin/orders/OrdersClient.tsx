@@ -34,8 +34,8 @@ export default function OrdersClient() {
     dueDate: ''
   });
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = async (showLoader = true) => {
+    if (showLoader) setIsLoading(true);
     try {
       const [wor, mac, mat, cus, ords, arch] = await Promise.all([
         fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
@@ -54,12 +54,14 @@ export default function OrdersClient() {
     } catch (err) {
       console.error(err);
     } finally {
-      setIsLoading(false);
+      if (showLoader) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -74,7 +76,7 @@ export default function OrdersClient() {
       if(res.ok) {
         alert(dict.success);
         setIsModalOpen(false);
-        fetchData();
+        fetchData(true);
         setForm({
           userId: '',
           resourceId: '',
