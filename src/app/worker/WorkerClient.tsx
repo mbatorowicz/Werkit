@@ -52,12 +52,30 @@ function getDistance(a: Coord, b: Coord) {
   return R * c;
 }
 
+function SessionTimer({ startTime }: { startTime: string }) {
+  const [elapsed, setElapsed] = useState("00:00:00");
+
+  useEffect(() => {
+    const start = new Date(startTime).getTime();
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const diff = now - start;
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setElapsed(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  return <>{elapsed}</>;
+}
+
 export default function WorkerClient() {
   const [events, setEvents] = useState<{ lat: number, lng: number, label: string }[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [elapsed, setElapsed] = useState("00:00:00");
 
   const [notesList, setNotesList] = useState<any[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
@@ -155,47 +173,26 @@ export default function WorkerClient() {
 
   useEffect(() => {
     fetchSessionAndPath(true, true);
-    const interval = setInterval(() => fetchSessionAndPath(false, false), 10000);
+    // Polling is backed off to 30 seconds to save battery on mobile devices.
+    const interval = setInterval(() => fetchSessionAndPath(false, false), 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Timer Logic
-  useEffect(() => {
-    if (!session) return;
-    const start = new Date(session.startTime).getTime();
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const diff = now - start;
-      const h = Math.floor(diff / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
-      setElapsed(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [session]);
+  // Timer Logic extracted to SessionTimer component to prevent full re-renders
 
-  // GPS & Wake Lock Logic
+  // GPS Logic
   useEffect(() => {
     if (!session) {
-      if (wakeLockRef.current) {
-        wakeLockRef.current.release().catch(console.error);
-        wakeLockRef.current = null;
-      }
       if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        if (Capacitor.isNativePlatform()) {
+          BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+        } else {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
         watchIdRef.current = null;
       }
       return;
     }
-
-    const requestWakeLock = async () => {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
-        }
-      } catch (err) { }
-    };
-    requestWakeLock();
 
     const handleNewLoc = (newLoc: Coord) => {
       setLocation(newLoc);
@@ -214,29 +211,7 @@ export default function WorkerClient() {
       let queue: any[] = [];
       try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
       queue.push(payload);
-
-      if (navigator.onLine) {
-        fetch("/api/worker/gps", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(queue)
-        })
-          .then(res => {
-            if (res.ok) {
-              localStorage.setItem('werkit_gps_queue', '[]');
-              setGpsStatus("active");
-            } else {
-              localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-            }
-          })
-          .catch(() => {
-            localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-            setGpsStatus("waiting");
-          });
-      } else {
-        localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-        setGpsStatus("waiting");
-      }
+      localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
     };
 
     if (Capacitor.isNativePlatform()) {
@@ -247,7 +222,7 @@ export default function WorkerClient() {
           backgroundTitle: "Werkit - Rejestrowanie trasy",
           requestPermissions: true,
           stale: false,
-          distanceFilter: 10
+          distanceFilter: 50 // Increased to 50m to save battery
         },
         function callback(location, error) {
           if (error) {
@@ -270,17 +245,37 @@ export default function WorkerClient() {
         (err) => {
           setGpsStatus("error");
         },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+        { enableHighAccuracy: false, maximumAge: 30000, timeout: 15000 } // Web fallback: false high accuracy to save battery
       );
     } else {
       setGpsStatus("error");
     }
 
-    return () => {
-      if (wakeLockRef.current) {
-        wakeLockRef.current.release().catch(console.error);
-        wakeLockRef.current = null;
+    // Flush GPS queue every 30 seconds to avoid waking up network radio continuously
+    const flushInterval = setInterval(() => {
+      if (!navigator.onLine) {
+         setGpsStatus("waiting");
+         return;
       }
+      let queue: any[] = [];
+      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
+      if (queue.length === 0) return;
+
+      fetch("/api/worker/gps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queue)
+      })
+      .then(res => {
+        if (res.ok) {
+          localStorage.setItem('werkit_gps_queue', '[]');
+          setGpsStatus("active");
+        }
+      })
+      .catch(() => setGpsStatus("waiting"));
+    }, 30000);
+
+    return () => {
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
           BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
@@ -289,6 +284,7 @@ export default function WorkerClient() {
         }
         watchIdRef.current = null;
       }
+      clearInterval(flushInterval);
     };
   }, [session]);
 
@@ -576,7 +572,7 @@ export default function WorkerClient() {
             <div>
               <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.timeElapsed}</div>
               <div className="font-mono text-3xl font-bold text-zinc-900 dark:text-white tracking-tighter">
-                {elapsed}
+                <SessionTimer startTime={session.startTime} />
               </div>
             </div>
             <div className="text-right">
