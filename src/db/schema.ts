@@ -10,6 +10,7 @@ export const users = pgTable('users', {
   deviceUniqueId: varchar('device_unique_id', { length: 255 }),
   isActive: boolean('is_active').notNull().default(true),
   canCreateOwnOrders: boolean('can_create_own_orders').notNull().default(true),
+  notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
 });
 
 export const resourceCategories = pgTable('resource_categories', {

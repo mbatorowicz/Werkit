@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";
 import Link from "next/link";
+import { ProfileSettings } from "./ProfileSettings";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
 
@@ -58,6 +59,8 @@ export default async function ProfilePage() {
              Przejdź do Panelu Administratora
            </Link>
          )}
+
+         <ProfileSettings initialEnabled={user?.notificationsEnabled ?? true} />
 
          <LogoutButton 
             className="w-full flex items-center justify-center gap-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-red-500/10 hover:text-red-400 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors group mt-8"

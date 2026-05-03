@@ -1,4 +1,4 @@
-import { Map, Clock, User, LogOut } from "lucide-react";
+import { Map, Clock, User, LogOut, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -66,6 +66,10 @@ export default async function WorkerLayout({ children }: { children: React.React
         <Link href="/worker/profile" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1">
           <User className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">Profil</span>
+        </Link>
+        <Link href="/worker/help" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1">
+          <HelpCircle className="w-5 h-5" />
+          <span className="text-[10px] font-semibold uppercase tracking-wider">Pomoc</span>
         </Link>
       </nav>
     </div>

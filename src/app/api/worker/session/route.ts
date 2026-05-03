@@ -36,7 +36,7 @@ export async function GET() {
     const companySettingsData = settingsRows[0] || null;
 
     const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const userData = userRows[0] ? { canCreateOwnOrders: userRows[0].canCreateOwnOrders } : null;
+    const userData = userRows[0] ? { canCreateOwnOrders: userRows[0].canCreateOwnOrders, notificationsEnabled: userRows[0].notificationsEnabled } : null;
 
     if (activeSessions.length === 0) {
       return NextResponse.json({ session: null, settings: companySettingsData, user: userData });

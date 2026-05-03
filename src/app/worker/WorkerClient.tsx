@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { getDictionary } from "@/i18n";
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
+import { LocalNotifications } from '@capacitor/local-notifications';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500" /></div> });
@@ -254,8 +255,8 @@ export default function WorkerClient() {
     // Flush GPS queue every 30 seconds to avoid waking up network radio continuously
     const flushInterval = setInterval(() => {
       if (!navigator.onLine) {
-         setGpsStatus("waiting");
-         return;
+        setGpsStatus("waiting");
+        return;
       }
       let queue: any[] = [];
       try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
@@ -266,13 +267,13 @@ export default function WorkerClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(queue)
       })
-      .then(res => {
-        if (res.ok) {
-          localStorage.setItem('werkit_gps_queue', '[]');
-          setGpsStatus("active");
-        }
-      })
-      .catch(() => setGpsStatus("waiting"));
+        .then(res => {
+          if (res.ok) {
+            localStorage.setItem('werkit_gps_queue', '[]');
+            setGpsStatus("active");
+          }
+        })
+        .catch(() => setGpsStatus("waiting"));
     }, 30000);
 
     return () => {
@@ -455,6 +456,13 @@ export default function WorkerClient() {
     ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(session.expectedDurationHours)
     : false;
 
+  const overdueOrder = workOrders.find(order => {
+    if (!order.dueDate) return false;
+    const dueTime = new Date(order.dueDate).getTime();
+    const now = new Date().getTime();
+    return dueTime - now < 0; // Opóźnione
+  });
+
   const upcomingOrder = workOrders.find(order => {
     if (!order.dueDate) return false;
     const dueTime = new Date(order.dueDate).getTime();
@@ -462,6 +470,45 @@ export default function WorkerClient() {
     const reminderMs = (settings?.upcomingOrderReminderMinutes ?? 120) * 60 * 1000;
     return dueTime - now > 0 && dueTime - now < reminderMs;
   });
+
+  useEffect(() => {
+    if (!currentUser || currentUser.notificationsEnabled === false) return;
+    if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
+
+    const checkNotifications = async () => {
+      let notifiedStr = localStorage.getItem('werkit_notified_orders') || '[]';
+      let notifiedArr: number[] = JSON.parse(notifiedStr);
+
+      const triggerNotification = async (id: number, title: string, body: string) => {
+        if (!notifiedArr.includes(id)) {
+          const perm = await LocalNotifications.requestPermissions();
+          if (perm.display === 'granted') {
+            await LocalNotifications.schedule({
+              notifications: [
+                {
+                  title,
+                  body,
+                  id: id,
+                  schedule: { at: new Date(Date.now() + 1000) },
+                }
+              ]
+            });
+            notifiedArr.push(id);
+            localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+          }
+        }
+      };
+
+      if (overdueOrder) {
+        await triggerNotification(overdueOrder.id + 100000, "Zlecenie opóźnione!", `Zlecenie #${overdueOrder.id} przekroczyło czas rozpoczęcia.`);
+      }
+      if (upcomingOrder) {
+        await triggerNotification(upcomingOrder.id + 200000, "Zbliża się zlecenie", `Zlecenie #${upcomingOrder.id} wymaga wkrótce rozpoczęcia.`);
+      }
+    };
+
+    checkNotifications();
+  }, [upcomingOrder, overdueOrder, currentUser]);
 
   return (
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
@@ -481,7 +528,21 @@ export default function WorkerClient() {
             <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
               <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">{dict.pendingOrders}</h3>
 
-              {upcomingOrder && (
+              {overdueOrder && (
+                <div className="w-full bg-red-50 dark:bg-red-500/10 border-2 border-red-500 dark:border-red-600 rounded-xl p-3 mb-2 flex items-start gap-3 shadow-sm animate-pulse">
+                  <div className="bg-red-100 dark:bg-red-500/20 p-2 rounded-full shrink-0 mt-0.5">
+                    <Clock className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-red-800 dark:text-red-300">Zlecenie opóźnione!</span>
+                    <span className="text-xs text-red-700 dark:text-red-400/90 mt-0.5">
+                      Zlecenie #{overdueOrder.id} powinno było się już rozpocząć.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {upcomingOrder && !overdueOrder && (
                 <div className="w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 rounded-xl p-3 mb-2 flex items-start gap-3 animate-pulse">
                   <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0 mt-0.5">
                     <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
