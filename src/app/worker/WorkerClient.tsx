@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera, FileText, X } from "lucide-react";
+import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera, FileText, X, History } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -378,9 +378,9 @@ export default function WorkerClient() {
       {!session ? (
          <div className="w-full flex flex-col items-center justify-center mt-10 space-y-6">
             <div className="flex flex-col items-center">
-              <div className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                 <Clock className="w-10 h-10 text-zinc-700" />
-              </div>
+              <button onClick={() => fetchSessionAndPath(true, true)} className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner cursor-pointer" title="Odśwież listę">
+                 <History className="w-10 h-10 text-zinc-700 dark:text-zinc-300" />
+              </button>
               <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
               <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">
                 Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.

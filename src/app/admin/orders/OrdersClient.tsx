@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Map, Plus, X, Search } from "lucide-react";
+import { Map, Plus, X, Search, RefreshCw } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "./SessionDetailsModal";
 
@@ -129,9 +129,14 @@ export default function OrdersClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Map className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
-        <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> {dict.newOrder}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => fetchData(true)} className="p-2.5 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition active:scale-95" title="Odśwież ręcznie">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button onClick={() => setIsModalOpen(true)} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+            <Plus className="w-4 h-4" /> {dict.newOrder}
+          </button>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
