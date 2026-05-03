@@ -17,6 +17,8 @@ type Session = {
   sessionType: string;
   status: string;
   customerAddress?: string;
+  customerLat?: string;
+  customerLng?: string;
 };
 
 type WorkOrder = {
@@ -30,7 +32,7 @@ type WorkOrder = {
   dueDate: string | null;
 };
 
-type Coord = { lat: number, lng: number };
+type Coord = { lat: number, lng: number, heading?: number | null };
 
 // Haversine formula for distance between coords in meters
 function getDistance(a: Coord, b: Coord) {
@@ -109,8 +111,10 @@ export default function WorkerClient() {
            setTraveledKm(dist / 1000);
         }
 
-        // Geocode customer destination if needed
-        if (sessData.session.customerAddress && !destination) {
+        // Use direct coordinates if available, otherwise fallback to geocode
+        if (sessData.session.customerLat && sessData.session.customerLng) {
+           setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
+        } else if (sessData.session.customerAddress && !destination) {
            try {
              const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
              const geoData = await geo.json();
@@ -228,7 +232,7 @@ export default function WorkerClient() {
             return;
           }
           if (location) {
-             handleNewLoc({ lat: location.latitude, lng: location.longitude });
+             handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
           }
         }
       ).then(watcherId => {
@@ -238,7 +242,7 @@ export default function WorkerClient() {
       setGpsStatus("waiting");
       watchIdRef.current = navigator.geolocation.watchPosition(
         async (pos) => {
-          handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
         },
         (err) => {
           setGpsStatus("error");

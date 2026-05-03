@@ -41,8 +41,25 @@ function Recenter({ lat, lng }: { lat: number, lng: number }) {
   return null;
 }
 
+function MapRotator({ heading, isAutoRotate }: { heading?: number | null, isAutoRotate: boolean }) {
+  const map = useMap();
+  useEffect(() => {
+    const pane = map.getPane('mapPane');
+    if (pane) {
+      if (isAutoRotate && heading !== undefined && heading !== null) {
+        pane.style.transform = `rotate(${-heading}deg)`;
+        pane.style.transformOrigin = "center center";
+        pane.style.transition = "transform 0.5s ease-out";
+      } else {
+        pane.style.transform = "";
+      }
+    }
+  }, [heading, isAutoRotate, map]);
+  return null;
+}
+
 interface LiveMapProps {
-  currentLocation: { lat: number; lng: number };
+  currentLocation: { lat: number; lng: number; heading?: number | null };
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
@@ -51,6 +68,7 @@ interface LiveMapProps {
 
 export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [] }: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
+  const [isAutoRotate, setIsAutoRotate] = useState(false);
 
   // OSRM Routing
   useEffect(() => {
@@ -80,7 +98,16 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
   }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng]);
 
   return (
-    <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800">
+    <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800 relative">
+      {currentLocation.heading !== undefined && currentLocation.heading !== null && (
+        <button
+          onClick={() => setIsAutoRotate(!isAutoRotate)}
+          className="absolute bottom-6 right-4 z-[1000] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-4 py-2 rounded-full shadow-lg font-medium text-xs border border-zinc-200 dark:border-zinc-700 transition active:scale-95"
+        >
+          {isAutoRotate ? 'Obracanie: WŁ' : 'Nawigacja (Obracaj)'}
+        </button>
+      )}
+
       <MapContainer center={[currentLocation.lat, currentLocation.lng]} zoom={14} style={{ height: "100%", width: "100%" }} zoomControl={false}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
@@ -122,6 +149,7 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
            <Popup>Aktualna pozycja</Popup>
         </Marker>
         <Recenter lat={currentLocation.lat} lng={currentLocation.lng} />
+        <MapRotator heading={currentLocation.heading} isAutoRotate={isAutoRotate} />
       </MapContainer>
     </div>
   );

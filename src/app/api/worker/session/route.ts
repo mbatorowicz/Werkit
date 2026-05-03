@@ -25,7 +25,9 @@ export async function GET() {
 
     const activeSessions = await db.select({
       session: workSessions,
-      customerAddress: customers.defaultAddress
+      customerAddress: customers.defaultAddress,
+      customerLat: customers.latitude,
+      customerLng: customers.longitude
     }).from(workSessions)
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
@@ -37,7 +39,7 @@ export async function GET() {
     const data = activeSessions[0];
     const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, activeSessions[0].session.id));
 
-    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress }, events: photos });
+    return NextResponse.json({ session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, events: photos });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 });

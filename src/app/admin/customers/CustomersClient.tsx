@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { Trash2, Package, Plus, X, Edit2, MapPin } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import dynamic from "next/dynamic";
+
+const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), { ssr: false, loading: () => <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">Ładowanie mapy...</div> });
 
 type Customer = {
   id: number;
@@ -163,15 +166,16 @@ export default function CustomersClient() {
                    <label className="text-sm font-medium text-zinc-400">{dict.addressLabel}</label>
                    <input type="text" placeholder={dict.addressPlaceholder} value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                  </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">Szerokość geograficzna (Latitude)</label>
-                     <input type="text" placeholder="np. 52.2297" value={form.latitude} onChange={e => setForm({...form, latitude: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">Długość geograficzna (Longitude)</label>
-                     <input type="text" placeholder="np. 21.0122" value={form.longitude} onChange={e => setForm({...form, longitude: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
-                   </div>
+                 <div className="space-y-2">
+                   <label className="text-sm font-medium text-zinc-400">Dokładna lokalizacja (kliknij na mapie by przypiąć cel)</label>
+                   <CustomerMapPicker 
+                     lat={form.latitude} 
+                     lng={form.longitude} 
+                     onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })} 
+                   />
+                   {(form.latitude && form.longitude) && (
+                     <div className="text-[10px] text-emerald-500">Zapisano pinezkę: {parseFloat(form.latitude).toFixed(5)}, {parseFloat(form.longitude).toFixed(5)}</div>
+                   )}
                  </div>
                  
                  <div className="pt-4 border-t border-zinc-800">
