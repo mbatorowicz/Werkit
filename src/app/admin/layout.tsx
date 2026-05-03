@@ -75,7 +75,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
              </div>
              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
-          <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} loggedInUser={loggedInUser} />
+          <div className="flex items-center gap-2">
+            {loggedInUser && (
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full border border-zinc-200 dark:border-zinc-700">
+                <UserIcon className="w-3 h-3 text-emerald-500 shrink-0" />
+                <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate max-w-[100px]">{loggedInUser}</span>
+              </div>
+            )}
+            <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} loggedInUser={loggedInUser} />
+          </div>
         </header>
 
         <div className="flex-1 relative">
