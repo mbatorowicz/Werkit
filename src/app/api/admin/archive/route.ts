@@ -17,6 +17,7 @@ export async function GET() {
 
     const data = await db.select({
        id: workSessions.id,
+       workOrderId: workSessions.workOrderId,
        status: workSessions.status,
        sessionType: workSessions.sessionType,
        taskDescription: workSessions.taskDescription,

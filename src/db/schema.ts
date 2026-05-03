@@ -40,6 +40,7 @@ export const customers = pgTable('customers', {
 
 export const workSessions = pgTable('work_sessions', {
   id: serial('id').primaryKey(),
+  workOrderId: integer('work_order_id').references(() => workOrders.id, { onDelete: 'set null' }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
   sessionType: varchar('session_type', { length: 50 }).notNull(), // TRANSPORT, MACHINE_OP, WORKSHOP

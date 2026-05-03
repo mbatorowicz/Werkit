@@ -23,6 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     // Create session
     const [newSession] = await db.insert(workSessions).values({
+      workOrderId: order.id,
       userId: userId,
       sessionType: order.sessionType,
       resourceId: order.resourceId,

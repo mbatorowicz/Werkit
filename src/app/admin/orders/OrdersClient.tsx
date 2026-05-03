@@ -191,7 +191,7 @@ export default function OrdersClient() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 mb-1.5">
                         <div className="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400 mr-1 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
-                          {item._type === 'ORDER' ? `Z-${item.id}` : `R-${item.id}`}
+                          #{item.workOrderId || item.id}
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
                         {item._type === 'ORDER' && item.priority === 'HIGH' && (
