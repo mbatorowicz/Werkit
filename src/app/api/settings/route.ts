@@ -16,7 +16,11 @@ export async function POST(request: Request) {
          phone: body.phone || '', 
          email: body.email || '', 
          baseLatitude: body.baseLatitude, 
-         baseLongitude: body.baseLongitude 
+         baseLongitude: body.baseLongitude,
+         cancelWindowMinutes: body.cancelWindowMinutes ?? 5,
+         requirePhotoToFinish: body.requirePhotoToFinish ?? false,
+         geofenceRadiusMeters: body.geofenceRadiusMeters ?? 500,
+         timeOverrunReminder: body.timeOverrunReminder ?? true
       })
       .onConflictDoUpdate({
          target: companySettings.id,
@@ -28,7 +32,11 @@ export async function POST(request: Request) {
            phone: body.phone || '', 
            email: body.email || '', 
            baseLatitude: body.baseLatitude, 
-           baseLongitude: body.baseLongitude 
+           baseLongitude: body.baseLongitude,
+           cancelWindowMinutes: body.cancelWindowMinutes ?? 5,
+           requirePhotoToFinish: body.requirePhotoToFinish ?? false,
+           geofenceRadiusMeters: body.geofenceRadiusMeters ?? 500,
+           timeOverrunReminder: body.timeOverrunReminder ?? true
          }
       });
 

@@ -15,6 +15,11 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
 
   const [lat, setLat] = useState<number>(parseFloat(initialData?.baseLatitude || "52.401"));
   const [lng, setLng] = useState<number>(parseFloat(initialData?.baseLongitude || "22.015"));
+  const [cancelWindowMinutes, setCancelWindowMinutes] = useState<number>(initialData?.cancelWindowMinutes ?? 5);
+  const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(initialData?.requirePhotoToFinish ?? false);
+  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(initialData?.geofenceRadiusMeters ?? 500);
+  const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(initialData?.timeOverrunReminder ?? true);
+
   const [isSearching, setIsSearching] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"IDLE"|"SAVING"|"SAVED">("IDLE");
 
@@ -52,7 +57,11 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
            phone, 
            email, 
            baseLatitude: lat.toString(), 
-           baseLongitude: lng.toString() 
+           baseLongitude: lng.toString(),
+           cancelWindowMinutes,
+           requirePhotoToFinish,
+           geofenceRadiusMeters,
+           timeOverrunReminder
          })
        });
        if(res.ok) {
@@ -115,6 +124,42 @@ export default function SettingsForm({ initialData }: { initialData: any }) {
                   </div>
                </div>
             </div>
+          </div>
+
+          <div className="space-y-6 max-w-3xl pt-8 border-t border-zinc-200 dark:border-zinc-800">
+             <div>
+               <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">Ustawienia Zleceń (Anti-Błąd UX)</h3>
+               <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Parametry ułatwiające pracę w aplikacji mobilnej kierowców.</p>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-400">Czas na anulowanie zlecenia (minuty)</label>
+                  <input type="number" min="0" value={cancelWindowMinutes} onChange={(e) => setCancelWindowMinutes(parseInt(e.target.value))} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-400">Promień tolerancji dla 'Dojechał na miejsce' (metry)</label>
+                  <input type="number" step="100" min="0" value={geofenceRadiusMeters} onChange={(e) => setGeofenceRadiusMeters(parseInt(e.target.value))} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                </div>
+             </div>
+
+             <div className="space-y-4 pt-4">
+                <label className="flex items-center gap-3 cursor-pointer p-3 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <input type="checkbox" checked={requirePhotoToFinish} onChange={(e) => setRequirePhotoToFinish(e.target.checked)} className="w-5 h-5 text-emerald-500" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white">Wymagaj zdjęcia przy zamykaniu sesji</span>
+                    <span className="text-xs text-zinc-500">Przycisk "Zakończ" będzie zablokowany dopóki nie zostanie dodane przynajmniej jedno zdjęcie.</span>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-3 cursor-pointer p-3 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                  <input type="checkbox" checked={timeOverrunReminder} onChange={(e) => setTimeOverrunReminder(e.target.checked)} className="w-5 h-5 text-emerald-500" />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-zinc-900 dark:text-white">Ostrzeżenie o przekroczeniu czasu</span>
+                    <span className="text-xs text-zinc-500">Pokazuj powiadomienie przypominające pracownikowi o zakończeniu zlecenia, gdy minie szacowany czas.</span>
+                  </div>
+                </label>
+             </div>
           </div>
 
 
