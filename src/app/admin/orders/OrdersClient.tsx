@@ -233,19 +233,26 @@ export default function OrdersClient() {
                          {item.taskDescription}
                        </div>
                     )}
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {item.expectedDurationHours && (
-                         <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                           Szacowany czas: {item.expectedDurationHours}h
-                         </div>
+                    <div className="flex flex-col gap-1.5 mt-2">
+                      {/* Wiersz 1: Planowane (jeśli istnieją) */}
+                      {(item.expectedDurationHours || item.dueDate) && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {item.expectedDurationHours && (
+                             <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
+                               Szacowany czas: {item.expectedDurationHours}h
+                             </div>
+                          )}
+                          {item.dueDate && (
+                             <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
+                               Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                             </div>
+                          )}
+                        </div>
                       )}
-                      {item.dueDate && (
-                         <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                           Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                         </div>
-                      )}
+                      
+                      {/* Wiersz 2: Rzeczywiste (dla zakończonych) */}
                       {item.status === 'COMPLETED' && item.startTime && item.endTime && (
-                         <>
+                        <div className="flex items-center gap-2 flex-wrap">
                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                              Start: {new Date(item.startTime).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
                            </div>
@@ -260,17 +267,7 @@ export default function OrdersClient() {
                                 return `${h}h ${m}m`;
                              })()}
                            </div>
-                           {item.expectedDurationHours && (
-                             <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 inline-block px-1.5 py-0.5 rounded ml-2">
-                               Planowano: {item.expectedDurationHours}h
-                             </div>
-                           )}
-                           {item.dueDate && (
-                             <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 inline-block px-1.5 py-0.5 rounded">
-                               Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                             </div>
-                           )}
-                         </>
+                        </div>
                       )}
                     </div>
                   </td>
