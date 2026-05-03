@@ -31,6 +31,7 @@ export async function GET() {
       quantityTons: workOrders.quantityTons,
       expectedDurationHours: workOrders.expectedDurationHours,
       priority: workOrders.priority,
+      dueDate: workOrders.dueDate,
       createdAt: workOrders.createdAt
     })
     .from(workOrders)

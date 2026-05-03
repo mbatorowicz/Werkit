@@ -184,8 +184,24 @@ export default function OrdersClient() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
-                      {item._type === 'ORDER' && item.priority === 'URGENT' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">PILNE</span>}
-                      {item._type === 'ORDER' && item.priority === 'HIGH' && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">WAŻNE</span>}
+                      {item._type === 'ORDER' && item.priority === 'HIGH' && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 mt-1">
+                          <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
+                        </div>
+                      )}
+                      {item._type === 'ORDER' && (!item.priority || item.priority === 'NORMAL') && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 mt-1">
+                          <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
+                        </div>
+                      )}
+                      {item._type === 'ORDER' && item.priority === 'LOW' && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 mt-1">
+                          <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
+                        </div>
+                      )}
                     </div>
                     <div className="text-xs text-zinc-500 mt-0.5">
                       {item._type === 'ORDER' 
@@ -339,8 +355,7 @@ export default function OrdersClient() {
                    <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                      <option value="LOW">Niski</option>
                      <option value="NORMAL">Normalny</option>
-                     <option value="HIGH">Ważne</option>
-                     <option value="URGENT">PILNE</option>
+                     <option value="HIGH">Ważny</option>
                    </select>
                  </div>
 

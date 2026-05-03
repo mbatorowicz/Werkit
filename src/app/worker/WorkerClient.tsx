@@ -23,6 +23,8 @@ type WorkOrder = {
   resourceName: string | null;
   materialName: string | null;
   customerName: string | null;
+  priority: string | null;
+  dueDate: string | null;
 };
 
 type Coord = { lat: number, lng: number };
@@ -331,9 +333,29 @@ export default function WorkerClient() {
                 {workOrders.map(order => (
                   <div key={order.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3">
                      <div className="flex flex-col">
-                       <span className="text-sm font-bold text-amber-900 dark:text-amber-500">
-                         {order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
-                       </span>
+                       <div className="flex items-start justify-between gap-2 mb-1">
+                         <span className="text-sm font-bold text-amber-900 dark:text-amber-500">
+                           {order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
+                         </span>
+                         {order.priority === 'HIGH' && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
+                              <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
+                              <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
+                            </div>
+                         )}
+                         {(!order.priority || order.priority === 'NORMAL') && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 shrink-0">
+                              <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
+                              <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
+                            </div>
+                         )}
+                         {order.priority === 'LOW' && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shrink-0">
+                              <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
+                              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
+                            </div>
+                         )}
+                       </div>
                        <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
                          Maszyna: <span className="font-semibold">{order.resourceName}</span>
                        </span>
@@ -346,6 +368,14 @@ export default function WorkerClient() {
                          <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
                            Zadanie: {order.taskDescription}
                          </span>
+                       )}
+                       {order.dueDate && (
+                         <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
+                           <Clock className="w-3 h-3" />
+                           <span className="text-xs">
+                             Termin: {new Date(order.dueDate).toLocaleDateString('pl-PL')} {new Date(order.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                           </span>
+                         </div>
                        )}
                      </div>
                      <button onClick={() => handleAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
