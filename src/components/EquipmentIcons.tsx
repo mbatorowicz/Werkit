@@ -1,77 +1,119 @@
 import React from 'react';
 
-export const DumpTruckRaised = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M4 11.5L10 6l1.5 1.5L5.5 13H1.5L4 11.5z" />
-    <path d="M13 8h5.5l2.5 3.5V14h-8V8z" />
-    <path d="M2 14h20v2H2z" />
-    <circle cx="5" cy="17.5" r="2.5" />
-    <circle cx="10" cy="17.5" r="2.5" />
-    <circle cx="18" cy="17.5" r="2.5" />
-  </svg>
-);
-
+// Wywrotka - opuszczona
 export const DumpTruckLowered = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M2.5 7h9.5v7H2.5z" />
-    <path d="M13 8h5.5l2.5 3.5V14h-8V8z" />
-    <path d="M2 14h20v2H2z" />
-    <circle cx="5" cy="17.5" r="2.5" />
-    <circle cx="10" cy="17.5" r="2.5" />
-    <circle cx="18" cy="17.5" r="2.5" />
+    {/* Paka */}
+    <path d="M1 4h12v11H1z" />
+    {/* Kabina */}
+    <path d="M14 6h5l4 4v5h-9V6z" />
+    <path d="M15.5 7.5v3H19l-2-3h-1.5z" fill="#fff" />
+    {/* Podwozie */}
+    <path d="M0 15h24v3H0z" />
+    {/* Koła */}
+    <circle cx="4" cy="19.5" r="3.5" />
+    <circle cx="11" cy="19.5" r="3.5" />
+    <circle cx="20" cy="19.5" r="3.5" />
   </svg>
 );
 
+// Wywrotka - podniesiona
+export const DumpTruckRaised = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    {/* Paka (podniesiona) */}
+    <path d="M3 14l11-8 2 3-11 8z" />
+    <path d="M1 10l2-3 2 1.5-2 3z" />
+    {/* Kabina */}
+    <path d="M14 6h5l4 4v5h-9V6z" />
+    <path d="M15.5 7.5v3H19l-2-3h-1.5z" fill="#fff" />
+    {/* Podwozie */}
+    <path d="M0 15h24v3H0z" />
+    {/* Koła */}
+    <circle cx="4" cy="19.5" r="3.5" />
+    <circle cx="11" cy="19.5" r="3.5" />
+    <circle cx="20" cy="19.5" r="3.5" />
+  </svg>
+);
+
+// Koparka 1 (Duża)
 export const Excavator1 = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M11 12l-2-6-5 2-2 4 1.5 1.5L6 10l3-1 2 3z" />
-    <path d="M2 12l1 3h3l-2-4z" />
-    <path d="M11 6h6v8h-6z" />
-    <path d="M17 11h2v3h-2z" />
-    <rect x="8" y="15" width="13" height="4" rx="2" />
+    {/* Gąsienice */}
+    <rect x="7" y="16" width="16" height="6" rx="3" />
+    {/* Kabina i korpus */}
+    <path d="M11 5h8v10h-8z" />
+    <path d="M19 9h3v6h-3z" />
+    <path d="M12.5 6.5v4H17v-4h-4.5z" fill="#fff" />
+    {/* Ramię */}
+    <path d="M12 11L7 1 0 5l-1 5 4 2 3-4 3-1 3 4z" />
+    {/* Łyżka */}
+    <path d="M0 11l3 5h5l-4-6z" />
   </svg>
 );
 
+// Koparka 2 (Mała)
 export const Excavator2 = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 12l-1-4-4 1-2 3 1.5 1.5L9 11l2-1 1 2z" />
-    <path d="M3 12l1 2h2l-1-3z" />
-    <path d="M11 8h5v6h-5z" />
-    <rect x="9" y="15" width="9" height="3" rx="1.5" />
-    <path d="M18 15h3v3h-3z" />
+    {/* Gąsienice */}
+    <rect x="9" y="17" width="13" height="5" rx="2.5" />
+    {/* Pług */}
+    <path d="M21 14h3v5h-3z" />
+    {/* Kabina */}
+    <path d="M11 7h8v9h-8z" />
+    <path d="M12.5 8.5v4H17v-4h-4.5z" fill="#fff" />
+    {/* Ramię */}
+    <path d="M12 12L8 3 2 6l-1 5 3 2 3-4 3-1 2 4z" />
+    {/* Łyżka */}
+    <path d="M0 11l3 4h4l-3-5z" />
   </svg>
 );
 
+// Ładowarka 1 (Kołowa duża)
 export const Loader1 = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M16 11l3 1 2 4h-3l-1-2-2-1z" />
-    <path d="M4 8h8v6H4z" />
-    <path d="M6 4h5v4H6z" />
-    <path d="M3 13h13v2H3z" />
-    <circle cx="6" cy="17.5" r="3.5" />
-    <circle cx="13" cy="17.5" r="3.5" />
+    {/* Podwozie */}
+    <path d="M2 13h19v5H2z" />
+    {/* Kabina */}
+    <path d="M11 3h9v10h-9z" />
+    <path d="M12.5 4.5v4h6v-4h-6z" fill="#fff" />
+    {/* Ramię */}
+    <path d="M13 11L5 13l-2 8h5l1-5 6-3z" />
+    {/* Łyżka */}
+    <path d="M0 13l3 8h6l-3-9z" />
+    {/* Koła */}
+    <circle cx="16" cy="18.5" r="4.5" />
+    <circle cx="7" cy="18.5" r="4.5" />
   </svg>
 );
 
+// Ładowarka 2 (Skid-steer)
 export const Loader2 = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 11l4 1 2 3h-2l-1-2-2-1z" />
-    <path d="M4 9h7v5H4z" />
-    <path d="M6 5h4v4H6z" />
-    <path d="M3 14h9v2H3z" />
-    <circle cx="5" cy="17.5" r="2.5" />
-    <circle cx="11" cy="17.5" r="2.5" />
+    {/* Podwozie */}
+    <path d="M3 13h16v5H3z" />
+    {/* Kabina */}
+    <path d="M9 4h8v9H9z" />
+    <path d="M10.5 5.5v3.5h5v-3.5h-5z" fill="#fff" />
+    {/* Ramię */}
+    <path d="M11 10L4 13l-1 6h5l1-4 5-3z" />
+    {/* Łyżka */}
+    <path d="M0 12l2 7h6l-3-8z" />
+    {/* Koła */}
+    <circle cx="15" cy="18.5" r="3.5" />
+    <circle cx="6" cy="18.5" r="3.5" />
   </svg>
 );
 
+// Warsztat - Klucz
 export const WorkshopWrench = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M21.7 7.3l-5-5-2.8 2.8c.4 1.2.2 2.6-.7 3.5-.9.9-2.3 1.1-3.5.7L3.4 15.6c-.6.6-.6 1.5 0 2.1l2.8 2.8c.6.6 1.5.6 2.1 0l6.3-6.3c1.2.4 2.6.2 3.5-.7.9-.9 1.1-2.3.7-3.5l2.8-2.8z" />
+    <path d="M22 6l-4-4-3 3c1 1 1 2 0 3-1 1-2 1-3 0L9 11 3 17c-1.5 1.5-1.5 4 0 5.5s4 1.5 5.5 0l6-6-3-3c-1-1-1-2 0-3 1-1 2-1 3 0l3-3 4-1z" />
   </svg>
 );
 
+// Warsztat - Budynek
 export const WorkshopBuilding = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M12 3L2 11h3v9h14v-9h3L12 3zM10 20v-6h4v6h-4z" />
+    <path d="M12 1L0 11h3v12h18V11h3L12 1zM10 23v-8h4v8h-4z" />
   </svg>
 );

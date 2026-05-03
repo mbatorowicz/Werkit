@@ -105,7 +105,7 @@ export default function MachinesClient() {
            return (
              <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
                 <div className="flex items-center gap-3 truncate">
-                  <CatIcon className="w-4 h-4 text-zinc-500" />
+                  <CatIcon className="w-6 h-6 text-zinc-500" />
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
@@ -151,7 +151,7 @@ export default function MachinesClient() {
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                          <div className="w-10 h-10 rounded-lg bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
-                           <MachineIcon className="w-5 h-5" />
+                           <MachineIcon className="w-7 h-7" />
                          </div>
                          <div>
                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
@@ -206,7 +206,7 @@ export default function MachinesClient() {
                        const IconComp = iconOptions[iconName];
                        return (
                          <button type="button" key={iconName} onClick={() => setCForm({...cForm, icon: iconName})} className={`flex items-center justify-center p-3 rounded-lg border transition ${cForm.icon === iconName ? 'bg-amber-50 border-amber-500 text-amber-600 dark:bg-amber-500/20 dark:border-amber-500' : 'bg-zinc-50 border-zinc-200 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-700 hover:border-amber-300'}`}>
-                           <IconComp className="w-5 h-5" />
+                           <IconComp className="w-8 h-8" />
                          </button>
                        )
                      })}
