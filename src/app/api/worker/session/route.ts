@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -35,8 +35,11 @@ export async function GET() {
     const settingsRows = await db.select().from(companySettings).limit(1);
     const companySettingsData = settingsRows[0] || null;
 
+    const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const userData = userRows[0] ? { canCreateOwnOrders: userRows[0].canCreateOwnOrders } : null;
+
     if (activeSessions.length === 0) {
-      return NextResponse.json({ session: null, settings: companySettingsData });
+      return NextResponse.json({ session: null, settings: companySettingsData, user: userData });
     }
 
     const data = activeSessions[0];
@@ -47,7 +50,8 @@ export async function GET() {
        session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, 
        events: photos,
        notes: notes,
-       settings: companySettingsData
+       settings: companySettingsData,
+       user: userData
     });
   } catch (err: any) {
     console.error(err);

@@ -14,6 +14,7 @@ export async function GET() {
       usernameEmail: users.usernameEmail,
       role: users.role,
       isActive: users.isActive,
+      canCreateOwnOrders: users.canCreateOwnOrders,
     }).from(users).orderBy(desc(users.id));
     
     return NextResponse.json(allUsers);
@@ -25,7 +26,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { fullName, usernameEmail, password, role } = body;
+    const { fullName, usernameEmail, password, role, canCreateOwnOrders } = body;
 
     if(!fullName || !usernameEmail || !password) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       passwordHash: hashedPassword,
       role: role || 'worker',
       isActive: true,
+      canCreateOwnOrders: canCreateOwnOrders !== undefined ? canCreateOwnOrders : true,
     });
 
     return NextResponse.json({ success: true });

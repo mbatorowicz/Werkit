@@ -62,6 +62,7 @@ export default function WorkerClient() {
   const [notesList, setNotesList] = useState<any[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [settings, setSettings] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
@@ -107,6 +108,9 @@ export default function WorkerClient() {
 
       if (sessData.settings) {
         setSettings(sessData.settings);
+      }
+      if (sessData.user) {
+        setCurrentUser(sessData.user);
       }
 
       if (sessData.session) {
@@ -554,13 +558,15 @@ export default function WorkerClient() {
             </div>
           )}
 
-          <div className="w-full max-w-sm flex flex-col items-center mt-4">
-            <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">{dict.or}</div>
-            <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
-              <Play className="w-6 h-6 fill-current" />
-              <span className="text-lg font-bold uppercase tracking-wider">{dict.defineCustom}</span>
-            </Link>
-          </div>
+          {(!currentUser || currentUser.canCreateOwnOrders !== false) && (
+            <div className="w-full max-w-sm flex flex-col items-center mt-4">
+              <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">{dict.or}</div>
+              <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
+                <Play className="w-6 h-6 fill-current" />
+                <span className="text-lg font-bold uppercase tracking-wider">{dict.defineCustom}</span>
+              </Link>
+            </div>
+          )}
         </div>
       ) : (
         <div className="w-full flex flex-col items-center">

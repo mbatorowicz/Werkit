@@ -152,7 +152,8 @@ export const pl = {
       editWarning: "Tryb nadpisywania. Nie musisz podawać starego opisu PIN, wpisz twardo wymuszone nowe, a system je zatwierdzi z automatu.",
       createWarning: "Zgodnie z protokołem bezpieczeństwa, przekazujesz wygenerowany przed chwilą login i pin pracownikowi. Hasło zostanie zaszyfrowane metodą BCRYPT.",
       saveChanges: "Zapisz zmiany",
-      createAccount: "Utwórz pracownika"
+      createAccount: "Utwórz pracownika",
+      canCreateOwnOrdersLabel: "Pracownik może tworzyć własne zlecenia w aplikacji",
     },
     machines: {
       dictTitle: "Słownik Typów (Kategorie Sprzętu)",

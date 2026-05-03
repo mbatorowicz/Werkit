@@ -10,6 +10,7 @@ type Worker = {
   usernameEmail: string;
   role: string;
   isActive: boolean;
+  canCreateOwnOrders: boolean;
 };
 
 export default function WorkersClient() {
@@ -19,7 +20,7 @@ export default function WorkersClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ fullName: '', usernameEmail: '', password: '', role: 'worker' });
+  const [form, setForm] = useState({ fullName: '', usernameEmail: '', password: '', role: 'worker', canCreateOwnOrders: true });
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -57,13 +58,13 @@ export default function WorkersClient() {
 
   const handeEditClick = (worker: Worker) => {
     setEditId(worker.id);
-    setForm({ fullName: worker.fullName, usernameEmail: worker.usernameEmail, role: worker.role, password: '' });
+    setForm({ fullName: worker.fullName, usernameEmail: worker.usernameEmail, role: worker.role, password: '', canCreateOwnOrders: worker.canCreateOwnOrders ?? true });
     setIsModalOpen(true);
   };
 
   const openNewModal = () => {
     setEditId(null);
-    setForm({ fullName: '', usernameEmail: '', password: '', role: 'worker' });
+    setForm({ fullName: '', usernameEmail: '', password: '', role: 'worker', canCreateOwnOrders: true });
     setIsModalOpen(true);
   };
 
@@ -197,6 +198,16 @@ export default function WorkersClient() {
                       </div>
                     </div>
                  </div>
+
+                 {form.role !== 'admin' && (
+                   <div className="flex items-center gap-3 pt-2">
+                     <label className="relative flex items-center cursor-pointer">
+                       <input type="checkbox" className="sr-only peer" checked={form.canCreateOwnOrders} onChange={e => setForm({...form, canCreateOwnOrders: e.target.checked})} />
+                       <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                     </label>
+                     <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canCreateOwnOrdersLabel}</span>
+                   </div>
+                 )}
 
                  {editId ? (
                     <div className="bg-amber-500/10 p-4 border border-amber-500/20 rounded-lg mt-4 text-xs text-amber-500 leading-relaxed font-medium">

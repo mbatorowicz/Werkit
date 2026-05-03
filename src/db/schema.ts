@@ -9,6 +9,7 @@ export const users = pgTable('users', {
   role: varchar('role', { length: 50 }).notNull().default('worker'), // worker, admin
   deviceUniqueId: varchar('device_unique_id', { length: 255 }),
   isActive: boolean('is_active').notNull().default(true),
+  canCreateOwnOrders: boolean('can_create_own_orders').notNull().default(true),
 });
 
 export const resourceCategories = pgTable('resource_categories', {

@@ -152,7 +152,8 @@ export const en = {
       editWarning: "Overwrite mode. You don't need to provide the old PIN, just enter the new one and the system will approve it automatically.",
       createWarning: "According to security protocol, you pass the newly generated login and PIN to the worker. The password will be encrypted using BCRYPT.",
       saveChanges: "Save changes",
-      createAccount: "Create worker"
+      createAccount: "Create worker",
+      canCreateOwnOrdersLabel: "Worker can create custom orders in the app",
     },
     machines: {
       dictTitle: "Type Dictionary (Equipment Categories)",

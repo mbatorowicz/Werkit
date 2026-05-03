@@ -18,6 +18,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       role: body.role,
     };
 
+    if (body.canCreateOwnOrders !== undefined) {
+      updateData.canCreateOwnOrders = body.canCreateOwnOrders;
+    }
+
     if (body.password && body.password.trim() !== '') {
        updateData.passwordHash = await bcrypt.hash(body.password, 10);
     }
