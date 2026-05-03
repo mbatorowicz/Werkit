@@ -105,10 +105,13 @@ export default function WorkerClient() {
         } catch (e) { }
       }
 
+      if (sessData.settings) {
+        setSettings(sessData.settings);
+      }
+
       if (sessData.session) {
         setSession(sessData.session);
         setNotesList(sessData.notes || []);
-        setSettings(sessData.settings || null);
 
         const newEvents: { lat: number, lng: number, label: string }[] = [];
         if (sessData.events) {

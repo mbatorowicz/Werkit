@@ -32,20 +32,22 @@ export async function GET() {
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     
+    const settingsRows = await db.select().from(companySettings).limit(1);
+    const companySettingsData = settingsRows[0] || null;
+
     if (activeSessions.length === 0) {
-      return NextResponse.json({ session: null });
+      return NextResponse.json({ session: null, settings: companySettingsData });
     }
 
     const data = activeSessions[0];
     const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, activeSessions[0].session.id));
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, activeSessions[0].session.id));
-    const settingsRows = await db.select().from(companySettings).limit(1);
 
     return NextResponse.json({ 
        session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, 
        events: photos,
        notes: notes,
-       settings: settingsRows[0] || null
+       settings: companySettingsData
     });
   } catch (err: any) {
     console.error(err);
