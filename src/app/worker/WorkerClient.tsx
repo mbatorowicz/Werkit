@@ -480,22 +480,26 @@ export default function WorkerClient() {
       let notifiedArr: number[] = JSON.parse(notifiedStr);
 
       const triggerNotification = async (id: number, title: string, body: string) => {
-        if (!notifiedArr.includes(id)) {
-          const perm = await LocalNotifications.requestPermissions();
-          if (perm.display === 'granted') {
-            await LocalNotifications.schedule({
-              notifications: [
-                {
-                  title,
-                  body,
-                  id: id,
-                  schedule: { at: new Date(Date.now() + 1000) },
-                }
-              ]
-            });
-            notifiedArr.push(id);
-            localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+        try {
+          if (!notifiedArr.includes(id)) {
+            const perm = await LocalNotifications.requestPermissions();
+            if (perm.display === 'granted') {
+              await LocalNotifications.schedule({
+                notifications: [
+                  {
+                    title,
+                    body,
+                    id: id,
+                    schedule: { at: new Date(Date.now() + 1000) },
+                  }
+                ]
+              });
+              notifiedArr.push(id);
+              localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+            }
           }
+        } catch (e) {
+          console.error("Notification trigger error:", e);
         }
       };
 
