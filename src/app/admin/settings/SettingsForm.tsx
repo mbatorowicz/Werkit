@@ -19,6 +19,7 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
   const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(initialData?.requirePhotoToFinish ?? false);
   const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(initialData?.geofenceRadiusMeters ?? 500);
   const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(initialData?.timeOverrunReminder ?? true);
+  const [upcomingOrderReminderMinutes, setUpcomingOrderReminderMinutes] = useState<number>(initialData?.upcomingOrderReminderMinutes ?? 120);
 
   const [isSearching, setIsSearching] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"IDLE"|"SAVING"|"SAVED">("IDLE");
@@ -61,7 +62,8 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
            cancelWindowMinutes,
            requirePhotoToFinish,
            geofenceRadiusMeters,
-           timeOverrunReminder
+           timeOverrunReminder,
+           upcomingOrderReminderMinutes
          })
        });
        if(res.ok) {
@@ -137,14 +139,18 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">Parametry ułatwiające pracę w aplikacji mobilnej kierowców.</p>
              </div>
              
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">Czas na anulowanie zlecenia (minuty)</label>
                   <input type="number" min="0" value={cancelWindowMinutes} onChange={(e) => setCancelWindowMinutes(parseInt(e.target.value))} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-zinc-400">Promień tolerancji dla 'Dojechał na miejsce' (metry)</label>
+                  <label className="text-sm font-medium text-zinc-400">Promień tolerancji dla 'Dojechał' (metry)</label>
                   <input type="number" step="100" min="0" value={geofenceRadiusMeters} onChange={(e) => setGeofenceRadiusMeters(parseInt(e.target.value))} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-zinc-400">Przypomnienie przed zadaniem (minuty)</label>
+                  <input type="number" step="15" min="0" value={upcomingOrderReminderMinutes} onChange={(e) => setUpcomingOrderReminderMinutes(parseInt(e.target.value))} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none" />
                 </div>
              </div>
 

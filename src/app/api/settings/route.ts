@@ -30,7 +30,8 @@ export async function POST(request: Request) {
          cancelWindowMinutes: body.cancelWindowMinutes ?? 5,
          requirePhotoToFinish: body.requirePhotoToFinish ?? false,
          geofenceRadiusMeters: body.geofenceRadiusMeters ?? 500,
-         timeOverrunReminder: body.timeOverrunReminder ?? true
+         timeOverrunReminder: body.timeOverrunReminder ?? true,
+         upcomingOrderReminderMinutes: body.upcomingOrderReminderMinutes ?? 120
       })
       .onConflictDoUpdate({
          target: companySettings.id,
@@ -46,7 +47,8 @@ export async function POST(request: Request) {
            cancelWindowMinutes: body.cancelWindowMinutes ?? 5,
            requirePhotoToFinish: body.requirePhotoToFinish ?? false,
            geofenceRadiusMeters: body.geofenceRadiusMeters ?? 500,
-           timeOverrunReminder: body.timeOverrunReminder ?? true
+           timeOverrunReminder: body.timeOverrunReminder ?? true,
+           upcomingOrderReminderMinutes: body.upcomingOrderReminderMinutes ?? 120
          }
       });
 

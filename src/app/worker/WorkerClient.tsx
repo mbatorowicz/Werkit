@@ -454,7 +454,8 @@ export default function WorkerClient() {
     if (!order.dueDate) return false;
     const dueTime = new Date(order.dueDate).getTime();
     const now = new Date().getTime();
-    return dueTime - now < 2 * 60 * 60 * 1000;
+    const reminderMs = (settings?.upcomingOrderReminderMinutes ?? 120) * 60 * 1000;
+    return dueTime - now > 0 && dueTime - now < reminderMs;
   });
 
   return (

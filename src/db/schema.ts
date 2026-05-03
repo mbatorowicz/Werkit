@@ -99,6 +99,7 @@ export const companySettings = pgTable('company_settings', {
   requirePhotoToFinish: boolean('require_photo_to_finish').notNull().default(false),
   geofenceRadiusMeters: integer('geofence_radius_meters').notNull().default(500),
   timeOverrunReminder: boolean('time_overrun_reminder').notNull().default(true),
+  upcomingOrderReminderMinutes: integer('upcoming_order_reminder_minutes').notNull().default(120),
 });
 
 export const workOrders = pgTable('work_orders', {
