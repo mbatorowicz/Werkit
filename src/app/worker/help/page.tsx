@@ -28,90 +28,94 @@ function HelpAccordion({ title, icon: Icon, children }: { title: string, icon: a
   );
 }
 
+import { getDictionary } from "@/i18n";
+
 export default function HelpPage() {
+  const dict = getDictionary().worker.help;
+
   return (
     <div className="py-6 pb-20">
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-8 flex items-center gap-2">
         <BookOpen className="w-7 h-7 text-blue-500" />
-        Instrukcja Obsługi
+        {dict.title}
       </h1>
       
       <div className="space-y-4 mb-8">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 shadow-sm">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-3">Szybki kontakt z bazą</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-3">{dict.quickContact}</h2>
           <p className="text-zinc-600 dark:text-zinc-300 text-sm mb-4">
-            Masz problem z maszyną, ładunkiem lub aplikacją? Skontaktuj się bezpośrednio z biurem.
+            {dict.contactDesc}
           </p>
           <a href="tel:112" className="w-full bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 rounded-lg p-4 flex items-center justify-center gap-3 transition-colors font-medium">
             <PhoneCall className="w-5 h-5" />
-            Zadzwoń do dyspozytora
+            {dict.callDispatcher}
           </a>
         </div>
       </div>
 
-      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-4 px-1">Podręcznik Użytkownika</h2>
+      <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-4 px-1">{dict.userManual}</h2>
       
       <div className="space-y-3">
-        <HelpAccordion title="1. Rozpoczynanie pracy" icon={Play}>
+        <HelpAccordion title={dict.startWork} icon={Play}>
           <p className="mb-2">
-            Gdy wejdziesz w zakładkę <strong>Sesja</strong>, zobaczysz listę zleceń przygotowanych dla Ciebie przez dyspozytora.
+            {dict.startWorkDesc1}<strong>Sesja</strong>{dict.startWorkDesc2}
           </p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
-            <li><strong>Kolor Czerwony:</strong> Zlecenie przeterminowane. Powinno być wykonane w pierwszej kolejności!</li>
-            <li><strong>Kolor Różowy:</strong> Zlecenie zbliżające się (np. zaplanowane na najbliższe godziny).</li>
-            <li><strong>Priorytety:</strong> Niektóre zlecenia mają przypisany wysoki priorytet - zwracaj na to uwagę.</li>
+            <li><strong>{dict.redColor}</strong> {dict.redColorDesc}</li>
+            <li><strong>{dict.pinkColor}</strong> {dict.pinkColorDesc}</li>
+            <li><strong>{dict.priorities}</strong> {dict.prioritiesDesc}</li>
           </ul>
           <p className="mt-3">
-            Aby rozpocząć pracę, kliknij duży przycisk <strong>ROZPOCZNIJ ZADANIE</strong>. Od tego momentu aplikacja zacznie rejestrować Twój czas pracy oraz (jeśli to wymagane) trasę GPS.
+            {dict.startWorkInstruction}<strong>ROZPOCZNIJ ZADANIE</strong>{dict.startWorkInstruction2}
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title="2. Notatki i Zdjęcia z trasy" icon={Camera}>
+        <HelpAccordion title={dict.notesAndPhotos} icon={Camera}>
           <p className="mb-2">
-            Podczas trwania zlecenia, na ekranie głównym pojawiają się nowe przyciski:
+            {dict.notesAndPhotosDesc}
           </p>
           <ul className="list-disc pl-5 space-y-2 mt-2">
             <li>
-              <strong>Dodaj Notatkę:</strong> Pozwala zapisać ważną informację z drogi (np. "Korek na bramkach", "Klient odmówił przyjęcia"). Notatka jest przypisywana do Twojej obecnej lokalizacji na mapie.
+              <strong>{dict.addNote}</strong> {dict.addNoteDesc}
             </li>
             <li>
-              <strong>Zrób Zdjęcie:</strong> Uruchamia aparat wbudowany w urządzenie. Służy do dokumentowania wykonanej pracy (np. zrzutu kruszywa, awarii maszyny, podpisów na WZ).
+              <strong>{dict.takePhoto}</strong> {dict.takePhotoDesc}
             </li>
           </ul>
           <p className="mt-3 text-amber-600 dark:text-amber-500 font-medium">
-            Ważne: Niektóre zlecenia mogą wymagać zrobienia co najmniej jednego zdjęcia przed możliwością ich zakończenia!
+            {dict.photoWarning}
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title="3. Śledzenie i GPS" icon={Navigation}>
+        <HelpAccordion title={dict.gpsTracking} icon={Navigation}>
           <p className="mb-2">
-            Aplikacja używa sygnału satelitarnego do wyznaczania przebytej przez Ciebie trasy.
+            {dict.gpsTrackingDesc}
           </p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
-            <li><strong>Status: Oczekuję na GPS</strong> (Żółty) - telefon szuka satelity. Upewnij się, że nie jesteś w podziemnym garażu.</li>
-            <li><strong>Status: GPS Aktywny</strong> (Zielony) - wszystko działa prawidłowo.</li>
+            <li><strong>{dict.gpsWait}</strong> {dict.gpsWaitDesc}</li>
+            <li><strong>{dict.gpsActive}</strong> {dict.gpsActiveDesc}</li>
           </ul>
           <p className="mt-3">
-            GPS jest włączany <strong>tylko i wyłącznie</strong> w momencie aktywnego zlecenia (po kliknięciu Rozpocznij). Gdy klikniesz "Zakończ", aplikacja całkowicie przestaje pobierać dane o Twojej lokalizacji, chroniąc Twoją baterię i prywatność.
+            {dict.gpsPrivacy}<strong>{dict.gpsPrivacy2}</strong>{dict.gpsPrivacy3}
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title="4. Zlecenia Własne" icon={Info}>
+        <HelpAccordion title={dict.customOrders} icon={Info}>
           <p>
-            Jeśli masz włączone uprawnienia od administratora, na dole ekranu powitalnego znajdziesz przycisk <strong>LUB ZDEFINIUJ WŁASNE</strong>. 
+            {dict.customOrdersDesc1}<strong>{dict.customOrdersDesc2}</strong>. 
           </p>
           <p className="mt-2">
-            Pozwala on na samodzielne wybranie klienta z listy, maszyny, towaru i natychmiastowe rozpoczęcie pracy bez konieczności czekania na zlecenie z biura.
+            {dict.customOrdersDesc3}
           </p>
         </HelpAccordion>
       </div>
 
       <div className="mt-8 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-2xl p-5 shadow-sm">
         <h2 className="text-sm font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 mb-2 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" /> Procedura awaryjna
+          <AlertTriangle className="w-4 h-4" /> {dict.emergency}
         </h2>
         <p className="text-xs text-orange-800 dark:text-orange-300">
-          W przypadku kolizji, awarii sprzętu lub innego zagrożenia, natychmiast zatrzymaj maszynę w bezpiecznym miejscu, zabezpiecz ładunek i użyj przycisku telefonu na samej górze tej strony, aby poinformować o tym fakcie dyspozytora. Jeśli to możliwe, wykonaj zdjęcie sytuacji za pomocą aplikacji.
+          {dict.emergencyDesc}
         </p>
       </div>
     </div>
