@@ -94,6 +94,10 @@ export const companySettings = pgTable('company_settings', {
   email: varchar('email', { length: 255 }),
   baseLatitude: numeric('base_latitude', { precision: 10, scale: 8 }),
   baseLongitude: numeric('base_longitude', { precision: 11, scale: 8 }),
+  cancelWindowMinutes: integer('cancel_window_minutes').notNull().default(5),
+  requirePhotoToFinish: boolean('require_photo_to_finish').notNull().default(false),
+  geofenceRadiusMeters: integer('geofence_radius_meters').notNull().default(500),
+  timeOverrunReminder: boolean('time_overrun_reminder').notNull().default(true),
 });
 
 export const workOrders = pgTable('work_orders', {
