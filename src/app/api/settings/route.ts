@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { companySettings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+export async function GET() {
+  try {
+    const data = await db.select().from(companySettings).where(eq(companySettings.id, 1)).limit(1);
+    return NextResponse.json(data[0] || {});
+  } catch (err) {
+    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {

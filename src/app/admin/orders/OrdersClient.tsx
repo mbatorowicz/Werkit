@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Map, Plus, X, Search, RefreshCw } from "lucide-react";
+import { Map, Plus, X, Search, RefreshCw, Settings, Loader2 } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "./SessionDetailsModal";
+import SettingsForm from "../settings/SettingsForm";
 
 export default function OrdersClient() {
   const [workers, setWorkers] = useState<any[]>([]);
@@ -15,6 +16,8 @@ export default function OrdersClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsData, setSettingsData] = useState<any>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
@@ -130,6 +133,15 @@ export default function OrdersClient() {
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
+          <button onClick={async () => {
+             setIsSettingsOpen(true);
+             try {
+               const res = await fetch('/api/settings');
+               if(res.ok) setSettingsData(await res.json());
+             } catch(e) {}
+          }} className="p-2.5 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition active:scale-95" title="Ustawienia systemu">
+            <Settings className="w-4 h-4" />
+          </button>
           <button onClick={() => fetchData(true)} className="p-2.5 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition active:scale-95" title="Odśwież ręcznie">
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -138,6 +150,21 @@ export default function OrdersClient() {
           </button>
         </div>
       </div>
+
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSettingsOpen(false)}></div>
+          <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-y-auto">
+             <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
+               <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2"><Settings className="w-5 h-5 text-zinc-500" /> Ustawienia Systemu</h2>
+               <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors bg-zinc-100 dark:bg-zinc-800 p-2 rounded-full"><X className="w-5 h-5" /></button>
+             </div>
+             <div className="p-2">
+               {settingsData ? <SettingsForm initialData={settingsData} /> : <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-500"/></div>}
+             </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">

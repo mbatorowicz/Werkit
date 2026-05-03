@@ -20,9 +20,7 @@ export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { c
     { type: "section", label: dict.sidebar.logistics },
     { href: "/admin/orders", icon: Map, label: dict.orders.title },
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
-    { href: "/admin/customers", icon: Package, label: dict.customers.title },
-    { type: "section", label: dict.sidebar.system },
-    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
+    { href: "/admin/customers", icon: Package, label: dict.customers.title }
   ];
 
   return (
@@ -58,8 +56,7 @@ export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { c
 
                  const Icon = link.icon!;
                  const isActive = pathname === link.href;
-                 const isSettings = link.href === "/admin/settings";
-                 const shouldHighlight = isActive && !isSettings;
+                 const shouldHighlight = isActive;
 
                  return (
                    <Link 
