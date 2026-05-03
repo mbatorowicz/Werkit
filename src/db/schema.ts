@@ -53,6 +53,8 @@ export const workSessions = pgTable('work_sessions', {
   machineHoursPhotoUrl: text('machine_hours_photo_url'),
   signatureUrl: text('signature_url'),
   clientAbsent: boolean('client_absent').default(false),
+  expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
+  dueDate: timestamp('due_date'),
 });
 
 export const sessionPhotos = pgTable('session_photos', {

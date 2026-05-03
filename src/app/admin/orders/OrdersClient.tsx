@@ -260,6 +260,16 @@ export default function OrdersClient() {
                                 return `${h}h ${m}m`;
                              })()}
                            </div>
+                           {item.expectedDurationHours && (
+                             <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 inline-block px-1.5 py-0.5 rounded ml-2">
+                               Planowano: {item.expectedDurationHours}h
+                             </div>
+                           )}
+                           {item.dueDate && (
+                             <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 inline-block px-1.5 py-0.5 rounded">
+                               Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
+                             </div>
+                           )}
                          </>
                       )}
                     </div>

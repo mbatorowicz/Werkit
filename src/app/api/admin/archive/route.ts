@@ -27,7 +27,9 @@ export async function GET() {
        materialName: materials.name,
        customerFirstName: customers.firstName,
        customerLastName: customers.lastName,
-       quantityTons: workSessions.quantityTons
+       quantityTons: workSessions.quantityTons,
+       expectedDurationHours: workSessions.expectedDurationHours,
+       dueDate: workSessions.dueDate
      })
      .from(workSessions)
      .leftJoin(users, eq(workSessions.userId, users.id))
