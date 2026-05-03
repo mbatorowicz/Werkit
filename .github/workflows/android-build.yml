@@ -1,0 +1,57 @@
+name: Build Android App
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    branches:
+      - main
+    paths:
+      - 'android/**'
+      - 'capacitor.config.ts'
+
+jobs:
+  build:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build Android Release Bundle (AAB)
+        working-directory: ./android
+        run: ./gradlew bundleRelease
+
+      - name: Build Android Release APK (APK)
+        working-directory: ./android
+        run: ./gradlew assembleRelease
+
+      - name: Upload Release Bundle (AAB)
+        uses: actions/upload-artifact@v3
+        with:
+          name: werkit-app-release-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: werkit-app-release-apk
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk

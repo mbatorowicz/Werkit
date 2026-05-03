@@ -9,6 +9,7 @@ const config: CapacitorConfig = {
   // Aby testować na telefonie lokalnie podłączonym do tego samego WiFi, użyj lokalnego IP:
   // server: { url: 'http://192.168.0.x:3000', cleartext: true }
   // Docelowo podmień na prawdziwą domenę np. https://twoja-domena.pl
+  server: { url: 'https://werkit.cncsolutions.dev/', cleartext: true }
 };
 
 export default config;
