@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Werkit</string>
+    <string name="title_activity_main">Werkit</string>
+    <string name="package_name">com.werkit.app</string>
+    <string name="custom_url_scheme">com.werkit.app</string>
+</resources>

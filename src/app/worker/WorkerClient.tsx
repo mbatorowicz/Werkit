@@ -5,6 +5,8 @@ import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { Capacitor } from '@capacitor/core';
+import { BackgroundGeolocation } from '@capacitor-community/background-geolocation';
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500"/></div> });
 
@@ -64,7 +66,7 @@ export default function WorkerClient() {
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   
   const wakeLockRef = useRef<any>(null);
-  const watchIdRef = useRef<number | null>(null);
+  const watchIdRef = useRef<any>(null);
 
   const fetchSessionAndPath = async () => {
     try {
@@ -167,54 +169,75 @@ export default function WorkerClient() {
     };
     requestWakeLock();
 
-    if ("geolocation" in navigator) {
+    const handleNewLoc = (newLoc: Coord) => {
+      setLocation(newLoc);
+      
+      setPathTraveled(prev => {
+         const updated = [...prev, newLoc];
+         let dist = 0;
+         for (let i = 1; i < updated.length; i++) {
+            dist += getDistance(updated[i-1], updated[i]);
+         }
+         setTraveledKm(dist / 1000);
+         return updated;
+      });
+
+      const payload = { ...newLoc, timestamp: new Date().toISOString() };
+      let queue: any[] = [];
+      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch(e){}
+      queue.push(payload);
+      
+      if (navigator.onLine) {
+        fetch("/api/worker/gps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(queue)
+        })
+        .then(res => {
+           if (res.ok) {
+             localStorage.setItem('werkit_gps_queue', '[]');
+             setGpsStatus("active");
+           } else {
+             localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+           }
+        })
+        .catch(() => {
+           localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+           setGpsStatus("waiting");
+        });
+      } else {
+        localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+        setGpsStatus("waiting");
+      }
+    };
+
+    if (Capacitor.isNativePlatform()) {
+      setGpsStatus("waiting");
+      BackgroundGeolocation.addWatcher(
+        {
+          backgroundMessage: "Aplikacja śledzi trasę pracownika.",
+          backgroundTitle: "Werkit - Rejestrowanie trasy",
+          requestPermissions: true,
+          stale: false,
+          distanceFilter: 10
+        },
+        function callback(location, error) {
+          if (error) {
+            setGpsStatus("error");
+            return;
+          }
+          if (location) {
+             handleNewLoc({ lat: location.latitude, lng: location.longitude });
+          }
+        }
+      ).then(watcherId => {
+         watchIdRef.current = watcherId;
+      });
+    } else if ("geolocation" in navigator) {
       setGpsStatus("waiting");
       watchIdRef.current = navigator.geolocation.watchPosition(
         async (pos) => {
-          const newLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setLocation(newLoc);
-          setGpsStatus("active");
-          
-          setPathTraveled(prev => {
-             const updated = [...prev, newLoc];
-             // recalc distance
-             let dist = 0;
-             for (let i = 1; i < updated.length; i++) {
-                dist += getDistance(updated[i-1], updated[i]);
-             }
-             setTraveledKm(dist / 1000);
-             return updated;
-          });
-
-          // Offline queue support
-          const payload = { ...newLoc, timestamp: new Date().toISOString() };
-          
-          let queue: any[] = [];
-          try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch(e){}
-          queue.push(payload);
-          
-          if (navigator.onLine) {
-            fetch("/api/worker/gps", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(queue)
-            })
-            .then(res => {
-               if (res.ok) {
-                 localStorage.setItem('werkit_gps_queue', '[]');
-                 setGpsStatus("active");
-               } else {
-                 localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-               }
-            })
-            .catch(() => {
-               localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-               setGpsStatus("waiting"); // indicate offline caching
-            });
-          } else {
-            localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-            setGpsStatus("waiting");
-          }
+          handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         (err) => {
           setGpsStatus("error");
@@ -231,7 +254,11 @@ export default function WorkerClient() {
         wakeLockRef.current = null;
       }
       if (watchIdRef.current !== null) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
+        if (Capacitor.isNativePlatform()) {
+          BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+        } else {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+        }
         watchIdRef.current = null;
       }
     };
