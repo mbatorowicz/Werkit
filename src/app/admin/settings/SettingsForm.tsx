@@ -127,7 +127,6 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
                   </div>
                </div>
             </div>
-            </div>
           </div>
         )}
 
