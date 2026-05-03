@@ -483,7 +483,7 @@ export default function WorkerClient() {
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-rose-800 dark:text-rose-300">Zbliżający się termin!</span>
                     <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
-                      Zlecenie #{upcomingOrder.id} wymaga szybkiej realizacji. Termin: {new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                      Zlecenie Z-{upcomingOrder.id} wymaga szybkiej realizacji. Termin: {new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 </div>
@@ -494,7 +494,7 @@ export default function WorkerClient() {
                   <div className="flex flex-col">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex items-center gap-2">
-                        <span>#{order.id}</span>
+                        <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">Z-{order.id}</span>
                         <span className="text-amber-700/50 dark:text-amber-500/50">|</span>
                         <span>{order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</span>
                       </span>

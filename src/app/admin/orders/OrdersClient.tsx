@@ -189,8 +189,10 @@ export default function OrdersClient() {
                 return (
                   <tr key={`${item._type}-${item.id}`} onClick={() => setSelectedItem(item)} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors cursor-pointer relative group">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="font-mono text-xs font-bold text-zinc-400 dark:text-zinc-500 mr-1">#{item.id}</div>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <div className="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400 mr-1 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
+                          {item._type === 'ORDER' ? `Z-${item.id}` : `R-${item.id}`}
+                        </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
                         {item._type === 'ORDER' && item.priority === 'HIGH' && (
                           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 mt-1">
