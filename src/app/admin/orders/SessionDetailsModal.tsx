@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Map as MapIcon, Image as ImageIcon, FileText } from "lucide-react";
 import dynamic from "next/dynamic";
+import { getDictionary } from "@/i18n";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
   ssr: false,
@@ -14,6 +15,7 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
   const [photos, setPhotos] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const dict = getDictionary().admin.orders;
 
   useEffect(() => {
     if (item._type === 'SESSION') {
@@ -32,8 +34,8 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
 
   const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse();
   const events = [
-    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? 'Start' : (p.photoType === 'END' ? 'Koniec' : 'Zdjęcie') })),
-    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: 'Notatka' }))
+    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? dict.start : (p.photoType === 'END' ? dict.end : dict.photo) })),
+    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: dict.note }))
   ];
   const hasMapData = logs.length > 0 || events.length > 0;
   const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });
@@ -46,8 +48,8 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-4xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh]">
           <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
              <div>
-               <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Szczegóły: {item.workerName}</h2>
-               <p className="text-sm text-zinc-500">{item.sessionType === 'TRANSPORT' ? 'Transport' : (item.sessionType === 'MACHINE_OP' ? 'Praca Maszyną' : 'Warsztat')} - {item.resourceName || 'Brak maszyny'}</p>
+               <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{dict.detailsTitle.replace('{worker}', item.workerName)}</h2>
+               <p className="text-sm text-zinc-500">{item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} - {item.resourceName || dict.noMachine}</p>
              </div>
              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white p-2"><X className="w-5 h-5"/></button>
           </div>
@@ -56,13 +58,13 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
             {item._type === 'ORDER' ? (
               <div className="text-center py-12">
                 <MapIcon className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-                <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">Zlecenie jeszcze nierozpoczęte</h3>
-                <p className="text-zinc-500 text-sm mt-2 max-w-md mx-auto">To zlecenie ma status oczekującego. Mapa i zdjęcia będą dostępne po rozpoczęciu pracy przez pracownika.</p>
+                <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">{dict.notStartedTitle}</h3>
+                <p className="text-zinc-500 text-sm mt-2 max-w-md mx-auto">{dict.notStartedDesc}</p>
               </div>
             ) : (
               <div className="space-y-6">
                 {isLoading ? (
-                  <div className="text-center py-12 text-zinc-500">Ładowanie danych z trasy...</div>
+                  <div className="text-center py-12 text-zinc-500">{dict.loadingData}</div>
                 ) : (
                   <>
                     <div className="h-[400px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800">
@@ -76,7 +78,7 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
                        ) : (
                          <div className="w-full h-full bg-zinc-50 dark:bg-zinc-800/50 flex flex-col items-center justify-center text-zinc-500">
                            <MapIcon className="w-8 h-8 mb-2 opacity-50" />
-                           <p>Brak danych GPS dla tego zlecenia.</p>
+                           <p>{dict.noGpsData}</p>
                          </div>
                        )}
                     </div>
@@ -84,7 +86,7 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
                     {timelineItems.length > 0 && (
                       <div className="mt-8">
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
-                          <ImageIcon className="w-5 h-5 text-amber-500" /> Oś czasu: Zdjęcia i Notatki
+                          <ImageIcon className="w-5 h-5 text-amber-500" /> {dict.timelineTitle}
                         </h3>
                         <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 md:ml-[50%] space-y-8">
                           {timelineItems.map((entry: any, index) => {
@@ -106,9 +108,9 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
                                       <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note}</p>
                                     ) : (
                                       <>
-                                        <img src={entry.photoUrl} alt="Zdjęcie z trasy" className="w-full h-auto rounded-md mb-2 object-cover" />
+                                        <img src={entry.photoUrl} alt={dict.photoRoute} className="w-full h-auto rounded-md mb-2 object-cover" />
                                         <p className="text-sm text-zinc-900 dark:text-zinc-200 font-medium">
-                                          {entry.photoType === 'START' ? 'Rozpoczęcie' : entry.photoType === 'END' ? 'Zakończenie' : 'Zdjęcie z trasy'}
+                                          {entry.photoType === 'START' ? dict.photoStart : entry.photoType === 'END' ? dict.photoEnd : dict.photoRoute}
                                         </p>
                                       </>
                                     )}

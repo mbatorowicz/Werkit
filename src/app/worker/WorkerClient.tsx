@@ -5,6 +5,7 @@ import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { getDictionary } from "@/i18n";
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
@@ -70,6 +71,7 @@ export default function WorkerClient() {
 
   const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
   const router = useRouter();
+  const dict = getDictionary().worker.client;
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
@@ -287,7 +289,7 @@ export default function WorkerClient() {
     if (settings?.requirePhotoToFinish) {
       const hasPhoto = events.some(e => e.label === 'Zdjęcie');
       if (!hasPhoto) {
-        alert("Wymagane jest dodanie przynajmniej jednego zdjęcia przed zakończeniem trasy!");
+        alert(dict.photoReqFinish);
         return;
       }
     }
@@ -298,7 +300,7 @@ export default function WorkerClient() {
       await fetch("/api/worker/session", { method: "PUT" });
       await fetchSessionAndPath();
     } catch (e) {
-      alert("Błąd zakończenia sesji.");
+      alert(dict.errEndSession);
       setIsLoading(false);
     }
   };
@@ -312,11 +314,11 @@ export default function WorkerClient() {
       if (res.ok) {
         await fetchSessionAndPath();
       } else {
-        alert("Błąd akceptacji zlecenia.");
+        alert(dict.errAcceptOrder);
         setIsLoading(false);
       }
     } catch (e) {
-      alert("Błąd sieci.");
+      alert(dict.errNetwork);
       setIsLoading(false);
     }
   };
@@ -347,12 +349,12 @@ export default function WorkerClient() {
           body: JSON.stringify({ photoUrl: base64, location })
         });
         if (res.ok) {
-          alert("Zdjęcie zoptymalizowane i zapisane pomyślnie!");
+          alert(dict.photoSaved);
         } else {
-          alert("Błąd zapisu zdjęcia.");
+          alert(dict.photoError);
         }
       } catch (err) {
-        alert("Błąd przetwarzania zdjęcia.");
+        alert(dict.errProcessPhoto);
       }
       setIsLoading(false);
     }
@@ -375,16 +377,16 @@ export default function WorkerClient() {
         body: JSON.stringify(body)
       });
       if (res.ok) {
-        alert(isEditing ? "Notatka zaktualizowana." : "Notatka została dopisana do raportu.");
+        alert(isEditing ? dict.noteUpdated : dict.noteAdded);
         setIsNotesModalOpen(false);
         setNoteText("");
         setEditingNoteId(null);
         fetchSessionAndPath(false, false);
       } else {
-        alert("Błąd zapisywania notatki.");
+        alert(dict.errSaveNote);
       }
     } catch (e) {
-      alert("Błąd sieci.");
+      alert(dict.errNetwork);
     }
     setIsSubmittingNote(false);
   };
@@ -395,13 +397,13 @@ export default function WorkerClient() {
     try {
       const res = await fetch("/api/worker/session/cancel", { method: "POST" });
       if (res.ok) {
-        alert("Pomyślnie cofnięto zlecenie.");
+        alert(dict.cancelSuccess);
         fetchSessionAndPath(true, true);
       } else {
-        alert("Błąd podczas cofania zlecenia.");
+        alert(dict.errCancel);
       }
     } catch (e) {
-      alert("Błąd sieci.");
+      alert(dict.errNetwork);
     }
     setIsLoading(false);
   };
@@ -422,13 +424,13 @@ export default function WorkerClient() {
         body: JSON.stringify({ note: "✅ Dojechał na miejsce", location })
       });
       if (res.ok) {
-        alert("Zapisano dotarcie na miejsce!");
+        alert(dict.arrivedSuccess);
         fetchSessionAndPath(false, false);
       } else {
-        alert("Błąd zapisu dotarcia.");
+        alert(dict.errArrived);
       }
     } catch (e) {
-      alert("Błąd sieci.");
+      alert(dict.errNetwork);
     }
     setIsLoading(false);
   };
@@ -463,18 +465,18 @@ export default function WorkerClient() {
       {!session ? (
         <div className="w-full flex flex-col items-center justify-center mt-10 space-y-6">
           <div className="flex flex-col items-center">
-            <button onClick={() => fetchSessionAndPath(true, true)} className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner cursor-pointer" title="Odśwież listę">
+            <button onClick={() => fetchSessionAndPath(true, true)} className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner cursor-pointer" title={dict.refresh}>
               <History className="w-10 h-10 text-zinc-700 dark:text-zinc-300" />
             </button>
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">{dict.readyToStart}</h2>
             <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">
-              Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.
+              {dict.selectOrder}
             </p>
           </div>
 
           {workOrders.length > 0 && (
             <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Oczekujące zlecenia</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">{dict.pendingOrders}</h3>
 
               {upcomingOrder && (
                 <div className="w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 rounded-xl p-3 mb-2 flex items-start gap-3 animate-pulse">
@@ -482,9 +484,9 @@ export default function WorkerClient() {
                     <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-bold text-rose-800 dark:text-rose-300">Zbliżający się termin!</span>
+                    <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{dict.upcomingTerm}</span>
                     <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
-                      Zlecenie #{upcomingOrder.id} wymaga szybkiej realizacji. Termin: {new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                      {dict.orderFastReq.replace('{id}', upcomingOrder.id.toString()).replace('{time}', new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }))}
                     </span>
                   </div>
                 </div>
@@ -497,52 +499,52 @@ export default function WorkerClient() {
                       <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex items-center gap-2">
                         <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">#{order.id}</span>
                         <span className="text-amber-700/50 dark:text-amber-500/50">|</span>
-                        <span>{order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</span>
+                        <span>{order.sessionType === 'TRANSPORT' ? dict.transport : order.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop}</span>
                       </span>
                       {order.priority === 'HIGH' && (
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
                           <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
-                          <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
+                          <span className="text-[10px] font-bold text-red-700 dark:text-red-400">{dict.priorityHigh}</span>
                         </div>
                       )}
                       {(!order.priority || order.priority === 'NORMAL') && (
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 shrink-0">
                           <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
-                          <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
+                          <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">{dict.priorityNormal}</span>
                         </div>
                       )}
                       {order.priority === 'LOW' && (
                         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shrink-0">
                           <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
-                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">{dict.priorityLow}</span>
                         </div>
                       )}
                     </div>
                     <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                      Maszyna: <span className="font-semibold">{order.resourceName}</span>
+                      {dict.machine} <span className="font-semibold">{order.resourceName}</span>
                     </span>
                     {order.sessionType === 'TRANSPORT' && (
                       <span className="text-xs text-amber-700 dark:text-amber-600/80">
-                        Kruszywo: <span className="font-semibold">{order.materialName}</span> → {order.customerName}
+                        {dict.aggregate} <span className="font-semibold">{order.materialName}</span> → {order.customerName}
                       </span>
                     )}
                     {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
                       <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                        Zadanie: {order.taskDescription}
+                        {dict.task} {order.taskDescription}
                       </span>
                     )}
                     {order.dueDate && (
                       <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
                         <Clock className="w-3 h-3" />
                         <span className="text-xs">
-                          Termin: {new Date(order.dueDate).toLocaleDateString('pl-PL')} {new Date(order.dueDate).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                          {dict.term.replace('{date}', new Date(order.dueDate).toLocaleDateString('pl-PL')).replace('{time}', new Date(order.dueDate).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }))}
                         </span>
                       </div>
                     )}
                   </div>
                   <button onClick={() => handleAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
                     <Play className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Rozpocznij to zadanie</span>
+                    <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>
                   </button>
                 </div>
               ))}
@@ -550,10 +552,10 @@ export default function WorkerClient() {
           )}
 
           <div className="w-full max-w-sm flex flex-col items-center mt-4">
-            <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">LUB</div>
+            <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">{dict.or}</div>
             <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
               <Play className="w-6 h-6 fill-current" />
-              <span className="text-lg font-bold uppercase tracking-wider">Zdefiniuj własne</span>
+              <span className="text-lg font-bold uppercase tracking-wider">{dict.defineCustom}</span>
             </Link>
           </div>
         </div>
@@ -563,17 +565,17 @@ export default function WorkerClient() {
           {/* WIDGET STATUSU */}
           <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
             <div>
-              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Upływ czasu</div>
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.timeElapsed}</div>
               <div className="font-mono text-3xl font-bold text-zinc-900 dark:text-white tracking-tighter">
                 {elapsed}
               </div>
             </div>
             <div className="text-right">
-              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5">Sygnał GPS</div>
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5">{dict.gpsSignal}</div>
               <div className="flex items-center justify-end gap-1.5">
                 <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
                 <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
-                  {gpsStatus === 'active' ? 'ŁĄCZENIE OK' : gpsStatus === 'waiting' ? 'SZUKAM...' : 'BŁĄD'}
+                  {gpsStatus === 'active' ? dict.connOk : gpsStatus === 'waiting' ? dict.searching : dict.error}
                 </span>
               </div>
             </div>
@@ -585,7 +587,7 @@ export default function WorkerClient() {
                 <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
               </div>
               <div className="text-sm text-rose-800 dark:text-rose-300 font-medium">
-                Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?
+                {dict.timeOverrunWarn}
               </div>
             </div>
           )}
@@ -593,13 +595,13 @@ export default function WorkerClient() {
           {/* WIDGET TRASY */}
           <div className="w-full flex gap-4 mt-4">
             <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
-              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Przebyta Trasa</div>
-              <div className="font-mono text-xl font-bold text-emerald-400">{traveledKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.routeTraveled}</div>
+              <div className="font-mono text-xl font-bold text-emerald-400">{traveledKm.toFixed(1)} <span className="text-sm text-zinc-500">{dict.km}</span></div>
             </div>
             {destination && distanceToDestKm !== null && (
               <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
-                <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Do Celu</div>
-                <div className="font-mono text-xl font-bold text-amber-500">{distanceToDestKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
+                <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.toDest}</div>
+                <div className="font-mono text-xl font-bold text-amber-500">{distanceToDestKm.toFixed(1)} <span className="text-sm text-zinc-500">{dict.km}</span></div>
               </div>
             )}
           </div>
@@ -627,19 +629,19 @@ export default function WorkerClient() {
           <div className="w-full grid grid-cols-2 gap-4 mt-4">
             <button onClick={() => { setNoteText(''); setEditingNoteId(null); setIsNotesModalOpen(true); }} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
               <FileText className="w-6 h-6" />
-              <span className="text-xs font-bold uppercase tracking-wider">Dodaj Notatkę</span>
+              <span className="text-xs font-bold uppercase tracking-wider">{dict.addNote}</span>
             </button>
             <label className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer">
               <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
               <Camera className="w-6 h-6" />
-              <span className="text-xs font-bold uppercase tracking-wider">Aparat</span>
+              <span className="text-xs font-bold uppercase tracking-wider">{dict.camera}</span>
             </label>
           </div>
 
           <div className="w-full mt-4">
             <button onClick={handleCheckpoint} className="w-full bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95">
               <MapPin className="w-5 h-5" />
-              <span className="font-bold uppercase tracking-wider text-sm">Zamelduj: Dojechał na miejsce</span>
+              <span className="font-bold uppercase tracking-wider text-sm">{dict.reportArrived}</span>
             </button>
           </div>
 
@@ -647,12 +649,12 @@ export default function WorkerClient() {
             {isCancelWindowOpen && (
               <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
                 <X className="w-5 h-5" />
-                <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
+                <span className="font-bold uppercase tracking-wider text-xs">{dict.cancelStart}</span>
               </button>
             )}
             <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
               <Square className="w-5 h-5 fill-current" />
-              <span className="font-bold uppercase tracking-wider text-sm">Zakończ</span>
+              <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
             </button>
           </div>
         </div>
@@ -663,26 +665,26 @@ export default function WorkerClient() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsNotesModalOpen(false)}></div>
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]">
-              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Dodaj notatkę do raportu</h2>
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{dict.addNoteToReport}</h2>
               <button onClick={() => setIsNotesModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-4 flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Treść notatki</label>
+                <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">{dict.noteContent}</label>
                 <textarea
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
                   className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none h-24 resize-none"
-                  placeholder="Wpisz uwagi..."
+                  placeholder={dict.typeNotes}
                 />
               </div>
               <button disabled={isSubmittingNote} onClick={handleSaveNote} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-sm transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none mb-4">
-                {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingNoteId ? 'Aktualizuj' : 'Zapisz Notatkę')}
+                {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingNoteId ? dict.update : dict.saveNote)}
               </button>
 
               {notesList.length > 0 && (
                 <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-800 max-h-48 overflow-y-auto">
-                  <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Twoje notatki</label>
+                  <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">{dict.yourNotes}</label>
                   {notesList.map((n: any) => (
                     <div key={n.id} className="flex justify-between items-start gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50">
                       <div className="flex flex-col">
@@ -693,7 +695,7 @@ export default function WorkerClient() {
                         onClick={() => { setNoteText(n.note); setEditingNoteId(n.id); }}
                         className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2 py-1"
                       >
-                        Edytuj
+                        {dict.edit}
                       </button>
                     </div>
                   ))}
