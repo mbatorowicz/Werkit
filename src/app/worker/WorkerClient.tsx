@@ -19,6 +19,8 @@ type Session = {
   customerAddress?: string;
   customerLat?: string;
   customerLng?: string;
+  expectedDurationHours?: string;
+  taskDescription?: string;
 };
 
 type WorkOrder = {
