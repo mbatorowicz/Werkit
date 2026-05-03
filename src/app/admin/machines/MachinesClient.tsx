@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
+import { DumpTruckRaised, DumpTruckLowered, Excavator1, Excavator2, Loader1, Loader2, WorkshopWrench, WorkshopBuilding } from "@/components/EquipmentIcons";
+
 type Category = { id: number, name: string, icon?: string };
 type Machine = { id: number, name: string, categoryId: number, categoryName?: string, categoryIcon?: string };
 
-const iconOptions: Record<string, any> = { Truck, Tractor, Wrench, CarFront, Bus, HardHat, Hammer, Cog };
+const iconOptions: Record<string, any> = { DumpTruckRaised, DumpTruckLowered, Excavator1, Excavator2, Loader1, Loader2, WorkshopWrench, WorkshopBuilding };
 
 export default function MachinesClient() {
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -22,7 +24,7 @@ export default function MachinesClient() {
   // States for Category Modal
   const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
   const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState({ name: '', icon: 'Truck' });
+  const [cForm, setCForm] = useState({ name: '', icon: 'DumpTruckLowered' });
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -92,14 +94,14 @@ export default function MachinesClient() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'Truck'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'DumpTruckLowered'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
          {categories.map(cat => {
-           const CatIcon = iconOptions[cat.icon || 'Truck'] || Truck;
+           const CatIcon = iconOptions[cat.icon || 'DumpTruckLowered'] || DumpTruckLowered;
            return (
              <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
                 <div className="flex items-center gap-3 truncate">
@@ -107,7 +109,7 @@ export default function MachinesClient() {
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'Truck'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'DumpTruckLowered'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
              </div>
@@ -143,7 +145,7 @@ export default function MachinesClient() {
                {isLoading ? (
                  <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : machines.map(machine => {
-                 const MachineIcon = iconOptions[machine.categoryIcon || 'Truck'] || Truck;
+                 const MachineIcon = iconOptions[machine.categoryIcon || 'DumpTruckLowered'] || DumpTruckLowered;
                  return (
                  <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
