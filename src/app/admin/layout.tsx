@@ -1,13 +1,18 @@
-import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings } from "lucide-react";
+import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileAdminNav } from "@/components/MobileAdminNav";
 import { AdminSidebarNav } from "@/components/AdminSidebarNav";
 import { LogoutButton } from "@/components/LogoutButton";
 import { db } from "@/db";
-import { companySettings } from "@/db/schema";
+import { companySettings, users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +22,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Fetch SSOT for sidebar company name
   const settings = await db.select().from(companySettings).limit(1);
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
+
+  let loggedInUser = null;
+  const token = (await cookies()).get('auth_token')?.value;
+  if (token) {
+    try {
+      const verified = await jwtVerify(token, JWT_SECRET);
+      if (verified.payload.userId) {
+        const userDb = await db.select().from(users).where(eq(users.id, verified.payload.userId as number)).limit(1);
+        if (userDb.length > 0) loggedInUser = userDb[0].fullName;
+      }
+    } catch(e) {}
+  }
 
   return (
     <div className="flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
@@ -31,13 +48,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
           <AdminSidebarNav dict={dict} />
         </div>
-        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <ThemeToggle />
-          <LogoutButton 
-            className="flex-1 flex items-center gap-3 px-3 py-2.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-white dark:bg-zinc-900/60 rounded-lg transition-all group"
-            iconClass="w-4 h-4 group-hover:text-red-400 transition-colors"
-            text={dict.sidebar.logoutSession}
-          />
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+          {loggedInUser && (
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+               <UserIcon className="w-4 h-4 text-emerald-500 shrink-0" />
+               <span className="font-medium truncate">{loggedInUser}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-2">
+            <LogoutButton 
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+              iconClass="w-4 h-4"
+              text={dict.sidebar.logoutSession}
+            />
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
@@ -50,7 +75,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
              </div>
              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
-          <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} />
+          <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} loggedInUser={loggedInUser} />
         </header>
 
         <div className="flex-1 relative">
