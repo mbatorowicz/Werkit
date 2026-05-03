@@ -560,8 +560,6 @@ export default function WorkerClient() {
 
             </div>
 
-            </div>
-
             {/* NOTATKI I ZDJĘCIA */}
             <div className="w-full grid grid-cols-2 gap-4 mt-4">
               <button onClick={() => { setNoteText(''); setEditingNoteId(null); setIsNotesModalOpen(true); }} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
