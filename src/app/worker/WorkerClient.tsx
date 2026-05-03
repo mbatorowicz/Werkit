@@ -9,7 +9,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 
-const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500"/></div> });
+const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500" /></div> });
 
 type Session = {
   id: number;
@@ -37,25 +37,25 @@ type Coord = { lat: number, lng: number, heading?: number | null };
 // Haversine formula for distance between coords in meters
 function getDistance(a: Coord, b: Coord) {
   const R = 6371e3; // metres
-  const φ1 = a.lat * Math.PI/180;
-  const φ2 = b.lat * Math.PI/180;
-  const Δφ = (b.lat-a.lat) * Math.PI/180;
-  const Δλ = (b.lng-a.lng) * Math.PI/180;
+  const φ1 = a.lat * Math.PI / 180;
+  const φ2 = b.lat * Math.PI / 180;
+  const Δφ = (b.lat - a.lat) * Math.PI / 180;
+  const Δλ = (b.lng - a.lng) * Math.PI / 180;
 
-  const x = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+  const x = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
   return R * c;
 }
 
 export default function WorkerClient() {
-  const [events, setEvents] = useState<{lat: number, lng: number, label: string}[]>([]);
+  const [events, setEvents] = useState<{ lat: number, lng: number, label: string }[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [elapsed, setElapsed] = useState("00:00:00");
-  
+
   const [notesList, setNotesList] = useState<any[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [settings, setSettings] = useState<any>(null);
@@ -65,13 +65,13 @@ export default function WorkerClient() {
   const [destination, setDestination] = useState<Coord | null>(null);
   const [distanceToDestKm, setDistanceToDestKm] = useState<number | null>(null);
   const [traveledKm, setTraveledKm] = useState(0);
-  
-  const [gpsStatus, setGpsStatus] = useState<"waiting"|"active"|"error">("waiting");
+
+  const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
   const router = useRouter();
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
-  
+
   const wakeLockRef = useRef<any>(null);
   const watchIdRef = useRef<any>(null);
 
@@ -85,53 +85,53 @@ export default function WorkerClient() {
       const sessData = await resSess.json();
       const ordersData = await resOrders.json();
       setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
-      
+
       if (fetchGpsPath) {
-         try {
-           const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
-           const pathData = await resPath.json();
-           if (pathData.logs) {
-              setPathTraveled(pathData.logs);
-              let dist = 0;
-              for (let i = 1; i < pathData.logs.length; i++) {
-                 dist += getDistance(pathData.logs[i-1], pathData.logs[i]);
-              }
-              setTraveledKm(dist / 1000);
-           }
-         } catch(e) {}
+        try {
+          const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
+          const pathData = await resPath.json();
+          if (pathData.logs) {
+            setPathTraveled(pathData.logs);
+            let dist = 0;
+            for (let i = 1; i < pathData.logs.length; i++) {
+              dist += getDistance(pathData.logs[i - 1], pathData.logs[i]);
+            }
+            setTraveledKm(dist / 1000);
+          }
+        } catch (e) { }
       }
 
       if (sessData.session) {
         setSession(sessData.session);
         setNotesList(sessData.notes || []);
         setSettings(sessData.settings || null);
-        
-        const newEvents: {lat: number, lng: number, label: string}[] = [];
+
+        const newEvents: { lat: number, lng: number, label: string }[] = [];
         if (sessData.events) {
-           sessData.events.forEach((ev: any) => {
-              if (ev.latitude && ev.longitude) newEvents.push({ lat: parseFloat(ev.latitude), lng: parseFloat(ev.longitude), label: 'Zdjęcie' });
-           });
+          sessData.events.forEach((ev: any) => {
+            if (ev.latitude && ev.longitude) newEvents.push({ lat: parseFloat(ev.latitude), lng: parseFloat(ev.longitude), label: 'Zdjęcie' });
+          });
         }
         if (sessData.session.taskDescription) {
-           const regex = /\(GPS: ([\d.-]+), ([\d.-]+)\)/g;
-           let match;
-           while ((match = regex.exec(sessData.session.taskDescription)) !== null) {
-              newEvents.push({ lat: parseFloat(match[1]), lng: parseFloat(match[2]), label: 'Notatka' });
-           }
+          const regex = /\(GPS: ([\d.-]+), ([\d.-]+)\)/g;
+          let match;
+          while ((match = regex.exec(sessData.session.taskDescription)) !== null) {
+            newEvents.push({ lat: parseFloat(match[1]), lng: parseFloat(match[2]), label: 'Notatka' });
+          }
         }
         setEvents(newEvents);
 
         // Use direct coordinates if available, otherwise fallback to geocode
         if (sessData.session.customerLat && sessData.session.customerLng) {
-           setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
+          setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
         } else if (sessData.session.customerAddress && !destination) {
-           try {
-             const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
-             const geoData = await geo.json();
-             if (geoData && geoData.length > 0) {
-               setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
-             }
-           } catch(e){ console.error("Geocode fail") }
+          try {
+            const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
+            const geoData = await geo.json();
+            if (geoData && geoData.length > 0) {
+              setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+            }
+          } catch (e) { console.error("Geocode fail") }
         }
       } else {
         setSession(null);
@@ -182,46 +182,46 @@ export default function WorkerClient() {
         if ('wakeLock' in navigator) {
           wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
         }
-      } catch (err) {}
+      } catch (err) { }
     };
     requestWakeLock();
 
     const handleNewLoc = (newLoc: Coord) => {
       setLocation(newLoc);
-      
+
       setPathTraveled(prev => {
-         const updated = [...prev, newLoc];
-         let dist = 0;
-         for (let i = 1; i < updated.length; i++) {
-            dist += getDistance(updated[i-1], updated[i]);
-         }
-         setTraveledKm(dist / 1000);
-         return updated;
+        const updated = [...prev, newLoc];
+        let dist = 0;
+        for (let i = 1; i < updated.length; i++) {
+          dist += getDistance(updated[i - 1], updated[i]);
+        }
+        setTraveledKm(dist / 1000);
+        return updated;
       });
 
       const payload = { ...newLoc, timestamp: new Date().toISOString() };
       let queue: any[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch(e){}
+      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
       queue.push(payload);
-      
+
       if (navigator.onLine) {
         fetch("/api/worker/gps", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(queue)
         })
-        .then(res => {
-           if (res.ok) {
-             localStorage.setItem('werkit_gps_queue', '[]');
-             setGpsStatus("active");
-           } else {
-             localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-           }
-        })
-        .catch(() => {
-           localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-           setGpsStatus("waiting");
-        });
+          .then(res => {
+            if (res.ok) {
+              localStorage.setItem('werkit_gps_queue', '[]');
+              setGpsStatus("active");
+            } else {
+              localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+            }
+          })
+          .catch(() => {
+            localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+            setGpsStatus("waiting");
+          });
       } else {
         localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
         setGpsStatus("waiting");
@@ -244,11 +244,11 @@ export default function WorkerClient() {
             return;
           }
           if (location) {
-             handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
+            handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
           }
         }
       ).then(watcherId => {
-         watchIdRef.current = watcherId;
+        watchIdRef.current = watcherId;
       });
     } else if ("geolocation" in navigator) {
       setGpsStatus("waiting");
@@ -307,7 +307,7 @@ export default function WorkerClient() {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
-      if(res.ok) {
+      if (res.ok) {
         await fetchSessionAndPath();
       } else {
         alert("Błąd akceptacji zlecenia.");
@@ -338,7 +338,7 @@ export default function WorkerClient() {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
         const base64 = canvas.toDataURL('image/jpeg', 0.7);
-        
+
         const res = await fetch("/api/worker/session/photos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -363,7 +363,7 @@ export default function WorkerClient() {
       const isEditing = editingNoteId !== null;
       const url = "/api/worker/session/notes";
       const method = isEditing ? "PUT" : "POST";
-      const body = isEditing 
+      const body = isEditing
         ? { noteId: editingNoteId, note: noteText }
         : { note: noteText, location };
 
@@ -372,7 +372,7 @@ export default function WorkerClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
-      if(res.ok) {
+      if (res.ok) {
         alert(isEditing ? "Notatka zaktualizowana." : "Notatka została dopisana do raportu.");
         setIsNotesModalOpen(false);
         setNoteText("");
@@ -381,7 +381,7 @@ export default function WorkerClient() {
       } else {
         alert("Błąd zapisywania notatki.");
       }
-    } catch(e) {
+    } catch (e) {
       alert("Błąd sieci.");
     }
     setIsSubmittingNote(false);
@@ -398,8 +398,8 @@ export default function WorkerClient() {
       } else {
         alert("Błąd podczas cofania zlecenia.");
       }
-    } catch(e) {
-       alert("Błąd sieci.");
+    } catch (e) {
+      alert("Błąd sieci.");
     }
     setIsLoading(false);
   };
@@ -425,7 +425,7 @@ export default function WorkerClient() {
       } else {
         alert("Błąd zapisu dotarcia.");
       }
-    } catch(e) {
+    } catch (e) {
       alert("Błąd sieci.");
     }
     setIsLoading(false);
@@ -440,195 +440,219 @@ export default function WorkerClient() {
     );
   }
 
-  const isCancelWindowOpen = session && settings?.cancelWindowMinutes 
-    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes 
+  const isCancelWindowOpen = session && settings?.cancelWindowMinutes
+    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes
     : true;
 
-  const isTimeOverrun = session && session.expectedDurationHours && settings?.timeOverrunReminder 
+  const isTimeOverrun = session && session.expectedDurationHours && settings?.timeOverrunReminder
     ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(session.expectedDurationHours)
     : false;
+
+  const upcomingOrder = workOrders.find(order => {
+    if (!order.dueDate) return false;
+    const dueTime = new Date(order.dueDate).getTime();
+    const now = new Date().getTime();
+    return dueTime - now < 2 * 60 * 60 * 1000;
+  });
 
   return (
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
       {!session ? (
-         <div className="w-full flex flex-col items-center justify-center mt-10 space-y-6">
-            <div className="flex flex-col items-center">
-              <button onClick={() => fetchSessionAndPath(true, true)} className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner cursor-pointer" title="Odśwież listę">
-                 <History className="w-10 h-10 text-zinc-700 dark:text-zinc-300" />
-              </button>
-              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
-              <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">
-                Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.
-              </p>
-            </div>
+        <div className="w-full flex flex-col items-center justify-center mt-10 space-y-6">
+          <div className="flex flex-col items-center">
+            <button onClick={() => fetchSessionAndPath(true, true)} className="w-24 h-24 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95 border border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-6 shadow-inner cursor-pointer" title="Odśwież listę">
+              <History className="w-10 h-10 text-zinc-700 dark:text-zinc-300" />
+            </button>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">Gotowy do startu?</h2>
+            <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">
+              Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.
+            </p>
+          </div>
 
-            {workOrders.length > 0 && (
-              <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Oczekujące zlecenia</h3>
-                {workOrders.map(order => (
-                  <div key={order.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3">
-                     <div className="flex flex-col">
-                       <div className="flex items-start justify-between gap-2 mb-1">
-                         <span className="text-sm font-bold text-amber-900 dark:text-amber-500">
-                           {order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
-                         </span>
-                         {order.priority === 'HIGH' && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
-                              <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
-                              <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
-                            </div>
-                         )}
-                         {(!order.priority || order.priority === 'NORMAL') && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 shrink-0">
-                              <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
-                              <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
-                            </div>
-                         )}
-                         {order.priority === 'LOW' && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shrink-0">
-                              <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
-                              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
-                            </div>
-                         )}
-                       </div>
-                       <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                         Maszyna: <span className="font-semibold">{order.resourceName}</span>
-                       </span>
-                       {order.sessionType === 'TRANSPORT' && (
-                         <span className="text-xs text-amber-700 dark:text-amber-600/80">
-                           Kruszywo: <span className="font-semibold">{order.materialName}</span> → {order.customerName}
-                         </span>
-                       )}
-                       {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
-                         <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                           Zadanie: {order.taskDescription}
-                         </span>
-                       )}
-                       {order.dueDate && (
-                         <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
-                           <Clock className="w-3 h-3" />
-                           <span className="text-xs">
-                             Termin: {new Date(order.dueDate).toLocaleDateString('pl-PL')} {new Date(order.dueDate).toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}
-                           </span>
-                         </div>
-                       )}
-                     </div>
-                     <button onClick={() => handleAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
-                        <Play className="w-4 h-4 fill-current" />
-                        <span className="text-sm font-bold uppercase tracking-wider">Rozpocznij to zadanie</span>
-                     </button>
+          {workOrders.length > 0 && (
+            <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Oczekujące zlecenia</h3>
+              
+              {upcomingOrder && (
+                <div className="w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 rounded-xl p-3 mb-2 flex items-start gap-3 animate-pulse">
+                  <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0 mt-0.5">
+                    <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                   </div>
-                ))}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-rose-800 dark:text-rose-300">Zbliżający się termin!</span>
+                    <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
+                      Zlecenie #{upcomingOrder.id} wymaga szybkiej realizacji. Termin: {new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {workOrders.map(order => (
+                <div key={order.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex flex-col">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex items-center gap-2">
+                        <span>#{order.id}</span>
+                        <span className="text-amber-700/50 dark:text-amber-500/50">|</span>
+                        <span>{order.sessionType === 'TRANSPORT' ? 'Transport' : order.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}</span>
+                      </span>
+                      {order.priority === 'HIGH' && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
+                          <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
+                        </div>
+                      )}
+                      {(!order.priority || order.priority === 'NORMAL') && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 shrink-0">
+                          <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
+                        </div>
+                      )}
+                      {order.priority === 'LOW' && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shrink-0">
+                          <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
+                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
+                      Maszyna: <span className="font-semibold">{order.resourceName}</span>
+                    </span>
+                    {order.sessionType === 'TRANSPORT' && (
+                      <span className="text-xs text-amber-700 dark:text-amber-600/80">
+                        Kruszywo: <span className="font-semibold">{order.materialName}</span> → {order.customerName}
+                      </span>
+                    )}
+                    {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
+                      <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
+                        Zadanie: {order.taskDescription}
+                      </span>
+                    )}
+                    {order.dueDate && (
+                      <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-xs">
+                          Termin: {new Date(order.dueDate).toLocaleDateString('pl-PL')} {new Date(order.dueDate).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => handleAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
+                    <Play className="w-4 h-4 fill-current" />
+                    <span className="text-sm font-bold uppercase tracking-wider">Rozpocznij to zadanie</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="w-full max-w-sm flex flex-col items-center mt-4">
+            <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">LUB</div>
+            <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
+              <Play className="w-6 h-6 fill-current" />
+              <span className="text-lg font-bold uppercase tracking-wider">Zdefiniuj własne</span>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full flex flex-col items-center">
+
+          {/* WIDGET STATUSU */}
+          <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+            <div>
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Upływ czasu</div>
+              <div className="font-mono text-3xl font-bold text-zinc-900 dark:text-white tracking-tighter">
+                {elapsed}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5">Sygnał GPS</div>
+              <div className="flex items-center justify-end gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
+                <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
+                  {gpsStatus === 'active' ? 'ŁĄCZENIE OK' : gpsStatus === 'waiting' ? 'SZUKAM...' : 'BŁĄD'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {isTimeOverrun && (
+            <div className="w-full mt-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3 flex gap-3 items-center">
+              <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0">
+                <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="text-sm text-rose-800 dark:text-rose-300 font-medium">
+                Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?
+              </div>
+            </div>
+          )}
+
+          {/* WIDGET TRASY */}
+          <div className="w-full flex gap-4 mt-4">
+            <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Przebyta Trasa</div>
+              <div className="font-mono text-xl font-bold text-emerald-400">{traveledKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
+            </div>
+            {destination && distanceToDestKm !== null && (
+              <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+                <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Do Celu</div>
+                <div className="font-mono text-xl font-bold text-amber-500">{distanceToDestKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
               </div>
             )}
-            
-            <div className="w-full max-w-sm flex flex-col items-center mt-4">
-              <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">LUB</div>
-              <Link href="/worker/wizard" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]">
-                 <Play className="w-6 h-6 fill-current" />
-                 <span className="text-lg font-bold uppercase tracking-wider">Zdefiniuj własne</span>
-              </Link>
-            </div>
-         </div>
-      ) : (
-         <div className="w-full flex flex-col items-center">
-            
-            {/* WIDGET STATUSU */}
-            <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
-               <div>
-                  <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Upływ czasu</div>
-                  <div className="font-mono text-3xl font-bold text-zinc-900 dark:text-white tracking-tighter">
-                     {elapsed}
-                  </div>
-               </div>
-               <div className="text-right">
-                  <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5">Sygnał GPS</div>
-                  <div className="flex items-center justify-end gap-1.5">
-                     <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
-                     <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
-                        {gpsStatus === 'active' ? 'ŁĄCZENIE OK' : gpsStatus === 'waiting' ? 'SZUKAM...' : 'BŁĄD'}
-                     </span>
-                  </div>
-               </div>
-            </div>
+          </div>
 
-            {isTimeOverrun && (
-               <div className="w-full mt-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3 flex gap-3 items-center">
-                 <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0">
-                   <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                 </div>
-                 <div className="text-sm text-rose-800 dark:text-rose-300 font-medium">
-                   Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?
-                 </div>
-               </div>
-             )}
+          {/* MAPA */}
+          <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
+            {location ? (
+              <LiveMap
+                currentLocation={location}
+                pathTraveled={pathTraveled}
+                destination={destination}
+                onRouteDistance={(km) => setDistanceToDestKm(km)}
+                events={events}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-zinc-700 animate-bounce" />
+              </div>
+            )}
 
-            {/* WIDGET TRASY */}
-            <div className="w-full flex gap-4 mt-4">
-               <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
-                  <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Przebyta Trasa</div>
-                  <div className="font-mono text-xl font-bold text-emerald-400">{traveledKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
-               </div>
-               {destination && distanceToDestKm !== null && (
-                 <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
-                    <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">Do Celu</div>
-                    <div className="font-mono text-xl font-bold text-amber-500">{distanceToDestKm.toFixed(1)} <span className="text-sm text-zinc-500">km</span></div>
-                 </div>
-               )}
-            </div>
 
-            {/* MAPA */}
-            <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
-               {location ? (
-                 <LiveMap 
-                   currentLocation={location} 
-                   pathTraveled={pathTraveled} 
-                   destination={destination} 
-                   onRouteDistance={(km) => setDistanceToDestKm(km)}
-                   events={events}
-                 />
-               ) : (
-                 <div className="w-full h-full flex items-center justify-center">
-                    <MapPin className="w-8 h-8 text-zinc-700 animate-bounce" />
-                 </div>
-               )}
-               
+          </div>
 
-            </div>
+          {/* NOTATKI I ZDJĘCIA */}
+          <div className="w-full grid grid-cols-2 gap-4 mt-4">
+            <button onClick={() => { setNoteText(''); setEditingNoteId(null); setIsNotesModalOpen(true); }} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
+              <FileText className="w-6 h-6" />
+              <span className="text-xs font-bold uppercase tracking-wider">Dodaj Notatkę</span>
+            </button>
+            <label className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer">
+              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
+              <Camera className="w-6 h-6" />
+              <span className="text-xs font-bold uppercase tracking-wider">Aparat</span>
+            </label>
+          </div>
 
-            {/* NOTATKI I ZDJĘCIA */}
-            <div className="w-full grid grid-cols-2 gap-4 mt-4">
-              <button onClick={() => { setNoteText(''); setEditingNoteId(null); setIsNotesModalOpen(true); }} className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700">
-                 <FileText className="w-6 h-6" />
-                 <span className="text-xs font-bold uppercase tracking-wider">Dodaj Notatkę</span>
+          <div className="w-full mt-4">
+            <button onClick={handleCheckpoint} className="w-full bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95">
+              <MapPin className="w-5 h-5" />
+              <span className="font-bold uppercase tracking-wider text-sm">Zamelduj: Dojechał na miejsce</span>
+            </button>
+          </div>
+
+          <div className={`mt-4 w-full grid ${isCancelWindowOpen ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
+            {isCancelWindowOpen && (
+              <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
+                <X className="w-5 h-5" />
+                <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
               </button>
-              <label className="bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-2 transition-all border border-zinc-200 dark:border-zinc-700 cursor-pointer">
-                 <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoUpload} />
-                 <Camera className="w-6 h-6" />
-                 <span className="text-xs font-bold uppercase tracking-wider">Aparat</span>
-              </label>
-            </div>
-            
-            <div className="w-full mt-4">
-               <button onClick={handleCheckpoint} className="w-full bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95">
-                  <MapPin className="w-5 h-5" />
-                  <span className="font-bold uppercase tracking-wider text-sm">Zamelduj: Dojechał na miejsce</span>
-               </button>
-            </div>
-
-            <div className={`mt-4 w-full grid ${isCancelWindowOpen ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
-               {isCancelWindowOpen && (
-                 <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
-                    <X className="w-5 h-5" />
-                    <span className="font-bold uppercase tracking-wider text-xs">Cofnij Start</span>
-                 </button>
-               )}
-               <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
-                  <Square className="w-5 h-5 fill-current" />
-                  <span className="font-bold uppercase tracking-wider text-sm">Zakończ</span>
-               </button>
-            </div>
-         </div>
+            )}
+            <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
+              <Square className="w-5 h-5 fill-current" />
+              <span className="font-bold uppercase tracking-wider text-sm">Zakończ</span>
+            </button>
+          </div>
+        </div>
       )}
 
       {isNotesModalOpen && (
@@ -637,14 +661,14 @@ export default function WorkerClient() {
           <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]">
               <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Dodaj notatkę do raportu</h2>
-              <button onClick={() => setIsNotesModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"><X className="w-5 h-5"/></button>
+              <button onClick={() => setIsNotesModalOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-4 flex flex-col gap-4">
               <div>
                 <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Treść notatki</label>
-                <textarea 
-                  value={noteText} 
-                  onChange={(e) => setNoteText(e.target.value)} 
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
                   className="w-full bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg p-3 text-sm text-zinc-900 dark:text-zinc-100 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none h-24 resize-none"
                   placeholder="Wpisz uwagi..."
                 />
@@ -662,7 +686,7 @@ export default function WorkerClient() {
                         <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.note}</span>
                         <span className="text-[9px] text-zinc-400">{new Date(n.createdAt).toLocaleTimeString('pl-PL')}</span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => { setNoteText(n.note); setEditingNoteId(n.id); }}
                         className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2 py-1"
                       >
@@ -676,7 +700,7 @@ export default function WorkerClient() {
           </div>
         </div>
       )}
-      
+
       <div className="mt-4 text-center text-[10px] text-zinc-400 dark:text-zinc-500 font-mono uppercase tracking-widest opacity-60">
         Werkit v{process.env.APP_VERSION || '0.0.0'}
       </div>
