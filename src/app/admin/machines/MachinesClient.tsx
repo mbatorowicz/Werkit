@@ -4,12 +4,19 @@ import { useState, useEffect } from "react";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
-import { DumpTruckRaised, DumpTruckLowered, Excavator1, Excavator2, Loader1, Loader2, WorkshopWrench, WorkshopBuilding } from "@/components/EquipmentIcons";
-
 type Category = { id: number, name: string, icon?: string };
 type Machine = { id: number, name: string, categoryId: number, categoryName?: string, categoryIcon?: string };
 
-const iconOptions: Record<string, any> = { DumpTruckRaised, DumpTruckLowered, Excavator1, Excavator2, Loader1, Loader2, WorkshopWrench, WorkshopBuilding };
+const colorOptions: Record<string, { bg: string, lightBg: string, border: string }> = {
+  blue: { bg: 'bg-blue-500', lightBg: 'bg-blue-500/20', border: 'border-blue-500/50' },
+  emerald: { bg: 'bg-emerald-500', lightBg: 'bg-emerald-500/20', border: 'border-emerald-500/50' },
+  amber: { bg: 'bg-amber-500', lightBg: 'bg-amber-500/20', border: 'border-amber-500/50' },
+  rose: { bg: 'bg-rose-500', lightBg: 'bg-rose-500/20', border: 'border-rose-500/50' },
+  purple: { bg: 'bg-purple-500', lightBg: 'bg-purple-500/20', border: 'border-purple-500/50' },
+  cyan: { bg: 'bg-cyan-500', lightBg: 'bg-cyan-500/20', border: 'border-cyan-500/50' },
+  indigo: { bg: 'bg-indigo-500', lightBg: 'bg-indigo-500/20', border: 'border-indigo-500/50' },
+  orange: { bg: 'bg-orange-500', lightBg: 'bg-orange-500/20', border: 'border-orange-500/50' },
+};
 
 export default function MachinesClient() {
   const [machines, setMachines] = useState<Machine[]>([]);
@@ -24,7 +31,7 @@ export default function MachinesClient() {
   // States for Category Modal
   const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
   const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState({ name: '', icon: 'DumpTruckLowered' });
+  const [cForm, setCForm] = useState({ name: '', icon: 'blue' });
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -94,22 +101,22 @@ export default function MachinesClient() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'DumpTruckLowered'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
          {categories.map(cat => {
-           const CatIcon = iconOptions[cat.icon || 'DumpTruckLowered'] || DumpTruckLowered;
+           const colors = colorOptions[cat.icon || 'blue'] || colorOptions.blue;
            return (
              <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
                 <div className="flex items-center gap-3 truncate">
-                  <CatIcon className="w-6 h-6 text-zinc-500" />
+                  <div className={`w-5 h-5 rounded-md ${colors.bg} shadow-sm shrink-0`} />
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'DumpTruckLowered'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
              </div>
@@ -145,13 +152,13 @@ export default function MachinesClient() {
                {isLoading ? (
                  <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : machines.map(machine => {
-                 const MachineIcon = iconOptions[machine.categoryIcon || 'DumpTruckLowered'] || DumpTruckLowered;
+                 const colors = colorOptions[machine.categoryIcon || 'blue'] || colorOptions.blue;
                  return (
                  <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-lg bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-zinc-400">
-                           <MachineIcon className="w-7 h-7" />
+                         <div className={`w-10 h-10 rounded-lg ${colors.lightBg} border ${colors.border} flex items-center justify-center shrink-0`}>
+                           <div className={`w-4 h-4 rounded-full ${colors.bg} shadow-sm`} />
                          </div>
                          <div>
                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
@@ -200,13 +207,13 @@ export default function MachinesClient() {
               <form onSubmit={handleCSave} className="p-6 space-y-4">
                  <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  <div className="space-y-2">
-                   <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Wybierz Ikonę</label>
+                   <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Wybierz Kolor Znacznika</label>
                    <div className="grid grid-cols-4 gap-2">
-                     {Object.keys(iconOptions).map(iconName => {
-                       const IconComp = iconOptions[iconName];
+                     {Object.keys(colorOptions).map(colorName => {
+                       const colors = colorOptions[colorName];
                        return (
-                         <button type="button" key={iconName} onClick={() => setCForm({...cForm, icon: iconName})} className={`flex items-center justify-center p-3 rounded-lg border transition ${cForm.icon === iconName ? 'bg-amber-50 border-amber-500 text-amber-600 dark:bg-amber-500/20 dark:border-amber-500' : 'bg-zinc-50 border-zinc-200 text-zinc-500 dark:bg-zinc-900 dark:border-zinc-700 hover:border-amber-300'}`}>
-                           <IconComp className="w-8 h-8" />
+                         <button type="button" key={colorName} onClick={() => setCForm({...cForm, icon: colorName})} className={`flex items-center justify-center p-3 rounded-lg border transition ${cForm.icon === colorName ? 'bg-zinc-100 border-zinc-400 dark:bg-zinc-800 dark:border-zinc-500 ring-2 ring-zinc-400 dark:ring-zinc-500' : 'bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 hover:border-zinc-300'}`}>
+                           <div className={`w-6 h-6 rounded-md ${colors.bg} shadow-sm`} />
                          </button>
                        )
                      })}
