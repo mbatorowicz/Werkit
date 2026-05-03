@@ -39,11 +39,11 @@ export async function POST(request: Request) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { latitude, longitude } = body;
-
-    if (!latitude || !longitude) {
-      return NextResponse.json({ error: 'Missing coordinates' }, { status: 400 });
-    }
+    
+    // Support both single point and array of points (for offline sync)
+    const points = Array.isArray(body) ? body : [body];
+    
+    if (points.length === 0) return NextResponse.json({ success: true });
 
     const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
 
@@ -51,13 +51,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No active session to log GPS' }, { status: 400 });
     }
 
-    await db.insert(gpsLogs).values({
-      workSessionId: activeSessions[0].id,
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-    });
+    const valuesToInsert = points
+      .filter((p: any) => p.lat && p.lng)
+      .map((p: any) => ({
+        workSessionId: activeSessions[0].id,
+        latitude: p.lat.toString(),
+        longitude: p.lng.toString(),
+        timestamp: p.timestamp ? new Date(p.timestamp) : new Date(),
+      }));
 
-    return NextResponse.json({ success: true });
+    if (valuesToInsert.length > 0) {
+      await db.insert(gpsLogs).values(valuesToInsert);
+    }
+
+    return NextResponse.json({ success: true, count: valuesToInsert.length });
   } catch (err: any) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to log GPS' }, { status: 500 });

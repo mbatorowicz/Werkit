@@ -186,12 +186,35 @@ export default function WorkerClient() {
              return updated;
           });
 
-          // Send to server quietly
-          fetch("/api/worker/gps", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newLoc)
-          }).catch(() => {});
+          // Offline queue support
+          const payload = { ...newLoc, timestamp: new Date().toISOString() };
+          
+          let queue: any[] = [];
+          try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch(e){}
+          queue.push(payload);
+          
+          if (navigator.onLine) {
+            fetch("/api/worker/gps", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(queue)
+            })
+            .then(res => {
+               if (res.ok) {
+                 localStorage.setItem('werkit_gps_queue', '[]');
+                 setGpsStatus("active");
+               } else {
+                 localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+               }
+            })
+            .catch(() => {
+               localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+               setGpsStatus("waiting"); // indicate offline caching
+            });
+          } else {
+            localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+            setGpsStatus("waiting");
+          }
         },
         (err) => {
           setGpsStatus("error");
