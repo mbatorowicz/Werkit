@@ -555,8 +555,11 @@ export default function WorkerClient() {
               </button>
             </div>
           </div>
-        </div>
       )}
+      
+      <div className="mt-4 text-center text-[10px] text-zinc-400 dark:text-zinc-500 font-mono uppercase tracking-widest opacity-60">
+        Werkit v{process.env.APP_VERSION || '0.0.0'}
+      </div>
     </div>
   );
 }

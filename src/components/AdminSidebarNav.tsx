@@ -52,6 +52,12 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
           </Link>
         );
       })}
+      
+      <div className="pt-8 pb-4 px-3 text-center">
+        <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-widest opacity-60">
+          Werkit v{process.env.APP_VERSION || '0.0.0'}
+        </span>
+      </div>
     </nav>
   );
 }
