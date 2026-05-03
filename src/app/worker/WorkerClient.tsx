@@ -637,7 +637,10 @@ export default function WorkerClient() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5">{dict.gpsSignal}</div>
+              <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5 flex items-center justify-end gap-1">
+                {dict.gpsSignal}
+                <div title="GPS jest aktywny tylko w trakcie trwania zlecenia i wyłączy się po naciśnięciu Zakończ." className="text-zinc-400 bg-zinc-200 dark:bg-zinc-700 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold cursor-help cursor-pointer">?</div>
+              </div>
               <div className="flex items-center justify-end gap-1.5">
                 <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
                 <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
@@ -713,14 +716,21 @@ export default function WorkerClient() {
 
           <div className={`mt-4 w-full grid ${isCancelWindowOpen ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
             {isCancelWindowOpen && (
-              <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
-                <X className="w-5 h-5" />
-                <span className="font-bold uppercase tracking-wider text-xs">{dict.cancelStart}</span>
+              <button onClick={handleCancelSession} className="w-full bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-4 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <X className="w-5 h-5" />
+                  <span className="font-bold uppercase tracking-wider text-xs">{dict.cancelStart}</span>
+                </div>
               </button>
             )}
-            <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
-              <Square className="w-5 h-5 fill-current" />
-              <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
+            <button onClick={handleEndSession} className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]">
+              <div className="flex items-center gap-2">
+                <Square className="w-5 h-5 fill-current" />
+                <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
+              </div>
+              {settings?.requirePhotoToFinish && (
+                 <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">Wymaga min. 1 zdjęcia</span>
+              )}
             </button>
           </div>
         </div>
