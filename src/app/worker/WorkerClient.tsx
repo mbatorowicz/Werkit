@@ -474,7 +474,7 @@ export default function WorkerClient() {
           {workOrders.length > 0 && (
             <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
               <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">Oczekujące zlecenia</h3>
-              
+
               {upcomingOrder && (
                 <div className="w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 rounded-xl p-3 mb-2 flex items-start gap-3 animate-pulse">
                   <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0 mt-0.5">
