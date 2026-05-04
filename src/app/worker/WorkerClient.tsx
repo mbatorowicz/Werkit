@@ -186,7 +186,9 @@ export default function WorkerClient() {
     if (!session) {
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
-          BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+          if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
+            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+          }
         } else {
           navigator.geolocation.clearWatch(watchIdRef.current);
         }
@@ -217,9 +219,10 @@ export default function WorkerClient() {
 
     if (Capacitor.isNativePlatform()) {
       setGpsStatus("waiting");
-      BackgroundGeolocation.addWatcher(
-        {
-          backgroundMessage: "Aplikacja śledzi trasę pracownika.",
+      if (BackgroundGeolocation && typeof BackgroundGeolocation.addWatcher === 'function') {
+        BackgroundGeolocation.addWatcher(
+          {
+            backgroundMessage: "Aplikacja śledzi trasę pracownika.",
           backgroundTitle: "Werkit - Rejestrowanie trasy",
           requestPermissions: true,
           stale: false,
@@ -237,6 +240,7 @@ export default function WorkerClient() {
       ).then(watcherId => {
         watchIdRef.current = watcherId;
       });
+      }
     } else if ("geolocation" in navigator) {
       setGpsStatus("waiting");
       watchIdRef.current = navigator.geolocation.watchPosition(
@@ -279,7 +283,9 @@ export default function WorkerClient() {
     return () => {
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
-          BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+          if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
+            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+          }
         } else {
           navigator.geolocation.clearWatch(watchIdRef.current);
         }
@@ -482,20 +488,28 @@ export default function WorkerClient() {
       const triggerNotification = async (id: number, title: string, body: string) => {
         try {
           if (!notifiedArr.includes(id)) {
-            const perm = await LocalNotifications.requestPermissions();
+            let perm = { display: 'denied' };
+            try {
+              if (LocalNotifications && typeof LocalNotifications.requestPermissions === 'function') {
+                perm = await LocalNotifications.requestPermissions();
+              }
+            } catch (e) { console.error(e); }
+
             if (perm.display === 'granted') {
-              await LocalNotifications.schedule({
-                notifications: [
-                  {
-                    title,
-                    body,
-                    id: id,
-                    schedule: { at: new Date(Date.now() + 1000) },
-                  }
-                ]
-              });
-              notifiedArr.push(id);
-              localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+              try {
+                await LocalNotifications.schedule({
+                  notifications: [
+                    {
+                      title,
+                      body,
+                      id: id,
+                      schedule: { at: new Date(Date.now() + 1000) },
+                    }
+                  ]
+                });
+                notifiedArr.push(id);
+                localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+              } catch(e) { console.error(e); }
             }
           }
         } catch (e) {
@@ -733,7 +747,7 @@ export default function WorkerClient() {
                 <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
               </div>
               {settings?.requirePhotoToFinish && (
-                 <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">Wymaga min. 1 zdjęcia</span>
+                <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">Wymaga min. 1 zdjęcia</span>
               )}
             </button>
           </div>
