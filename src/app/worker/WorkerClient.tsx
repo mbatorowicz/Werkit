@@ -115,7 +115,6 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders || []);
   const [isLoading, setIsLoading] = useState(!initialData);
 
-  const [notesList, setNotesList] = useState<Note[]>(initialData?.notes || []);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(initialData?.settings || null);
   const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user || null);
@@ -171,7 +170,6 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
 
       if (sessData.session) {
         setSession(sessData.session);
-        setNotesList(sessData.notes || []);
 
         const newTimeline: TimelineItem[] = [];
         if (sessData.events) {
@@ -290,6 +288,7 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
         });
         if (res.ok) {
           alert(dict.photoSaved);
+          fetchSessionAndPath(false, false);
         } else {
           alert(dict.photoError);
         }
@@ -680,17 +679,17 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
                 {isSubmittingNote ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingNoteId ? dict.update : dict.saveNote)}
               </button>
 
-              {notesList.length > 0 && (
+              {timelineEvents.some(e => e.type === 'note') && (
                 <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-800 max-h-48 overflow-y-auto">
                   <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">{dict.yourNotes}</label>
-                  {notesList.map((n: Note) => (
+                  {timelineEvents.filter(e => e.type === 'note').map((n: TimelineItem) => (
                     <div key={n.id} className="flex justify-between items-start gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50">
                       <div className="flex flex-col">
-                        <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.note}</span>
+                        <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.content}</span>
                         <span className="text-[9px] text-zinc-400">{new Date(n.createdAt).toLocaleTimeString('pl-PL')}</span>
                       </div>
                       <button
-                        onClick={() => { setNoteText(n.note); setEditingNoteId(n.id); }}
+                        onClick={() => { setNoteText(n.content); setEditingNoteId(parseInt(n.id.replace('note_', ''))); setIsNotesModalOpen(true); }}
                         className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 hover:underline px-2 py-1"
                       >
                         {dict.edit}
