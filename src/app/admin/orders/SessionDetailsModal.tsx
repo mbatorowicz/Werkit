@@ -15,6 +15,7 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
   const [photos, setPhotos] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const dict = getDictionary().admin.orders;
 
   useEffect(() => {
@@ -34,13 +35,14 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
 
   const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse();
   const events = [
-    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? dict.start : (p.photoType === 'END' ? dict.end : dict.photo), id: `photo_${p.id}`, photoUrl: p.photoUrl })),
-    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: dict.note, id: `note_${n.id}`, note: n.note }))
+    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? dict.start : (p.photoType === 'END' ? dict.end : dict.photo), id: `photo_${p.id}`, photoUrl: p.photoUrl, type: 'photo' as const })),
+    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: dict.note, id: `note_${n.id}`, note: n.note, type: 'note' as const }))
   ];
   const hasMapData = logs.length > 0 || events.length > 0;
   const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });
 
   const timelineItems = [...photos.map(p => ({ ...p, type: 'photo', time: new Date(p.createdAt).getTime() })), ...notes.map(n => ({ ...n, type: 'note', time: new Date(n.createdAt).getTime() }))].sort((a, b) => b.time - a.time);
+  const allPhotos = timelineItems.filter(entry => entry.type === 'photo').map(p => p.photoUrl);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -119,7 +121,12 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
                                       <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note}</p>
                                     ) : (
                                       <>
-                                        <img src={entry.photoUrl} alt={dict.photoRoute} className="w-full h-auto rounded-md mb-2 object-cover" />
+                                        <img 
+                                          src={entry.photoUrl} 
+                                          alt={dict.photoRoute} 
+                                          className="w-full h-auto rounded-md mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                                          onClick={() => setLightboxIndex(allPhotos.indexOf(entry.photoUrl))}
+                                        />
                                         <p className="text-sm text-zinc-900 dark:text-zinc-200 font-medium">
                                           {entry.photoType === 'START' ? dict.photoStart : entry.photoType === 'END' ? dict.photoEnd : dict.photoRoute}
                                         </p>
@@ -139,6 +146,54 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
             )}
           </div>
        </div>
+       
+      {/* Lightbox */}
+      {lightboxIndex !== null && (
+        <div className="fixed inset-0 z-[200] bg-black/95 flex flex-col backdrop-blur-md">
+           <div className="flex justify-between items-center p-4 text-white/50 z-10">
+              <div className="font-medium text-sm tracking-widest">{lightboxIndex + 1} / {allPhotos.length}</div>
+              <button onClick={() => setLightboxIndex(null)} className="hover:text-white p-2 rounded-full bg-white/5 hover:bg-white/10 transition">
+                 <X className="w-6 h-6" />
+              </button>
+           </div>
+           
+           <div className="flex-1 flex items-center justify-center relative overflow-hidden px-12">
+              <img 
+                 src={allPhotos[lightboxIndex]} 
+                 alt="Powiększone zdjęcie" 
+                 className="max-w-full max-h-full object-contain animate-in fade-in zoom-in-95 duration-300 shadow-2xl" 
+              />
+              
+              {allPhotos.length > 1 && (
+                <>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(prev => prev! > 0 ? prev! - 1 : allPhotos.length - 1); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition backdrop-blur-md"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(prev => prev! < allPhotos.length - 1 ? prev! + 1 : 0); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition backdrop-blur-md"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </button>
+                </>
+              )}
+           </div>
+           
+           <div className="h-24 flex items-center justify-center gap-2 p-4 overflow-x-auto bg-black/50 z-10 custom-scrollbar">
+              {allPhotos.map((url, idx) => (
+                 <img 
+                   key={idx}
+                   src={url}
+                   className={`h-16 w-16 object-cover rounded cursor-pointer transition-all ${idx === lightboxIndex ? 'border-2 border-amber-500 opacity-100 scale-110' : 'opacity-40 hover:opacity-100'}`}
+                   onClick={() => setLightboxIndex(idx)}
+                 />
+              ))}
+           </div>
+        </div>
+      )}
     </div>
   );
 }

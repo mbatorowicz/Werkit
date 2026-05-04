@@ -12,7 +12,7 @@ type GanttProps = {
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
-  
+
   // Default selected date to today
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
     const d = new Date();
@@ -65,18 +65,18 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm overflow-hidden flex flex-col mb-6">
-      
+
       {/* Gantt Header */}
       <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center bg-white dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-          <button 
-            onClick={() => setGroupBy('WORKER')} 
+          <button
+            onClick={() => setGroupBy('WORKER')}
             className={`px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition ${groupBy === 'WORKER' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}
           >
             <User className="w-4 h-4" /> Pracownicy
           </button>
-          <button 
-            onClick={() => setGroupBy('MACHINE')} 
+          <button
+            onClick={() => setGroupBy('MACHINE')}
             className={`px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition ${groupBy === 'MACHINE' ? 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}
           >
             <Truck className="w-4 h-4" /> Sprzęt
@@ -87,8 +87,8 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
           <button onClick={handlePrevDay} className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <input 
-            type="date" 
+          <input
+            type="date"
             value={selectedDateStr}
             onChange={e => setSelectedDateStr(e.target.value)}
             className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-3 py-1.5 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
@@ -128,11 +128,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               const rowItems = unifiedItems.filter(item => {
                 const matchesRow = groupBy === 'WORKER' ? item.userId === row.id : item.resourceId === row.id;
                 if (!matchesRow) return false;
-                
+
                 const tStart = item.startTime ? new Date(item.startTime) : (item.dueDate ? new Date(item.dueDate) : null);
                 if (!tStart) return false;
                 // Item starts before end of day, and (ends after start of day or is just starting today)
-                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours||2)*3600000) : tStart));
+                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours || 2) * 3600000) : tStart));
                 return tStart <= dEnd && tEnd >= dStart;
               });
 
@@ -149,7 +149,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                     {rowItems.map(item => {
                       const plannedStart = item.dueDate ? new Date(item.dueDate) : null;
                       const plannedDurationHours = parseFloat(item.expectedDurationHours || '2'); // fallback to 2h
-                      
+
                       const actualStart = item.startTime ? new Date(item.startTime) : null;
                       const actualEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : null);
 
@@ -170,28 +170,28 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                       // Instead of wrapping them in an unpositioned absolute container, we just render them directly in the row relative container.
                       // Or we can use a React Fragment.
                       return (
-                        <a 
+                        <a
                           key={`${item._type}-${item.id}`}
                           href={`/admin/orders?open=${item.workOrderId || item.id}`}
                           className="block"
                         >
                           {plannedDims && (
-                             <div 
-                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
-                               style={{ left: plannedDims.left, width: plannedDims.width }}
-                               title={`Oczekujące Zlecenie #${item.workOrderId || item.id}\nData: ${plannedStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}\nSzacowany czas: ${plannedDurationHours}h\nKliknij, aby edytować.`}
-                             >
-                                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
-                             </div>
+                            <div
+                              className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
+                              style={{ left: plannedDims.left, width: plannedDims.width }}
+                              title={`Oczekujące Zlecenie #${item.workOrderId || item.id}\nData: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\nSzacowany czas: ${plannedDurationHours}h\nKliknij, aby edytować.`}
+                            >
+                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
+                            </div>
                           )}
                           {actualDims && (
-                             <div 
-                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
-                               style={{ left: actualDims.left, width: actualDims.width }}
-                               title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'})\nStart: ${actualStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}\nKoniec: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'Trwa...'}\nKliknij, aby zobaczyć szczegóły.`}
-                             >
-                                <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
-                             </div>
+                            <div
+                              className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
+                              style={{ left: actualDims.left, width: actualDims.width }}
+                              title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'})\nStart: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\nKoniec: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : 'Trwa...'}\nKliknij, aby zobaczyć szczegóły.`}
+                            >
+                              <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
+                            </div>
                           )}
                         </a>
                       );
@@ -200,7 +200,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                 </div>
               );
             })}
-            
+
             {/* If all rows are empty, show a message */}
             {rows.every(row => {
               return !unifiedItems.some(item => {
@@ -208,19 +208,19 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                 if (!matchesRow) return false;
                 const tStart = item.startTime ? new Date(item.startTime) : (item.dueDate ? new Date(item.dueDate) : null);
                 if (!tStart) return false;
-                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours||2)*3600000) : tStart));
+                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours || 2) * 3600000) : tStart));
                 return tStart <= dEnd && tEnd >= dStart;
               });
             }) && (
-              <div className="py-12 flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
-                <Clock className="w-8 h-8 mb-2 opacity-50" />
-                <p className="text-sm">Brak zaplanowanych i realizowanych zleceń w tym dniu.</p>
-              </div>
-            )}
+                <div className="py-12 flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
+                  <Clock className="w-8 h-8 mb-2 opacity-50" />
+                  <p className="text-sm">Brak zaplanowanych i realizowanych zleceń w tym dniu.</p>
+                </div>
+              )}
           </div>
         </div>
       </div>
-      
+
       {/* Legend */}
       <div className="p-3 bg-zinc-50 dark:bg-[#0a0a0b] border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-center gap-6 text-xs text-zinc-600 dark:text-zinc-400">
         <div className="flex items-center gap-2">

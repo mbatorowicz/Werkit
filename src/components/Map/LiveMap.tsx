@@ -33,6 +33,20 @@ const iconEvent = L.icon({
   iconAnchor: [12, 41],
 });
 
+const iconPhoto = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const iconNote = L.icon({
+  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
 function Recenter({ lat, lng }: { lat: number, lng: number }) {
   const map = useMap();
   useEffect(() => {
@@ -63,7 +77,7 @@ interface LiveMapProps {
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
-  events?: { lat: number; lng: number, label: string, id: string, photoUrl?: string, note?: string }[];
+  events?: { lat: number; lng: number, label: string, id: string, photoUrl?: string, note?: string, type?: 'photo' | 'note' | 'default' }[];
   onEventClick?: (id: string) => void;
 }
 
@@ -134,11 +148,11 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
 
         {/* Destination Point */}
         {events.map((ev, i) => (
-           <Marker 
-             key={ev.id || i} 
-             position={[ev.lat, ev.lng]} 
-             icon={iconEvent}
-             eventHandlers={{
+             <Marker 
+              key={ev.id || i} 
+              position={[ev.lat, ev.lng]} 
+              icon={ev.type === 'photo' ? iconPhoto : (ev.type === 'note' ? iconNote : iconEvent)}
+              eventHandlers={{
                click: () => onEventClick && onEventClick(ev.id)
              }}
            >
