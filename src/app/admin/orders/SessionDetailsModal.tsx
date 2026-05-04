@@ -10,7 +10,7 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
   loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-lg flex items-center justify-center"><MapIcon className="w-8 h-8 text-zinc-400" /></div>
 });
 
-export default function SessionDetailsModal({ item, onClose }: { item: any, onClose: () => void }) {
+export default function SessionDetailsModal({ item, onClose, onEdit }: { item: any, onClose: () => void, onEdit?: (item: any) => void }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
@@ -60,6 +60,11 @@ export default function SessionDetailsModal({ item, onClose }: { item: any, onCl
                 <MapIcon className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
                 <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">{dict.notStartedTitle}</h3>
                 <p className="text-zinc-500 text-sm mt-2 max-w-md mx-auto">{dict.notStartedDesc}</p>
+                {onEdit && (
+                  <button onClick={() => onEdit(item)} className="mt-6 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 border border-amber-200 dark:border-amber-500/20 px-6 py-2.5 rounded-lg font-semibold transition active:scale-95">
+                    Edytuj to zlecenie
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-6">

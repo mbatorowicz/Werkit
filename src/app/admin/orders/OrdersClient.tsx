@@ -67,18 +67,42 @@ export default function OrdersClient() {
     return () => clearInterval(interval);
   }, []);
 
+  const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
+
+  const handleEditClick = (item: any) => {
+    setEditingOrderId(item.workOrderId || item.id);
+    setForm({
+      userId: item.userId?.toString() || '',
+      resourceId: item.resourceId?.toString() || '',
+      sessionType: item.sessionType || 'TRANSPORT',
+      materialId: item.materialId?.toString() || '',
+      customerId: item.customerId?.toString() || '',
+      taskDescription: item.taskDescription || '',
+      quantityTons: item.quantityTons?.toString() || '',
+      priority: item.priority || 'NORMAL',
+      expectedDurationHours: item.expectedDurationHours?.toString() || '',
+      dueDate: item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : ''
+    });
+    setSelectedItem(null);
+    setIsModalOpen(true);
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/admin/work-orders", {
-        method: "POST",
+      const url = editingOrderId ? `/api/admin/work-orders/${editingOrderId}` : "/api/admin/work-orders";
+      const method = editingOrderId ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
       if (res.ok) {
         alert(dict.success);
         setIsModalOpen(false);
+        setEditingOrderId(null);
         fetchData(true);
         setForm({
           userId: '',
@@ -339,11 +363,11 @@ export default function OrdersClient() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsModalOpen(false); setEditingOrderId(null); }}></div>
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{dict.issueOrder}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editingOrderId ? 'Edytuj zlecenie' : dict.issueOrder}</h2>
+              <button onClick={() => { setIsModalOpen(false); setEditingOrderId(null); }} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-5">
               <div className="space-y-2">
@@ -434,10 +458,10 @@ export default function OrdersClient() {
       )}
 
       {selectedItem && (
-        <SessionDetailsModal item={selectedItem} onClose={() => setSelectedItem(null)} />
+        <SessionDetailsModal item={selectedItem} onClose={() => setSelectedItem(null)} onEdit={handleEditClick} />
       )}
     </>
-  )
+  );
 }
 
 
