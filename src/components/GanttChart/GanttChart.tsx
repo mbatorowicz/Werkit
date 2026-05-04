@@ -181,7 +181,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                              <div 
                                className="absolute top-0 bottom-0 border-2 border-dashed border-zinc-400 dark:border-zinc-500 rounded-md bg-zinc-100/50 dark:bg-zinc-800/50 flex items-center px-2 overflow-hidden"
                                style={{ left: plannedDims.left, width: plannedDims.width }}
-                               title={`Plan: ${plannedStart.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} (${plannedDurationHours}h)\nZlecenie #${item.workOrderId || item.id}`}
+                               title={`Plan: ${plannedStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} (${plannedDurationHours}h)\nZlecenie #${item.workOrderId || item.id}`}
                              >
                                 <span className="text-[10px] font-bold text-zinc-500 whitespace-nowrap opacity-50 truncate">ZAPLANOWANE #{item.workOrderId || item.id}</span>
                              </div>
