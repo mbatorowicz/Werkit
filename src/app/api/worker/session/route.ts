@@ -12,9 +12,15 @@ export async function GET() {
       session: workSessions,
       customerAddress: customers.defaultAddress,
       customerLat: customers.latitude,
-      customerLng: customers.longitude
+      customerLng: customers.longitude,
+      customerFirstName: customers.firstName,
+      customerLastName: customers.lastName,
+      resourceName: resources.name,
+      materialName: materials.name
     }).from(workSessions)
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
+    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
+    .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     
     const settingsRows = await db.select().from(companySettings).limit(1);
@@ -32,7 +38,7 @@ export async function GET() {
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, activeSessions[0].session.id));
 
     return NextResponse.json({ 
-       session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng }, 
+       session: { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng, customerFirstName: data.customerFirstName, customerLastName: data.customerLastName, resourceName: data.resourceName, materialName: data.materialName }, 
        events: photos,
        notes: notes,
        settings: companySettingsData,

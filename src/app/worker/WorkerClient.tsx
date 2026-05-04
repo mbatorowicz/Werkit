@@ -24,6 +24,12 @@ type Session = {
   customerLng?: string;
   expectedDurationHours?: string;
   taskDescription?: string;
+  workOrderId?: number;
+  customerFirstName?: string;
+  customerLastName?: string;
+  resourceName?: string;
+  materialName?: string;
+  quantityTons?: number;
 };
 
 type WorkOrder = {
@@ -128,6 +134,7 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
   const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
   const router = useRouter();
   const dict = getDictionary().worker.client;
+  const adminDict = getDictionary().admin.orders;
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
@@ -505,7 +512,34 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
           )}
         </div>
       ) : (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col items-center gap-4">
+          
+          {/* SZCZEGÓŁY ZLECENIA */}
+          <div className="w-full bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm">
+             <h2 className="text-xl font-black text-amber-600 dark:text-amber-500 mb-3">{session.workOrderId ? adminDict.orderNumber.replace('{id}', session.workOrderId.toString()) : `Sesja #${session.id}`}</h2>
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+               <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.equipment}</span> {session.sessionType === 'TRANSPORT' ? dict.transport : (session.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} {session.resourceName ? `- ${session.resourceName}` : ''}</p>
+               
+               {(session.materialName || session.quantityTons) && (
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.materialAndQuantity}</span> {session.materialName || ''} {session.quantityTons ? `(${session.quantityTons}${adminDict.tons})` : ''}</p>
+               )}
+               
+               {(session.customerFirstName || session.customerLastName || session.customerAddress) && (
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.customer}</span> {session.customerFirstName || ''} {session.customerLastName || ''} {session.customerAddress ? `- ${session.customerAddress}` : ''}</p>
+               )}
+
+               {session.taskDescription && (
+                 <p className="sm:col-span-2"><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.taskDescLabel}</span> {session.taskDescription}</p>
+               )}
+               
+               <p className="sm:col-span-2 mt-1 pt-2 border-t border-zinc-200 dark:border-zinc-700 text-xs flex items-center gap-2">
+                 <span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.startedAt}</span> 
+                 <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
+                   {new Date(session.startTime).toLocaleString('pl-PL')}
+                 </span>
+               </p>
+             </div>
+          </div>
 
           {/* WIDGET STATUSU */}
           <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
