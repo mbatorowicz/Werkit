@@ -32,7 +32,13 @@ export default function WorkerError({
       </div>
       <div className="flex gap-4">
         <button
-          onClick={() => reset()}
+          onClick={() => {
+            if (error.message && error.message.toLowerCase().includes('chunk')) {
+              window.location.reload();
+            } else {
+              reset();
+            }
+          }}
           className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
         >
           Spróbuj ponownie
