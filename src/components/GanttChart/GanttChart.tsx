@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
@@ -14,6 +14,23 @@ type GanttProps = {
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
   const dict = getDictionary().admin.gantt;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY !== 0 && !e.shiftKey) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
 
   // Default selected date to today
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
@@ -51,7 +68,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   const getDimensions = (start: Date, durationHours: number) => {
     let itemStartMs = start.getTime();
     let itemEndMs = itemStartMs + durationHours * 3600000;
-    
+
     if (itemEndMs <= dStart.getTime() || itemStartMs >= dEnd.getTime()) {
       return null;
     }
@@ -68,12 +85,12 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
     const visibleStart = new Date(itemStartMs);
     const startMinsFromStartHour = (visibleStart.getHours() - startHour) * 60 + visibleStart.getMinutes();
-    
+
     const totalMins = totalHours * 60;
-    
+
     const left = (startMinsFromStartHour / totalMins) * 100;
     const width = (visibleDurationHours * 60 / totalMins) * 100;
-    
+
     return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
   };
 
@@ -103,20 +120,20 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <label className="text-xs font-medium text-zinc-500">Od:</label>
-            <input 
-              type="number" 
-              min="0" 
-              max={endHour - 1} 
-              value={startHour} 
+            <input
+              type="number"
+              min="0"
+              max={endHour - 1}
+              value={startHour}
               onChange={e => setStartHour(Math.min(endHour - 1, Math.max(0, parseInt(e.target.value) || 0)))}
               className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
             />
             <label className="text-xs font-medium text-zinc-500">Do:</label>
-            <input 
-              type="number" 
-              min={startHour + 1} 
-              max="24" 
-              value={endHour} 
+            <input
+              type="number"
+              min={startHour + 1}
+              max="24"
+              value={endHour}
               onChange={e => setEndHour(Math.max(startHour + 1, Math.min(24, parseInt(e.target.value) || 24)))}
               className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
             />
@@ -138,11 +155,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
         </div>
       </div>
 
-      <div className="flex overflow-x-auto custom-scrollbar relative">
+      <div ref={scrollRef} className="flex overflow-x-auto custom-scrollbar relative">
         <div className="min-w-[800px] w-full">
           {/* Header row with hours */}
           <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-10">
-            <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center">
+            <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center sticky left-0 z-20">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{groupBy === 'WORKER' ? 'Pracownik' : 'Maszyna/Pojazd'}</span>
             </div>
             <div className="flex-1 relative h-10">
@@ -179,7 +196,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
               return (
                 <div key={row.id} className="flex border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-900 flex flex-col justify-center">
+                  <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-10">
                     <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate" title={groupBy === 'WORKER' ? row.fullName : row.name}>
                       {groupBy === 'WORKER' ? row.fullName : row.name}
                     </span>
