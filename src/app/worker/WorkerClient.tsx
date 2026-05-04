@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera, FileText, X, History } from "lucide-react";
+import { Play, Square, Loader2, Clock, AlertTriangle, Navigation, MapPin, Camera, FileText, X, History, ChevronUp, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
@@ -80,8 +80,37 @@ function SessionTimer({ startTime }: { startTime: string }) {
   return <>{elapsed}</>;
 }
 
+export type TimelineItem = {
+  id: string;
+  type: 'photo' | 'note';
+  content: string;
+  lat: number;
+  lng: number;
+  createdAt: string;
+};
+
 export default function WorkerClient({ initialData }: { initialData?: any }) {
-  const [events, setEvents] = useState<{ lat: number, lng: number, label: string }[]>(initialData?.events || []);
+  const getInitialTimeline = () => {
+    const arr: TimelineItem[] = [];
+    if (initialData?.events) {
+      arr.push(...initialData.events.map((e: any) => ({
+        id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl,
+        lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: e.createdAt
+      })));
+    }
+    if (initialData?.notes) {
+      arr.push(...initialData.notes.map((n: any) => ({
+        id: `note_${n.id}`, type: 'note' as const, content: n.note,
+        lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: n.createdAt
+      })));
+    }
+    return arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  };
+
+  const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(getInitialTimeline());
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
   const [session, setSession] = useState<Session | null>(initialData?.session || null);
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders || []);
   const [isLoading, setIsLoading] = useState(!initialData);
@@ -144,20 +173,21 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
         setSession(sessData.session);
         setNotesList(sessData.notes || []);
 
-        const newEvents: { lat: number, lng: number, label: string }[] = [];
+        const newTimeline: TimelineItem[] = [];
         if (sessData.events) {
-          sessData.events.forEach((ev: { latitude: string, longitude: string }) => {
-            if (ev.latitude && ev.longitude) newEvents.push({ lat: parseFloat(ev.latitude), lng: parseFloat(ev.longitude), label: 'Zdjęcie' });
-          });
+          newTimeline.push(...sessData.events.map((e: any) => ({
+            id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl,
+            lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: e.createdAt
+          })));
         }
-        if (sessData.session.taskDescription) {
-          const regex = /\(GPS: ([\d.-]+), ([\d.-]+)\)/g;
-          let match;
-          while ((match = regex.exec(sessData.session.taskDescription)) !== null) {
-            newEvents.push({ lat: parseFloat(match[1]), lng: parseFloat(match[2]), label: 'Notatka' });
-          }
+        if (sessData.notes) {
+          newTimeline.push(...sessData.notes.map((n: any) => ({
+            id: `note_${n.id}`, type: 'note' as const, content: n.note,
+            lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: n.createdAt
+          })));
         }
-        setEvents(newEvents);
+        newTimeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        setTimelineEvents(newTimeline);
 
         // Use direct coordinates if available, otherwise fallback to geocode
         if (sessData.session.customerLat && sessData.session.customerLng) {
@@ -197,7 +227,7 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
 
   const handleEndSession = async () => {
     if (settings?.requirePhotoToFinish) {
-      const hasPhoto = events.some(e => e.label === 'Zdjęcie');
+      const hasPhoto = timelineEvents.some(e => e.type === 'photo');
       if (!hasPhoto) {
         alert(dict.photoReqFinish);
         return;
@@ -533,16 +563,58 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
                 pathTraveled={pathTraveled}
                 destination={destination}
                 onRouteDistance={(km) => setDistanceToDestKm(km)}
-                events={events}
+                events={timelineEvents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, label: e.type === 'photo' ? 'Zdjęcie' : 'Notatka' }))}
+                onEventClick={(id) => {
+                  setIsTimelineOpen(true);
+                  setSelectedEventId(id);
+                  setTimeout(() => {
+                    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 100);
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <MapPin className="w-8 h-8 text-zinc-700 animate-bounce" />
               </div>
             )}
-
-
           </div>
+
+          {timelineEvents.length > 0 && (
+            <div className="w-full mt-2">
+              <button onClick={() => setIsTimelineOpen(!isTimelineOpen)} className="w-full bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-3 flex items-center justify-between transition-colors">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-zinc-500" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">Oś czasu ({timelineEvents.length})</span>
+                </div>
+                {isTimelineOpen ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+              </button>
+              
+              {isTimelineOpen && (
+                <div className="mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] overflow-y-auto flex flex-col gap-4 shadow-inner relative scroll-smooth">
+                  {timelineEvents.map((item, index) => (
+                    <div key={item.id} id={item.id} className={`flex gap-3 relative ${selectedEventId === item.id ? 'bg-blue-50 dark:bg-blue-500/10 p-2 -mx-2 rounded-lg' : ''} transition-all`}>
+                      {index < timelineEvents.length - 1 && (
+                        <div className="absolute left-[11px] top-6 bottom-[-16px] w-[2px] bg-zinc-200 dark:bg-zinc-700"></div>
+                      )}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ${item.type === 'photo' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'}`}>
+                        {item.type === 'photo' ? <Camera className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                      </div>
+                      <div className="flex-1 pb-2">
+                        <div className="text-[10px] text-zinc-400 mb-1">{new Date(item.createdAt).toLocaleTimeString()}</div>
+                        {item.type === 'photo' ? (
+                          <div className="w-16 h-16 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                            <img src={item.content} alt="Zdarzenie" className="w-full h-full object-cover" />
+                          </div>
+                        ) : (
+                          <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{item.content}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* NOTATKI I ZDJĘCIA */}
           <div className="w-full grid grid-cols-2 gap-4 mt-4">

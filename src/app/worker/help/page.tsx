@@ -46,7 +46,7 @@ export default async function HelpPage() {
       <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 mb-4 px-1">{dict.userManual}</h2>
       
       <div className="space-y-3">
-        <HelpAccordion title={dict.startWork} icon={Play}>
+        <HelpAccordion title={dict.startWork} icon={<Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
           <p className="mb-2">
             {dict.startWorkDesc1}<strong>Sesja</strong>{dict.startWorkDesc2}
           </p>
@@ -60,7 +60,7 @@ export default async function HelpPage() {
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title={dict.notesAndPhotos} icon={Camera}>
+        <HelpAccordion title={dict.notesAndPhotos} icon={<Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
           <p className="mb-2">
             {dict.notesAndPhotosDesc}
           </p>
@@ -77,7 +77,7 @@ export default async function HelpPage() {
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title={dict.gpsTracking} icon={Navigation}>
+        <HelpAccordion title={dict.gpsTracking} icon={<Navigation className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
           <p className="mb-2">
             {dict.gpsTrackingDesc}
           </p>
@@ -90,7 +90,7 @@ export default async function HelpPage() {
           </p>
         </HelpAccordion>
 
-        <HelpAccordion title={dict.customOrders} icon={Info}>
+        <HelpAccordion title={dict.customOrders} icon={<Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />}>
           <p>
             {dict.customOrdersDesc1}<strong>{dict.customOrdersDesc2}</strong>. 
           </p>

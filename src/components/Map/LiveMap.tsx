@@ -63,10 +63,11 @@ interface LiveMapProps {
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
-  events?: { lat: number; lng: number, label: string }[];
+  events?: { lat: number; lng: number, label: string, id: string }[];
+  onEventClick?: (id: string) => void;
 }
 
-export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [] }: LiveMapProps) {
+export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [], onEventClick }: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
   const [isAutoRotate, setIsAutoRotate] = useState(false);
 
@@ -133,7 +134,14 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
 
         {/* Destination Point */}
         {events.map((ev, i) => (
-           <Marker key={i} position={[ev.lat, ev.lng]} icon={iconEvent}>
+           <Marker 
+             key={ev.id || i} 
+             position={[ev.lat, ev.lng]} 
+             icon={iconEvent}
+             eventHandlers={{
+               click: () => onEventClick && onEventClick(ev.id)
+             }}
+           >
              <Popup>{ev.label}</Popup>
            </Marker>
         ))}

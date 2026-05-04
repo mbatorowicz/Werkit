@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export function HelpAccordion({ title, icon: Icon, children }: { title: string, icon: any, children: React.ReactNode }) {
+export function HelpAccordion({ title, icon, children }: { title: string, icon: React.ReactNode, children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl overflow-hidden shadow-sm transition-all">
@@ -13,7 +13,7 @@ export function HelpAccordion({ title, icon: Icon, children }: { title: string, 
       >
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg">
-            <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            {icon}
           </div>
           <span className="font-bold text-zinc-900 dark:text-zinc-100 text-left">{title}</span>
         </div>
