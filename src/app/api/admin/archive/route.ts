@@ -37,7 +37,8 @@ export async function GET() {
      .leftJoin(resources, eq(workSessions.resourceId, resources.id))
      .leftJoin(materials, eq(workSessions.materialId, materials.id))
      .leftJoin(customers, eq(workSessions.customerId, customers.id))
-     .orderBy(desc(workSessions.startTime));
+     .orderBy(desc(workSessions.startTime))
+     .limit(500);
 
      return NextResponse.json(data);
   } catch (err: any) {

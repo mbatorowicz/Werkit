@@ -201,13 +201,12 @@ export default function WorkerClient() {
       setLocation(newLoc);
 
       setPathTraveled(prev => {
-        const updated = [...prev, newLoc];
-        let dist = 0;
-        for (let i = 1; i < updated.length; i++) {
-          dist += getDistance(updated[i - 1], updated[i]);
+        if (prev.length > 0) {
+          const lastLoc = prev[prev.length - 1];
+          const distIncrement = getDistance(lastLoc, newLoc) / 1000;
+          setTraveledKm(k => k + distIncrement);
         }
-        setTraveledKm(dist / 1000);
-        return updated;
+        return [...prev, newLoc];
       });
 
       const payload = { ...newLoc, timestamp: new Date().toISOString() };
