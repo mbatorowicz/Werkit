@@ -3,10 +3,8 @@ import { db } from '@/db';
 import { workSessions, sessionPhotos } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { cookies } from 'next/headers';
+import { JWT_SECRET } from '@/lib/auth';
 import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
 export async function POST(request: Request) {
   try {
     const token = (await cookies()).get('auth_token')?.value;

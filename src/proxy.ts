@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
+import { JWT_SECRET } from '@/lib/auth';
 
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
@@ -11,9 +10,12 @@ export async function proxy(request: NextRequest) {
   const isAuthRoute = pathname === '/login' || pathname.startsWith('/login/');
   const isAdminPage = pathname.startsWith('/admin');
   const isWorkerPage = pathname.startsWith('/worker');
-  const isAdminApi = pathname.startsWith('/api/admin') || pathname.startsWith('/api/categories') || pathname.startsWith('/api/customers') || pathname.startsWith('/api/machines') || pathname.startsWith('/api/materials') || pathname.startsWith('/api/settings') || pathname.startsWith('/api/workers');
-  const isWorkerApi = pathname.startsWith('/api/worker');
+  const isApiRoute = pathname.startsWith('/api');
   const isApiAuthRoute = pathname.startsWith('/api/auth');
+  const isWorkerApi = pathname.startsWith('/api/worker');
+  
+  // SECURE DEFAULT: Any API route not specifically for workers or auth is treated as an admin API
+  const isAdminApi = isApiRoute && !isApiAuthRoute && !isWorkerApi;
 
   // If it's not a protected route, let it pass (e.g. public assets, root, etc)
   if (!isAdminPage && !isWorkerPage && !isAuthRoute && !isAdminApi && !isWorkerApi && !isApiAuthRoute) {

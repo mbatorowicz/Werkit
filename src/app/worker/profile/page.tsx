@@ -8,8 +8,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import Link from "next/link";
 import { ProfileSettings } from "./ProfileSettings";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
   if (!token) return null;

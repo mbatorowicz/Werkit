@@ -5,8 +5,7 @@ import { eq, and, aliasedTable } from 'drizzle-orm';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {

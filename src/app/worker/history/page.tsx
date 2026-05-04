@@ -5,8 +5,7 @@ import { eq, desc, and, isNotNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
   if (!token) return null;

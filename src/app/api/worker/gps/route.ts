@@ -2,21 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { workSessions, gpsLogs } from '@/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
-async function getUserId() {
-  const token = (await cookies()).get('auth_token')?.value;
-  if (!token) return null;
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload.userId as number;
-  } catch {
-    return null;
-  }
-}
+import { getUserId } from '@/lib/auth';
 
 export async function GET() {
   try {

@@ -5,8 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 async function getUserId() {

@@ -5,8 +5,7 @@ import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import { SignJWT } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 export async function POST(req: Request) {
   try {
     const body = await req.json();

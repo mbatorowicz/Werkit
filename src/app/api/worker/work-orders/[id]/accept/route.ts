@@ -5,8 +5,7 @@ import { eq, and } from 'drizzle-orm';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const token = (await cookies()).get('auth_token')?.value;

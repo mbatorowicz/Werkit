@@ -7,8 +7,7 @@ import { eq, desc, aliasedTable, ne } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-secret-fallback');
-
+import { JWT_SECRET } from '@/lib/auth';
 export async function GET() {
   try {
     const creator = aliasedTable(users, 'creator');
