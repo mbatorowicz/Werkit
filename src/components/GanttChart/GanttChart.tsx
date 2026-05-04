@@ -190,7 +190,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                              <div 
                                className={`absolute top-1.5 bottom-1.5 rounded shadow-sm flex items-center px-2 overflow-hidden ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                                style={{ left: actualDims.left, width: actualDims.width }}
-                               title={`Rzeczywiste: ${actualStart.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} - ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'w trakcie'}\nZlecenie #${item.workOrderId || item.id}`}
+                               title={`Rzeczywiste: ${actualStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} - ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'w trakcie'}\nZlecenie #${item.workOrderId || item.id}`}
                              >
                                 <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">{item.status === 'IN_PROGRESS' ? 'W TRAKCIE' : 'ZAKOŃCZONE'}</span>
                              </div>
