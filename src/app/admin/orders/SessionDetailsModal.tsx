@@ -101,20 +101,20 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
                         <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-6 flex items-center gap-2">
                           <ImageIcon className="w-5 h-5 text-amber-500" /> {dict.timelineTitle}
                         </h3>
-                        <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 md:ml-[50%] space-y-8">
+                        <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 space-y-8">
                           {timelineItems.map((entry: any, index) => {
                             const isNote = entry.type === 'note';
                             const timeStr = new Date(entry.time).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
                             const dateStr = new Date(entry.time).toLocaleDateString('pl-PL');
                             
                             return (
-                              <div key={`${entry.type}-${entry.id}`} className={`relative flex items-center justify-between md:justify-normal w-full ${isNote ? 'md:flex-row-reverse left-0 md:left-2' : 'left-0 md:-left-2'}`}>
-                                <div className="absolute -left-[9px] md:left-auto md:relative md:mx-auto w-4 h-4 rounded-full bg-amber-500 border-4 border-white dark:border-zinc-900 z-10"></div>
+                              <div key={`${entry.type}-${entry.id}`} className="relative flex items-start w-full">
+                                <div className="absolute -left-[9px] top-4 w-4 h-4 rounded-full bg-amber-500 border-4 border-zinc-50 dark:border-[#0a0a0b] z-10"></div>
                                 
-                                <div className={`w-[calc(100%-2rem)] md:w-[calc(50%-2rem)] pl-4 md:pl-0 ${isNote ? 'md:pr-8' : 'md:pl-8'}`}>
-                                  <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm">
-                                    <div className="flex items-center gap-2 text-xs text-zinc-500 mb-2">
-                                      {isNote ? <FileText className="w-3 h-3" /> : <ImageIcon className="w-3 h-3" />}
+                                <div className="w-full pl-6">
+                                  <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm max-w-2xl">
+                                    <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mb-2 font-medium">
+                                      {isNote ? <FileText className="w-4 h-4 text-orange-500" /> : <ImageIcon className="w-4 h-4 text-purple-500" />}
                                       {dateStr} {timeStr}
                                     </div>
                                     {isNote ? (
