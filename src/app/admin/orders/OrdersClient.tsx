@@ -84,7 +84,7 @@ export default function OrdersClient() {
       } else {
         const session = sessions.find(s => s.workOrderId === openId || s.id === openId);
         if (session) {
-          setSelectedItem(session);
+          setSelectedItem({ ...session, _type: 'SESSION' });
         }
       }
       // Remove query param to prevent reopening on polling
