@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
@@ -24,7 +24,21 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   });
 
   const [startHour, setStartHour] = useState(6);
-  const [endHour, setEndHour] = useState(18);
+  const [endHour, setEndHour] = useState(23);
+
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isToday = () => {
+    const today = new Date();
+    today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    return selectedDateStr === today.toISOString().split('T')[0];
+  };
 
   const handlePrevDay = () => {
     const d = new Date(selectedDateStr);
@@ -47,6 +61,16 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   dEnd.setHours(endHour, 0, 0, 0);
 
   const totalHours = endHour - startHour;
+
+  let currentTimeLeft: number | null = null;
+  if (currentTime && isToday()) {
+    const currentMins = currentTime.getHours() * 60 + currentTime.getMinutes();
+    const startMins = startHour * 60;
+    const endMins = endHour * 60;
+    if (currentMins >= startMins && currentMins <= endMins) {
+      currentTimeLeft = ((currentMins - startMins) / (totalHours * 60)) * 100;
+    }
+  }
 
   const getDimensions = (start: Date, durationHours: number) => {
     let itemStartMs = start.getTime();
@@ -151,6 +175,17 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                   <span className="text-[10px] text-zinc-400 absolute -left-2.5 top-2 bg-white dark:bg-zinc-900 px-1">{h.toString().padStart(2, '0')}:00</span>
                 </div>
               ))}
+              {/* Current time header marker */}
+              {currentTimeLeft !== null && (
+                <div 
+                  className="absolute top-0 bottom-0 border-l-2 border-red-500 z-20" 
+                  style={{ left: `${currentTimeLeft}%` }}
+                >
+                  <div className="absolute -left-5 top-1 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-sm whitespace-nowrap shadow-sm">
+                    {currentTime?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -161,6 +196,15 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               {hours.map(h => (
                 <div key={h} className="h-full border-l border-zinc-100 dark:border-zinc-800/30" style={{ left: `${((h - startHour) / totalHours) * 100}%`, position: 'absolute' }}></div>
               ))}
+              {/* Current time body line */}
+              {currentTimeLeft !== null && (
+                <div 
+                  className="h-full border-l-2 border-red-500/50 z-30" 
+                  style={{ left: `${currentTimeLeft}%`, position: 'absolute' }}
+                >
+                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                </div>
+              )}
             </div>
 
             {rows.map(row => {
