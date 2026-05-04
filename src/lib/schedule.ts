@@ -20,7 +20,7 @@ export async function checkScheduleConflict(
     eq(workOrders.resourceId, resourceId)
   ];
   
-  let q = db.select().from(workOrders).where(
+  const q = db.select().from(workOrders).where(
     and(
       or(...conditions),
       inArray(workOrders.status, ['PENDING'])
