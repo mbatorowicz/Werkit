@@ -123,7 +123,12 @@ export const pl = {
       noWorkerAssigned: "Brak przypisania",
       equipment: "Sprzęt:",
       customer: "Klient:",
-      enlargedPhoto: "Powiększone zdjęcie"
+      enlargedPhoto: "Powiększone zdjęcie",
+      materialAndQuantity: "Towar / Ilość:",
+      taskDescLabel: "Zadanie:",
+      startedAt: "Rozpoczęto:",
+      plannedFor: "Planowane na:",
+      tons: "t"
     },
     gantt: {
       pendingOrder: "Oczekujące Zlecenie",

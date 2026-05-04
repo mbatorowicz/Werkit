@@ -51,11 +51,30 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
           <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
              <div>
                <h2 className="text-3xl font-black text-amber-600 dark:text-amber-500 mb-2">{dict.orderNumber.replace('{id}', item.workOrderId || item.id)}</h2>
-               <div className="flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400 mt-4 bg-white dark:bg-zinc-800/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
                  <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.worker}</span> {item.workerName || dict.noWorkerAssigned}</p>
-                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.equipment}</span> {item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} - {item.resourceName || dict.noMachine}</p>
+                 
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.equipment}</span> {item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} {item.resourceName ? `- ${item.resourceName}` : ''}</p>
+                 
+                 {(item.materialName || item.quantityTons) && (
+                   <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.materialAndQuantity}</span> {item.materialName || ''} {item.quantityTons ? `(${item.quantityTons}${dict.tons})` : ''}</p>
+                 )}
+                 
                  {(item.customerFirstName || item.customerLastName) && (
                    <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.customer}</span> {item.customerFirstName || ''} {item.customerLastName || ''}</p>
+                 )}
+
+                 {item.taskDescription && (
+                   <p className="sm:col-span-2"><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.taskDescLabel}</span> {item.taskDescription}</p>
+                 )}
+
+                 {(item.startTime || item.dueDate) && (
+                   <p className="sm:col-span-2 mt-2 pt-2 border-t border-zinc-200 dark:border-zinc-700 text-xs flex items-center gap-2">
+                     <span className="font-semibold text-zinc-900 dark:text-zinc-300">{item.startTime ? dict.startedAt : dict.plannedFor}</span> 
+                     <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
+                       {item.startTime ? new Date(item.startTime).toLocaleString('pl-PL') : new Date(item.dueDate).toLocaleString('pl-PL')}
+                     </span>
+                   </p>
                  )}
                </div>
              </div>
