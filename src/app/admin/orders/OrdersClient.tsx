@@ -125,10 +125,15 @@ export default function OrdersClient() {
       const url = editingOrderId ? `/api/admin/work-orders/${editingOrderId}` : "/api/admin/work-orders";
       const method = editingOrderId ? "PUT" : "POST";
       
+      const payload = { ...form };
+      if (payload.dueDate) {
+        payload.dueDate = new Date(payload.dueDate).toISOString();
+      }
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       });
       if (res.ok) {
         alert(dict.success);
