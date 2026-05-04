@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
+import { getDictionary } from "@/i18n";
 
 type GanttProps = {
   workers: any[];
@@ -12,6 +13,7 @@ type GanttProps = {
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
+  const dict = getDictionary().admin.gantt;
 
   // Default selected date to today
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
@@ -179,7 +181,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                               style={{ left: plannedDims.left, width: plannedDims.width }}
-                              title={`Oczekujące Zlecenie #${item.workOrderId || item.id}\nData: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\nSzacowany czas: ${plannedDurationHours}h\nKliknij, aby edytować.`}
+                              title={`${dict.pendingOrder} #${item.workOrderId || item.id}\n${dict.date}: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.estimatedTime}: ${plannedDurationHours}h\n${dict.clickToEdit}`}
                             >
                               <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
@@ -188,7 +190,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                               style={{ left: actualDims.left, width: actualDims.width }}
-                              title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'})\nStart: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\nKoniec: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : 'Trwa...'}\nKliknij, aby zobaczyć szczegóły.`}
+                              title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? dict.inProgress : dict.completed})\n${dict.start}: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.end}: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : dict.inProgressShort}\n${dict.clickToDetails}`}
                             >
                               <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
@@ -214,7 +216,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
             }) && (
                 <div className="py-12 flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
                   <Clock className="w-8 h-8 mb-2 opacity-50" />
-                  <p className="text-sm">Brak zaplanowanych i realizowanych zleceń w tym dniu.</p>
+                  <p className="text-sm">{dict.noOrders}</p>
                 </div>
               )}
           </div>
@@ -225,15 +227,15 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
       <div className="p-3 bg-zinc-50 dark:bg-[#0a0a0b] border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-center gap-6 text-xs text-zinc-600 dark:text-zinc-400">
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 border-2 border-dashed border-amber-500/50 bg-amber-500/20 rounded-sm"></div>
-          <span>Planowany czas pracy</span>
+          <span>{dict.plannedWorkTime}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 bg-blue-500 rounded-sm animate-pulse"></div>
-          <span>W trakcie realizacji</span>
+          <span>{dict.inProgressLegend}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-3 bg-emerald-500 rounded-sm"></div>
-          <span>Zrealizowano</span>
+          <span>{dict.completedLegend}</span>
         </div>
       </div>
     </div>

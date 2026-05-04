@@ -117,7 +117,36 @@ export const en = {
       note: "Note",
       photoRoute: "Route photo",
       photoStart: "Start",
-      photoEnd: "End"
+      photoEnd: "End",
+      orderNumber: "Order #{id}",
+      worker: "Worker:",
+      noWorkerAssigned: "No assignment",
+      equipment: "Equipment:",
+      customer: "Customer:",
+      enlargedPhoto: "Enlarged photo"
+    },
+    gantt: {
+      pendingOrder: "Pending Order",
+      date: "Date",
+      estimatedTime: "Estimated time",
+      clickToEdit: "Click to edit.",
+      inProgress: "In progress",
+      completed: "Completed",
+      start: "Start",
+      end: "End",
+      inProgressShort: "In progress...",
+      clickToDetails: "Click for details.",
+      plannedWorkTime: "Planned work time",
+      inProgressLegend: "In progress",
+      completedLegend: "Completed",
+      noOrders: "No scheduled or ongoing orders for this day."
+    },
+    map: {
+      startPoint: "Start Point",
+      destination: "Destination",
+      currentLocation: "Current position",
+      rotateOn: "Rotation: ON",
+      navigateRotate: "Navigate (Rotate)"
     },
     workers: {
       title: "Workers",

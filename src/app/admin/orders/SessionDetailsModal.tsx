@@ -50,12 +50,12 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-4xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh]">
           <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
              <div>
-               <h2 className="text-3xl font-black text-amber-600 dark:text-amber-500 mb-2">Zlecenie #{item.workOrderId || item.id}</h2>
+               <h2 className="text-3xl font-black text-amber-600 dark:text-amber-500 mb-2">{dict.orderNumber.replace('{id}', item.workOrderId || item.id)}</h2>
                <div className="flex flex-col gap-1 text-sm text-zinc-600 dark:text-zinc-400">
-                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">Pracownik:</span> {item.workerName || 'Brak przypisania'}</p>
-                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">Sprzęt:</span> {item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} - {item.resourceName || dict.noMachine}</p>
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.worker}</span> {item.workerName || dict.noWorkerAssigned}</p>
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.equipment}</span> {item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} - {item.resourceName || dict.noMachine}</p>
                  {(item.customerFirstName || item.customerLastName) && (
-                   <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">Klient:</span> {item.customerFirstName || ''} {item.customerLastName || ''}</p>
+                   <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.customer}</span> {item.customerFirstName || ''} {item.customerLastName || ''}</p>
                  )}
                </div>
              </div>
@@ -160,7 +160,7 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
            <div className="flex-1 flex items-center justify-center relative overflow-hidden px-12">
               <img 
                  src={allPhotos[lightboxIndex]} 
-                 alt="Powiększone zdjęcie" 
+                 alt={dict.enlargedPhoto} 
                  className="max-w-full max-h-full object-contain animate-in fade-in zoom-in-95 duration-300 shadow-2xl" 
               />
               

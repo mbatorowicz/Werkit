@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { getDictionary } from "@/i18n";
 
 const iconStart = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -84,6 +85,7 @@ interface LiveMapProps {
 export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [], onEventClick }: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
   const [isAutoRotate, setIsAutoRotate] = useState(false);
+  const dict = getDictionary().admin.map;
 
   // OSRM Routing
   useEffect(() => {
@@ -119,7 +121,7 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
           onClick={() => setIsAutoRotate(!isAutoRotate)}
           className="absolute bottom-6 right-4 z-[1000] bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white px-4 py-2 rounded-full shadow-lg font-medium text-xs border border-zinc-200 dark:border-zinc-700 transition active:scale-95"
         >
-          {isAutoRotate ? 'Obracanie: WŁ' : 'Nawigacja (Obracaj)'}
+          {isAutoRotate ? dict.rotateOn : dict.navigateRotate}
         </button>
       )}
 
@@ -137,7 +139,7 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
         {/* Start Point */}
         {pathTraveled.length > 0 && (
            <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
-             <Popup>Punkt Startowy</Popup>
+             <Popup>{dict.startPoint}</Popup>
            </Marker>
         )}
 
@@ -168,13 +170,13 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
 
         {destination && (
            <Marker position={[destination.lat, destination.lng]} icon={iconDest}>
-             <Popup>Cel</Popup>
+             <Popup>{dict.destination}</Popup>
            </Marker>
         )}
 
         {/* Current Location */}
         <Marker position={[currentLocation.lat, currentLocation.lng]} icon={iconCurrent}>
-           <Popup>Aktualna pozycja</Popup>
+           <Popup>{dict.currentLocation}</Popup>
         </Marker>
         <Recenter lat={currentLocation.lat} lng={currentLocation.lng} />
         <MapRotator heading={currentLocation.heading} isAutoRotate={isAutoRotate} />

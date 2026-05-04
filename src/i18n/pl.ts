@@ -117,7 +117,36 @@ export const pl = {
       note: "Notatka",
       photoRoute: "Zdjęcie z trasy",
       photoStart: "Rozpoczęcie",
-      photoEnd: "Zakończenie"
+      photoEnd: "Zakończenie",
+      orderNumber: "Zlecenie #{id}",
+      worker: "Pracownik:",
+      noWorkerAssigned: "Brak przypisania",
+      equipment: "Sprzęt:",
+      customer: "Klient:",
+      enlargedPhoto: "Powiększone zdjęcie"
+    },
+    gantt: {
+      pendingOrder: "Oczekujące Zlecenie",
+      date: "Data",
+      estimatedTime: "Szacowany czas",
+      clickToEdit: "Kliknij, aby edytować.",
+      inProgress: "W trakcie",
+      completed: "Zakończone",
+      start: "Start",
+      end: "Koniec",
+      inProgressShort: "Trwa...",
+      clickToDetails: "Kliknij, aby zobaczyć szczegóły.",
+      plannedWorkTime: "Planowany czas pracy",
+      inProgressLegend: "W trakcie realizacji",
+      completedLegend: "Zrealizowano",
+      noOrders: "Brak zaplanowanych i realizowanych zleceń w tym dniu."
+    },
+    map: {
+      startPoint: "Punkt Startowy",
+      destination: "Cel",
+      currentLocation: "Aktualna pozycja",
+      rotateOn: "Obracanie: WŁ",
+      navigateRotate: "Nawigacja (Obracaj)"
     },
     workers: {
       title: "Pracownicy",
