@@ -6,65 +6,75 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'super-sec
 
 export async function proxy(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
+  const { pathname } = request.nextUrl;
 
-  // Zabezpieczenie API
-  if (request.nextUrl.pathname.startsWith('/api') && !request.nextUrl.pathname.startsWith('/api/auth')) {
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    try {
-      const verified = await jwtVerify(token, JWT_SECRET);
-      const role = verified.payload.role as string;
-      const adminOnlyRoutes = ['/api/admin', '/api/materials', '/api/machines', '/api/customers', '/api/categories', '/api/workers', '/api/settings'];
-      const isAdminRoute = adminOnlyRoutes.some(route => request.nextUrl.pathname.startsWith(route));
-      if (isAdminRoute && role !== 'admin') {
-        const isAllowedWorkerGet = request.method === 'GET' && ['/api/materials', '/api/machines', '/api/customers'].some(r => request.nextUrl.pathname.startsWith(r));
-        if (!isAllowedWorkerGet) {
-          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
-      }
-    } catch (err) {
-      return NextResponse.json({ error: 'Invalid Token' }, { status: 401 });
-    }
+  const isAuthRoute = pathname === '/login' || pathname.startsWith('/login/');
+  const isAdminPage = pathname.startsWith('/admin');
+  const isWorkerPage = pathname.startsWith('/worker');
+  const isAdminApi = pathname.startsWith('/api/admin') || pathname.startsWith('/api/categories') || pathname.startsWith('/api/customers') || pathname.startsWith('/api/machines') || pathname.startsWith('/api/materials') || pathname.startsWith('/api/settings') || pathname.startsWith('/api/workers');
+  const isWorkerApi = pathname.startsWith('/api/worker');
+  const isApiAuthRoute = pathname.startsWith('/api/auth');
+
+  // If it's not a protected route, let it pass (e.g. public assets, root, etc)
+  if (!isAdminPage && !isWorkerPage && !isAuthRoute && !isAdminApi && !isWorkerApi && !isApiAuthRoute) {
+    return NextResponse.next();
   }
 
-  // Zabezpieczenie routingu na /admin oraz /worker
-  if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/worker')) {
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    try {
-      const verified = await jwtVerify(token, JWT_SECRET);
-      const role = verified.payload.role as string;
-
-      if (request.nextUrl.pathname.startsWith('/admin') && role !== 'admin') {
-         return NextResponse.redirect(new URL('/worker', request.url));
-      }
-      if (request.nextUrl.pathname.startsWith('/worker') && role !== 'worker' && role !== 'admin') {
-         return NextResponse.redirect(new URL('/login', request.url));
-      }
-
-      return NextResponse.next();
-    } catch (err) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+  // Allow login/logout APIs
+  if (isApiAuthRoute) {
+    return NextResponse.next();
   }
 
-  // Przekierowanie roota, jeśli zalogowany
-  if (request.nextUrl.pathname === '/') {
-    if (token) {
-      try {
-        const verified = await jwtVerify(token, JWT_SECRET);
-        const role = verified.payload.role as string;
-        return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/worker', request.url));
-      } catch (err) {
+  // Handle missing token
+  if (!token) {
+    if (isAdminApi || isWorkerApi) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (isAdminPage || isWorkerPage) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Verify token
+  try {
+    const verified = await jwtVerify(token, JWT_SECRET);
+    const role = verified.payload.role as string;
+
+    if (isAuthRoute) {
+      if (role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      } else {
+        return NextResponse.redirect(new URL('/worker', request.url));
+      }
+    }
+
+    if (isAdminPage || isAdminApi) {
+      if (role !== 'admin') {
+        if (isAdminApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        return NextResponse.redirect(new URL('/worker', request.url));
+      }
+    }
+
+    if (isWorkerPage || isWorkerApi) {
+      if (role !== 'worker' && role !== 'admin') {
+        if (isWorkerApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         return NextResponse.redirect(new URL('/login', request.url));
       }
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+
+    return NextResponse.next();
+  } catch (err) {
+    // Token is invalid or expired
+    if (isAdminApi || isWorkerApi) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const response = NextResponse.redirect(new URL('/login', request.url));
+    response.cookies.delete('auth_token');
+    return response;
   }
-  
-  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/worker/:path*', '/', '/api/:path*'],
+  matcher: ['/admin/:path*', '/worker/:path*', '/login', '/api/:path*'],
 };

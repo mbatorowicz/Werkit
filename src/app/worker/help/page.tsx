@@ -1,7 +1,7 @@
 "use client";
 
 import { HelpCircle, PhoneCall, AlertTriangle, Info, BookOpen, ChevronDown, ChevronUp, MapPin, Camera, Clock, Navigation, Play } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function HelpAccordion({ title, icon: Icon, children }: { title: string, icon: any, children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,6 +32,16 @@ import { getDictionary } from "@/i18n";
 
 export default function HelpPage() {
   const dict = getDictionary().worker.help;
+  const [phone, setPhone] = useState<string>("112");
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.phone) setPhone(data.phone);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="py-6 pb-20">
@@ -46,7 +56,10 @@ export default function HelpPage() {
           <p className="text-zinc-600 dark:text-zinc-300 text-sm mb-4">
             {dict.contactDesc}
           </p>
-          <a href="tel:112" className="w-full bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 rounded-lg p-4 flex items-center justify-center gap-3 transition-colors font-medium">
+          <div className="mb-4 text-center">
+            <span className="text-2xl font-black text-zinc-800 dark:text-white tracking-wide">{phone}</span>
+          </div>
+          <a href={`tel:${phone}`} className="w-full bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 rounded-lg p-4 flex items-center justify-center gap-3 transition-colors font-medium">
             <PhoneCall className="w-5 h-5" />
             {dict.callDispatcher}
           </a>

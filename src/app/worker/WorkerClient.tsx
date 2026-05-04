@@ -244,23 +244,23 @@ export default function WorkerClient() {
         BackgroundGeolocation.addWatcher(
           {
             backgroundMessage: "Aplikacja śledzi trasę pracownika.",
-          backgroundTitle: "Werkit - Rejestrowanie trasy",
-          requestPermissions: true,
-          stale: false,
-          distanceFilter: 50 // Increased to 50m to save battery
-        },
-        function callback(location, error) {
-          if (error) {
-            setGpsStatus("error");
-            return;
+            backgroundTitle: "Werkit - Rejestrowanie trasy",
+            requestPermissions: true,
+            stale: false,
+            distanceFilter: 50 // Increased to 50m to save battery
+          },
+          function callback(location, error) {
+            if (error) {
+              setGpsStatus("error");
+              return;
+            }
+            if (location) {
+              handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
+            }
           }
-          if (location) {
-            handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
-          }
-        }
-      ).then(watcherId => {
-        watchIdRef.current = watcherId;
-      });
+        ).then(watcherId => {
+          watchIdRef.current = watcherId;
+        });
       }
     } else if ("geolocation" in navigator) {
       setGpsStatus("waiting");
@@ -521,7 +521,7 @@ export default function WorkerClient() {
                 });
                 notifiedArr.push(id);
                 localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
-              } catch(e) { console.error(e); }
+              } catch (e) { console.error(e); }
             }
           }
         } catch (e) {
@@ -530,8 +530,8 @@ export default function WorkerClient() {
       };
 
       if (isTimeOverrun) await triggerNotification(999991, 'Przekroczony czas pracy!', 'Obecne zlecenie trwa dłużej niż zakładał plan.');
-      if (overdueOrder) await triggerNotification(overdueOrder.id + 100000, 'Zlecenie opóźnione!', `Masz opóźnione zlecenie na: ${overdueOrder.customerFirstName || overdueOrder.resourceName}`);
-      if (upcomingOrder) await triggerNotification(upcomingOrder.id + 200000, 'Zbliżające się zlecenie!', `Masz zaplanowane zlecenie na: ${upcomingOrder.customerFirstName || upcomingOrder.resourceName}`);
+      if (overdueOrder) await triggerNotification(overdueOrder.id + 100000, 'Zlecenie opóźnione!', `Masz opóźnione zlecenie na: ${overdueOrder.customerName || overdueOrder.resourceName}`);
+      if (upcomingOrder) await triggerNotification(upcomingOrder.id + 200000, 'Zbliżające się zlecenie!', `Masz zaplanowane zlecenie na: ${upcomingOrder.customerName || upcomingOrder.resourceName}`);
     };
 
     checkNotifications();
