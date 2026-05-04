@@ -5,6 +5,8 @@ import { eq, desc, and, gte } from "drizzle-orm";
 import { getDictionary } from "@/i18n";
 import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp, Users } from "lucide-react";
 
+import GanttChart from "@/components/GanttChart/GanttChart";
+
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
@@ -65,6 +67,39 @@ export default async function DashboardPage() {
   const topMachines = Object.entries(machineStats).sort((a, b) => b[1] - a[1]).slice(0, 4);
   const maxMachineSessions = topMachines.length > 0 ? topMachines[0][1] : 1;
 
+  // Gantt Chart Data
+  const allWorkers = await db.select().from(users).where(eq(users.isActive, true));
+  const allMachines = await db.select().from(resources);
+  const pendingGantt = await db.select().from(workOrders).where(eq(workOrders.status, 'PENDING'));
+  const sessionsGantt = await db.select().from(workSessions);
+
+  // We map dates to standard ISO strings since Server Components pass objects to Client Components.
+  // Wait, Server Components can pass Date objects to Client Components in Next.js app router without issue!
+  const unifiedItems = [
+    ...pendingGantt.map(o => ({
+      _type: 'ORDER',
+      id: o.id,
+      userId: o.userId,
+      resourceId: o.resourceId,
+      status: o.status,
+      dueDate: o.dueDate,
+      expectedDurationHours: o.expectedDurationHours,
+      workOrderId: o.id
+    })),
+    ...sessionsGantt.map(s => ({
+      _type: 'SESSION',
+      id: s.id,
+      userId: s.userId,
+      resourceId: s.resourceId,
+      status: s.status,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      dueDate: s.dueDate,
+      expectedDurationHours: s.expectedDurationHours,
+      workOrderId: s.workOrderId
+    }))
+  ];
+
   return (
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -74,7 +109,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <GanttChart 
+        workers={allWorkers} 
+        machines={allMachines} 
+        unifiedItems={unifiedItems}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-6">
          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
              <div className="flex justify-between items-start mb-4">
                <div className="p-2.5 bg-indigo-500/10 rounded-lg">

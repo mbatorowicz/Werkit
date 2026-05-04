@@ -5,8 +5,6 @@ import { Map, Plus, X, Search, RefreshCw, Settings, Loader2 } from "lucide-react
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "./SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
-import GanttChart from "@/components/GanttChart/GanttChart";
-
 export default function OrdersClient() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [machines, setMachines] = useState<any[]>([]);
@@ -201,13 +199,7 @@ export default function OrdersClient() {
         </div>
       )}
 
-      {/* Wykres Gantta */}
-      <GanttChart 
-        workers={workers} 
-        machines={machines} 
-        unifiedItems={unifiedItems}
-        onItemClick={(item) => setSelectedItem(item)}
-      />
+      {/* Gantt removed and moved to dashboard */}
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
