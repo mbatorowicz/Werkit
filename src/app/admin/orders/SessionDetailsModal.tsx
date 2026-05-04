@@ -34,8 +34,8 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
 
   const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse();
   const events = [
-    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? dict.start : (p.photoType === 'END' ? dict.end : dict.photo), id: `photo_${p.id}` })),
-    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: dict.note, id: `note_${n.id}` }))
+    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), label: p.photoType === 'START' ? dict.start : (p.photoType === 'END' ? dict.end : dict.photo), id: `photo_${p.id}`, photoUrl: p.photoUrl })),
+    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), label: dict.note, id: `note_${n.id}`, note: n.note }))
   ];
   const hasMapData = logs.length > 0 || events.length > 0;
   const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });

@@ -63,7 +63,7 @@ interface LiveMapProps {
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
-  events?: { lat: number; lng: number, label: string, id: string }[];
+  events?: { lat: number; lng: number, label: string, id: string, photoUrl?: string, note?: string }[];
   onEventClick?: (id: string) => void;
 }
 
@@ -142,7 +142,13 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
                click: () => onEventClick && onEventClick(ev.id)
              }}
            >
-             <Popup>{ev.label}</Popup>
+             <Popup>
+                <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
+                  <p className="font-semibold m-0">{ev.label}</p>
+                  {ev.note && <p className="text-sm italic m-0 break-words">{ev.note}</p>}
+                  {ev.photoUrl && <img src={ev.photoUrl} alt="Zdarzenie" className="w-full rounded-md object-cover max-h-[150px]" />}
+                </div>
+             </Popup>
            </Marker>
         ))}
 
