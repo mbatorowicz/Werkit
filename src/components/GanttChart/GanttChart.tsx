@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
@@ -14,23 +14,6 @@ type GanttProps = {
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
   const dict = getDictionary().admin.gantt;
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0 && !e.shiftKey) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    };
-
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, []);
 
   // Default selected date to today
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
@@ -155,11 +138,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex overflow-x-auto custom-scrollbar relative">
-        <div className="min-w-[800px] w-full">
+      <div className="flex relative">
+        <div className="w-full">
           {/* Header row with hours */}
           <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-10">
-            <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center sticky left-0 z-20">
+            <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{groupBy === 'WORKER' ? 'Pracownik' : 'Maszyna/Pojazd'}</span>
             </div>
             <div className="flex-1 relative h-10">
@@ -196,12 +179,12 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
               return (
                 <div key={row.id} className="flex border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-3 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-10">
+                  <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center">
                     <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate" title={groupBy === 'WORKER' ? row.fullName : row.name}>
                       {groupBy === 'WORKER' ? row.fullName : row.name}
                     </span>
                   </div>
-                  <div className="flex-1 relative h-14 my-1">
+                  <div className="flex-1 relative h-10 my-1">
                     {rowItems.map(item => {
                       const plannedStart = item.dueDate ? new Date(item.dueDate) : null;
                       const plannedDurationHours = parseFloat(item.expectedDurationHours || '2'); // fallback to 2h
