@@ -167,19 +167,13 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
                       if (!plannedDims && !actualDims) return null;
 
+                      // Instead of wrapping them in an unpositioned absolute container, we just render them directly in the row relative container.
+                      // Or we can use a React Fragment.
                       return (
-                        <div 
-                          key={`${item._type}-${item.id}`} 
-                          className="absolute top-1 bottom-1 cursor-pointer transition hover:z-20 hover:scale-[1.02]"
-                          style={{
-                            // we wrap both in a container that takes the bounds of whichever is wider, but absolute positioning handles it if we just use a fragment or let them sit independently relative to the row!
-                            // wait, let's put them independently in the row container.
-                          }}
-                          onClick={() => onItemClick?.(item)}
-                        >
+                        <div key={`${item._type}-${item.id}`}>
                           {plannedDims && (
                              <div 
-                               className="absolute top-0 bottom-0 border-2 border-dashed border-zinc-400 dark:border-zinc-500 rounded-md bg-zinc-100/50 dark:bg-zinc-800/50 flex items-center px-2 overflow-hidden"
+                               className="absolute top-1 bottom-1 border-2 border-dashed border-zinc-400 dark:border-zinc-500 rounded-md bg-zinc-100/50 dark:bg-zinc-800/50 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                                style={{ left: plannedDims.left, width: plannedDims.width }}
                                title={`Plan: ${plannedStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} (${plannedDurationHours}h)\nZlecenie #${item.workOrderId || item.id}`}
                              >
@@ -188,7 +182,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                           )}
                           {actualDims && (
                              <div 
-                               className={`absolute top-1.5 bottom-1.5 rounded shadow-sm flex items-center px-2 overflow-hidden ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
+                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                                style={{ left: actualDims.left, width: actualDims.width }}
                                title={`Rzeczywiste: ${actualStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} - ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'w trakcie'}\nZlecenie #${item.workOrderId || item.id}`}
                              >
