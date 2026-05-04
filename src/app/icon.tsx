@@ -20,16 +20,13 @@ export default function Icon() {
       >
         <div
           style={{
-            fontSize: 120,
+            fontSize: 360,
             fontWeight: 900,
-            letterSpacing: '-0.05em',
             fontFamily: 'system-ui, sans-serif',
-            background: 'linear-gradient(to right, #34d399, #059669)', // emerald-400 to emerald-600
-            backgroundClip: 'text',
-            color: 'transparent',
+            color: '#10b981', // emerald-500
           }}
         >
-          WERKIT
+          W
         </div>
       </div>
     ),

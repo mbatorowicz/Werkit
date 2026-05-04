@@ -1,7 +1,7 @@
 import WorkerClient from "./WorkerClient";
 import { db } from "@/db";
 import { workSessions, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, resources, materials } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -58,7 +58,8 @@ export default async function WorkerPage() {
     .leftJoin(resources, eq(workOrders.resourceId, resources.id))
     .leftJoin(materials, eq(workOrders.materialId, materials.id))
     .leftJoin(customers, eq(workOrders.customerId, customers.id))
-    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')));
+    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
+    .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
 
   const orders = ordersRaw.map(o => ({
     ...o,

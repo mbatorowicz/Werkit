@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { workOrders, resources, materials, customers, users } from '@/db/schema';
-import { eq, and, aliasedTable } from 'drizzle-orm';
+import { eq, and, aliasedTable, asc } from 'drizzle-orm';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -38,7 +38,8 @@ export async function GET() {
     .leftJoin(materials, eq(workOrders.materialId, materials.id))
     .leftJoin(customers, eq(workOrders.customerId, customers.id))
     .leftJoin(creator, eq(workOrders.createdById, creator.id))
-    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')));
+    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
+    .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
 
     return NextResponse.json(orders);
   } catch (err: any) {
