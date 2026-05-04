@@ -6,6 +6,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "./SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
+import GanttChart from "@/components/GanttChart/GanttChart";
 
 export default function OrdersClient() {
   const searchParams = useSearchParams();
@@ -18,6 +19,7 @@ export default function OrdersClient() {
   const [orders, setOrders] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [tableLimit, setTableLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -227,7 +229,15 @@ export default function OrdersClient() {
         </div>
       )}
 
-      {/* Gantt removed and moved to dashboard */}
+      <GanttChart 
+        workers={workers} 
+        machines={machines} 
+        unifiedItems={unifiedItems} 
+        onItemClick={(item) => {
+          if (item._type === 'ORDER') handleEditClick(item);
+          else setSelectedItem(item);
+        }}
+      />
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
@@ -241,6 +251,16 @@ export default function OrdersClient() {
               className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
             />
           </div>
+          <select
+            value={tableLimit}
+            onChange={(e) => setTableLimit(Number(e.target.value))}
+            className="bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+          >
+            <option value={10}>10 wyników</option>
+            <option value={20}>20 wyników</option>
+            <option value={50}>50 wyników</option>
+            <option value={100}>100 wyników</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -266,7 +286,7 @@ export default function OrdersClient() {
                     </div>
                   </td>
                 </tr>
-              ) : unifiedItems.map(item => {
+              ) : unifiedItems.slice(0, tableLimit).map(item => {
                 const isWorking = item.status === 'IN_PROGRESS';
                 let progress = 0;
                 if (isWorking && item._sortDate) {

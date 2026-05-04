@@ -172,10 +172,16 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                       // Instead of wrapping them in an unpositioned absolute container, we just render them directly in the row relative container.
                       // Or we can use a React Fragment.
                       return (
-                        <a
+                        <div
                           key={`${item._type}-${item.id}`}
-                          href={`/admin/orders?open=${item.workOrderId || item.id}`}
-                          className="block"
+                          onClick={() => {
+                            if (onItemClick) {
+                              onItemClick(item);
+                            } else {
+                              window.location.assign(`/admin/orders?open=${item.workOrderId || item.id}`);
+                            }
+                          }}
+                          className="block cursor-pointer"
                         >
                           {plannedDims && (
                             <div
@@ -195,7 +201,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                               <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
                           )}
-                        </a>
+                        </div>
                       );
                     })}
                   </div>

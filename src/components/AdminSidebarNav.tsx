@@ -8,12 +8,12 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
   const pathname = usePathname();
 
   const links = [
-    { href: "/admin", icon: Activity, label: dict.dashboard.title },
+    { href: "/admin", icon: Map, label: "Pulpit i Zlecenia" },
+    { href: "/admin/reports", icon: Activity, label: "Raporty" },
     { type: "section", label: dict.sidebar.fleetAndPeople },
     { href: "/admin/workers", icon: Users, label: dict.workers.title },
     { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
     { type: "section", label: dict.sidebar.logistics },
-    { href: "/admin/orders", icon: Map, label: dict.orders.title },
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
     { href: "/admin/customers", icon: Package, label: dict.customers.title },
     { type: "section", label: dict.sidebar.system },
