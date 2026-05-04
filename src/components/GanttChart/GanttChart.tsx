@@ -170,26 +170,30 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                       // Instead of wrapping them in an unpositioned absolute container, we just render them directly in the row relative container.
                       // Or we can use a React Fragment.
                       return (
-                        <div key={`${item._type}-${item.id}`}>
+                        <a 
+                          key={`${item._type}-${item.id}`}
+                          href={`/admin/orders?open=${item.workOrderId || item.id}`}
+                          className="block"
+                        >
                           {plannedDims && (
                              <div 
-                               className="absolute top-1 bottom-1 border-2 border-dashed border-zinc-400 dark:border-zinc-500 rounded-md bg-zinc-100/50 dark:bg-zinc-800/50 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
+                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                                style={{ left: plannedDims.left, width: plannedDims.width }}
-                               title={`Plan: ${plannedStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} (${plannedDurationHours}h)\nZlecenie #${item.workOrderId || item.id}`}
+                               title={`Oczekujące Zlecenie #${item.workOrderId || item.id}\nData: ${plannedStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}\nSzacowany czas: ${plannedDurationHours}h\nKliknij, aby edytować.`}
                              >
-                                <span className="text-[10px] font-bold text-zinc-500 whitespace-nowrap opacity-50 truncate">ZAPLANOWANE #{item.workOrderId || item.id}</span>
+                                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                              </div>
                           )}
                           {actualDims && (
                              <div 
                                className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                                style={{ left: actualDims.left, width: actualDims.width }}
-                               title={`Rzeczywiste: ${actualStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} - ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'w trakcie'}\nZlecenie #${item.workOrderId || item.id}`}
+                               title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? 'W trakcie' : 'Zakończone'})\nStart: ${actualStart?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}\nKoniec: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'}) : 'Trwa...'}\nKliknij, aby zobaczyć szczegóły.`}
                              >
-                                <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">{item.status === 'IN_PROGRESS' ? 'W TRAKCIE' : 'ZAKOŃCZONE'}</span>
+                                <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                              </div>
                           )}
-                        </div>
+                        </a>
                       );
                     })}
                   </div>

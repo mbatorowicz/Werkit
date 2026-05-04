@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { Map, Plus, X, Search, RefreshCw, Settings, Loader2 } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "./SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
+
 export default function OrdersClient() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [workers, setWorkers] = useState<any[]>([]);
   const [machines, setMachines] = useState<any[]>([]);
   const [materials, setMaterials] = useState<any[]>([]);
@@ -68,6 +73,24 @@ export default function OrdersClient() {
   }, []);
 
   const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const openIdStr = searchParams.get('open');
+    if (openIdStr && !isLoading && (orders.length > 0 || sessions.length > 0)) {
+      const openId = parseInt(openIdStr);
+      const order = orders.find(o => o.id === openId);
+      if (order) {
+        handleEditClick(order);
+      } else {
+        const session = sessions.find(s => s.workOrderId === openId || s.id === openId);
+        if (session) {
+          setSelectedItem(session);
+        }
+      }
+      // Remove query param to prevent reopening on polling
+      router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, orders, sessions, isLoading, router, pathname]);
 
   const formatToLocalDatetime = (dateString: string | null) => {
     if (!dateString) return '';
