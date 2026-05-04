@@ -23,6 +23,9 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
     return d.toISOString().split('T')[0];
   });
 
+  const [startHour, setStartHour] = useState(6);
+  const [endHour, setEndHour] = useState(18);
+
   const handlePrevDay = () => {
     const d = new Date(selectedDateStr);
     d.setDate(d.getDate() - 1);
@@ -37,33 +40,45 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
   const rows = groupBy === 'WORKER' ? workers : machines;
 
-  // Start of day (00:00:00) and End of day (23:59:59) for filtering
+  // Start of day and End of day based on selected hours
   const dStart = new Date(selectedDateStr);
-  dStart.setHours(0, 0, 0, 0);
+  dStart.setHours(startHour, 0, 0, 0);
   const dEnd = new Date(selectedDateStr);
-  dEnd.setHours(23, 59, 59, 999);
+  dEnd.setHours(endHour, 0, 0, 0);
+
+  const totalHours = endHour - startHour;
 
   const getDimensions = (start: Date, durationHours: number) => {
-    // If start is before today, we just cap it at 0
-    let startMins = 0;
-    if (start >= dStart && start <= dEnd) {
-      startMins = start.getHours() * 60 + start.getMinutes();
-    } else if (start < dStart) {
-      startMins = 0;
-      durationHours -= (dStart.getTime() - start.getTime()) / 3600000;
-    } else {
+    let itemStartMs = start.getTime();
+    let itemEndMs = itemStartMs + durationHours * 3600000;
+    
+    if (itemEndMs <= dStart.getTime() || itemStartMs >= dEnd.getTime()) {
       return null;
     }
 
-    if (durationHours <= 0) return null;
+    if (itemStartMs < dStart.getTime()) {
+      itemStartMs = dStart.getTime();
+    }
+    if (itemEndMs > dEnd.getTime()) {
+      itemEndMs = dEnd.getTime();
+    }
 
-    const left = (startMins / 1440) * 100;
-    const width = (durationHours * 60 / 1440) * 100;
+    const visibleDurationHours = (itemEndMs - itemStartMs) / 3600000;
+    if (visibleDurationHours <= 0) return null;
+
+    const visibleStart = new Date(itemStartMs);
+    const startMinsFromStartHour = (visibleStart.getHours() - startHour) * 60 + visibleStart.getMinutes();
+    
+    const totalMins = totalHours * 60;
+    
+    const left = (startMinsFromStartHour / totalMins) * 100;
+    const width = (visibleDurationHours * 60 / totalMins) * 100;
+    
     return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
   };
 
-  // Generate 24 hour markers
-  const hours = Array.from({ length: 24 }).map((_, i) => i);
+  // Generate hour markers
+  const hours = Array.from({ length: totalHours + 1 }).map((_, i) => startHour + i);
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm overflow-hidden flex flex-col mb-6">
@@ -85,19 +100,41 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button onClick={handlePrevDay} className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <input
-            type="date"
-            value={selectedDateStr}
-            onChange={e => setSelectedDateStr(e.target.value)}
-            className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-3 py-1.5 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
-          />
-          <button onClick={handleNextDay} className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
-            <ChevronRight className="w-4 h-4" />
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-zinc-500">Od:</label>
+            <input 
+              type="number" 
+              min="0" 
+              max={endHour - 1} 
+              value={startHour} 
+              onChange={e => setStartHour(Math.min(endHour - 1, Math.max(0, parseInt(e.target.value) || 0)))}
+              className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
+            />
+            <label className="text-xs font-medium text-zinc-500">Do:</label>
+            <input 
+              type="number" 
+              min={startHour + 1} 
+              max="24" 
+              value={endHour} 
+              onChange={e => setEndHour(Math.max(startHour + 1, Math.min(24, parseInt(e.target.value) || 24)))}
+              className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={handlePrevDay} className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <input
+              type="date"
+              value={selectedDateStr}
+              onChange={e => setSelectedDateStr(e.target.value)}
+              className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-3 py-1.5 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
+            />
+            <button onClick={handleNextDay} className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -110,7 +147,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
             </div>
             <div className="flex-1 relative h-10">
               {hours.map(h => (
-                <div key={h} className="absolute top-0 bottom-0 border-l border-zinc-100 dark:border-zinc-800/50" style={{ left: `${(h / 24) * 100}%` }}>
+                <div key={h} className="absolute top-0 bottom-0 border-l border-zinc-100 dark:border-zinc-800/50" style={{ left: `${((h - startHour) / totalHours) * 100}%` }}>
                   <span className="text-[10px] text-zinc-400 absolute -left-2.5 top-2 bg-white dark:bg-zinc-900 px-1">{h.toString().padStart(2, '0')}:00</span>
                 </div>
               ))}
@@ -122,7 +159,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
             {/* Draw hour lines for the entire body */}
             <div className="absolute inset-0 left-48 pointer-events-none flex">
               {hours.map(h => (
-                <div key={h} className="h-full border-l border-zinc-100 dark:border-zinc-800/30" style={{ left: `${(h / 24) * 100}%`, position: 'absolute' }}></div>
+                <div key={h} className="h-full border-l border-zinc-100 dark:border-zinc-800/30" style={{ left: `${((h - startHour) / totalHours) * 100}%`, position: 'absolute' }}></div>
               ))}
             </div>
 
