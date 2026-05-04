@@ -587,7 +587,7 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
                 </div>
                 {isTimelineOpen ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
               </button>
-              
+
               {isTimelineOpen && (
                 <div className="mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] overflow-y-auto flex flex-col gap-4 shadow-inner relative scroll-smooth">
                   {timelineEvents.map((item, index) => (

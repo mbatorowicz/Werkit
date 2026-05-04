@@ -1,9 +1,9 @@
 import LiveMap from "@/components/Map/LiveMap";
 import { db } from "@/db";
-import { workSessions, users, resources, materials, companySettings } from "@/db/schema";
+import { workSessions, users, resources, materials, companySettings, workOrders } from "@/db/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { getDictionary } from "@/i18n";
-import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp } from "lucide-react";
+import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp, Users } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,7 @@ export default async function DashboardPage() {
     type: workSessions.sessionType,
     desc: workSessions.taskDescription,
     startTime: workSessions.startTime,
+    userId: workSessions.userId,
     userName: users.fullName,
     resourceName: resources.name,
     tons: workSessions.quantityTons,
@@ -26,6 +27,15 @@ export default async function DashboardPage() {
     .leftJoin(resources, eq(workSessions.resourceId, resources.id))
     .where(eq(workSessions.status, "IN_PROGRESS"))
     .orderBy(desc(workSessions.startTime));
+
+  const pendingOrders = await db.select({
+    userId: workOrders.userId
+  })
+    .from(workOrders)
+    .where(eq(workOrders.status, "PENDING"));
+
+  const uniqueWorkersActive = new Set(activeSessions.map(s => s.userId)).size;
+  const uniqueWorkersWithOrders = new Set(pendingOrders.map(o => o.userId)).size;
 
   const settingsList = await db.select().from(companySettings).limit(1);
   const companySSOT = settingsList[0];
@@ -62,6 +72,28 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Activity className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle} {companySSOT?.companyName || "Twojej firmy"}.</p>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
+             <div className="flex justify-between items-start mb-4">
+               <div className="p-2.5 bg-indigo-500/10 rounded-lg">
+                 <Users className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+               </div>
+             </div>
+             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Pracownicy z przydzielonymi zadaniami</h3>
+             <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">{uniqueWorkersWithOrders}</p>
+         </div>
+
+         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 shadow-sm">
+             <div className="flex justify-between items-start mb-4">
+               <div className="p-2.5 bg-emerald-500/10 rounded-lg">
+                 <Activity className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
+               </div>
+             </div>
+             <h3 className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Pracownicy aktualnie wykonujący zadanie</h3>
+             <p className="text-3xl font-bold text-zinc-900 dark:text-white mt-1">{uniqueWorkersActive}</p>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
