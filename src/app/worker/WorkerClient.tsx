@@ -9,6 +9,7 @@ import { getDictionary } from "@/i18n";
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { useWorkerNotifications } from '@/hooks/useWorkerNotifications';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-zinc-500" /></div> });
@@ -58,22 +59,7 @@ type UserData = {
   notificationsEnabled?: boolean;
 };
 
-type GPSQueueItem = Coord & { timestamp: string };
-
-// Haversine formula for distance between coords in meters
-function getDistance(a: Coord, b: Coord) {
-  const R = 6371e3; // metres
-  const φ1 = a.lat * Math.PI / 180;
-  const φ2 = b.lat * Math.PI / 180;
-  const Δφ = (b.lat - a.lat) * Math.PI / 180;
-  const Δλ = (b.lng - a.lng) * Math.PI / 180;
-
-  const x = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
-  return R * c;
-}
+import { useWorkerGPS, getDistance } from '@/hooks/useWorkerGPS';
 
 function SessionTimer({ startTime }: { startTime: string }) {
   const [elapsed, setElapsed] = useState("00:00:00");
@@ -94,16 +80,16 @@ function SessionTimer({ startTime }: { startTime: string }) {
   return <>{elapsed}</>;
 }
 
-export default function WorkerClient() {
-  const [events, setEvents] = useState<{ lat: number, lng: number, label: string }[]>([]);
-  const [session, setSession] = useState<Session | null>(null);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function WorkerClient({ initialData }: { initialData?: any }) {
+  const [events, setEvents] = useState<{ lat: number, lng: number, label: string }[]>(initialData?.events || []);
+  const [session, setSession] = useState<Session | null>(initialData?.session || null);
+  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders || []);
+  const [isLoading, setIsLoading] = useState(!initialData);
 
-  const [notesList, setNotesList] = useState<Note[]>([]);
+  const [notesList, setNotesList] = useState<Note[]>(initialData?.notes || []);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  const [settings, setSettings] = useState<AppSettings | null>(initialData?.settings || null);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user || null);
 
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
@@ -195,126 +181,19 @@ export default function WorkerClient() {
   };
 
   useEffect(() => {
-    fetchSessionAndPath(true, true);
+    if (!initialData) {
+      fetchSessionAndPath(true, true);
+    } else {
+      fetchSessionAndPath(false, true); // only fetch gps path in background
+    }
     // Polling is backed off to 30 seconds to save battery on mobile devices.
     const interval = setInterval(() => fetchSessionAndPath(false, false), 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [initialData]);
 
   // Timer Logic extracted to SessionTimer component to prevent full re-renders
 
-  // GPS Logic
-  useEffect(() => {
-    if (!session) {
-      if (watchIdRef.current !== null) {
-        if (Capacitor.isNativePlatform()) {
-          if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
-            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
-          }
-        } else {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-        }
-        watchIdRef.current = null;
-      }
-      return;
-    }
-
-    const handleNewLoc = (newLoc: Coord) => {
-      setLocation(newLoc);
-
-      setPathTraveled(prev => {
-        if (prev.length > 0) {
-          const lastLoc = prev[prev.length - 1];
-          const distIncrement = getDistance(lastLoc, newLoc) / 1000;
-          setTraveledKm(k => k + distIncrement);
-        }
-        return [...prev, newLoc];
-      });
-
-      const payload = { ...newLoc, timestamp: new Date().toISOString() };
-      let queue: GPSQueueItem[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
-      queue.push(payload);
-      localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
-    };
-
-    if (Capacitor.isNativePlatform()) {
-      setGpsStatus("waiting");
-      if (BackgroundGeolocation && typeof BackgroundGeolocation.addWatcher === 'function') {
-        BackgroundGeolocation.addWatcher(
-          {
-            backgroundMessage: "Aplikacja śledzi trasę pracownika.",
-            backgroundTitle: "Werkit - Rejestrowanie trasy",
-            requestPermissions: true,
-            stale: false,
-            distanceFilter: 50 // Increased to 50m to save battery
-          },
-          function callback(location, error) {
-            if (error) {
-              setGpsStatus("error");
-              return;
-            }
-            if (location) {
-              handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
-            }
-          }
-        ).then(watcherId => {
-          watchIdRef.current = watcherId;
-        });
-      }
-    } else if ("geolocation" in navigator) {
-      setGpsStatus("waiting");
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        async (pos) => {
-          handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
-        },
-        (err) => {
-          setGpsStatus("error");
-        },
-        { enableHighAccuracy: false, maximumAge: 30000, timeout: 15000 } // Web fallback: false high accuracy to save battery
-      );
-    } else {
-      setGpsStatus("error");
-    }
-
-    // Flush GPS queue every 30 seconds to avoid waking up network radio continuously
-    const flushInterval = setInterval(() => {
-      if (!navigator.onLine) {
-        setGpsStatus("waiting");
-        return;
-      }
-      let queue: any[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
-      if (queue.length === 0) return;
-
-      fetch("/api/worker/gps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queue)
-      })
-        .then(res => {
-          if (res.ok) {
-            localStorage.setItem('werkit_gps_queue', '[]');
-            setGpsStatus("active");
-          }
-        })
-        .catch(() => setGpsStatus("waiting"));
-    }, 30000);
-
-    return () => {
-      if (watchIdRef.current !== null) {
-        if (Capacitor.isNativePlatform()) {
-          if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
-            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
-          }
-        } else {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-        }
-        watchIdRef.current = null;
-      }
-      clearInterval(flushInterval);
-    };
-  }, [session]);
+  useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
 
   const handleEndSession = async () => {
     if (settings?.requirePhotoToFinish) {
@@ -470,72 +349,7 @@ export default function WorkerClient() {
     ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes
     : true;
 
-  const isTimeOverrun = session && session.expectedDurationHours && settings?.timeOverrunReminder
-    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(session.expectedDurationHours)
-    : false;
-
-  const overdueOrder = workOrders.find(order => {
-    if (!order.dueDate) return false;
-    const dueTime = new Date(order.dueDate).getTime();
-    const now = new Date().getTime();
-    return dueTime - now < 0; // Opóźnione
-  });
-
-  const upcomingOrder = workOrders.find(order => {
-    if (!order.dueDate) return false;
-    const dueTime = new Date(order.dueDate).getTime();
-    const now = new Date().getTime();
-    const reminderMs = (settings?.upcomingOrderReminderMinutes ?? 120) * 60 * 1000;
-    return dueTime - now > 0 && dueTime - now < reminderMs;
-  });
-
-  useEffect(() => {
-    if (!currentUser || currentUser.notificationsEnabled === false) return;
-    if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
-
-    const checkNotifications = async () => {
-      const notifiedStr = localStorage.getItem('werkit_notified_orders') || '[]';
-      const notifiedArr: number[] = JSON.parse(notifiedStr);
-
-      const triggerNotification = async (id: number, title: string, body: string) => {
-        try {
-          if (!notifiedArr.includes(id)) {
-            let perm = { display: 'denied' };
-            try {
-              if (LocalNotifications && typeof LocalNotifications.requestPermissions === 'function') {
-                perm = await LocalNotifications.requestPermissions();
-              }
-            } catch (e) { console.error(e); }
-
-            if (perm.display === 'granted') {
-              try {
-                await LocalNotifications.schedule({
-                  notifications: [
-                    {
-                      title,
-                      body,
-                      id: id,
-                      schedule: { at: new Date(Date.now() + 1000) },
-                    }
-                  ]
-                });
-                notifiedArr.push(id);
-                localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
-              } catch (e) { console.error(e); }
-            }
-          }
-        } catch (e) {
-          console.error("Notification trigger error:", e);
-        }
-      };
-
-      if (isTimeOverrun) await triggerNotification(999991, 'Przekroczony czas pracy!', 'Obecne zlecenie trwa dłużej niż zakładał plan.');
-      if (overdueOrder) await triggerNotification(overdueOrder.id + 100000, 'Zlecenie opóźnione!', `Masz opóźnione zlecenie na: ${overdueOrder.customerName || overdueOrder.resourceName}`);
-      if (upcomingOrder) await triggerNotification(upcomingOrder.id + 200000, 'Zbliżające się zlecenie!', `Masz zaplanowane zlecenie na: ${upcomingOrder.customerName || upcomingOrder.resourceName}`);
-    };
-
-    checkNotifications();
-  }, [currentUser, isTimeOverrun, overdueOrder, upcomingOrder]);
+  const { isTimeOverrun, overdueOrder, upcomingOrder } = useWorkerNotifications(session, workOrders, settings, currentUser);
 
   if (isLoading) {
     return (
