@@ -178,10 +178,10 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               {/* Current time header marker */}
               {currentTimeLeft !== null && (
                 <div
-                  className="absolute top-0 bottom-0 border-l-2 border-red-500 z-20"
+                  className="absolute top-0 bottom-0 border-l border-red-400/40 z-20"
                   style={{ left: `${currentTimeLeft}%` }}
                 >
-                  <div className="absolute -left-5 top-1 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded-sm whitespace-nowrap shadow-sm">
+                  <div className="absolute -left-5 top-1 px-1.5 py-0.5 bg-red-400/80 dark:bg-red-500/60 text-white/90 text-[9px] font-semibold rounded-sm whitespace-nowrap shadow-sm">
                     {currentTime?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -199,11 +199,9 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               {/* Current time body line */}
               {currentTimeLeft !== null && (
                 <div
-                  className="h-full border-l-2 border-red-500/50 z-30"
+                  className="h-full border-l border-red-400/40 z-30 pointer-events-none"
                   style={{ left: `${currentTimeLeft}%`, position: 'absolute' }}
-                >
-                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-red-500 rounded-full" />
-                </div>
+                />
               )}
             </div>
 
