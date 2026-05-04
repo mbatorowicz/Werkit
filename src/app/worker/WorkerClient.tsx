@@ -38,6 +38,28 @@ type WorkOrder = {
 
 type Coord = { lat: number, lng: number, heading?: number | null };
 
+type Note = {
+  id: number;
+  note: string;
+  createdAt: string;
+};
+
+type AppSettings = {
+  requirePhotoToFinish?: boolean;
+  geofenceRadiusMeters?: number;
+  cancelWindowMinutes?: number;
+  timeOverrunReminder?: boolean;
+  upcomingOrderReminderMinutes?: number;
+};
+
+type UserData = {
+  id?: number;
+  canCreateOwnOrders?: boolean;
+  notificationsEnabled?: boolean;
+};
+
+type GPSQueueItem = Coord & { timestamp: string };
+
 // Haversine formula for distance between coords in meters
 function getDistance(a: Coord, b: Coord) {
   const R = 6371e3; // metres
@@ -78,10 +100,10 @@ export default function WorkerClient() {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [notesList, setNotesList] = useState<any[]>([]);
+  const [notesList, setNotesList] = useState<Note[]>([]);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-  const [settings, setSettings] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
@@ -138,7 +160,7 @@ export default function WorkerClient() {
 
         const newEvents: { lat: number, lng: number, label: string }[] = [];
         if (sessData.events) {
-          sessData.events.forEach((ev: any) => {
+          sessData.events.forEach((ev: { latitude: string, longitude: string }) => {
             if (ev.latitude && ev.longitude) newEvents.push({ lat: parseFloat(ev.latitude), lng: parseFloat(ev.longitude), label: 'Zdjęcie' });
           });
         }
@@ -210,7 +232,7 @@ export default function WorkerClient() {
       });
 
       const payload = { ...newLoc, timestamp: new Date().toISOString() };
-      let queue: any[] = [];
+      let queue: GPSQueueItem[] = [];
       try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
       queue.push(payload);
       localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
@@ -444,15 +466,6 @@ export default function WorkerClient() {
     setIsLoading(false);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
-        <p className="text-zinc-500 mt-4 text-sm">Wczytywanie statusu...</p>
-      </div>
-    );
-  }
-
   const isCancelWindowOpen = session && settings?.cancelWindowMinutes
     ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes
     : true;
@@ -481,8 +494,8 @@ export default function WorkerClient() {
     if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
 
     const checkNotifications = async () => {
-      let notifiedStr = localStorage.getItem('werkit_notified_orders') || '[]';
-      let notifiedArr: number[] = JSON.parse(notifiedStr);
+      const notifiedStr = localStorage.getItem('werkit_notified_orders') || '[]';
+      const notifiedArr: number[] = JSON.parse(notifiedStr);
 
       const triggerNotification = async (id: number, title: string, body: string) => {
         try {
@@ -516,16 +529,22 @@ export default function WorkerClient() {
         }
       };
 
-      if (overdueOrder) {
-        await triggerNotification(overdueOrder.id + 100000, "Zlecenie opóźnione!", `Zlecenie #${overdueOrder.id} przekroczyło czas rozpoczęcia.`);
-      }
-      if (upcomingOrder) {
-        await triggerNotification(upcomingOrder.id + 200000, "Zbliża się zlecenie", `Zlecenie #${upcomingOrder.id} wymaga wkrótce rozpoczęcia.`);
-      }
+      if (isTimeOverrun) await triggerNotification(999991, 'Przekroczony czas pracy!', 'Obecne zlecenie trwa dłużej niż zakładał plan.');
+      if (overdueOrder) await triggerNotification(overdueOrder.id + 100000, 'Zlecenie opóźnione!', `Masz opóźnione zlecenie na: ${overdueOrder.customerFirstName || overdueOrder.resourceName}`);
+      if (upcomingOrder) await triggerNotification(upcomingOrder.id + 200000, 'Zbliżające się zlecenie!', `Masz zaplanowane zlecenie na: ${upcomingOrder.customerFirstName || upcomingOrder.resourceName}`);
     };
 
     checkNotifications();
-  }, [upcomingOrder, overdueOrder, currentUser]);
+  }, [currentUser, isTimeOverrun, overdueOrder, upcomingOrder]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+        <p className="text-zinc-500 mt-4 text-sm">Wczytywanie statusu...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
@@ -778,7 +797,7 @@ export default function WorkerClient() {
               {notesList.length > 0 && (
                 <div className="flex flex-col gap-2 pt-4 border-t border-zinc-200 dark:border-zinc-800 max-h-48 overflow-y-auto">
                   <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">{dict.yourNotes}</label>
-                  {notesList.map((n: any) => (
+                  {notesList.map((n: Note) => (
                     <div key={n.id} className="flex justify-between items-start gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50">
                       <div className="flex flex-col">
                         <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.note}</span>
