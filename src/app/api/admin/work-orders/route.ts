@@ -8,6 +8,7 @@ import { eq, desc, aliasedTable, ne } from 'drizzle-orm';
 export const dynamic = 'force-dynamic';
 
 import { JWT_SECRET } from '@/lib/auth';
+import { checkScheduleConflict } from '@/lib/schedule';
 export async function GET() {
   try {
     const creator = aliasedTable(users, 'creator');
@@ -52,10 +53,22 @@ export async function POST(request: Request) {
     if (verified.payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
-    const { userId, resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate } = body;
+    const { userId, resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, forceSave } = body;
 
     if (!userId || !resourceId || !sessionType) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    }
+
+    if (!forceSave) {
+      const conflict = await checkScheduleConflict(
+        parseInt(userId),
+        parseInt(resourceId),
+        dueDate ? new Date(dueDate) : null,
+        expectedDurationHours ? parseFloat(expectedDurationHours) : null
+      );
+      if (conflict) {
+        return NextResponse.json({ error: conflict }, { status: 409 });
+      }
     }
 
     await db.insert(workOrders).values({

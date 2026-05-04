@@ -34,7 +34,8 @@ export default function OrdersClient() {
     quantityTons: '',
     priority: 'NORMAL',
     expectedDurationHours: '',
-    dueDate: ''
+    dueDate: '',
+    forceSave: false
   });
 
   const fetchData = async (showLoader = true) => {
@@ -69,6 +70,13 @@ export default function OrdersClient() {
 
   const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
+  const formatToLocalDatetime = (dateString: string | null) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  };
+
   const handleEditClick = (item: any) => {
     setEditingOrderId(item.workOrderId || item.id);
     setForm({
@@ -81,7 +89,8 @@ export default function OrdersClient() {
       quantityTons: item.quantityTons?.toString() || '',
       priority: item.priority || 'NORMAL',
       expectedDurationHours: item.expectedDurationHours?.toString() || '',
-      dueDate: item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : ''
+      dueDate: formatToLocalDatetime(item.dueDate),
+      forceSave: false
     });
     setSelectedItem(null);
     setIsModalOpen(true);
@@ -114,7 +123,8 @@ export default function OrdersClient() {
           quantityTons: '',
           priority: 'NORMAL',
           expectedDurationHours: '',
-          dueDate: ''
+          dueDate: '',
+          forceSave: false
         });
       } else {
         const data = await res.json();
@@ -366,7 +376,7 @@ export default function OrdersClient() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setIsModalOpen(false); setEditingOrderId(null); }}></div>
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editingOrderId ? 'Edytuj zlecenie' : dict.issueOrder}</h2>
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editingOrderId ? `Edytuj zlecenie #${editingOrderId}` : dict.issueOrder}</h2>
               <button onClick={() => { setIsModalOpen(false); setEditingOrderId(null); }} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-5">
@@ -446,6 +456,10 @@ export default function OrdersClient() {
                 </select>
               </div>
 
+              <div className="flex items-center gap-2 pt-2 bg-amber-50 dark:bg-amber-500/10 p-3 rounded-lg border border-amber-200 dark:border-amber-500/20">
+                <input type="checkbox" id="forceSave" checked={form.forceSave} onChange={e => setForm({ ...form, forceSave: e.target.checked })} className="w-4 h-4 text-amber-600 bg-white border-amber-300 rounded focus:ring-amber-500 focus:ring-2 dark:bg-zinc-800 dark:border-zinc-600 cursor-pointer" />
+                <label htmlFor="forceSave" className="text-sm font-medium text-amber-800 dark:text-amber-400 cursor-pointer select-none">Zignoruj konflikty harmonogramu (Wymuś zapis)</label>
+              </div>
 
               <div className="pt-4 border-t border-zinc-800">
                 <button disabled={isSubmitting} type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">

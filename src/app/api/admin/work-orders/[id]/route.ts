@@ -3,6 +3,7 @@ import { db } from '@/db';
 import { workOrders } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getUserId } from '@/lib/auth';
+import { checkScheduleConflict } from '@/lib/schedule';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,10 +15,23 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     const params = await props.params;
     const orderId = parseInt(params.id);
     const body = await request.json();
-    const { resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, userId: assignedUserId } = body;
+    const { resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, userId: assignedUserId, forceSave } = body;
 
     if (!assignedUserId || !resourceId || !sessionType) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!forceSave) {
+      const conflict = await checkScheduleConflict(
+        parseInt(assignedUserId),
+        parseInt(resourceId),
+        dueDate ? new Date(dueDate) : null,
+        expectedDurationHours ? parseFloat(expectedDurationHours) : null,
+        orderId
+      );
+      if (conflict) {
+        return NextResponse.json({ error: conflict }, { status: 409 });
+      }
     }
 
     // Update only if status is PENDING. We shouldn't edit IN_PROGRESS or COMPLETED orders this easily

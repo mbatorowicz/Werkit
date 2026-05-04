@@ -119,6 +119,7 @@ export const workOrders = pgTable('work_orders', {
   expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
   priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
   dueDate: timestamp('due_date'),
+  lockedUntil: timestamp('locked_until'),
 });
 
 // Relacje ułatwiające zapytania ORM
