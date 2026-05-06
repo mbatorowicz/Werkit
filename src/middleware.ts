@@ -13,12 +13,13 @@ export async function proxy(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api');
   const isApiAuthRoute = pathname.startsWith('/api/auth');
   const isWorkerApi = pathname.startsWith('/api/worker');
+  const isSharedApi = pathname.startsWith('/api/machines') || pathname.startsWith('/api/materials') || pathname.startsWith('/api/customers');
   
-  // SECURE DEFAULT: Any API route not specifically for workers or auth is treated as an admin API
-  const isAdminApi = isApiRoute && !isApiAuthRoute && !isWorkerApi;
+  // SECURE DEFAULT: Any API route not specifically for workers, shared, or auth is treated as an admin API
+  const isAdminApi = isApiRoute && !isApiAuthRoute && !isWorkerApi && !isSharedApi;
 
   // If it's not a protected route, let it pass (e.g. public assets, root, etc)
-  if (!isAdminPage && !isWorkerPage && !isAuthRoute && !isAdminApi && !isWorkerApi && !isApiAuthRoute) {
+  if (!isAdminPage && !isWorkerPage && !isAuthRoute && !isAdminApi && !isWorkerApi && !isApiAuthRoute && !isSharedApi) {
     return NextResponse.next();
   }
 
@@ -29,7 +30,7 @@ export async function proxy(request: NextRequest) {
 
   // Handle missing token
   if (!token) {
-    if (isAdminApi || isWorkerApi) {
+    if (isAdminApi || isWorkerApi || isSharedApi) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (isAdminPage || isWorkerPage) {
@@ -58,9 +59,9 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    if (isWorkerPage || isWorkerApi) {
+    if (isWorkerPage || isWorkerApi || isSharedApi) {
       if (role !== 'worker' && role !== 'admin') {
-        if (isWorkerApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        if (isWorkerApi || isSharedApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         return NextResponse.redirect(new URL('/login', request.url));
       }
     }
@@ -68,7 +69,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   } catch (err) {
     // Token is invalid or expired
-    if (isAdminApi || isWorkerApi) {
+    if (isAdminApi || isWorkerApi || isSharedApi) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     const response = NextResponse.redirect(new URL('/login', request.url));

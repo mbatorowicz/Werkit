@@ -1,13 +1,1 @@
-import { db } from './src/db';
-import { resources, resourceCategories } from './src/db/schema';
-import { eq } from 'drizzle-orm';
-
-async function main() {
-  try {
-    const data = await db.select().from(resources).leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id));
-    console.log('Success:', data.length);
-  } catch(e) {
-    console.error('Error:', e);
-  }
-}
-main();
+import { db } from './src/db'; import { resources, resourceCategories } from './src/db/schema'; import { eq, desc } from 'drizzle-orm'; async function main() { try { const data = await db.select({ id: resources.id, name: resources.name, categoryId: resources.categoryId, categoryName: resourceCategories.name, categoryIcon: resourceCategories.icon }).from(resources).leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id)).orderBy(desc(resources.id)); console.log('Success:', data.length); } catch(e) { console.error('Error:', e); } } main();

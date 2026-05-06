@@ -20,7 +20,7 @@ export async function GET() {
     
     return NextResponse.json(allMachines);
   } catch (err: any) {
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
+    return NextResponse.json({ error: err.message, stack: err.stack }, { status: 500 });
   }
 }
 
