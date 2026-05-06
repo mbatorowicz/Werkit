@@ -3,76 +3,69 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
 
+// --- CONFIGURATION ---
+const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers'];
+
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
   const { pathname } = request.nextUrl;
-
-  const isAuthRoute = pathname === '/login' || pathname.startsWith('/login/');
-  const isAdminPage = pathname.startsWith('/admin');
+  
+  // 1. ROUTE CLASSIFICATION
+  const isApi = pathname.startsWith('/api');
+  const isAuthPage = pathname === '/login' || pathname.startsWith('/login/');
+  const isApiAuth = pathname.startsWith('/api/auth');
+  
   const isWorkerPage = pathname.startsWith('/worker');
-  const isApiRoute = pathname.startsWith('/api');
-  const isApiAuthRoute = pathname.startsWith('/api/auth');
   const isWorkerApi = pathname.startsWith('/api/worker');
-  const isSharedApi = pathname.startsWith('/api/machines') || pathname.startsWith('/api/materials') || pathname.startsWith('/api/customers');
-
+  
+  const isAdminPage = pathname.startsWith('/admin');
+  const isSharedApi = SHARED_API_PREFIXES.some(prefix => pathname.startsWith(prefix));
+  
   // SECURE DEFAULT: Any API route not specifically for workers, shared, or auth is treated as an admin API
-  const isAdminApi = isApiRoute && !isApiAuthRoute && !isWorkerApi && !isSharedApi;
+  const isAdminApi = isApi && !isApiAuth && !isWorkerApi && !isSharedApi;
 
-  // If it's not a protected route, let it pass (e.g. public assets, root, etc)
-  if (!isAdminPage && !isWorkerPage && !isAuthRoute && !isAdminApi && !isWorkerApi && !isApiAuthRoute && !isSharedApi) {
+  const requiresAuth = isAdminPage || isWorkerPage || isAdminApi || isWorkerApi || isSharedApi;
+
+  // 2. PUBLIC ROUTES
+  if (!requiresAuth || isApiAuth) {
     return NextResponse.next();
   }
 
-  // Allow login/logout APIs
-  if (isApiAuthRoute) {
-    return NextResponse.next();
-  }
+  // 3. AUTHENTICATION (Token Extraction)
+  const token = request.cookies.get('auth_token')?.value;
 
-  // Handle missing token
-  if (!token) {
-    if (isAdminApi || isWorkerApi || isSharedApi) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    if (isAdminPage || isWorkerPage) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    return NextResponse.next();
-  }
+  const handleUnauthorized = () => {
+    if (isApi) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.redirect(new URL('/login', request.url));
+  };
 
-  // Verify token
+  if (!token) return handleUnauthorized();
+
+  // 4. AUTHORIZATION (Role Verification)
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
-    const role = verified.payload.role as string;
+    const role = verified.payload.role as 'admin' | 'worker';
 
-    if (isAuthRoute) {
-      if (role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      } else {
-        return NextResponse.redirect(new URL('/worker', request.url));
-      }
+    // Role-based redirects for auth pages (logged-in users shouldn't see login)
+    if (isAuthPage) {
+      return NextResponse.redirect(new URL(role === 'admin' ? '/admin' : '/worker', request.url));
     }
 
-    if (isAdminPage || isAdminApi) {
-      if (role !== 'admin') {
-        if (isAdminApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        return NextResponse.redirect(new URL('/worker', request.url));
-      }
+    // Admin constraints
+    if ((isAdminPage || isAdminApi) && role !== 'admin') {
+      if (isAdminApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.redirect(new URL('/worker', request.url));
     }
 
-    if (isWorkerPage || isWorkerApi || isSharedApi) {
-      if (role !== 'worker' && role !== 'admin') {
-        if (isWorkerApi || isSharedApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        return NextResponse.redirect(new URL('/login', request.url));
-      }
+    // Worker/Shared constraints (Admin can access worker routes too)
+    if ((isWorkerPage || isWorkerApi || isSharedApi) && !['worker', 'admin'].includes(role)) {
+      if (isWorkerApi || isSharedApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.redirect(new URL('/login', request.url));
     }
 
     return NextResponse.next();
   } catch (err) {
-    // Token is invalid or expired
-    if (isAdminApi || isWorkerApi || isSharedApi) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    // 5. INVALID TOKEN HANDLING
+    const response = handleUnauthorized();
     response.cookies.delete('auth_token');
     return response;
   }

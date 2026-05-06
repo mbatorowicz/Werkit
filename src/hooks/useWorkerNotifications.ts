@@ -32,38 +32,37 @@ export function useWorkerNotifications(
     if (typeof window === 'undefined' || !Capacitor.isNativePlatform()) return;
 
     const checkNotifications = async () => {
-      const notifiedStr = localStorage.getItem('werkit_notified_orders') || '[]';
-      const notifiedArr: number[] = JSON.parse(notifiedStr);
+      const notifiedArr: number[] = JSON.parse(localStorage.getItem('werkit_notified_orders') || '[]');
 
       const triggerNotification = async (id: number, title: string, body: string) => {
-        try {
-          if (!notifiedArr.includes(id)) {
-            let perm = { display: 'denied' };
-            try {
-              if (LocalNotifications && typeof LocalNotifications.requestPermissions === 'function') {
-                perm = await LocalNotifications.requestPermissions();
-              }
-            } catch (e) { console.error(e); }
+        if (notifiedArr.includes(id)) return;
 
-            if (perm.display === 'granted') {
-              try {
-                await LocalNotifications.schedule({
-                  notifications: [
-                    {
-                      title,
-                      body,
-                      id: id,
-                      schedule: { at: new Date(Date.now() + 1000) },
-                    }
-                  ]
-                });
-                notifiedArr.push(id);
-                localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
-              } catch (e) { console.error(e); }
-            }
+        try {
+          // Verify permissions
+          let hasPermission = false;
+          if (LocalNotifications && typeof LocalNotifications.requestPermissions === 'function') {
+            const perm = await LocalNotifications.requestPermissions();
+            hasPermission = perm.display === 'granted';
           }
+
+          if (!hasPermission) return;
+
+          // Schedule Notification
+          await LocalNotifications.schedule({
+            notifications: [{
+              title,
+              body,
+              id,
+              schedule: { at: new Date(Date.now() + 1000) },
+            }]
+          });
+
+          // Record as notified
+          notifiedArr.push(id);
+          localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
+
         } catch (e) {
-          console.error("Notification trigger error:", e);
+          console.error(`Failed to trigger notification [${id}]:`, e);
         }
       };
 
