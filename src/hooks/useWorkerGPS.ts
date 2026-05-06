@@ -34,7 +34,6 @@ export function useWorkerGPS(
   setGpsStatus: (status: "waiting" | "active" | "error") => void
 ) {
   const watchIdRef = useRef<any>(null);
-  const lastFlushRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (!session) {
@@ -63,13 +62,13 @@ export function useWorkerGPS(
       fetch("/api/worker/gps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queue)
+        body: JSON.stringify(queue),
+        keepalive: true // Kluczowe dla działania w tle, instruuje system by dociągnął request po uśpieniu JS
       })
         .then(res => {
           if (res.ok) {
             localStorage.setItem('werkit_gps_queue', '[]');
             setGpsStatus("active");
-            lastFlushRef.current = Date.now();
           }
         })
         .catch(() => { });
@@ -93,11 +92,10 @@ export function useWorkerGPS(
       queue.push(payload);
       localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
 
-      // Flush w tle (gdy setInterval jest zamrożony przez Androida)
-      if (document.visibilityState === 'hidden' || queue.length >= 10) {
-        if (Date.now() - lastFlushRef.current > 15000) {
-          flushQueue();
-        }
+      // Jeśli jesteśmy w tle (wygaszony ekran) JS ma ułamki sekund życia od pluginu.
+      // NIE wolno opóźniać czasowo - natychmiast wrzucamy do flush.
+      if (document.visibilityState === 'hidden' || queue.length >= 5) {
+        flushQueue();
       }
     };
 
