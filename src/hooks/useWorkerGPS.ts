@@ -92,9 +92,13 @@ export function useWorkerGPS(
       queue.push(payload);
       localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
 
-      // Jeśli jesteśmy w tle (wygaszony ekran) JS ma ułamki sekund życia od pluginu.
-      // NIE wolno opóźniać czasowo - natychmiast wrzucamy do flush.
-      if (document.visibilityState === 'hidden' || queue.length >= 5) {
+      // OPTYMALIZACJA BATERII I TRANSFERU:
+      // Nie wysyłamy każdego punktu oddzielnie. Capacitor Foreground Service
+      // i tak wybudza nam ten wątek na ułamek sekundy za każdym odczytem GPS.
+      // Wykorzystujemy to do sprawdzenia wielkości kolejki.
+      // Jeśli mamy wygaszony ekran (w tle), kolejkujemy do 20 punktów (ok. 200 metrów) zanim uderzymy do API.
+      // Jeśli ekran jest włączony, wysyłamy co 5 punktów dla płynniejszego działania.
+      if (queue.length >= 20 || (document.visibilityState !== 'hidden' && queue.length >= 5)) {
         flushQueue();
       }
     };
