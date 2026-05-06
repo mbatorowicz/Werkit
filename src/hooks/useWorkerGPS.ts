@@ -34,6 +34,7 @@ export function useWorkerGPS(
   setGpsStatus: (status: "waiting" | "active" | "error") => void
 ) {
   const watchIdRef = useRef<any>(null);
+  const lastFlushRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (!session) {
@@ -49,6 +50,30 @@ export function useWorkerGPS(
       }
       return;
     }
+
+    const flushQueue = () => {
+      if (!navigator.onLine) {
+        setGpsStatus("waiting");
+        return;
+      }
+      let queue: any[] = [];
+      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
+      if (queue.length === 0) return;
+
+      fetch("/api/worker/gps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(queue)
+      })
+        .then(res => {
+          if (res.ok) {
+            localStorage.setItem('werkit_gps_queue', '[]');
+            setGpsStatus("active");
+            lastFlushRef.current = Date.now();
+          }
+        })
+        .catch(() => { });
+    };
 
     const handleNewLoc = (newLoc: Coord) => {
       setLocation(newLoc);
@@ -67,6 +92,13 @@ export function useWorkerGPS(
       try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
       queue.push(payload);
       localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+
+      // Flush w tle (gdy setInterval jest zamrożony przez Androida)
+      if (document.visibilityState === 'hidden' || queue.length >= 10) {
+        if (Date.now() - lastFlushRef.current > 15000) {
+          flushQueue();
+        }
+      }
     };
 
     if (Capacitor.isNativePlatform()) {
@@ -74,11 +106,11 @@ export function useWorkerGPS(
       if (BackgroundGeolocation && typeof BackgroundGeolocation.addWatcher === 'function') {
         BackgroundGeolocation.addWatcher(
           {
-            backgroundMessage: "Aplikacja śledzi trasę pracownika.",
+            backgroundMessage: "Aplikacja śledzi trasę pracownika w tle.",
             backgroundTitle: "Werkit - Rejestrowanie trasy",
             requestPermissions: true,
             stale: false,
-            distanceFilter: 50 // Increased to 50m to save battery
+            distanceFilter: 10 // Zmniejszono do 10m żeby ślad zgadzał się z drogami
           },
           function callback(location, error) {
             if (error) {
@@ -102,35 +134,14 @@ export function useWorkerGPS(
         (err) => {
           setGpsStatus("error");
         },
-        { enableHighAccuracy: false, maximumAge: 30000, timeout: 15000 } // Web fallback: false high accuracy to save battery
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 } // Zwiększono dokładność fallbacku
       );
     } else {
       setGpsStatus("error");
     }
 
-    // Flush GPS queue every 30 seconds to avoid waking up network radio continuously
-    const flushInterval = setInterval(() => {
-      if (!navigator.onLine) {
-        setGpsStatus("waiting");
-        return;
-      }
-      let queue: any[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
-      if (queue.length === 0) return;
-
-      fetch("/api/worker/gps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queue)
-      })
-        .then(res => {
-          if (res.ok) {
-            localStorage.setItem('werkit_gps_queue', '[]');
-            setGpsStatus("active");
-          }
-        })
-        .catch(() => { });
-    }, 30000);
+    // Standardowy interval dla działania na włączonym ekranie
+    const flushInterval = setInterval(flushQueue, 30000);
 
     return () => {
       if (watchIdRef.current !== null) {
