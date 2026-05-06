@@ -11,8 +11,7 @@ export async function GET() {
       id: resources.id,
       name: resources.name,
       categoryId: resources.categoryId,
-      categoryName: resourceCategories.name,
-      categoryIcon: resourceCategories.icon
+      categoryName: resourceCategories.name
     })
     .from(resources)
     .leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id))
