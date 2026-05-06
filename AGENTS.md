@@ -13,9 +13,10 @@ Ten plik służy jako Główne Źródło Prawdy (SSOT) dla każdego agenta AI (w
    - Aplikacja mobilna często działa w ruchu, przy słabym internecie (np. EDGE/3G). 
    - Każde odpytanie API musi mieć zabezpieczenie typu fallback. 
    - Zanim użyjesz metody tablicowej `.map()`, bezwzględnie weryfikuj `Array.isArray(data)`. Serwer w razie błędu 500 może zwrócić obiekt JSON, co spowoduje crash aplikacji mobilnej!
-2. **Uprawnienia i Proxy**: 
-   - Cały system opiera się o tokeny i plik `src/proxy.ts` (używamy nowoczesnego wzorca proxy zamiast starego middleware). 
-   - Nie nadpisuj ani nie wyłączaj proxy. Jeśli dodajesz publiczne / współdzielone endpointy (dla maszyn, klientów itp.), dodawaj je wyraźnie do reguły `isSharedApi` w `proxy.ts`, aby pracownicy z aplikacją mobilną nie otrzymywali błędów HTTP 403.
+2. **Uprawnienia i Strażnik (Middleware / Proxy)**: 
+   - Aplikacja realizuje "wzorzec proxy" do blokowania i weryfikacji tokenów JWT dla wszystkich zapytań.
+   - UWAGA: Silnik Next.js 15 wymaga absolutnie i na sztywno, aby ten strażnik nazywał się `src/middleware.ts` i eksportował funkcję `export async function middleware`. Próba zmiany nazwy pliku na `proxy.ts` lub nazwy funkcji spowoduje, że Next.js zignoruje zabezpieczenia (całe API stanie się otwarte dla każdego). Trzymamy się konwencji systemowej Next.js, realizując nią założenia logiki proxy.
+   - Jeśli dodajesz publiczne / współdzielone endpointy (dla maszyn, klientów itp.), dodawaj je wyraźnie do reguły `isSharedApi` w `middleware.ts`.
 3. **Synchronizacja Bazy Danych**: 
    - Zmiany w modelu Drizzle (`schema.ts`) muszą mieć odzwierciedlenie we wdrożeniu na Vercel (produkcyjnej bazie). 
    - Unikaj "ścisłych" `leftJoin` wyciągających bardzo konkretne nowe pola bez pewności, że migracja była wypchnięta. Używaj spread operatorów lub pobieraj cały wiersz.

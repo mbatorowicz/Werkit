@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const token = request.cookies.get('auth_token')?.value;
   const { pathname } = request.nextUrl;
 
@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
   const isApiAuthRoute = pathname.startsWith('/api/auth');
   const isWorkerApi = pathname.startsWith('/api/worker');
   const isSharedApi = pathname.startsWith('/api/machines') || pathname.startsWith('/api/materials') || pathname.startsWith('/api/customers');
-  
+
   // SECURE DEFAULT: Any API route not specifically for workers, shared, or auth is treated as an admin API
   const isAdminApi = isApiRoute && !isApiAuthRoute && !isWorkerApi && !isSharedApi;
 
