@@ -111,8 +111,8 @@ export function useWorkerGPS(
             backgroundMessage: "Aplikacja śledzi trasę pracownika w tle.",
             backgroundTitle: "Werkit - Rejestrowanie trasy",
             requestPermissions: true,
-            stale: false,
-            distanceFilter: 10 // Zmniejszono do 10m żeby ślad zgadzał się z drogami
+            stale: true, // WAŻNE: Pozwala na użycie "starych" lokalizacji przy słabym fixie GPS w tle
+            distanceFilter: 10
           },
           function callback(location, error) {
             if (error) {
