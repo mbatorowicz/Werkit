@@ -29,9 +29,9 @@ export default function WizardClient() {
       fetch("/api/customers", { cache: "no-store" }).then(r => r.json()),
       fetch("/api/worker/work-orders", { cache: "no-store" }).then(r => r.json())
     ]).then(([mac, mat, cus, ord]) => {
-      setMachines(mac || []);
-      setMaterials(mat || []);
-      setCustomers(cus || []);
+      setMachines(Array.isArray(mac) ? mac : []);
+      setMaterials(Array.isArray(mat) ? mat : []);
+      setCustomers(Array.isArray(cus) ? cus : []);
       setOrders(Array.isArray(ord) ? ord : []);
     }).catch(console.error);
   }, []);
