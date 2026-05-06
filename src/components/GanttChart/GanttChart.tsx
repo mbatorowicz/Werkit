@@ -162,11 +162,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
         </div>
       </div>
 
-      <div className="flex relative">
-        <div className="w-full">
+      <div className="flex relative overflow-x-auto custom-scrollbar">
+        <div className="w-full min-w-[800px] lg:min-w-full">
           {/* Header row with hours */}
-          <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-10">
-            <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center">
+          <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-30">
+            <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{groupBy === 'WORKER' ? 'Pracownik' : 'Maszyna/Pojazd'}</span>
             </div>
             <div className="flex-1 relative h-10">
@@ -192,7 +192,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
           {/* Body rows */}
           <div className="flex flex-col relative pb-4">
             {/* Draw hour lines for the entire body */}
-            <div className="absolute inset-0 left-48 pointer-events-none flex">
+            <div className="absolute inset-0 left-40 md:left-48 pointer-events-none flex">
               {hours.map(h => (
                 <div key={h} className="h-full border-l border-zinc-100 dark:border-zinc-800/30" style={{ left: `${((h - startHour) / totalHours) * 100}%`, position: 'absolute' }}></div>
               ))}
@@ -221,7 +221,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
               return (
                 <div key={row.id} className="flex border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                  <div className="w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center">
+                  <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-20 group-hover:bg-zinc-50 dark:group-hover:bg-zinc-800/20 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
                     <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate" title={groupBy === 'WORKER' ? row.fullName : row.name}>
                       {groupBy === 'WORKER' ? row.fullName : row.name}
                     </span>
