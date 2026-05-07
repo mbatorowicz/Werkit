@@ -13,7 +13,7 @@ type Coord = {
 type GPSQueueItem = Coord & { timestamp: string };
 
 export function getDistance(a: Coord, b: Coord) {
-  const R = 6371e3; // metres
+  const R = 6371e3;
   const φ1 = a.lat * Math.PI / 180;
   const φ2 = b.lat * Math.PI / 180;
   const Δφ = (b.lat - a.lat) * Math.PI / 180;
@@ -26,6 +26,20 @@ export function getDistance(a: Coord, b: Coord) {
   return R * c;
 }
 
+const STORAGE_KEY = 'werkit_gps_queue';
+
+const getQueue = (): GPSQueueItem[] => {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const saveQueue = (queue: GPSQueueItem[]) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+};
+
 export function useWorkerGPS(
   session: any,
   setLocation: (loc: Coord) => void,
@@ -34,6 +48,7 @@ export function useWorkerGPS(
   setGpsStatus: (status: "waiting" | "active" | "error") => void
 ) {
   const watchIdRef = useRef<any>(null);
+  const isFlushingRef = useRef(false);
 
   useEffect(() => {
     if (!session) {
@@ -50,28 +65,45 @@ export function useWorkerGPS(
       return;
     }
 
-    const flushQueue = () => {
+    const flushQueue = async () => {
       if (!navigator.onLine) {
         setGpsStatus("waiting");
         return;
       }
-      let queue: any[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
+      if (isFlushingRef.current) return;
+
+      const queue = getQueue();
       if (queue.length === 0) return;
 
-      fetch("/api/worker/gps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queue),
-        keepalive: true // Kluczowe dla działania w tle, instruuje system by dociągnął request po uśpieniu JS
-      })
-        .then(res => {
-          if (res.ok) {
-            localStorage.setItem('werkit_gps_queue', '[]');
-            setGpsStatus("active");
-          }
-        })
-        .catch(() => { });
+      isFlushingRef.current = true;
+      const sentTimestamps = new Set(queue.map(q => q.timestamp));
+
+      try {
+        const res = await fetch("/api/worker/gps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(queue),
+          keepalive: true
+        });
+
+        if (res.ok) {
+          // Usuwamy tylko te punkty, które faktycznie próbowaliśmy wysłać.
+          // Zapobiega to usunięciu punktów, które doszły w trakcie trwania fetch()
+          const updatedQueue = getQueue().filter(q => !sentTimestamps.has(q.timestamp));
+          saveQueue(updatedQueue);
+          setGpsStatus("active");
+        }
+      } catch (error) {
+        // Ignorujemy błędy sieciowe (punkty zostają w kolejce i spróbujemy ponownie)
+      } finally {
+        isFlushingRef.current = false;
+        
+        // Jeśli w trakcie wysyłania doszły nowe punkty, wywołujemy flush ponownie
+        if (getQueue().length > 0 && navigator.onLine) {
+          // Minimalne opóźnienie aby uniknąć call stack overflow
+          setTimeout(flushQueue, 100);
+        }
+      }
     };
 
     const handleNewLoc = (newLoc: Coord) => {
@@ -87,20 +119,13 @@ export function useWorkerGPS(
       });
 
       const payload = { ...newLoc, timestamp: new Date().toISOString() };
-      let queue: GPSQueueItem[] = [];
-      try { queue = JSON.parse(localStorage.getItem('werkit_gps_queue') || '[]'); } catch (e) { }
-      queue.push(payload);
-      localStorage.setItem('werkit_gps_queue', JSON.stringify(queue));
+      const currentQueue = getQueue();
+      currentQueue.push(payload);
+      saveQueue(currentQueue);
 
-      // OPTYMALIZACJA BATERII I TRANSFERU:
-      // Nie wysyłamy każdego punktu oddzielnie. Capacitor Foreground Service
-      // i tak wybudza nam ten wątek na ułamek sekundy za każdym odczytem GPS.
-      // Wykorzystujemy to do sprawdzenia wielkości kolejki.
-      // Jeśli mamy wygaszony ekran (w tle), kolejkujemy do 20 punktów (ok. 200 metrów) zanim uderzymy do API.
-      // Jeśli ekran jest włączony, wysyłamy co 5 punktów dla płynniejszego działania.
-      if (queue.length >= 20 || (document.visibilityState !== 'hidden' && queue.length >= 5)) {
-        flushQueue();
-      }
+      // Capacitor usypia wątki JS. Kiedy dostajemy callback z BackgroundGeolocation, 
+      // mamy ułamek sekundy na reakcję. Natychmiastowe wywołanie chroni przed utratą danych.
+      flushQueue();
     };
 
     if (Capacitor.isNativePlatform()) {
@@ -111,7 +136,7 @@ export function useWorkerGPS(
             backgroundMessage: "Aplikacja śledzi trasę pracownika w tle.",
             backgroundTitle: "Werkit - Rejestrowanie trasy",
             requestPermissions: true,
-            stale: true, // WAŻNE: Pozwala na użycie "starych" lokalizacji przy słabym fixie GPS w tle
+            stale: true,
             distanceFilter: 10
           },
           function callback(location, error) {
@@ -133,16 +158,15 @@ export function useWorkerGPS(
         async (pos) => {
           handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
         },
-        (err) => {
+        () => {
           setGpsStatus("error");
         },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 } // Zwiększono dokładność fallbacku
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
       );
     } else {
       setGpsStatus("error");
     }
 
-    // Standardowy interval dla działania na włączonym ekranie
     const flushInterval = setInterval(flushQueue, 30000);
 
     return () => {
