@@ -14,8 +14,7 @@ type LogItem = {
   workerName: string | null;
 };
 
-export default function LogsClient({ initialLogs, workers }: { initialLogs: LogItem[], workers: { id: number, fullName: string }[] }) {
-  const [logs, setLogs] = useState<LogItem[]>(initialLogs);
+export default function LogsClient({ initialLogs: logs, workers }: { initialLogs: LogItem[], workers: { id: number, fullName: string }[] }) {
   const [filterUserId, setFilterUserId] = useState<number | 'ALL'>('ALL');
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
   const router = useRouter();

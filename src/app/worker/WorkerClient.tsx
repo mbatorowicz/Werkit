@@ -218,12 +218,15 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           body: JSON.stringify({ photoUrl: base64, location })
         });
         if (res.ok) {
+          sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie');
           alert(dict.photoSaved);
           fetchSessionAndPath(false, false);
         } else {
+          sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)');
           alert(dict.photoError);
         }
-      } catch (err) {
+      } catch (err: any) {
+        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err?.message || err });
         alert(dict.errProcessPhoto);
       }
       setIsLoading(false);
@@ -247,13 +250,18 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         body: JSON.stringify(body)
       });
       if (res.ok) {
+        sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę');
         alert(isEditing ? dict.noteUpdated : dict.noteAdded);
         setIsNotesModalOpen(false);
         setNoteText("");
         setEditingNoteId(null);
         fetchSessionAndPath(false, false);
-      } else alert(dict.errSaveNote);
-    } catch (e) {
+      } else {
+        sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)');
+        alert(dict.errSaveNote);
+      }
+    } catch (e: any) {
+      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e?.message || e });
       alert(dict.errNetwork);
     }
     setIsSubmittingNote(false);
@@ -265,10 +273,15 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     try {
       const res = await fetch("/api/worker/session/cancel", { method: "POST" });
       if (res.ok) {
+        sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' });
         alert(dict.cancelSuccess);
         fetchSessionAndPath(true, true);
-      } else alert(dict.errCancel);
-    } catch (e) {
+      } else {
+        sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error');
+        alert(dict.errCancel);
+      }
+    } catch (e: any) {
+      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e?.message || e });
       alert(dict.errNetwork);
     }
     setIsLoading(false);
@@ -289,10 +302,15 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         body: JSON.stringify({ note: "✅ Dojechał na miejsce", location })
       });
       if (res.ok) {
+        sendRemoteLog('INFO', 'Użytkownik zameldował dotarcie na miejsce');
         alert(dict.arrivedSuccess);
         fetchSessionAndPath(false, false);
-      } else alert(dict.errArrived);
-    } catch (e) {
+      } else {
+        sendRemoteLog('ERROR', 'Błąd zameldowania dotarcia (API Error)');
+        alert(dict.errArrived);
+      }
+    } catch (e: any) {
+      sendRemoteLog('ERROR', 'Błąd sieci podczas meldowania', { error: e?.message || e });
       alert(dict.errNetwork);
     }
     setIsLoading(false);
