@@ -52,8 +52,8 @@ export default async function WorkerPage() {
     ...o,
     dueDate: o.dueDate ? o.dueDate.toISOString() : null,
     createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
-    expectedDurationHours: o.expectedDurationHours ? parseFloat(o.expectedDurationHours as any) : null,
-    quantityTons: o.quantityTons ? parseFloat(o.quantityTons as any) : null,
+    expectedDurationHours: o.expectedDurationHours ? parseFloat(o.expectedDurationHours as string) : null,
+    quantityTons: o.quantityTons ? parseFloat(o.quantityTons as string) : null,
     customerName: [o.customerName].filter(Boolean).join(' ') || null
   }));
 
@@ -80,7 +80,7 @@ export default async function WorkerPage() {
       resourceName: null, 
       materialName: null, 
       quantityTons: null 
-    } as any;
+    } as unknown as import("@/types/worker").Session;
     initialData.events = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
     initialData.notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
   }

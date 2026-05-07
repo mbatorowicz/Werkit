@@ -6,7 +6,7 @@ import { TimelineItem } from "@/types/worker";
 interface NotesModalProps {
   isNotesModalOpen: boolean;
   setIsNotesModalOpen: (val: boolean) => void;
-  dict: any;
+  dict: Record<string, string>;
   noteText: string;
   setNoteText: (val: string) => void;
   isSubmittingNote: boolean;

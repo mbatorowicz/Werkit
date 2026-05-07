@@ -17,15 +17,15 @@ export default function OrdersClient() {
   const [machines, setMachines] = useState<Array<{ id: number, name: string }>>([]);
   const [materials, setMaterials] = useState<Array<{ id: number, name: string }>>([]);
   const [customers, setCustomers] = useState<Array<{ id: number, firstName: string, lastName: string }>>([]);
-  const [orders, setOrders] = useState<Array<any>>([]);
-  const [sessions, setSessions] = useState<Array<any>>([]);
+  const [orders, setOrders] = useState<Array<Record<string, any>>>([]);
+  const [sessions, setSessions] = useState<Array<Record<string, any>>>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [tableLimit, setTableLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsData, setSettingsData] = useState<unknown>(null);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<Record<string, any> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
@@ -180,11 +180,11 @@ export default function OrdersClient() {
       _statusGroup: s.status === 'IN_PROGRESS' ? 1 : 2
     }))
   ]
-    .filter(item =>
+    .filter((item: Record<string, any>) =>
       (item.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
       (item.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
-    .sort((a, b) => {
+    .sort((a: Record<string, any>, b: Record<string, any>) => {
       if (a._statusGroup !== b._statusGroup) return a._statusGroup - b._statusGroup;
       return b._sortDate - a._sortDate;
     });
@@ -287,7 +287,7 @@ export default function OrdersClient() {
                     </div>
                   </td>
                 </tr>
-              ) : unifiedItems.slice(0, tableLimit).map(item => {
+              ) : unifiedItems.slice(0, tableLimit).map((item: Record<string, any>) => {
                 const isWorking = item.status === 'IN_PROGRESS';
                 let progress = 0;
                 if (isWorking && item._sortDate) {

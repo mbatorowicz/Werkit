@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     .where(and(eq(workSessions.status, 'COMPLETED'), gte(workSessions.startTime, firstDayOfMonth)));
 
   const totalSessionsThisMonth = monthSessions.length;
-  const totalTonsThisMonth = monthSessions.reduce((acc, curr) => acc + (curr.tons ? parseFloat(curr.tons as any) : 0), 0);
+  const totalTonsThisMonth = monthSessions.reduce((acc, curr) => acc + (curr.tons ? parseFloat(curr.tons as string) : 0), 0);
   
   const machineStats: Record<string, number> = {};
   monthSessions.forEach(s => {

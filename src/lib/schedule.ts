@@ -34,7 +34,7 @@ export async function checkScheduleConflict(
     if (!order.dueDate || !order.expectedDurationHours) continue;
 
     const oStart = order.dueDate.getTime();
-    const oEnd = oStart + parseFloat(order.expectedDurationHours as any) * 3600000;
+    const oEnd = oStart + parseFloat(order.expectedDurationHours as string) * 3600000;
 
     // Check overlap: A1 < B2 AND A2 > B1
     if (startT < oEnd && endT > oStart) {
