@@ -1,22 +1,13 @@
-import { ArrowLeft, Clock, MapPin, Camera, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Camera, FileText } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
 import { workSessions, gpsLogs, sessionNotes, sessionPhotos, materials, customers } from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import dynamic from "next/dynamic";
 import { JWT_SECRET } from '@/lib/auth';
 import { notFound } from "next/navigation";
-
-const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { 
-  ssr: false, 
-  loading: () => (
-    <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
-    </div>
-  )
-});
+import MapWrapper from "./MapWrapper";
 
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
@@ -119,7 +110,7 @@ export default async function HistoryDetailPage({ params }: { params: { id: stri
       <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">Zapisana Trasa i Zdarzenia</h3>
       <div className="w-full h-64 md:h-96 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-zinc-100 dark:bg-zinc-900 mb-6">
         {pathTraveled.length > 0 ? (
-          <LiveMap 
+          <MapWrapper 
             currentLocation={currentLocation} 
             pathTraveled={pathTraveled} 
             destination={destination}
