@@ -54,6 +54,32 @@ Wielkie struktury (>300 linii) takie jak `WorkerClient.tsx` przestały pełnić 
 - Przestrzegaj palety `zinc` i `emerald` wg. głównych definicji projektu.
 - Pamiętaj, że w systemach iOS/Android przy zgaszonym ekranie funkcja `setTimeout/setInterval` na komponencie UI praktycznie przestaje działać. Przewiduj, że użytkownik może zgasić ekran telefonu w najmniej spodziewanym momencie.
 
+## 4. Aplikacja Mobilna (Capacitor PWA)
+
+Werkit jest aplikacją internetową, która w systemie Android działa jako "Web View" (dzięki Capacitorowi).
+1. **Przycisk Wstecz (Hardware Back Button)**: Aby zapobiec wychodzeniu z aplikacji w losowych momentach przez sprzętowy przycisk powrotu w Androidzie, zaimplementowano scentralizowany strażnik `<CapacitorBackButton />` w layoutach. Nie twórz własnych, rozrzuconych event listenerów na zdarzenie `backButton`.
+2. **Zdalne Logowanie (Remote Logging)**: Debugowanie natywnych wtyczek (np. Background Geolocation) bywa trudne. Projekt wykorzystuje tabelę `deviceLogs` w bazie Drizzle. Każdy krytyczny proces w PWA (lub łapany błąd) powinien wysłać log za pomocą asynchronicznego żądania POST (`sendRemoteLog`) do endpointu `/api/worker/logs`. Te logi są agregowane w zakładce `/admin/logs` dla administratora.
+
+---
+
+## 5. Next.js 15 (Specyfika Routingu)
+
+Wersja Next.js 15+ wprowadza rygorystyczne wymagania dotyczące dynamicznych segmentów trasy (np. folderów typu `[id]`).
+1. **Asynchroniczne parametry (`params` i `searchParams`)**: W **każdym** komponencie Server Component oraz kontrolerze tras (Route Handler), własność `params` **musi być potraktowana jako Promise**. 
+2. **Nigdy nie rób `parseInt(params.id)` bez await**. Zawsze destrukturyzuj i oczekuj:
+   ```ts
+   // BŁĄD (prowadzi do 404 lub crashy)
+   export default function Page({ params }: { params: { id: string } }) {
+       const id = params.id; 
+   }
+
+   // POPRAWNIE
+   export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+       const resolvedParams = await params;
+       const id = resolvedParams.id;
+   }
+   ```
+
 ---
 
 **Jeśli jako AI Agent masz wątpliwości jak zaprogramować daną funkcję w tym repozytorium, najpierw:**
