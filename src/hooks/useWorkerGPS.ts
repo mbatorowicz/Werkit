@@ -51,6 +51,8 @@ export function useWorkerGPS(
   const isFlushingRef = useRef(false);
 
   useEffect(() => {
+    let isMounted = true; // Zabezpieczenie przed wyciekiem, jeśli sesja skończy się podczas odpalania GPS
+
     if (!session) {
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
@@ -86,27 +88,22 @@ export function useWorkerGPS(
           keepalive: true
         });
 
-        if (res.ok) {
-          // Usuwamy tylko te punkty, które faktycznie próbowaliśmy wysłać.
-          // Zapobiega to usunięciu punktów, które doszły w trakcie trwania fetch()
+        if (res.ok && isMounted) {
           const updatedQueue = getQueue().filter(q => !sentTimestamps.has(q.timestamp));
           saveQueue(updatedQueue);
           setGpsStatus("active");
         }
       } catch (error) {
-        // Ignorujemy błędy sieciowe (punkty zostają w kolejce i spróbujemy ponownie)
       } finally {
         isFlushingRef.current = false;
-        
-        // Jeśli w trakcie wysyłania doszły nowe punkty, wywołujemy flush ponownie
-        if (getQueue().length > 0 && navigator.onLine) {
-          // Minimalne opóźnienie aby uniknąć call stack overflow
+        if (getQueue().length > 0 && navigator.onLine && isMounted) {
           setTimeout(flushQueue, 100);
         }
       }
     };
 
     const handleNewLoc = (newLoc: Coord) => {
+      if (!isMounted) return;
       setLocation(newLoc);
 
       setPathTraveled(prev => {
@@ -123,8 +120,6 @@ export function useWorkerGPS(
       currentQueue.push(payload);
       saveQueue(currentQueue);
 
-      // Capacitor usypia wątki JS. Kiedy dostajemy callback z BackgroundGeolocation, 
-      // mamy ułamek sekundy na reakcję. Natychmiastowe wywołanie chroni przed utratą danych.
       flushQueue();
     };
 
@@ -141,7 +136,7 @@ export function useWorkerGPS(
           },
           function callback(location, error) {
             if (error) {
-              setGpsStatus("error");
+              if (isMounted) setGpsStatus("error");
               return;
             }
             if (location) {
@@ -149,7 +144,12 @@ export function useWorkerGPS(
             }
           }
         ).then(watcherId => {
-          watchIdRef.current = watcherId;
+          if (!isMounted) {
+            // Natychmiastowe ubicie, jeśli komponent odmontował się przed przypisaniem ID
+            BackgroundGeolocation.removeWatcher({ id: watcherId });
+          } else {
+            watchIdRef.current = watcherId;
+          }
         });
       }
     } else if ("geolocation" in navigator) {
@@ -159,7 +159,7 @@ export function useWorkerGPS(
           handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
         },
         () => {
-          setGpsStatus("error");
+          if (isMounted) setGpsStatus("error");
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
       );
@@ -170,6 +170,7 @@ export function useWorkerGPS(
     const flushInterval = setInterval(flushQueue, 30000);
 
     return () => {
+      isMounted = false;
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
           if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
@@ -178,6 +179,7 @@ export function useWorkerGPS(
         } else {
           navigator.geolocation.clearWatch(watchIdRef.current);
         }
+        watchIdRef.current = null;
       }
       clearInterval(flushInterval);
     };
