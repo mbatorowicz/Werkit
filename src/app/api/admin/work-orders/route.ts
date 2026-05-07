@@ -9,40 +9,11 @@ export const dynamic = 'force-dynamic';
 
 import { JWT_SECRET } from '@/lib/auth';
 import { checkScheduleConflict } from '@/lib/schedule';
+import { AdminOrderService } from '@/services/AdminOrderService';
+
 export async function GET() {
   try {
-    const creator = aliasedTable(users, 'creator');
-
-    const data = await db.select({
-      id: workOrders.id,
-      status: workOrders.status,
-      sessionType: workOrders.sessionType,
-      taskDescription: workOrders.taskDescription,
-      createdAt: workOrders.createdAt,
-      workerName: users.fullName,
-      userId: workOrders.userId,
-      creatorName: creator.fullName,
-      resourceName: resources.name,
-      resourceId: workOrders.resourceId,
-      materialId: workOrders.materialId,
-      materialName: materials.name,
-      customerId: workOrders.customerId,
-      customerFirstName: customers.firstName,
-      customerLastName: customers.lastName,
-      quantityTons: workOrders.quantityTons,
-      priority: workOrders.priority,
-      expectedDurationHours: workOrders.expectedDurationHours,
-      dueDate: workOrders.dueDate
-    })
-      .from(workOrders)
-      .leftJoin(users, eq(workOrders.userId, users.id))
-      .leftJoin(creator, eq(workOrders.createdById, creator.id))
-      .leftJoin(resources, eq(workOrders.resourceId, resources.id))
-      .leftJoin(materials, eq(workOrders.materialId, materials.id))
-      .leftJoin(customers, eq(workOrders.customerId, customers.id))
-      .where(ne(workOrders.status, 'COMPLETED'))
-      .orderBy(desc(workOrders.createdAt));
-
+    const data = await AdminOrderService.getActiveWorkOrders();
     return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });

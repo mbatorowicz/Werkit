@@ -8,42 +8,17 @@ import { jwtVerify } from 'jose';
 export const dynamic = 'force-dynamic';
 
 import { JWT_SECRET } from '@/lib/auth';
+import { AdminOrderService } from '@/services/AdminOrderService';
+
 export async function GET() {
   try {
     const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     await jwtVerify(token, JWT_SECRET);
 
-    const data = await db.select({
-       id: workSessions.id,
-       workOrderId: workSessions.workOrderId,
-       status: workSessions.status,
-       sessionType: workSessions.sessionType,
-       taskDescription: workSessions.taskDescription,
-       startTime: workSessions.startTime,
-       endTime: workSessions.endTime,
-       workerName: users.fullName,
-       userId: workSessions.userId,
-       resourceName: resources.name,
-       resourceId: workSessions.resourceId,
-       materialId: workSessions.materialId,
-       materialName: materials.name,
-       customerId: workSessions.customerId,
-       customerFirstName: customers.firstName,
-       customerLastName: customers.lastName,
-       quantityTons: workSessions.quantityTons,
-       expectedDurationHours: workSessions.expectedDurationHours,
-       dueDate: workSessions.dueDate
-     })
-     .from(workSessions)
-     .leftJoin(users, eq(workSessions.userId, users.id))
-     .leftJoin(resources, eq(workSessions.resourceId, resources.id))
-     .leftJoin(materials, eq(workSessions.materialId, materials.id))
-     .leftJoin(customers, eq(workSessions.customerId, customers.id))
-     .orderBy(desc(workSessions.startTime))
-     .limit(500);
+    const data = await AdminOrderService.getArchivedSessions();
 
-     return NextResponse.json(data);
+    return NextResponse.json(data);
   } catch (err: any) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
