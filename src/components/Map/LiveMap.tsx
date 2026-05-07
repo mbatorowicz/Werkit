@@ -73,12 +73,14 @@ function MapRotator({ heading, isAutoRotate }: { heading?: number | null, isAuto
   return null;
 }
 
+import { TimelineItem } from "@/types/worker";
+
 interface LiveMapProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
   pathTraveled: { lat: number; lng: number }[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
-  events?: { lat: number; lng: number, label: string, id: string, photoUrl?: string, note?: string, type?: 'photo' | 'note' | 'default' }[];
+  events?: TimelineItem[];
   onEventClick?: (id: string) => void;
 }
 
@@ -160,9 +162,9 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
            >
              <Popup>
                 <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">{ev.label}</p>
-                  {ev.note && <p className="text-sm italic m-0 break-words">{ev.note}</p>}
-                  {ev.photoUrl && <img src={ev.photoUrl} alt="Zdarzenie" className="w-full rounded-md object-cover max-h-[150px]" />}
+                  <p className="font-semibold m-0">{ev.type === 'photo' ? 'Zdjęcie' : 'Notatka'}</p>
+                  {ev.type === 'note' && <p className="text-sm italic m-0 break-words">{ev.content}</p>}
+                  {ev.type === 'photo' && <img src={ev.content} alt="Zdarzenie" className="w-full rounded-md object-cover max-h-[150px]" />}
                 </div>
              </Popup>
            </Marker>

@@ -8,26 +8,26 @@ import { Capacitor } from '@capacitor/core';
 
 import { useWorkerNotifications } from '@/hooks/useWorkerNotifications';
 import { useWorkerGPS, getDistance } from '@/hooks/useWorkerGPS';
-import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem } from "@/types/worker";
+import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
 import PendingOrdersList from "@/components/Worker/PendingOrdersList";
 import ActiveSessionDashboard from "@/components/Worker/ActiveSessionDashboard";
 import NotesModal from "@/components/Worker/Modals/NotesModal";
 import GpsWarningModal from "@/components/Worker/Modals/GpsWarningModal";
 
-export default function WorkerClient({ initialData }: { initialData?: any }) {
+export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const getInitialTimeline = () => {
     const arr: TimelineItem[] = [];
     if (initialData?.events) {
-      arr.push(...initialData.events.map((e: any) => ({
-        id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl,
-        lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: e.createdAt
+      arr.push(...initialData.events.map(e => ({
+        id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
+        lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
       })));
     }
     if (initialData?.notes) {
-      arr.push(...initialData.notes.map((n: any) => ({
+      arr.push(...initialData.notes.map(n => ({
         id: `note_${n.id}`, type: 'note' as const, content: n.note,
-        lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: n.createdAt
+        lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
       })));
     }
     return arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -95,15 +95,15 @@ export default function WorkerClient({ initialData }: { initialData?: any }) {
         setSession(sessData.session);
         const newTimeline: TimelineItem[] = [];
         if (sessData.events) {
-          newTimeline.push(...sessData.events.map((e: any) => ({
-            id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl,
-            lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: e.createdAt
+          newTimeline.push(...sessData.events.map((e: { id: number, photoUrl?: string, latitude?: string, longitude?: string, createdAt: string }) => ({
+            id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
+            lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
           })));
         }
         if (sessData.notes) {
-          newTimeline.push(...sessData.notes.map((n: any) => ({
+          newTimeline.push(...sessData.notes.map((n: { id: number, note: string, latitude?: string, longitude?: string, createdAt: string }) => ({
             id: `note_${n.id}`, type: 'note' as const, content: n.note,
-            lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: n.createdAt
+            lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
           })));
         }
         newTimeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());

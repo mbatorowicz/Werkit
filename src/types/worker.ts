@@ -3,17 +3,17 @@ export type Session = {
   startTime: string;
   sessionType: string;
   status: string;
-  customerAddress?: string;
-  customerLat?: string;
-  customerLng?: string;
-  expectedDurationHours?: string;
-  taskDescription?: string;
-  workOrderId?: number;
-  customerFirstName?: string;
-  customerLastName?: string;
-  resourceName?: string;
-  materialName?: string;
-  quantityTons?: number;
+  customerAddress?: string | null;
+  customerLat?: string | null;
+  customerLng?: string | null;
+  expectedDurationHours?: string | null;
+  taskDescription?: string | null;
+  workOrderId?: number | null;
+  customerFirstName?: string | null;
+  customerLastName?: string | null;
+  resourceName?: string | null;
+  materialName?: string | null;
+  quantityTons?: number | null;
 };
 
 export type WorkOrder = {
@@ -25,6 +25,10 @@ export type WorkOrder = {
   customerName: string | null;
   priority: string | null;
   dueDate: string | null;
+  createdAt: string;
+  expectedDurationHours?: number | null;
+  quantityTons?: number | null;
+  creatorName?: string | null;
 };
 
 export type Coord = { lat: number; lng: number; heading?: number | null };
@@ -56,4 +60,13 @@ export type TimelineItem = {
   lat: number;
   lng: number;
   createdAt: string;
+};
+
+export type InitialWorkerData = {
+  session: Session | null;
+  events: { id: number; photoUrl: string | null; latitude: string | null; longitude: string | null; createdAt: Date }[];
+  notes: { id: number; note: string; latitude: string | null; longitude: string | null; createdAt: Date }[];
+  settings: AppSettings | null;
+  user: UserData | null;
+  workOrders: WorkOrder[];
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import { WorkOrder } from "@/types/worker";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Truck, Tractor, Wrench, ChevronRight, ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
@@ -9,10 +11,10 @@ export default function WizardClient() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   
-  const [machines, setMachines] = useState<any[]>([]);
-  const [materials, setMaterials] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [machines, setMachines] = useState<{ id: number, name: string, categoryId: number | null, categoryName?: string | null }[]>([]);
+  const [materials, setMaterials] = useState<{ id: number, name: string, type?: string | null }[]>([]);
+  const [customers, setCustomers] = useState<{ id: number, firstName: string | null, lastName: string, defaultAddress: string | null }[]>([]);
+  const [orders, setOrders] = useState<WorkOrder[]>([]);
 
   // Form State
   const [sessionType, setSessionType] = useState<"TRANSPORT" | "MACHINE_OP" | "WORKSHOP" | "">("");
@@ -105,8 +107,8 @@ export default function WizardClient() {
                 <div className="space-y-3">
                   {orders.sort((a, b) => {
                      const pMap: Record<string, number> = { URGENT: 1, HIGH: 2, NORMAL: 3, LOW: 4 };
-                     const pA = pMap[a.priority] || 3;
-                     const pB = pMap[b.priority] || 3;
+                     const pA = a.priority ? pMap[a.priority] || 3 : 3;
+                     const pB = b.priority ? pMap[b.priority] || 3 : 3;
                      if (pA !== pB) return pA - pB;
                      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
                   }).map(order => (

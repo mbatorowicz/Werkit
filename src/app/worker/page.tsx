@@ -1,4 +1,5 @@
 import WorkerClient from "./WorkerClient";
+import { InitialWorkerData } from "@/types/worker";
 import { db } from "@/db";
 import { workSessions, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, resources, materials } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
@@ -43,30 +44,20 @@ export default async function WorkerPage() {
   const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   const userData = userRows[0] ? { canCreateOwnOrders: userRows[0].canCreateOwnOrders, notificationsEnabled: userRows[0].notificationsEnabled } : null;
 
-  // Fetch work orders
-  const ordersRaw = await db.select({
-    id: workOrders.id,
-    sessionType: workOrders.sessionType,
-    taskDescription: workOrders.taskDescription,
-    resourceName: resources.name,
-    materialName: materials.name,
-    customerFirstName: customers.firstName,
-    customerLastName: customers.lastName,
-    priority: workOrders.priority,
-    dueDate: workOrders.dueDate,
-  }).from(workOrders)
-    .leftJoin(resources, eq(workOrders.resourceId, resources.id))
-    .leftJoin(materials, eq(workOrders.materialId, materials.id))
-    .leftJoin(customers, eq(workOrders.customerId, customers.id))
-    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
-    .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
+  // Fetch work orders using Service
+  const { WorkerOrderService } = await import('@/services/WorkerOrderService');
+  const ordersRaw = await WorkerOrderService.getPendingOrders(userId);
 
   const orders = ordersRaw.map(o => ({
     ...o,
-    customerName: [o.customerFirstName, o.customerLastName].filter(Boolean).join(' ') || null
+    dueDate: o.dueDate ? o.dueDate.toISOString() : null,
+    createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
+    expectedDurationHours: o.expectedDurationHours ? parseFloat(o.expectedDurationHours as any) : null,
+    quantityTons: o.quantityTons ? parseFloat(o.quantityTons as any) : null,
+    customerName: [o.customerName].filter(Boolean).join(' ') || null
   }));
 
-  const initialData: any = {
+  const initialData: InitialWorkerData = {
     settings,
     user: userData,
     workOrders: orders,
@@ -77,7 +68,19 @@ export default async function WorkerPage() {
 
   if (activeSessions.length > 0) {
     const data = activeSessions[0];
-    initialData.session = { ...data.session, customerAddress: data.customerAddress, customerLat: data.customerLat, customerLng: data.customerLng };
+    initialData.session = { 
+      ...data.session, 
+      startTime: data.session.startTime.toISOString(), 
+      endTime: data.session.endTime ? data.session.endTime.toISOString() : undefined,
+      customerAddress: data.customerAddress, 
+      customerLat: data.customerLat, 
+      customerLng: data.customerLng, 
+      customerFirstName: null, 
+      customerLastName: null, 
+      resourceName: null, 
+      materialName: null, 
+      quantityTons: null 
+    } as any;
     initialData.events = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
     initialData.notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
   }

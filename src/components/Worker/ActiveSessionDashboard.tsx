@@ -165,7 +165,7 @@ export default function ActiveSessionDashboard({
             pathTraveled={pathTraveled}
             destination={destination}
             onRouteDistance={(km) => setDistanceToDestKm(km)}
-            events={timelineEvents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, label: e.type === 'photo' ? 'Zdjęcie' : 'Notatka' }))}
+            events={timelineEvents}
             onEventClick={(id) => {
               setIsTimelineOpen(true);
               setSelectedEventId(id);

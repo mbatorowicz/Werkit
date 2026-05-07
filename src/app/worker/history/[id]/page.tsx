@@ -1,5 +1,6 @@
 import { ArrowLeft, Clock, MapPin, Camera, FileText } from "lucide-react";
 import Link from "next/link";
+import { TimelineItem } from "@/types/worker";
 import { db } from "@/db";
 import { workSessions, gpsLogs, sessionNotes, sessionPhotos, materials, customers } from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
@@ -58,15 +59,15 @@ export default async function HistoryDetailPage({ params }: { params: { id: stri
   const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, sessionId));
   const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId));
 
-  const events: any[] = [];
+  const events: TimelineItem[] = [];
   notes.forEach(n => {
     if (n.latitude && n.longitude) {
-      events.push({ id: `note_${n.id}`, lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), type: 'note', label: 'Notatka', note: n.note, createdAt: n.createdAt });
+      events.push({ id: `note_${n.id}`, lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), type: 'note', content: n.note, createdAt: n.createdAt.toISOString() });
     }
   });
   photos.forEach(p => {
     if (p.latitude && p.longitude) {
-      events.push({ id: `photo_${p.id}`, lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), type: 'photo', label: 'Zdjęcie', photoUrl: p.photoUrl, createdAt: p.createdAt });
+      events.push({ id: `photo_${p.id}`, lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), type: 'photo', content: p.photoUrl || '', createdAt: p.createdAt.toISOString() });
     }
   });
   events.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -140,10 +141,10 @@ export default async function HistoryDetailPage({ params }: { params: { id: stri
                   <div className="text-[10px] text-zinc-400 mb-1">{new Date(item.createdAt).toLocaleString('pl-PL')}</div>
                   {item.type === 'photo' ? (
                     <div className="w-24 h-24 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700 mt-1">
-                      <img src={item.photoUrl} alt="Zdarzenie" className="w-full h-full object-cover" />
+                      <img src={item.content} alt="Zdarzenie" className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words bg-zinc-50 dark:bg-zinc-800 p-2 rounded mt-1">{item.note}</div>
+                    <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words bg-zinc-50 dark:bg-zinc-800 p-2 rounded mt-1">{item.content}</div>
                   )}
                 </div>
               </div>
