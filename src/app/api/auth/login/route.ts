@@ -52,8 +52,8 @@ export async function POST(req: Request) {
       name: 'auth_token',
       value: jwt,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Wymagane dla sameSite: 'none'
+      sameSite: 'none', // Pozwala zachować sesję w kontenerze Capacitor WebView (Cross-Origin)
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',
     });
