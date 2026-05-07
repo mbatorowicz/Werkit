@@ -143,6 +143,12 @@ export function useWorkerGPS(
               return;
             }
             if (location) {
+              // Filtr antyszpilkowy: Odrzucamy punkty, w których promień błędu jest większy niż 40 metrów.
+              if (location.accuracy && location.accuracy > 40) {
+                 sendRemoteLog('INFO', 'Filtrowanie GPS: Odrzucono szpilkę', { accuracy: location.accuracy, lat: location.latitude, lng: location.longitude });
+                 return; // Przerywamy zapis tego punktu
+              }
+
               handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
             }
           }
