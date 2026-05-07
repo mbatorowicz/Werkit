@@ -23,11 +23,12 @@ async function getUserId() {
 
 export const dynamicConfig = 'force-dynamic';
 
-export default async function HistoryDetailPage({ params }: { params: { id: string } }) {
+export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const userId = await getUserId();
   if (!userId) return <div>Brak dostępu</div>;
 
-  const sessionId = parseInt(params.id);
+  const resolvedParams = await params;
+  const sessionId = parseInt(resolvedParams.id);
   if (isNaN(sessionId)) notFound();
 
   const [sessionData] = await db.select({

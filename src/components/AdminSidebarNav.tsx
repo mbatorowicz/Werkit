@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings } from "lucide-react";
+import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings, TerminalSquare } from "lucide-react";
 
 export function AdminSidebarNav({ dict }: { dict: any }) {
   const pathname = usePathname();
@@ -17,7 +17,8 @@ export function AdminSidebarNav({ dict }: { dict: any }) {
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
     { href: "/admin/customers", icon: Package, label: dict.customers.title },
     { type: "section", label: dict.sidebar.system },
-    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings }
+    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings },
+    { href: "/admin/logs", icon: TerminalSquare, label: "Logi Urządzeń" }
   ];
 
   return (

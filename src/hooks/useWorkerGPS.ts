@@ -40,6 +40,16 @@ const saveQueue = (queue: GPSQueueItem[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
 };
 
+export const sendRemoteLog = (level: 'INFO'|'WARN'|'ERROR'|'DEBUG', message: string, metadata?: any) => {
+  if (typeof window === 'undefined') return;
+  fetch('/api/worker/logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ level, message, metadata }),
+    keepalive: true
+  }).catch(() => {});
+};
+
 export function useWorkerGPS(
   session: any,
   setLocation: (loc: Coord) => void,
@@ -137,6 +147,7 @@ export function useWorkerGPS(
           function callback(location, error) {
             if (error) {
               if (isMounted) setGpsStatus("error");
+              sendRemoteLog('ERROR', 'Błąd w BackgroundGeolocation.addWatcher', error);
               return;
             }
             if (location) {
@@ -145,11 +156,14 @@ export function useWorkerGPS(
           }
         ).then(watcherId => {
           if (!isMounted) {
-            // Natychmiastowe ubicie, jeśli komponent odmontował się przed przypisaniem ID
             BackgroundGeolocation.removeWatcher({ id: watcherId });
           } else {
             watchIdRef.current = watcherId;
+            setGpsStatus("active");
+            sendRemoteLog('INFO', 'Uruchomiono BackgroundGeolocation.addWatcher', { id: watcherId });
           }
+        }).catch(err => {
+            sendRemoteLog('ERROR', 'Nie udało się uruchomić BackgroundGeolocation', err);
         });
       }
     } else if ("geolocation" in navigator) {
@@ -158,7 +172,7 @@ export function useWorkerGPS(
         async (pos) => {
           handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
         },
-        () => {
+        (err) => {
           if (isMounted) setGpsStatus("error");
         },
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }

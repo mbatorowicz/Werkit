@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -120,6 +120,15 @@ export const workOrders = pgTable('work_orders', {
   priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
   dueDate: timestamp('due_date'),
   lockedUntil: timestamp('locked_until'),
+});
+
+export const deviceLogs = pgTable('device_logs', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
+  level: varchar('level', { length: 20 }).notNull().default('INFO'), // INFO, WARN, ERROR, DEBUG
+  message: text('message').notNull(),
+  metadata: json('metadata'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
 });
 
 // Relacje ułatwiające zapytania ORM
