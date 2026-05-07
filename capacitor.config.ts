@@ -13,3 +13,4 @@ const config: CapacitorConfig = {
 };
 
 export default config;
+// Build trigger v1.6.8
