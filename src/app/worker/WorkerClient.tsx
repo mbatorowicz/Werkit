@@ -15,6 +15,7 @@ import PendingOrdersList from "@/components/Worker/PendingOrdersList";
 import ActiveSessionDashboard from "@/components/Worker/ActiveSessionDashboard";
 import NotesModal from "@/components/Worker/Modals/NotesModal";
 import GpsWarningModal from "@/components/Worker/Modals/GpsWarningModal";
+import { useWorkerActions } from "@/hooks/useWorkerActions";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const getInitialTimeline = () => {
@@ -55,10 +56,6 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
   const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
   const dict = getDictionary().worker.client;
   const adminDict = getDictionary().admin.orders;
-
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
-  const [noteText, setNoteText] = useState("");
-  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
   const [showGpsWarning, setShowGpsWarning] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
@@ -139,46 +136,25 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
 
-  const handleEndSession = async () => {
-    if (settings?.requirePhotoToFinish) {
-      const hasPhoto = timelineEvents.some(e => e.type === 'photo');
-      if (!hasPhoto) {
-        alert(dict.photoReqFinish);
-        return;
-      }
-    }
-    if (!confirm("Czy na pewno chcesz zakończyć obecną zmianę/pracę?")) return;
-    setIsLoading(true);
-    try {
-      await fetch("/api/worker/session", { method: "PUT" });
-      sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy');
-      await fetchSessionAndPath();
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e?.message || e });
-      alert(dict.errEndSession);
-      setIsLoading(false);
-    }
-  };
-
-  const handleAcceptOrder = async (orderId: number) => {
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
-      if (res.ok) {
-        sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId });
-        await fetchSessionAndPath();
-      }
-      else {
-        sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status });
-        alert(dict.errAcceptOrder);
-        setIsLoading(false);
-      }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e?.message || e });
-      alert(dict.errNetwork);
-      setIsLoading(false);
-    }
-  };
+  const {
+    isNotesModalOpen, setIsNotesModalOpen,
+    noteText, setNoteText,
+    isSubmittingNote,
+    editingNoteId, setEditingNoteId,
+    handleEndSession,
+    handleAcceptOrder,
+    handleCancelSession,
+    handleCheckpoint,
+    handleSaveNote,
+    handlePhotoUpload
+  } = useWorkerActions({
+    dict,
+    fetchSessionAndPath,
+    setIsLoading,
+    timelineEvents,
+    settings,
+    distanceToDestKm
+  });
 
   const requestAcceptOrder = (orderId: number) => {
     if (Capacitor.isNativePlatform()) {
@@ -190,130 +166,6 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       }
     }
     handleAcceptOrder(orderId);
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setIsLoading(true);
-      try {
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(file);
-        await new Promise(resolve => img.onload = resolve);
-        const canvas = document.createElement('canvas');
-        const maxDim = 800;
-        let width = img.width;
-        let height = img.height;
-        if (width > height && width > maxDim) { height *= maxDim / width; width = maxDim; }
-        else if (height > maxDim) { width *= maxDim / height; height = maxDim; }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        const base64 = canvas.toDataURL('image/jpeg', 0.7);
-
-        const res = await fetch("/api/worker/session/photos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoUrl: base64, location })
-        });
-        if (res.ok) {
-          sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie');
-          alert(dict.photoSaved);
-          fetchSessionAndPath(false, false);
-        } else {
-          sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)');
-          alert(dict.photoError);
-        }
-      } catch (err: any) {
-        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err?.message || err });
-        alert(dict.errProcessPhoto);
-      }
-      setIsLoading(false);
-    }
-  };
-
-  const handleSaveNote = async () => {
-    if (!noteText.trim()) return;
-    setIsSubmittingNote(true);
-    try {
-      const isEditing = editingNoteId !== null;
-      const url = "/api/worker/session/notes";
-      const method = isEditing ? "PUT" : "POST";
-      const body = isEditing
-        ? { noteId: editingNoteId, note: noteText }
-        : { note: noteText, location };
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      if (res.ok) {
-        sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę');
-        alert(isEditing ? dict.noteUpdated : dict.noteAdded);
-        setIsNotesModalOpen(false);
-        setNoteText("");
-        setEditingNoteId(null);
-        fetchSessionAndPath(false, false);
-      } else {
-        sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)');
-        alert(dict.errSaveNote);
-      }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e?.message || e });
-      alert(dict.errNetwork);
-    }
-    setIsSubmittingNote(false);
-  };
-
-  const handleCancelSession = async () => {
-    if (!confirm("Czy na pewno chcesz cofnąć rozpoczęcie tego zlecenia? To usunie obecną sesję i przywróci zlecenie do oczekujących.")) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/worker/session/cancel", { method: "POST" });
-      if (res.ok) {
-        sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' });
-        alert(dict.cancelSuccess);
-        fetchSessionAndPath(true, true);
-      } else {
-        sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error');
-        alert(dict.errCancel);
-      }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e?.message || e });
-      alert(dict.errNetwork);
-    }
-    setIsLoading(false);
-  };
-
-  const handleCheckpoint = async () => {
-    if (settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
-      const distMeters = distanceToDestKm * 1000;
-      if (distMeters > settings.geofenceRadiusMeters) {
-        if (!confirm(`Jesteś za daleko od celu (${Math.round(distMeters)}m, dozwolone: ${settings.geofenceRadiusMeters}m). Czy na pewno chcesz zameldować dotarcie na miejsce?`)) return;
-      }
-    }
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/worker/session/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: "✅ Dojechał na miejsce", location })
-      });
-      if (res.ok) {
-        sendRemoteLog('INFO', 'Użytkownik zameldował dotarcie na miejsce');
-        alert(dict.arrivedSuccess);
-        fetchSessionAndPath(false, false);
-      } else {
-        sendRemoteLog('ERROR', 'Błąd zameldowania dotarcia (API Error)');
-        alert(dict.errArrived);
-      }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas meldowania', { error: e?.message || e });
-      alert(dict.errNetwork);
-    }
-    setIsLoading(false);
   };
 
   const isCancelWindowOpen = session && settings?.cancelWindowMinutes
@@ -363,8 +215,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           setNoteText={setNoteText}
           setEditingNoteId={setEditingNoteId}
           setIsNotesModalOpen={setIsNotesModalOpen}
-          handlePhotoUpload={handlePhotoUpload}
-          handleCheckpoint={handleCheckpoint}
+          handlePhotoUpload={(e: any) => handlePhotoUpload(e, location)}
+          handleCheckpoint={() => handleCheckpoint(location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}
           handleEndSession={handleEndSession}
@@ -380,7 +232,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         noteText={noteText}
         setNoteText={setNoteText}
         isSubmittingNote={isSubmittingNote}
-        handleSaveNote={handleSaveNote}
+        handleSaveNote={() => handleSaveNote(location)}
         editingNoteId={editingNoteId}
         setEditingNoteId={setEditingNoteId}
         timelineEvents={timelineEvents}
