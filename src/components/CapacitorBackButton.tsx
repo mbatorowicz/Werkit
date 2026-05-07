@@ -10,12 +10,10 @@ export function CapacitorBackButton() {
 
   useEffect(() => {
     // Nasłuchuj sprzętowego przycisku wstecz (tylko na urządzeniach mobilnych, np. Android)
-    const listener = App.addListener("backButton", ({ canGoBack }) => {
-      // Jeśli jesteśmy na głównych zakładkach i naciśniemy wstecz, wyjdźmy z aplikacji.
-      // W przeciwnym razie wracamy do poprzedniej strony.
+    const listener = App.addListener("backButton", () => {
       const isRootPage = ["/worker", "/worker/history", "/worker/profile", "/worker/help"].includes(pathname || "");
       
-      if (!isRootPage && canGoBack) {
+      if (!isRootPage) {
         router.back();
       } else {
         App.exitApp();

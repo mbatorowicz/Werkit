@@ -75,30 +75,14 @@ export default function LogsClient({ initialLogs: logs, workers }: { initialLogs
             <p>Brak logów dla wybranych filtrów.</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-0.5 whitespace-pre-wrap selection:bg-emerald-500/30">
             {filteredLogs.map(log => (
-              <div key={log.id} className="border-b border-zinc-800/50 pb-2 mb-2 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 hover:bg-white/5 p-1 rounded transition-colors">
-                <div className="flex flex-wrap items-center gap-2 shrink-0">
-                  <span className="text-zinc-500 shrink-0">
-                    {new Date(log.createdAt).toLocaleString('pl-PL')}
-                  </span>
-                  <span className={`px-1.5 py-0.5 rounded border text-[10px] font-bold tracking-widest ${getLevelColor(log.level)}`}>
-                    {log.level}
-                  </span>
-                  {log.workerName && (
-                    <span className="text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded text-[10px]">
-                      {log.workerName}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-zinc-300 break-words">{log.message}</div>
-                  {log.metadata && (
-                    <pre className="mt-1 p-2 bg-black/40 rounded text-[10px] sm:text-xs text-zinc-500 overflow-x-auto">
-                      {JSON.stringify(log.metadata, null, 2)}
-                    </pre>
-                  )}
-                </div>
+              <div key={log.id} className="hover:bg-white/5 px-2 py-0.5 rounded transition-colors break-words">
+                <span className="text-zinc-500">[{new Date(log.createdAt).toLocaleString('pl-PL')}]</span>
+                <span className="mx-2 font-bold text-zinc-400">[{log.level}]</span>
+                {log.workerName && <span className="mr-2 text-zinc-300">[{log.workerName}]</span>}
+                <span className="text-zinc-100">{log.message}</span>
+                {log.metadata && <span className="text-zinc-500 ml-2">{JSON.stringify(log.metadata)}</span>}
               </div>
             ))}
           </div>
