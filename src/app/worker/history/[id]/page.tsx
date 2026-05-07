@@ -39,7 +39,7 @@ export default async function HistoryDetailPage({ params }: { params: { id: stri
     materialName: materials.name,
     customerFirstName: customers.firstName,
     customerLastName: customers.lastName,
-    customerAddress: customers.address,
+    customerAddress: customers.defaultAddress,
     customerLat: customers.latitude,
     customerLng: customers.longitude,
   })
@@ -52,11 +52,11 @@ export default async function HistoryDetailPage({ params }: { params: { id: stri
     notFound();
   }
 
-  const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.sessionId, sessionId)).orderBy(gpsLogs.timestamp);
+  const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, sessionId)).orderBy(gpsLogs.timestamp);
   const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }));
   
-  const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.sessionId, sessionId));
-  const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.sessionId, sessionId));
+  const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, sessionId));
+  const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId));
 
   const events: any[] = [];
   notes.forEach(n => {
