@@ -1,48 +1,19 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { workOrders, resources, materials, customers, users } from '@/db/schema';
-import { eq, and, aliasedTable, asc } from 'drizzle-orm';
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { getUserId } from '@/lib/auth';
+import { WorkerOrderService } from '@/services/WorkerOrderService';
 
-import { JWT_SECRET } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const verified = await jwtVerify(token, JWT_SECRET);
-    const userId = verified.payload.userId as number;
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const creator = aliasedTable(users, 'creator');
-    const orders = await db.select({
-      id: workOrders.id,
-      sessionType: workOrders.sessionType,
-      taskDescription: workOrders.taskDescription,
-      resourceName: resources.name,
-      materialName: materials.name,
-      customerName: customers.lastName,
-      resourceId: workOrders.resourceId,
-      materialId: workOrders.materialId,
-      customerId: workOrders.customerId,
-      creatorName: creator.fullName,
-      quantityTons: workOrders.quantityTons,
-      expectedDurationHours: workOrders.expectedDurationHours,
-      priority: workOrders.priority,
-      dueDate: workOrders.dueDate,
-      createdAt: workOrders.createdAt
-    })
-    .from(workOrders)
-    .leftJoin(resources, eq(workOrders.resourceId, resources.id))
-    .leftJoin(materials, eq(workOrders.materialId, materials.id))
-    .leftJoin(customers, eq(workOrders.customerId, customers.id))
-    .leftJoin(creator, eq(workOrders.createdById, creator.id))
-    .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
-    .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
+    const orders = await WorkerOrderService.getPendingOrders(userId);
 
     return NextResponse.json(orders);
   } catch (err: any) {
+    console.error(err);
     return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
   }
 }
