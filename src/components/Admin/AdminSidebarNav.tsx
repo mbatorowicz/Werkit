@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings, TerminalSquare } from "lucide-react";
 
-export function AdminSidebarNav({ dict }: { dict: any }) {
+export function AdminSidebarNav({ dict }: { dict: Record<string, any> }) {
   const pathname = usePathname();
 
   const links = [

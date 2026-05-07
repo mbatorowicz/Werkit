@@ -7,7 +7,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 
 import { usePathname } from "next/navigation";
 
-export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { companyName: string; version: string; dict: any; loggedInUser?: string | null }) {
+export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { companyName: string; version: string; dict: Record<string, any>; loggedInUser?: string | null }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const pathname = usePathname();
