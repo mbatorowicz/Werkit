@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 
 import { useWorkerNotifications } from '@/hooks/useWorkerNotifications';
 import { useWorkerGPS, getDistance } from '@/hooks/useWorkerGPS';
+import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
 import PendingOrdersList from "@/components/Worker/PendingOrdersList";
@@ -150,8 +151,10 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     setIsLoading(true);
     try {
       await fetch("/api/worker/session", { method: "PUT" });
+      sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy');
       await fetchSessionAndPath();
-    } catch (e) {
+    } catch (e: any) {
+      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e?.message || e });
       alert(dict.errEndSession);
       setIsLoading(false);
     }
@@ -161,12 +164,17 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     setIsLoading(true);
     try {
       const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
-      if (res.ok) await fetchSessionAndPath();
+      if (res.ok) {
+        sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId });
+        await fetchSessionAndPath();
+      }
       else {
+        sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status });
         alert(dict.errAcceptOrder);
         setIsLoading(false);
       }
-    } catch (e) {
+    } catch (e: any) {
+      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e?.message || e });
       alert(dict.errNetwork);
       setIsLoading(false);
     }

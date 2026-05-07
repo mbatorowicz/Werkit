@@ -26,6 +26,8 @@ export function getDistance(a: Coord, b: Coord) {
   return R * c;
 }
 
+import { sendRemoteLog } from '@/lib/remoteLogger';
+
 const STORAGE_KEY = 'werkit_gps_queue';
 
 const getQueue = (): GPSQueueItem[] => {
@@ -38,16 +40,6 @@ const getQueue = (): GPSQueueItem[] => {
 
 const saveQueue = (queue: GPSQueueItem[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
-};
-
-export const sendRemoteLog = (level: 'INFO'|'WARN'|'ERROR'|'DEBUG', message: string, metadata?: any) => {
-  if (typeof window === 'undefined') return;
-  fetch('/api/worker/logs', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ level, message, metadata }),
-    keepalive: true
-  }).catch(() => {});
 };
 
 export function useWorkerGPS(

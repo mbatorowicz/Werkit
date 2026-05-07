@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { sendRemoteLog } from '@/lib/remoteLogger';
 
 export function useWorkerNotifications(
   session: any,
@@ -45,7 +46,10 @@ export function useWorkerNotifications(
             hasPermission = perm.display === 'granted';
           }
 
-          if (!hasPermission) return;
+          if (!hasPermission) {
+            sendRemoteLog('WARN', 'Brak uprawnień do LocalNotifications', { id, title });
+            return;
+          }
 
           // Schedule Notification
           await LocalNotifications.schedule({
@@ -61,8 +65,9 @@ export function useWorkerNotifications(
           notifiedArr.push(id);
           localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
 
-        } catch (e) {
+        } catch (e: any) {
           console.error(`Failed to trigger notification [${id}]:`, e);
+          sendRemoteLog('ERROR', 'Błąd podczas LocalNotifications.schedule', { error: e.message || e, id });
         }
       };
 
