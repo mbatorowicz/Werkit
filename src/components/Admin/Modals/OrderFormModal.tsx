@@ -65,7 +65,7 @@ export default function OrderFormModal({
             <label className="text-sm font-medium text-amber-500">{dict.chooseWorker}</label>
             <select required value={form.userId} onChange={e => setForm({ ...form, userId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
               <option value="" disabled>{dict.chooseFromList}</option>
-              {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
+              {workers.map((w: {id: number, fullName: string}) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
             </select>
           </div>
 
@@ -82,7 +82,7 @@ export default function OrderFormModal({
             <label className="text-sm font-medium text-zinc-400">{dict.chooseMachine}</label>
             <select required value={form.resourceId} onChange={e => setForm({ ...form, resourceId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
               <option value="" disabled>{dict.chooseMachine}...</option>
-              {machines.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              {machines.map((m: {id: number, name: string}) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
 
@@ -92,14 +92,14 @@ export default function OrderFormModal({
                 <label className="text-sm font-medium text-zinc-400">{dict.chooseMaterial}</label>
                 <select required value={form.materialId} onChange={e => setForm({ ...form, materialId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                   <option value="" disabled>{dict.chooseMaterial}...</option>
-                  {materials.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  {materials.map((m: {id: number, name: string}) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-400">{dict.chooseCustomer}</label>
                 <select required value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
                   <option value="" disabled>{dict.chooseCustomer}...</option>
-                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
+                  {customers.map((c: {id: number, firstName: string, lastName: string}) => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
                 </select>
               </div>
               <div className="space-y-2">

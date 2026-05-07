@@ -9,7 +9,7 @@ interface PendingOrdersListProps {
   overdueOrder?: WorkOrder | null;
   upcomingOrder?: WorkOrder | null;
   currentUser: UserData | null;
-  dict: any;
+  dict: Record<string, string>;
   requestAcceptOrder: (orderId: number) => void;
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => void;
 }

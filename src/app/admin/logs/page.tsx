@@ -24,6 +24,7 @@ export default async function AdminLogsPage() {
   // Mapowanie dat na iso string
   const formattedLogs = rawLogs.map(l => ({
     ...l,
+    metadata: l.metadata as Record<string, unknown>,
     createdAt: l.createdAt.toISOString(),
   }));
 

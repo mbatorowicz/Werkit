@@ -14,7 +14,7 @@ export function CapacitorBackButton() {
   }, [pathname]);
 
   useEffect(() => {
-    let listenerHandle: any = null;
+    let listenerHandle: { remove: () => void } | null = null;
     
     // Ustawienie listenera tylko raz na cykl życia aplikacji
     App.addListener("backButton", () => {

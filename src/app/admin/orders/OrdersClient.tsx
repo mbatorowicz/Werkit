@@ -4,27 +4,27 @@ import { useState, useEffect } from "react";
 import { Map, Plus, X, Search, RefreshCw, Settings, Loader2 } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { getDictionary } from "@/i18n";
-import SessionDetailsModal from "./SessionDetailsModal";
+import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
 import GanttChart from "@/components/GanttChart/GanttChart";
-import OrderFormModal from "./OrderFormModal";
+import OrderFormModal, { OrderFormState } from "@/components/Admin/Modals/OrderFormModal";
 
 export default function OrdersClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [workers, setWorkers] = useState<any[]>([]);
-  const [machines, setMachines] = useState<any[]>([]);
-  const [materials, setMaterials] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<Array<{ id: number, fullName: string }>>([]);
+  const [machines, setMachines] = useState<Array<{ id: number, name: string }>>([]);
+  const [materials, setMaterials] = useState<Array<{ id: number, name: string }>>([]);
+  const [customers, setCustomers] = useState<Array<{ id: number, firstName: string, lastName: string }>>([]);
+  const [orders, setOrders] = useState<Array<any>>([]);
+  const [sessions, setSessions] = useState<Array<any>>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [tableLimit, setTableLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsData, setSettingsData] = useState<any>(null);
+  const [settingsData, setSettingsData] = useState<unknown>(null);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
@@ -102,7 +102,7 @@ export default function OrdersClient() {
     return new Date(d.getTime() - offset).toISOString().slice(0, 16);
   };
 
-  const handleEditClick = (item: any) => {
+  const handleEditClick = (item: Record<string, any>) => {
     setEditingOrderId(item.workOrderId || item.id);
     setForm({
       userId: item.userId?.toString() || '',
@@ -224,7 +224,7 @@ export default function OrdersClient() {
                <button onClick={() => setIsSettingsOpen(false)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors bg-zinc-100 dark:bg-zinc-800 p-2 rounded-full"><X className="w-5 h-5" /></button>
              </div>
              <div className="p-2">
-               {settingsData ? <SettingsForm initialData={settingsData} mode="orders" /> : <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-500"/></div>}
+               {settingsData ? <SettingsForm initialData={settingsData as Record<string, unknown>} mode="orders" /> : <div className="p-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-zinc-500"/></div>}
              </div>
           </div>
         </div>
@@ -432,7 +432,7 @@ export default function OrdersClient() {
         <OrderFormModal
           isOpen={isModalOpen}
           onClose={() => { setIsModalOpen(false); setEditingOrderId(null); }}
-          onSave={async (formData: any) => {
+          onSave={async (formData: OrderFormState) => {
             const url = editingOrderId ? `/api/admin/work-orders/${editingOrderId}` : "/api/admin/work-orders";
             const method = editingOrderId ? "PUT" : "POST";
             

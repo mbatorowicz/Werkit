@@ -8,7 +8,7 @@ type GanttProps = {
   workers: Array<{ id: number, fullName: string }>;
   machines: Array<{ id: number, name: string }>;
   unifiedItems: Array<any>;
-  onItemClick?: (item: any) => void;
+  onItemClick?: (item: Record<string, any>) => void;
 };
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {

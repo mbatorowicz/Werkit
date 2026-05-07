@@ -71,7 +71,7 @@ export function useWorkerGPS(
             (location, error) => {
               if (error) {
                 if (isMounted) setGpsStatus("error");
-                sendRemoteLog('ERROR', 'Błąd w BackgroundGeolocation.addWatcher', error);
+                sendRemoteLog('ERROR', 'Błąd w BackgroundGeolocation.addWatcher', error as unknown as Record<string, unknown>);
                 return;
               }
               if (location) {
@@ -95,7 +95,7 @@ export function useWorkerGPS(
           if (isMounted) setGpsStatus("error");
         }
       } catch (err) {
-        sendRemoteLog('ERROR', 'Nie udało się uruchomić BackgroundGeolocation', err);
+        sendRemoteLog('ERROR', 'Nie udało się uruchomić BackgroundGeolocation', err instanceof Error ? { error: err.message } : undefined);
         if (isMounted) setGpsStatus("error");
       }
     };

@@ -12,7 +12,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const body = await request.json();
     
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       fullName: body.fullName,
       usernameEmail: body.usernameEmail,
       role: body.role,

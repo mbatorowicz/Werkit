@@ -28,8 +28,8 @@ function SessionTimer({ startTime }: { startTime: string }) {
 
 interface ActiveSessionDashboardProps {
   session: Session;
-  dict: any;
-  adminDict: any;
+  dict: Record<string, string>;
+  adminDict: Record<string, string>;
   isTimeOverrun: boolean;
   gpsStatus: "waiting" | "active" | "error";
   traveledKm: number;

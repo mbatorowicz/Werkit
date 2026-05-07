@@ -9,7 +9,7 @@ type LogItem = {
   userId: number | null;
   level: string;
   message: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
   createdAt: string;
   workerName: string | null;
 };

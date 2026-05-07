@@ -11,7 +11,7 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
   loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-lg flex items-center justify-center"><MapIcon className="w-8 h-8 text-zinc-400" /></div>
 });
 
-export default function SessionDetailsModal({ item, onClose, onEdit }: { item: any, onClose: () => void, onEdit?: (item: any) => void }) {
+export default function SessionDetailsModal({ item, onClose, onEdit }: { item: Record<string, any>, onClose: () => void, onEdit?: (item: Record<string, any>) => void }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
@@ -120,7 +120,7 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: a
                           <ImageIcon className="w-5 h-5 text-amber-500" /> {dict.timelineTitle}
                         </h3>
                         <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 space-y-8">
-                          {timelineItems.map((entry: any, index) => {
+                          {timelineItems.map((entry: Record<string, any>, index) => {
                             const isNote = entry.type === 'note';
                             const timeStr = new Date(entry.time).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
                             const dateStr = new Date(entry.time).toLocaleDateString('pl-PL');

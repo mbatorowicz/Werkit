@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import SettingsMap from "@/components/Map/SettingsMap";
 import { getDictionary } from "@/i18n";
 
-export default function SettingsForm({ initialData, mode = 'all' }: { initialData: any, mode?: 'all' | 'company' | 'orders' }) {
+export default function SettingsForm({ initialData, mode = 'all' }: { initialData: Record<string, any> | null, mode?: 'all' | 'company' | 'orders' }) {
   const router = useRouter();
   const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
   const [address, setAddress] = useState(initialData?.companyAddress || "");

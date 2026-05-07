@@ -6,6 +6,6 @@ const DynamicSettingsMap = dynamic(
   { ssr: false, loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-lg flex items-center justify-center text-xs text-zinc-600 font-medium">Ładowanie mapy...</div> }
 );
 
-export default function SettingsMap(props: any) {
+export default function SettingsMap(props: { lat: number; lng: number; onLocationChange: (lat: number, lng: number) => void; }) {
   return <DynamicSettingsMap {...props} />
 }

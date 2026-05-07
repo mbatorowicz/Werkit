@@ -224,7 +224,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           setNoteText={setNoteText}
           setEditingNoteId={setEditingNoteId}
           setIsNotesModalOpen={setIsNotesModalOpen}
-          handlePhotoUpload={(e: any) => handlePhotoUpload(e, location)}
+          handlePhotoUpload={(e: React.ChangeEvent<HTMLInputElement>) => handlePhotoUpload(e, location)}
           handleCheckpoint={() => handleCheckpoint(location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}

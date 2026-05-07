@@ -1,4 +1,4 @@
-export const sendRemoteLog = (level: 'INFO'|'WARN'|'ERROR'|'DEBUG', message: string, metadata?: any) => {
+export const sendRemoteLog = (level: 'INFO'|'WARN'|'ERROR'|'DEBUG', message: string, metadata?: Record<string, unknown>) => {
   if (typeof window === 'undefined') return;
   fetch('/api/worker/logs', {
     method: 'POST',
