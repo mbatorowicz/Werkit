@@ -5,9 +5,9 @@ import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
 type GanttProps = {
-  workers: any[];
-  machines: any[];
-  unifiedItems: any[];
+  workers: Array<{ id: number, fullName: string }>;
+  machines: Array<{ id: number, name: string }>;
+  unifiedItems: Array<any>;
   onItemClick?: (item: any) => void;
 };
 
@@ -222,8 +222,8 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               return (
                 <div key={row.id} className="flex border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                   <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-20 group-hover:bg-zinc-50 dark:group-hover:bg-zinc-800/20 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
-                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate" title={groupBy === 'WORKER' ? row.fullName : row.name}>
-                      {groupBy === 'WORKER' ? row.fullName : row.name}
+                    <span className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate" title={'fullName' in row ? row.fullName : row.name}>
+                      {'fullName' in row ? row.fullName : row.name}
                     </span>
                   </div>
                   <div className="flex-1 relative h-10 my-1">

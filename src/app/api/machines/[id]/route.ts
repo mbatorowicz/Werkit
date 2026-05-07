@@ -17,7 +17,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }).where(eq(resources.id, id));
     
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
@@ -30,7 +30,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     await db.delete(resources).where(eq(resources.id, id));
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Delete machine error", err);
     return NextResponse.json({ error: 'machine_in_use' }, { status: 500 });
   }

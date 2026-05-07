@@ -1,65 +1,48 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { workSessions, sessionNotes } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { cookies } from 'next/headers';
-import { JWT_SECRET } from '@/lib/auth';
-import { jwtVerify } from 'jose';
+import { getUserId } from '@/lib/auth';
+import { WorkerSessionService } from '@/services/WorkerSessionService';
+
 export async function POST(request: Request) {
   try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const verified = await jwtVerify(token, JWT_SECRET);
-    const userId = verified.payload.userId as number;
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
     const { note, location } = body;
     if (!note) return NextResponse.json({ error: 'Note is required' }, { status: 400 });
 
-    const existing = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    if (existing.length === 0) {
-       return NextResponse.json({ error: 'No active session' }, { status: 400 });
-    }
-
-    await db.insert(sessionNotes).values({
-      workSessionId: existing[0].id,
-      note: note,
-      latitude: location ? location.lat.toString() : null,
-      longitude: location ? location.lng.toString() : null,
-    });
+    await WorkerSessionService.addNote(userId, note, location?.lat?.toString(), location?.lng?.toString());
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error(err);
+    if (err instanceof Error && err.message === 'no_active_session') {
+      return NextResponse.json({ error: 'No active session' }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Failed to add note' }, { status: 500 });
   }
 }
 
 export async function PUT(request: Request) {
   try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const verified = await jwtVerify(token, JWT_SECRET);
-    const userId = verified.payload.userId as number;
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
     const { noteId, note } = body;
     if (!noteId || !note) return NextResponse.json({ error: 'Note ID and content are required' }, { status: 400 });
 
-    const existing = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    if (existing.length === 0) {
-       return NextResponse.json({ error: 'No active session' }, { status: 400 });
-    }
-
-    // Verify note belongs to the active session
-    const targetNote = await db.select().from(sessionNotes).where(and(eq(sessionNotes.id, parseInt(noteId)), eq(sessionNotes.workSessionId, existing[0].id))).limit(1);
-    if (targetNote.length === 0) {
-       return NextResponse.json({ error: 'Note not found or unauthorized' }, { status: 404 });
-    }
-
-    await db.update(sessionNotes).set({ note }).where(eq(sessionNotes.id, parseInt(noteId)));
+    await WorkerSessionService.updateNote(userId, parseInt(noteId), note);
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error(err);
+    if (err instanceof Error && err.message === 'no_active_session') {
+      return NextResponse.json({ error: 'No active session' }, { status: 400 });
+    }
+    if (err instanceof Error && err.message === 'unauthorized_note') {
+      return NextResponse.json({ error: 'Note not found or unauthorized' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
   }
 }

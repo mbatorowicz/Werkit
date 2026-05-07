@@ -18,8 +18,8 @@ export async function GET() {
     .orderBy(desc(resources.id));
     
     return NextResponse.json(allMachines);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message, stack: err.stack }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)), stack: (err instanceof Error ? err.stack : undefined) }, { status: 500 });
   }
 }
 
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Machine register error", err);
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }

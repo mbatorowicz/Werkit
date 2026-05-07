@@ -7,7 +7,8 @@ import { getDictionary } from "@/i18n";
 import { Capacitor } from '@capacitor/core';
 
 import { useWorkerNotifications } from '@/hooks/useWorkerNotifications';
-import { useWorkerGPS, getDistance } from '@/hooks/useWorkerGPS';
+import { useWorkerGPS } from '@/hooks/useWorkerGPS';
+import { GPSManager } from '@/lib/gpsManager';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
@@ -20,13 +21,13 @@ import { useWorkerActions } from "@/hooks/useWorkerActions";
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const getInitialTimeline = () => {
     const arr: TimelineItem[] = [];
-    if (initialData?.events) {
+    if (initialData?.events && Array.isArray(initialData.events)) {
       arr.push(...initialData.events.map(e => ({
         id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
         lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
       })));
     }
-    if (initialData?.notes) {
+    if (initialData?.notes && Array.isArray(initialData.notes)) {
       arr.push(...initialData.notes.map(n => ({
         id: `note_${n.id}`, type: 'note' as const, content: n.note,
         lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
@@ -43,7 +44,6 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders || []);
   const [isLoading, setIsLoading] = useState(!initialData);
 
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(initialData?.settings || null);
   const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user || null);
 
@@ -79,7 +79,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
             setPathTraveled(pathData.logs);
             let dist = 0;
             for (let i = 1; i < pathData.logs.length; i++) {
-              dist += getDistance(pathData.logs[i - 1], pathData.logs[i]);
+              dist += GPSManager.getDistance(pathData.logs[i - 1], pathData.logs[i]);
             }
             setTraveledKm(dist / 1000);
           }
@@ -92,13 +92,13 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       if (sessData.session) {
         setSession(sessData.session);
         const newTimeline: TimelineItem[] = [];
-        if (sessData.events) {
+        if (sessData.events && Array.isArray(sessData.events)) {
           newTimeline.push(...sessData.events.map((e: { id: number, photoUrl?: string, latitude?: string, longitude?: string, createdAt: string }) => ({
             id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
             lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
           })));
         }
-        if (sessData.notes) {
+        if (sessData.notes && Array.isArray(sessData.notes)) {
           newTimeline.push(...sessData.notes.map((n: { id: number, note: string, latitude?: string, longitude?: string, createdAt: string }) => ({
             id: `note_${n.id}`, type: 'note' as const, content: n.note,
             lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
@@ -130,8 +130,17 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
   useEffect(() => {
     if (!initialData) fetchSessionAndPath(true, true);
     else fetchSessionAndPath(false, true); 
-    const interval = setInterval(() => fetchSessionAndPath(false, false), 30000);
-    return () => clearInterval(interval);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchSessionAndPath(false, false);
+      }
+    };
+    
+    if (typeof document !== 'undefined') {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }
   }, [initialData]);
 
   useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);

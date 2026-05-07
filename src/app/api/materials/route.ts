@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const allMaterials = await db.select().from(materials).orderBy(desc(materials.id));
     return NextResponse.json(allMaterials);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     await db.insert(materials).values({ name, type });
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Material Insert Error:', err);
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }

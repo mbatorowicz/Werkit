@@ -9,7 +9,7 @@ export async function GET() {
   try {
     const allCustomers = await db.select().from(customers).orderBy(desc(customers.id));
     return NextResponse.json(allCustomers);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     });
     
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

@@ -18,7 +18,7 @@ export async function GET() {
     }).from(users).orderBy(desc(users.id));
     
     return NextResponse.json(allUsers);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -44,10 +44,10 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Worker register error", err);
     let msg = 'save_error';
-    if(err.code === '23505') msg = 'user_exists';
+    if (typeof err === 'object' && err !== null && 'code' in err && err.code === '23505') msg = 'user_exists';
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders } from '@/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 export class WorkerSessionService {
   /**
@@ -106,5 +106,66 @@ export class WorkerSessionService {
     }).where(eq(workSessions.id, sessionId));
 
     return true;
+  }
+  static async addNote(userId: number, note: string, lat?: string | null, lng?: string | null) {
+    const existing = await db.select().from(workSessions)
+      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    if (existing.length === 0) throw new Error('no_active_session');
+
+    await db.insert(sessionNotes).values({
+      workSessionId: existing[0].id,
+      note,
+      latitude: lat || null,
+      longitude: lng || null,
+    });
+  }
+
+  static async updateNote(userId: number, noteId: number, note: string) {
+    const existing = await db.select().from(workSessions)
+      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    if (existing.length === 0) throw new Error('no_active_session');
+
+    const targetNote = await db.select().from(sessionNotes)
+      .where(and(eq(sessionNotes.id, noteId), eq(sessionNotes.workSessionId, existing[0].id))).limit(1);
+    if (targetNote.length === 0) throw new Error('unauthorized_note');
+
+    await db.update(sessionNotes).set({ note }).where(eq(sessionNotes.id, noteId));
+  }
+
+  static async addPhoto(userId: number, photoUrl: string, lat?: string | null, lng?: string | null) {
+    const existing = await db.select().from(workSessions)
+      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    if (existing.length === 0) throw new Error('no_active_session');
+
+    await db.insert(sessionPhotos).values({
+      workSessionId: existing[0].id,
+      photoUrl,
+      photoType: 'AD_HOC',
+      latitude: lat || null,
+      longitude: lng || null,
+    });
+  }
+
+  static async cancelActiveSession(userId: number) {
+    const [session] = await db.select().from(workSessions)
+      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    if (!session) throw new Error('no_active_session');
+
+    // Restore the linked work order if it was created from one.
+    // We look for the most recently COMPLETED order for this user with matching resource and type.
+    const [order] = await db.select().from(workOrders)
+      .where(and(
+        eq(workOrders.userId, userId),
+        eq(workOrders.status, 'COMPLETED'),
+        eq(workOrders.resourceId, session.resourceId),
+        eq(workOrders.sessionType, session.sessionType)
+      ))
+      .orderBy(desc(workOrders.id))
+      .limit(1);
+
+    if (order) {
+      await db.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, order.id));
+    }
+    await db.delete(workSessions).where(eq(workSessions.id, session.id));
   }
 }

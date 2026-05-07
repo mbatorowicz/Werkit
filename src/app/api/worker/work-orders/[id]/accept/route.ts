@@ -1,42 +1,20 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { workOrders, workSessions } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
+import { getUserId } from '@/lib/auth';
+import { WorkerOrderService } from '@/services/WorkerOrderService';
 
-import { JWT_SECRET } from '@/lib/auth';
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const verified = await jwtVerify(token, JWT_SECRET);
-    const userId = verified.payload.userId as number;
+    const userId = await getUserId();
+    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
 
-    const [order] = await db.select().from(workOrders).where(and(eq(workOrders.id, parseInt(id)), eq(workOrders.userId, userId)));
-    if (!order) return NextResponse.json({ error: 'Zlecenie nie znalezione' }, { status: 404 });
+    const sessionId = await WorkerOrderService.acceptOrder(userId, parseInt(id));
 
-    // Mark as completed
-    await db.update(workOrders).set({ status: 'COMPLETED' }).where(eq(workOrders.id, order.id));
-
-    // Create session
-    const [newSession] = await db.insert(workSessions).values({
-      workOrderId: order.id,
-      userId: userId,
-      sessionType: order.sessionType,
-      resourceId: order.resourceId,
-      materialId: order.materialId,
-      customerId: order.customerId,
-      taskDescription: order.taskDescription,
-      quantityTons: order.quantityTons,
-      expectedDurationHours: order.expectedDurationHours,
-      dueDate: order.dueDate,
-      status: 'IN_PROGRESS'
-    }).returning();
-
-    return NextResponse.json({ success: true, sessionId: newSession.id });
-  } catch (err: any) {
+    return NextResponse.json({ success: true, sessionId });
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'order_not_found') {
+      return NextResponse.json({ error: 'Zlecenie nie znalezione' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Błąd podczas akceptacji zlecenia' }, { status: 500 });
   }
 }

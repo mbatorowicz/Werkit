@@ -19,7 +19,7 @@ export async function GET() {
     const data = await AdminOrderService.getArchivedSessions();
 
     return NextResponse.json(data);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

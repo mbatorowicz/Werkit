@@ -21,7 +21,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     ]);
 
     return NextResponse.json({ logs, photos, notes });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }

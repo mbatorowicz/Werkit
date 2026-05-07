@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       await db.update(users).set({ notificationsEnabled: body.notificationsEnabled }).where(eq(users.id, userId));
     }
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
   }

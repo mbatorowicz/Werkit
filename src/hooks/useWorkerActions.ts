@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { sendRemoteLog } from '@/lib/remoteLogger';
-import { Coord } from '@/types/worker';
+import { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
 interface UseWorkerActionsProps {
-  dict: any;
+  dict: Record<string, string>;
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => Promise<void>;
   setIsLoading: (val: boolean) => void;
-  timelineEvents: any[];
-  settings: any;
+  timelineEvents: TimelineItem[];
+  settings: AppSettings | null;
   distanceToDestKm: number | null;
 }
 
@@ -38,8 +38,8 @@ export function useWorkerActions({
       await fetch("/api/worker/session", { method: "PUT" });
       sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy');
       await fetchSessionAndPath(false, false);
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e?.message || e });
+    } catch (e: unknown) {
+      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e instanceof Error ? e.message : String(e) });
       alert(dict.errEndSession);
     } finally {
       setIsLoading(false);
@@ -57,8 +57,8 @@ export function useWorkerActions({
         sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status });
         alert(dict.errAcceptOrder);
       }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e?.message || e });
+    } catch (e: unknown) {
+      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e instanceof Error ? e.message : String(e) });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -78,8 +78,8 @@ export function useWorkerActions({
         sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error');
         alert(dict.errCancel);
       }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e?.message || e });
+    } catch (e: unknown) {
+      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e instanceof Error ? e.message : String(e) });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -108,8 +108,8 @@ export function useWorkerActions({
         sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)');
         alert(dict.errSaveNote);
       }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci przy zapisie checkpointu', { error: e?.message || e });
+    } catch (e: unknown) {
+      sendRemoteLog('ERROR', 'Błąd sieci przy zapisie checkpointu', { error: e instanceof Error ? e.message : String(e) });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -143,8 +143,8 @@ export function useWorkerActions({
         sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)');
         alert(dict.errSaveNote);
       }
-    } catch (e: any) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e?.message || e });
+    } catch (e: unknown) {
+      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e instanceof Error ? e.message : String(e) });
       alert(dict.errNetwork);
     } finally {
       setIsSubmittingNote(false);
@@ -184,8 +184,8 @@ export function useWorkerActions({
           sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)');
           alert(dict.photoError);
         }
-      } catch (err: any) {
-        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err?.message || err });
+      } catch (err: unknown) {
+        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err instanceof Error ? err.message : String(err) });
         alert(dict.errProcessPhoto);
       } finally {
         setIsLoading(false);

@@ -1,108 +1,41 @@
 import { useEffect, useRef } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
+import { sendRemoteLog } from '@/lib/remoteLogger';
+import { GPSManager } from '@/lib/gpsManager';
+import type { Coord, Session } from '@/types/worker';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 
-type Coord = {
-  lat: number;
-  lng: number;
-  heading?: number | null;
-};
-
-type GPSQueueItem = Coord & { timestamp: string };
-
-export function getDistance(a: Coord, b: Coord) {
-  const R = 6371e3;
-  const φ1 = a.lat * Math.PI / 180;
-  const φ2 = b.lat * Math.PI / 180;
-  const Δφ = (b.lat - a.lat) * Math.PI / 180;
-  const Δλ = (b.lng - a.lng) * Math.PI / 180;
-
-  const x = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
-  return R * c;
-}
-
-import { sendRemoteLog } from '@/lib/remoteLogger';
-
-const STORAGE_KEY = 'werkit_gps_queue';
-
-const getQueue = (): GPSQueueItem[] => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
-  }
-};
-
-const saveQueue = (queue: GPSQueueItem[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
-};
-
 export function useWorkerGPS(
-  session: any,
+  session: Session | null,
   setLocation: (loc: Coord) => void,
   setPathTraveled: (update: (prev: Coord[]) => Coord[]) => void,
   setTraveledKm: (update: (prev: number) => number) => void,
   setGpsStatus: (status: "waiting" | "active" | "error") => void
 ) {
-  const watchIdRef = useRef<any>(null);
-  const isFlushingRef = useRef(false);
+  const watchIdRef = useRef<string | number | null>(null);
 
   useEffect(() => {
-    let isMounted = true; // Zabezpieczenie przed wyciekiem, jeśli sesja skończy się podczas odpalania GPS
+    let isMounted = true;
 
-    if (!session) {
+    const clearWatcher = () => {
       if (watchIdRef.current !== null) {
         if (Capacitor.isNativePlatform()) {
           if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
-            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
+            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current as string });
           }
         } else {
-          navigator.geolocation.clearWatch(watchIdRef.current);
+          navigator.geolocation.clearWatch(watchIdRef.current as number);
         }
         watchIdRef.current = null;
       }
+    };
+
+    if (!session) {
+      clearWatcher();
       return;
     }
-
-    const flushQueue = async () => {
-      if (!navigator.onLine) {
-        setGpsStatus("waiting");
-        return;
-      }
-      if (isFlushingRef.current) return;
-
-      const queue = getQueue();
-      if (queue.length === 0) return;
-
-      isFlushingRef.current = true;
-      const sentTimestamps = new Set(queue.map(q => q.timestamp));
-
-      try {
-        const res = await fetch("/api/worker/gps", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(queue),
-          keepalive: true
-        });
-
-        if (res.ok && isMounted) {
-          const updatedQueue = getQueue().filter(q => !sentTimestamps.has(q.timestamp));
-          saveQueue(updatedQueue);
-          setGpsStatus("active");
-        }
-      } catch (error) {
-      } finally {
-        isFlushingRef.current = false;
-        if (getQueue().length > 0 && navigator.onLine && isMounted) {
-          setTimeout(flushQueue, 100);
-        }
-      }
-    };
 
     const handleNewLoc = (newLoc: Coord) => {
       if (!isMounted) return;
@@ -111,48 +44,46 @@ export function useWorkerGPS(
       setPathTraveled(prev => {
         if (prev.length > 0) {
           const lastLoc = prev[prev.length - 1];
-          const distIncrement = getDistance(lastLoc, newLoc) / 1000;
+          const distIncrement = GPSManager.getDistance(lastLoc, newLoc) / 1000;
           setTraveledKm(k => k + distIncrement);
         }
         return [...prev, newLoc];
       });
 
-      const payload = { ...newLoc, timestamp: new Date().toISOString() };
-      const currentQueue = getQueue();
-      currentQueue.push(payload);
-      saveQueue(currentQueue);
-
-      flushQueue();
+      GPSManager.enqueue(newLoc);
+      GPSManager.flushQueue(() => {
+        if (isMounted) setGpsStatus("active");
+      });
     };
 
-    if (Capacitor.isNativePlatform()) {
+    const startNativeTracking = async () => {
       setGpsStatus("waiting");
-      if (BackgroundGeolocation && typeof BackgroundGeolocation.addWatcher === 'function') {
-        BackgroundGeolocation.addWatcher(
-          {
-            backgroundMessage: "Aplikacja śledzi trasę pracownika w tle.",
-            backgroundTitle: "Werkit - Rejestrowanie trasy",
-            requestPermissions: true,
-            stale: true,
-            distanceFilter: 10
-          },
-          function callback(location, error) {
-            if (error) {
-              if (isMounted) setGpsStatus("error");
-              sendRemoteLog('ERROR', 'Błąd w BackgroundGeolocation.addWatcher', error);
-              return;
-            }
-            if (location) {
-              // Filtr antyszpilkowy: Odrzucamy punkty, w których promień błędu jest większy niż 40 metrów.
-              if (location.accuracy && location.accuracy > 40) {
-                 sendRemoteLog('INFO', 'Filtrowanie GPS: Odrzucono szpilkę', { accuracy: location.accuracy, lat: location.latitude, lng: location.longitude });
-                 return; // Przerywamy zapis tego punktu
+      try {
+        if (BackgroundGeolocation && typeof BackgroundGeolocation.addWatcher === 'function') {
+          const watcherId = await BackgroundGeolocation.addWatcher(
+            {
+              backgroundMessage: "Aplikacja śledzi trasę pracownika w tle.",
+              backgroundTitle: "Werkit - Rejestrowanie trasy",
+              requestPermissions: true,
+              stale: true,
+              distanceFilter: 10
+            },
+            (location, error) => {
+              if (error) {
+                if (isMounted) setGpsStatus("error");
+                sendRemoteLog('ERROR', 'Błąd w BackgroundGeolocation.addWatcher', error);
+                return;
               }
-
-              handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
+              if (location) {
+                if (location.accuracy && location.accuracy > 40) {
+                  sendRemoteLog('INFO', 'Filtrowanie GPS: Odrzucono szpilkę', { accuracy: location.accuracy, lat: location.latitude, lng: location.longitude });
+                  return;
+                }
+                handleNewLoc({ lat: location.latitude, lng: location.longitude, heading: location.bearing });
+              }
             }
-          }
-        ).then(watcherId => {
+          );
+
           if (!isMounted) {
             BackgroundGeolocation.removeWatcher({ id: watcherId });
           } else {
@@ -160,39 +91,43 @@ export function useWorkerGPS(
             setGpsStatus("active");
             sendRemoteLog('INFO', 'Uruchomiono BackgroundGeolocation.addWatcher', { id: watcherId });
           }
-        }).catch(err => {
-            sendRemoteLog('ERROR', 'Nie udało się uruchomić BackgroundGeolocation', err);
-        });
-      }
-    } else if ("geolocation" in navigator) {
-      setGpsStatus("waiting");
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        async (pos) => {
-          handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading });
-        },
-        (err) => {
+        } else {
           if (isMounted) setGpsStatus("error");
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
-      );
+        }
+      } catch (err) {
+        sendRemoteLog('ERROR', 'Nie udało się uruchomić BackgroundGeolocation', err);
+        if (isMounted) setGpsStatus("error");
+      }
+    };
+
+    const startWebTracking = () => {
+      setGpsStatus("waiting");
+      if ("geolocation" in navigator) {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (pos) => handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading }),
+          (err) => { if (isMounted) setGpsStatus("error"); },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+        );
+      } else {
+        if (isMounted) setGpsStatus("error");
+      }
+    };
+
+    if (Capacitor.isNativePlatform()) {
+      startNativeTracking();
     } else {
-      setGpsStatus("error");
+      startWebTracking();
     }
 
-    const flushInterval = setInterval(flushQueue, 30000);
+    const flushInterval = setInterval(() => {
+      GPSManager.flushQueue(() => {
+        if (isMounted) setGpsStatus("active");
+      });
+    }, 30000);
 
     return () => {
       isMounted = false;
-      if (watchIdRef.current !== null) {
-        if (Capacitor.isNativePlatform()) {
-          if (BackgroundGeolocation && typeof BackgroundGeolocation.removeWatcher === 'function') {
-            BackgroundGeolocation.removeWatcher({ id: watchIdRef.current });
-          }
-        } else {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-        }
-        watchIdRef.current = null;
-      }
+      clearWatcher();
       clearInterval(flushInterval);
     };
   }, [session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus]);

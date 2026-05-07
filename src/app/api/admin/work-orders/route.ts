@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const data = await AdminOrderService.getActiveWorkOrders();
     return NextResponse.json(data);
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }

@@ -29,7 +29,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     await db.update(users).set(updateData).where(eq(users.id, id));
     
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Update user error", err);
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
@@ -44,7 +44,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     // Nieodwracalne usunięcie pracownika zgodnie z zaleceniami
     await db.delete(users).where(eq(users.id, id));
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Delete user error", err);
     return NextResponse.json({ error: 'delete_error' }, { status: 500 });
   }

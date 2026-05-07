@@ -2,15 +2,16 @@ import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { sendRemoteLog } from '@/lib/remoteLogger';
+import { Session, WorkOrder, AppSettings, UserData } from '@/types/worker';
 
 export function useWorkerNotifications(
-  session: any,
-  workOrders: any[],
-  settings: any,
-  currentUser: any
+  session: Session | null,
+  workOrders: WorkOrder[],
+  settings: AppSettings | null,
+  currentUser: UserData | null
 ) {
   const isTimeOverrun = session && session.expectedDurationHours && settings?.timeOverrunReminder
-    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(session.expectedDurationHours)
+    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 3600000 > parseFloat(String(session.expectedDurationHours))
     : false;
 
   const overdueOrder = workOrders.find(order => {
@@ -65,9 +66,9 @@ export function useWorkerNotifications(
           notifiedArr.push(id);
           localStorage.setItem('werkit_notified_orders', JSON.stringify(notifiedArr));
 
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error(`Failed to trigger notification [${id}]:`, e);
-          sendRemoteLog('ERROR', 'Błąd podczas LocalNotifications.schedule', { error: e.message || e, id });
+          sendRemoteLog('ERROR', 'Błąd podczas LocalNotifications.schedule', { error: e instanceof Error ? e.message : String(e), id });
         }
       };
 

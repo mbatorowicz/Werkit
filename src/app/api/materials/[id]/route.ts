@@ -17,7 +17,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }).where(eq(materials.id, id));
     
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
@@ -30,7 +30,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
     await db.delete(materials).where(eq(materials.id, id));
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Delete material error", err);
     return NextResponse.json({ error: 'material_in_use' }, { status: 500 });
   }

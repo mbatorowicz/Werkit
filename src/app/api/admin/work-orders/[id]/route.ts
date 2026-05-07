@@ -55,7 +55,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     }).where(eq(workOrders.id, orderId));
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to update work order' }, { status: 500 });
   }

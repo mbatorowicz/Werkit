@@ -12,7 +12,7 @@ export async function GET() {
     const orders = await WorkerOrderService.getPendingOrders(userId);
 
     return NextResponse.json(orders);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
   }

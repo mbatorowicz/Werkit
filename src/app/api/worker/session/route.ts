@@ -9,7 +9,7 @@ export async function GET() {
 
     const sessionData = await WorkerSessionService.getActiveSessionWithDetails(userId);
     return NextResponse.json(sessionData);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to fetch session' }, { status: 500 });
   }
@@ -36,9 +36,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, session: newSession });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    if (err.message === 'session_active') {
+    if (err instanceof Error && err.message === 'session_active') {
        return NextResponse.json({ error: 'session_active' }, { status: 400 });
     }
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
@@ -52,9 +52,9 @@ export async function PUT(request: Request) {
 
     await WorkerSessionService.endActiveSession(userId);
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    if (err.message === 'no_active_session') {
+    if (err instanceof Error && err.message === 'no_active_session') {
        return NextResponse.json({ error: 'No active session' }, { status: 400 });
     }
     return NextResponse.json({ error: 'Failed to end session' }, { status: 500 });
