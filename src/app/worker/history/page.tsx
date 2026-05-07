@@ -1,4 +1,5 @@
 import { Clock, MapPin, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 import { db } from "@/db";
 import { workSessions, materials, customers } from "@/db/schema";
 import { eq, desc, and, isNotNull } from "drizzle-orm";
@@ -51,17 +52,17 @@ export default async function HistoryPage() {
       ) : (
          <div className="space-y-4">
            {sessions.map(s => (
-              <div key={s.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
+              <Link href={`/worker/history/${s.id}`} key={s.id} className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:border-emerald-500 transition-colors cursor-pointer group shadow-sm hover:shadow-md">
                  <div className="flex items-center gap-2 mb-3">
                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">
                      Zakończono
                    </span>
-                   <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto">
+                   <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto group-hover:text-emerald-600 transition-colors">
                      {s.endTime?.toLocaleDateString('pl-PL')}
                    </span>
                  </div>
-                 <div className="font-semibold text-zinc-900 dark:text-white mb-1">
+                 <div className="font-semibold text-zinc-900 dark:text-white mb-1 group-hover:text-emerald-500 transition-colors">
                     {s.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : s.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
                  </div>
                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-3">
@@ -86,7 +87,7 @@ export default async function HistoryPage() {
                      {s.taskDescription || 'Brak opisu prac'}
                    </div>
                  )}
-              </div>
+              </Link>
            ))}
          </div>
       )}
