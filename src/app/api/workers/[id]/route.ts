@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import type { UserUpdatePayload } from '@/services/AdminUserService';
+import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);
@@ -10,14 +14,19 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const body = await request.json();
     
+    const normalizedRole =
+      body.role === 'admin' ? 'admin' : body.role === 'viewer' ? 'viewer' : 'worker';
+
     const updateData: UserUpdatePayload = {
       fullName: body.fullName,
       usernameEmail: body.usernameEmail,
-      role: body.role,
+      role: normalizedRole,
     };
 
-    if (body.canCreateOwnOrders !== undefined) {
-      updateData.canCreateOwnOrders = body.canCreateOwnOrders;
+    if (normalizedRole === 'worker' && body.canCreateOwnOrders !== undefined) {
+      updateData.canCreateOwnOrders = !!body.canCreateOwnOrders;
+    } else {
+      updateData.canCreateOwnOrders = false;
     }
 
     if (body.password && body.password.trim() !== '') {
@@ -35,6 +44,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);

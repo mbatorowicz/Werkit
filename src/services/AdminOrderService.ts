@@ -90,7 +90,14 @@ export class AdminOrderService {
     await db.update(workOrders).set(updates).where(eq(workOrders.id, orderId));
   }
 
+  /** Usuwa zlecenie i sesje z `work_order_id` (podrzędne GPS/zdjęcia/notatki — kaskada z sesji). */
   static async deleteOrder(orderId: number) {
-    await db.delete(workOrders).where(eq(workOrders.id, orderId));
+    const rows = await db.select({ id: workOrders.id }).from(workOrders).where(eq(workOrders.id, orderId)).limit(1);
+    if (rows.length === 0) throw new Error('not_found');
+
+    await db.transaction(async (tx) => {
+      await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
+      await tx.delete(workOrders).where(eq(workOrders.id, orderId));
+    });
   }
 }

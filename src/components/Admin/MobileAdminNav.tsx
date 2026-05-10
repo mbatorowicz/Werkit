@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Menu, X, Map, Users, Package, Activity, LogOut, Wrench, HardHat, Settings, TerminalSquare } from "lucide-react";
+import { Menu, X, Map, Users, Package, Activity, LogOut, Wrench, HardHat, Settings, TerminalSquare, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -15,8 +15,9 @@ export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { c
 
   const links = [
     { href: "/admin", icon: Activity, label: dict.dashboard.title },
+    { href: "/admin/reports", icon: BarChart3, label: dict.reports.title },
     { type: "section", label: dict.sidebar.fleetAndPeople },
-    { href: "/admin/workers", icon: Users, label: dict.workers.title },
+    { href: "/admin/users", icon: Users, label: dict.workers.title },
     { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
     { type: "section", label: dict.sidebar.logistics },
     { href: "/admin/orders", icon: Map, label: dict.orders.title },

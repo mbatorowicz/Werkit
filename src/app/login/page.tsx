@@ -1,16 +1,67 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Fingerprint } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getDictionary } from "@/i18n";
+import {
+  fetchCredentialsWithBiometricPrompt,
+  hasSavedBiometricCredentials,
+  isNativeBiometricContext,
+} from "@/lib/biometricLogin";
 
 export default function LoginPage() {
   const router = useRouter();
+  const dict = getDictionary();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [bioOffered, setBioOffered] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!isNativeBiometricContext()) return;
+      const saved = await hasSavedBiometricCredentials();
+      if (!cancelled) setBioOffered(saved);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleBiometricLogin = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const creds = await fetchCredentialsWithBiometricPrompt();
+      if (!creds) {
+        setLoading(false);
+        return;
+      }
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          usernameEmail: creds.username,
+          password: creds.password,
+        }),
+      });
+      const data = (await res.json()) as { error?: string; user?: { role?: string } };
+      if (res.ok) {
+        router.refresh();
+        router.push(data.user?.role === "admin" ? "/admin" : "/worker");
+      } else {
+        const apiErrors = dict.apiErrors as Record<string, string>;
+        setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
+      }
+    } catch {
+      setError("Brak połączenia z Vercel API. Spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,14 +79,14 @@ export default function LoginPage() {
         body: JSON.stringify({ usernameEmail, password }),
       });
 
-      const data = await res.json();
+      const data = (await res.json()) as { error?: string; user?: { role?: string } };
 
       if (res.ok) {
         router.refresh();
-        router.push(data.user?.role === 'admin' ? "/admin" : "/worker");
+        router.push(data.user?.role === "admin" ? "/admin" : "/worker");
       } else {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
-        setError(apiErrors[data.error] || data.error || "Wystąpił błąd krytyczny");
+        const apiErrors = dict.apiErrors as Record<string, string>;
+        setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
       }
     } catch (err) {
       setError("Brak połączenia z Vercel API. Spróbuj ponownie.");
@@ -65,6 +116,29 @@ export default function LoginPage() {
           <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
             {error}
           </div>
+        )}
+
+        {bioOffered && (
+          <>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void handleBiometricLogin()}
+              className="w-full mb-6 flex justify-center items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/15 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-medium rounded-lg px-4 py-3.5 transition-all disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Fingerprint className="w-5 h-5" />
+                  {dict.login.biometricLogin}
+                </>
+              )}
+            </button>
+            <p className="text-center text-xs text-zinc-500 mb-6 uppercase tracking-wider">
+              {dict.login.biometricDivider}
+            </p>
+          </>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5">

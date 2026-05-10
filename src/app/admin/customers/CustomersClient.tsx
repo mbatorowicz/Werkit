@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trash2, Package, Plus, X, Edit2, MapPin } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import dynamic from "next/dynamic";
 
 const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), { ssr: false, loading: () => <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">Ładowanie mapy...</div> });
@@ -17,6 +18,7 @@ type Customer = {
 };
 
 export default function CustomersClient() {
+  const { canMutate } = useAdminAbility();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -87,9 +89,11 @@ export default function CustomersClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Package className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
+        {canMutate && (
         <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCustomer}
         </button>
+        )}
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
@@ -99,12 +103,14 @@ export default function CustomersClient() {
                <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.customerData}</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.defaultAddress}</th>
+                 {canMutate && (
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{getDictionary().admin.machines.management}</th>
+                 )}
                </tr>
              </thead>
              <tbody className="divide-y divide-zinc-800/50">
                {isLoading ? (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
+                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : customers.map(customer => (
                  <tr key={customer.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
@@ -123,6 +129,7 @@ export default function CustomersClient() {
                        <span className="text-zinc-600 italic text-xs">{dict.noAddress}</span>
                      )}
                    </td>
+                   {canMutate && (
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
                         <button onClick={() => openEditModal(customer)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={getDictionary().admin.machines.editTitle}>
@@ -133,10 +140,11 @@ export default function CustomersClient() {
                         </button>
                      </div>
                    </td>
+                   )}
                  </tr>
                ))}
                {!isLoading && customers.length === 0 && (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noCustomers}</td></tr>
+                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noCustomers}</td></tr>
                )}
              </tbody>
           </table>

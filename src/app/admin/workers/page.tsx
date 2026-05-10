@@ -1,9 +1,5 @@
-import WorkersClient from "./WorkersClient";
+import { redirect } from "next/navigation";
 
-export default function WorkersPage() {
-  return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
-      <WorkersClient />
-    </div>
-  )
+export default function LegacyWorkersRedirectPage() {
+  redirect("/admin/users");
 }

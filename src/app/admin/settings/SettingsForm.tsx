@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import SettingsMap from "@/components/Map/SettingsMap";
 import { getDictionary } from "@/i18n";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 export default function SettingsForm({ initialData, mode = 'all' }: { initialData: Record<string, any> | null, mode?: 'all' | 'company' | 'orders' }) {
+  const { canMutate } = useAdminAbility();
   const router = useRouter();
   const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
   const [address, setAddress] = useState(initialData?.companyAddress || "");
@@ -46,6 +48,7 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
   };
 
   const handleSave = async () => {
+    if (!canMutate) return;
     setSaveStatus("SAVING");
     try {
        const res = await fetch('/api/settings', {
@@ -90,7 +93,7 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
         </h2>
       </div>
       
-      <div className="p-6 md:p-8 space-y-8">
+      <div className={`p-6 md:p-8 space-y-8 ${!canMutate ? "opacity-85 pointer-events-none select-none" : ""}`}>
         {(mode === 'all' || mode === 'company') && (
           <div className="space-y-6 max-w-3xl">
             <div className="space-y-4">
@@ -177,12 +180,14 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
            </div>
         )}
 
-        <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
+        {canMutate && (
+          <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
             {saveStatus === "SAVED" && <span className="text-emerald-500 text-sm font-medium">{dict.savedSuccess}</span>}
-            <button onClick={handleSave} disabled={saveStatus === "SAVING"} className="bg-amber-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-amber-500 transition shadow-sm active:scale-95">
+            <button type="button" onClick={() => void handleSave()} disabled={saveStatus === "SAVING"} className="bg-amber-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-amber-500 transition shadow-sm active:scale-95">
                {saveStatus === "SAVING" ? dict.saving : dict.saveBtn}
             </button>
           </div>
+        )}
       </div>
     </div>
   )

@@ -2,8 +2,19 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
+import { BiometricLoginSettings } from "./BiometricLoginSettings";
 
-export function ProfileSettings({ initialEnabled }: { initialEnabled: boolean }) {
+export function ProfileSettings({
+  initialEnabled,
+  initialBiometricLoginEnabled,
+  usernameEmail,
+  role,
+}: {
+  initialEnabled: boolean;
+  initialBiometricLoginEnabled: boolean;
+  usernameEmail: string;
+  role: "worker" | "admin";
+}) {
   const [enabled, setEnabled] = useState(initialEnabled);
 
   const toggleNotifications = async () => {
@@ -17,6 +28,7 @@ export function ProfileSettings({ initialEnabled }: { initialEnabled: boolean })
   };
 
   return (
+    <>
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center mt-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className="bg-emerald-100 dark:bg-emerald-500/20 p-2 rounded-lg">
@@ -32,5 +44,12 @@ export function ProfileSettings({ initialEnabled }: { initialEnabled: boolean })
         <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
       </label>
     </div>
+
+      <BiometricLoginSettings
+        usernameEmail={usernameEmail}
+        role={role}
+        initialBiometricLoginEnabled={initialBiometricLoginEnabled}
+      />
+    </>
   );
 }

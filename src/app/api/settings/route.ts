@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export async function GET() {
   try {
@@ -11,6 +12,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { DictionaryService } = await import('@/services/DictionaryService');

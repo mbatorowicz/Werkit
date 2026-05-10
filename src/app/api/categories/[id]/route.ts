@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { ResourceCategoryUpdateInput } from '@/services/DictionaryService';
+import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);
@@ -27,6 +31,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);

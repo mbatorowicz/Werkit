@@ -1,5 +1,14 @@
 import { db } from '@/db';
-import { resourceCategories, customers, materials, resources, companySettings, resourceToCategories } from '@/db/schema';
+import {
+  resourceCategories,
+  customers,
+  materials,
+  materialCategories,
+  materialToCategories,
+  resources,
+  companySettings,
+  resourceToCategories,
+} from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export class DictionaryService {
@@ -12,7 +21,18 @@ export class DictionaryService {
   }
 
   static async getMaterials() {
-    return await db.select().from(materials).orderBy(desc(materials.id));
+    const all = await db.select().from(materials).orderBy(desc(materials.id));
+    const links = await db.select().from(materialToCategories);
+    return all.map((m) => ({
+      id: m.id,
+      name: m.name,
+      type: m.type,
+      categoryIds: links.filter((l) => l.materialId === m.id).map((l) => l.categoryId),
+    }));
+  }
+
+  static async getMaterialCategories() {
+    return await db.select().from(materialCategories).orderBy(desc(materialCategories.id));
   }
 
   static async getResources() {
@@ -35,14 +55,50 @@ export class DictionaryService {
   }
 
   // --- MATERIAŁY ---
-  static async addMaterial(name: string, type: string) {
-    await db.insert(materials).values({ name, type });
+  static async addMaterial(name: string, type: string, categoryIds: number[] = []) {
+    const res = await db.insert(materials).values({ name, type }).returning();
+    const mid = res[0].id;
+    if (categoryIds.length > 0) {
+      await db.insert(materialToCategories).values(
+        categoryIds.map((cid) => ({ materialId: mid, categoryId: cid })),
+      );
+    }
   }
-  static async updateMaterial(id: number, data: Partial<typeof materials.$inferInsert>) {
+
+  static async updateMaterial(
+    id: number,
+    data: Partial<typeof materials.$inferInsert>,
+    categoryIds?: number[],
+  ) {
     await db.update(materials).set(data).where(eq(materials.id, id));
+    if (categoryIds !== undefined) {
+      await db.delete(materialToCategories).where(eq(materialToCategories.materialId, id));
+      if (categoryIds.length > 0) {
+        await db.insert(materialToCategories).values(
+          categoryIds.map((cid) => ({ materialId: id, categoryId: cid })),
+        );
+      }
+    }
   }
+
   static async deleteMaterial(id: number) {
     await db.delete(materials).where(eq(materials.id, id));
+  }
+
+  // --- KATEGORIE KRUSZYW ---
+  static async addMaterialCategory(data: { name: string; color?: string }) {
+    await db.insert(materialCategories).values({
+      name: data.name.trim(),
+      color: data.color || '#3f3f46',
+    });
+  }
+
+  static async updateMaterialCategory(id: number, data: Partial<typeof materialCategories.$inferInsert>) {
+    await db.update(materialCategories).set(data).where(eq(materialCategories.id, id));
+  }
+
+  static async deleteMaterialCategory(id: number) {
+    await db.delete(materialCategories).where(eq(materialCategories.id, id));
   }
 
   // --- KATEGORIE ZASOBÓW ---
@@ -106,3 +162,6 @@ export class DictionaryService {
 
 /** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
 export type ResourceCategoryUpdateInput = Partial<typeof resourceCategories.$inferInsert>;
+
+/** Payload aktualizacji kategorii kruszyw — bez importu schematu w kontrolerze. */
+export type MaterialCategoryUpdateInput = Partial<typeof materialCategories.$inferInsert>;

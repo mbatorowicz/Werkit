@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
+import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);
@@ -8,11 +12,15 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     if(!body.name || !body.type) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
+    const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
+      ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+      : undefined;
+
     const { DictionaryService } = await import('@/services/DictionaryService');
     await DictionaryService.updateMaterial(id, { 
        name: body.name,
        type: body.type
-    });
+    }, categoryIds);
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -21,6 +29,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const params = await context.params;
     const id = parseInt(params.id);

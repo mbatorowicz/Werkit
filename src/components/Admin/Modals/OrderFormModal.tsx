@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Trash2 } from "lucide-react";
 
 import { OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer, BaseCategory } from "@/types/admin";
 
@@ -15,11 +15,14 @@ export default function OrderFormModal({
   materials,
   customers,
   categories,
-  initialForm
+  initialForm,
+  onDeletePending,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSave: (form: OrderFormState) => Promise<void>;
+  /** Usuwa oczekujące zlecenie (tylko edycja). */
+  onDeletePending?: () => Promise<void>;
   editingOrderId: number | null;
   dict: Record<string, string>;
   apiErrors: Record<string, string>;
@@ -32,6 +35,10 @@ export default function OrderFormModal({
 }) {
   const [form, setForm] = useState<OrderFormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setForm(initialForm);
+  }, [isOpen, initialForm]);
 
   if (!isOpen) return null;
 
@@ -141,10 +148,30 @@ export default function OrderFormModal({
             <label htmlFor="forceSave" className="text-sm font-medium text-amber-800 dark:text-amber-400 cursor-pointer select-none">Zignoruj konflikty harmonogramu (Wymuś zapis)</label>
           </div>
 
-          <div className="pt-4 border-t border-zinc-800">
+          <div className="pt-4 border-t border-zinc-800 space-y-3">
             <button disabled={isSubmitting} type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
               {isSubmitting ? dict.saving : dict.save}
             </button>
+            {editingOrderId && onDeletePending && (
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={async () => {
+                  const msg = dict.deletePendingConfirm;
+                  if (!msg || !confirm(msg)) return;
+                  setIsSubmitting(true);
+                  try {
+                    await onDeletePending();
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30 font-semibold py-3 rounded-lg hover:bg-red-500/15 transition active:scale-[0.98] disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4 shrink-0" />
+                {dict.deletePendingOrderLabel}
+              </button>
+            )}
           </div>
         </form>
       </div>

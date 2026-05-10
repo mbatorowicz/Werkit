@@ -29,6 +29,20 @@
       "when": 1778420760000,
       "tag": "0003_work_orders_priority_chk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779100800000,
+      "tag": "0004_users_biometric_login",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779187200000,
+      "tag": "0005_material_categories",
+      "breakpoints": true
     }
   ]
 }

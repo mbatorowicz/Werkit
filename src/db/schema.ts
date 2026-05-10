@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -6,11 +6,13 @@ export const users = pgTable('users', {
   fullName: varchar('full_name', { length: 255 }).notNull(),
   usernameEmail: varchar('username_email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  role: varchar('role', { length: 50 }).notNull().default('worker'), // worker, admin
+  role: varchar('role', { length: 50 }).notNull().default('worker'), // admin | worker | viewer
   deviceUniqueId: varchar('device_unique_id', { length: 255 }),
   isActive: boolean('is_active').notNull().default(true),
   canCreateOwnOrders: boolean('can_create_own_orders').notNull().default(true),
   notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
+  /** Pracownik włączył logowanie biometryczne na urządzeniu (preferencja konta + secure storage). */
+  biometricLoginEnabled: boolean('biometric_login_enabled').notNull().default(false),
 });
 
 export const resourceCategories = pgTable('resource_categories', {
@@ -42,6 +44,28 @@ export const materials = pgTable('materials', {
   name: varchar('name', { length: 255 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
 });
+
+/** Kategorie kruszyw (słownik) — analogicznie do kategorii maszyn. */
+export const materialCategories = pgTable('material_categories', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  color: varchar('color', { length: 50 }).default('#3f3f46'),
+});
+
+export const materialToCategories = pgTable(
+  'material_to_categories',
+  {
+    materialId: integer('material_id')
+      .notNull()
+      .references(() => materials.id, { onDelete: 'cascade' }),
+    categoryId: integer('category_id')
+      .notNull()
+      .references(() => materialCategories.id, { onDelete: 'cascade' }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.materialId, t.categoryId] }),
+  }),
+);
 
 export const customers = pgTable('customers', {
   id: serial('id').primaryKey(),

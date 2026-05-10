@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
 type Machine = { id: number, name: string, categoryIds: number[], imageUrl?: string | null };
@@ -19,6 +20,7 @@ const colorOptions: Record<string, { bg: string, lightBg: string, border: string
 };
 
 export default function MachinesClient() {
+  const { canMutate } = useAdminAbility();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,9 +140,11 @@ export default function MachinesClient() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
+        {canMutate && (
         <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
@@ -152,10 +156,12 @@ export default function MachinesClient() {
                   <div className={`w-5 h-5 rounded-md shadow-sm shrink-0`} style={{ backgroundColor: cat.color || '#3f3f46' }} />
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
                 </div>
+                {canMutate && (
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
                    <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
+                )}
              </div>
            );
          })}
@@ -169,10 +175,12 @@ export default function MachinesClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Wrench className="w-6 h-6 text-emerald-500" /> {dict.fleetTitle}</h1>
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
+        {canMutate && (
         <button onClick={() => {setMEditId(null); setMForm({name: '', categoryIds: [], imageUrl: null}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           {dict.registerVehicle}
         </button>
+        )}
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
@@ -182,12 +190,14 @@ export default function MachinesClient() {
                <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.vehicleReg}</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.dictCategory}</th>
+                 {canMutate && (
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{dict.management}</th>
+                 )}
                </tr>
              </thead>
              <tbody className="divide-y divide-zinc-800/50">
                  {isLoading ? (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
+                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : machines.map(machine => {
                  const mCats = categories.filter(c => machine.categoryIds?.includes(c.id));
                  const firstCat = mCats[0];
@@ -220,6 +230,7 @@ export default function MachinesClient() {
                        )}
                      </div>
                    </td>
+                   {canMutate && (
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
                         <button onClick={() => {setMEditId(machine.id); setMForm({name: machine.name, categoryIds: machine.categoryIds || [], imageUrl: machine.imageUrl || null}); setIsMMOpen(true);}} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
@@ -230,10 +241,11 @@ export default function MachinesClient() {
                         </button>
                      </div>
                    </td>
+                   )}
                  </tr>
                )})}
                {!isLoading && machines.length === 0 && (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noMachines}</td></tr>
+                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noMachines}</td></tr>
                )}
              </tbody>
           </table>

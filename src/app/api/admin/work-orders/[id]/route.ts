@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
 import { checkScheduleConflict } from '@/lib/schedule';
+import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { AdminOrderService } from '@/services/AdminOrderService';
 
 export const dynamic = 'force-dynamic';
 
 export async function PUT(request: Request, props: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
   try {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,8 +36,6 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       }
     }
 
-    const { AdminOrderService } = await import('@/services/AdminOrderService');
-
     try {
       await AdminOrderService.updateOrder(orderId, {
         userId: parseInt(assignedUserId),
@@ -58,5 +61,24 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
   } catch (err: unknown) {
     console.error(err);
     return NextResponse.json({ error: 'Failed to update work order' }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, props: { params: Promise<{ id: string }> }) {
+  const denied = await guardAdminMutation();
+  if (denied) return denied;
+
+  try {
+    const params = await props.params;
+    const orderId = parseInt(params.id, 10);
+    if (Number.isNaN(orderId)) return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+
+    await AdminOrderService.deleteOrder(orderId);
+    return NextResponse.json({ success: true });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : '';
+    if (msg === 'not_found') return NextResponse.json({ error: 'not_found' }, { status: 404 });
+    console.error(e);
+    return NextResponse.json({ error: 'delete_error' }, { status: 500 });
   }
 }

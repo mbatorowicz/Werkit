@@ -1,170 +1,440 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, HardHat, Plus, X, Edit2 } from "lucide-react";
+import { Trash2, HardHat, Plus, X, Edit2, Layers } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
-type Material = {
-  id: number;
-  name: string;
-  type: string;
-};
+type MaterialCategory = { id: number; name: string; color?: string | null };
+type MaterialRow = { id: number; name: string; type: string; categoryIds?: number[] };
 
 export default function MaterialsClient() {
-  const [materials, setMaterials] = useState<Material[]>([]);
+  const { canMutate } = useAdminAbility();
+  const [materials, setMaterials] = useState<MaterialRow[]>([]);
+  const [categories, setCategories] = useState<MaterialCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: '', type: 'PIASEK' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMatModalOpen, setIsMatModalOpen] = useState(false);
+  const [matEditId, setMatEditId] = useState<number | null>(null);
+  const [matForm, setMatForm] = useState({
+    name: "",
+    type: "PIASEK",
+    categoryIds: [] as number[],
+  });
+
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [catEditId, setCatEditId] = useState<number | null>(null);
+  const [catForm, setCatForm] = useState({ name: "", color: "#3f3f46" });
+
   const dictionary = getDictionary();
   const dict = dictionary.admin.materials;
+  const machDict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/materials", { cache: "no-store" });
-      const data = await res.json();
-      setMaterials(Array.isArray(data) ? data : []);
+      const [mData, cData] = await Promise.all([
+        fetch("/api/materials", { cache: "no-store" }).then((r) => r.json()),
+        fetch("/api/material-categories", { cache: "no-store" }).then((r) => r.json()),
+      ]);
+      setMaterials(Array.isArray(mData) ? mData : []);
+      setCategories(Array.isArray(cData) ? cData : []);
+      if (!Array.isArray(mData) || !Array.isArray(cData)) {
+        console.error("Materials API:", { mData, cData });
+        alert(machDict.dbError);
+      }
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
   };
 
-  useEffect(() => { fetchData() }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleCatSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    const url = editId ? `/api/materials/${editId}` : "/api/materials";
-    const method = editId ? "PUT" : "POST";
+    const url = catEditId ? `/api/material-categories/${catEditId}` : "/api/material-categories";
+    const method = catEditId ? "PUT" : "POST";
     try {
-      const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
-      if(res.ok) { setIsModalOpen(false); fetchData(); }
-      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-    } catch(e) { alert(getDictionary().admin.machines.apiError); }
-    setIsSubmitting(false);
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(catForm),
+      });
+      if (res.ok) {
+        setIsCatModalOpen(false);
+        fetchData();
+      } else {
+        const err = (await res.json()) as { error?: string };
+        alert(apiErrors[err.error ?? ""] ?? err.error);
+      }
+    } catch {
+      alert(machDict.apiError);
+    }
   };
 
-  const handleDelete = async (id: number) => {
-     if(!confirm(dict.confirmDelete)) return;
-     const res = await fetch(`/api/materials/${id}`, { method: 'DELETE' });
-     if(res.ok) fetchData();
-     else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
+  const handleCatDelete = async (id: number) => {
+    if (!confirm(dict.confirmCatDelete)) return;
+    const res = await fetch(`/api/material-categories/${id}`, { method: "DELETE" });
+    if (res.ok) fetchData();
+    else {
+      const err = (await res.json()) as { error?: string };
+      alert(apiErrors[err.error ?? ""] ?? err.error);
+    }
   };
 
-  const openNewModal = () => {
-    setEditId(null);
-    setForm({ name: '', type: 'PIASEK' });
-    setIsModalOpen(true);
+  const handleMatSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const url = matEditId ? `/api/materials/${matEditId}` : "/api/materials";
+    const method = matEditId ? "PUT" : "POST";
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: matForm.name,
+          type: matForm.type,
+          categoryIds: matForm.categoryIds,
+        }),
+      });
+      if (res.ok) {
+        setIsMatModalOpen(false);
+        fetchData();
+      } else {
+        const err = (await res.json()) as { error?: string };
+        alert(apiErrors[err.error ?? ""] ?? err.error);
+      }
+    } catch {
+      alert(machDict.apiError);
+    }
   };
 
-  const openEditModal = (material: Material) => {
-    setEditId(material.id);
-    setForm({ name: material.name, type: material.type });
-    setIsModalOpen(true);
+  const handleMatDelete = async (id: number) => {
+    if (!confirm(dict.confirmDelete)) return;
+    const res = await fetch(`/api/materials/${id}`, { method: "DELETE" });
+    if (res.ok) fetchData();
+    else {
+      const err = (await res.json()) as { error?: string };
+      alert(apiErrors[err.error ?? ""] ?? err.error);
+    }
   };
 
   return (
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><HardHat className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
-          <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2">
+            <Layers className="w-5 h-5 text-amber-500" /> {dict.dictTitle}
+          </h2>
+          <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
-        <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> {dict.addMaterial}
-        </button>
+        {canMutate && (
+          <button
+            type="button"
+            onClick={() => {
+              setCatEditId(null);
+              setCatForm({ name: "", color: "#3f3f46" });
+              setIsCatModalOpen(true);
+            }}
+            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> {dict.addCategory}
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {categories.map((cat) => (
+          <div
+            key={cat.id}
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors"
+          >
+            <div className="flex items-center gap-3 truncate">
+              <div
+                className="w-5 h-5 rounded-md shadow-sm shrink-0"
+                style={{ backgroundColor: cat.color || "#3f3f46" }}
+              />
+              <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
+            </div>
+            {canMutate && (
+              <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCatEditId(cat.id);
+                    setCatForm({ name: cat.name, color: cat.color || "#3f3f46" });
+                    setIsCatModalOpen(true);
+                  }}
+                  className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCatDelete(cat.id)}
+                  className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        {!isLoading && categories.length === 0 && (
+          <div className="col-span-full p-4 border border-zinc-200 dark:border-zinc-700/50 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 text-sm">
+            {dict.noCategories}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-zinc-800/80 pt-10">
+        <div>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+            <HardHat className="w-6 h-6 text-emerald-500" /> {dict.fleetTitle}
+          </h1>
+          <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
+        </div>
+        {canMutate && (
+          <button
+            type="button"
+            onClick={() => {
+              setMatEditId(null);
+              setMatForm({ name: "", type: "PIASEK", categoryIds: [] });
+              setIsMatModalOpen(true);
+            }}
+            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            {dict.registerMaterial}
+          </button>
+        )}
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
-             <thead>
-               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.name}</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.type}</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{getDictionary().admin.machines.management}</th>
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-zinc-800/50">
-               {isLoading ? (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-               ) : materials.map(material => (
-                 <tr key={material.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                   <td className="px-6 py-4">
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-200">{material.name}</div>
-                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID: #{material.id}</div>
-                   </td>
-                   <td className="px-6 py-4">
-                      <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
-                        {material.type}
-                      </span>
-                   </td>
-                   <td className="px-6 py-4 text-right">
-                     <div className="flex justify-end gap-1">
-                        <button onClick={() => openEditModal(material)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition" title={getDictionary().admin.machines.editTitle}>
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDelete(material.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={getDictionary().admin.machines.deleteTitle}>
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                     </div>
-                   </td>
-                 </tr>
-               ))}
-               {!isLoading && materials.length === 0 && (
-                 <tr><td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noMaterials}</td></tr>
-               )}
-             </tbody>
+            <thead>
+              <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {dict.materialReg}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {dict.type}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {machDict.dictCategory}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">
+                  {machDict.management}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-800/50">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                    {dict.fetching}
+                  </td>
+                </tr>
+              ) : (
+                materials.map((material) => {
+                  const mCats = categories.filter((c) => material.categoryIds?.includes(c.id));
+                  return (
+                    <tr key={material.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-zinc-900 dark:text-zinc-200">{material.name}</div>
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
+                          {machDict.idReg} #{material.id}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
+                          {material.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {mCats.length > 0 ? (
+                            mCats.map((c) => (
+                              <span
+                                key={c.id}
+                                className="border px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider"
+                                style={{
+                                  backgroundColor: `${c.color || "#71717a"}1a`,
+                                  color: c.color || "#71717a",
+                                  borderColor: `${c.color || "#71717a"}33`,
+                                }}
+                              >
+                                {c.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-zinc-500 italic text-xs">{machDict.noCategoryBadge}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {canMutate && (
+                          <div className="flex justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMatEditId(material.id);
+                                setMatForm({
+                                  name: material.name,
+                                  type: material.type,
+                                  categoryIds: material.categoryIds || [],
+                                });
+                                setIsMatModalOpen(true);
+                              }}
+                              className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition"
+                              title={machDict.editTitle}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMatDelete(material.id)}
+                              className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"
+                              title={machDict.deleteTitle}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+              {!isLoading && materials.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                    {dict.noMaterials}
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
       </div>
 
-      {isModalOpen && (
+      {isCatModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editId ? dict.modalEditTitle : dict.modalCreateTitle}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCatModalOpen(false)} />
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-white">
+                {catEditId ? dict.modalCatEditTitle : dict.modalCatCreateTitle}
+              </h2>
+              <button type="button" onClick={() => setIsCatModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleCatSave} className="p-6 space-y-4">
+              <input
+                required
+                type="text"
+                placeholder={dict.catPlaceholder}
+                value={catForm.name}
+                onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
+                className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+              />
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{machDict.catColorLabel}</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={catForm.color}
+                    onChange={(e) => setCatForm({ ...catForm, color: e.target.value })}
+                    className="w-10 h-10 rounded border-0 p-0 cursor-pointer"
+                  />
+                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{machDict.catColorHint}</span>
+                </div>
               </div>
-              <form onSubmit={handleSave} className="p-6 space-y-5">
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">{dict.nameLabel}</label>
-                   <input required type="text" placeholder={dict.namePlaceholder} value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none" />
-                 </div>
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">{dict.typeLabel}</label>
-                   <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition outline-none appearance-none">
-                     <option value="PIASEK">{dict.typeSand}</option>
-                     <option value="ZWIR">{dict.typeGravel}</option>
-                     <option value="POSPOLKA">{dict.typeMix}</option>
-                     <option value="TLUCZEN">{dict.typeRubble}</option>
-                     <option value="ZIEMIA">{dict.typeSoil}</option>
-                     <option value="INNE">{dict.typeOther}</option>
-                   </select>
-                 </div>
-                 
-                 <div className="pt-4 border-t border-zinc-800">
-                    <button disabled={isSubmitting} type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
-                       {isSubmitting ? getDictionary().admin.orders.saving : (editId ? dict.save : dict.create)}
-                    </button>
-                 </div>
-              </form>
-           </div>
+              <button type="submit" className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold py-2.5 rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition mt-4">
+                {dict.saveDict}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isMatModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMatModalOpen(false)} />
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
+                {matEditId ? dict.modalEditTitle : dict.modalCreateTitle}
+              </h2>
+              <button type="button" onClick={() => setIsMatModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleMatSave} className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">{dict.nameLabel}</label>
+                <input
+                  required
+                  type="text"
+                  placeholder={dict.namePlaceholder}
+                  value={matForm.name}
+                  onChange={(e) => setMatForm({ ...matForm, name: e.target.value })}
+                  className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">{dict.typeLabel}</label>
+                <select
+                  value={matForm.type}
+                  onChange={(e) => setMatForm({ ...matForm, type: e.target.value })}
+                  className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none"
+                >
+                  <option value="PIASEK">{dict.typeSand}</option>
+                  <option value="ZWIR">{dict.typeGravel}</option>
+                  <option value="POSPOLKA">{dict.typeMix}</option>
+                  <option value="TLUCZEN">{dict.typeRubble}</option>
+                  <option value="ZIEMIA">{dict.typeSoil}</option>
+                  <option value="INNE">{dict.typeOther}</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-amber-500/80">{dict.matCatLabel}</label>
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                  {categories.map((c) => (
+                    <label key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={matForm.categoryIds.includes(c.id)}
+                        onChange={(e) => {
+                          if (e.target.checked)
+                            setMatForm({ ...matForm, categoryIds: [...matForm.categoryIds, c.id] });
+                          else setMatForm({ ...matForm, categoryIds: matForm.categoryIds.filter((id) => id !== c.id) });
+                        }}
+                        className="rounded text-amber-500 w-4 h-4"
+                      />
+                      <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate">{c.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {categories.length === 0 && <p className="text-xs text-red-400">{machDict.machCatWarning}</p>}
+              </div>
+              <div className="pt-4 border-t border-zinc-800">
+                <button
+                  type="submit"
+                  className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm"
+                >
+                  {dict.saveFleet}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </>
-  )
+  );
 }
-
-
-
-
-
-
-

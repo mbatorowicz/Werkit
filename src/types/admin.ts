@@ -59,6 +59,8 @@ export type BaseMachine = {
 export type BaseMaterial = {
   id: number;
   name: string;
+  type?: string;
+  categoryIds?: number[];
 };
 
 export type BaseCustomer = {
@@ -76,4 +78,36 @@ export type BaseCategory = {
   reqTaskDescription: boolean;
   isGlobal: boolean;
   color?: string | null;
+};
+
+/** Wiersz aktywnej sesji w module Raporty (serwer → RSC). */
+export type ReportActiveSessionRow = {
+  id: number;
+  sessionType: string;
+  categoryName: string | null;
+  taskDescription: string | null;
+  startTime: Date;
+  userId: number;
+  userName: string | null;
+  resourceName: string | null;
+  quantityTons: string | null;
+};
+
+/** Zmaterializowany zestaw danych pod `/admin/reports`. */
+export type ReportsDashboardSnapshot = {
+  generatedAt: string;
+  companyName: string | null;
+  companyCity: string | null;
+  mapLat: number;
+  mapLng: number;
+  pendingOrdersTotal: number;
+  workersWithPendingOrders: number;
+  workersActiveNow: number;
+  activeSessions: ReportActiveSessionRow[];
+  activeSessionsByCategory: { categoryName: string | null; count: number }[];
+  completedSessionsThisMonth: number;
+  completedSessionsPrevMonth: number;
+  monthOverMonthPercent: number | null;
+  tonsThisMonth: number;
+  topMachinesThisMonth: { name: string; sessionCount: number }[];
 };

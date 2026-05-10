@@ -56,7 +56,12 @@ export default async function ProfilePage() {
            </Link>
          )}
 
-         <ProfileSettings initialEnabled={user?.notificationsEnabled ?? true} />
+         <ProfileSettings
+            initialEnabled={user?.notificationsEnabled ?? true}
+            initialBiometricLoginEnabled={user?.biometricLoginEnabled ?? false}
+            usernameEmail={user?.usernameEmail ?? ""}
+            role={user?.role === "admin" ? "admin" : "worker"}
+          />
 
          <LogoutButton 
             className="w-full flex items-center justify-center gap-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-red-500/10 hover:text-red-400 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors group mt-8"

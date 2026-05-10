@@ -35,21 +35,39 @@ export class AdminUserService {
     fullName: string;
     usernameEmail: string;
     passwordHash: string;
-    role?: 'worker' | 'admin';
+    role?: 'worker' | 'admin' | 'viewer';
     canCreateOwnOrders?: boolean;
   }) {
+    const role = payload.role || 'worker';
+    const canCreateOwnOrders =
+      role === 'worker'
+        ? payload.canCreateOwnOrders !== undefined
+          ? payload.canCreateOwnOrders
+          : true
+        : false;
     await db.insert(users).values({
       fullName: payload.fullName,
       usernameEmail: payload.usernameEmail,
       passwordHash: payload.passwordHash,
-      role: payload.role || 'worker',
+      role,
       isActive: true,
-      canCreateOwnOrders: payload.canCreateOwnOrders !== undefined ? payload.canCreateOwnOrders : true,
+      canCreateOwnOrders,
     });
   }
 
   static async updateUser(userId: number, updates: Partial<typeof users.$inferInsert>) {
     await db.update(users).set(updates).where(eq(users.id, userId));
+  }
+
+  /** Weryfikacja hasła bez zwracania pełnego rekordu użytkownika (np. włączenie biometrii). */
+  static async verifyPasswordForUserId(userId: number, plainPassword: string): Promise<boolean> {
+    const row = await db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!row[0]) return false;
+    return bcrypt.compare(plainPassword, row[0].passwordHash);
   }
 
   static async deleteUser(userId: number) {

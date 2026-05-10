@@ -2,7 +2,7 @@
 
 import { TimelineItem } from "@/types/worker";
 import { useEffect, useState } from "react";
-import { X, Map as MapIcon, Image as ImageIcon, FileText } from "lucide-react";
+import { X, Map as MapIcon, Image as ImageIcon, FileText, Loader2, CheckCircle2, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { getDictionary } from "@/i18n";
 
@@ -13,11 +13,26 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
 
 import { UnifiedGanttItem } from "@/types/admin";
 
-export default function SessionDetailsModal({ item, onClose, onEdit }: { item: UnifiedGanttItem, onClose: () => void, onEdit?: (item: UnifiedGanttItem) => void }) {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [photos, setPhotos] = useState<any[]>([]);
-  const [notes, setNotes] = useState<any[]>([]);
+export default function SessionDetailsModal({
+  item,
+  onClose,
+  onEdit,
+  canMutate,
+  onForceCompleteSession,
+  onDeleteArchivedSession,
+}: {
+  item: UnifiedGanttItem;
+  onClose: () => void;
+  onEdit?: (item: UnifiedGanttItem) => void;
+  canMutate?: boolean;
+  onForceCompleteSession?: (sessionId: number) => Promise<void>;
+  onDeleteArchivedSession?: (sessionId: number) => Promise<void>;
+}) {
+  const [logs, setLogs] = useState<{ latitude?: string; longitude?: string }[]>([]);
+  const [photos, setPhotos] = useState<{ id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[]>([]);
+  const [notes, setNotes] = useState<{ id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [actionBusy, setActionBusy] = useState<null | "complete" | "delete">(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const dict = getDictionary().admin.orders;
 
@@ -36,27 +51,58 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: U
     }
   }, [item]);
 
-  const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) })).reverse();
+  const pathTraveled = logs
+    .filter(
+      (l): l is { latitude: string; longitude: string } =>
+        typeof l.latitude === "string" &&
+        typeof l.longitude === "string" &&
+        l.latitude !== "" &&
+        l.longitude !== "",
+    )
+    .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
+    .reverse();
   const events: TimelineItem[] = [
-    ...photos.filter(p => p.latitude && p.longitude).map(p => ({ lat: parseFloat(p.latitude), lng: parseFloat(p.longitude), id: `photo_${p.id}`, content: p.photoUrl, type: 'photo' as const, createdAt: p.createdAt })),
-    ...notes.filter(n => n.latitude && n.longitude).map(n => ({ lat: parseFloat(n.latitude), lng: parseFloat(n.longitude), id: `note_${n.id}`, content: n.note, type: 'note' as const, createdAt: n.createdAt }))
+    ...photos
+      .filter((p): p is typeof p & { latitude: string; longitude: string } =>
+        Boolean(p.latitude && p.longitude))
+      .map((p) => ({
+        lat: parseFloat(p.latitude),
+        lng: parseFloat(p.longitude),
+        id: `photo_${p.id ?? ""}`,
+        content: p.photoUrl ?? "",
+        type: "photo" as const,
+        createdAt: p.createdAt ?? "",
+      })),
+    ...notes
+      .filter((n): n is typeof n & { latitude: string; longitude: string; note: string } =>
+        Boolean(n.latitude && n.longitude && n.note))
+      .map((n) => ({
+        lat: parseFloat(n.latitude),
+        lng: parseFloat(n.longitude),
+        id: `note_${n.id ?? ""}`,
+        content: n.note,
+        type: "note" as const,
+        createdAt: n.createdAt ?? "",
+      })),
   ];
   const hasMapData = logs.length > 0 || events.length > 0;
   const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });
 
-  const timelineItems = [...photos.map(p => ({ ...p, type: 'photo', time: new Date(p.createdAt).getTime() })), ...notes.map(n => ({ ...n, type: 'note', time: new Date(n.createdAt).getTime() }))].sort((a, b) => b.time - a.time);
-  const allPhotos = timelineItems.filter(entry => entry.type === 'photo').map(p => p.photoUrl);
+  const timelineItems = [...photos.map(p => ({ ...p, type: 'photo' as const, time: new Date(p.createdAt ?? 0).getTime() })), ...notes.map(n => ({ ...n, type: 'note' as const, time: new Date(n.createdAt ?? 0).getTime() }))].sort((a, b) => b.time - a.time);
+  const allPhotos = timelineItems
+    .filter((entry): entry is typeof entry & { photoUrl: string } => entry.type === "photo" && typeof entry.photoUrl === "string")
+    .map((p) => p.photoUrl);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-4xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh]">
-          <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0 z-20">
+          <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 shrink-0 z-20">
              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Podgląd sesji zlecenia #{item.workOrderId || item.id}</h2>
              <button onClick={onClose} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
           </div>
           
-          <div className="overflow-y-auto custom-scrollbar flex-1 p-6">
+          <div className="overflow-y-auto custom-scrollbar flex-1 min-h-0 p-6">
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800/50 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 mb-6">
                <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.worker}</span> {item.workerName || dict.noWorkerAssigned}</p>
                
@@ -122,7 +168,7 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: U
                           <ImageIcon className="w-5 h-5 text-amber-500" /> {dict.timelineTitle}
                         </h3>
                         <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 space-y-8">
-                          {timelineItems.map((entry: Record<string, any>, index) => {
+                          {timelineItems.map((entry, index) => {
                             const isNote = entry.type === 'note';
                             const timeStr = new Date(entry.time).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
                             const dateStr = new Date(entry.time).toLocaleDateString('pl-PL');
@@ -138,14 +184,18 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: U
                                       {dateStr} {timeStr}
                                     </div>
                                     {isNote ? (
-                                      <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note}</p>
+                                      <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note ?? ""}</p>
                                     ) : (
                                       <>
                                         <img 
-                                          src={entry.photoUrl} 
+                                          src={entry.photoUrl ?? ""} 
                                           alt={dict.photoRoute} 
                                           className="w-full h-auto rounded-md mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
-                                          onClick={() => setLightboxIndex(allPhotos.indexOf(entry.photoUrl))}
+                                          onClick={() => {
+                                            const url = entry.photoUrl;
+                                            if (!url) return;
+                                            setLightboxIndex(allPhotos.indexOf(url));
+                                          }}
                                         />
                                         <p className="text-sm text-zinc-900 dark:text-zinc-200 font-medium">
                                           {entry.photoType === 'START' ? dict.photoStart : entry.photoType === 'END' ? dict.photoEnd : dict.photoRoute}
@@ -165,6 +215,53 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: U
               </div>
             )}
           </div>
+
+          {item._type === "SESSION" && canMutate && (
+            <div className="border-t border-zinc-200 dark:border-zinc-700 px-6 py-4 bg-zinc-50 dark:bg-[#0a0a0b]/90 shrink-0 flex flex-wrap gap-2 justify-end">
+              {item.status === "IN_PROGRESS" && onForceCompleteSession && (
+                <button
+                  type="button"
+                  disabled={actionBusy !== null}
+                  onClick={async () => {
+                    if (!dict.forceCompleteConfirm || !confirm(dict.forceCompleteConfirm)) return;
+                    setActionBusy("complete");
+                    try {
+                      await onForceCompleteSession(item.id);
+                    } catch {
+                      /* alert po stronie rodzica */
+                    } finally {
+                      setActionBusy(null);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-500 transition disabled:opacity-50 border border-emerald-500/30"
+                >
+                  {actionBusy === "complete" ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {dict.forceCompleteLabel}
+                </button>
+              )}
+              {item.status === "COMPLETED" && onDeleteArchivedSession && (
+                <button
+                  type="button"
+                  disabled={actionBusy !== null}
+                  onClick={async () => {
+                    if (!dict.deleteArchivedConfirm || !confirm(dict.deleteArchivedConfirm)) return;
+                    setActionBusy("delete");
+                    try {
+                      await onDeleteArchivedSession(item.id);
+                    } catch {
+                      /* alert po stronie rodzica */
+                    } finally {
+                      setActionBusy(null);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/25 hover:bg-red-500/15 transition disabled:opacity-50"
+                >
+                  {actionBusy === "delete" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {dict.deleteArchivedLabel}
+                </button>
+              )}
+            </div>
+          )}
        </div>
        
       {/* Lightbox */}

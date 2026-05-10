@@ -10,6 +10,8 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 import { JWT_SECRET } from '@/lib/auth';
+import { AdminAbilityProvider } from '@/components/Admin/AdminAbilityProvider';
+
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,18 +24,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
   let loggedInUser = null;
+  let canMutate = false;
   const token = (await cookies()).get('auth_token')?.value;
   if (token) {
     try {
       const verified = await jwtVerify(token, JWT_SECRET);
+      canMutate = verified.payload.role === 'admin';
       if (verified.payload.userId) {
         const userDb = await AdminUserService.getUserById(verified.payload.userId as number);
         if (userDb) loggedInUser = userDb.fullName;
       }
-    } catch (e) { }
+    } catch { /* ignore */ }
   }
 
   return (
+    <AdminAbilityProvider canMutate={canMutate}>
     <div className="flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
       <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
         <div>
@@ -89,6 +94,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </main>
     </div>
+    </AdminAbilityProvider>
   );
 }
 

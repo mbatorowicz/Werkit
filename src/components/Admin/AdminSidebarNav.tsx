@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings, TerminalSquare } from "lucide-react";
+import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings, TerminalSquare, BarChart3 } from "lucide-react";
 
 export function AdminSidebarNav({ dict }: { dict: Record<string, any> }) {
   const pathname = usePathname();
 
   const links = [
     { href: "/admin", icon: Map, label: "Pulpit i Zlecenia" },
-    { href: "/admin/reports", icon: Activity, label: "Raporty" },
+    { href: "/admin/reports", icon: BarChart3, label: dict.reports.title },
     { type: "section", label: dict.sidebar.fleetAndPeople },
-    { href: "/admin/workers", icon: Users, label: dict.workers.title },
+    { href: "/admin/users", icon: Users, label: dict.workers.title },
     { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
     { type: "section", label: dict.sidebar.logistics },
     { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
