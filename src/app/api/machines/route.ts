@@ -7,16 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allMachines = await db.select({
-      id: resources.id,
-      name: resources.name,
-      categoryId: resources.categoryId,
-      categoryName: resourceCategories.name
-    })
-    .from(resources)
-    .leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id))
-    .orderBy(desc(resources.id));
-    
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const allMachines = await DictionaryService.getResources();
     return NextResponse.json(allMachines);
   } catch (err: unknown) {
     return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)), stack: (err instanceof Error ? err.stack : undefined) }, { status: 500 });
@@ -32,10 +24,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
-    await db.insert(resources).values({
-      name,
-      categoryId: parseInt(categoryId),
-    });
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.addResource(name, parseInt(categoryId));
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

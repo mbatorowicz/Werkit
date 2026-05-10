@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allCategories = await db.select().from(resourceCategories).orderBy(desc(resourceCategories.id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const allCategories = await DictionaryService.getCategories();
     return NextResponse.json(allCategories);
   } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
@@ -23,7 +24,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
     }
 
-    await db.insert(resourceCategories).values({ name: name.trim(), icon: icon || 'Truck' });
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.addCategory(name.trim(), icon || 'Truck');
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: 'category_exists' }, { status: 500 });

@@ -11,10 +11,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     if(!body.name || !body.categoryId) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
-    await db.update(resources).set({ 
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.updateResource(id, { 
        name: body.name, 
        categoryId: parseInt(body.categoryId) 
-    }).where(eq(resources.id, id));
+    });
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -28,7 +29,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const id = parseInt(params.id);
     if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
-    await db.delete(resources).where(eq(resources.id, id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.deleteResource(id);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Delete machine error", err);

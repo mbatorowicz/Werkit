@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allCustomers = await db.select().from(customers).orderBy(desc(customers.id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const allCustomers = await DictionaryService.getCustomers();
     return NextResponse.json(allCustomers);
   } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
@@ -23,13 +24,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
     }
 
-    await db.insert(customers).values({ 
-      firstName: firstName || null, 
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.addCustomer(
+      firstName || null, 
       lastName, 
-      defaultAddress: defaultAddress || null,
-      latitude: latitude ? latitude.toString() : null,
-      longitude: longitude ? longitude.toString() : null
-    });
+      defaultAddress || null,
+      latitude ? latitude.toString() : null,
+      longitude ? longitude.toString() : null
+    );
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

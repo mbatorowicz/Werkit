@@ -24,8 +24,8 @@ export default async function ProfilePage() {
   const userId = await getUserId();
   if (!userId) return <div>Brak dostępu</div>;
 
-  const userQuery = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  const user = userQuery[0];
+  const { AdminUserService } = await import('@/services/AdminUserService');
+  const user = await AdminUserService.getUserById(userId);
 
   return (
     <div className="py-6 pb-20">

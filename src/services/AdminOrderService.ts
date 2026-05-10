@@ -73,6 +73,10 @@ export class AdminOrderService {
      .orderBy(desc(workSessions.startTime))
      .limit(limitCount);
   }
+
+  static async createOrder(orderData: typeof workOrders.$inferInsert) {
+    await db.insert(workOrders).values(orderData);
+  }
   static async updateOrder(orderId: number, updates: Partial<typeof workOrders.$inferInsert>) {
     const existingOrder = await db.select().from(workOrders).where(eq(workOrders.id, orderId)).limit(1);
     if (existingOrder.length === 0) throw new Error('not_found');

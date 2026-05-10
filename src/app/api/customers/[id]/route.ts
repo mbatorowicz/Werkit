@@ -11,13 +11,14 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     if(!body.lastName) return NextResponse.json({ error: 'missing_name' }, { status: 400 });
 
-    await db.update(customers).set({ 
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.updateCustomer(id, { 
        firstName: body.firstName || null,
        lastName: body.lastName,
        defaultAddress: body.defaultAddress || null,
        latitude: body.latitude ? body.latitude.toString() : null,
        longitude: body.longitude ? body.longitude.toString() : null
-    }).where(eq(customers.id, id));
+    });
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -31,7 +32,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const id = parseInt(params.id);
     if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
-    await db.delete(customers).where(eq(customers.id, id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.deleteCustomer(id);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Delete customer error", err);

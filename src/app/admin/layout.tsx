@@ -18,8 +18,10 @@ export const dynamic = 'force-dynamic';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const dict = getDictionary().admin;
 
-  // Fetch SSOT for sidebar company name
-  const settings = await db.select().from(companySettings).limit(1);
+  const { DictionaryService } = await import('@/services/DictionaryService');
+  const { AdminUserService } = await import('@/services/AdminUserService');
+
+  const settings = await DictionaryService.getSettings();
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
   let loggedInUser = null;
@@ -28,8 +30,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     try {
       const verified = await jwtVerify(token, JWT_SECRET);
       if (verified.payload.userId) {
-        const userDb = await db.select().from(users).where(eq(users.id, verified.payload.userId as number)).limit(1);
-        if (userDb.length > 0) loggedInUser = userDb[0].fullName;
+        const userDb = await AdminUserService.getUserById(verified.payload.userId as number);
+        if (userDb) loggedInUser = userDb.fullName;
       }
     } catch (e) { }
   }

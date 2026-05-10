@@ -10,7 +10,8 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     if (body.notificationsEnabled !== undefined) {
-      await db.update(users).set({ notificationsEnabled: body.notificationsEnabled }).where(eq(users.id, userId));
+      const { AdminUserService } = await import('@/services/AdminUserService');
+      await AdminUserService.updateUser(userId, { notificationsEnabled: body.notificationsEnabled });
     }
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

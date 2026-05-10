@@ -9,7 +9,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const id = parseInt(params.id);
     const body = await request.json();
 
-    await db.update(resourceCategories).set({ name: body.name.trim(), icon: body.icon || 'Truck' }).where(eq(resourceCategories.id, id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.updateCategory(id, { name: body.name.trim(), icon: body.icon || 'Truck' });
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: 'category_in_use' }, { status: 500 });
@@ -20,7 +21,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const params = await context.params;
     const id = parseInt(params.id);
-    await db.delete(resourceCategories).where(eq(resourceCategories.id, id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.deleteCategory(id);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: 'category_has_machines' }, { status: 500 });

@@ -11,10 +11,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     
     if(!body.name || !body.type) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
-    await db.update(materials).set({ 
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.updateMaterial(id, { 
        name: body.name,
        type: body.type
-    }).where(eq(materials.id, id));
+    });
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -28,7 +29,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const id = parseInt(params.id);
     if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
-    await db.delete(materials).where(eq(materials.id, id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.deleteMaterial(id);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Delete material error", err);

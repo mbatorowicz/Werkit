@@ -24,4 +24,13 @@ export class SystemLogService {
       createdAt: l.createdAt.toISOString(),
     }));
   }
+
+  static async insertLog(userId: number, level: string, message: string, metadata?: any) {
+    await db.insert(deviceLogs).values({
+      userId,
+      level: level || 'INFO',
+      message: message || 'Brak wiadomości',
+      metadata: metadata || null
+    });
+  }
 }

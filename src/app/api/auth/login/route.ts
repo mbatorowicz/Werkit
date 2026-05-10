@@ -15,13 +15,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'missing_credentials' }, { status: 400 });
     }
 
-    const existingUsers = await db.select().from(users).where(eq(users.usernameEmail, usernameEmail)).limit(1);
+    const { AdminUserService } = await import('@/services/AdminUserService');
+    const user = await AdminUserService.getUserByUsername(usernameEmail);
     
-    if (existingUsers.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
     }
-
-    const user = existingUsers[0];
 
     if (!user.isActive) {
       return NextResponse.json({ error: 'account_blocked' }, { status: 403 });

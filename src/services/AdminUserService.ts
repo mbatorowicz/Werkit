@@ -15,6 +15,16 @@ export class AdminUserService {
     }).from(users).orderBy(desc(users.id));
   }
 
+  static async getUserById(userId: number) {
+    const userDb = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    return userDb[0] || null;
+  }
+
+  static async getUserByUsername(usernameEmail: string) {
+    const userDb = await db.select().from(users).where(eq(users.usernameEmail, usernameEmail)).limit(1);
+    return userDb[0] || null;
+  }
+
   static async getWorkers() {
     return await db.select({ id: users.id, fullName: users.fullName })
       .from(users)

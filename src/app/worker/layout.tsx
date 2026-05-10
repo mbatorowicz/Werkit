@@ -16,7 +16,10 @@ import { CapacitorBackButton } from "@/components/CapacitorBackButton";
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
-  const settings = await db.select().from(companySettings).limit(1);
+  const { DictionaryService } = await import('@/services/DictionaryService');
+  const { AdminUserService } = await import('@/services/AdminUserService');
+
+  const settings = await DictionaryService.getSettings();
   const companyName = settings[0]?.companyName || "Werkit ERP";
 
   let userName = "Pracownik";
@@ -25,9 +28,9 @@ export default async function WorkerLayout({ children }: { children: React.React
     if (token) {
       const verified = await jwtVerify(token, JWT_SECRET);
       const userId = verified.payload.userId as number;
-      const userRec = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (userRec.length > 0) {
-        userName = userRec[0].fullName;
+      const userRec = await AdminUserService.getUserById(userId);
+      if (userRec) {
+        userName = userRec.fullName;
       }
     }
   } catch (e) {}

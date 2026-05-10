@@ -12,7 +12,8 @@ export default async function HelpPage() {
   let phone = "112";
 
   try {
-    const settingsData = await db.select().from(companySettings).where(eq(companySettings.id, 1)).limit(1);
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const settingsData = await DictionaryService.getSettings();
     if (settingsData.length > 0 && settingsData[0].phone) {
       phone = settingsData[0].phone;
     }

@@ -14,46 +14,23 @@ export default async function DashboardPage() {
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const dict = getDictionary().admin.dashboard;
 
-  const activeSessions = await db.select({
-    id: workSessions.id,
-    type: workSessions.sessionType,
-    desc: workSessions.taskDescription,
-    startTime: workSessions.startTime,
-    userId: workSessions.userId,
-    userName: users.fullName,
-    resourceName: resources.name,
-    tons: workSessions.quantityTons,
-  })
-    .from(workSessions)
-    .leftJoin(users, eq(workSessions.userId, users.id))
-    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
-    .where(eq(workSessions.status, "IN_PROGRESS"))
-    .orderBy(desc(workSessions.startTime));
+  const { AdminReportService } = await import('@/services/AdminReportService');
+  const { DictionaryService } = await import('@/services/DictionaryService');
 
-  const pendingOrders = await db.select({
-    userId: workOrders.userId
-  })
-    .from(workOrders)
-    .where(eq(workOrders.status, "PENDING"));
+  const [activeSessions, pendingOrders, settingsList, monthSessions] = await Promise.all([
+    AdminReportService.getActiveSessions(),
+    AdminReportService.getPendingOrders(),
+    DictionaryService.getSettings(),
+    AdminReportService.getMonthSessions(firstDayOfMonth)
+  ]);
 
   const uniqueWorkersActive = new Set(activeSessions.map(s => s.userId)).size;
   const uniqueWorkersWithOrders = new Set(pendingOrders.map(o => o.userId)).size;
 
-  const settingsList = await db.select().from(companySettings).limit(1);
   const companySSOT = settingsList[0];
   const companyCity = companySSOT?.city || "Twoim Regionie";
   const mapLat = companySSOT?.baseLatitude ? parseFloat(companySSOT.baseLatitude) : 52.401;
   const mapLng = companySSOT?.baseLongitude ? parseFloat(companySSOT.baseLongitude) : 22.015;
-
-  // Analytics: Fetch completed sessions this month
-  const monthSessions = await db.select({
-      id: workSessions.id,
-      tons: workSessions.quantityTons,
-      resourceName: resources.name
-    })
-    .from(workSessions)
-    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
-    .where(and(eq(workSessions.status, 'COMPLETED'), gte(workSessions.startTime, firstDayOfMonth)));
 
   const totalSessionsThisMonth = monthSessions.length;
   const totalTonsThisMonth = monthSessions.reduce((acc, curr) => acc + (curr.tons ? parseFloat(curr.tons as string) : 0), 0);

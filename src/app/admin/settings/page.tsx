@@ -7,7 +7,8 @@ import { getDictionary } from "@/i18n";
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
-  const settings = await db.select().from(companySettings).limit(1);
+  const { DictionaryService } = await import('@/services/DictionaryService');
+  const settings = await DictionaryService.getSettings();
   const initialData = settings.length > 0 ? settings[0] : null;
 
   return (

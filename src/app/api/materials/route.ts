@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allMaterials = await db.select().from(materials).orderBy(desc(materials.id));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const allMaterials = await DictionaryService.getMaterials();
     return NextResponse.json(allMaterials);
   } catch (err: unknown) {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
@@ -23,7 +24,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
-    await db.insert(materials).values({ name, type });
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    await DictionaryService.addMaterial(name, type);
+    
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error('Material Insert Error:', err);

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       }
     }
 
-    await db.insert(workOrders).values({
+    await AdminOrderService.createOrder({
       userId: parseInt(userId),
       resourceId: parseInt(resourceId),
       sessionType,

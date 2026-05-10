@@ -17,13 +17,8 @@ export async function POST(req: Request) {
     
     const body = await req.json();
     
-    // Zapisujemy log do bazy (metadata jako stringowany JSON z obiektu lub string)
-    await db.insert(deviceLogs).values({
-      userId,
-      level: body.level || 'INFO',
-      message: body.message || 'Brak wiadomości',
-      metadata: body.metadata || null
-    });
+    const { SystemLogService } = await import('@/services/SystemLogService');
+    await SystemLogService.insertLog(userId, body.level, body.message, body.metadata);
     
     return NextResponse.json({ success: true });
   } catch (e) {
