@@ -34,25 +34,27 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       }
     }
 
-    // Update only if status is PENDING. We shouldn't edit IN_PROGRESS or COMPLETED orders this easily
-    const existingOrder = await db.select().from(workOrders).where(and(eq(workOrders.id, orderId), eq(workOrders.status, 'PENDING'))).limit(1);
+    const { AdminOrderService } = await import('@/services/AdminOrderService');
 
-    if (existingOrder.length === 0) {
-      return NextResponse.json({ error: 'Order not found or is no longer pending' }, { status: 404 });
+    try {
+      await AdminOrderService.updateOrder(orderId, {
+        userId: parseInt(assignedUserId),
+        resourceId: parseInt(resourceId),
+        sessionType,
+        materialId: materialId ? parseInt(materialId) : null,
+        customerId: customerId ? parseInt(customerId) : null,
+        taskDescription: taskDescription || null,
+        quantityTons: quantityTons ? parseFloat(quantityTons).toString() : null,
+        expectedDurationHours: expectedDurationHours ? parseFloat(expectedDurationHours).toString() : null,
+        priority: priority || 'NORMAL',
+        dueDate: dueDate ? new Date(dueDate) : null,
+      });
+    } catch (e: any) {
+      if (e.message === 'not_found' || e.message === 'not_pending') {
+        return NextResponse.json({ error: 'Order not found or is no longer pending' }, { status: 404 });
+      }
+      throw e;
     }
-
-    await db.update(workOrders).set({
-      userId: parseInt(assignedUserId),
-      resourceId: parseInt(resourceId),
-      sessionType,
-      materialId: materialId ? parseInt(materialId) : null,
-      customerId: customerId ? parseInt(customerId) : null,
-      taskDescription: taskDescription || null,
-      quantityTons: quantityTons ? parseFloat(quantityTons).toString() : null,
-      expectedDurationHours: expectedDurationHours ? parseFloat(expectedDurationHours).toString() : null,
-      priority: priority || 'NORMAL',
-      dueDate: dueDate ? new Date(dueDate) : null,
-    }).where(eq(workOrders.id, orderId));
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

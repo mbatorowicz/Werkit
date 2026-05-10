@@ -31,8 +31,8 @@ Ten plik służy jako Główne Źródło Prawdy (SSOT) dla każdego agenta AI (w
 
 ## Nowa Architektura (Od v1.6.6)
 Zwróć bezwzględną uwagę na ewolucję architektoniczną projektu wprowadzoną w najnowszych etapach:
-1. **Warstwa Serwisów (Service Layer)**: Bezwzględnie zabrania się pisania surowych i długich zapytań Drizzle (`db.select()`) bezpośrednio w komponentach React (`page.tsx`) oraz kontrolerach tras (`route.ts`). Logika domenowa musi być zamykana w dedykowanych klasach w katalogu `src/services/` (np. `WorkerOrderService`, `WorkerSessionService`).
-2. **Zasada SSOT dla Typów (Single Source of Truth)**: Główny schemat interfejsów TypeScript dla klienta znajduje się w `src/types/worker.ts`.
+1. **Warstwa Serwisów (Service Layer)**: Bezwzględnie zabrania się pisania surowych i długich zapytań Drizzle (`db.select()`, `db.update()`) bezpośrednio w komponentach React (`page.tsx`) oraz kontrolerach tras (`route.ts`). Logika domenowa musi być zamykana w dedykowanych klasach w katalogu `src/services/` (np. `WorkerOrderService`, `WorkerSessionService`, `AdminSessionService`, `AdminUserService`, `DictionaryService`, `SystemLogService`).
+2. **Zasada SSOT dla Typów (Single Source of Truth)**: Główny schemat interfejsów TypeScript dla klienta znajduje się w `src/types/worker.ts` oraz `src/types/admin.ts`.
 3. **Bezwzględny zakaz `any`**: Aplikacja operuje na ściśle określonych typach (`TimelineItem`, `WorkOrder`, `Session`, `InitialWorkerData`). Jakiekolwiek użycie typu `any` (np. przy deserializacji dat czy parsowaniu JSON-ów) jest traktowane jako błąd krytyczny i zostanie odrzucone przez Linter/Kompilator.
 4. **Zasada SRP w UI**: Długie, gigantyczne komponenty (>300 linii) powinny być łamane na mniejsze pliki składowe zdefiniowane w katalogu komponentu (np. `src/components/Worker/`). Wymagany jest podział na logikę stanu (Client Components) oraz wstrzykiwanie danych (Server Components).
 Szczegółowy opis tych wzorców znajdziesz w pliku `ARCHITECTURE.md`. Zawsze przeczytaj ten dokument przed modyfikacją głównych modułów aplikacji.

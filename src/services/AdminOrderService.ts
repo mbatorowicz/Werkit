@@ -73,4 +73,15 @@ export class AdminOrderService {
      .orderBy(desc(workSessions.startTime))
      .limit(limitCount);
   }
+  static async updateOrder(orderId: number, updates: Partial<typeof workOrders.$inferInsert>) {
+    const existingOrder = await db.select().from(workOrders).where(eq(workOrders.id, orderId)).limit(1);
+    if (existingOrder.length === 0) throw new Error('not_found');
+    if (existingOrder[0].status !== 'PENDING') throw new Error('not_pending');
+
+    await db.update(workOrders).set(updates).where(eq(workOrders.id, orderId));
+  }
+
+  static async deleteOrder(orderId: number) {
+    await db.delete(workOrders).where(eq(workOrders.id, orderId));
+  }
 }

@@ -21,7 +21,7 @@ Ich jedynym zadaniem jest:
 ### B. Serwisy (`src/services/`)
 Zasady działania:
 - Katalog `src/services/` to jedyne miejsce, w którym operujemy bezpośrednio na ORM (Drizzle) i bazie danych (z wyjątkami autoryzacji `NextAuth`/logowania, gdzie może to być tymczasowo dopuszczone, chociaż zaleca się bycie konsekwentnym).
-- Zawierają klasy narzędziowe (często eksportowane instancje wzorca Singleton) posiadające asynchroniczne metody ułożone domenowo, np.: `WorkerOrderService`, `WorkerSessionService`.
+- Zawierają klasy narzędziowe (często eksportowane instancje wzorca Singleton) posiadające asynchroniczne metody ułożone domenowo, np.: `WorkerOrderService`, `WorkerSessionService`, `AdminSessionService`, `AdminUserService`, `DictionaryService`, `SystemLogService`.
 - **Ważne:** To Serwisy są "Single Source of Truth" dla złożonych zapytań SQL (`JOIN`, podzapytania, mapowanie na obiekty Domenowe). Jeśli aplikacja webowa (Admin) i mobilna (Worker) potrzebują listy zleceń – korzystają z tej samej metody z Serwisu.
 
 ---

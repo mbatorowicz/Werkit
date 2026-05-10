@@ -6,29 +6,13 @@ import LogsClient from "./LogsClient";
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogsPage() {
-  // Pobieramy 500 ostatnich logów
-  const rawLogs = await db.select({
-    id: deviceLogs.id,
-    userId: deviceLogs.userId,
-    level: deviceLogs.level,
-    message: deviceLogs.message,
-    metadata: deviceLogs.metadata,
-    createdAt: deviceLogs.createdAt,
-    workerName: users.fullName,
-  })
-  .from(deviceLogs)
-  .leftJoin(users, eq(deviceLogs.userId, users.id))
-  .orderBy(desc(deviceLogs.createdAt))
-  .limit(500);
+  const { SystemLogService } = await import('@/services/SystemLogService');
+  const { AdminUserService } = await import('@/services/AdminUserService');
 
-  // Mapowanie dat na iso string
-  const formattedLogs = rawLogs.map(l => ({
-    ...l,
-    metadata: l.metadata as Record<string, unknown>,
-    createdAt: l.createdAt.toISOString(),
-  }));
-
-  const allUsers = await db.select({ id: users.id, fullName: users.fullName }).from(users).where(eq(users.role, 'worker'));
+  const [formattedLogs, allUsers] = await Promise.all([
+    SystemLogService.getRecentLogs(500),
+    AdminUserService.getWorkers()
+  ]);
 
   return (
     <div className="p-6 pb-24 lg:pb-6 max-w-7xl mx-auto">

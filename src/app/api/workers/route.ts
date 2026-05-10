@@ -8,14 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const allUsers = await db.select({
-      id: users.id,
-      fullName: users.fullName,
-      usernameEmail: users.usernameEmail,
-      role: users.role,
-      isActive: users.isActive,
-      canCreateOwnOrders: users.canCreateOwnOrders,
-    }).from(users).orderBy(desc(users.id));
+    const { AdminUserService } = await import('@/services/AdminUserService');
+    const allUsers = await AdminUserService.getAllUsers();
     
     return NextResponse.json(allUsers);
   } catch (err: unknown) {
@@ -32,15 +26,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
+    const { AdminUserService } = await import('@/services/AdminUserService');
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.insert(users).values({
+    await AdminUserService.createUser({
       fullName,
       usernameEmail,
       passwordHash: hashedPassword,
-      role: role || 'worker',
-      isActive: true,
-      canCreateOwnOrders: canCreateOwnOrders !== undefined ? canCreateOwnOrders : true,
+      role,
+      canCreateOwnOrders
     });
 
     return NextResponse.json({ success: true });

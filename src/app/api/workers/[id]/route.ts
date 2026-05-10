@@ -26,7 +26,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
        updateData.passwordHash = await bcrypt.hash(body.password, 10);
     }
 
-    await db.update(users).set(updateData).where(eq(users.id, id));
+    const { AdminUserService } = await import('@/services/AdminUserService');
+    await AdminUserService.updateUser(id, updateData);
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
@@ -41,8 +42,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const id = parseInt(params.id);
     if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
 
-    // Nieodwracalne usunięcie pracownika zgodnie z zaleceniami
-    await db.delete(users).where(eq(users.id, id));
+    const { AdminUserService } = await import('@/services/AdminUserService');
+    await AdminUserService.deleteUser(id);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Delete user error", err);
