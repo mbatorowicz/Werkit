@@ -34,7 +34,11 @@ export const resourceToCategories = pgTable('resource_to_categories', {
 
 export const resources = pgTable('resources', {
   id: serial('id').primaryKey(),
+  /** Wyświetlana nazwa (składana z marki / modelu / nr rej.; pole dla kompatybilności w zapytaniach). */
   name: varchar('name', { length: 255 }).notNull(),
+  brand: varchar('brand', { length: 120 }).notNull().default(''),
+  model: varchar('model', { length: 120 }).notNull().default(''),
+  registrationNumber: varchar('registration_number', { length: 32 }).notNull().default(''),
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // TODO: remove after migration
   imageUrl: text('image_url'),
 });

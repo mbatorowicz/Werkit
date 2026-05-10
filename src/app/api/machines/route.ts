@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { buildResourceDisplayName, isVehicleIdentityEmpty } from '@/lib/resourceDisplayName';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,14 +20,25 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, categoryIds, imageUrl } = body;
+    const brand = typeof body.brand === 'string' ? body.brand : '';
+    const model = typeof body.model === 'string' ? body.model : '';
+    const registrationNumber = typeof body.registrationNumber === 'string' ? body.registrationNumber : '';
+    const { categoryIds, imageUrl } = body;
 
-    if(!name || !categoryIds || !Array.isArray(categoryIds)) {
+    if (!categoryIds || !Array.isArray(categoryIds)) {
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    }
+    if (isVehicleIdentityEmpty(brand, model, registrationNumber)) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
+    const name = buildResourceDisplayName(brand, model, registrationNumber);
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.addResource(name, categoryIds.map((c: string | number) => parseInt(c as string)), imageUrl);
+    await DictionaryService.addResource(
+      { name, brand, model, registrationNumber },
+      categoryIds.map((c: string | number) => parseInt(String(c), 10)),
+      typeof imageUrl === 'string' || imageUrl === null ? imageUrl : undefined,
+    );
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

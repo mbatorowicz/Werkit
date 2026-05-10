@@ -52,6 +52,9 @@ export type BaseWorker = {
 export type BaseMachine = {
   id: number;
   name: string;
+  brand?: string;
+  model?: string;
+  registrationNumber?: string;
   categoryIds?: number[]; // IDs of classifiers
   imageUrl?: string | null;
 };

@@ -6,9 +6,18 @@ import Image from "next/image";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, Camera } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { isVehicleIdentityEmpty } from "@/lib/resourceDisplayName";
 
 type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
-type Machine = { id: number, name: string, categoryIds: number[], imageUrl?: string | null };
+type Machine = {
+  id: number;
+  name: string;
+  brand?: string;
+  model?: string;
+  registrationNumber?: string;
+  categoryIds: number[];
+  imageUrl?: string | null;
+};
 
 async function compressVehiclePhotoToDataUrl(file: File): Promise<string | null> {
   if (!file.type.startsWith("image/")) return null;
@@ -56,7 +65,13 @@ export default function MachinesClient() {
   // States for Machine Modal
   const [isMMOpen, setIsMMOpen] = useState(false); // Machine Modal
   const [mEditId, setMEditId] = useState<number | null>(null);
-  const [mForm, setMForm] = useState({ name: '', categoryIds: [] as number[], imageUrl: null as string | null });
+  const [mForm, setMForm] = useState({
+    brand: "",
+    model: "",
+    registrationNumber: "",
+    categoryIds: [] as number[],
+    imageUrl: null as string | null,
+  });
 
   // States for Category Modal
   const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
@@ -115,10 +130,25 @@ export default function MachinesClient() {
   // --- Maszyny ---
   const handleMSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isVehicleIdentityEmpty(mForm.brand, mForm.model, mForm.registrationNumber)) {
+      alert(dict.machIdentityRequired);
+      return;
+    }
     const url = mEditId ? `/api/machines/${mEditId}` : "/api/machines";
     const method = mEditId ? "PUT" : "POST";
+    const payload = {
+      brand: mForm.brand,
+      model: mForm.model,
+      registrationNumber: mForm.registrationNumber,
+      categoryIds: mForm.categoryIds,
+      imageUrl: mForm.imageUrl,
+    };
     try {
-      const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(mForm) });
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
       if(res.ok) { setIsMMOpen(false); fetchData(); }
       else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
      } catch {
@@ -187,7 +217,7 @@ export default function MachinesClient() {
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
         {canMutate && (
-        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryIds: [], imageUrl: null}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+        <button onClick={() => {setMEditId(null); setMForm({ brand: "", model: "", registrationNumber: "", categoryIds: [], imageUrl: null }); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           {dict.registerVehicle}
         </button>
@@ -242,7 +272,21 @@ export default function MachinesClient() {
                    {canMutate && (
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
-                        <button onClick={() => {setMEditId(machine.id); setMForm({name: machine.name, categoryIds: machine.categoryIds || [], imageUrl: machine.imageUrl || null}); setIsMMOpen(true);}} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
+                        <button onClick={() => {
+                          setMEditId(machine.id);
+                          const hasStoredParts =
+                            Boolean(machine.brand?.trim()) ||
+                            Boolean(machine.model?.trim()) ||
+                            Boolean(machine.registrationNumber?.trim());
+                          setMForm({
+                            brand: hasStoredParts ? (machine.brand ?? "") : (machine.name ?? ""),
+                            model: machine.model ?? "",
+                            registrationNumber: machine.registrationNumber ?? "",
+                            categoryIds: machine.categoryIds ?? [],
+                            imageUrl: machine.imageUrl ?? null,
+                          });
+                          setIsMMOpen(true);
+                        }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleMDelete(machine.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={dict.deleteTitle}>
@@ -317,21 +361,28 @@ export default function MachinesClient() {
       {isMMOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
-           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
+           <div className="relative z-10 flex w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/80">
                  <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{mEditId ? dict.modalMachEditTitle : dict.modalMachCreateTitle}</h2>
                  <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleMSave} className="p-6 space-y-6">
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">{dict.machIdLabel}</label>
-                   <input required type="text" placeholder={dict.machIdPlaceholder} value={mForm.name} onChange={e => setMForm({...mForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">{dict.machBrandLabel}</label>
+                     <input type="text" autoComplete="off" placeholder={dict.machBrandPlaceholder} value={mForm.brand} onChange={(e) => setMForm({ ...mForm, brand: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">{dict.machModelLabel}</label>
+                     <input type="text" autoComplete="off" placeholder={dict.machModelPlaceholder} value={mForm.model} onChange={(e) => setMForm({ ...mForm, model: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">{dict.machRegLabel}</label>
+                     <input type="text" autoComplete="off" placeholder={dict.machRegPlaceholder} value={mForm.registrationNumber} onChange={(e) => setMForm({ ...mForm, registrationNumber: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 uppercase tracking-wide text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
+                   </div>
                  </div>
                  <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-                   <div>
-                     <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
-                     <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{dict.machPhotoHint}</p>
-                   </div>
+                   <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                      <div className="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 sm:h-36 sm:w-36">
                        {mForm.imageUrl ? (
@@ -359,14 +410,16 @@ export default function MachinesClient() {
                    </div>
                  </div>
                  <div className="space-y-2">
-                   <label className="text-sm font-medium text-amber-500/80">{dict.machCatLabel} ({dict.machCatSelectMany})</label>
+                   <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{dict.machCatLabel}</label>
                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                      {categories.map(c => (
                        <label key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
                          <input type="checkbox" checked={mForm.categoryIds.includes(c.id)} onChange={(e) => {
-                           if (e.target.checked) setMForm({...mForm, categoryIds: [...mForm.categoryIds, c.id]});
-                           else setMForm({...mForm, categoryIds: mForm.categoryIds.filter(id => id !== c.id)});
-                         }} className="rounded text-amber-500 w-4 h-4" />
+                           setMForm((prev) => {
+                             if (e.target.checked) return { ...prev, categoryIds: [...prev.categoryIds, c.id] };
+                             return { ...prev, categoryIds: prev.categoryIds.filter((cid) => cid !== c.id) };
+                           });
+                         }} className="h-4 w-4 rounded text-emerald-600" />
                          <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate">{c.name}</span>
                        </label>
                      ))}

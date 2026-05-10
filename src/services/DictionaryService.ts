@@ -39,13 +39,16 @@ export class DictionaryService {
     const allResources = await db.select().from(resources).orderBy(desc(resources.id));
     const links = await db.select().from(resourceToCategories);
     
-    return allResources.map(r => {
-      const cats = links.filter(l => l.resourceId === r.id).map(l => l.categoryId);
+    return allResources.map((r) => {
+      const cats = links.filter((l) => l.resourceId === r.id).map((l) => l.categoryId);
       return {
         id: r.id,
         name: r.name,
+        brand: r.brand ?? '',
+        model: r.model ?? '',
+        registrationNumber: r.registrationNumber ?? '',
         categoryIds: cats,
-        imageUrl: r.imageUrl
+        imageUrl: r.imageUrl,
       };
     });
   }
@@ -129,17 +132,45 @@ export class DictionaryService {
   }
 
   // --- ZASOBY (MASZYNY) ---
-  static async addResource(name: string, categoryIds: number[], imageUrl?: string | null) {
-    const res = await db.insert(resources).values({ name, imageUrl: imageUrl || null }).returning();
+  static async addResource(
+    identity: {
+      name: string;
+      brand: string;
+      model: string;
+      registrationNumber: string;
+    },
+    categoryIds: number[],
+    imageUrl?: string | null,
+  ) {
+    const res = await db
+      .insert(resources)
+      .values({
+        name: identity.name.slice(0, 255),
+        brand: identity.brand.slice(0, 120),
+        model: identity.model.slice(0, 120),
+        registrationNumber: identity.registrationNumber.slice(0, 32),
+        imageUrl: imageUrl ?? null,
+      })
+      .returning();
     if (categoryIds && categoryIds.length > 0) {
-      await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
-        resourceId: res[0].id,
-        categoryId: cid
-      })));
+      await db.insert(resourceToCategories).values(
+        categoryIds.map((cid) => ({
+          resourceId: res[0].id,
+          categoryId: cid,
+        })),
+      );
     }
   }
   static async updateResource(id: number, data: Partial<typeof resources.$inferInsert>, categoryIds?: number[]) {
-    await db.update(resources).set({ name: data.name, imageUrl: data.imageUrl }).where(eq(resources.id, id));
+    const patch: Partial<typeof resources.$inferInsert> = {};
+    if (data.name !== undefined) patch.name = data.name;
+    if (data.brand !== undefined) patch.brand = data.brand;
+    if (data.model !== undefined) patch.model = data.model;
+    if (data.registrationNumber !== undefined) patch.registrationNumber = data.registrationNumber;
+    if (data.imageUrl !== undefined) patch.imageUrl = data.imageUrl;
+    if (Object.keys(patch).length > 0) {
+      await db.update(resources).set(patch).where(eq(resources.id, id));
+    }
     if (categoryIds !== undefined) {
       await db.delete(resourceToCategories).where(eq(resourceToCategories.resourceId, id));
       if (categoryIds.length > 0) {
