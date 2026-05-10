@@ -24,7 +24,8 @@ export class DictionaryService {
       return {
         id: r.id,
         name: r.name,
-        categoryIds: cats
+        categoryIds: cats,
+        imageUrl: r.imageUrl
       };
     });
   }
@@ -67,8 +68,8 @@ export class DictionaryService {
   }
 
   // --- ZASOBY (MASZYNY) ---
-  static async addResource(name: string, categoryIds: number[]) {
-    const res = await db.insert(resources).values({ name }).returning();
+  static async addResource(name: string, categoryIds: number[], imageUrl?: string | null) {
+    const res = await db.insert(resources).values({ name, imageUrl: imageUrl || null }).returning();
     if (categoryIds && categoryIds.length > 0) {
       await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
         resourceId: res[0].id,
@@ -77,7 +78,7 @@ export class DictionaryService {
     }
   }
   static async updateResource(id: number, data: Partial<typeof resources.$inferInsert>, categoryIds?: number[]) {
-    await db.update(resources).set({ name: data.name }).where(eq(resources.id, id));
+    await db.update(resources).set({ name: data.name, imageUrl: data.imageUrl }).where(eq(resources.id, id));
     if (categoryIds !== undefined) {
       await db.delete(resourceToCategories).where(eq(resourceToCategories.resourceId, id));
       if (categoryIds.length > 0) {

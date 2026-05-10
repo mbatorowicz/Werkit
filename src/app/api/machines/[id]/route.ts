@@ -13,7 +13,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const { DictionaryService } = await import('@/services/DictionaryService');
     await DictionaryService.updateResource(id, { 
-       name: body.name 
+       name: body.name,
+       imageUrl: body.imageUrl
     }, body.categoryIds.map((c: string | number) => parseInt(c as string)));
     
     return NextResponse.json({ success: true });

@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
-type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean };
-type Machine = { id: number, name: string, categoryIds: number[] };
+type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
+type Machine = { id: number, name: string, categoryIds: number[], imageUrl?: string | null };
 
 const colorOptions: Record<string, { bg: string, lightBg: string, border: string }> = {
   blue: { bg: 'bg-blue-500', lightBg: 'bg-blue-500/20', border: 'border-blue-500/50' },
@@ -26,12 +26,12 @@ export default function MachinesClient() {
   // States for Machine Modal
   const [isMMOpen, setIsMMOpen] = useState(false); // Machine Modal
   const [mEditId, setMEditId] = useState<number | null>(null);
-  const [mForm, setMForm] = useState({ name: '', categoryIds: [] as number[] });
+  const [mForm, setMForm] = useState({ name: '', categoryIds: [] as number[], imageUrl: null as string | null });
 
   // States for Category Modal
   const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
   const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState({ name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false });
+  const [cForm, setCForm] = useState({ name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, color: '#3f3f46' });
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -93,6 +93,43 @@ export default function MachinesClient() {
      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 400;
+        const MAX_HEIGHT = 400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/webp', 0.8);
+        setMForm({ ...mForm, imageUrl: dataUrl });
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <>
       {/* SEKCJA KATEGORII SŁOWNIKOWYCH */}
@@ -101,7 +138,7 @@ export default function MachinesClient() {
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
       </div>
@@ -112,11 +149,11 @@ export default function MachinesClient() {
            return (
              <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
                 <div className="flex items-center gap-3 truncate">
-                  <div className={`w-5 h-5 rounded-md ${colors.bg} shadow-sm shrink-0`} />
+                  <div className={`w-5 h-5 rounded-md shadow-sm shrink-0`} style={{ backgroundColor: cat.color || '#3f3f46' }} />
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
              </div>
@@ -132,7 +169,7 @@ export default function MachinesClient() {
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Wrench className="w-6 h-6 text-emerald-500" /> {dict.fleetTitle}</h1>
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
-        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryIds: []}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+        <button onClick={() => {setMEditId(null); setMForm({name: '', categoryIds: [], imageUrl: null}); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
           {dict.registerVehicle}
         </button>
@@ -159,8 +196,12 @@ export default function MachinesClient() {
                  <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                         <div className={`w-10 h-10 rounded-lg ${colors.lightBg} border ${colors.border} flex items-center justify-center shrink-0`}>
-                           <div className={`w-4 h-4 rounded-full ${colors.bg} shadow-sm`} />
+                         <div className={`w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 overflow-hidden`}>
+                           {machine.imageUrl ? (
+                             <img src={machine.imageUrl} alt={machine.name} className="w-full h-full object-cover" />
+                           ) : (
+                             <Truck className="w-5 h-5 text-zinc-400" />
+                           )}
                          </div>
                          <div>
                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
@@ -171,7 +212,7 @@ export default function MachinesClient() {
                    <td className="px-6 py-4">
                      <div className="flex flex-wrap gap-1">
                        {mCats.length > 0 ? mCats.map(c => (
-                         <span key={c.id} className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                         <span key={c.id} className="border px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider" style={{ backgroundColor: `${c.color || '#71717a'}1a`, color: c.color || '#71717a', borderColor: `${c.color || '#71717a'}33` }}>
                            {c.name}
                          </span>
                        )) : (
@@ -181,7 +222,7 @@ export default function MachinesClient() {
                    </td>
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
-                        <button onClick={() => {setMEditId(machine.id); setMForm({name: machine.name, categoryIds: machine.categoryIds || []}); setIsMMOpen(true);}} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
+                        <button onClick={() => {setMEditId(machine.id); setMForm({name: machine.name, categoryIds: machine.categoryIds || [], imageUrl: machine.imageUrl || null}); setIsMMOpen(true);}} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleMDelete(machine.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={dict.deleteTitle}>
@@ -211,16 +252,10 @@ export default function MachinesClient() {
               <form onSubmit={handleCSave} className="p-6 space-y-4">
                  <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  <div className="space-y-2">
-                   <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Wybierz Kolor Znacznika</label>
-                   <div className="grid grid-cols-4 gap-2">
-                     {Object.keys(colorOptions).map(colorName => {
-                       const colors = colorOptions[colorName];
-                       return (
-                         <button type="button" key={colorName} onClick={() => setCForm({...cForm, icon: colorName})} className={`flex items-center justify-center p-3 rounded-lg border transition ${cForm.icon === colorName ? 'bg-zinc-100 border-zinc-400 dark:bg-zinc-800 dark:border-zinc-500 ring-2 ring-zinc-400 dark:ring-zinc-500' : 'bg-zinc-50 border-zinc-200 dark:bg-zinc-900 dark:border-zinc-700 hover:border-zinc-300'}`}>
-                           <div className={`w-6 h-6 rounded-md ${colors.bg} shadow-sm`} />
-                         </button>
-                       )
-                     })}
+                   <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kolor Kategorii</label>
+                   <div className="flex items-center gap-3">
+                     <input type="color" value={cForm.color} onChange={e => setCForm({...cForm, color: e.target.value})} className="w-10 h-10 rounded border-0 p-0 cursor-pointer" />
+                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Wybierz główny kolor znaczników</span>
                    </div>
                  </div>
                  

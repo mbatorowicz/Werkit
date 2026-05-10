@@ -16,6 +16,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
     if (body.reqTaskDescription !== undefined) updateData.reqTaskDescription = !!body.reqTaskDescription;
     if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
+    if (body.color !== undefined) updateData.color = body.color;
     
     await DictionaryService.updateCategory(id, updateData);
     return NextResponse.json({ success: true });

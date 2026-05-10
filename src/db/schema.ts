@@ -22,6 +22,7 @@ export const resourceCategories = pgTable('resource_categories', {
   reqQuantity: boolean('req_quantity').notNull().default(false),
   reqTaskDescription: boolean('req_task_description').notNull().default(true),
   isGlobal: boolean('is_global').notNull().default(false),
+  color: varchar('color', { length: 50 }).default('#3f3f46'),
 });
 
 export const resourceToCategories = pgTable('resource_to_categories', {
@@ -33,6 +34,7 @@ export const resources = pgTable('resources', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // TODO: remove after migration
+  imageUrl: text('image_url'),
 });
 
 export const materials = pgTable('materials', {

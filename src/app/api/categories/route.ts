@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal } = body;
+    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal, color } = body;
 
     if(!name) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       reqQuantity: !!reqQuantity,
       reqTaskDescription: reqTaskDescription !== undefined ? !!reqTaskDescription : true,
       isGlobal: !!isGlobal,
+      color: color || '#3f3f46',
     });
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

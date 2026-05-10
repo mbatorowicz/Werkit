@@ -51,6 +51,7 @@ export type BaseMachine = {
   id: number;
   name: string;
   categoryIds?: number[]; // IDs of classifiers
+  imageUrl?: string | null;
 };
 
 export type BaseMaterial = {
@@ -72,4 +73,5 @@ export type BaseCategory = {
   reqQuantity: boolean;
   reqTaskDescription: boolean;
   isGlobal: boolean;
+  color?: string | null;
 };
