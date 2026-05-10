@@ -1,15 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { Capacitor } from '@capacitor/core';
 
 import { useWorkerNotifications } from '@/features/worker/hooks/useWorkerNotifications';
 import { useWorkerGPS } from '@/features/worker/hooks/useWorkerGPS';
 import { GPSManager } from '@/lib/gpsManager';
-import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
 import PendingOrdersList from "@/features/worker/components/PendingOrdersList";
@@ -50,6 +48,10 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
   const [location, setLocation] = useState<Coord | null>(null);
   const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
   const [destination, setDestination] = useState<Coord | null>(null);
+  const destinationRef = useRef<Coord | null>(null);
+  useEffect(() => {
+    destinationRef.current = destination;
+  }, [destination]);
   const [distanceToDestKm, setDistanceToDestKm] = useState<number | null>(null);
   const [traveledKm, setTraveledKm] = useState(0);
 
@@ -60,7 +62,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
   const [showGpsWarning, setShowGpsWarning] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
 
-  const fetchSessionAndPath = async (showLoader = true, fetchGpsPath = true) => {
+  const fetchSessionAndPath = useCallback(async (showLoader = true, fetchGpsPath = true) => {
     if (showLoader) setIsLoading(true);
     try {
       const [resSess, resOrders] = await Promise.all([
@@ -87,7 +89,9 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
             }
             setTraveledKm(dist / 1000);
           }
-        } catch (e) { }
+        } catch {
+          /* ścieżka GPS opcjonalna */
+        }
       }
 
       if (sessData.settings) setSettings(sessData.settings);
@@ -113,14 +117,16 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
         if (sessData.session.customerLat && sessData.session.customerLng) {
           setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
-        } else if (sessData.session.customerAddress && !destination) {
+        } else if (sessData.session.customerAddress && !destinationRef.current) {
           try {
             const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
             const geoData = await geo.json();
             if (geoData && geoData.length > 0) {
               setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
             }
-          } catch (e) {}
+          } catch {
+            /* geokodowanie opcjonalne */
+          }
         }
       } else {
         setSession(null);
@@ -129,24 +135,26 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       console.error(e);
     }
     if (showLoader) setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    if (!initialData) fetchSessionAndPath(true, true);
-    else fetchSessionAndPath(false, true); 
+    queueMicrotask(() => {
+      if (!initialData) void fetchSessionAndPath(true, true);
+      else void fetchSessionAndPath(false, true);
+    });
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchSessionAndPath(false, false);
+        void fetchSessionAndPath(false, false);
         GPSManager.flushQueue();
       }
     };
-    
+
     if (typeof document !== 'undefined') {
       document.addEventListener("visibilitychange", handleVisibilityChange);
       return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }
-  }, [initialData]);
+  }, [initialData, fetchSessionAndPath]);
 
   useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
 

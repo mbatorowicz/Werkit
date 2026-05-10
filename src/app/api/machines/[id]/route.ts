@@ -19,7 +19,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }, body.categoryIds.map((c: string | number) => parseInt(c as string)));
     
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

@@ -10,7 +10,7 @@ export async function GET() {
     const allUsers = await AdminUserService.getAllUsers();
     
     return NextResponse.json(allUsers);
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

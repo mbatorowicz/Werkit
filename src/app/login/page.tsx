@@ -88,7 +88,7 @@ export default function LoginPage() {
         const apiErrors = dict.apiErrors as Record<string, string>;
         setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
       }
-    } catch (err) {
+    } catch {
       setError("Brak połączenia z Vercel API. Spróbuj ponownie.");
     } finally {
       setLoading(false);

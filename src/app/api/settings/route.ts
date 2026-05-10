@@ -6,7 +6,7 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const data = await DictionaryService.getSettings();
     return NextResponse.json(data[0] || {});
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
   }
 }

@@ -1,13 +1,25 @@
 "use client";
 import { useState } from "react";
-import { Menu, X, Map, Users, Package, Activity, LogOut, Wrench, HardHat, Settings, TerminalSquare, BarChart3 } from "lucide-react";
+import { Menu, X, Map, Users, Package, Activity, Wrench, HardHat, Settings, TerminalSquare, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
 
 import { usePathname } from "next/navigation";
 
-export function MobileAdminNav({ companyName, version, dict, loggedInUser }: { companyName: string; version: string; dict: Record<string, any>; loggedInUser?: string | null }) {
+import type { AppDictionary } from "@/i18n/types";
+
+export function MobileAdminNav({
+  companyName,
+  version,
+  dict,
+  loggedInUser,
+}: {
+  companyName: string;
+  version: string;
+  dict: AppDictionary["admin"];
+  loggedInUser?: string | null;
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const pathname = usePathname();

@@ -1,23 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, HardHat, Settings, Package, Box, Tractor, CarFront, Bus, Hammer, Cog } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
 type Machine = { id: number, name: string, categoryIds: number[], imageUrl?: string | null };
-
-const colorOptions: Record<string, { bg: string, lightBg: string, border: string }> = {
-  blue: { bg: 'bg-blue-500', lightBg: 'bg-blue-500/20', border: 'border-blue-500/50' },
-  emerald: { bg: 'bg-emerald-500', lightBg: 'bg-emerald-500/20', border: 'border-emerald-500/50' },
-  amber: { bg: 'bg-amber-500', lightBg: 'bg-amber-500/20', border: 'border-amber-500/50' },
-  rose: { bg: 'bg-rose-500', lightBg: 'bg-rose-500/20', border: 'border-rose-500/50' },
-  purple: { bg: 'bg-purple-500', lightBg: 'bg-purple-500/20', border: 'border-purple-500/50' },
-  cyan: { bg: 'bg-cyan-500', lightBg: 'bg-cyan-500/20', border: 'border-cyan-500/50' },
-  indigo: { bg: 'bg-indigo-500', lightBg: 'bg-indigo-500/20', border: 'border-indigo-500/50' },
-  orange: { bg: 'bg-orange-500', lightBg: 'bg-orange-500/20', border: 'border-orange-500/50' },
-};
 
 export default function MachinesClient() {
   const { canMutate } = useAdminAbility();
@@ -38,7 +28,7 @@ export default function MachinesClient() {
   const dict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [mData, cData] = await Promise.all([
@@ -51,13 +41,18 @@ export default function MachinesClient() {
          console.error("API Error details:", {mData, cData});
          alert(dict.dbError);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* sieć */
     }
     setIsLoading(false);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dict.dbError z i18n; pełny `dict` zmieniałby referencję co render
+  }, []);
 
-  useEffect(() => { fetchData() }, []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      void fetchData();
+    });
+  }, [fetchData]);
 
   // --- Kategorie ----
   const handleCSave = async (e: React.FormEvent) => {
@@ -68,7 +63,9 @@ export default function MachinesClient() {
        const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(cForm) });
        if(res.ok) { setIsCMOpen(false); fetchData(); }
        else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-     } catch(e) { alert(dict.apiError); }
+     } catch {
+       alert(dict.apiError);
+     }
   };
   const handleCDelete = async (id: number) => {
      if(!confirm(dict.confirmCatDelete)) return;
@@ -86,50 +83,15 @@ export default function MachinesClient() {
       const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(mForm) });
       if(res.ok) { setIsMMOpen(false); fetchData(); }
       else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-    } catch(e) { alert(dict.apiError); }
+     } catch {
+       alert(dict.apiError);
+     }
   };
   const handleMDelete = async (id: number) => {
      if(!confirm(dict.confirmMachDelete)) return;
      const res = await fetch(`/api/machines/${id}`, { method: 'DELETE' });
      if(res.ok) fetchData();
      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-  };
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 400;
-        const MAX_HEIGHT = 400;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/webp', 0.8);
-        setMForm({ ...mForm, imageUrl: dataUrl });
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
   };
 
   return (
@@ -149,7 +111,6 @@ export default function MachinesClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
          {categories.map(cat => {
-           const colors = colorOptions[cat.icon || 'blue'] || colorOptions.blue;
            return (
              <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
                 <div className="flex items-center gap-3 truncate">
@@ -200,15 +161,13 @@ export default function MachinesClient() {
                  <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : machines.map(machine => {
                  const mCats = categories.filter(c => machine.categoryIds?.includes(c.id));
-                 const firstCat = mCats[0];
-                 const colors = colorOptions[firstCat?.icon || 'blue'] || colorOptions.blue;
                  return (
                  <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
                    <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                          <div className={`w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 overflow-hidden`}>
                            {machine.imageUrl ? (
-                             <img src={machine.imageUrl} alt={machine.name} className="w-full h-full object-cover" />
+                             <Image src={machine.imageUrl} alt={machine.name} width={48} height={48} unoptimized className="w-full h-full object-cover" />
                            ) : (
                              <Truck className="w-5 h-5 text-zinc-400" />
                            )}

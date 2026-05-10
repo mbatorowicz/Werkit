@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
+import Image from "next/image";
 
 const iconStart = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -114,6 +115,8 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
       };
       fetchRoute();
     }
+    // Pełne obiekty i onRouteDistance w deps prowadzą do zbędnych przebiegów; śledzimy wyłącznie współrzędne.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- patrz wyżej
   }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng]);
 
   return (
@@ -164,7 +167,9 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
                 <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
                   <p className="font-semibold m-0">{ev.type === 'photo' ? 'Zdjęcie' : 'Notatka'}</p>
                   {ev.type === 'note' && <p className="text-sm italic m-0 break-words">{ev.content}</p>}
-                  {ev.type === 'photo' && <img src={ev.content} alt="Zdarzenie" className="w-full rounded-md object-cover max-h-[150px]" />}
+                  {ev.type === 'photo' && (
+                    <Image src={ev.content} alt="Zdarzenie" width={250} height={150} unoptimized className="w-full rounded-md object-cover max-h-[150px]" />
+                  )}
                 </div>
              </Popup>
            </Marker>

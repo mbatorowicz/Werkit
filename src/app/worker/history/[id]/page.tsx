@@ -6,6 +6,7 @@ import { jwtVerify } from "jose";
 import { JWT_SECRET } from '@/lib/auth';
 import { notFound } from "next/navigation";
 import MapWrapper from "./MapWrapper";
+import Image from "next/image";
 
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
@@ -118,7 +119,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
                   <div className="text-[10px] text-zinc-400 mb-1">{new Date(item.createdAt).toLocaleString('pl-PL')}</div>
                   {item.type === 'photo' ? (
                     <div className="w-24 h-24 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700 mt-1">
-                      <img src={item.content} alt="Zdarzenie" className="w-full h-full object-cover" />
+                      <Image src={item.content} alt="Zdarzenie" width={96} height={96} unoptimized className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words bg-zinc-50 dark:bg-zinc-800 p-2 rounded mt-1">{item.content}</div>

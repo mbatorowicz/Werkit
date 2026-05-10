@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Users, Wrench, Map, HardHat, Package, FileClock, Settings, TerminalSquare, BarChart3 } from "lucide-react";
+import { Users, Wrench, Map, HardHat, Package, Settings, TerminalSquare, BarChart3 } from "lucide-react";
+import type { AppDictionary } from "@/i18n/types";
 
-export function AdminSidebarNav({ dict }: { dict: Record<string, any> }) {
+export function AdminSidebarNav({ dict }: { dict: AppDictionary["admin"] }) {
   const pathname = usePathname();
 
   const links = [

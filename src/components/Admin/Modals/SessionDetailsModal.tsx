@@ -4,6 +4,7 @@ import { TimelineItem } from "@/types/worker";
 import { useEffect, useState } from "react";
 import { X, Map as MapIcon, Image as ImageIcon, FileText, Loader2, CheckCircle2, Trash2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { getDictionary } from "@/i18n";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
@@ -37,18 +38,31 @@ export default function SessionDetailsModal({
   const dict = getDictionary().admin.orders;
 
   useEffect(() => {
-    if (item._type === 'SESSION') {
+    if (item._type !== "SESSION") return;
+    let cancelled = false;
+    const run = async () => {
       setIsLoading(true);
-      fetch(`/api/admin/work-sessions/${item.id}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.logs) setLogs(data.logs);
-          if (data.photos) setPhotos(data.photos);
-          if (data.notes) setNotes(data.notes);
-        })
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
-    }
+      try {
+        const r = await fetch(`/api/admin/work-sessions/${item.id}`);
+        const data = (await r.json()) as {
+          logs?: { latitude?: string; longitude?: string }[];
+          photos?: { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[];
+          notes?: { id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[];
+        };
+        if (cancelled) return;
+        if (data.logs) setLogs(data.logs);
+        if (data.photos) setPhotos(data.photos);
+        if (data.notes) setNotes(data.notes);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    queueMicrotask(() => void run());
+    return () => {
+      cancelled = true;
+    };
   }, [item]);
 
   const pathTraveled = logs
@@ -168,7 +182,7 @@ export default function SessionDetailsModal({
                           <ImageIcon className="w-5 h-5 text-amber-500" /> {dict.timelineTitle}
                         </h3>
                         <div className="relative border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 space-y-8">
-                          {timelineItems.map((entry, index) => {
+                          {timelineItems.map((entry) => {
                             const isNote = entry.type === 'note';
                             const timeStr = new Date(entry.time).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
                             const dateStr = new Date(entry.time).toLocaleDateString('pl-PL');
@@ -187,10 +201,13 @@ export default function SessionDetailsModal({
                                       <p className="text-sm text-zinc-900 dark:text-zinc-200 whitespace-pre-wrap">{entry.note ?? ""}</p>
                                     ) : (
                                       <>
-                                        <img 
-                                          src={entry.photoUrl ?? ""} 
-                                          alt={dict.photoRoute} 
-                                          className="w-full h-auto rounded-md mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                                        <Image
+                                          src={entry.photoUrl ?? ""}
+                                          alt={dict.photoRoute}
+                                          width={800}
+                                          height={600}
+                                          unoptimized
+                                          className="w-full h-auto rounded-md mb-2 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                                           onClick={() => {
                                             const url = entry.photoUrl;
                                             if (!url) return;
@@ -275,10 +292,13 @@ export default function SessionDetailsModal({
            </div>
            
            <div className="flex-1 flex items-center justify-center relative overflow-hidden px-12">
-              <img 
-                 src={allPhotos[lightboxIndex]} 
-                 alt={dict.enlargedPhoto} 
-                 className="max-w-full max-h-full object-contain animate-in fade-in zoom-in-95 duration-300 shadow-2xl" 
+              <Image
+                 src={allPhotos[lightboxIndex]}
+                 alt={dict.enlargedPhoto}
+                 width={1200}
+                 height={900}
+                 unoptimized
+                 className="max-w-full max-h-full object-contain animate-in fade-in zoom-in-95 duration-300 shadow-2xl"
               />
               
               {allPhotos.length > 1 && (
@@ -301,9 +321,13 @@ export default function SessionDetailsModal({
            
            <div className="h-24 flex items-center justify-center gap-2 p-4 overflow-x-auto bg-black/50 z-10 custom-scrollbar">
               {allPhotos.map((url, idx) => (
-                 <img 
-                   key={idx}
+                 <Image
+                   key={url}
                    src={url}
+                   alt=""
+                   width={64}
+                   height={64}
+                   unoptimized
                    className={`h-16 w-16 object-cover rounded cursor-pointer transition-all ${idx === lightboxIndex ? 'border-2 border-amber-500 opacity-100 scale-110' : 'opacity-40 hover:opacity-100'}`}
                    onClick={() => setLightboxIndex(idx)}
                  />

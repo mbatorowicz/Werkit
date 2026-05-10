@@ -105,7 +105,7 @@ export function useWorkerGPS(
       if ("geolocation" in navigator) {
         watchIdRef.current = navigator.geolocation.watchPosition(
           (pos) => handleNewLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading }),
-          (err) => { if (isMounted) setGpsStatus("error"); },
+          () => { if (isMounted) setGpsStatus("error"); },
           { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
         );
       } else {

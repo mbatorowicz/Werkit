@@ -8,7 +8,7 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const allCustomers = await DictionaryService.getCustomers();
     return NextResponse.json(allCustomers);
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     );
     
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

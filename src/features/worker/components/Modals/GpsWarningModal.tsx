@@ -1,7 +1,7 @@
 "use client";
 
 import { Navigation } from "lucide-react";
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
 
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
@@ -32,8 +32,8 @@ export default function GpsWarningModal({
         </div>
         <h2 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">Uprawnienia GPS</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center mb-6">
-          Aby trasa zapisywała się poprawnie w kieszeni (z wygaszonym ekranem), system wymaga, aby uprawnienie lokalizacji było ustawione na <strong className="text-zinc-900 dark:text-white">"Zawsze zezwalaj"</strong>.<br/><br/>
-          Jeśli masz "Tylko podczas używania", trasa będzie się rwać na proste linie.
+          Aby trasa zapisywała się poprawnie w kieszeni (z wygaszonym ekranem), system wymaga, aby uprawnienie lokalizacji było ustawione na <strong className="text-zinc-900 dark:text-white">„Zawsze zezwalaj”</strong>.<br/><br/>
+          Jeśli masz „Tylko podczas używania”, trasa będzie się rwać na proste linie.
         </p>
         <div className="flex flex-col gap-3">
           <button 
@@ -57,7 +57,7 @@ export default function GpsWarningModal({
             }} 
             className="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-3 font-bold text-sm transition-all"
           >
-            Rozumiem, mam ustawione "Zawsze"
+            Rozumiem, mam ustawione „Zawsze”
           </button>
         </div>
       </div>

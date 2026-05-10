@@ -1,4 +1,4 @@
-import { User as UserIcon, Shield, LogOut, Settings } from "lucide-react";
+import { User as UserIcon, Shield, Settings } from "lucide-react";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";

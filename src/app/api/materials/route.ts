@@ -8,7 +8,7 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const allMaterials = await DictionaryService.getMaterials();
     return NextResponse.json(allMaterials);
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

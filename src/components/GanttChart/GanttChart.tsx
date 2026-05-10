@@ -31,7 +31,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    setCurrentTime(new Date());
+    queueMicrotask(() => setCurrentTime(new Date()));
     const interval = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(interval);
   }, []);

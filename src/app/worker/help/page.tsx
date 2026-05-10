@@ -1,4 +1,4 @@
-import { PhoneCall, AlertTriangle, Info, BookOpen, MapPin, Camera, Clock, Navigation, Play } from "lucide-react";
+import { PhoneCall, AlertTriangle, Info, BookOpen, Camera, Navigation, Play } from "lucide-react";
 import { HelpAccordion } from "@/components/HelpAccordion";
 import { getDictionary } from "@/i18n";
 

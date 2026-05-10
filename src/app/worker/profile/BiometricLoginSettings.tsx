@@ -32,7 +32,7 @@ export function BiometricLoginSettings({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setEnabled(initialBiometricLoginEnabled);
+    queueMicrotask(() => setEnabled(initialBiometricLoginEnabled));
   }, [initialBiometricLoginEnabled]);
 
   useEffect(() => {

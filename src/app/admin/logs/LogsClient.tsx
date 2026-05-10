@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TerminalSquare, Filter, RefreshCcw } from "lucide-react";
+import { TerminalSquare, RefreshCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type LogItem = {
@@ -79,7 +79,9 @@ export default function LogsClient({ initialLogs: logs, workers }: { initialLogs
             {filteredLogs.map(log => (
               <div key={log.id} className="hover:bg-white/5 px-2 py-0.5 rounded transition-colors break-words">
                 <span className="text-zinc-500">[{new Date(log.createdAt).toLocaleString('pl-PL')}]</span>
-                <span className="mx-2 font-bold text-zinc-400">[{log.level}]</span>
+                <span className={`mx-2 font-bold rounded border px-1 ${getLevelColor(log.level)}`}>
+                  [{log.level}]
+                </span>
                 {log.workerName && <span className="mr-2 text-zinc-300">[{log.workerName}]</span>}
                 <span className="text-zinc-100">{log.message}</span>
                 {log.metadata && <span className="text-zinc-500 ml-2">{JSON.stringify(log.metadata)}</span>}

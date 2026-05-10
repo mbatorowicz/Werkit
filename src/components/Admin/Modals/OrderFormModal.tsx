@@ -9,7 +9,6 @@ export default function OrderFormModal({
   onSave,
   editingOrderId,
   dict,
-  apiErrors,
   workers,
   machines,
   materials,
@@ -25,7 +24,6 @@ export default function OrderFormModal({
   onDeletePending?: () => Promise<void>;
   editingOrderId: number | null;
   dict: Record<string, string>;
-  apiErrors: Record<string, string>;
   workers: BaseWorker[];
   machines: BaseMachine[];
   materials: BaseMaterial[];
@@ -37,7 +35,8 @@ export default function OrderFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (isOpen) setForm(initialForm);
+    if (!isOpen) return;
+    queueMicrotask(() => setForm(initialForm));
   }, [isOpen, initialForm]);
 
   if (!isOpen) return null;

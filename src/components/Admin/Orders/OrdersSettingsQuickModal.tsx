@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Settings, X } from "lucide-react";
-import SettingsForm from "@/app/admin/settings/SettingsForm";
+import SettingsForm, { type SettingsSnapshot } from "@/app/admin/settings/SettingsForm";
 
 export function OrdersSettingsQuickModal({
   isOpen,
@@ -34,7 +34,7 @@ export function OrdersSettingsQuickModal({
         </div>
         <div className="p-2">
           {settingsData ? (
-            <SettingsForm initialData={settingsData as Record<string, unknown>} mode="orders" />
+            <SettingsForm initialData={settingsData as SettingsSnapshot} mode="orders" />
           ) : (
             <div className="p-12 flex justify-center">
               <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />

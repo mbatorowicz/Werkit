@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT() {
   try {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, Package, Plus, X, Edit2, MapPin } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
@@ -30,19 +30,23 @@ export default function CustomersClient() {
   const dict = dictionary.admin.customers;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/customers", { cache: "no-store" });
       const data = await res.json();
       setCustomers(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* sieć */
     }
     setIsLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { fetchData() }, []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      void fetchData();
+    });
+  }, [fetchData]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +57,9 @@ export default function CustomersClient() {
       const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
       if(res.ok) { setIsModalOpen(false); fetchData(); }
       else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-    } catch(e) { alert(getDictionary().admin.machines.apiError); }
+    } catch {
+      alert(getDictionary().admin.machines.apiError);
+    }
     setIsSubmitting(false);
   };
 

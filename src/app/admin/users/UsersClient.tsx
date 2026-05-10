@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, Shield, Plus, X, Lock, Edit2, Loader2, Users, Eye } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
@@ -39,21 +39,23 @@ export default function UsersClient() {
     return dict.roleWorkerShort;
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await fetch("/api/workers", { cache: "no-store" });
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* sieć */
     }
     setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    queueMicrotask(() => {
+      void fetchUsers();
+    });
+  }, [fetchUsers]);
 
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`${dict.confirmDelete} ${name}?`)) return;

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

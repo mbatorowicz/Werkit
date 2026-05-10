@@ -28,7 +28,7 @@ export async function getAuthSession(): Promise<JwtPayload | null> {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     return verified.payload as unknown as JwtPayload;
-  } catch (err) {
+  } catch {
     return null;
   }
 }

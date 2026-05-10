@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Clock, MapPin, Camera, FileText, X, Square, ChevronUp, ChevronDown } from "lucide-react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { Session, Coord, AppSettings, TimelineItem } from "@/types/worker";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
@@ -216,7 +217,7 @@ export default function ActiveSessionDashboard({
                     <div className="text-[10px] text-zinc-400 mb-1">{new Date(item.createdAt).toLocaleTimeString()}</div>
                     {item.type === 'photo' ? (
                       <div className="w-16 h-16 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                        <img src={item.content} alt="Zdarzenie" className="w-full h-full object-cover" />
+                        <Image src={item.content} alt="" width={64} height={64} unoptimized className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{item.content}</div>

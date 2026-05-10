@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { workOrders, workSessions } from '@/db/schema';
-import { or, and, eq, ne, inArray } from 'drizzle-orm';
+import { workOrders } from '@/db/schema';
+import { or, and, eq, inArray } from 'drizzle-orm';
 
 export async function checkScheduleConflict(
   userId: number,

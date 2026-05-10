@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, HardHat, Plus, X, Edit2, Layers } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
@@ -31,7 +31,7 @@ export default function MaterialsClient() {
   const machDict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [mData, cData] = await Promise.all([
@@ -44,15 +44,18 @@ export default function MaterialsClient() {
         console.error("Materials API:", { mData, cData });
         alert(machDict.dbError);
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* sieć */
     }
     setIsLoading(false);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- machDict.dbError z i18n; pełny obiekt co render generowałby pętlę
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    queueMicrotask(() => {
+      void fetchData();
+    });
+  }, [fetchData]);
 
   const handleCatSave = async (e: React.FormEvent) => {
     e.preventDefault();

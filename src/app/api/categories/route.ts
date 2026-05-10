@@ -8,7 +8,7 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const allCategories = await DictionaryService.getCategories();
     return NextResponse.json(allCategories);
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       color: color || '#3f3f46',
     });
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'category_exists' }, { status: 500 });
   }
 }

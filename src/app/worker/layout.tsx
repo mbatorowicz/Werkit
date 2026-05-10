@@ -1,4 +1,4 @@
-import { Map, Clock, User, LogOut, HelpCircle } from "lucide-react";
+import { Map, Clock, User, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -30,7 +30,7 @@ export default async function WorkerLayout({ children }: { children: React.React
         userName = userRec.fullName;
       }
     }
-  } catch (e) {}
+  } catch {}
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-[#f2fbfa] dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">

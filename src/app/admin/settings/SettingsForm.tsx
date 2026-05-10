@@ -2,11 +2,33 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import SettingsMap from "@/components/Map/SettingsMap";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
-export default function SettingsForm({ initialData, mode = 'all' }: { initialData: Record<string, any> | null, mode?: 'all' | 'company' | 'orders' }) {
+export type SettingsSnapshot = {
+  id?: number;
+  companyName?: string | null;
+  companyAddress?: string | null;
+  zipCode?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  baseLatitude?: string | null;
+  baseLongitude?: string | null;
+  cancelWindowMinutes?: number;
+  requirePhotoToFinish?: boolean;
+  geofenceRadiusMeters?: number;
+  timeOverrunReminder?: boolean;
+  upcomingOrderReminderMinutes?: number;
+};
+
+export default function SettingsForm({
+  initialData,
+  mode = "all",
+}: {
+  initialData: SettingsSnapshot | null;
+  mode?: "all" | "company" | "orders";
+}) {
   const { canMutate } = useAdminAbility();
   const router = useRouter();
   const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
@@ -16,36 +38,15 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
   const [phone, setPhone] = useState(initialData?.phone || "");
   const [email, setEmail] = useState(initialData?.email || "");
 
-  const [lat, setLat] = useState<number>(parseFloat(initialData?.baseLatitude || "52.401"));
-  const [lng, setLng] = useState<number>(parseFloat(initialData?.baseLongitude || "22.015"));
+  const lat = Number.parseFloat(initialData?.baseLatitude ?? "52.401");
+  const lng = Number.parseFloat(initialData?.baseLongitude ?? "22.015");
   const [cancelWindowMinutes, setCancelWindowMinutes] = useState<number>(initialData?.cancelWindowMinutes ?? 5);
   const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(initialData?.requirePhotoToFinish ?? false);
   const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(initialData?.geofenceRadiusMeters ?? 500);
   const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(initialData?.timeOverrunReminder ?? true);
   const [upcomingOrderReminderMinutes, setUpcomingOrderReminderMinutes] = useState<number>(initialData?.upcomingOrderReminderMinutes ?? 120);
 
-  const [isSearching, setIsSearching] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"IDLE"|"SAVING"|"SAVED">("IDLE");
-
-  const searchAddress = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = `${address} ${city}`.trim();
-    if (!query) return;
-    setIsSearching(true);
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (data && data.length > 0) {
-        setLat(parseFloat(data[0].lat));
-        setLng(parseFloat(data[0].lon));
-      } else {
-        alert("Nie wyliczono GPS na podstawie adresu i miasta.");
-      }
-    } catch(e) {
-      alert("Błąd podczas wyszukiwania GPS z map open-source.");
-    }
-    setIsSearching(false);
-  };
 
   const handleSave = async () => {
     if (!canMutate) return;
@@ -78,7 +79,7 @@ export default function SettingsForm({ initialData, mode = 'all' }: { initialDat
           setSaveStatus("IDLE");
           alert("Błąd zapisu.");
        }
-    } catch(err) {
+    } catch {
        setSaveStatus("IDLE");
     }
   };

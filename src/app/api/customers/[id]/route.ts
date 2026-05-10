@@ -22,7 +22,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     });
     
     return NextResponse.json({ success: true });
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

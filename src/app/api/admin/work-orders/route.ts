@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const data = await AdminOrderService.getActiveWorkOrders();
     return NextResponse.json(data);
-  } catch (err: unknown) {
+  } catch {
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

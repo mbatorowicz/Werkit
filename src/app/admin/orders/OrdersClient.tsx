@@ -348,7 +348,6 @@ export default function OrdersClient() {
           }}
           editingOrderId={editingOrderId}
           dict={dict}
-          apiErrors={apiErrors}
           workers={workers}
           machines={machines}
           materials={materials}
