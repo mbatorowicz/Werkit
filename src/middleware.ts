@@ -4,7 +4,7 @@ import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
 
 // --- CONFIGURATION ---
-const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers'];
+const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers', '/api/categories'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
