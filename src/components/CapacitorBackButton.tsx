@@ -30,7 +30,7 @@ export function CapacitorBackButton() {
       if (!isRootPage) {
         router.back();
       } else {
-        App.exitApp();
+        App.minimizeApp();
       }
     }).then(handle => {
       listenerHandle = handle;
