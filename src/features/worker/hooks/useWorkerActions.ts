@@ -107,7 +107,6 @@ export function useWorkerActions({
       });
       if (res.ok) {
         sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)');
-        alert(dict.arrivedSuccess);
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)');
@@ -139,7 +138,6 @@ export function useWorkerActions({
       });
       if (res.ok) {
         sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę');
-        alert(isEditing ? dict.noteUpdated : dict.noteAdded);
         setIsNotesModalOpen(false);
         setNoteText("");
         setEditingNoteId(null);
@@ -183,7 +181,6 @@ export function useWorkerActions({
         });
         if (res.ok) {
           sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie');
-          alert(dict.photoSaved);
           await fetchSessionAndPath(false, false);
         } else {
           sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)');
