@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { resources } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {

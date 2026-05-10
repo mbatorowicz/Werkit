@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { resources, resourceCategories } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 

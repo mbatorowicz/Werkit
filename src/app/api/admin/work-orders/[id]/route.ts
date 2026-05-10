@@ -49,8 +49,9 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
         priority: priority || 'NORMAL',
         dueDate: dueDate ? new Date(dueDate) : null,
       });
-    } catch (e: any) {
-      if (e.message === 'not_found' || e.message === 'not_pending') {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '';
+      if (msg === 'not_found' || msg === 'not_pending') {
         return NextResponse.json({ error: 'Order not found or is no longer pending' }, { status: 404 });
       }
       throw e;

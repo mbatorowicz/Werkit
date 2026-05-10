@@ -1,6 +1,7 @@
 export type Session = {
   id: number;
   startTime: string;
+  endTime?: string;
   categoryId: number;
   categoryName: string | null;
   status: string;
