@@ -7,25 +7,26 @@ import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
 import GanttChart from "@/components/GanttChart/GanttChart";
-import OrderFormModal, { OrderFormState } from "@/components/Admin/Modals/OrderFormModal";
+import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
+import { UnifiedGanttItem, OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer } from "@/types/admin";
 
 export default function OrdersClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [workers, setWorkers] = useState<Array<{ id: number, fullName: string }>>([]);
-  const [machines, setMachines] = useState<Array<{ id: number, name: string }>>([]);
-  const [materials, setMaterials] = useState<Array<{ id: number, name: string }>>([]);
-  const [customers, setCustomers] = useState<Array<{ id: number, firstName: string, lastName: string }>>([]);
-  const [orders, setOrders] = useState<Array<Record<string, any>>>([]);
-  const [sessions, setSessions] = useState<Array<Record<string, any>>>([]);
+  const [workers, setWorkers] = useState<BaseWorker[]>([]);
+  const [machines, setMachines] = useState<BaseMachine[]>([]);
+  const [materials, setMaterials] = useState<BaseMaterial[]>([]);
+  const [customers, setCustomers] = useState<BaseCustomer[]>([]);
+  const [orders, setOrders] = useState<UnifiedGanttItem[]>([]);
+  const [sessions, setSessions] = useState<UnifiedGanttItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [tableLimit, setTableLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsData, setSettingsData] = useState<unknown>(null);
-  const [selectedItem, setSelectedItem] = useState<Record<string, any> | null>(null);
+  const [selectedItem, setSelectedItem] = useState<UnifiedGanttItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
@@ -102,19 +103,19 @@ export default function OrdersClient() {
     return new Date(d.getTime() - offset).toISOString().slice(0, 16);
   };
 
-  const handleEditClick = (item: Record<string, any>) => {
+  const handleEditClick = (item: UnifiedGanttItem) => {
     setEditingOrderId(item.workOrderId || item.id);
     setForm({
-      userId: item.userId?.toString() || '',
-      resourceId: item.resourceId?.toString() || '',
+      userId: String(item.userId || ''),
+      resourceId: String(item.resourceId || ''),
       sessionType: item.sessionType || 'TRANSPORT',
-      materialId: item.materialId?.toString() || '',
-      customerId: item.customerId?.toString() || '',
+      materialId: String(item.materialId || ''),
+      customerId: String(item.customerId || ''),
       taskDescription: item.taskDescription || '',
-      quantityTons: item.quantityTons?.toString() || '',
+      quantityTons: String(item.quantityTons || ''),
       priority: item.priority || 'NORMAL',
-      expectedDurationHours: item.expectedDurationHours?.toString() || '',
-      dueDate: formatToLocalDatetime(item.dueDate),
+      expectedDurationHours: String(item.expectedDurationHours || ''),
+      dueDate: formatToLocalDatetime(item.dueDate as string | null),
       forceSave: false
     });
     setSelectedItem(null);
@@ -166,27 +167,28 @@ export default function OrdersClient() {
     setIsSubmitting(false);
   };
 
-  const unifiedItems = [
+  const unifiedItems: UnifiedGanttItem[] = [
     ...orders.map(o => ({
       ...o,
-      _type: 'ORDER',
-      _sortDate: new Date(o.createdAt).getTime(),
+      _type: 'ORDER' as const,
+      _sortDate: o.createdAt ? new Date(o.createdAt as string).getTime() : 0,
       _statusGroup: o.status === 'PENDING' ? 1 : 2
     })),
     ...sessions.map(s => ({
       ...s,
-      _type: 'SESSION',
-      _sortDate: new Date(s.startTime).getTime(),
+      _type: 'SESSION' as const,
+      _sortDate: s.startTime ? new Date(s.startTime as string).getTime() : 0,
       _statusGroup: s.status === 'IN_PROGRESS' ? 1 : 2
     }))
   ]
-    .filter((item: Record<string, any>) =>
-      (item.workerName?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-      (item.resourceName?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+    .filter((item) =>
+      ((item.workerName as string)?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+      ((item.resourceName as string)?.toLowerCase() || "").includes(searchQuery.toLowerCase())
     )
-    .sort((a: Record<string, any>, b: Record<string, any>) => {
-      if (a._statusGroup !== b._statusGroup) return a._statusGroup - b._statusGroup;
-      return b._sortDate - a._sortDate;
+    .sort((a, b) => {
+      const groupDiff = (a._statusGroup as number) - (b._statusGroup as number);
+      if (groupDiff !== 0) return groupDiff;
+      return (b._sortDate as number) - (a._sortDate as number);
     });
 
   return (
@@ -287,14 +289,14 @@ export default function OrdersClient() {
                     </div>
                   </td>
                 </tr>
-              ) : unifiedItems.slice(0, tableLimit).map((item: Record<string, any>) => {
+              ) : unifiedItems.slice(0, tableLimit).map((item) => {
                 const isWorking = item.status === 'IN_PROGRESS';
                 let progress = 0;
                 if (isWorking && item._sortDate) {
-                  const start = new Date(item._sortDate).getTime();
+                  const start = new Date(item._sortDate as number).getTime();
                   const now = Date.now();
                   const elapsedMs = now - start;
-                  const expectedMs = (item.expectedDurationHours || 8) * 60 * 60 * 1000;
+                  const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
                   progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
                 }
                 return (
@@ -311,7 +313,7 @@ export default function OrdersClient() {
                         <div className="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400 mr-1 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
                           #{item.workOrderId || item.id}
                         </div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName}</div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName as string}</div>
                         {item._type === 'ORDER' && item.priority === 'HIGH' && (
                           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 mt-1">
                             <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
@@ -333,10 +335,10 @@ export default function OrdersClient() {
                       </div>
                       <div className="text-xs text-zinc-500 mt-0.5">
                         {item._type === 'ORDER'
-                          ? `${new Date(item.createdAt).toLocaleDateString('pl-PL')} ${new Date(item.createdAt).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
-                          : `${new Date(item.startTime).toLocaleDateString('pl-PL')} ${new Date(item.startTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
+                          ? `${new Date(item.createdAt as string).toLocaleDateString('pl-PL')} ${new Date(item.createdAt as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
+                          : `${new Date(item.startTime as string).toLocaleDateString('pl-PL')} ${new Date(item.startTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
                         }
-                        {item.endTime && ` - ${new Date(item.endTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`}
+                        {item.endTime && ` - ${new Date(item.endTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`}
                       </div>
                       {item.creatorName && (
                         <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
@@ -345,7 +347,7 @@ export default function OrdersClient() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
-                      {item.resourceName || 'Brak'}
+                      {(item.resourceName as string) || 'Brak'}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-zinc-900 dark:text-zinc-200">
@@ -353,12 +355,12 @@ export default function OrdersClient() {
                       </div>
                       {item.sessionType === 'TRANSPORT' && (
                         <div className="text-xs text-zinc-500 mt-0.5">
-                          {item.materialName} {item.quantityTons ? `(${item.quantityTons}t)` : ''} → {item.customerLastName} {item.customerFirstName}
+                          {item.materialName as string} {item.quantityTons ? `(${item.quantityTons}t)` : ''} → {item.customerLastName as string} {item.customerFirstName as string}
                         </div>
                       )}
                       {item.sessionType !== 'TRANSPORT' && item.taskDescription && (
-                        <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={item.taskDescription}>
-                          {item.taskDescription}
+                        <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={item.taskDescription as string}>
+                          {item.taskDescription as string}
                         </div>
                       )}
                       <div className="flex flex-col gap-1.5 mt-2">
@@ -372,7 +374,7 @@ export default function OrdersClient() {
                             )}
                             {item.dueDate && (
                               <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                                Termin: {new Date(item.dueDate).toLocaleDateString('pl-PL')} {new Date(item.dueDate).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                                Termin: {new Date(item.dueDate as string).toLocaleDateString('pl-PL')} {new Date(item.dueDate as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             )}
                           </div>
@@ -382,14 +384,14 @@ export default function OrdersClient() {
                         {item.status === 'COMPLETED' && item.startTime && item.endTime && (
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              Start: {new Date(item.startTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                              Start: {new Date(item.startTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              Koniec: {new Date(item.endTime).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                              Koniec: {new Date(item.endTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-500/20 inline-block px-1.5 py-0.5 rounded">
                               Czas łączny: {(() => {
-                                const diff = new Date(item.endTime).getTime() - new Date(item.startTime).getTime();
+                                const diff = new Date(item.endTime as string).getTime() - new Date(item.startTime as string).getTime();
                                 const h = Math.floor(diff / (1000 * 60 * 60));
                                 const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
                                 return `${h}h ${m}m`;

@@ -11,7 +11,9 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
   loading: () => <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-lg flex items-center justify-center"><MapIcon className="w-8 h-8 text-zinc-400" /></div>
 });
 
-export default function SessionDetailsModal({ item, onClose, onEdit }: { item: Record<string, any>, onClose: () => void, onEdit?: (item: Record<string, any>) => void }) {
+import { UnifiedGanttItem } from "@/types/admin";
+
+export default function SessionDetailsModal({ item, onClose, onEdit }: { item: UnifiedGanttItem, onClose: () => void, onEdit?: (item: UnifiedGanttItem) => void }) {
   const [logs, setLogs] = useState<any[]>([]);
   const [photos, setPhotos] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
@@ -61,22 +63,22 @@ export default function SessionDetailsModal({ item, onClose, onEdit }: { item: R
                <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.equipment}</span> {item.sessionType === 'TRANSPORT' ? dict.transport : (item.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop)} {item.resourceName ? `- ${item.resourceName}` : ''}</p>
                
                {(item.materialName || item.quantityTons) && (
-                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.materialAndQuantity}</span> {item.materialName || ''} {item.quantityTons ? `(${item.quantityTons}${dict.tons})` : ''}</p>
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.materialAndQuantity}</span> {item.materialName as string || ''} {item.quantityTons ? `(${item.quantityTons as string}${dict.tons})` : ''}</p>
                )}
                
                {(item.customerFirstName || item.customerLastName) && (
-                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.customer}</span> {item.customerFirstName || ''} {item.customerLastName || ''}</p>
+                 <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.customer}</span> {item.customerFirstName as string || ''} {item.customerLastName as string || ''}</p>
                )}
 
                {item.taskDescription && (
-                 <p className="sm:col-span-2"><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.taskDescLabel}</span> {item.taskDescription}</p>
+                 <p className="sm:col-span-2"><span className="font-semibold text-zinc-900 dark:text-zinc-300">{dict.taskDescLabel}</span> {item.taskDescription as string}</p>
                )}
 
                {(item.startTime || item.dueDate) && (
                  <p className="sm:col-span-2 mt-2 pt-2 border-t border-zinc-200 dark:border-zinc-700 text-xs flex items-center gap-2">
                    <span className="font-semibold text-zinc-900 dark:text-zinc-300">{item.startTime ? dict.startedAt : dict.plannedFor}</span> 
                    <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
-                     {item.startTime ? new Date(item.startTime).toLocaleString('pl-PL') : new Date(item.dueDate).toLocaleString('pl-PL')}
+                     {item.startTime ? new Date(item.startTime as string).toLocaleString('pl-PL') : new Date(item.dueDate as string).toLocaleString('pl-PL')}
                    </span>
                  </p>
                )}

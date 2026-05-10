@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
 
+import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
+
 type GanttProps = {
-  workers: Array<{ id: number, fullName: string }>;
-  machines: Array<{ id: number, name: string }>;
-  unifiedItems: Array<any>;
-  onItemClick?: (item: Record<string, any>) => void;
+  workers: BaseWorker[];
+  machines: BaseMachine[];
+  unifiedItems: UnifiedGanttItem[];
+  onItemClick?: (item: UnifiedGanttItem) => void;
 };
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
@@ -213,7 +215,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                 const tStart = item.startTime ? new Date(item.startTime) : (item.dueDate ? new Date(item.dueDate) : null);
                 if (!tStart) return false;
                 // Item starts before end of day, and (ends after start of day or is just starting today)
-                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours || 2) * 3600000) : tStart));
+                const tEnd = item.endTime ? new Date(item.endTime as string) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate as string).getTime() + Number(item.expectedDurationHours || 2) * 3600000) : tStart));
                 return tStart <= dEnd && tEnd >= dStart;
               });
 
@@ -229,7 +231,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                   <div className="flex-1 relative h-10 my-1">
                     {rowItems.map(item => {
                       const plannedStart = item.dueDate ? new Date(item.dueDate) : null;
-                      const plannedDurationHours = parseFloat(item.expectedDurationHours || '2'); // fallback to 2h
+                      const plannedDurationHours = Number(item.expectedDurationHours || 2); // fallback to 2h
 
                       const actualStart = item.startTime ? new Date(item.startTime) : null;
                       const actualEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : null);
@@ -295,7 +297,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                 if (!matchesRow) return false;
                 const tStart = item.startTime ? new Date(item.startTime) : (item.dueDate ? new Date(item.dueDate) : null);
                 if (!tStart) return false;
-                const tEnd = item.endTime ? new Date(item.endTime) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate).getTime() + (item.expectedDurationHours || 2) * 3600000) : tStart));
+                const tEnd = item.endTime ? new Date(item.endTime as string) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate as string).getTime() + Number(item.expectedDurationHours || 2) * 3600000) : tStart));
                 return tStart <= dEnd && tEnd >= dStart;
               });
             }) && (
