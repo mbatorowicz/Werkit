@@ -38,6 +38,7 @@ export const en: AppDictionary = {
     not_in_progress: "This session is no longer in progress.",
   },
   login: {
+    submit: "Sign in",
     biometricLogin: "Sign in with fingerprint or face",
     biometricDivider: "or continue with password",
   },

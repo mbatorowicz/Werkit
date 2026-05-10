@@ -36,6 +36,7 @@ export const pl = {
     not_in_progress: "Ta sesja nie jest już w stanie „w toku”.",
   },
   login: {
+    submit: "Zaloguj",
     biometricLogin: "Zaloguj odciskiem lub twarzą",
     biometricDivider: "lub kontynuuj klasycznie",
   },
