@@ -18,6 +18,8 @@ export const en: AppDictionary = {
     invalid_credentials: "Invalid login credentials.",
     account_blocked: "Account has been blocked.",
     server_error: "Internal Server Error.",
+    service_unavailable:
+      "The server cannot reach the database right now. Try again shortly or contact your administrator.",
     session_active: "Session is already active.",
     invalid_id: "Invalid identifier.",
     not_found: "Resource not found.",

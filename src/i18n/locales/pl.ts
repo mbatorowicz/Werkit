@@ -16,6 +16,8 @@ export const pl = {
     invalid_credentials: "Nieprawidłowe dane logowania.",
     account_blocked: "Konto zostało zablokowane.",
     server_error: "Wewnętrzny Błąd Serwera.",
+    service_unavailable:
+      "Serwer nie może połączyć się z bazą danych (usługa chwilowo niedostępna). Spróbuj ponownie za chwilę lub skontaktuj się z administratorem.",
     session_active: "Sesja jest już aktywna.",
     invalid_id: "Nieprawidłowy identyfikator.",
     not_found: "Nie znaleziono zasobu.",

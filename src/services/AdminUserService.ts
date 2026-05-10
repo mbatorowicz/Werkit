@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 export class AdminUserService {
@@ -21,7 +21,12 @@ export class AdminUserService {
   }
 
   static async getUserByUsername(usernameEmail: string) {
-    const userDb = await db.select().from(users).where(eq(users.usernameEmail, usernameEmail)).limit(1);
+    const normalized = usernameEmail.trim().toLowerCase();
+    const userDb = await db
+      .select()
+      .from(users)
+      .where(sql`lower(${users.usernameEmail}) = ${normalized}`)
+      .limit(1);
     return userDb[0] || null;
   }
 
