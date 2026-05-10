@@ -18,7 +18,8 @@ export type UnifiedGanttItem = {
   quantityTons?: number | string | null;
   taskDescription?: string | null;
   priority?: string | null;
-  sessionType?: string | null;
+  categoryId?: number | null;
+  categoryName?: string | null;
   customerId?: number | null;
   materialId?: number | null;
   createdAt?: string | Date | null;
@@ -30,7 +31,7 @@ export type UnifiedGanttItem = {
 export interface OrderFormState {
   userId: string;
   resourceId: string;
-  sessionType: string;
+  categoryId: string;
   materialId: string;
   customerId: string;
   taskDescription: string;
@@ -49,6 +50,7 @@ export type BaseWorker = {
 export type BaseMachine = {
   id: number;
   name: string;
+  categoryIds?: number[]; // IDs of classifiers
 };
 
 export type BaseMaterial = {
@@ -60,4 +62,14 @@ export type BaseCustomer = {
   id: number;
   firstName: string | null;
   lastName: string;
+};
+
+export type BaseCategory = {
+  id: number;
+  name: string;
+  reqCustomer: boolean;
+  reqMaterial: boolean;
+  reqQuantity: boolean;
+  reqTaskDescription: boolean;
+  isGlobal: boolean;
 };

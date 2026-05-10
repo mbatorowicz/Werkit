@@ -28,9 +28,9 @@ export async function POST(request: Request) {
     if (verified.payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await request.json();
-    const { userId, resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, forceSave } = body;
+    const { userId, resourceId, categoryId, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, forceSave } = body;
 
-    if (!userId || !resourceId || !sessionType) {
+    if (!userId || !resourceId || !categoryId) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
     await AdminOrderService.createOrder({
       userId: parseInt(userId),
       resourceId: parseInt(resourceId),
-      sessionType,
+      categoryId: parseInt(categoryId),
+      sessionType: 'MIGRATED', // Keep for now until deleted
       materialId: materialId ? parseInt(materialId) : null,
       customerId: customerId ? parseInt(customerId) : null,
       taskDescription: taskDescription || null,

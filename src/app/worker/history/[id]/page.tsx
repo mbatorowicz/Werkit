@@ -70,24 +70,21 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 mb-6 shadow-sm">
-        <div className="font-semibold text-xl text-zinc-900 dark:text-white mb-2">
-           {sessionData.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : sessionData.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
-        </div>
+        <div className="text-xl font-bold text-amber-500 mt-2">{sessionData.categoryName || 'Brak Kategorii'}</div>
         <div className="flex flex-col gap-2 text-sm text-zinc-600 dark:text-zinc-400">
            <p className="flex items-center gap-2">
              <Clock className="w-4 h-4 text-zinc-400" />
              <span>{sessionData.startTime.toLocaleString('pl-PL')} - {sessionData.endTime?.toLocaleString('pl-PL')}</span>
            </p>
-           {sessionData.sessionType === 'TRANSPORT' ? (
-             <p className="flex items-center gap-2">
-               <MapPin className="w-4 h-4 text-zinc-400" />
-               <span>Cel: {sessionData.customerFirstName} {sessionData.customerLastName} ({sessionData.customerAddress || 'Brak adresu'})</span>
-             </p>
-           ) : (
-             <p className="bg-zinc-50 dark:bg-zinc-800 p-3 rounded text-zinc-700 dark:text-zinc-300">
-               {sessionData.taskDescription || 'Brak szczegółowego opisu zadań.'}
-             </p>
-           )}
+           {sessionData.materialName && (
+            <div className="flex justify-between items-center py-2 border-t border-zinc-200 dark:border-zinc-700">
+              <span className="text-zinc-500 text-sm">Materiał:</span>
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{sessionData.materialName}</span>
+            </div>
+          )}
+           <p className="bg-zinc-50 dark:bg-zinc-800 p-3 rounded text-zinc-700 dark:text-zinc-300">
+             {sessionData.taskDescription || 'Brak szczegółowego opisu zadań.'}
+           </p>
         </div>
       </div>
 

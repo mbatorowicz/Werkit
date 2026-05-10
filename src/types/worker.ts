@@ -1,7 +1,8 @@
 export type Session = {
   id: number;
   startTime: string;
-  sessionType: string;
+  categoryId: number;
+  categoryName: string | null;
   status: string;
   customerAddress?: string | null;
   customerLat?: string | null;
@@ -18,7 +19,8 @@ export type Session = {
 
 export type WorkOrder = {
   id: number;
-  sessionType: string;
+  categoryId: number;
+  categoryName: string | null;
   taskDescription: string | null;
   resourceName: string | null;
   materialName: string | null;

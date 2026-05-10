@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs, resourceCategories } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export class WorkerSessionService {
@@ -15,10 +15,13 @@ export class WorkerSessionService {
       customerFirstName: customers.firstName,
       customerLastName: customers.lastName,
       resourceName: resources.name,
+      categoryId: workSessions.categoryId,
+      categoryName: resourceCategories.name,
       materialName: materials.name
     }).from(workSessions)
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .leftJoin(resources, eq(workSessions.resourceId, resources.id))
+    .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     
@@ -48,6 +51,8 @@ export class WorkerSessionService {
          customerFirstName: data.customerFirstName, 
          customerLastName: data.customerLastName, 
          resourceName: data.resourceName, 
+         categoryId: data.categoryId,
+         categoryName: data.categoryName,
          materialName: data.materialName 
        }, 
        events: photos,
@@ -62,9 +67,10 @@ export class WorkerSessionService {
    */
   static async createWizardSession(userId: number, payload: {
     resourceId: number;
-    sessionType: string;
+    categoryId: number;
     materialId?: number | null;
     customerId?: number | null;
+    quantityTons?: string | null;
     taskDescription?: string | null;
   }) {
     // Sprawdzenie czy już trwa sesja
@@ -78,9 +84,11 @@ export class WorkerSessionService {
     const newSession = await db.insert(workSessions).values({
       userId,
       resourceId: payload.resourceId,
-      sessionType: payload.sessionType,
+      categoryId: payload.categoryId,
+      sessionType: 'MIGRATED', // Keep for backward compatibility
       materialId: payload.materialId || null,
       customerId: payload.customerId || null,
+      quantityTons: payload.quantityTons || null,
       taskDescription: payload.taskDescription || null,
       status: 'IN_PROGRESS',
     }).returning();
@@ -158,7 +166,7 @@ export class WorkerSessionService {
         eq(workOrders.userId, userId),
         eq(workOrders.status, 'COMPLETED'),
         eq(workOrders.resourceId, session.resourceId),
-        eq(workOrders.sessionType, session.sessionType)
+        eq(workOrders.categoryId, session.categoryId!)
       ))
       .orderBy(desc(workOrders.id))
       .limit(1);
@@ -175,7 +183,8 @@ export class WorkerSessionService {
   static async getCompletedSessions(userId: number, limitCount: number = 20) {
     return await db.select({
       id: workSessions.id,
-      sessionType: workSessions.sessionType,
+      categoryId: workSessions.categoryId,
+      categoryName: resourceCategories.name,
       startTime: workSessions.startTime,
       endTime: workSessions.endTime,
       taskDescription: workSessions.taskDescription,
@@ -184,6 +193,7 @@ export class WorkerSessionService {
       customerLastName: customers.lastName
     })
     .from(workSessions)
+    .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
@@ -197,7 +207,8 @@ export class WorkerSessionService {
   static async getSessionHistoryFull(sessionId: number, userId: number) {
     const [sessionData] = await db.select({
       id: workSessions.id,
-      sessionType: workSessions.sessionType,
+      categoryId: workSessions.categoryId,
+      categoryName: resourceCategories.name,
       startTime: workSessions.startTime,
       endTime: workSessions.endTime,
       taskDescription: workSessions.taskDescription,
@@ -210,6 +221,7 @@ export class WorkerSessionService {
       customerLng: customers.longitude,
     })
     .from(workSessions)
+    .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.id, sessionId), eq(workSessions.userId, userId)));

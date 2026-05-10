@@ -18,14 +18,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, categoryId } = body;
+    const { name, categoryIds } = body;
 
-    if(!name || !categoryId) {
+    if(!name || !categoryIds || !Array.isArray(categoryIds)) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.addResource(name, parseInt(categoryId));
+    await DictionaryService.addResource(name, categoryIds.map((c: string | number) => parseInt(c as string)));
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

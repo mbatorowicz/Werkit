@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { resourceCategories, customers, materials, resources, companySettings } from '@/db/schema';
+import { resourceCategories, customers, materials, resources, companySettings, resourceToCategories } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export class DictionaryService {
@@ -16,15 +16,17 @@ export class DictionaryService {
   }
 
   static async getResources() {
-    return await db.select({
-      id: resources.id,
-      name: resources.name,
-      categoryId: resources.categoryId,
-      categoryName: resourceCategories.name
-    })
-    .from(resources)
-    .leftJoin(resourceCategories, eq(resources.categoryId, resourceCategories.id))
-    .orderBy(desc(resources.id));
+    const allResources = await db.select().from(resources).orderBy(desc(resources.id));
+    const links = await db.select().from(resourceToCategories);
+    
+    return allResources.map(r => {
+      const cats = links.filter(l => l.resourceId === r.id).map(l => l.categoryId);
+      return {
+        id: r.id,
+        name: r.name,
+        categoryIds: cats
+      };
+    });
   }
 
   static async getSettings() {
@@ -43,8 +45,8 @@ export class DictionaryService {
   }
 
   // --- KATEGORIE ZASOBÓW ---
-  static async addCategory(name: string, icon: string) {
-    await db.insert(resourceCategories).values({ name, icon });
+  static async addCategory(data: Partial<typeof resourceCategories.$inferInsert>) {
+    await db.insert(resourceCategories).values(data as typeof resourceCategories.$inferInsert);
   }
   static async updateCategory(id: number, data: Partial<typeof resourceCategories.$inferInsert>) {
     await db.update(resourceCategories).set(data).where(eq(resourceCategories.id, id));
@@ -65,11 +67,26 @@ export class DictionaryService {
   }
 
   // --- ZASOBY (MASZYNY) ---
-  static async addResource(name: string, categoryId: number) {
-    await db.insert(resources).values({ name, categoryId });
+  static async addResource(name: string, categoryIds: number[]) {
+    const res = await db.insert(resources).values({ name }).returning();
+    if (categoryIds && categoryIds.length > 0) {
+      await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
+        resourceId: res[0].id,
+        categoryId: cid
+      })));
+    }
   }
-  static async updateResource(id: number, data: Partial<typeof resources.$inferInsert>) {
-    await db.update(resources).set(data).where(eq(resources.id, id));
+  static async updateResource(id: number, data: Partial<typeof resources.$inferInsert>, categoryIds?: number[]) {
+    await db.update(resources).set({ name: data.name }).where(eq(resources.id, id));
+    if (categoryIds !== undefined) {
+      await db.delete(resourceToCategories).where(eq(resourceToCategories.resourceId, id));
+      if (categoryIds.length > 0) {
+        await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
+          resourceId: id,
+          categoryId: cid
+        })));
+      }
+    }
   }
   static async deleteResource(id: number) {
     await db.delete(resources).where(eq(resources.id, id));

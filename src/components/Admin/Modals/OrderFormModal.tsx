@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 
-import { OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer } from "@/types/admin";
+import { OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer, BaseCategory } from "@/types/admin";
 
 export default function OrderFormModal({
   isOpen,
@@ -14,6 +14,7 @@ export default function OrderFormModal({
   machines,
   materials,
   customers,
+  categories,
   initialForm
 }: {
   isOpen: boolean;
@@ -26,12 +27,21 @@ export default function OrderFormModal({
   machines: BaseMachine[];
   materials: BaseMaterial[];
   customers: BaseCustomer[];
+  categories: BaseCategory[];
   initialForm: OrderFormState;
 }) {
   const [form, setForm] = useState<OrderFormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
+
+  const selectedCategory = categories.find(c => String(c.id) === form.categoryId);
+
+  const availableMachines = machines.filter(m => {
+    if (!selectedCategory) return true;
+    if (selectedCategory.isGlobal) return true;
+    return m.categoryIds?.includes(selectedCategory.id);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,10 +69,9 @@ export default function OrderFormModal({
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.jobType}</label>
-            <select required value={form.sessionType} onChange={e => setForm({ ...form, sessionType: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-              <option value="TRANSPORT">{dict.transportType}</option>
-              <option value="MACHINE_OP">{dict.machineType}</option>
-              <option value="WORKSHOP">{dict.workshopType}</option>
+            <select required value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value, resourceId: '' })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+              <option value="" disabled>Wybierz typ zadania...</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
@@ -70,34 +79,36 @@ export default function OrderFormModal({
             <label className="text-sm font-medium text-zinc-400">{dict.chooseMachine}</label>
             <select required value={form.resourceId} onChange={e => setForm({ ...form, resourceId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
               <option value="" disabled>{dict.chooseMachine}...</option>
-              {machines.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              {availableMachines.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
 
-          {form.sessionType === 'TRANSPORT' && (
-            <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">{dict.chooseMaterial}</label>
-                <select required value={form.materialId} onChange={e => setForm({ ...form, materialId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-                  <option value="" disabled>{dict.chooseMaterial}...</option>
-                  {materials.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">{dict.chooseCustomer}</label>
-                <select required value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-                  <option value="" disabled>{dict.chooseCustomer}...</option>
-                  {customers.map((c) => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">Ilość kruszywa (tony)</label>
-                <input type="number" step="0.01" placeholder="np. 20.5" value={form.quantityTons} onChange={e => setForm({ ...form, quantityTons: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
-              </div>
-            </>
+          {selectedCategory?.reqMaterial && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.chooseMaterial}</label>
+              <select required value={form.materialId} onChange={e => setForm({ ...form, materialId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                <option value="" disabled>{dict.chooseMaterial}...</option>
+                {materials.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </div>
+          )}
+          {selectedCategory?.reqCustomer && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.chooseCustomer}</label>
+              <select required value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
+                <option value="" disabled>{dict.chooseCustomer}...</option>
+                {customers.map((c) => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
+              </select>
+            </div>
+          )}
+          {selectedCategory?.reqQuantity && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">Ilość kruszywa (tony)</label>
+              <input required type="number" step="0.01" placeholder="np. 20.5" value={form.quantityTons} onChange={e => setForm({ ...form, quantityTons: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+            </div>
           )}
 
-          {form.sessionType !== 'TRANSPORT' && (
+          {(!selectedCategory || selectedCategory?.reqTaskDescription) && (
             <div className="space-y-2">
               <label className="text-sm font-medium text-zinc-400">{dict.taskDesc}</label>
               <textarea required placeholder={dict.taskDescPlaceholder} value={form.taskDescription} onChange={e => setForm({ ...form, taskDescription: e.target.value })} className="w-full h-24 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none resize-none"></textarea>

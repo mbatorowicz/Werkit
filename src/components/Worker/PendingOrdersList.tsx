@@ -77,8 +77,7 @@ export default function PendingOrdersList({
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex items-center gap-2">
                     <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">#{order.id}</span>
-                    <span className="text-amber-700/50 dark:text-amber-500/50">|</span>
-                    <span>{order.sessionType === 'TRANSPORT' ? dict.transport : order.sessionType === 'MACHINE_OP' ? dict.machineOp : dict.workshop}</span>
+                    <div className={`font-bold text-lg ${order.priority === 'URGENT' ? 'text-red-400' : order.priority === 'HIGH' ? 'text-orange-400' : 'text-amber-400'}`}>{order.categoryName || 'Brak Kategorii'}</div>
                   </span>
                   {order.priority === 'HIGH' && (
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
@@ -102,12 +101,13 @@ export default function PendingOrdersList({
                 <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
                   {dict.machine} <span className="font-semibold">{order.resourceName}</span>
                 </span>
-                {order.sessionType === 'TRANSPORT' && (
-                  <span className="text-xs text-amber-700 dark:text-amber-600/80">
-                    {dict.aggregate} <span className="font-semibold">{order.materialName}</span> → {order.customerName}
-                  </span>
+                {(order.materialName || order.customerName) && (
+                  <>
+                    {order.materialName && <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName} {order.quantityTons ? `(${order.quantityTons}t)` : ''}</div>}
+                    {order.customerName && <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>}
+                  </>
                 )}
-                {order.sessionType !== 'TRANSPORT' && order.taskDescription && (
+                {order.taskDescription && (
                   <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
                     {dict.task} {order.taskDescription}
                   </span>

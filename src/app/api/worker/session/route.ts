@@ -21,17 +21,18 @@ export async function POST(request: Request) {
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { resourceId, sessionType, materialId, customerId, taskDescription } = body;
+    const { resourceId, categoryId, materialId, customerId, taskDescription, quantityTons } = body;
 
-    if (!resourceId || !sessionType) {
+    if (!resourceId || !categoryId) {
        return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
     const newSession = await WorkerSessionService.createWizardSession(userId, {
       resourceId: parseInt(resourceId),
-      sessionType,
+      categoryId: parseInt(categoryId),
       materialId: materialId ? parseInt(materialId) : null,
       customerId: customerId ? parseInt(customerId) : null,
+      quantityTons: quantityTons || null,
       taskDescription
     });
 

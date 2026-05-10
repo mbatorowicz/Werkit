@@ -15,9 +15,9 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     const params = await props.params;
     const orderId = parseInt(params.id);
     const body = await request.json();
-    const { resourceId, sessionType, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, userId: assignedUserId, forceSave } = body;
+    const { resourceId, categoryId, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, userId: assignedUserId, forceSave } = body;
 
-    if (!assignedUserId || !resourceId || !sessionType) {
+    if (!assignedUserId || !resourceId || !categoryId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -40,7 +40,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
       await AdminOrderService.updateOrder(orderId, {
         userId: parseInt(assignedUserId),
         resourceId: parseInt(resourceId),
-        sessionType,
+        categoryId: parseInt(categoryId),
         materialId: materialId ? parseInt(materialId) : null,
         customerId: customerId ? parseInt(customerId) : null,
         taskDescription: taskDescription || null,

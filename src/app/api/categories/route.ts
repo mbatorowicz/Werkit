@@ -18,14 +18,22 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, icon } = body;
+    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal } = body;
 
     if(!name) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.addCategory(name.trim(), icon || 'Truck');
+    await DictionaryService.addCategory({
+      name: name.trim(),
+      icon: icon || 'Truck',
+      reqCustomer: !!reqCustomer,
+      reqMaterial: !!reqMaterial,
+      reqQuantity: !!reqQuantity,
+      reqTaskDescription: reqTaskDescription !== undefined ? !!reqTaskDescription : true,
+      isGlobal: !!isGlobal,
+    });
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: 'category_exists' }, { status: 500 });

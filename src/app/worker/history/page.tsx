@@ -49,7 +49,7 @@ export default async function HistoryPage() {
                    </span>
                  </div>
                  <div className="font-semibold text-zinc-900 dark:text-white mb-1 group-hover:text-emerald-500 transition-colors">
-                    {s.sessionType === 'TRANSPORT' ? 'Transport Kruszyw' : s.sessionType === 'MACHINE_OP' ? 'Praca Sprzętem' : 'Warsztat'}
+                      <div className="font-semibold text-zinc-900 dark:text-zinc-100">{s.categoryName || 'Brak Kategorii'}</div>
                  </div>
                  <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-3">
                     <span>{s.startTime.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})} - {s.endTime?.toLocaleTimeString('pl-PL', {hour:'2-digit', minute:'2-digit'})}</span>
@@ -59,18 +59,19 @@ export default async function HistoryPage() {
                       </span>
                     )}
                  </div>
-                 {s.sessionType === 'TRANSPORT' ? (
-                   <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-700 dark:text-zinc-300">
-                        {s.materialName || 'Brak kruszywa'} {s.quantityTons ? `(${s.quantityTons}t)` : ''}
-                      </span>
-                      <span className="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded text-zinc-700 dark:text-zinc-300">
-                        Klient: {s.customerLastName || 'Brak'}
-                      </span>
-                   </div>
-                 ) : (
-                   <div className="text-sm text-zinc-500 dark:text-zinc-400 bg-[#f2fbfa] dark:bg-zinc-900 p-3 rounded-lg border border-zinc-800">
-                     {s.taskDescription || 'Brak opisu prac'}
+                  {s.materialName && (
+                    <div className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                      Materiał: <span className="font-medium text-zinc-900 dark:text-zinc-200">{s.materialName}</span> {s.quantityTons && `(${s.quantityTons}t)`}
+                    </div>
+                  )}
+                  {s.customerLastName && (
+                    <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Klient: <span className="font-medium text-zinc-900 dark:text-zinc-200">{s.customerLastName}</span>
+                    </div>
+                  )}
+                 {s.taskDescription && (
+                   <div className="mt-3 text-sm text-zinc-500 dark:text-zinc-400 bg-[#f2fbfa] dark:bg-zinc-950 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                     {s.taskDescription}
                    </div>
                  )}
               </Link>

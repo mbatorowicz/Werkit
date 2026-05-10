@@ -10,7 +10,14 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const body = await request.json();
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.updateCategory(id, { name: body.name.trim(), icon: body.icon || 'Truck' });
+    const updateData: any = { name: body.name.trim(), icon: body.icon || 'Truck' };
+    if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
+    if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
+    if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
+    if (body.reqTaskDescription !== undefined) updateData.reqTaskDescription = !!body.reqTaskDescription;
+    if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
+    
+    await DictionaryService.updateCategory(id, updateData);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     return NextResponse.json({ error: 'category_in_use' }, { status: 500 });

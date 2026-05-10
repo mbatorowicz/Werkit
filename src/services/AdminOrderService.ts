@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { workOrders, workSessions, users, resources, materials, customers } from '@/db/schema';
 import { eq, desc, ne, aliasedTable } from 'drizzle-orm';
+import { resourceCategories } from '@/db/schema';
 
 export class AdminOrderService {
   /**
@@ -12,7 +13,8 @@ export class AdminOrderService {
     return db.select({
       id: workOrders.id,
       status: workOrders.status,
-      sessionType: workOrders.sessionType,
+      categoryId: workOrders.categoryId,
+      categoryName: resourceCategories.name,
       taskDescription: workOrders.taskDescription,
       createdAt: workOrders.createdAt,
       workerName: users.fullName,
@@ -33,6 +35,7 @@ export class AdminOrderService {
     .from(workOrders)
     .leftJoin(users, eq(workOrders.userId, users.id))
     .leftJoin(creator, eq(workOrders.createdById, creator.id))
+    .leftJoin(resourceCategories, eq(workOrders.categoryId, resourceCategories.id))
     .leftJoin(resources, eq(workOrders.resourceId, resources.id))
     .leftJoin(materials, eq(workOrders.materialId, materials.id))
     .leftJoin(customers, eq(workOrders.customerId, customers.id))
@@ -48,7 +51,8 @@ export class AdminOrderService {
        id: workSessions.id,
        workOrderId: workSessions.workOrderId,
        status: workSessions.status,
-       sessionType: workSessions.sessionType,
+       categoryId: workSessions.categoryId,
+       categoryName: resourceCategories.name,
        taskDescription: workSessions.taskDescription,
        startTime: workSessions.startTime,
        endTime: workSessions.endTime,
@@ -67,6 +71,7 @@ export class AdminOrderService {
      })
      .from(workSessions)
      .leftJoin(users, eq(workSessions.userId, users.id))
+     .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
      .leftJoin(resources, eq(workSessions.resourceId, resources.id))
      .leftJoin(materials, eq(workSessions.materialId, materials.id))
      .leftJoin(customers, eq(workSessions.customerId, customers.id))

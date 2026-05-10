@@ -17,12 +17,22 @@ export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   icon: varchar('icon', { length: 50 }).default('Truck'),
+  reqCustomer: boolean('req_customer').notNull().default(false),
+  reqMaterial: boolean('req_material').notNull().default(false),
+  reqQuantity: boolean('req_quantity').notNull().default(false),
+  reqTaskDescription: boolean('req_task_description').notNull().default(true),
+  isGlobal: boolean('is_global').notNull().default(false),
+});
+
+export const resourceToCategories = pgTable('resource_to_categories', {
+  resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'cascade' }),
+  categoryId: integer('category_id').notNull().references(() => resourceCategories.id, { onDelete: 'cascade' }),
 });
 
 export const resources = pgTable('resources', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }),
+  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // TODO: remove after migration
 });
 
 export const materials = pgTable('materials', {
@@ -45,7 +55,8 @@ export const workSessions = pgTable('work_sessions', {
   workOrderId: integer('work_order_id').references(() => workOrders.id, { onDelete: 'set null' }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
-  sessionType: varchar('session_type', { length: 50 }).notNull(), // TRANSPORT, MACHINE_OP, WORKSHOP
+  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
+  sessionType: varchar('session_type', { length: 50 }).notNull(), // TODO: remove after migration
   status: varchar('status', { length: 50 }).notNull().default('IN_PROGRESS'),
   startTime: timestamp('start_time').notNull().defaultNow(),
   endTime: timestamp('end_time'),
@@ -108,7 +119,8 @@ export const workOrders = pgTable('work_orders', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
-  sessionType: varchar('session_type', { length: 50 }).notNull(),
+  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
+  sessionType: varchar('session_type', { length: 50 }).notNull(), // TODO: remove after migration
   materialId: integer('material_id').references(() => materials.id, { onDelete: 'set null' }),
   customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   taskDescription: text('task_description'),

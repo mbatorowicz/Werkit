@@ -40,7 +40,9 @@ export default async function WorkerPage() {
     createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
     expectedDurationHours: o.expectedDurationHours ? parseFloat(o.expectedDurationHours as string) : null,
     quantityTons: o.quantityTons ? parseFloat(o.quantityTons as string) : null,
-    customerName: [o.customerName].filter(Boolean).join(' ') || null
+    customerName: [o.customerName].filter(Boolean).join(' ') || null,
+    categoryId: Number(o.categoryId),
+    categoryName: o.categoryName as string || null
   }));
 
   const initialData: InitialWorkerData = {

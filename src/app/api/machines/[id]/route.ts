@@ -9,13 +9,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const id = parseInt(params.id);
     const body = await request.json();
     
-    if(!body.name || !body.categoryId) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    if(!body.name || !body.categoryIds || !Array.isArray(body.categoryIds)) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
     const { DictionaryService } = await import('@/services/DictionaryService');
     await DictionaryService.updateResource(id, { 
-       name: body.name, 
-       categoryId: parseInt(body.categoryId) 
-    });
+       name: body.name 
+    }, body.categoryIds.map((c: string | number) => parseInt(c as string)));
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

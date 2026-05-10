@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { workOrders, resources, materials, customers, users, workSessions } from '@/db/schema';
 import { eq, and, aliasedTable, asc } from 'drizzle-orm';
+import { resourceCategories } from '@/db/schema';
 
 export class WorkerOrderService {
   /**
@@ -11,7 +12,8 @@ export class WorkerOrderService {
     
     return db.select({
       id: workOrders.id,
-      sessionType: workOrders.sessionType,
+      categoryId: workOrders.categoryId,
+      categoryName: resourceCategories.name,
       taskDescription: workOrders.taskDescription,
       resourceName: resources.name,
       materialName: materials.name,
@@ -31,6 +33,7 @@ export class WorkerOrderService {
     .leftJoin(materials, eq(workOrders.materialId, materials.id))
     .leftJoin(customers, eq(workOrders.customerId, customers.id))
     .leftJoin(creator, eq(workOrders.createdById, creator.id))
+    .leftJoin(resourceCategories, eq(workOrders.categoryId, resourceCategories.id))
     .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
     .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
   }
@@ -44,7 +47,8 @@ export class WorkerOrderService {
     const [newSession] = await db.insert(workSessions).values({
       workOrderId: order.id,
       userId: userId,
-      sessionType: order.sessionType,
+      categoryId: order.categoryId!,
+      sessionType: 'MIGRATED',
       resourceId: order.resourceId,
       materialId: order.materialId,
       customerId: order.customerId,

@@ -8,7 +8,7 @@ import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
 import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
-import { UnifiedGanttItem, OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer } from "@/types/admin";
+import { UnifiedGanttItem, OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer, BaseCategory } from "@/types/admin";
 
 export default function OrdersClient() {
   const searchParams = useSearchParams();
@@ -18,6 +18,7 @@ export default function OrdersClient() {
   const [machines, setMachines] = useState<BaseMachine[]>([]);
   const [materials, setMaterials] = useState<BaseMaterial[]>([]);
   const [customers, setCustomers] = useState<BaseCustomer[]>([]);
+  const [categories, setCategories] = useState<BaseCategory[]>([]);
   const [orders, setOrders] = useState<UnifiedGanttItem[]>([]);
   const [sessions, setSessions] = useState<UnifiedGanttItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,7 +36,7 @@ export default function OrdersClient() {
   const [form, setForm] = useState({
     userId: '',
     resourceId: '',
-    sessionType: 'TRANSPORT',
+    categoryId: '',
     materialId: '',
     customerId: '',
     taskDescription: '',
@@ -49,11 +50,12 @@ export default function OrdersClient() {
   const fetchData = async (showLoader = true) => {
     if (showLoader) setIsLoading(true);
     try {
-      const [wor, mac, mat, cus, ords, arch] = await Promise.all([
+      const [wor, mac, mat, cus, cats, ords, arch] = await Promise.all([
         fetch("/api/workers", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/materials", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/customers", { cache: "no-store" }).then(r => r.json()),
+        fetch("/api/categories", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/admin/work-orders", { cache: "no-store" }).then(r => r.json()),
         fetch("/api/admin/archive", { cache: "no-store" }).then(r => r.json())
       ]);
@@ -61,6 +63,7 @@ export default function OrdersClient() {
       setMachines(Array.isArray(mac) ? mac : []);
       setMaterials(Array.isArray(mat) ? mat : []);
       setCustomers(Array.isArray(cus) ? cus : []);
+      setCategories(Array.isArray(cats) ? cats : []);
       setOrders(Array.isArray(ords) ? ords : []);
       setSessions(Array.isArray(arch) ? arch : []);
     } catch (err) {
@@ -108,7 +111,7 @@ export default function OrdersClient() {
     setForm({
       userId: String(item.userId || ''),
       resourceId: String(item.resourceId || ''),
-      sessionType: item.sessionType || 'TRANSPORT',
+      categoryId: String(item.categoryId || ''),
       materialId: String(item.materialId || ''),
       customerId: String(item.customerId || ''),
       taskDescription: item.taskDescription || '',
@@ -147,7 +150,7 @@ export default function OrdersClient() {
         setForm({
           userId: '',
           resourceId: '',
-          sessionType: 'TRANSPORT',
+          categoryId: '',
           materialId: '',
           customerId: '',
           taskDescription: '',
@@ -351,14 +354,14 @@ export default function OrdersClient() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-zinc-900 dark:text-zinc-200">
-                        {item.sessionType === 'TRANSPORT' ? getDictionary().admin.archive.transport : (item.sessionType === 'MACHINE_OP' ? getDictionary().admin.archive.machineOp : getDictionary().admin.archive.workshop)}
+                        {item.categoryName || 'Brak Kategorii'}
                       </div>
-                      {item.sessionType === 'TRANSPORT' && (
+                      {item.materialName && (
                         <div className="text-xs text-zinc-500 mt-0.5">
-                          {item.materialName as string} {item.quantityTons ? `(${item.quantityTons}t)` : ''} → {item.customerLastName as string} {item.customerFirstName as string}
+                          {item.materialName as string} {item.quantityTons ? `(${item.quantityTons}t)` : ''} {item.customerLastName ? `→ ${item.customerLastName}` : ''} {item.customerFirstName ? (item.customerFirstName as string) : ''}
                         </div>
                       )}
-                      {item.sessionType !== 'TRANSPORT' && item.taskDescription && (
+                      {item.taskDescription && (
                         <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={item.taskDescription as string}>
                           {item.taskDescription as string}
                         </div>
@@ -465,6 +468,7 @@ export default function OrdersClient() {
           machines={machines}
           materials={materials}
           customers={customers}
+          categories={categories}
           initialForm={form}
         />
       )}
