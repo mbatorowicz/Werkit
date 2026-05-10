@@ -67,6 +67,10 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         fetch("/api/worker/session", { cache: "no-store" }),
         fetch("/api/worker/work-orders", { cache: "no-store" })
       ]);
+      
+      if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
+      if (!resOrders.ok) throw new Error(`Orders fetch failed: ${resOrders.status}`);
+
       const sessData = await resSess.json();
       const ordersData = await resOrders.json();
       setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -134,6 +138,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         fetchSessionAndPath(false, false);
+        GPSManager.flushQueue();
       }
     };
     

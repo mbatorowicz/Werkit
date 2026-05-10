@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders } from '@/db/schema';
+import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export class WorkerSessionService {
@@ -167,5 +167,61 @@ export class WorkerSessionService {
       await db.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, order.id));
     }
     await db.delete(workSessions).where(eq(workSessions.id, session.id));
+  }
+
+  /**
+   * Pobiera historię zakończonych sesji dla pracownika.
+   */
+  static async getCompletedSessions(userId: number, limitCount: number = 20) {
+    return await db.select({
+      id: workSessions.id,
+      sessionType: workSessions.sessionType,
+      startTime: workSessions.startTime,
+      endTime: workSessions.endTime,
+      taskDescription: workSessions.taskDescription,
+      quantityTons: workSessions.quantityTons,
+      materialName: materials.name,
+      customerLastName: customers.lastName
+    })
+    .from(workSessions)
+    .leftJoin(materials, eq(workSessions.materialId, materials.id))
+    .leftJoin(customers, eq(workSessions.customerId, customers.id))
+    .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
+    .orderBy(desc(workSessions.endTime))
+    .limit(limitCount);
+  }
+
+  /**
+   * Pobiera pełne szczegóły historycznej sesji (z logami GPS i zdarzeniami) dla widoku historii.
+   */
+  static async getSessionHistoryFull(sessionId: number, userId: number) {
+    const [sessionData] = await db.select({
+      id: workSessions.id,
+      sessionType: workSessions.sessionType,
+      startTime: workSessions.startTime,
+      endTime: workSessions.endTime,
+      taskDescription: workSessions.taskDescription,
+      quantityTons: workSessions.quantityTons,
+      materialName: materials.name,
+      customerFirstName: customers.firstName,
+      customerLastName: customers.lastName,
+      customerAddress: customers.defaultAddress,
+      customerLat: customers.latitude,
+      customerLng: customers.longitude,
+    })
+    .from(workSessions)
+    .leftJoin(materials, eq(workSessions.materialId, materials.id))
+    .leftJoin(customers, eq(workSessions.customerId, customers.id))
+    .where(and(eq(workSessions.id, sessionId), eq(workSessions.userId, userId)));
+
+    if (!sessionData) return null;
+
+    const [logs, notes, photos] = await Promise.all([
+      db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, sessionId)).orderBy(gpsLogs.timestamp),
+      db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, sessionId)),
+      db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId))
+    ]);
+
+    return { sessionData, logs, notes, photos };
   }
 }

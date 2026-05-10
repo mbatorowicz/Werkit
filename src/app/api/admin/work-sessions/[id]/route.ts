@@ -14,11 +14,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const sessionId = parseInt((await context.params).id);
     if (isNaN(sessionId)) return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
 
-    const [logs, photos, notes] = await Promise.all([
-      db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, sessionId)).orderBy(desc(gpsLogs.timestamp)),
-      db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId)).orderBy(desc(sessionPhotos.createdAt)),
-      db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, sessionId)).orderBy(desc(sessionNotes.createdAt))
-    ]);
+    const { AdminSessionService } = await import('@/services/AdminSessionService');
+    const { logs, photos, notes } = await AdminSessionService.getSessionDetails(sessionId);
 
     return NextResponse.json({ logs, photos, notes });
   } catch (err: unknown) {

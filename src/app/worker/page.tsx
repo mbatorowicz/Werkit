@@ -26,27 +26,13 @@ export default async function WorkerPage() {
     return <WorkerClient initialData={null} />;
   }
 
-  // Fetch session
-  const activeSessions = await db.select({
-    session: workSessions,
-    customerAddress: customers.defaultAddress,
-    customerLat: customers.latitude,
-    customerLng: customers.longitude
-  }).from(workSessions)
-  .leftJoin(customers, eq(workSessions.customerId, customers.id))
-  .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-
-  // Fetch settings
-  const settingsRows = await db.select().from(companySettings).limit(1);
-  const settings = settingsRows[0] || null;
-
-  // Fetch user
-  const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  const userData = userRows[0] ? { canCreateOwnOrders: userRows[0].canCreateOwnOrders, notificationsEnabled: userRows[0].notificationsEnabled } : null;
-
-  // Fetch work orders using Service
   const { WorkerOrderService } = await import('@/services/WorkerOrderService');
-  const ordersRaw = await WorkerOrderService.getPendingOrders(userId);
+  const { WorkerSessionService } = await import('@/services/WorkerSessionService');
+
+  const [ordersRaw, sessionDetails] = await Promise.all([
+    WorkerOrderService.getPendingOrders(userId),
+    WorkerSessionService.getActiveSessionWithDetails(userId)
+  ]);
 
   const orders = ordersRaw.map(o => ({
     ...o,
@@ -58,32 +44,17 @@ export default async function WorkerPage() {
   }));
 
   const initialData: InitialWorkerData = {
-    settings,
-    user: userData,
+    settings: sessionDetails.settings,
+    user: sessionDetails.user,
     workOrders: orders,
-    session: null,
-    events: [],
-    notes: []
+    session: sessionDetails.session ? {
+      ...sessionDetails.session,
+      startTime: sessionDetails.session.startTime.toISOString(),
+      endTime: sessionDetails.session.endTime ? sessionDetails.session.endTime.toISOString() : undefined,
+    } as unknown as import("@/types/worker").Session : null,
+    events: sessionDetails.events as any,
+    notes: sessionDetails.notes as any
   };
-
-  if (activeSessions.length > 0) {
-    const data = activeSessions[0];
-    initialData.session = { 
-      ...data.session, 
-      startTime: data.session.startTime.toISOString(), 
-      endTime: data.session.endTime ? data.session.endTime.toISOString() : undefined,
-      customerAddress: data.customerAddress, 
-      customerLat: data.customerLat, 
-      customerLng: data.customerLng, 
-      customerFirstName: null, 
-      customerLastName: null, 
-      resourceName: null, 
-      materialName: null, 
-      quantityTons: null 
-    } as unknown as import("@/types/worker").Session;
-    initialData.events = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
-    initialData.notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
-  }
 
   return <WorkerClient initialData={initialData} />;
 }

@@ -31,34 +31,16 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
   const sessionId = parseInt(resolvedParams.id);
   if (isNaN(sessionId)) notFound();
 
-  const [sessionData] = await db.select({
-    id: workSessions.id,
-    sessionType: workSessions.sessionType,
-    startTime: workSessions.startTime,
-    endTime: workSessions.endTime,
-    taskDescription: workSessions.taskDescription,
-    quantityTons: workSessions.quantityTons,
-    materialName: materials.name,
-    customerFirstName: customers.firstName,
-    customerLastName: customers.lastName,
-    customerAddress: customers.defaultAddress,
-    customerLat: customers.latitude,
-    customerLng: customers.longitude,
-  })
-  .from(workSessions)
-  .leftJoin(materials, eq(workSessions.materialId, materials.id))
-  .leftJoin(customers, eq(workSessions.customerId, customers.id))
-  .where(and(eq(workSessions.id, sessionId), eq(workSessions.userId, userId)));
+  const { WorkerSessionService } = await import('@/services/WorkerSessionService');
+  const historyData = await WorkerSessionService.getSessionHistoryFull(sessionId, userId);
 
-  if (!sessionData) {
+  if (!historyData) {
     notFound();
   }
 
-  const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, sessionId)).orderBy(gpsLogs.timestamp);
+  const { sessionData, logs, notes, photos } = historyData;
+
   const pathTraveled = logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }));
-  
-  const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, sessionId));
-  const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId));
 
   const events: TimelineItem[] = [];
   notes.forEach(n => {

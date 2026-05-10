@@ -24,22 +24,8 @@ export default async function HistoryPage() {
   const userId = await getUserId();
   if (!userId) return <div>Brak dostępu</div>;
 
-  const sessions = await db.select({
-    id: workSessions.id,
-    sessionType: workSessions.sessionType,
-    startTime: workSessions.startTime,
-    endTime: workSessions.endTime,
-    taskDescription: workSessions.taskDescription,
-    quantityTons: workSessions.quantityTons,
-    materialName: materials.name,
-    customerLastName: customers.lastName
-  })
-  .from(workSessions)
-  .leftJoin(materials, eq(workSessions.materialId, materials.id))
-  .leftJoin(customers, eq(workSessions.customerId, customers.id))
-  .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
-  .orderBy(desc(workSessions.endTime))
-  .limit(20);
+  const { WorkerSessionService } = await import('@/services/WorkerSessionService');
+  const sessions = await WorkerSessionService.getCompletedSessions(userId);
 
   return (
     <div className="py-6 pb-20">
