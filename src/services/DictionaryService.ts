@@ -112,6 +112,11 @@ export class DictionaryService {
     await db.delete(resourceCategories).where(eq(resourceCategories.id, id));
   }
 
+  static async getResourceCategoryById(id: number) {
+    const rows = await db.select().from(resourceCategories).where(eq(resourceCategories.id, id)).limit(1);
+    return rows[0] ?? null;
+  }
+
   // --- KLIENCI ---
   static async addCustomer(firstName: string | null, lastName: string, defaultAddress?: string | null, latitude?: string | null, longitude?: string | null) {
     await db.insert(customers).values({ firstName, lastName, defaultAddress, latitude, longitude });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Trash2, Shield, Plus, X, Lock, Edit2, Loader2, Users, Eye } from "lucide-react";
+import { Trash2, Shield, Plus, X, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
@@ -22,6 +22,7 @@ export default function UsersClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editId, setEditId] = useState<number | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({
     fullName: "",
     usernameEmail: "",
@@ -74,6 +75,7 @@ export default function UsersClient() {
 
   const openEdit = (u: UserRow) => {
     setEditId(u.id);
+    setShowPassword(false);
     setForm({
       fullName: u.fullName,
       usernameEmail: u.usernameEmail,
@@ -86,6 +88,7 @@ export default function UsersClient() {
 
   const openNewModal = () => {
     setEditId(null);
+    setShowPassword(false);
     setForm({ fullName: "", usernameEmail: "", password: "", role: "worker", canCreateOwnOrders: true });
     setIsModalOpen(true);
   };
@@ -274,15 +277,24 @@ export default function UsersClient() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">{editId ? dict.passwordLabelEdit : dict.passwordLabelNew}</label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-zinc-600 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
                     <input
                       required={!editId}
-                      type="text"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
                       placeholder={editId ? dict.passwordPlaceholderEdit : dict.passwordPlaceholderNew}
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 pl-10 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+                      className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] py-2.5 pl-10 pr-11 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-200/80 hover:text-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-zinc-200"
+                      aria-label={showPassword ? dict.passwordHide : dict.passwordShow}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
               </div>

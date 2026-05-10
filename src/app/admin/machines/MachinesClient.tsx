@@ -1,13 +1,51 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import type { ChangeEvent } from "react";
 import Image from "next/image";
-import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers } from "lucide-react";
+import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, Camera } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
 type Machine = { id: number, name: string, categoryIds: number[], imageUrl?: string | null };
+
+async function compressVehiclePhotoToDataUrl(file: File): Promise<string | null> {
+  if (!file.type.startsWith("image/")) return null;
+  const img = document.createElement("img");
+  const blobUrl = URL.createObjectURL(file);
+  img.src = blobUrl;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("load"));
+    });
+    const canvas = document.createElement("canvas");
+    const maxDim = 960;
+    let w = img.naturalWidth;
+    let h = img.naturalHeight;
+    if (w <= 0 || h <= 0) return null;
+    if (w > h && w > maxDim) {
+      h = Math.round((h * maxDim) / w);
+      w = maxDim;
+    } else if (h > maxDim) {
+      w = Math.round((w * maxDim) / h);
+      h = maxDim;
+    }
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0, w, h);
+    const webp = canvas.toDataURL("image/webp", 0.82);
+    if (webp.startsWith("data:image/webp")) return webp;
+    return canvas.toDataURL("image/jpeg", 0.82);
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
 
 export default function MachinesClient() {
   const { canMutate } = useAdminAbility();
@@ -94,12 +132,24 @@ export default function MachinesClient() {
      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
   };
 
+  const handleMachPhotoPick = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const dataUrl = await compressVehiclePhotoToDataUrl(file);
+    if (!dataUrl) {
+      alert(dict.apiError);
+      return;
+    }
+    setMForm((prev) => ({ ...prev, imageUrl: dataUrl }));
+  };
+
   return (
     <>
       {/* SEKCJA KATEGORII SŁOWNIKOWYCH */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
+          <h2 className="flex items-center gap-2 pt-2 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
         {canMutate && (
@@ -231,33 +281,33 @@ export default function MachinesClient() {
                  </div>
                  
                  <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                    <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Parametry Zlecenia dla tej Klasy</h3>
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catParamsTitle}</h3>
                     <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">Wymaga podania klienta</label>
-                       <input type="checkbox" checked={cForm.reqCustomer} onChange={e => setCForm({...cForm, reqCustomer: e.target.checked})} className="w-4 h-4 rounded text-amber-500" />
+                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqCustomer}</label>
+                       <input type="checkbox" checked={cForm.reqCustomer} onChange={e => setCForm({...cForm, reqCustomer: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
                     </div>
                     <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">Wymaga podania materiału/kruszywa</label>
-                       <input type="checkbox" checked={cForm.reqMaterial} onChange={e => setCForm({...cForm, reqMaterial: e.target.checked})} className="w-4 h-4 rounded text-amber-500" />
+                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqMaterial}</label>
+                       <input type="checkbox" checked={cForm.reqMaterial} onChange={e => setCForm({...cForm, reqMaterial: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
                     </div>
                     <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">Wymaga podania ilości w tonach</label>
-                       <input type="checkbox" checked={cForm.reqQuantity} onChange={e => setCForm({...cForm, reqQuantity: e.target.checked})} className="w-4 h-4 rounded text-amber-500" />
+                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqQuantity}</label>
+                       <input type="checkbox" checked={cForm.reqQuantity} onChange={e => setCForm({...cForm, reqQuantity: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
                     </div>
                     <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">Wymaga opisu zadania</label>
-                       <input type="checkbox" checked={cForm.reqTaskDescription} onChange={e => setCForm({...cForm, reqTaskDescription: e.target.checked})} className="w-4 h-4 rounded text-amber-500" />
+                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqTaskDescription}</label>
+                       <input type="checkbox" checked={cForm.reqTaskDescription} onChange={e => setCForm({...cForm, reqTaskDescription: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
                     </div>
                     <div className="flex items-center justify-between pt-2">
-                       <div className="flex flex-col">
-                         <label className="text-sm text-zinc-700 dark:text-zinc-300 font-bold">Dotyczy wszystkich maszyn (Globalny)</label>
-                         <span className="text-[10px] text-zinc-500">Np. dla Warsztatu - pokaże wszystkie maszyny na liście.</span>
+                       <div className="flex flex-col gap-0.5">
+                         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isGlobalLabel}</label>
+                         <span className="text-[10px] text-zinc-500 dark:text-zinc-400">{dict.isGlobalDesc}</span>
                        </div>
-                       <input type="checkbox" checked={cForm.isGlobal} onChange={e => setCForm({...cForm, isGlobal: e.target.checked})} className="w-4 h-4 rounded text-amber-500" />
+                       <input type="checkbox" checked={cForm.isGlobal} onChange={e => setCForm({...cForm, isGlobal: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
                     </div>
                  </div>
 
-                 <button type="submit" className="w-full bg-zinc-100 text-zinc-50 dark:text-zinc-950 font-semibold py-2.5 rounded-lg hover:bg-zinc-300 transition mt-4">{dict.saveDict}</button>
+                 <button type="submit" className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 dark:bg-emerald-600">{dict.saveDict}</button>
               </form>
            </div>
         </div>
@@ -277,8 +327,39 @@ export default function MachinesClient() {
                    <label className="text-sm font-medium text-zinc-400">{dict.machIdLabel}</label>
                    <input required type="text" placeholder={dict.machIdPlaceholder} value={mForm.name} onChange={e => setMForm({...mForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  </div>
+                 <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
+                   <div>
+                     <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
+                     <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{dict.machPhotoHint}</p>
+                   </div>
+                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                     <div className="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 sm:h-36 sm:w-36">
+                       {mForm.imageUrl ? (
+                         <Image src={mForm.imageUrl} alt={dict.machPhotoLabel} width={144} height={144} unoptimized className="h-full w-full object-cover" />
+                       ) : (
+                         <Camera className="h-10 w-10 text-zinc-400" aria-hidden />
+                       )}
+                     </div>
+                     <div className="flex flex-1 flex-col gap-2">
+                       <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
+                         <Camera className="h-4 w-4 text-emerald-600" />
+                         {dict.machPhotoChoose}
+                         <input type="file" accept="image/*" className="hidden" onChange={handleMachPhotoPick} />
+                       </label>
+                       {mForm.imageUrl ? (
+                         <button
+                           type="button"
+                           onClick={() => setMForm((prev) => ({ ...prev, imageUrl: null }))}
+                           className="text-sm font-medium text-red-600 hover:underline dark:text-red-400"
+                         >
+                           {dict.machPhotoRemove}
+                         </button>
+                       ) : null}
+                     </div>
+                   </div>
+                 </div>
                  <div className="space-y-2">
-                   <label className="text-sm font-medium text-amber-500/80">{dict.machCatLabel} (Wybierz jedną lub więcej)</label>
+                   <label className="text-sm font-medium text-amber-500/80">{dict.machCatLabel} ({dict.machCatSelectMany})</label>
                    <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
                      {categories.map(c => (
                        <label key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
@@ -293,7 +374,7 @@ export default function MachinesClient() {
                    {categories.length === 0 && <p className="text-xs text-red-400">{dict.machCatWarning}</p>}
                  </div>
                  <div className="pt-4 border-t border-zinc-800">
-                    <button disabled={categories.length === 0} type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
+                    <button disabled={categories.length === 0} type="submit" className="w-full rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50">
                        {dict.saveFleet}
                     </button>
                  </div>

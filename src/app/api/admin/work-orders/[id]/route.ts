@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
 import { checkScheduleConflict } from '@/lib/schedule';
+import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { AdminOrderService } from '@/services/AdminOrderService';
 
@@ -15,20 +16,41 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const params = await props.params;
-    const orderId = parseInt(params.id);
+    const orderId = parseInt(params.id, 10);
+    if (Number.isNaN(orderId)) {
+      return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+    }
     const body = await request.json();
     const { resourceId, categoryId, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, userId: assignedUserId, forceSave } = body;
 
-    if (!assignedUserId || !resourceId || !categoryId) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    const uidNum = parseInt(String(assignedUserId), 10);
+    const resIdNum = parseInt(String(resourceId), 10);
+    const catIdNum = parseInt(String(categoryId), 10);
+
+    if (!assignedUserId || !resourceId || !categoryId || Number.isNaN(uidNum) || Number.isNaN(resIdNum) || Number.isNaN(catIdNum)) {
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
+
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const categoryRow = await DictionaryService.getResourceCategoryById(catIdNum);
+    const catCheck = validateWorkOrderFieldsAgainstCategory(categoryRow, {
+      customerId,
+      materialId,
+      quantityTons,
+      taskDescription,
+    });
+    if (catCheck !== 'ok') {
+      return NextResponse.json({ error: catCheck }, { status: 400 });
+    }
+
+    const prio = coerceWorkOrderPriority(priority);
 
     if (!forceSave) {
       const conflict = await checkScheduleConflict(
-        parseInt(assignedUserId),
-        parseInt(resourceId),
+        uidNum,
+        resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours ? parseFloat(expectedDurationHours) : null,
+        expectedDurationHours ? parseFloat(String(expectedDurationHours)) : null,
         orderId
       );
       if (conflict) {
@@ -38,21 +60,21 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
 
     try {
       await AdminOrderService.updateOrder(orderId, {
-        userId: parseInt(assignedUserId),
-        resourceId: parseInt(resourceId),
-        categoryId: parseInt(categoryId),
-        materialId: materialId ? parseInt(materialId) : null,
-        customerId: customerId ? parseInt(customerId) : null,
+        userId: uidNum,
+        resourceId: resIdNum,
+        categoryId: catIdNum,
+        materialId: materialId ? parseInt(String(materialId), 10) : null,
+        customerId: customerId ? parseInt(String(customerId), 10) : null,
         taskDescription: taskDescription || null,
-        quantityTons: quantityTons ? parseFloat(quantityTons).toString() : null,
-        expectedDurationHours: expectedDurationHours ? parseFloat(expectedDurationHours).toString() : null,
-        priority: priority || 'NORMAL',
+        quantityTons: quantityTons ? parseFloat(String(quantityTons)).toString() : null,
+        expectedDurationHours: expectedDurationHours ? parseFloat(String(expectedDurationHours)).toString() : null,
+        priority: prio,
         dueDate: dueDate ? new Date(dueDate) : null,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       if (msg === 'not_found' || msg === 'not_pending') {
-        return NextResponse.json({ error: 'Order not found or is no longer pending' }, { status: 404 });
+        return NextResponse.json({ error: msg === 'not_pending' ? 'not_pending' : 'not_found' }, { status: 404 });
       }
       throw e;
     }
@@ -60,7 +82,7 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error(err);
-    return NextResponse.json({ error: 'Failed to update work order' }, { status: 500 });
+    return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }
 

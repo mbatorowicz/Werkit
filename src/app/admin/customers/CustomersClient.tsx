@@ -181,11 +181,12 @@ export default function CustomersClient() {
                    <input type="text" placeholder={dict.addressPlaceholder} value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                  </div>
                  <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">Dokładna lokalizacja (kliknij na mapie by przypiąć cel)</label>
-                   <CustomerMapPicker 
-                     lat={form.latitude} 
-                     lng={form.longitude} 
-                     onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })} 
+                   <label className="text-sm font-medium text-zinc-400">{dict.gpsOnMapLabel}</label>
+                   <CustomerMapPicker
+                     lat={form.latitude}
+                     lng={form.longitude}
+                     address={form.defaultAddress}
+                     onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
                    />
                    {(form.latitude && form.longitude) && (
                      <div className="text-[10px] text-emerald-500">Zapisano pinezkę: {parseFloat(form.latitude).toFixed(5)}, {parseFloat(form.longitude).toFixed(5)}</div>

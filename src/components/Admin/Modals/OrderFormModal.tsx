@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
 import { X, Trash2 } from "lucide-react";
 
-import { OrderFormState, BaseWorker, BaseMachine, BaseMaterial, BaseCustomer, BaseCategory } from "@/types/admin";
+import {
+  OrderFormState,
+  BaseWorker,
+  BaseMachine,
+  BaseMaterial,
+  BaseCustomer,
+  BaseCategory,
+} from "@/types/admin";
+
+const FIELD = "space-y-1.5";
+const LABEL =
+  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const CONTROL =
+  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
+const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 export default function OrderFormModal({
   isOpen,
@@ -41,117 +55,282 @@ export default function OrderFormModal({
 
   if (!isOpen) return null;
 
-  const selectedCategory = categories.find(c => String(c.id) === form.categoryId);
+  const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
 
-  const availableMachines = machines.filter(m => {
-    if (!selectedCategory) return true;
+  const availableMachines = machines.filter((m) => {
+    if (!selectedCategory) return false;
     if (selectedCategory.isGlobal) return true;
-    return m.categoryIds?.includes(selectedCategory.id);
+    return m.categoryIds?.includes(selectedCategory.id) ?? false;
   });
+
+  const noMachinesForCategory =
+    Boolean(selectedCategory) && availableMachines.length === 0;
+
+  const modalTitle =
+    editingOrderId != null
+      ? dict.modalEditOrderTitle.replace(/\{id\}/g, String(editingOrderId))
+      : dict.issueOrder;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedCategory || noMachinesForCategory) return;
     setIsSubmitting(true);
-    await onSave(form);
-    setIsSubmitting(false);
+    try {
+      await onSave(form);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const materialLabel = selectedCategory?.reqMaterial
+    ? dict.chooseMaterialRequired
+    : dict.chooseMaterial;
+  const customerLabel = selectedCategory?.reqCustomer
+    ? dict.chooseCustomerRequired
+    : dict.chooseCustomer;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-xl rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80 sticky top-0">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editingOrderId ? `Edytuj zlecenie #${editingOrderId}` : dict.issueOrder}</h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5" /></button>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900">
+        <div className="sticky top-0 flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/80">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{modalTitle}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-amber-500">{dict.chooseWorker}</label>
-            <select required value={form.userId} onChange={e => setForm({ ...form, userId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-              <option value="" disabled>{dict.chooseFromList}</option>
-              {workers.map((w) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
+
+        <form
+          onSubmit={handleSubmit}
+          className="custom-scrollbar flex-1 overflow-y-auto p-6 space-y-5"
+        >
+          {/* 1. Typ pracy */}
+          <div className={FIELD}>
+            <label className={LABEL}>{dict.jobType}</label>
+            <select
+              required
+              value={form.categoryId}
+              onChange={(e) =>
+                setForm({ ...form, categoryId: e.target.value, resourceId: "" })
+              }
+              className={CONTROL}
+            >
+              <option value="" disabled>
+                {dict.chooseJobTypePlaceholder}
+              </option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {!selectedCategory ? (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.pickCategoryFirstHint}</p>
+            ) : null}
+          </div>
+
+          {/* 2. Pracownik */}
+          <div className={FIELD}>
+            <label className={LABEL}>{dict.chooseWorker}</label>
+            <select
+              required
+              disabled={!selectedCategory}
+              value={form.userId}
+              onChange={(e) => setForm({ ...form, userId: e.target.value })}
+              className={`${CONTROL} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <option value="" disabled>
+                {dict.chooseFromList}
+              </option>
+              {workers.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.fullName}
+                </option>
+              ))}
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.jobType}</label>
-            <select required value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value, resourceId: '' })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-              <option value="" disabled>Wybierz typ zadania...</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {/* 3. Maszyna */}
+          <div className={FIELD}>
+            <label className={LABEL}>{dict.chooseMachine}</label>
+            <select
+              required={Boolean(selectedCategory) && !noMachinesForCategory}
+              disabled={!selectedCategory || noMachinesForCategory}
+              value={form.resourceId}
+              onChange={(e) => setForm({ ...form, resourceId: e.target.value })}
+              className={`${CONTROL} disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <option value="" disabled>
+                {dict.chooseMachinePlaceholder}
+              </option>
+              {availableMachines.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
             </select>
+            {noMachinesForCategory ? (
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                {dict.noMachinesForCategory}
+              </p>
+            ) : null}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.chooseMachine}</label>
-            <select required value={form.resourceId} onChange={e => setForm({ ...form, resourceId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-              <option value="" disabled>{dict.chooseMachine}...</option>
-              {availableMachines.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
-          </div>
-
-          {selectedCategory?.reqMaterial && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">{dict.chooseMaterial}</label>
-              <select required value={form.materialId} onChange={e => setForm({ ...form, materialId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-                <option value="" disabled>{dict.chooseMaterial}...</option>
-                {materials.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          {/* 4. Warunkowe: materiał, klient, ilość */}
+          {selectedCategory?.reqMaterial ? (
+            <div className={FIELD}>
+              <label className={LABEL}>{materialLabel}</label>
+              <select
+                required={selectedCategory.reqMaterial}
+                value={form.materialId}
+                onChange={(e) => setForm({ ...form, materialId: e.target.value })}
+                className={CONTROL}
+              >
+                <option value="" disabled>
+                  {materialLabel}
+                </option>
+                {materials.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
               </select>
             </div>
-          )}
-          {selectedCategory?.reqCustomer && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">{dict.chooseCustomer}</label>
-              <select required value={form.customerId} onChange={e => setForm({ ...form, customerId: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-                <option value="" disabled>{dict.chooseCustomer}...</option>
-                {customers.map((c) => <option key={c.id} value={c.id}>{c.lastName} {c.firstName}</option>)}
+          ) : null}
+
+          {selectedCategory?.reqCustomer ? (
+            <div className={FIELD}>
+              <label className={LABEL}>{customerLabel}</label>
+              <select
+                required={selectedCategory.reqCustomer}
+                value={form.customerId}
+                onChange={(e) => setForm({ ...form, customerId: e.target.value })}
+                className={CONTROL}
+              >
+                <option value="" disabled>
+                  {customerLabel}
+                </option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.lastName} {c.firstName}
+                  </option>
+                ))}
               </select>
             </div>
-          )}
-          {selectedCategory?.reqQuantity && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">Ilość kruszywa (tony)</label>
-              <input required type="number" step="0.01" placeholder="np. 20.5" value={form.quantityTons} onChange={e => setForm({ ...form, quantityTons: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
-            </div>
-          )}
+          ) : null}
 
-          {(!selectedCategory || selectedCategory?.reqTaskDescription) && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">{dict.taskDesc}</label>
-              <textarea required placeholder={dict.taskDescPlaceholder} value={form.taskDescription} onChange={e => setForm({ ...form, taskDescription: e.target.value })} className="w-full h-24 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none resize-none"></textarea>
+          {selectedCategory?.reqQuantity ? (
+            <div className={FIELD}>
+              <label className={LABEL}>{dict.quantityTonsLabel}</label>
+              <input
+                required
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder={dict.quantityTonsPlaceholder}
+                value={form.quantityTons}
+                onChange={(e) => setForm({ ...form, quantityTons: e.target.value })}
+                className={CONTROL}
+              />
             </div>
-          )}
+          ) : null}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">Przewidywany czas (godziny)</label>
-              <input type="number" step="0.5" placeholder="np. 4.5" value={form.expectedDurationHours} onChange={e => setForm({ ...form, expectedDurationHours: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+          {/* 5. Opis — tylko po wyborze kategorii */}
+          {selectedCategory ? (
+            <div className={FIELD}>
+              <label className={LABEL}>
+                {dict.taskDesc}
+                {!selectedCategory.reqTaskDescription ? (
+                  <span className="ml-1 font-normal normal-case text-zinc-400">
+                    {dict.optionalSuffix}
+                  </span>
+                ) : null}
+              </label>
+              <textarea
+                required={selectedCategory.reqTaskDescription}
+                placeholder={dict.taskDescPlaceholder}
+                value={form.taskDescription}
+                onChange={(e) => setForm({ ...form, taskDescription: e.target.value })}
+                className={TEXTAREA}
+              />
+              {!selectedCategory.reqTaskDescription ? (
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.taskOptionalHint}</p>
+              ) : null}
             </div>
+          ) : null}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">Termin wykonania (opcjonalnie)</label>
-              <input type="datetime-local" value={form.dueDate} onChange={e => setForm({ ...form, dueDate: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
+          {/* 6. Czas i termin */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className={FIELD}>
+              <label className={LABEL}>{dict.expectedDurationLabel}</label>
+              <input
+                type="number"
+                step="0.5"
+                min="0"
+                placeholder={dict.expectedDurationPlaceholder}
+                value={form.expectedDurationHours}
+                onChange={(e) =>
+                  setForm({ ...form, expectedDurationHours: e.target.value })
+                }
+                className={CONTROL}
+              />
+            </div>
+            <div className={FIELD}>
+              <label className={LABEL}>{dict.dueDateOptionalLabel}</label>
+              <input
+                type="datetime-local"
+                value={form.dueDate}
+                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                className={CONTROL}
+              />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">Priorytet</label>
-            <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value })} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none">
-              <option value="LOW">Niski</option>
-              <option value="NORMAL">Normalny</option>
-              <option value="HIGH">Ważny</option>
+          {/* 7. Priorytet */}
+          <div className={FIELD}>
+            <label className={LABEL}>{dict.priorityLabel}</label>
+            <select
+              value={form.priority}
+              onChange={(e) => setForm({ ...form, priority: e.target.value })}
+              className={CONTROL}
+            >
+              <option value="LOW">{dict.priorityLow}</option>
+              <option value="NORMAL">{dict.priorityNormal}</option>
+              <option value="HIGH">{dict.priorityHigh}</option>
+              <option value="URGENT">{dict.priorityUrgent}</option>
             </select>
           </div>
 
-          <div className="flex items-center gap-2 pt-2 bg-amber-50 dark:bg-amber-500/10 p-3 rounded-lg border border-amber-200 dark:border-amber-500/20">
-            <input type="checkbox" id="forceSave" checked={form.forceSave} onChange={e => setForm({ ...form, forceSave: e.target.checked })} className="w-4 h-4 text-amber-600 bg-white border-amber-300 rounded focus:ring-amber-500 focus:ring-2 dark:bg-zinc-800 dark:border-zinc-600 cursor-pointer" />
-            <label htmlFor="forceSave" className="text-sm font-medium text-amber-800 dark:text-amber-400 cursor-pointer select-none">Zignoruj konflikty harmonogramu (Wymuś zapis)</label>
+          {/* 8. Wymuś zapis */}
+          <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-3 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+            <input
+              type="checkbox"
+              id="forceSave"
+              checked={form.forceSave}
+              onChange={(e) => setForm({ ...form, forceSave: e.target.checked })}
+              className="mt-0.5 h-4 w-4 cursor-pointer rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-600 dark:bg-zinc-800"
+            />
+            <label
+              htmlFor="forceSave"
+              className="cursor-pointer select-none text-sm font-medium text-emerald-900 dark:text-emerald-300"
+            >
+              {dict.forceSaveScheduleLabel}
+            </label>
           </div>
 
-          <div className="pt-4 border-t border-zinc-800 space-y-3">
-            <button disabled={isSubmitting} type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-lg hover:bg-amber-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
+          <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            <button
+              disabled={isSubmitting || !selectedCategory || noMachinesForCategory}
+              type="submit"
+              className="w-full rounded-lg bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               {isSubmitting ? dict.saving : dict.save}
             </button>
-            {editingOrderId && onDeletePending && (
+            {editingOrderId && onDeletePending ? (
               <button
                 type="button"
                 disabled={isSubmitting}
@@ -165,12 +344,12 @@ export default function OrderFormModal({
                     setIsSubmitting(false);
                   }
                 }}
-                className="w-full flex items-center justify-center gap-2 bg-red-500/10 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-500/30 font-semibold py-3 rounded-lg hover:bg-red-500/15 transition active:scale-[0.98] disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-500/10 py-3 font-semibold text-red-700 transition hover:bg-red-500/15 active:scale-[0.98] disabled:opacity-50 dark:border-red-500/30 dark:text-red-400"
               >
-                <Trash2 className="w-4 h-4 shrink-0" />
+                <Trash2 className="h-4 w-4 shrink-0" />
                 {dict.deletePendingOrderLabel}
               </button>
-            )}
+            ) : null}
           </div>
         </form>
       </div>

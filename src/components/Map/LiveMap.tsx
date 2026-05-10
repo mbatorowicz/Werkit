@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
+import type { TimelineItem } from "@/types/worker";
 
 const iconStart = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
@@ -49,11 +50,94 @@ const iconNote = L.divIcon({
   iconAnchor: [14, 14],
 });
 
-function Recenter({ lat, lng }: { lat: number, lng: number }) {
+/** Podążanie za pojazdem, gdy nie ma jeszcze trasy ani celu na mapie. */
+function FollowPan({ lat, lng, active }: { lat: number; lng: number; active: boolean }) {
   const map = useMap();
   useEffect(() => {
-    map.setView([lat, lng]);
-  }, [lat, lng, map]);
+    if (!active) return;
+    map.panTo([lat, lng], { animate: true });
+  }, [lat, lng, map, active]);
+  return null;
+}
+
+/** Dopasowuje widok do trasy, śladu, celu i punktów na osi czasu (z lekkim opóźnieniem, żeby nie „skakało”). */
+function FitContentDebounced({
+  currentLocation,
+  pathTraveled,
+  destination,
+  routeToDest,
+  events,
+  enabled,
+}: {
+  currentLocation: { lat: number; lng: number };
+  pathTraveled: { lat: number; lng: number }[];
+  destination: { lat: number; lng: number } | null;
+  routeToDest: [number, number][];
+  events: TimelineItem[];
+  enabled: boolean;
+}) {
+  const map = useMap();
+  const snapshotRef = useRef({
+    currentLocation,
+    pathTraveled,
+    destination,
+    routeToDest,
+    events,
+  });
+
+  useEffect(() => {
+    snapshotRef.current = { currentLocation, pathTraveled, destination, routeToDest, events };
+  }, [currentLocation, pathTraveled, destination, routeToDest, events]);
+
+  const trigger = useMemo(
+    () =>
+      JSON.stringify({
+        dest: destination ? [destination.lat, destination.lng] : null,
+        plen: pathTraveled.length,
+        rlen: routeToDest.length,
+        elen: events.length,
+        lastPath:
+          pathTraveled.length > 0
+            ? [pathTraveled[pathTraveled.length - 1].lat, pathTraveled[pathTraveled.length - 1].lng]
+            : null,
+        routeTail: routeToDest.length > 0 ? routeToDest[routeToDest.length - 1] : null,
+      }),
+    [destination, pathTraveled, routeToDest, events.length],
+  );
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const id = window.setTimeout(() => {
+      const snap = snapshotRef.current;
+      const pts: L.LatLngTuple[] = [[snap.currentLocation.lat, snap.currentLocation.lng]];
+      snap.pathTraveled.forEach((p) => pts.push([p.lat, p.lng]));
+      if (snap.destination) pts.push([snap.destination.lat, snap.destination.lng]);
+      snap.routeToDest.forEach((c) => pts.push(c));
+      snap.events.forEach((e) => pts.push([e.lat, e.lng]));
+
+      if (pts.length === 0) return;
+
+      if (pts.length === 1) {
+        map.flyTo(pts[0], 16, { duration: 0.55 });
+        return;
+      }
+
+      try {
+        const b = L.latLngBounds(pts);
+        if (!b.isValid()) {
+          map.flyTo(pts[0], 16, { duration: 0.55 });
+          return;
+        }
+        map.fitBounds(b, { padding: [52, 52], maxZoom: 17, animate: true });
+      } catch {
+        map.flyTo([snap.currentLocation.lat, snap.currentLocation.lng], 15, { duration: 0.55 });
+      }
+    }, 900);
+
+    return () => window.clearTimeout(id);
+  }, [enabled, trigger, map]);
+
   return null;
 }
 
@@ -74,8 +158,6 @@ function MapRotator({ heading, isAutoRotate }: { heading?: number | null, isAuto
   return null;
 }
 
-import { TimelineItem } from "@/types/worker";
-
 interface LiveMapProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
   pathTraveled: { lat: number; lng: number }[];
@@ -87,8 +169,15 @@ interface LiveMapProps {
 
 export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [], onEventClick }: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
-  const [isAutoRotate, setIsAutoRotate] = useState(false);
+  const [isAutoRotate, setIsAutoRotate] = useState(true);
   const dict = getDictionary().admin.map;
+
+  const fitContentMode = Boolean(
+    destination ||
+      pathTraveled.length > 0 ||
+      events.length > 0 ||
+      routeToDest.length > 0,
+  );
 
   // OSRM Routing
   useEffect(() => {
@@ -185,7 +274,15 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
         <Marker position={[currentLocation.lat, currentLocation.lng]} icon={iconCurrent}>
            <Popup>{dict.currentLocation}</Popup>
         </Marker>
-        <Recenter lat={currentLocation.lat} lng={currentLocation.lng} />
+        <FitContentDebounced
+          enabled={fitContentMode}
+          currentLocation={currentLocation}
+          pathTraveled={pathTraveled}
+          destination={destination}
+          routeToDest={routeToDest}
+          events={events}
+        />
+        <FollowPan lat={currentLocation.lat} lng={currentLocation.lng} active={!fitContentMode} />
         <MapRotator heading={currentLocation.heading} isAutoRotate={isAutoRotate} />
       </MapContainer>
     </div>
