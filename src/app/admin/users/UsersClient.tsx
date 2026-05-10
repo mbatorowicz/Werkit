@@ -314,13 +314,9 @@ export default function UsersClient() {
                 </div>
               )}
 
-              {editId ? (
-                <div className="bg-amber-500/10 p-4 border border-amber-500/20 rounded-lg mt-4 text-xs text-amber-500 leading-relaxed font-medium">{dict.editWarning}</div>
-              ) : (
-                <div className="bg-zinc-100 dark:bg-zinc-950/50 p-4 border border-zinc-200 dark:border-zinc-700 rounded-lg mt-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                  {dict.createWarning}
-                </div>
-              )}
+              <p className="-mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {editId ? dict.passwordEditHint : dict.accountCreateHint}
+              </p>
 
               <div className="pt-4">
                 <button
