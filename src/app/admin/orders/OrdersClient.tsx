@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Map, Plus, Settings, RefreshCw } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { getDictionary } from "@/i18n";
@@ -21,6 +21,18 @@ import { buildUnifiedDispatchItems, formatDueDatetimeLocal } from "@/features/ad
 import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
+
+async function parseJsonArray(res: Response): Promise<unknown[]> {
+  if (!res.ok) return [];
+  const ct = res.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) return [];
+  try {
+    const data: unknown = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
 
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
@@ -63,39 +75,47 @@ export default function OrdersClient() {
   });
   const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
-  const fetchData = async (showLoader = true) => {
+  const handledOpenRef = useRef<string | null>(null);
+
+  const fetchData = useCallback(async (showLoader = true) => {
     if (showLoader) setIsLoading(true);
     try {
       const [wor, mac, mat, cus, cats, ords, arch] = await Promise.all([
-        fetch("/api/workers", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/machines", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/materials", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/customers", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/categories", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/admin/work-orders", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/admin/archive", { cache: "no-store" }).then((r) => r.json()),
+        fetch("/api/workers", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/machines", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/materials", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/customers", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/categories", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/admin/work-orders", { cache: "no-store" }).then(parseJsonArray),
+        fetch("/api/admin/archive", { cache: "no-store" }).then(parseJsonArray),
       ]);
-      setWorkers(Array.isArray(wor) ? wor : []);
-      setMachines(Array.isArray(mac) ? mac : []);
-      setMaterials(Array.isArray(mat) ? mat : []);
-      setCustomers(Array.isArray(cus) ? cus : []);
-      setCategories(Array.isArray(cats) ? cats : []);
-      setOrders(Array.isArray(ords) ? ords : []);
-      setSessions(Array.isArray(arch) ? arch : []);
-    } catch (err) {
-      console.error(err);
+      setWorkers(wor as BaseWorker[]);
+      setMachines(mac as BaseMachine[]);
+      setMaterials(mat as BaseMaterial[]);
+      setCustomers(cus as BaseCustomer[]);
+      setCategories(cats as BaseCategory[]);
+      setOrders(ords as UnifiedGanttItem[]);
+      setSessions(arch as UnifiedGanttItem[]);
+    } catch {
+      /* sieć / parsowanie — bez crasha UI */
     } finally {
       if (showLoader) setIsLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchData(true);
-    const interval = setInterval(() => fetchData(false), 10000);
-    return () => clearInterval(interval);
   }, []);
 
-  const handleEditClick = (item: UnifiedGanttItem) => {
+  useEffect(() => {
+    queueMicrotask(() => {
+      void fetchData(true);
+    });
+    const interval = setInterval(() => {
+      queueMicrotask(() => {
+        void fetchData(false);
+      });
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  const handleEditClick = useCallback((item: UnifiedGanttItem) => {
     if (!canMutate) return;
     setEditingOrderId(item.workOrderId || item.id);
     setForm({
@@ -113,24 +133,39 @@ export default function OrdersClient() {
     });
     setSelectedItem(null);
     setIsModalOpen(true);
-  };
+  }, [canMutate]);
 
   useEffect(() => {
-    const openIdStr = searchParams.get("open");
-    if (openIdStr && !isLoading && (orders.length > 0 || sessions.length > 0)) {
-      const openId = parseInt(openIdStr, 10);
-      const order = orders.find((o) => o.id === openId);
-      if (order) {
-        handleEditClick(order);
-      } else {
-        const session = sessions.find((s) => s.workOrderId === openId || s.id === openId);
-        if (session) {
-          setSelectedItem({ ...session, _type: "SESSION" });
-        }
-      }
-      router.replace(pathname, { scroll: false });
+    const openRaw = searchParams.get("open");
+    if (!openRaw) {
+      handledOpenRef.current = null;
+      return;
     }
-  }, [searchParams, orders, sessions, isLoading, router, pathname]);
+    if (isLoading) return;
+    if (orders.length === 0 && sessions.length === 0) return;
+
+    const key = `${pathname}:${openRaw}`;
+    if (handledOpenRef.current === key) return;
+    handledOpenRef.current = key;
+
+    const openId = Number.parseInt(openRaw, 10);
+    if (Number.isNaN(openId)) {
+      handledOpenRef.current = null;
+      router.replace(pathname, { scroll: false });
+      return;
+    }
+
+    const order = orders.find((o) => o.id === openId);
+    if (order) {
+      queueMicrotask(() => handleEditClick(order));
+    } else {
+      const session = sessions.find((s) => s.workOrderId === openId || s.id === openId);
+      if (session) {
+        queueMicrotask(() => setSelectedItem({ ...session, _type: "SESSION" }));
+      }
+    }
+    router.replace(pathname, { scroll: false });
+  }, [searchParams, orders, sessions, isLoading, router, pathname, handleEditClick]);
 
   const readAdminError = async (res: Response): Promise<string | undefined> => {
     const data = (await res.json().catch(() => ({}))) as { error?: string };

@@ -1,5 +1,4 @@
-import { Map, Users, Package, Activity, LogOut, FileClock, Wrench, HardHat, Settings, User as UserIcon } from "lucide-react";
-import Link from "next/link";
+import { User as UserIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileAdminNav } from "@/components/Admin/MobileAdminNav";
 import { AdminSidebarNav } from "@/components/Admin/AdminSidebarNav";

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { CheckCircle2, Map, Trash2 } from "lucide-react";
 import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
@@ -39,6 +40,15 @@ export function OrdersDispatchTable({
   onDeleteArchivedSession: (sessionId: number) => Promise<void>;
 }) {
   const dict = ordersDict;
+  /** Clock poza renderem — unika Date.now() podczas czystego renderu (React Compiler). */
+  const [liveClockMs, setLiveClockMs] = useState<number | null>(null);
+
+  useEffect(() => {
+    const tick = () => setLiveClockMs(Date.now());
+    tick();
+    const id = setInterval(tick, 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div className="overflow-x-auto">
@@ -85,9 +95,9 @@ export function OrdersDispatchTable({
               unifiedItems.slice(0, tableLimit).map((item) => {
                 const isWorking = item.status === "IN_PROGRESS";
                 let progress = 0;
-                if (isWorking && item._sortDate) {
+                if (isWorking && item._sortDate && liveClockMs !== null) {
                   const start = new Date(item._sortDate as number).getTime();
-                  const elapsedMs = Date.now() - start;
+                  const elapsedMs = liveClockMs - start;
                   const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
                   progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
                 }
