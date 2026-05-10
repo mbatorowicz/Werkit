@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { workOrders } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
 import { getUserId } from '@/lib/auth';
 import { checkScheduleConflict } from '@/lib/schedule';
 

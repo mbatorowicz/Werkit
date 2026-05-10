@@ -1,88 +1,178 @@
-# Architektura Systemu Werkit
+# Architektura Werkit — przegląd techniczny
 
-Ten dokument opisuje docelowy stan architektury wprowadzony na przełomie wersji v1.6.5/v1.6.6 po pełnej refaktoryzacji. Przestrzeganie tych zasad jest **krytyczne** do zachowania stabilności, skalowalności i przejrzystości projektu. Jeśli piszesz lub edytujesz kod, musisz stosować się do poniższych wzorców.
-
----
-
-## 1. Warstwowa Architektura (Serwisy i Kontrolery)
-
-Aplikacja przeszła z wzorca "monolitycznych Route Handlers" do wzorca wielowarstwowego, by wyizolować logikę biznesową od warstwy prezentacji (UI) i obsługi żądań HTTP (Routing/Controllers).
-
-### A. Kontrolery (`src/app/api/.../route.ts` oraz Server Components w `page.tsx`)
-Ich jedynym zadaniem jest:
-1. Sprawdzenie autoryzacji (jeśli nie załatwia tego Middleware),
-2. Walidacja wejścia (odczytanie parametrów zapytania/ciała),
-3. **Delegacja logiki do Serwisu**,
-4. Zwrócenie sformatowanej odpowiedzi (JSON dla API lub JSX dla Server Components).
-
-**Absolutnie zakazane jest**:
-- Importowanie schematów Drizzle (`import { ... } from '@/db/schema'`) do pliku z kontrolerem w celu pisania surowych zapytań `db.select()`.
-
-### B. Serwisy (`src/services/`)
-Zasady działania:
-- Katalog `src/services/` to jedyne miejsce, w którym operujemy bezpośrednio na ORM (Drizzle) i bazie danych (z wyjątkami autoryzacji `NextAuth`/logowania, gdzie może to być tymczasowo dopuszczone, chociaż zaleca się bycie konsekwentnym).
-- Zawierają klasy narzędziowe (często eksportowane instancje wzorca Singleton) posiadające asynchroniczne metody ułożone domenowo, np.: `WorkerOrderService`, `WorkerSessionService`, `AdminSessionService`, `AdminUserService`, `DictionaryService`, `SystemLogService`.
-- **Ważne:** To Serwisy są "Single Source of Truth" dla złożonych zapytań SQL (`JOIN`, podzapytania, mapowanie na obiekty Domenowe). Jeśli aplikacja webowa (Admin) i mobilna (Worker) potrzebują listy zleceń – korzystają z tej samej metody z Serwisu.
+Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next **16**, modularny worker pod `features/worker`) oraz zasady warstwy serwisów.  
+Skrót operacyjny dla codziennej pracy: **[`AGENTS.md`](./AGENTS.md)**.
 
 ---
 
-## 2. Rygorystyczny TypeScript (Zakaz `any`)
+## 1. Cel dokumentu
 
-Od refaktoryzacji całkowicie porzucono leniwe typowanie oparte na `any`, które wywoływało ukryte crashe podczas uruchamiania się skompilowanej aplikacji na telefonach (gdzie występuje zjawisko usypiania procesów).
+| Dla kogo | Co znajdzie |
+|----------|-------------|
+| Deweloper / agent AI | Gdzie w codebase mieszka która warstwa, jakie są kontrakty typów i jak **nie** psuć mobilki ani DB |
+| Refactoring | **`src/app/`** nie importuje `@/db` ani `@/db/schema`; zapytania Drizzle mieszkają w **`src/services/`** — nowy kod trzymaj w tej konwencji |
 
-### Obiekty Domenowe (Single Source of Truth)
-Wszystkie interfejsy zdefiniowane są w katalogu `src/types/` (głównie `src/types/worker.ts` dla modułu pracownika i `src/types/admin.ts` dla zaplecza).
-- Jeśli komponent UI potrzebuje struktury danych (np. Zlecenie), **musi** importować `WorkOrder` z `src/types/`.
-- Jeśli brakuje w nim danego pola z bazy – aktualizujesz najpierw definicję w `src/types/`, a następnie mapowania w Serwisie i komponencie.
-- Zabronione jest definiowanie skomplikowanych anonimowych typów *in-line* we właściwościach komponentu (`interface Props { data: { id: number, field: string ... }[] }`). Należy użyć typu Domenowego.
-
-### Mapowanie Dat i Pol Nullable
-Obiekty zwracane z bazy przez Drizzle ORM posiadają oryginalne instancje klasy `Date` i nierzadko są typem `Nullable` (dzięki strukturom relacyjnym bazy). Kiedy Server Component wstrzykuje dane (przez Props) do Client Componentu, musi nastąpić jawna transformacja dat (`.toISOString()`) oraz sparsowanie liczb (np. mapowanie Decimal do Float), tak by typ obiektu pasował *idealnie* w ujęciu zgodności z `InitialWorkerData` (bądź innym wymaganym Propsem).
+Architektura **warstwowa z serwisami** (od **v1.6.6**, utrwalona m.in. w **v1.9**) jest **obowiązującym** wzorcem dla tras API i danych ładowanych w Server Components.
 
 ---
 
-## 3. Komponenty UI (Zasada SRP / DRY)
+## 2. Przepływ żądania (uproszczony)
 
-Wielkie struktury (>300 linii) takie jak `WorkerClient.tsx` przestały pełnić rolę "boskich komponentów" (God-components).
+```
+[Klient: przeglądarka / WebView Capacitor]
+        │
+        ▼
+[src/middleware.ts] — JWT (jose), rola admin/worker, segmentacja tras API
+        │
+        ├──► Route Handler src/app/api/.../route.ts → src/services/* → db (Drizzle)
+        │
+        └──► Server Component page.tsx → JSX (dane z serwisów lub props z rodzica)
+                   │
+                   └── Client Component ("use client") — stan UI, fetch do API
+```
 
-1. **Kompozycja**: Używaj wzorca "Prezentacja kontra Stan".
-2. Jeśli strona Worker-a posiada skomplikowaną listę Aktywnych zleceń i dashboard z Mapą, ekstrakcja tych części do pod-komponentów (np. `ActiveSessionDashboard.tsx`, `PendingOrdersList.tsx` umieszczonych w `src/components/Worker/`) jest obowiązkowa.
-3. Props drilling musi być zastąpiony przekazywaniem obiektów Domenowych. 
+**Worker UI:** komponenty głównie z **`src/features/worker/components/`**, hooki z **`src/features/worker/hooks/`**.
 
-### Mobilność i Performance UI
-- Projekt to rozwiązanie wielośrodowiskowe (PWA/Capacitor). Animacje muszą opierać się na CSS (TailwindCSS i `animate-in` itd.) – nie pisz ciężkich pętli obciążających wątek JS-u.
-- Przestrzegaj palety `zinc` i `emerald` wg. głównych definicji projektu.
-- Pamiętaj, że w systemach iOS/Android przy zgaszonym ekranie funkcja `setTimeout/setInterval` na komponencie UI praktycznie przestaje działać. Przewiduj, że użytkownik może zgasić ekran telefonu w najmniej spodziewanym momencie.
-
-## 4. Aplikacja Mobilna (Capacitor PWA)
-
-Werkit jest aplikacją internetową, która w systemie Android działa jako "Web View" (dzięki Capacitorowi).
-1. **Przycisk Wstecz (Hardware Back Button)**: Aby zapobiec wychodzeniu z aplikacji w losowych momentach przez sprzętowy przycisk powrotu w Androidzie, zaimplementowano scentralizowany strażnik `<CapacitorBackButton />` w layoutach. Nie twórz własnych, rozrzuconych event listenerów na zdarzenie `backButton`.
-2. **Zdalne Logowanie (Remote Logging)**: Debugowanie natywnych wtyczek (np. Background Geolocation) bywa trudne. Projekt wykorzystuje tabelę `deviceLogs` w bazie Drizzle. Każdy krytyczny proces w PWA (lub łapany błąd) powinien wysłać log za pomocą asynchronicznego żądania POST (`sendRemoteLog`) do endpointu `/api/worker/logs`. Te logi są agregowane w zakładce `/admin/logs` dla administratora.
-
----
-
-## 5. Next.js 15 (Specyfika Routingu)
-
-Wersja Next.js 15+ wprowadza rygorystyczne wymagania dotyczące dynamicznych segmentów trasy (np. folderów typu `[id]`).
-1. **Asynchroniczne parametry (`params` i `searchParams`)**: W **każdym** komponencie Server Component oraz kontrolerze tras (Route Handler), własność `params` **musi być potraktowana jako Promise**. 
-2. **Nigdy nie rób `parseInt(params.id)` bez await**. Zawsze destrukturyzuj i oczekuj:
-   ```ts
-   // BŁĄD (prowadzi do 404 lub crashy)
-   export default function Page({ params }: { params: { id: string } }) {
-       const id = params.id; 
-   }
-
-   // POPRAWNIE
-   export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-       const resolvedParams = await params;
-       const id = resolvedParams.id;
-   }
-   ```
+**Współdzielenie worker ↔ admin (prezentacja zlecenia):** **`src/components/work-orders/`** (`WorkOrderPriorityRibbon`, `WorkOrderSummaryLines`).
 
 ---
 
-**Jeśli jako AI Agent masz wątpliwości jak zaprogramować daną funkcję w tym repozytorium, najpierw:**
-1. Sprawdź, czy istnieje już do tego gotowy Serwis.
-2. Sprawdź, czy istnieje Typ Domenowy w `src/types/`.
-3. Skonsultuj z użytkownikiem zmiany naruszające obecną architekturę przed nadpisaniem wielu plików bazowych.
+## 3. Typy domenowe (`src/types/`)
+
+| Plik | Zakres |
+|------|--------|
+| `worker.ts` | `Session`, `WorkOrder`, `WorkOrderPriority`, `InitialWorkerData`, `TimelineItem`, GPS/settings |
+| `admin.ts` | Formularze, listy bazowe (`BaseWorker`, …), `UnifiedGanttItem`, stan zamówień w panelu |
+| `wizard.ts` | Dane pomocnicze API kreatora własnego zlecenia (kategorie, maszyny, materiały, klienci) |
+
+**Zasady:**
+
+- Komponent importuje **`WorkOrder`**, **`Session`** itd. stąd — nie duplikuje 15-powej struktury inline w propsach.
+- Po zmianie kolumny w DB: **`schema.ts` → typ w `types/` → serwis / mapper**.
+- Serializacja do klienta: daty jako **`string` ISO** tam, gdzie kontrakty (`InitialWorkerData`) tego wymagają.
+
+---
+
+## 4. Warstwa serwisów (`src/services/`)
+
+Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden punkt prawdy** dla logiki „lista zleceń”, „sesja”, „archiwum” itd.
+
+| Serwis (klasa) | Typowe obowiązki |
+|----------------|------------------|
+| `WorkerOrderService` | Lista oczekujących zleceń workerów, akceptacja, normalizacja `priority` |
+| `WorkerSessionService` | Sesja robocza, GPS/notatki/zdjęcia po stronie worker API |
+| `AdminOrderService` | Lista/edycja zleceń w panelu |
+| `AdminSessionService` | Sesje / archiwum w zakresie admin |
+| `AdminUserService` | Pracownicy / konta |
+| `DictionaryService` | Kategorie, maszyny, materiały, klienci — słowniki |
+| `AdminReportService` | Raporty |
+| `SystemLogService` | Agregacja `device_logs` |
+| `GpsService` | Logika ścieżek GPS |
+
+**Uwaga:** Część klas ma wyłącznie metody **`static`** — to świadomy, prosty wzorzec w repozytorium (nie mylić z DI kontenerem).
+
+---
+
+## 5. Kontrolery Next (`route.ts`) i Server Components
+
+### Docelowy wzorzec kontrolera
+
+1. Autoryzacja (uzupełnienie middleware, jeśli potrzebne).
+2. Parsowanie wejścia / kodów odpowiedzi HTTP.
+3. **Wywołanie metody serwisu**.
+4. `NextResponse.json(...)` lub delegacja błędu.
+
+### Konwencja po refaktoryzacji (v1.9+)
+
+**`src/app/`** (wszystkie `page.tsx`, `layout.tsx`, `route.ts`) nie powinien importować **`@/db`**, **`@/db/schema`** ani **`drizzle-orm`**. Kontrolery parsują wejście i wołają **`src/services/*`**; typy „jak INSERT bez schema w route” eksportuj z serwisu (np. `ResourceCategoryUpdateInput`, `UserUpdatePayload`).
+
+### Server Components
+
+Strony typu **`worker/history`** korzystają z **`WorkerSessionService`** / **`DictionaryService`** itd. — bez duplikowania zapytań w warstwie widoku.
+
+---
+
+## 6. Moduł worker (`src/features/worker/`)
+
+| Ścieżka | Zawartość |
+|---------|-----------|
+| `components/` | `WizardClient`, `PendingOrdersList`, `ActiveSessionDashboard`, `Modals/*` |
+| `hooks/` | `useWorkerActions`, `useWorkerGPS`, `useWorkerNotifications` |
+| `lib/` | `workOrderPresentation` (sortowanie, klasy Tailwind kart), `workOrderPriority` (`normalizeWorkOrderPriority`) |
+
+Trasy URL pozostają w **`src/app/worker/`** — strony importują komponenty z `@/features/worker/...`.
+
+---
+
+## 7. Spójna prezentacja zlecenia (`src/components/work-orders/`)
+
+Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samych** znaczników priorytetu i opisu bez forkowania klas CSS.
+
+- `WorkOrderPriorityRibbon` — prop `labels` (typowo wycinek `getDictionary().worker.client` dla dosłownych tłumaczeń priorytetu).
+- `WorkOrderSummaryLines` — blok maszyna / kruszywo / klient / opis / czas / zlecający (worker).
+
+---
+
+## 8. Internacjonalizacja (`src/i18n/`)
+
+- **`locales/pl.ts`**, **`locales/en.ts`** — pełne drzewo stringów.
+- **`types.ts`** — `AppDictionary` (= `typeof pl`), angielski musi spełniać **`AppDictionary`** (TS wymusza zestaw kluczy).
+- **`format.ts`** — `formatDict` dla `{placeholderów}`.
+- **`constants.ts`** — `DEFAULT_UI_LOCALE` (format dat/czasu do czasu wyboru języka użytkownika).
+- **`getDictionary(locale?)`** — domyślnie `'pl'`.
+
+---
+
+## 9. Baza danych i migracje
+
+- **Schemat:** `src/db/schema.ts` (Postgres via Drizzle).
+- **Migracje wygenerowane / śledzone:** [`drizzle/`](./drizzle/), meta [`drizzle/meta/_journal.json`](./drizzle/meta/_journal.json).
+- **Priorytet zlecenia:** wartości wyłącznie z zestawu **URGENT | HIGH | NORMAL | LOW** — constraint **`work_orders_priority_chk`** (migracja m.in. **`0003_work_orders_priority_chk.sql`**): najpierw UPDATE niepoprawnych wierszy, potem `CHECK`.
+
+Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkcji sama zrobi” — procedura wdrożenia zespołu musi ją uruchomić.
+
+---
+
+## 10. Uwierzytelnienie i middleware
+
+- Cookie **`auth_token`**, weryfikacja **`jose`** (`jwtVerify`).
+- **`src/middleware.ts`** — matcher dla `/admin`, `/worker`, `/login`, `/api`.
+- **API współdzielone** (worker + ewentualnie konfiguracja offline urządzeń): prefiksy zdefiniowane jako **`SHARED_API_PREFIXES`** w middleware (`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`). Nowy publiczny shard API → **dopisz prefiks tam**, inaczej trafi pod domyślne reguły **admin API**.
+
+**Next.js 16** może wyświetlać ostrzeżenie o deprecacji nazwy „middleware” na rzecz „proxy” — zmiana nazwy pliku bez pełnej migracji **wyłączy ochronę** tras.
+
+---
+
+## 11. Next.js App Router — dynamiczne segmenty
+
+W komponentach strony oraz tam, gdzie framework tego wymaga, **`params` jest `Promise`**:
+
+```ts
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  // ...
+}
+```
+
+Reguła nadal obowiązuje w **Next 16** dla dynamicznych tras — nie polegaj na synchronicznym `params.id` w typach sprzed kilku lat tutoriali.
+
+---
+
+## 12. PWA / Capacitor
+
+- **`CapacitorBackButton`** — pojedyncze miejsce obsługi wstecz na Androidzie.
+- **`sendRemoteLog`** — ścieżka diagnostyczna na urządzeniach w terenie; persystencja w **`device_logs`**.
+
+---
+
+## 13. Checklista „co sprawdzić przed dużym PR”
+
+- [ ] Czy nowe pola są w **`schema.ts`** + migracji + typach **`types/`**?
+- [ ] Czy odpowiedź JSON dla mobilki pozostaje tablicą tam, gdzie klient robi `.map`?
+- [ ] Czy teksty są w **i18n**, a nie na sztywno po polsku w adminie?
+- [ ] Czy nie dodajesz **`any`**?
+- [ ] Czy nowy lub zmieniany **`route.ts`** / **`page.tsx`** nie wprowadza z powrotem **Drizzle w `src/app/`** — tylko woła **serwis**?
+
+---
+
+*Ten dokument ma odzwierciedlać repo; jeśli struktura się zmieni — aktualizuj **ARCHITECTURE.md** i **AGENTS.md** w jednym zestawie zmian.*

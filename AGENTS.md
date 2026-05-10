@@ -1,38 +1,121 @@
-# Wymagania i Zasady Kodowania (AI Agent)
+# Werkit — przewodnik dla agentów AI i deweloperów
 
-Ten plik służy jako Główne Źródło Prawdy (SSOT) dla każdego agenta AI (w tym Antigravity) pracującego nad projektem Werkit. Zawsze bezwzględnie przestrzegaj poniższych zasad.
+Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kto modyfikuje kod Werkit — w tym agentów AI. Ma pierwszeństwo przed „domysłami z sieci”: najpierw tu sprawdzasz fakty o repo, potem dopisujesz kod.
 
-## Architektura i Technologia
-- **Framework**: Next.js (App Router). Używaj React Server Components domyślnie. Dodawaj `"use client"` tylko dla komponentów posiadających stan lub wywołujących efekty/event listenery.
-- **Baza danych**: Vercel Postgres połączony z Drizzle ORM. Główne źródło schematu: `src/db/schema.ts`.
-- **Mobilność**: Aplikacja to rozwiązanie PWA + Capacitor. Pamiętaj, że natywny system (Android/iOS) usypia wątki JavaScript w tle. Optymalizuj kod pod kątem wygaszonego ekranu.
-- **Design System**: Tailwind CSS. Interfejsy muszą być zjawiskowe, animowane, spójne, wykorzystujące paletę "zinc" i "emerald", bez obcych i niespójnych stylów. 
+**Towarzyszy mu:** [`ARCHITECTURE.md`](./ARCHITECTURE.md) — głębszy opis warstw, modułów i długu technicznego.
 
-## Best Practices (Czysty Kod i Bezpieczeństwo)
-1. **Defensive Programming (Programowanie Defensywne)**: 
-   - Aplikacja mobilna często działa w ruchu, przy słabym internecie (np. EDGE/3G). 
-   - Każde odpytanie API musi mieć zabezpieczenie typu fallback. 
-   - Zanim użyjesz metody tablicowej `.map()`, bezwzględnie weryfikuj `Array.isArray(data)`. Serwer w razie błędu 500 może zwrócić obiekt JSON, co spowoduje crash aplikacji mobilnej!
-2. **Uprawnienia i Strażnik (Middleware)**: 
-   - Aplikacja realizuje sprawdzanie i weryfikację tokenów JWT dla wszystkich zapytań za pomocą Middleware.
-   - UWAGA: Silnik Next.js 15 wymaga absolutnie i na sztywno, aby główny strażnik nazywał się `src/middleware.ts` i eksportował funkcję `export async function middleware(request: NextRequest)`. Nigdy nie zmieniaj tej nazwy, gdyż spowoduje to dezaktywację zabezpieczeń.
-   - Jeśli dodajesz publiczne / współdzielone endpointy (dla maszyn, klientów itp.), dodawaj je wyraźnie do reguły `isSharedApi` w `middleware.ts`.
-3. **Synchronizacja Bazy Danych**: 
-   - Zmiany w modelu Drizzle (`schema.ts`) muszą mieć odzwierciedlenie we wdrożeniu na Vercel (produkcyjnej bazie). 
-   - Unikaj "ścisłych" `leftJoin` wyciągających bardzo konkretne nowe pola bez pewności, że migracja była wypchnięta. Używaj spread operatorów lub pobieraj cały wiersz.
-4. **Logika GPS i Background Tasks**: 
-   - Funkcje typu `setInterval` i `setTimeout` w przeglądarkach ulegają zamrożeniu (throttling) na zablokowanym telefonie. 
-   - Zbieranie danych o lokalizacji (BackgroundGeolocation) musi wywoływać metody Fetch od razu, z flagą `keepalive: true` lub natychmiastowym opróżnieniem bufora. Nie polegaj na wewnętrznym "sztucznym" kolejkowniku opartym o czas na froncie.
+---
 
-## Workflow Zmian
-1. **Zrozum zanim zmienisz**: Zanim usuniesz plik lub pole, sprawdź pełen kontekst. Zmiana jednej litery lub zmiana API z tablicy na obiekt potrafi zatrzymać wszystkie ciężarówki w firmie.
-2. **Clean Code**: Nie zostawiaj testowych logów `console.log()` w finalnej wersji produkcyjnej, chyba że do krytycznego debugowania.
-3. **Zawsze Refaktoryzuj Poważnie**: Kiedy dostajesz polecenie "Zrób pełną refaktoryzację", zoptymalizuj strukturę pod kątem SOLID i DRY.
+## 1. Produkt i stawka błędu
 
-## Nowa Architektura (Od v1.6.6)
-Zwróć bezwzględną uwagę na ewolucję architektoniczną projektu wprowadzoną w najnowszych etapach:
-1. **Warstwa Serwisów (Service Layer)**: Bezwzględnie zabrania się pisania surowych i długich zapytań Drizzle (`db.select()`, `db.update()`) bezpośrednio w komponentach React (`page.tsx`) oraz kontrolerach tras (`route.ts`). Logika domenowa musi być zamykana w dedykowanych klasach w katalogu `src/services/` (np. `WorkerOrderService`, `WorkerSessionService`, `AdminSessionService`, `AdminUserService`, `DictionaryService`, `SystemLogService`).
-2. **Zasada SSOT dla Typów (Single Source of Truth)**: Główny schemat interfejsów TypeScript dla klienta znajduje się w `src/types/worker.ts` oraz `src/types/admin.ts`.
-3. **Bezwzględny zakaz `any`**: Aplikacja operuje na ściśle określonych typach (`TimelineItem`, `WorkOrder`, `Session`, `InitialWorkerData`). Jakiekolwiek użycie typu `any` (np. przy deserializacji dat czy parsowaniu JSON-ów) jest traktowane jako błąd krytyczny i zostanie odrzucone przez Linter/Kompilator.
-4. **Zasada SRP w UI**: Długie, gigantyczne komponenty (>300 linii) powinny być łamane na mniejsze pliki składowe zdefiniowane w katalogu komponentu (np. `src/components/Worker/`). Wymagany jest podział na logikę stanu (Client Components) oraz wstrzykiwanie danych (Server Components).
-Szczegółowy opis tych wzorców znajdziesz w pliku `ARCHITECTURE.md`. Zawsze przeczytaj ten dokument przed modyfikacją głównych modułów aplikacji.
+Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pracy, zleceniu lub GPS może realnie zatrzymać lub zmąc wybrane procesy w terenie. Zanim zmienisz API odpowiedzi, typ tablicy → obiekt, lub pole bazy — **przejrzyj call-site’y i serwisy**.
+
+---
+
+## 2. Stack (fakty z repo)
+
+| Obszar | Technologia / konwencja |
+|--------|---------------------------|
+| Framework | **Next.js 16** (App Router). Preferuj **Server Components**; `"use client"` tylko przy stanie, efektach, listenerach. |
+| Auth | **JWT w cookie** (`auth_token`), weryfikacja **`jose`** — nie używamy NextAuth w tym projekcie. |
+| Baza | **Vercel Postgres** + **Drizzle ORM**. SSOT schematu: [`src/db/schema.ts`](./src/db/schema.ts). Migracje SQL: katalog [`drizzle/`](./drizzle/). |
+| Mobilka | **Capacitor** + PWA; tło i zgaszony ekran = throttle JS i GPS — patrz sekcja 8. |
+| UI | **Tailwind CSS**. Paleta bazowa: **zinc** + akcent **emerald**; spójne animacje (CSS / utility), bez „losowych” palet. |
+| Typy | **Strict TypeScript**, zakaz luźnego **`any`**. Typy domenowe: [`src/types/worker.ts`](./src/types/worker.ts), [`src/types/admin.ts`](./src/types/admin.ts), [`src/types/wizard.ts`](./src/types/wizard.ts). |
+| Wersja aplikacji | Z [`package.json`](./package.json) (np. `1.8.x`). |
+
+---
+
+## 3. Mapa katalogów (gdzie co żyje)
+
+```
+src/
+├── app/                    # Trasy Next (pages, layouts), Route Handlers api/**/route.ts
+├── features/worker/        # Moduł aplikacji pracownika (komponenty, hooki, lib prezentacji zleceń)
+│   ├── components/         # m.in. WizardClient, PendingOrdersList, ActiveSessionDashboard, Modals
+│   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications
+│   └── lib/                # workOrderPresentation, workOrderPriority (normalizacja priorytetu)
+├── components/
+│   ├── work-orders/        # UI **współdzielony** worker ↔ admin (WorkOrderPriorityRibbon, WorkOrderSummaryLines)
+│   ├── Admin/, Map/, GanttChart/, …
+├── services/               # Warstwa domenowa + Drizzle — preferowane miejsce na zapytania DB
+├── db/                     # Klient DB + schema Drizzle
+├── types/                  # Kontrakty TS dla worker / admin / wizard
+├── i18n/                   # locales/pl.ts, locales/en.ts, types.ts, format.ts, constants.ts (DEFAULT_UI_LOCALE)
+├── lib/                    # auth, gpsManager, remoteLogger, helpers bez UI
+└── middleware.ts           # Strażnik JWT i ról (nazwa pliku musi pozostać middleware.ts)
+```
+
+Routing worker nadal w **`src/app/worker/**`** — komponenty biznesowe są **importowane** z `@/features/worker/...`.
+
+---
+
+## 4. Twarde zasady (checklista przed merge)
+
+1. **Tablice z API** — zanim wywołasz `.map()` / `.filter()` na odpowiedzi `fetch`, sprawdź **`Array.isArray(data)`** (albo bezpieczny fallback `[]`). Błąd 500 może zwrócić obiekt → crash na mobilce.
+2. **`any`** — nie dodawaj. Nieznane JSON → zwężanie przez **type guards** / jawne typy / walidację.
+3. **Priorytet zlecenia** — wartości domenowe: `URGENT` \| `HIGH` \| `NORMAL` \| `LOW`. Normalizacja po stronie serwera tam, gdzie już jest (`normalizeWorkOrderPriority`). W bazie egzekwuje to migracja **CHECK** `work_orders_priority_chk` (patrz `drizzle/`).
+4. **Nowy kod DB** — **wyłącznie `src/services/`** (Drizzle); **`src/app/`** nie importuje `@/db` / `@/db/schema`. Szczegóły: **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
+5. **Teksty UI** — stringi widoczne dla użytkownika przez **`getDictionary()`** / sloty `worker.client`, `admin.*`, `apiErrors`. Placeholdery `{klucz}` przez **`formatDict`**. Domyślny locale formatów dat: **`DEFAULT_UI_LOCALE`** (`src/i18n/constants.ts`), dopóki nie ma wyboru języka użytkownika.
+6. **Middleware** — musi pozostać plik **`src/middleware.ts`** z eksportem `middleware`. Next 16 może ostrzegać o deprecacji konwencji „middleware” na rzecz „proxy” — **nie zmieniaj nazwy pliku bez świadomej migracji dokumentacji Vercel**, bo wyłączysz ochronę tras.
+
+---
+
+## 5. Warstwa serwisów (`src/services/`)
+
+Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
+
+Przykłady klas (aktualna lista w repo):  
+`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`.
+
+**Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
+
+---
+
+## 6. UI — podział odpowiedzialności
+
+- **`src/features/worker/`** — ekrany i logika stanu **tylko modułu pracownika**.
+- **`src/components/work-orders/`** — prezentacja **zlecenia** współdzielona z panelem **admin** (spójne badge priorytetu itd.).
+- **SRP** — pliki Client Components **> ~300 linii** dziel na podkomponenty w tym samym obszarze funkcji (feature lub folder komponentu).
+
+Design: **zinc / emerald**, motion lekkie (CSS), bez blokowania głównego wątku ciężkimi pętlami w renderze.
+
+---
+
+## 7. Mobilność, GPS, tło
+
+- **`setInterval` / `setTimeout`** na frontcie **nie są niezawodne** przy zablokowanym ekranie.
+- Bufforowanie GPS / wysyłka na backend: **fetch od razu**, **`keepalive: true`** tam, gdzie już przyjęto ten wzorzec — nie polegaj na „kolejce co N sekund” w JS w tle.
+- **Hardware back (Android):** używaj **`CapacitorBackButton`** z layoutów — nie rozrzucaj własnych listenerów `backButton`.
+
+---
+
+## 8. Logowanie zdalne
+
+Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worker/logs`** → tabela **`device_logs`**, przegląd w **`/admin/logs`**.
+
+---
+
+## 9. Migracje i produkcja
+
+- Zmiana **`schema.ts`** wymaga **skryptu migracji** w `drizzle/` + aktualizacji **`drizzle/meta/_journal.json`** (jeśli dodajesz ręcznie) albo wygenerowania przez **`drizzle-kit`** zgodnie z workflow zespołu.
+- **Wdrożenie na Vercel:** migracja musi zostać **uruchomiona na bazie produkcyjnej** zgodnie z procedurą firmy (jedna pusta migracja lub duplikat constraintta na DB = błąd operacyjny — sprawdzaj idempotentność).
+
+---
+
+## 10. Workflow zmian (produktywny minimalizm)
+
+1. **Zrozum kontekst** — typy, serwis, istniejący kontrakt API i mobilki.
+2. **Minimalny diff** — nie refaktoryzuj „przy okazji” całych modułów bez prośby.
+3. **Bez debug `console.log`** w kodzie produkcyjnym (wyjątek: krótkotrwały debug za zgodą).
+4. Pełna refaktoryzacja na żądanie: **SOLID, DRY**, ale nadal zgodnie z architekturą modułów.
+
+---
+
+## 11. Kiedy czytać ARCHITECTURE.md
+
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **middleware**. Tam są: diagram przepływu, **lista serwisów** i konwencja „app bez Drizzle”.
+
+---
+
+*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, constraint priorytetu zleceń w migracji Drizzle. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*

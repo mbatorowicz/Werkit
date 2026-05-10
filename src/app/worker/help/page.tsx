@@ -1,9 +1,6 @@
 import { PhoneCall, AlertTriangle, Info, BookOpen, MapPin, Camera, Clock, Navigation, Play } from "lucide-react";
 import { HelpAccordion } from "@/components/HelpAccordion";
 import { getDictionary } from "@/i18n";
-import { db } from "@/db";
-import { companySettings } from "@/db/schema";
-import { eq } from "drizzle-orm";
 
 export const dynamic = 'force-dynamic';
 

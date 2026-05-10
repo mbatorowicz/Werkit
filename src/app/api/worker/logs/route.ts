@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { deviceLogs } from '@/db/schema';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
@@ -15,10 +13,20 @@ export async function POST(req: Request) {
     const verified = await jwtVerify(token, JWT_SECRET);
     const userId = verified.payload.userId as number;
     
-    const body = await req.json();
-    
+    const body = (await req.json()) as Record<string, unknown>;
+    const level = typeof body.level === 'string' ? body.level : 'INFO';
+    const message = typeof body.message === 'string' ? body.message : 'Brak wiadomości';
+    let metadata: Record<string, unknown> | null | undefined;
+    if (!('metadata' in body)) metadata = undefined;
+    else if (body.metadata === null) metadata = null;
+    else if (typeof body.metadata === 'object' && body.metadata !== null && !Array.isArray(body.metadata)) {
+      metadata = body.metadata as Record<string, unknown>;
+    } else {
+      metadata = undefined;
+    }
+
     const { SystemLogService } = await import('@/services/SystemLogService');
-    await SystemLogService.insertLog(userId, body.level, body.message, body.metadata);
+    await SystemLogService.insertLog(userId, level, message, metadata);
     
     return NextResponse.json({ success: true });
   } catch (e) {

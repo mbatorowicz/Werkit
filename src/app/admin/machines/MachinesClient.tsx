@@ -252,10 +252,10 @@ export default function MachinesClient() {
               <form onSubmit={handleCSave} className="p-6 space-y-4">
                  <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  <div className="space-y-2">
-                   <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kolor Kategorii</label>
+                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{dict.catColorLabel}</label>
                    <div className="flex items-center gap-3">
                      <input type="color" value={cForm.color} onChange={e => setCForm({...cForm, color: e.target.value})} className="w-10 h-10 rounded border-0 p-0 cursor-pointer" />
-                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Wybierz główny kolor znaczników</span>
+                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.catColorHint}</span>
                    </div>
                  </div>
                  

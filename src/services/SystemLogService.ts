@@ -25,7 +25,7 @@ export class SystemLogService {
     }));
   }
 
-  static async insertLog(userId: number, level: string, message: string, metadata?: any) {
+  static async insertLog(userId: number, level: string, message: string, metadata?: Record<string, unknown> | null) {
     await db.insert(deviceLogs).values({
       userId,
       level: level || 'INFO',

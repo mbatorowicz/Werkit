@@ -1,3 +1,5 @@
+export type WorkOrderPriority = "URGENT" | "HIGH" | "NORMAL" | "LOW";
+
 export type Session = {
   id: number;
   startTime: string;
@@ -26,7 +28,7 @@ export type WorkOrder = {
   resourceName: string | null;
   materialName: string | null;
   customerName: string | null;
-  priority: string | null;
+  priority: WorkOrderPriority | null;
   dueDate: string | null;
   createdAt: string;
   expectedDurationHours?: number | null;

@@ -1,18 +1,11 @@
 import LiveMap from "@/components/Map/LiveMap";
-import { db } from "@/db";
-import { workSessions, users, resources, materials, companySettings, workOrders } from "@/db/schema";
-import { eq, desc, and, gte } from "drizzle-orm";
-import { getDictionary } from "@/i18n";
 import { HardHat, Wrench, Truck, Activity, BarChart3, TrendingUp, Users } from "lucide-react";
-
-import GanttChart from "@/components/GanttChart/GanttChart";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const dict = getDictionary().admin.dashboard;
 
   const { AdminReportService } = await import('@/services/AdminReportService');
   const { DictionaryService } = await import('@/services/DictionaryService');

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatDict } from '@/i18n';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
@@ -32,7 +33,7 @@ export function useWorkerActions({
         return;
       }
     }
-    if (!confirm("Czy na pewno chcesz zakończyć obecną zmianę/pracę?")) return;
+    if (!confirm(dict.confirmEndSession)) return;
     setIsLoading(true);
     try {
       await fetch("/api/worker/session", { method: "PUT" });
@@ -66,7 +67,7 @@ export function useWorkerActions({
   };
 
   const handleCancelSession = async () => {
-    if (!confirm("Czy na pewno chcesz cofnąć rozpoczęcie tego zlecenia? To usunie obecną sesję i przywróci zlecenie do oczekujących.")) return;
+    if (!confirm(dict.confirmCancelSession)) return;
     setIsLoading(true);
     try {
       const res = await fetch("/api/worker/session/cancel", { method: "POST" });
@@ -90,7 +91,11 @@ export function useWorkerActions({
     if (settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
       const distMeters = distanceToDestKm * 1000;
       if (distMeters > settings.geofenceRadiusMeters) {
-        if (!confirm(`Jesteś za daleko od celu (${Math.round(distMeters)}m, dozwolone: ${settings.geofenceRadiusMeters}m). Czy na pewno chcesz zameldować dotarcie na miejsce?`)) return;
+        const msg = formatDict(dict.geofenceConfirm, {
+          dist: Math.round(distMeters),
+          max: settings.geofenceRadiusMeters,
+        });
+        if (!confirm(msg)) return;
       }
     }
     setIsLoading(true);
@@ -98,11 +103,11 @@ export function useWorkerActions({
       const res = await fetch("/api/worker/session/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: "📍 Meldunek: Dotarto na miejsce zdarzenia.", location })
+        body: JSON.stringify({ note: dict.checkpointNote, location })
       });
       if (res.ok) {
         sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)');
-        alert(dict.checkpointSaved);
+        alert(dict.arrivedSuccess);
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)');

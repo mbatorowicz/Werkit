@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { resourceCategories } from '@/db/schema';
-
-type CategoryUpdate = Partial<typeof resourceCategories.$inferInsert>;
+import type { ResourceCategoryUpdateInput } from '@/services/DictionaryService';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -12,7 +10,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (!body.name) return NextResponse.json({ error: 'missing_name' }, { status: 400 });
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    const updateData: CategoryUpdate = { name: body.name.trim(), icon: body.icon || 'Truck' };
+    const updateData: ResourceCategoryUpdateInput = { name: body.name.trim(), icon: body.icon || 'Truck' };
     if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
     if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
     if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;

@@ -1,3 +1,5 @@
+import type { WorkOrderPriority } from "./worker";
+
 export type UnifiedGanttItem = {
   _type: 'ORDER' | 'SESSION';
   id: number;
@@ -17,7 +19,7 @@ export type UnifiedGanttItem = {
   customerLastName?: string | null;
   quantityTons?: number | string | null;
   taskDescription?: string | null;
-  priority?: string | null;
+  priority?: WorkOrderPriority | string | null;
   categoryId?: number | null;
   categoryName?: string | null;
   customerId?: number | null;

@@ -1,7 +1,4 @@
 import { User as UserIcon, Shield, LogOut, Settings } from "lucide-react";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";

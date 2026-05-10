@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { workSessions, gpsLogs, sessionPhotos, sessionNotes } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { JWT_SECRET } from '@/lib/auth';
 import { jwtVerify } from 'jose';

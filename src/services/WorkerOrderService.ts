@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { workOrders, resources, materials, customers, users, workSessions } from '@/db/schema';
 import { eq, and, aliasedTable, asc } from 'drizzle-orm';
 import { resourceCategories } from '@/db/schema';
+import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
 
 export class WorkerOrderService {
   /**
@@ -10,7 +11,7 @@ export class WorkerOrderService {
   static async getPendingOrders(userId: number) {
     const creator = aliasedTable(users, 'creator');
     
-    return db.select({
+    const rows = await db.select({
       id: workOrders.id,
       categoryId: workOrders.categoryId,
       categoryName: resourceCategories.name,
@@ -36,6 +37,11 @@ export class WorkerOrderService {
     .leftJoin(resourceCategories, eq(workOrders.categoryId, resourceCategories.id))
     .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
     .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
+
+    return rows.map(row => ({
+      ...row,
+      priority: normalizeWorkOrderPriority(row.priority),
+    }));
   }
 
   static async acceptOrder(userId: number, orderId: number) {

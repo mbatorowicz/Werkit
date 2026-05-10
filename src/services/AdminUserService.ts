@@ -56,3 +56,6 @@ export class AdminUserService {
     await db.delete(users).where(eq(users.id, userId));
   }
 }
+
+/** Aktualizacja rekordu użytkownika z API — bez importu schematu w kontrolerze. */
+export type UserUpdatePayload = Partial<typeof users.$inferInsert>;

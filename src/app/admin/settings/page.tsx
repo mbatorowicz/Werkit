@@ -1,5 +1,3 @@
-import { db } from "@/db";
-import { companySettings } from "@/db/schema";
 import SettingsForm from "./SettingsForm";
 import { Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";

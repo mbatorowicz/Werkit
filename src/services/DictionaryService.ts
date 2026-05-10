@@ -103,3 +103,6 @@ export class DictionaryService {
       });
   }
 }
+
+/** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
+export type ResourceCategoryUpdateInput = Partial<typeof resourceCategories.$inferInsert>;

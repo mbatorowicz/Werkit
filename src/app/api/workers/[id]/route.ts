@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
+import type { UserUpdatePayload } from '@/services/AdminUserService';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -12,7 +10,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const body = await request.json();
     
-    const updateData: Record<string, unknown> = {
+    const updateData: UserUpdatePayload = {
       fullName: body.fullName,
       usernameEmail: body.usernameEmail,
       role: body.role,

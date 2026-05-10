@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { Capacitor } from '@capacitor/core';
 
-import { useWorkerNotifications } from '@/hooks/useWorkerNotifications';
-import { useWorkerGPS } from '@/hooks/useWorkerGPS';
+import { useWorkerNotifications } from '@/features/worker/hooks/useWorkerNotifications';
+import { useWorkerGPS } from '@/features/worker/hooks/useWorkerGPS';
 import { GPSManager } from '@/lib/gpsManager';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
-import PendingOrdersList from "@/components/Worker/PendingOrdersList";
-import ActiveSessionDashboard from "@/components/Worker/ActiveSessionDashboard";
-import NotesModal from "@/components/Worker/Modals/NotesModal";
-import GpsWarningModal from "@/components/Worker/Modals/GpsWarningModal";
-import { useWorkerActions } from "@/hooks/useWorkerActions";
+import PendingOrdersList from "@/features/worker/components/PendingOrdersList";
+import ActiveSessionDashboard from "@/features/worker/components/ActiveSessionDashboard";
+import NotesModal from "@/features/worker/components/Modals/NotesModal";
+import GpsWarningModal from "@/features/worker/components/Modals/GpsWarningModal";
+import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const getInitialTimeline = () => {

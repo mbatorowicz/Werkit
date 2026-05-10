@@ -44,7 +44,7 @@ System został zbudowany z zachowaniem restrykcyjnych standardów czystego kodu:
 - **Stylizacja**: Tailwind CSS (tryb Ciemny/Jasny, palety Zinc & Emerald).
 - **Baza Danych ORM**: [Drizzle ORM](https://orm.drizzle.team) połączony z Vercel Postgres / PostgreSQL. Zmiany schematów leżą w `src/db/schema.ts`.
 - **Mobilność**: [Capacitor](https://capacitorjs.com) (PWA to Web View na Android/iOS).
-- **Zarządzanie Stanem / Komponenty**: React Hooks (`useWorkerGPS`, `useWorkerNotifications`), Lucide-React (ikony).
+- **Zarządzanie Stanem / Komponenty**: React Hooks modułu workera (`src/features/worker/hooks`: `useWorkerGPS`, `useWorkerNotifications`, …), Lucide-React (ikony).
 
 ---
 

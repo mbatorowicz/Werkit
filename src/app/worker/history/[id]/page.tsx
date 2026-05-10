@@ -1,9 +1,6 @@
 import { ArrowLeft, Clock, MapPin, Camera, FileText } from "lucide-react";
 import Link from "next/link";
 import { TimelineItem } from "@/types/worker";
-import { db } from "@/db";
-import { workSessions, gpsLogs, sessionNotes, sessionPhotos, materials, customers } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from '@/lib/auth';
@@ -21,7 +18,7 @@ async function getUserId() {
   }
 }
 
-export const dynamicConfig = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 
 export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const userId = await getUserId();

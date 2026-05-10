@@ -1,8 +1,5 @@
-import { Clock, MapPin, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { db } from "@/db";
-import { workSessions, materials, customers } from "@/db/schema";
-import { eq, desc, and, isNotNull } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 

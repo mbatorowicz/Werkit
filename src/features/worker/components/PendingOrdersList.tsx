@@ -2,6 +2,13 @@
 
 import { Play, Clock } from "lucide-react";
 import Link from "next/link";
+import type { AppDictionary } from "@/i18n/types";
+import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
+import {
+  workOrderCategoryHeadingClass,
+  workOrderPendingListCardClass,
+} from "@/features/worker/lib/workOrderPresentation";
+import { WorkOrderPriorityRibbon, WorkOrderSummaryLines } from "@/components/work-orders";
 import { WorkOrder, UserData } from "@/types/worker";
 
 interface PendingOrdersListProps {
@@ -9,7 +16,7 @@ interface PendingOrdersListProps {
   overdueOrder?: WorkOrder | null;
   upcomingOrder?: WorkOrder | null;
   currentUser: UserData | null;
-  dict: Record<string, string>;
+  dict: AppDictionary["worker"]["client"];
   requestAcceptOrder: (orderId: number) => void;
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => void;
 }
@@ -49,9 +56,9 @@ export default function PendingOrdersList({
                 <Clock className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-red-800 dark:text-red-300">Zlecenie opóźnione!</span>
+                <span className="text-sm font-bold text-red-800 dark:text-red-300">{dict.orderOverdueTitle}</span>
                 <span className="text-xs text-red-700 dark:text-red-400/90 mt-0.5">
-                  Zlecenie #{overdueOrder.id} powinno było się już rozpocząć.
+                  {formatDict(dict.orderOverdueBody, { id: overdueOrder.id })}
                 </span>
               </div>
             </div>
@@ -65,63 +72,53 @@ export default function PendingOrdersList({
               <div className="flex flex-col">
                 <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{dict.upcomingTerm}</span>
                 <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
-                  {dict.orderFastReq.replace('{id}', upcomingOrder.id.toString()).replace('{time}', new Date(upcomingOrder.dueDate!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }))}
+                  {formatDict(dict.orderFastReq, {
+                    id: upcomingOrder.id,
+                    time: new Date(upcomingOrder.dueDate!).toLocaleTimeString(DEFAULT_UI_LOCALE, {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }),
+                  })}
                 </span>
               </div>
             </div>
           )}
 
           {workOrders.map(order => (
-            <div key={order.id} className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3">
-              <div className="flex flex-col">
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex items-center gap-2">
-                    <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">#{order.id}</span>
-                    <div className={`font-bold text-lg ${order.priority === 'URGENT' ? 'text-red-400' : order.priority === 'HIGH' ? 'text-orange-400' : 'text-amber-400'}`}>{order.categoryName || 'Brak Kategorii'}</div>
+            <div key={order.id} className={workOrderPendingListCardClass(order.priority)}>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex flex-wrap items-center gap-2 min-w-0">
+                    <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30 shrink-0">
+                      #{order.id}
+                    </span>
+                    <div className={`font-bold text-lg min-w-0 break-words ${workOrderCategoryHeadingClass(order.priority)}`}>
+                      {order.categoryName || dict.noCategoryName}
+                    </div>
                   </span>
-                  {order.priority === 'HIGH' && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 shrink-0">
-                      <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
-                      <span className="text-[10px] font-bold text-red-700 dark:text-red-400">{dict.priorityHigh}</span>
-                    </div>
-                  )}
-                  {(!order.priority || order.priority === 'NORMAL') && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 shrink-0">
-                      <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
-                      <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">{dict.priorityNormal}</span>
-                    </div>
-                  )}
-                  {order.priority === 'LOW' && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 shrink-0">
-                      <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
-                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">{dict.priorityLow}</span>
-                    </div>
-                  )}
+                  <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
                 </div>
-                <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                  {dict.machine} <span className="font-semibold">{order.resourceName}</span>
-                </span>
-                {(order.materialName || order.customerName) && (
-                  <>
-                    {order.materialName && <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Towar:</span> {order.materialName} {order.quantityTons ? `(${order.quantityTons}t)` : ''}</div>}
-                    {order.customerName && <div className="text-sm text-zinc-700 dark:text-zinc-300"><span className="text-zinc-500">Klient:</span> {order.customerName}</div>}
-                  </>
-                )}
-                {order.taskDescription && (
-                  <span className="text-xs text-amber-700 dark:text-amber-600/80 mt-1">
-                    {dict.task} {order.taskDescription}
-                  </span>
-                )}
+                <WorkOrderSummaryLines order={order} dict={dict} />
                 {order.dueDate && (
                   <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
-                    <Clock className="w-3 h-3" />
+                    <Clock className="w-3 h-3 shrink-0" />
                     <span className="text-xs">
-                      {dict.term.replace('{date}', new Date(order.dueDate).toLocaleDateString('pl-PL')).replace('{time}', new Date(order.dueDate).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }))}
+                      {formatDict(dict.term, {
+                        date: new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE),
+                        time: new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }),
+                      })}
                     </span>
                   </div>
                 )}
               </div>
-              <button onClick={() => requestAcceptOrder(order.id)} className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full">
+              <button
+                type="button"
+                onClick={() => requestAcceptOrder(order.id)}
+                className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full"
+              >
                 <Play className="w-4 h-4 fill-current" />
                 <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>
               </button>

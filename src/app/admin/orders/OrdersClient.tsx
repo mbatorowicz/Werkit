@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { Map, Plus, X, Search, RefreshCw, Settings, Loader2 } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { getDictionary } from "@/i18n";
+import { DEFAULT_UI_LOCALE, formatDict, getDictionary } from "@/i18n";
+import { WorkOrderPriorityRibbon } from "@/components/work-orders";
+import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import SettingsForm from "../settings/SettingsForm";
 import GanttChart from "@/components/GanttChart/GanttChart";
@@ -31,6 +33,7 @@ export default function OrdersClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
+  const workerUiLabels = dictionary.worker.client;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const [form, setForm] = useState({
@@ -317,31 +320,19 @@ export default function OrdersClient() {
                           #{item.workOrderId || item.id}
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName as string}</div>
-                        {item._type === 'ORDER' && item.priority === 'HIGH' && (
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 mt-1">
-                            <div className="w-2 h-2 rounded-sm bg-red-500 shadow-sm shrink-0" />
-                            <span className="text-[10px] font-bold text-red-700 dark:text-red-400">WAŻNY</span>
-                          </div>
-                        )}
-                        {item._type === 'ORDER' && (!item.priority || item.priority === 'NORMAL') && (
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 mt-1">
-                            <div className="w-2 h-2 rounded-sm bg-orange-500 shadow-sm shrink-0" />
-                            <span className="text-[10px] font-bold text-orange-700 dark:text-orange-400">NORMALNY</span>
-                          </div>
-                        )}
-                        {item._type === 'ORDER' && item.priority === 'LOW' && (
-                          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 mt-1">
-                            <div className="w-2 h-2 rounded-sm bg-emerald-500 shadow-sm shrink-0" />
-                            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">NISKI</span>
-                          </div>
+                        {item._type === 'ORDER' && (
+                          <WorkOrderPriorityRibbon
+                            priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
+                            labels={workerUiLabels}
+                          />
                         )}
                       </div>
                       <div className="text-xs text-zinc-500 mt-0.5">
                         {item._type === 'ORDER'
-                          ? `${new Date(item.createdAt as string).toLocaleDateString('pl-PL')} ${new Date(item.createdAt as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
-                          : `${new Date(item.startTime as string).toLocaleDateString('pl-PL')} ${new Date(item.startTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`
+                          ? `${new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE)} ${new Date(item.createdAt as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: '2-digit', minute: '2-digit' })}`
+                          : `${new Date(item.startTime as string).toLocaleDateString(DEFAULT_UI_LOCALE)} ${new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: '2-digit', minute: '2-digit' })}`
                         }
-                        {item.endTime && ` - ${new Date(item.endTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`}
+                        {item.endTime && ` - ${new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: '2-digit', minute: '2-digit' })}`}
                       </div>
                       {item.creatorName && (
                         <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
@@ -354,7 +345,7 @@ export default function OrdersClient() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-zinc-900 dark:text-zinc-200">
-                        {item.categoryName || 'Brak Kategorii'}
+                        {item.categoryName || workerUiLabels.noCategoryName}
                       </div>
                       {item.materialName && (
                         <div className="text-xs text-zinc-500 mt-0.5">
@@ -372,12 +363,18 @@ export default function OrdersClient() {
                           <div className="flex items-center gap-2 flex-wrap">
                             {item.expectedDurationHours && (
                               <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                                Szacowany czas: {item.expectedDurationHours}h
+                                {workerUiLabels.durationLabel} {item.expectedDurationHours}h
                               </div>
                             )}
                             {item.dueDate && (
                               <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                                Termin: {new Date(item.dueDate as string).toLocaleDateString('pl-PL')} {new Date(item.dueDate as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                                {formatDict(workerUiLabels.term, {
+                                  date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
+                                  time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }),
+                                })}
                               </div>
                             )}
                           </div>
@@ -387,10 +384,10 @@ export default function OrdersClient() {
                         {item.status === 'COMPLETED' && item.startTime && item.endTime && (
                           <div className="flex items-center gap-2 flex-wrap">
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              Start: {new Date(item.startTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                              Start: {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              Koniec: {new Date(item.endTime as string).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                              Koniec: {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-500/20 inline-block px-1.5 py-0.5 rounded">
                               Czas łączny: {(() => {

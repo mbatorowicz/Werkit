@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { users } from '@/db/schema';
 import bcrypt from 'bcrypt';
-import { desc } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 

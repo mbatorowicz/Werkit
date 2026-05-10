@@ -131,6 +131,7 @@ export const workOrders = pgTable('work_orders', {
   createdById: integer('created_by_id').references(() => users.id, { onDelete: 'set null' }),
   quantityTons: numeric('quantity_tons', { precision: 10, scale: 2 }),
   expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
+  /** Dozwolone wartości: URGENT | HIGH | NORMAL | LOW — egzekwowane przez CHECK `work_orders_priority_chk` (migracja drizzle). */
   priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
   dueDate: timestamp('due_date'),
   lockedUntil: timestamp('locked_until'),

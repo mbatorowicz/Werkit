@@ -1,6 +1,3 @@
-import { db } from "@/db";
-import { deviceLogs, users } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
 import LogsClient from "./LogsClient";
 
 export const dynamic = 'force-dynamic';
