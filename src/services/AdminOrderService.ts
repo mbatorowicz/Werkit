@@ -6,11 +6,15 @@ import {
   resources,
   materials,
   customers,
-  sessionPhotos,
-  sessionNotes,
   resourceCategories,
 } from '@/db/schema';
-import { eq, desc, aliasedTable, sql, or, and, inArray } from 'drizzle-orm';
+import { eq, desc, aliasedTable, or, and, inArray } from 'drizzle-orm';
+import {
+  sqlSessionHasNotes,
+  sqlSessionHasPhotos,
+  sqlWorkOrderHasNotes,
+  sqlWorkOrderHasPhotos,
+} from '@/services/sql/attachmentExistsSql';
 
 export class AdminOrderService {
   /**
@@ -85,16 +89,8 @@ export class AdminOrderService {
       priority: workOrders.priority,
       expectedDurationHours: workOrders.expectedDurationHours,
       dueDate: workOrders.dueDate,
-      hasPhotos: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionPhotos}
-        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionPhotos.workSessionId}
-        WHERE ${workSessions.workOrderId} = ${workOrders.id}
-      )`,
-      hasNotes: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionNotes}
-        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionNotes.workSessionId}
-        WHERE ${workSessions.workOrderId} = ${workOrders.id}
-      )`,
+      hasPhotos: sqlWorkOrderHasPhotos(),
+      hasNotes: sqlWorkOrderHasNotes(),
     })
     .from(workOrders)
     .leftJoin(users, eq(workOrders.userId, users.id))
@@ -135,14 +131,8 @@ export class AdminOrderService {
        quantityTons: workSessions.quantityTons,
        expectedDurationHours: workSessions.expectedDurationHours,
        dueDate: workSessions.dueDate,
-       hasPhotos: sql<boolean>`EXISTS (
-         SELECT 1 FROM ${sessionPhotos}
-         WHERE ${sessionPhotos.workSessionId} = ${workSessions.id}
-       )`,
-       hasNotes: sql<boolean>`EXISTS (
-         SELECT 1 FROM ${sessionNotes}
-         WHERE ${sessionNotes.workSessionId} = ${workSessions.id}
-       )`,
+       hasPhotos: sqlSessionHasPhotos(),
+       hasNotes: sqlSessionHasNotes(),
      })
      .from(workSessions)
      .leftJoin(users, eq(workSessions.userId, users.id))

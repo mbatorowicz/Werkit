@@ -61,10 +61,16 @@ export class DictionaryService {
   static async getMaterials() {
     const all = await db.select().from(materials).orderBy(desc(materials.id));
     const links = await db.select().from(materialToCategories);
+    const byMaterialId = new Map<number, number[]>();
+    for (const l of links) {
+      const arr = byMaterialId.get(l.materialId) ?? [];
+      arr.push(l.categoryId);
+      byMaterialId.set(l.materialId, arr);
+    }
     return all.map((m) => ({
       id: m.id,
       name: m.name,
-      categoryIds: links.filter((l) => l.materialId === m.id).map((l) => l.categoryId),
+      categoryIds: byMaterialId.get(m.id) ?? [],
     }));
   }
 
@@ -75,20 +81,23 @@ export class DictionaryService {
   static async getResources() {
     const allResources = await db.select().from(resources).orderBy(desc(resources.id));
     const links = await db.select().from(resourceToCategories);
-    
-    return allResources.map((r) => {
-      const cats = links.filter((l) => l.resourceId === r.id).map((l) => l.categoryId);
-      return {
-        id: r.id,
-        name: r.name,
-        brand: r.brand ?? '',
-        model: r.model ?? '',
-        registrationNumber: r.registrationNumber ?? '',
-        description: r.description ?? null,
-        categoryIds: cats,
-        imageUrl: r.imageUrl,
-      };
-    });
+    const byResourceId = new Map<number, number[]>();
+    for (const l of links) {
+      const arr = byResourceId.get(l.resourceId) ?? [];
+      arr.push(l.categoryId);
+      byResourceId.set(l.resourceId, arr);
+    }
+
+    return allResources.map((r) => ({
+      id: r.id,
+      name: r.name,
+      brand: r.brand ?? '',
+      model: r.model ?? '',
+      registrationNumber: r.registrationNumber ?? '',
+      description: r.description ?? null,
+      categoryIds: byResourceId.get(r.id) ?? [],
+      imageUrl: r.imageUrl,
+    }));
   }
 
   /** Łączenie widoczności pól zasobu — pole widoczne, jeśli któraś z wybranych kategorii je pokazuje. */

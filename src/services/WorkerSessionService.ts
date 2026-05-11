@@ -1,9 +1,13 @@
 import { db } from '@/db';
 import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs, resourceCategories } from '@/db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
+import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 
 export class WorkerSessionService {
+  private static activeSessionWhere(userId: number) {
+    return and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'));
+  }
   /**
    * Pobiera aktualną, aktywną sesję pracownika wraz ze zdjęciami, notatkami, ustawieniami firmy i danymi usera.
    */
@@ -25,8 +29,8 @@ export class WorkerSessionService {
     .leftJoin(resources, eq(workSessions.resourceId, resources.id))
     .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
-    .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    
+    .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
+
     const settingsRows = await db.select().from(companySettings).limit(1);
     const companySettingsData = settingsRows[0] || null;
 
@@ -79,8 +83,8 @@ export class WorkerSessionService {
   }) {
     // Sprawdzenie czy już trwa sesja
     const existing = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
+
     if (existing.length > 0) {
        throw new Error('session_active');
     }
@@ -112,8 +116,8 @@ export class WorkerSessionService {
    */
   static async endActiveSession(userId: number, endCoord?: { lat: number; lng: number } | null) {
     const existing = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
-    
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
+
     if (existing.length === 0) {
        throw new Error('no_active_session');
     }
@@ -143,7 +147,7 @@ export class WorkerSessionService {
   }
   static async addNote(userId: number, note: string, lat?: string | null, lng?: string | null) {
     const existing = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
     if (existing.length === 0) throw new Error('no_active_session');
 
     await db.insert(sessionNotes).values({
@@ -156,7 +160,7 @@ export class WorkerSessionService {
 
   static async updateNote(userId: number, noteId: number, note: string) {
     const existing = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
     if (existing.length === 0) throw new Error('no_active_session');
 
     const targetNote = await db.select().from(sessionNotes)
@@ -168,7 +172,7 @@ export class WorkerSessionService {
 
   static async addPhoto(userId: number, photoUrl: string, lat?: string | null, lng?: string | null) {
     const existing = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
     if (existing.length === 0) throw new Error('no_active_session');
 
     await db.insert(sessionPhotos).values({
@@ -182,7 +186,7 @@ export class WorkerSessionService {
 
   static async cancelActiveSession(userId: number) {
     const [session] = await db.select().from(workSessions)
-      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+      .where(WorkerSessionService.activeSessionWhere(userId)).limit(1);
     if (!session) throw new Error('no_active_session');
 
     if (session.workOrderId != null) {
@@ -208,14 +212,8 @@ export class WorkerSessionService {
         materialName: materials.name,
         customerLastName: customers.lastName,
         resourceName: resources.name,
-        hasPhotos: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionPhotos}
-        WHERE ${sessionPhotos.workSessionId} = ${workSessions.id}
-      )`,
-        hasNotes: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionNotes}
-        WHERE ${sessionNotes.workSessionId} = ${workSessions.id}
-      )`,
+        hasPhotos: sqlSessionHasPhotos(),
+        hasNotes: sqlSessionHasNotes(),
       })
       .from(workSessions)
       .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))

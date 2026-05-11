@@ -16,7 +16,7 @@ const eslintConfig = defineConfig([
   ]),
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
       "react/no-unescaped-entities": "warn",
       "react-hooks/set-state-in-effect": "warn"
     }

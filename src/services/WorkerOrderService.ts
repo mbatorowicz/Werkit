@@ -6,11 +6,10 @@ import {
   customers,
   users,
   workSessions,
-  sessionPhotos,
-  sessionNotes,
+  resourceCategories,
 } from '@/db/schema';
-import { eq, and, aliasedTable, asc, sql } from 'drizzle-orm';
-import { resourceCategories } from '@/db/schema';
+import { eq, and, aliasedTable, asc } from 'drizzle-orm';
+import { sqlWorkOrderHasNotes, sqlWorkOrderHasPhotos } from '@/services/sql/attachmentExistsSql';
 import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 
@@ -38,16 +37,8 @@ export class WorkerOrderService {
       priority: workOrders.priority,
       dueDate: workOrders.dueDate,
       createdAt: workOrders.createdAt,
-      hasPhotos: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionPhotos}
-        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionPhotos.workSessionId}
-        WHERE ${workSessions.workOrderId} = ${workOrders.id}
-      )`,
-      hasNotes: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${sessionNotes}
-        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionNotes.workSessionId}
-        WHERE ${workSessions.workOrderId} = ${workOrders.id}
-      )`,
+      hasPhotos: sqlWorkOrderHasPhotos(),
+      hasNotes: sqlWorkOrderHasNotes(),
     })
     .from(workOrders)
     .leftJoin(resources, eq(workOrders.resourceId, resources.id))
