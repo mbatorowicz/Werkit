@@ -24,9 +24,12 @@ export default function MaterialsClient() {
     apiErrors,
     listFetchFallback: machDict.dbError,
   });
-  alertCtxRef.current = { apiErrors, listFetchFallback: machDict.dbError };
 
   const { materials, categories, isLoading, fetchData } = useMaterialsAdminData(alertCtxRef);
+
+  useEffect(() => {
+    alertCtxRef.current = { apiErrors, listFetchFallback: machDict.dbError };
+  }, [apiErrors, machDict.dbError]);
 
   useEffect(() => {
     queueMicrotask(() => void fetchData());

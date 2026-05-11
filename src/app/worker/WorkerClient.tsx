@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { getDictionary } from "@/i18n";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
@@ -47,6 +47,14 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   const [showGpsWarning, setShowGpsWarning] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+  /** Zegar do okna anulowania — bez `Date.now()` w renderze (React 19 / purity). */
+  const [cancelWindowClock, setCancelWindowClock] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = () => setCancelWindowClock(Date.now());
+    tick();
+    const id = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(id);
+  }, [shell.session?.id, shell.session?.startTime]);
 
   const requestAcceptOrder = useCallback(
     (orderId: number) => {
@@ -68,7 +76,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   const isCancelWindowOpen =
     shell.session && shell.settings?.cancelWindowMinutes
-      ? (Date.now() - new Date(shell.session.startTime).getTime()) / 60000 <= shell.settings.cancelWindowMinutes
+      ? (cancelWindowClock - new Date(shell.session.startTime).getTime()) / 60000 <=
+        shell.settings.cancelWindowMinutes
       : true;
 
   const { isTimeOverrun, overdueOrder, upcomingOrder } = useWorkerNotifications(

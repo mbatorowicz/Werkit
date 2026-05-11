@@ -18,9 +18,22 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
       "react/no-unescaped-entities": "warn",
-      "react-hooks/set-state-in-effect": "warn"
-    }
-  }
+      "react-hooks/set-state-in-effect": "warn",
+    },
+  },
+  {
+    files: ["src/scripts/**/*.{ts,mts}"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/scripts/**"],
+    rules: {
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+    },
+  },
 ]);
 
 export default eslintConfig;

@@ -113,10 +113,7 @@ export function useWizardFlow() {
     quantityTons,
     resourceId,
     router,
-    selectedCategory?.showCustomer,
-    selectedCategory?.showMaterial,
-    selectedCategory?.showQuantity,
-    selectedCategory?.showTaskDescription,
+    selectedCategory,
     taskDescription,
   ]);
 

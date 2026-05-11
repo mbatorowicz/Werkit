@@ -18,7 +18,13 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
 };
 
+/** Kanoniczny origin dla metadanych (OG, manifest) — Vercel lub jawna zmienna środowiskowa. */
+const metadataBaseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(metadataBaseUrl),
   title: "Werkit ERP",
   description: "Zarządzanie operacjami i flotą",
   manifest: "/manifest.json",
