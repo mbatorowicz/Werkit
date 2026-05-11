@@ -43,6 +43,34 @@ export function OrdersDispatchTable({
   /** Clock poza renderem — unika Date.now() podczas czystego renderu (React Compiler). */
   const [liveClockMs, setLiveClockMs] = useState<number | null>(null);
 
+  const statusTone = (status: UnifiedGanttItem["status"]) => {
+    // planned / in progress / done
+    if (status === "PENDING") return "planned";
+    if (status === "IN_PROGRESS") return "active";
+    return "done";
+  };
+
+  const toneClasses = (tone: "planned" | "active" | "done") => {
+    switch (tone) {
+      case "planned":
+        return {
+          pill: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
+          label: "text-amber-700 dark:text-amber-400",
+        };
+      case "active":
+        return {
+          pill: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
+          label: "text-blue-700 dark:text-blue-400",
+        };
+      case "done":
+      default:
+        return {
+          pill: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
+          label: "text-emerald-700 dark:text-emerald-400",
+        };
+    }
+  };
+
   useEffect(() => {
     const tick = () => setLiveClockMs(Date.now());
     tick();
@@ -94,6 +122,8 @@ export function OrdersDispatchTable({
             ) : (
               unifiedItems.slice(0, tableLimit).map((item) => {
                 const isWorking = item.status === "IN_PROGRESS";
+                const tone = statusTone(item.status);
+                const cls = toneClasses(tone);
                 let progress = 0;
                 if (isWorking && item._sortDate && liveClockMs !== null) {
                   const start = new Date(item._sortDate as number).getTime();
@@ -101,6 +131,55 @@ export function OrdersDispatchTable({
                   const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
                   progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
                 }
+
+                const orderNo = `#${item.workOrderId || item.id}`;
+                const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
+                const machine = ((item.resourceName as string) || dict.noMachine) as string;
+                const material = (item.materialName as string) || "";
+                const qty = item.quantityTons ? `${item.quantityTons}t` : "";
+                const customer = [
+                  item.customerLastName ? (item.customerLastName as string) : "",
+                  item.customerFirstName ? (item.customerFirstName as string) : "",
+                ]
+                  .join(" ")
+                  .trim();
+                const desc = (item.taskDescription as string) || "";
+
+                // Plan vs start/stop:
+                const tStart =
+                  item.status === "PENDING"
+                    ? item.dueDate
+                      ? new Date(item.dueDate as string)
+                      : new Date(item.createdAt as string)
+                    : item.startTime
+                      ? new Date(item.startTime as string)
+                      : null;
+                const tEnd =
+                  item.status === "COMPLETED" && item.endTime
+                    ? new Date(item.endTime as string)
+                    : item.status === "IN_PROGRESS" && item.startTime && liveClockMs !== null
+                      ? new Date(liveClockMs)
+                      : item.status === "PENDING" && item.dueDate && item.expectedDurationHours
+                        ? new Date(
+                            new Date(item.dueDate as string).getTime() +
+                              Number(item.expectedDurationHours) * 60 * 60 * 1000,
+                          )
+                        : null;
+
+                const dateLabel = tStart
+                  ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
+                  : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
+                const timeLabel = tStart
+                  ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
+                      tEnd
+                        ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}`
+                        : ""
+                    }`
+                  : "";
+
                 return (
                   <tr
                     key={`${item._type}-${item.id}`}
@@ -110,11 +189,15 @@ export function OrdersDispatchTable({
                     }`}
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <div className="font-mono text-sm font-black text-emerald-600 dark:text-emerald-400 mr-1 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20">
-                          #{item.workOrderId || item.id}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className={`font-mono text-sm font-black mr-1 px-2 py-0.5 rounded border ${cls.pill}`}
+                        >
+                          {orderNo}
                         </div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-200">{item.workerName as string}</div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-200 truncate">
+                          {item.workerName as string}
+                        </div>
                         {item._type === "ORDER" && (
                           <WorkOrderPriorityRibbon
                             priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
@@ -122,18 +205,46 @@ export function OrdersDispatchTable({
                           />
                         )}
                       </div>
-                      <div className="text-xs text-zinc-500 mt-0.5">
-                        {item._type === "ORDER"
-                          ? `${new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE)} ${new Date(item.createdAt as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}`
-                          : `${new Date(item.startTime as string).toLocaleDateString(DEFAULT_UI_LOCALE)} ${new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}`}
-                        {item.endTime &&
-                          ` - ${new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}`}
+
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Tryb pracy</span>
+                          <div className="text-zinc-900 dark:text-zinc-200 truncate">{mode}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Maszyna</span>
+                          <div className="text-zinc-900 dark:text-zinc-200 truncate">{machine}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Materiał</span>
+                          <div className="text-zinc-700 dark:text-zinc-300 truncate">{material || "—"}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Ilość</span>
+                          <div className="text-zinc-700 dark:text-zinc-300 truncate">{qty || "—"}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Klient</span>
+                          <div className="text-zinc-700 dark:text-zinc-300 truncate">{customer || "—"}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Opis</span>
+                          <div className="text-zinc-700 dark:text-zinc-300 truncate" title={desc || ""}>
+                            {desc || "—"}
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Data</span>
+                          <div className="text-zinc-700 dark:text-zinc-300">{dateLabel}</div>
+                        </div>
+                        <div className="min-w-0">
+                          <span className={`uppercase tracking-wider font-semibold ${cls.label}`}>Godzina</span>
+                          <div className="text-zinc-700 dark:text-zinc-300">{timeLabel || "—"}</div>
+                        </div>
                       </div>
+
                       {item.creatorName && (
-                        <div className="text-[10px] text-zinc-400 mt-1 uppercase tracking-wider">
+                        <div className="text-[10px] text-zinc-400 mt-2 uppercase tracking-wider">
                           {dict.orderedBy} <span className="font-medium text-zinc-500">{item.creatorName}</span>
                         </div>
                       )}
