@@ -464,6 +464,15 @@ export const pl = {
     },
     logs: {
       subtitle: "Podgląd zdarzeń z aplikacji pracowniczej w terenie.",
+      scopeNote: "Lista: do {page} najnowszych wpisów (filtry działają w tym zakresie). Eksport pliku: do {exportMax} wpisów z bazy.",
+      filterAllWorkers: "Wszyscy pracownicy",
+      filterAllLevels: "Wszystkie logi",
+      refresh: "Odśwież",
+      emptyFiltered: "Brak logów dla wybranych filtrów.",
+      exportJson: "Eksport JSON",
+      exportJsonHint: "Pobierz do {max} najnowszych wpisów z tabeli device_logs.",
+      exportJsonLoading: "Pobieranie…",
+      exportJsonError: "Nie udało się pobrać eksportu.",
     }
   },
   worker: {

@@ -114,7 +114,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów | admin |
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Singleton ustawień firmy (`admin/settings/SettingsForm.tsx`) | admin |
-| `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR zbiera dane w `page.tsx`) | admin |
+| `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR `DEVICE_LOGS_PAGE_LIMIT` + eksport → `/api/admin/logs/export`) | admin |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator sesji: `@/features/worker/components/WizardClient` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
@@ -177,6 +177,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — `AdminOrderService.checkScheduleConflict` (+ `forceSave`); `guardAdminMutation` |
 | `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
+| `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
 | `/api/admin/work-sessions/[id]` | DELETE | `deleteArchivedSession` (sprzątanie + delete `work_orders` jeśli sesja z dyspozycji) |
 | `/api/admin/work-sessions/[id]/force-complete` | POST | `forceCompleteSession` — ratunek dla zawieszonej `IN_PROGRESS` |

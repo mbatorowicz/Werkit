@@ -467,6 +467,15 @@ export const en: AppDictionary = {
     },
     logs: {
       subtitle: "Events from worker devices in the field.",
+      scopeNote: "List: up to {page} newest rows (filters apply within this range). File export: up to {exportMax} rows from the database.",
+      filterAllWorkers: "All workers",
+      filterAllLevels: "All logs",
+      refresh: "Refresh",
+      emptyFiltered: "No logs match the selected filters.",
+      exportJson: "Export JSON",
+      exportJsonHint: "Download up to {max} newest rows from the device_logs table.",
+      exportJsonLoading: "Downloading…",
+      exportJsonError: "Export download failed.",
     }
   },
   worker: {
