@@ -208,7 +208,8 @@ export default function OrdersClient() {
     fetchData(true);
   };
 
-  const tableColSpan = canMutate ? 5 : 4;
+  // Kolumny: karta + status (+opcjonalnie akcje)
+  const tableColSpan = canMutate ? 3 : 2;
 
   const unifiedItems = useMemo(
     () => buildUnifiedDispatchItems(orders, sessions, searchQuery),

@@ -66,12 +66,6 @@ export function OrdersDispatchTable({
               <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 {dict.workerDate}
               </th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                {archiveDict.machine}
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                {dict.taskDeadlineColumn}
-              </th>
               <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">
                 {archiveDict.status}
               </th>
@@ -196,29 +190,25 @@ export function OrdersDispatchTable({
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-zinc-700 dark:text-zinc-300">
-                      {(item.resourceName as string) || dict.noMachine}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-zinc-900 dark:text-zinc-200">
-                        {item.categoryName || workerUiLabels.noCategoryName}
-                      </div>
-                      {item.materialName && (
-                        <div className="text-xs text-zinc-500 mt-0.5">
-                          {item.materialName as string}{" "}
-                          {item.quantityTons ? `(${item.quantityTons}t)` : ""}{" "}
-                          {item.customerLastName ? `→ ${item.customerLastName}` : ""}{" "}
-                          {item.customerFirstName ? (item.customerFirstName as string) : ""}
-                        </div>
-                      )}
-                      {item.taskDescription && (
-                        <div className="text-xs text-zinc-500 mt-0.5 max-w-xs truncate" title={item.taskDescription as string}>
-                          {item.taskDescription as string}
-                        </div>
-                      )}
-                      <div className="flex flex-col gap-1.5 mt-2">
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex flex-col items-end gap-2">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
+                            item.status === "PENDING"
+                              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20"
+                              : item.status === "IN_PROGRESS"
+                                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20"
+                          }`}
+                        >
+                          {item.status === "PENDING"
+                            ? dict.pending
+                            : item.status === "IN_PROGRESS"
+                              ? archiveDict.inProgress
+                              : archiveDict.completed}
+                        </span>
                         {(item.expectedDurationHours || item.dueDate) && (
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center justify-end gap-2 flex-wrap max-w-[260px]">
                             {item.expectedDurationHours && (
                               <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
                                 {workerUiLabels.durationLabel} {item.expectedDurationHours}h
@@ -239,7 +229,7 @@ export function OrdersDispatchTable({
                         )}
 
                         {item.status === "COMPLETED" && item.startTime && item.endTime && (
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center justify-end gap-2 flex-wrap max-w-[260px]">
                             <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                               {dict.start}:{" "}
                               {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
@@ -254,37 +244,8 @@ export function OrdersDispatchTable({
                                 minute: "2-digit",
                               })}
                             </div>
-                            <div className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-500/20 inline-block px-1.5 py-0.5 rounded">
-                              {(() => {
-                                const diff =
-                                  new Date(item.endTime as string).getTime() -
-                                  new Date(item.startTime as string).getTime();
-                                const h = Math.floor(diff / (1000 * 60 * 60));
-                                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                return `${dict.durationTotal}: ${h}h ${m}m`;
-                              })()}
-                            </div>
                           </div>
                         )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex flex-col items-end gap-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                            item.status === "PENDING"
-                              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20"
-                              : item.status === "IN_PROGRESS"
-                                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20"
-                                : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20"
-                          }`}
-                        >
-                          {item.status === "PENDING"
-                            ? dict.pending
-                            : item.status === "IN_PROGRESS"
-                              ? archiveDict.inProgress
-                              : archiveDict.completed}
-                        </span>
                         {isWorking && (
                           <div className="mt-3 w-full max-w-[140px]">
                             <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
