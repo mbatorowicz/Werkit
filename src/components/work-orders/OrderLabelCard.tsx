@@ -49,6 +49,8 @@ function LabelItem({
 export function OrderLabelCard({
   tone,
   orderNo,
+  title,
+  badges,
   mode,
   machine,
   material,
@@ -61,6 +63,8 @@ export function OrderLabelCard({
 }: {
   tone: Tone;
   orderNo: string;
+  title?: string | null;
+  badges?: React.ReactNode;
   mode: string;
   machine: string;
   material?: string | null;
@@ -94,8 +98,16 @@ export function OrderLabelCard({
 
         <div className="flex-1 p-3">
           {/* Nr zlecenia — jedyny element w kolorze statusu */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="min-w-0">
+              <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
+              {title?.trim() ? (
+                <div className="mt-0.5 text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                  {title}
+                </div>
+              ) : null}
+            </div>
+            {badges ? <div className="shrink-0 flex items-center gap-2">{badges}</div> : null}
           </div>
 
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">

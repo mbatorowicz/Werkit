@@ -5,6 +5,7 @@ import { CheckCircle2, Map, Trash2 } from "lucide-react";
 import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
+import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
 
@@ -50,30 +51,6 @@ export function OrdersDispatchTable({
     return "done";
   };
 
-  const toneClasses = (tone: "planned" | "active" | "done") => {
-    switch (tone) {
-      case "planned":
-        return {
-          pill: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-          label: "text-amber-700 dark:text-amber-400",
-          bar: "bg-amber-500/90 dark:bg-amber-400/90",
-        };
-      case "active":
-        return {
-          pill: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
-          label: "text-blue-700 dark:text-blue-400",
-          bar: "bg-blue-500/90 dark:bg-blue-400/90",
-        };
-      case "done":
-      default:
-        return {
-          pill: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
-          label: "text-emerald-700 dark:text-emerald-400",
-          bar: "bg-emerald-500/90 dark:bg-emerald-400/90",
-        };
-    }
-  };
-
   useEffect(() => {
     const tick = () => setLiveClockMs(Date.now());
     tick();
@@ -86,7 +63,6 @@ export function OrdersDispatchTable({
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
-              <th className="w-[10px] px-0 py-0" aria-hidden />
               <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 {dict.workerDate}
               </th>
@@ -127,7 +103,6 @@ export function OrdersDispatchTable({
               unifiedItems.slice(0, tableLimit).map((item) => {
                 const isWorking = item.status === "IN_PROGRESS";
                 const tone = statusTone(item.status);
-                const cls = toneClasses(tone);
                 let progress = 0;
                 if (isWorking && item._sortDate && liveClockMs !== null) {
                   const start = new Date(item._sortDate as number).getTime();
@@ -192,65 +167,32 @@ export function OrdersDispatchTable({
                       item._type === "SESSION" || canMutate ? "cursor-pointer" : ""
                     }`}
                   >
-                    {/* Pasek statusu na pełną wysokość wiersza */}
-                    <td className={`w-[10px] px-0 py-0 ${cls.bar}`} aria-hidden />
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`font-mono text-sm font-black mr-1 ${cls.label}`}>{orderNo}</div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-200 truncate">
-                          {item.workerName as string}
-                        </div>
-                        {item._type === "ORDER" && (
-                          <WorkOrderPriorityRibbon
-                            priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
-                            labels={workerUiLabels}
-                          />
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Tryb pracy</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate">{mode}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Maszyna</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate">{machine}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Materiał</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate">{material || "—"}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Ilość</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate">{qty || "—"}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Klient</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate">{customer || "—"}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Opis</div>
-                          <div
-                            className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate"
-                            title={desc || ""}
-                          >
-                            {desc || "—"}
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Data</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold">{dateLabel}</div>
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">Godzina</div>
-                          <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold">{timeLabel || "—"}</div>
-                        </div>
-                      </div>
-
+                      <OrderLabelCard
+                        tone={tone}
+                        orderNo={orderNo}
+                        title={item.workerName as string}
+                        badges={
+                          item._type === "ORDER" ? (
+                            <WorkOrderPriorityRibbon
+                              priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
+                              labels={workerUiLabels}
+                            />
+                          ) : null
+                        }
+                        mode={mode}
+                        machine={machine}
+                        material={material || "—"}
+                        quantity={qty || "—"}
+                        customer={customer || "—"}
+                        description={desc || "—"}
+                        dateLabel={dateLabel}
+                        timeLabel={timeLabel || "—"}
+                      />
                       {item.creatorName && (
-                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2">
-                          {dict.orderedBy} <span className="font-medium text-zinc-500">{item.creatorName}</span>
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 px-1">
+                          {dict.orderedBy}{" "}
+                          <span className="font-medium text-zinc-500">{item.creatorName}</span>
                         </div>
                       )}
                     </td>
