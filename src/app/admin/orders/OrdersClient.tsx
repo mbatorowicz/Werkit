@@ -1,25 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
-import { Map, Plus, Settings, RefreshCw } from "lucide-react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useMemo, useState } from "react";
+import { Map, Plus, RefreshCw, Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
-import { UnifiedGanttItem, OrderFormState } from "@/types/admin";
+import type { OrderFormState } from "@/types/admin";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { buildUnifiedDispatchItems, formatDueDatetimeLocal } from "@/features/admin/orders/dispatchPlanning";
+import { buildUnifiedDispatchItems } from "@/features/admin/orders/dispatchPlanning";
 import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
+import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
+import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
+
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
 
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
@@ -40,6 +38,18 @@ export default function OrdersClient() {
     fetchData,
   } = useOrdersDispatchData();
 
+  const {
+    isOrderModalOpen,
+    editingOrderId,
+    orderFormInitial,
+    openNewOrderModal,
+    closeOrderModal,
+    handleEditOrder,
+    selectedDispatchItem,
+    closeSessionDetails,
+    onDispatchItemClick,
+  } = useOrdersDeepLink({ canMutate, orders, sessions, isLoading });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
   const [page, setPage] = useState(1);
@@ -51,26 +61,8 @@ export default function OrdersClient() {
       return "board";
     }
   });
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsData, setSettingsData] = useState<unknown>(null);
-  const [selectedItem, setSelectedItem] = useState<UnifiedGanttItem | null>(null);
-  const [form, setForm] = useState({
-    userId: "",
-    resourceId: "",
-    categoryId: "",
-    materialId: "",
-    customerId: "",
-    taskDescription: "",
-    quantityTons: "",
-    priority: "NORMAL",
-    expectedDurationHours: "",
-    dueDate: "",
-    forceSave: false,
-  });
-  const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
-
-  const handledOpenRef = useRef<string | null>(null);
 
   const setViewModePersisted = (m: DispatchViewMode) => {
     setViewMode(m);
@@ -89,58 +81,6 @@ export default function OrdersClient() {
     setTableLimit(n);
     setPage(1);
   };
-
-  const handleEditClick = useCallback((item: UnifiedGanttItem) => {
-    if (!canMutate) return;
-    setEditingOrderId(item.workOrderId || item.id);
-    setForm({
-      userId: String(item.userId || ""),
-      resourceId: String(item.resourceId || ""),
-      categoryId: String(item.categoryId || ""),
-      materialId: String(item.materialId || ""),
-      customerId: String(item.customerId || ""),
-      taskDescription: item.taskDescription || "",
-      quantityTons: String(item.quantityTons || ""),
-      priority: item.priority || "NORMAL",
-      expectedDurationHours: String(item.expectedDurationHours || ""),
-      dueDate: formatDueDatetimeLocal(item.dueDate as string | null),
-      forceSave: false,
-    });
-    setSelectedItem(null);
-    setIsModalOpen(true);
-  }, [canMutate]);
-
-  useEffect(() => {
-    const openRaw = searchParams.get("open");
-    if (!openRaw) {
-      handledOpenRef.current = null;
-      return;
-    }
-    if (isLoading) return;
-    if (orders.length === 0 && sessions.length === 0) return;
-
-    const key = `${pathname}:${openRaw}`;
-    if (handledOpenRef.current === key) return;
-    handledOpenRef.current = key;
-
-    const openId = Number.parseInt(openRaw, 10);
-    if (Number.isNaN(openId)) {
-      handledOpenRef.current = null;
-      router.replace(pathname, { scroll: false });
-      return;
-    }
-
-    const order = orders.find((o) => o.id === openId);
-    if (order) {
-      queueMicrotask(() => handleEditClick(order));
-    } else {
-      const session = sessions.find((s) => s.workOrderId === openId || s.id === openId);
-      if (session) {
-        queueMicrotask(() => setSelectedItem({ ...session, _type: "SESSION" }));
-      }
-    }
-    router.replace(pathname, { scroll: false });
-  }, [searchParams, orders, sessions, isLoading, router, pathname, handleEditClick]);
 
   const readAdminError = async (res: Response): Promise<string | undefined> => {
     const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -166,7 +106,7 @@ export default function OrdersClient() {
       throw new Error(code ?? "complete_failed");
     }
     alert(dict.mutationOk);
-    setSelectedItem(null);
+    closeSessionDetails();
     fetchData(true);
   };
 
@@ -178,11 +118,10 @@ export default function OrdersClient() {
       throw new Error(code ?? "delete_failed");
     }
     alert(dict.mutationOk);
-    setSelectedItem(null);
+    closeSessionDetails();
     fetchData(true);
   };
 
-  // Kolumny: karta + status (+opcjonalnie akcje)
   const tableColSpan = canMutate ? 3 : 2;
 
   const unifiedItems = useMemo(
@@ -197,20 +136,14 @@ export default function OrdersClient() {
 
   const safePage = Math.min(page, totalPages);
 
-  const handleRowClick = (item: UnifiedGanttItem) => {
-    if (item._type === "ORDER") {
-      if (canMutate) handleEditClick(item);
-    } else setSelectedItem(item);
-  };
-
   return (
     <>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Map className="w-6 h-6 text-emerald-500" /> {navTitle}
+          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+            <Map className="h-6 w-6 text-emerald-500" /> {navTitle}
           </h1>
-          <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
+          <p className="mt-1 text-zinc-500">{dict.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -224,28 +157,28 @@ export default function OrdersClient() {
                 /* ignore */
               }
             }}
-            className="p-2.5 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition active:scale-95"
+            className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
             title={dict.tooltipSettings}
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => fetchData(true)}
-            className="p-2.5 bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition active:scale-95"
+            className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
             title={dict.tooltipRefresh}
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="h-4 w-4" />
           </button>
-          {canMutate && (
+          {canMutate ? (
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2"
+              onClick={openNewOrderModal}
+              className="flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
-              <Plus className="w-4 h-4" /> {dict.newOrder}
+              <Plus className="h-4 w-4" /> {dict.newOrder}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -260,14 +193,10 @@ export default function OrdersClient() {
         workers={workers}
         machines={machines}
         unifiedItems={unifiedItems}
-        onItemClick={(item) => {
-          if (item._type === "ORDER") {
-            if (canMutate) handleEditClick(item);
-          } else setSelectedItem(item);
-        }}
+        onItemClick={onDispatchItemClick}
       />
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
+      <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <OrdersDispatchToolbar
           dict={dict}
           searchQuery={searchQuery}
@@ -291,26 +220,22 @@ export default function OrdersClient() {
           unifiedItems={unifiedItems}
           viewMode={viewMode}
           page={safePage}
-          onRowClick={handleRowClick}
+          onRowClick={onDispatchItemClick}
           onDeleteWorkOrder={handleDeleteWorkOrder}
           onForceCompleteSession={handleForceCompleteSession}
           onDeleteArchivedSession={handleDeleteArchivedSession}
         />
       </div>
 
-      {isModalOpen && (
+      {isOrderModalOpen ? (
         <OrderFormModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setEditingOrderId(null);
-          }}
+          isOpen={isOrderModalOpen}
+          onClose={closeOrderModal}
           onDeletePending={
             canMutate && editingOrderId
               ? async () => {
                   await handleDeleteWorkOrder(editingOrderId);
-                  setIsModalOpen(false);
-                  setEditingOrderId(null);
+                  closeOrderModal();
                 }
               : undefined
           }
@@ -328,8 +253,7 @@ export default function OrdersClient() {
             });
             if (res.ok) {
               alert(dict.success);
-              setIsModalOpen(false);
-              setEditingOrderId(null);
+              closeOrderModal();
               fetchData(true);
             } else {
               const data = await res.json();
@@ -343,20 +267,20 @@ export default function OrdersClient() {
           materials={materials}
           customers={customers}
           categories={categories}
-          initialForm={form}
+          initialForm={orderFormInitial}
         />
-      )}
+      ) : null}
 
-      {selectedItem && (
+      {selectedDispatchItem ? (
         <SessionDetailsModal
-          item={selectedItem}
-          onClose={() => setSelectedItem(null)}
-          onEdit={canMutate ? handleEditClick : undefined}
+          item={selectedDispatchItem}
+          onClose={closeSessionDetails}
+          onEdit={canMutate ? handleEditOrder : undefined}
           canMutate={canMutate}
           onForceCompleteSession={canMutate ? handleForceCompleteSession : undefined}
           onDeleteArchivedSession={canMutate ? handleDeleteArchivedSession : undefined}
         />
-      )}
+      ) : null}
     </>
   );
 }

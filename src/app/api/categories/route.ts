@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import {
   isMissingResourceCategoriesStationaryColumn,
@@ -7,50 +7,46 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const { DictionaryService } = await import('@/services/DictionaryService');
+export const GET = withApiErrorHandling(
+  async () => {
+    const { DictionaryService } = await import("@/services/DictionaryService");
     const allCategories = await DictionaryService.getCategories();
-    return NextResponse.json(allCategories);
-  } catch (err: unknown) {
-    console.error('Categories GET:', err);
-    if (isMissingResourceCategoriesStationaryColumn(err)) {
-      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
-    }
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+    return jsonOk(allCategories);
+  },
+  {
+    mapUnknownError: (err) => (isMissingResourceCategoriesStationaryColumn(err) ? jsonError("migration_required", 503) : null),
+    defaultErrorCode: "fetch_error",
+  },
+);
 
-export async function POST(request: Request) {
-  const denied = await guardAdminMutation();
-  if (denied) return denied;
+export const POST = withApiErrorHandling(
+  async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const {
-      name,
-      icon,
-      showCustomer,
-      showMaterial,
-      showQuantity,
-      showTaskDescription,
-      reqCustomer,
-      reqMaterial,
-      reqQuantity,
-      reqTaskDescription,
-      isGlobal,
-      isStationary,
-      color,
-      showResourceName,
-      showResourceDescription,
-      showRegistrationNumber,
-    } = body;
+    const body = await parseJsonBody(request);
+    const name = typeof body.name === "string" ? body.name : "";
+    const icon = typeof body.icon === "string" ? body.icon : null;
+    const showCustomer = body.showCustomer;
+    const showMaterial = body.showMaterial;
+    const showQuantity = body.showQuantity;
+    const showTaskDescription = body.showTaskDescription;
+    const reqCustomer = body.reqCustomer;
+    const reqMaterial = body.reqMaterial;
+    const reqQuantity = body.reqQuantity;
+    const reqTaskDescription = body.reqTaskDescription;
+    const isGlobal = body.isGlobal;
+    const isStationary = body.isStationary;
+    const color = typeof body.color === "string" ? body.color : null;
+    const showResourceName = body.showResourceName;
+    const showResourceDescription = body.showResourceDescription;
+    const showRegistrationNumber = body.showRegistrationNumber;
 
-    if(!name) {
-      return NextResponse.json({ error: 'missing_name' }, { status: 400 });
+    if (!name) {
+      return jsonError("missing_name", 400);
     }
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
+    const { DictionaryService } = await import("@/services/DictionaryService");
     const sc = showCustomer !== undefined ? !!showCustomer : true;
     const sm = showMaterial !== undefined ? !!showMaterial : true;
     const sq = showQuantity !== undefined ? !!showQuantity : true;
@@ -64,7 +60,7 @@ export async function POST(request: Request) {
     const sreg = showRegistrationNumber !== undefined ? !!showRegistrationNumber : true;
     await DictionaryService.addCategory({
       name: name.trim(),
-      icon: icon || 'Truck',
+      icon: icon || "Truck",
       showCustomer: sc || rc,
       showMaterial: sm || rm,
       showQuantity: sq || rq,
@@ -78,17 +74,15 @@ export async function POST(request: Request) {
       reqTaskDescription: rtd,
       isGlobal: !!isGlobal,
       isStationary: !!isStationary,
-      color: color || '#3f3f46',
+      color: color || "#3f3f46",
     });
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error('Categories POST:', err);
-    if (
-      isMissingResourceCategoriesVisibilityColumns(err) ||
-      isMissingResourceCategoriesStationaryColumn(err)
-    ) {
-      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
-    }
-    return NextResponse.json({ error: 'category_exists' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  {
+    mapUnknownError: (err) =>
+      isMissingResourceCategoriesVisibilityColumns(err) || isMissingResourceCategoriesStationaryColumn(err)
+        ? jsonError("migration_required", 503)
+        : null,
+    defaultErrorCode: "category_exists",
+  },
+);

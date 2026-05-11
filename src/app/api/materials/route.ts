@@ -1,47 +1,42 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const { DictionaryService } = await import('@/services/DictionaryService');
+export const GET = withApiErrorHandling(
+  async () => {
+    const { DictionaryService } = await import("@/services/DictionaryService");
     const allMaterials = await DictionaryService.getMaterials();
-    return NextResponse.json(allMaterials);
-  } catch (err: unknown) {
-    console.error('Materials GET:', err);
-    if (isMissingMaterialCategoriesTables(err)) {
-      return NextResponse.json({ error: 'migration_material_categories' }, { status: 503 });
-    }
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+    return jsonOk(allMaterials);
+  },
+  {
+    mapUnknownError: (err) => (isMissingMaterialCategoriesTables(err) ? jsonError("migration_material_categories", 503) : null),
+    defaultErrorCode: "fetch_error",
+  },
+);
 
-export async function POST(request: Request) {
-  const denied = await guardAdminMutation();
-  if (denied) return denied;
+export const POST = withApiErrorHandling(
+  async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const { name } = body;
+    const body = await parseJsonBody(request);
+    const name = typeof body.name === "string" ? body.name : "";
     const categoryIds: number[] = Array.isArray(body.categoryIds)
-      ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+      ? body.categoryIds
+          .map((c: string | number) => parseInt(String(c), 10))
+          .filter((n: number) => !Number.isNaN(n))
       : [];
 
     if (!name || categoryIds.length === 0) {
-      return NextResponse.json(
-        { error: !name ? 'missing_fields' : 'missing_material_category' },
-        { status: 400 },
-      );
+      return jsonError(!name ? "missing_fields" : "missing_material_category", 400);
     }
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
+    const { DictionaryService } = await import("@/services/DictionaryService");
     await DictionaryService.addMaterial(name, categoryIds);
-    
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error('Material Insert Error:', err);
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
-  }
-}
+
+    return jsonOk({ success: true });
+  },
+  { defaultErrorCode: "save_error" },
+);

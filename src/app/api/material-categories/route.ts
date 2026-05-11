@@ -1,38 +1,35 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const { DictionaryService } = await import('@/services/DictionaryService');
+export const GET = withApiErrorHandling(
+  async () => {
+    const { DictionaryService } = await import("@/services/DictionaryService");
     const rows = await DictionaryService.getMaterialCategories();
-    return NextResponse.json(rows);
-  } catch (err: unknown) {
-    console.error('Material categories GET:', err);
-    if (isMissingMaterialCategoriesTables(err)) {
-      return NextResponse.json({ error: 'migration_material_categories' }, { status: 503 });
-    }
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+    return jsonOk(rows);
+  },
+  {
+    mapUnknownError: (err) => (isMissingMaterialCategoriesTables(err) ? jsonError("migration_material_categories", 503) : null),
+    defaultErrorCode: "fetch_error",
+  },
+);
 
-export async function POST(request: Request) {
-  const denied = await guardAdminMutation();
-  if (denied) return denied;
+export const POST = withApiErrorHandling(
+  async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
 
-  try {
-    const body = (await request.json()) as Record<string, unknown>;
-    const name = typeof body.name === 'string' ? body.name.trim() : '';
+    const body = await parseJsonBody(request);
+    const name = typeof body.name === "string" ? body.name.trim() : "";
     if (!name) {
-      return NextResponse.json({ error: 'missing_name' }, { status: 400 });
+      return jsonError("missing_name", 400);
     }
-    const color = typeof body.color === 'string' ? body.color : '#3f3f46';
-    const { DictionaryService } = await import('@/services/DictionaryService');
+    const color = typeof body.color === "string" ? body.color : "#3f3f46";
+    const { DictionaryService } = await import("@/services/DictionaryService");
     await DictionaryService.addMaterialCategory({ name, color });
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  { defaultErrorCode: "save_error" },
+);

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
@@ -8,31 +8,40 @@ import { JWT_SECRET } from '@/lib/auth';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { AdminOrderService } from '@/services/AdminOrderService';
 
-export async function GET() {
-  try {
-    const data = await AdminOrderService.getActiveWorkOrders();
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+export const GET = withApiErrorHandling(async () => {
+  const data = await AdminOrderService.getActiveWorkOrders();
+  return jsonOk(data);
+}, { defaultErrorCode: "fetch_error" });
 
-export async function POST(request: Request) {
-  try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const verified = await jwtVerify(token, JWT_SECRET);
-    if (verified.payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+export const POST = withApiErrorHandling(async (request: Request) => {
+  const token = (await cookies()).get("auth_token")?.value;
+  if (!token) return jsonError("Unauthorized", 401);
+  const verified = await jwtVerify(token, JWT_SECRET);
+  if (verified.payload.role !== "admin") return jsonError("Forbidden", 403);
 
-    const body = await request.json();
-    const { userId, resourceId, categoryId, materialId, customerId, taskDescription, quantityTons, expectedDurationHours, priority, dueDate, forceSave } = body;
+  const body = await parseJsonBody(request);
+
+  const userId = body.userId;
+  const resourceId = body.resourceId;
+  const categoryId = body.categoryId;
+  const materialId = body.materialId;
+  const customerId = body.customerId;
+  const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
+  const quantityTons = typeof body.quantityTons === "string" || typeof body.quantityTons === "number" ? body.quantityTons : null;
+  const expectedDurationHours =
+    typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
+      ? body.expectedDurationHours
+      : null;
+  const priority = body.priority;
+  const dueDate = typeof body.dueDate === "string" ? body.dueDate : null;
+  const forceSave = Boolean(body.forceSave);
 
     const uidNum = parseInt(String(userId), 10);
     const resIdNum = parseInt(String(resourceId), 10);
     const catIdNum = parseInt(String(categoryId), 10);
 
     if (!userId || !resourceId || !categoryId || Number.isNaN(uidNum) || Number.isNaN(resIdNum) || Number.isNaN(catIdNum)) {
-      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+      return jsonError("missing_fields", 400);
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
@@ -44,7 +53,7 @@ export async function POST(request: Request) {
       taskDescription,
     });
     if (catCheck !== 'ok') {
-      return NextResponse.json({ error: catCheck }, { status: 400 });
+      return jsonError(catCheck, 400);
     }
 
     const prio = coerceWorkOrderPriority(priority);
@@ -54,10 +63,12 @@ export async function POST(request: Request) {
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours ? parseFloat(String(expectedDurationHours)) : null,
+        expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+          ? parseFloat(String(expectedDurationHours))
+          : null,
       );
       if (conflict) {
-        return NextResponse.json({ error: conflict }, { status: 409 });
+        return jsonError(conflict, 409);
       }
     }
 
@@ -67,18 +78,15 @@ export async function POST(request: Request) {
       categoryId: catIdNum,
       materialId: materialId ? parseInt(String(materialId), 10) : null,
       customerId: customerId ? parseInt(String(customerId), 10) : null,
-      taskDescription: taskDescription || null,
+      taskDescription,
       status: 'PENDING',
-      quantityTons: quantityTons ? quantityTons.toString() : null,
-      expectedDurationHours: expectedDurationHours ? expectedDurationHours.toString() : null,
+      quantityTons: quantityTons != null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+      expectedDurationHours:
+        expectedDurationHours != null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
       priority: prio,
       dueDate: dueDate ? new Date(dueDate) : null,
       createdById: verified.payload.userId as number
     });
 
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error(err);
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
-  }
-}
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });
