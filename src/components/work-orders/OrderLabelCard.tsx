@@ -54,6 +54,8 @@ export function OrderLabelCard({
   badges,
   footer,
   subheader,
+  orderedBy,
+  orderedByLabel = "Zlecił:",
   density = "normal",
   showDateTime = true,
   mode,
@@ -72,6 +74,9 @@ export function OrderLabelCard({
   badges?: React.ReactNode;
   footer?: React.ReactNode;
   subheader?: React.ReactNode;
+  /** Kto zlecił (szary tekst w środku kafelka). */
+  orderedBy?: string | null;
+  orderedByLabel?: string;
   density?: Density;
   showDateTime?: boolean;
   mode: string;
@@ -132,6 +137,14 @@ export function OrderLabelCard({
             {showDateTime ? <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} /> : null}
             {showDateTime ? <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} /> : null}
           </div>
+
+          {orderedBy?.trim() ? (
+            <div className={isCompact ? "mt-2" : "mt-3"}>
+              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                {orderedByLabel} <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
+              </div>
+            </div>
+          ) : null}
 
           {footer ? <div className={isCompact ? "mt-2" : "mt-3"}>{footer}</div> : null}
         </div>

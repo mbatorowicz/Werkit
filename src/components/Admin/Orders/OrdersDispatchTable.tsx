@@ -191,6 +191,8 @@ export function OrdersDispatchTable({
         tone={tone}
         orderNo={orderNo}
         title={item.workerName as string}
+        orderedBy={item.creatorName ?? null}
+        orderedByLabel={dict.orderedBy}
         badges={
           <>
             <span
@@ -320,12 +322,6 @@ export function OrdersDispatchTable({
               >
                 <td className="px-6 py-4">
                   {renderCard(item)}
-                  {item.creatorName && (
-                    <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 px-1">
-                      {dict.orderedBy}{" "}
-                      <span className="font-medium text-zinc-500">{item.creatorName}</span>
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}
@@ -412,6 +408,8 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
+                  orderedBy={item.creatorName ?? null}
+                  orderedByLabel={dict.orderedBy}
                   badges={
                     <>
                       <span
@@ -495,12 +493,6 @@ export function OrdersDispatchTable({
                     </div>
                   }
                 />
-                {item.creatorName && (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 px-1">
-                    {dict.orderedBy}{" "}
-                    <span className="font-medium text-zinc-500">{item.creatorName}</span>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -556,6 +548,8 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
+                  orderedBy={item.creatorName ?? null}
+                  orderedByLabel={dict.orderedBy}
                   badges={
                     <>
                       <span
@@ -619,12 +613,6 @@ export function OrdersDispatchTable({
                     </div>
                   }
                 />
-                {item.creatorName && (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 px-1">
-                    {dict.orderedBy}{" "}
-                    <span className="font-medium text-zinc-500">{item.creatorName}</span>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -673,6 +661,8 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
+                  orderedBy={item.creatorName ?? null}
+                  orderedByLabel={dict.orderedBy}
                   badges={
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(
@@ -732,12 +722,6 @@ export function OrdersDispatchTable({
                     </div>
                   }
                 />
-                {item.creatorName && (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-2 px-1">
-                    {dict.orderedBy}{" "}
-                    <span className="font-medium text-zinc-500">{item.creatorName}</span>
-                  </div>
-                )}
               </div>
             );
           })}

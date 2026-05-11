@@ -156,6 +156,8 @@ export default function WizardClient() {
                           quantity={order.quantityTons ? `${order.quantityTons}t` : null}
                           customer={order.customerName}
                           description={order.taskDescription}
+                          orderedBy={order.creatorName ?? null}
+                          orderedByLabel={dict.orderedBy}
                           dateLabel={
                             order.dueDate
                               ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
