@@ -21,6 +21,7 @@ import { buildUnifiedDispatchItems, formatDueDatetimeLocal } from "@/features/ad
 import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
+import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 
 async function parseJsonArray(res: Response): Promise<unknown[]> {
   if (!res.ok) return [];
@@ -57,6 +58,14 @@ export default function OrdersClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<DispatchViewMode>(() => {
+    try {
+      const raw = localStorage.getItem("werkit_admin_dispatch_view");
+      return raw === "board" || raw === "table" ? raw : "board";
+    } catch {
+      return "board";
+    }
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsData, setSettingsData] = useState<unknown>(null);
@@ -115,6 +124,15 @@ export default function OrdersClient() {
     }, 10000);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  const setViewModePersisted = (m: DispatchViewMode) => {
+    setViewMode(m);
+    try {
+      localStorage.setItem("werkit_admin_dispatch_view", m);
+    } catch {
+      /* ignore */
+    }
+  };
 
   const handleEditClick = useCallback((item: UnifiedGanttItem) => {
     if (!canMutate) return;
@@ -293,6 +311,8 @@ export default function OrdersClient() {
           onSearchChange={setSearchQuery}
           tableLimit={tableLimit}
           onTableLimitChange={setTableLimit}
+          viewMode={viewMode}
+          onViewModeChange={setViewModePersisted}
         />
         <OrdersDispatchTable
           ordersDict={dict}
@@ -303,6 +323,7 @@ export default function OrdersClient() {
           tableColSpan={tableColSpan}
           tableLimit={tableLimit}
           unifiedItems={unifiedItems}
+          viewMode={viewMode}
           onRowClick={handleRowClick}
           onDeleteWorkOrder={handleDeleteWorkOrder}
           onForceCompleteSession={handleForceCompleteSession}
