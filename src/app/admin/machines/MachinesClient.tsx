@@ -1,140 +1,39 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
-import Image from "next/image";
-import { Trash2, Wrench, Plus, Truck, Edit2, Layers, Camera } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
-import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
-
-type Category = {
-  id: number;
-  name: string;
-  icon?: string;
-  showCustomer: boolean;
-  showMaterial: boolean;
-  showQuantity: boolean;
-  showTaskDescription: boolean;
-  showResourceName: boolean;
-  showResourceDescription: boolean;
-  showRegistrationNumber: boolean;
-  reqCustomer: boolean;
-  reqMaterial: boolean;
-  reqQuantity: boolean;
-  reqTaskDescription: boolean;
-  isGlobal: boolean;
-  isStationary: boolean;
-  color?: string;
-};
-type Machine = {
-  id: number;
-  name: string;
-  brand?: string;
-  model?: string;
-  registrationNumber?: string;
-  description?: string | null;
-  categoryIds: number[];
-  imageUrl?: string | null;
-};
-
-function mergeResourceFieldVisibility(
-  categoryIds: number[],
-  categories: Category[],
-): {
-  showResourceName: boolean;
-  showResourceDescription: boolean;
-  showRegistrationNumber: boolean;
-} {
-  const selected = categories.filter((c) => categoryIds.includes(c.id));
-  if (selected.length === 0) {
-    return { showResourceName: true, showResourceDescription: true, showRegistrationNumber: true };
-  }
-  return {
-    showResourceName: selected.some((c) => c.showResourceName !== false),
-    showResourceDescription: selected.some((c) => Boolean(c.showResourceDescription)),
-    showRegistrationNumber: selected.some((c) => c.showRegistrationNumber !== false),
-  };
-}
-
-async function compressVehiclePhotoToDataUrl(file: File): Promise<string | null> {
-  if (!file.type.startsWith("image/")) return null;
-  const img = document.createElement("img");
-  const blobUrl = URL.createObjectURL(file);
-  img.src = blobUrl;
-  try {
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error("load"));
-    });
-    const canvas = document.createElement("canvas");
-    const maxDim = 960;
-    let w = img.naturalWidth;
-    let h = img.naturalHeight;
-    if (w <= 0 || h <= 0) return null;
-    if (w > h && w > maxDim) {
-      h = Math.round((h * maxDim) / w);
-      w = maxDim;
-    } else if (h > maxDim) {
-      w = Math.round((w * maxDim) / h);
-      h = maxDim;
-    }
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-    ctx.drawImage(img, 0, 0, w, h);
-    const webp = canvas.toDataURL("image/webp", 0.82);
-    if (webp.startsWith("data:image/webp")) return webp;
-    return canvas.toDataURL("image/jpeg", 0.82);
-  } catch {
-    return null;
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
-}
+import { CategoryFormModal } from "@/features/admin/machines/CategoryFormModal";
+import { MachinesCategoryGrid, categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
+import { MachinesResourcesTable } from "@/features/admin/machines/MachinesResourcesTable";
+import { ResourceFormModal } from "@/features/admin/machines/ResourceFormModal";
+import { machineResourceNameForEdit } from "@/features/admin/machines/machineResourceDisplay";
+import { mergeResourceFieldVisibility } from "@/features/admin/machines/resourceVisibility";
+import { compressVehiclePhotoToDataUrl } from "@/features/admin/machines/vehiclePhoto";
+import { useMachinesAdminData } from "@/features/admin/machines/useMachinesAdminData";
+import {
+  createEmptyMachineForm,
+  EMPTY_CATEGORY_FORM,
+  type CategoryFormState,
+  type MachineFormState,
+  type MachinesResource,
+} from "@/features/admin/machines/types";
 
 export default function MachinesClient() {
   const { canMutate } = useAdminAbility();
-  const [machines, setMachines] = useState<Machine[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { machines, categories, isLoading, fetchData } = useMachinesAdminData();
 
-  // States for Machine Modal
-  const [isMMOpen, setIsMMOpen] = useState(false); // Machine Modal
+  const [isMMOpen, setIsMMOpen] = useState(false);
   const [mEditId, setMEditId] = useState<number | null>(null);
-  const [mForm, setMForm] = useState({
-    brand: "",
-    model: "",
-    registrationNumber: "",
-    description: "",
-    categoryIds: [] as number[],
-    imageUrl: null as string | null,
-  });
+  const [mForm, setMForm] = useState<MachineFormState>(() => createEmptyMachineForm());
 
-  // States for Category Modal
-  const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
+  const [isCMOpen, setIsCMOpen] = useState(false);
   const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState({
-    name: '',
-    icon: 'blue',
-    showCustomer: true,
-    showMaterial: true,
-    showQuantity: true,
-    showTaskDescription: true,
-    reqCustomer: false,
-    reqMaterial: false,
-    reqQuantity: false,
-    reqTaskDescription: true,
-    isGlobal: false,
-    isStationary: false,
-    color: '#3f3f46',
-    showResourceName: true,
-    showResourceDescription: false,
-    showRegistrationNumber: true,
-  });
+  const [cForm, setCForm] = useState<CategoryFormState>(() => ({ ...EMPTY_CATEGORY_FORM }));
+
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const nav = dictionary.admin.sidebar;
@@ -145,102 +44,48 @@ export default function MachinesClient() {
     [mForm.categoryIds, categories],
   );
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const parseList = async (
-        url: string,
-      ): Promise<{ rows: unknown[]; errorCode?: string }> => {
-        const res = await fetch(url, { cache: "no-store" });
-        let body: unknown = null;
-        try {
-          body = await res.json();
-        } catch {
-          body = null;
-        }
-        if (!res.ok) {
-          const code =
-            body !== null &&
-            typeof body === "object" &&
-            "error" in body &&
-            typeof (body as { error: unknown }).error === "string"
-              ? (body as { error: string }).error
-              : "";
-          return { rows: [], errorCode: code || "fetch_error" };
-        }
-        if (!Array.isArray(body)) {
-          return { rows: [], errorCode: "fetch_error" };
-        }
-        return { rows: body };
-      };
-
-      const [mList, cList] = await Promise.all([
-        parseList("/api/machines"),
-        parseList("/api/categories"),
-      ]);
-      setMachines((Array.isArray(mList.rows) ? mList.rows : []) as Machine[]);
-      setCategories(
-        (Array.isArray(cList.rows) ? cList.rows : []).map((row) => {
-          const r = row as Record<string, unknown>;
-          return {
-            ...(row as Category),
-            isStationary: Boolean(r.isStationary),
-            showCustomer: Boolean(r.showCustomer),
-            showMaterial: Boolean(r.showMaterial),
-            showQuantity: Boolean(r.showQuantity),
-            showTaskDescription: Boolean(r.showTaskDescription),
-            showResourceName: r.showResourceName !== false,
-            showResourceDescription: Boolean(r.showResourceDescription),
-            showRegistrationNumber: r.showRegistrationNumber !== false,
-          };
-        }),
-      );
-
-      const errCode = mList.errorCode ?? cList.errorCode;
-      if (errCode) {
-        console.error("Machines/categories API:", { machines: mList, categories: cList });
-        alert(apiErrors[errCode] ?? dict.dbError);
-      }
-    } catch {
-      alert(dict.dbError);
-    }
-    setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- dict/apiErrors z i18n; pełny `dict` zmieniałby referencję co render
-  }, []);
-
   useEffect(() => {
-    queueMicrotask(() => {
-      void fetchData();
-    });
+    queueMicrotask(() => void fetchData());
   }, [fetchData]);
 
-  // --- Kategorie ----
   const handleCSave = async (e: React.FormEvent) => {
-     e.preventDefault();
-     const url = cEditId ? `/api/categories/${cEditId}` : "/api/categories";
-     const method = cEditId ? "PUT" : "POST";
-     try {
-       const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(cForm) });
-       if(res.ok) { setIsCMOpen(false); fetchData(); }
-       else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-     } catch {
-       alert(dict.apiError);
-     }
-  };
-  const handleCDelete = async (id: number) => {
-     if(!confirm(dict.confirmCatDelete)) return;
-     const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
-     if(res.ok) fetchData();
-     else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
+    e.preventDefault();
+    const url = cEditId ? `/api/categories/${cEditId}` : "/api/categories";
+    const method = cEditId ? "PUT" : "POST";
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cForm),
+      });
+      if (res.ok) {
+        setIsCMOpen(false);
+        void fetchData();
+      } else {
+        const err = (await res.json()).error;
+        alert(apiErrors[err] || err);
+      }
+    } catch {
+      alert(dict.apiError);
+    }
   };
 
-  // --- Maszyny ---
+  const handleCDelete = async (id: number) => {
+    if (!confirm(dict.confirmCatDelete)) return;
+    const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+    if (res.ok) void fetchData();
+    else {
+      const err = (await res.json()).error;
+      alert(apiErrors[err] || err);
+    }
+  };
+
   const handleMSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const vis = mergeResourceFieldVisibility(mForm.categoryIds, categories);
     const canonical = buildResourceCanonicalName(
-      vis.showResourceName ? mForm.brand : "",
-      vis.showResourceName ? mForm.model : "",
+      vis.showResourceName ? mForm.resourceName : "",
+      "",
       vis.showRegistrationNumber ? mForm.registrationNumber : "",
       vis.showResourceDescription ? mForm.description : null,
     );
@@ -251,8 +96,8 @@ export default function MachinesClient() {
     const url = mEditId ? `/api/machines/${mEditId}` : "/api/machines";
     const method = mEditId ? "PUT" : "POST";
     const payload = {
-      brand: mForm.brand,
-      model: mForm.model,
+      brand: vis.showResourceName ? mForm.resourceName.trim() : "",
+      model: "",
       registrationNumber: mForm.registrationNumber,
       description: mForm.description,
       categoryIds: mForm.categoryIds,
@@ -264,20 +109,29 @@ export default function MachinesClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if(res.ok) { setIsMMOpen(false); fetchData(); }
-      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
-     } catch {
-       alert(dict.apiError);
-     }
-  };
-  const handleMDelete = async (id: number) => {
-     if(!confirm(dict.confirmMachDelete)) return;
-     const res = await fetch(`/api/machines/${id}`, { method: 'DELETE' });
-     if(res.ok) fetchData();
-     else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
+      if (res.ok) {
+        setIsMMOpen(false);
+        void fetchData();
+      } else {
+        const err = (await res.json()).error;
+        alert(apiErrors[err] || err);
+      }
+    } catch {
+      alert(dict.apiError);
+    }
   };
 
-  const handleMachPhotoPick = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleMDelete = async (id: number) => {
+    if (!confirm(dict.confirmMachDelete)) return;
+    const res = await fetch(`/api/machines/${id}`, { method: "DELETE" });
+    if (res.ok) void fetchData();
+    else {
+      const err = (await res.json()).error;
+      alert(apiErrors[err] || err);
+    }
+  };
+
+  const handleMachPhotoPick = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -287,416 +141,89 @@ export default function MachinesClient() {
       return;
     }
     setMForm((prev) => ({ ...prev, imageUrl: dataUrl }));
-  };
+  }, [dict.apiError]);
+
+  const openNewCategory = useCallback(() => {
+    setCEditId(null);
+    setCForm({ ...EMPTY_CATEGORY_FORM });
+    setIsCMOpen(true);
+  }, []);
+
+  const openNewResource = useCallback(() => {
+    setMEditId(null);
+    setMForm(createEmptyMachineForm());
+    setIsMMOpen(true);
+  }, []);
+
+  const openEditResource = useCallback((machine: MachinesResource) => {
+    setMEditId(machine.id);
+    setMForm({
+      resourceName: machineResourceNameForEdit(machine),
+      registrationNumber: machine.registrationNumber ?? "",
+      description: machine.description ?? "",
+      categoryIds: machine.categoryIds ?? [],
+      imageUrl: machine.imageUrl ?? null,
+    });
+    setIsMMOpen(true);
+  }, []);
 
   return (
     <>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
-          <Wrench className="w-6 h-6 text-emerald-500" />
+        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
+          <Wrench className="h-6 w-6 text-emerald-500" />
           {nav.resources}
         </h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">{dict.pageSubtitle}</p>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{dict.pageSubtitle}</p>
       </div>
 
-      {/* SEKCJA KATEGORII SŁOWNIKOWYCH */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="flex items-center gap-2 pt-2 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white"><Layers className="w-5 h-5 text-amber-500"/> {dict.dictTitle}</h2>
-          <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
-        </div>
-        {canMutate && (
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', showCustomer: true, showMaterial: true, showQuantity: true, showTaskDescription: true, reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46', showResourceName: true, showResourceDescription: false, showRegistrationNumber: true}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
-          <Plus className="w-4 h-4" /> {dict.addCategory}
-        </button>
-        )}
-      </div>
+      <MachinesCategoryGrid
+        dict={dict}
+        categories={categories}
+        isLoading={isLoading}
+        canMutate={canMutate}
+        onAdd={openNewCategory}
+        onEdit={(cat) => {
+          setCEditId(cat.id);
+          setCForm(categoryToForm(cat));
+          setIsCMOpen(true);
+        }}
+        onDelete={handleCDelete}
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-         {categories.map(cat => {
-           return (
-             <div key={cat.id} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 p-4 rounded-lg flex justify-between items-center group shadow-sm hover:border-zinc-700 transition-colors">
-                <div className="flex items-center gap-3 truncate">
-                  <div className={`w-5 h-5 rounded-md shadow-sm shrink-0`} style={{ backgroundColor: cat.color || '#3f3f46' }} />
-                  <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
-                  {cat.isStationary ? (
-                    <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                      {dict.badgeStationary}
-                    </span>
-                  ) : null}
-                </div>
-                {canMutate && (
-                <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', showCustomer: cat.showCustomer, showMaterial: cat.showMaterial, showQuantity: cat.showQuantity, showTaskDescription: cat.showTaskDescription, reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46', showResourceName: cat.showResourceName !== false, showResourceDescription: Boolean(cat.showResourceDescription), showRegistrationNumber: cat.showRegistrationNumber !== false}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
-                   <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
-                </div>
-                )}
-             </div>
-           );
-         })}
-         {!isLoading && categories.length === 0 && <div className="col-span-full p-4 border border-zinc-200 dark:border-zinc-700/50 rounded-lg bg-white dark:bg-zinc-900/50 text-zinc-500 dark:text-zinc-400 text-sm">{dict.noCategories}</div>}
-      </div>
+      <MachinesResourcesTable
+        dict={dict}
+        machines={machines}
+        categories={categories}
+        isLoading={isLoading}
+        canMutate={canMutate}
+        onAddResource={openNewResource}
+        onEditResource={openEditResource}
+        onDeleteResource={handleMDelete}
+      />
 
-
-      {/* SEKCJA ZASOBÓW FIZYCZNYCH */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-zinc-800/80 pt-10">
-        <div>
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Truck className="w-6 h-6 text-emerald-500" /> {dict.sectionVehiclesTitle}
-          </h2>
-          <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
-        </div>
-        {canMutate && (
-        <button onClick={() => {setMEditId(null); setMForm({ brand: "", model: "", registrationNumber: "", description: "", categoryIds: [], imageUrl: null }); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          {dict.addResource}
-        </button>
-        )}
-      </div>
-
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
-             <thead>
-               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.resourceColTitle}</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.dictCategory}</th>
-                 {canMutate && (
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{dict.management}</th>
-                 )}
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-zinc-800/50">
-                 {isLoading ? (
-                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-               ) : machines.map(machine => {
-                 const mCats = categories.filter(c => machine.categoryIds?.includes(c.id));
-                 return (
-                 <tr key={machine.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-                   <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                         <div className={`w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center shrink-0 overflow-hidden`}>
-                           {machine.imageUrl ? (
-                             <Image src={machine.imageUrl} alt={machine.name} width={48} height={48} unoptimized className="w-full h-full object-cover" />
-                           ) : (
-                             <Truck className="w-5 h-5 text-zinc-400" />
-                           )}
-                         </div>
-                         <div>
-                           <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
-                           <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">{dict.idReg} #{machine.id}</div>
-                         </div>
-                      </div>
-                   </td>
-                   <td className="px-6 py-4">
-                     <div className="flex flex-wrap gap-1">
-                       {mCats.length > 0 ? mCats.map(c => (
-                         <span key={c.id} className="border px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider" style={{ backgroundColor: `${c.color || '#71717a'}1a`, color: c.color || '#71717a', borderColor: `${c.color || '#71717a'}33` }}>
-                           {c.name}
-                         </span>
-                       )) : (
-                         <span className="text-zinc-500 italic text-xs">{dict.noCategoryBadge}</span>
-                       )}
-                     </div>
-                   </td>
-                   {canMutate && (
-                   <td className="px-6 py-4 text-right">
-                     <div className="flex justify-end gap-1">
-                        <button onClick={() => {
-                          setMEditId(machine.id);
-                          const hasStoredParts =
-                            Boolean(machine.brand?.trim()) ||
-                            Boolean(machine.model?.trim()) ||
-                            Boolean(machine.registrationNumber?.trim());
-                          setMForm({
-                            brand: hasStoredParts ? (machine.brand ?? "") : (machine.name ?? ""),
-                            model: machine.model ?? "",
-                            registrationNumber: machine.registrationNumber ?? "",
-                            description: machine.description ?? "",
-                            categoryIds: machine.categoryIds ?? [],
-                            imageUrl: machine.imageUrl ?? null,
-                          });
-                          setIsMMOpen(true);
-                        }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition" title={dict.editTitle}>
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleMDelete(machine.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={dict.deleteTitle}>
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                     </div>
-                   </td>
-                   )}
-                 </tr>
-               )})}
-               {!isLoading && machines.length === 0 && (
-                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noMachines}</td></tr>
-               )}
-             </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* MODAL KATEGORII */}
-      <AdminModalShell
+      <CategoryFormModal
         open={isCMOpen}
         onClose={() => setIsCMOpen(false)}
-        title={cEditId ? dict.modalCatEditTitle : dict.modalCatCreateTitle}
-        maxWidthClass="max-w-sm"
-        titleSize="sm"
-      >
-              <form onSubmit={handleCSave} className="p-6 space-y-4">
-                 <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
-                 <AdminCategoryColorFieldRow
-                   color={cForm.color}
-                   onColorChange={(color) => setCForm({ ...cForm, color })}
-                   label={dict.catColorLabel}
-                   hint={dict.catColorHint}
-                 />
-                 
-                 <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catMobilityTitle}</h3>
-                    <div className="flex items-start justify-between gap-3">
-                       <div className="flex flex-col gap-0.5 pr-2">
-                         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isStationaryLabel}</label>
-                         <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.isStationaryDesc}</span>
-                       </div>
-                       <input type="checkbox" checked={cForm.isStationary} onChange={e => setCForm({...cForm, isStationary: e.target.checked})} className="h-4 w-4 rounded text-emerald-600 shrink-0 mt-0.5" />
-                    </div>
-                 </div>
+        isEdit={cEditId != null}
+        dict={dict}
+        form={cForm}
+        setForm={setCForm}
+        onSubmit={handleCSave}
+      />
 
-                 <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catResourceFormTitle}</h3>
-                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.catResourceFormHint}</p>
-                    <div className="space-y-2">
-                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                        <span>{dict.fieldResourceName}</span>
-                        <input
-                          type="checkbox"
-                          checked={cForm.showResourceName}
-                          onChange={(e) => setCForm({ ...cForm, showResourceName: e.target.checked })}
-                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                        <span>{dict.fieldResourceDescription}</span>
-                        <input
-                          type="checkbox"
-                          checked={cForm.showResourceDescription}
-                          onChange={(e) => setCForm({ ...cForm, showResourceDescription: e.target.checked })}
-                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
-                        <span>{dict.fieldResourceRegistration}</span>
-                        <input
-                          type="checkbox"
-                          checked={cForm.showRegistrationNumber}
-                          onChange={(e) => setCForm({ ...cForm, showRegistrationNumber: e.target.checked })}
-                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
-                        />
-                      </label>
-                    </div>
-                 </div>
-
-                 <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catParamsTitle}</h3>
-
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 items-center">
-                      <div />
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{dict.fieldsVisible}</div>
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{dict.fieldsRequired}</div>
-
-                      {/* Klient */}
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldCustomer}</div>
-                      <input
-                        type="checkbox"
-                        checked={cForm.showCustomer}
-                        onChange={(e) => {
-                          const v = e.target.checked;
-                          setCForm({ ...cForm, showCustomer: v, reqCustomer: v ? cForm.reqCustomer : false });
-                        }}
-                        className="h-4 w-4 rounded text-emerald-600"
-                      />
-                      <input
-                        type="checkbox"
-                        checked={cForm.reqCustomer}
-                        disabled={!cForm.showCustomer}
-                        onChange={(e) => setCForm({ ...cForm, reqCustomer: e.target.checked })}
-                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
-                      />
-
-                      {/* Materiał */}
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldMaterial}</div>
-                      <input
-                        type="checkbox"
-                        checked={cForm.showMaterial}
-                        onChange={(e) => {
-                          const v = e.target.checked;
-                          setCForm({ ...cForm, showMaterial: v, reqMaterial: v ? cForm.reqMaterial : false });
-                        }}
-                        className="h-4 w-4 rounded text-emerald-600"
-                      />
-                      <input
-                        type="checkbox"
-                        checked={cForm.reqMaterial}
-                        disabled={!cForm.showMaterial}
-                        onChange={(e) => setCForm({ ...cForm, reqMaterial: e.target.checked })}
-                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
-                      />
-
-                      {/* Ilość */}
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldQuantity}</div>
-                      <input
-                        type="checkbox"
-                        checked={cForm.showQuantity}
-                        onChange={(e) => {
-                          const v = e.target.checked;
-                          setCForm({ ...cForm, showQuantity: v, reqQuantity: v ? cForm.reqQuantity : false });
-                        }}
-                        className="h-4 w-4 rounded text-emerald-600"
-                      />
-                      <input
-                        type="checkbox"
-                        checked={cForm.reqQuantity}
-                        disabled={!cForm.showQuantity}
-                        onChange={(e) => setCForm({ ...cForm, reqQuantity: e.target.checked })}
-                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
-                      />
-
-                      {/* Opis */}
-                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldTaskDescription}</div>
-                      <input
-                        type="checkbox"
-                        checked={cForm.showTaskDescription}
-                        onChange={(e) => {
-                          const v = e.target.checked;
-                          setCForm({ ...cForm, showTaskDescription: v, reqTaskDescription: v ? cForm.reqTaskDescription : false });
-                        }}
-                        className="h-4 w-4 rounded text-emerald-600"
-                      />
-                      <input
-                        type="checkbox"
-                        checked={cForm.reqTaskDescription}
-                        disabled={!cForm.showTaskDescription}
-                        onChange={(e) => setCForm({ ...cForm, reqTaskDescription: e.target.checked })}
-                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                       <div className="flex flex-col gap-0.5">
-                         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isGlobalLabel}</label>
-                         <span className="text-[10px] text-zinc-500 dark:text-zinc-400">{dict.isGlobalDesc}</span>
-                       </div>
-                       <input type="checkbox" checked={cForm.isGlobal} onChange={e => setCForm({...cForm, isGlobal: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
-                    </div>
-                 </div>
-
-                 <button type="submit" className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 dark:bg-emerald-600">{dict.saveDict}</button>
-              </form>
-      </AdminModalShell>
-
-      {/* MODAL MASZYNY */}
-      <AdminModalShell
+      <ResourceFormModal
         open={isMMOpen}
         onClose={() => setIsMMOpen(false)}
-        title={mEditId ? dict.modalMachEditTitle : dict.modalMachCreateTitle}
-        maxWidthClass="max-w-2xl"
-        titleSize="lg"
-      >
-              <form onSubmit={handleMSave} className="p-6 space-y-6">
-                 {(resourceVis.showResourceName || resourceVis.showRegistrationNumber) && (
-                 <div className={`grid grid-cols-1 gap-4 ${resourceVis.showResourceName && resourceVis.showRegistrationNumber ? "sm:grid-cols-3" : resourceVis.showResourceName ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
-                   {resourceVis.showResourceName ? (
-                   <>
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.machBrandLabel}</label>
-                     <input type="text" autoComplete="off" placeholder={dict.machBrandPlaceholder} value={mForm.brand} onChange={(e) => setMForm({ ...mForm, brand: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.machModelLabel}</label>
-                     <input type="text" autoComplete="off" placeholder={dict.machModelPlaceholder} value={mForm.model} onChange={(e) => setMForm({ ...mForm, model: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
-                   </div>
-                   </>
-                   ) : null}
-                   {resourceVis.showRegistrationNumber ? (
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.machRegLabel}</label>
-                     <input type="text" autoComplete="off" placeholder={dict.machRegPlaceholder} value={mForm.registrationNumber} onChange={(e) => setMForm({ ...mForm, registrationNumber: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 uppercase tracking-wide text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
-                   </div>
-                   ) : null}
-                 </div>
-                 )}
-                 {resourceVis.showResourceDescription ? (
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.machDescLabel}</label>
-                     <textarea
-                       rows={3}
-                       value={mForm.description}
-                       onChange={(e) => setMForm({ ...mForm, description: e.target.value })}
-                       placeholder={dict.machDescPlaceholder}
-                       className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white resize-y min-h-[88px]"
-                     />
-                   </div>
-                 ) : null}
-                 <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-                   <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
-                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                     <div className="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 sm:h-36 sm:w-36">
-                       {mForm.imageUrl ? (
-                         <Image src={mForm.imageUrl} alt={dict.machPhotoLabel} width={144} height={144} unoptimized className="h-full w-full object-cover" />
-                       ) : (
-                         <Camera className="h-10 w-10 text-zinc-400" aria-hidden />
-                       )}
-                     </div>
-                     <div className="flex flex-1 flex-col gap-2">
-                       <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
-                         <Camera className="h-4 w-4 text-emerald-600" />
-                         {dict.machPhotoChoose}
-                         <input type="file" accept="image/*" className="hidden" onChange={handleMachPhotoPick} />
-                       </label>
-                       {mForm.imageUrl ? (
-                         <button
-                           type="button"
-                           onClick={() => setMForm((prev) => ({ ...prev, imageUrl: null }))}
-                           className="text-sm font-medium text-red-600 hover:underline dark:text-red-400"
-                         >
-                           {dict.machPhotoRemove}
-                         </button>
-                       ) : null}
-                     </div>
-                   </div>
-                 </div>
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{dict.machCatLabel}</label>
-                   <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                     {categories.map(c => (
-                       <label key={c.id} className="flex items-center gap-2 p-2 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800 cursor-pointer">
-                         <input type="checkbox" checked={mForm.categoryIds.includes(c.id)} onChange={(e) => {
-                           setMForm((prev) => {
-                             if (e.target.checked) return { ...prev, categoryIds: [...prev.categoryIds, c.id] };
-                             return { ...prev, categoryIds: prev.categoryIds.filter((cid) => cid !== c.id) };
-                           });
-                         }} className="h-4 w-4 rounded text-emerald-600" />
-                         <span className="text-sm text-zinc-700 dark:text-zinc-300 truncate">{c.name}</span>
-                       </label>
-                     ))}
-                   </div>
-                   {categories.length === 0 && <p className="text-xs text-red-400">{dict.machCatWarning}</p>}
-                 </div>
-                 <div className="pt-4 border-t border-zinc-800">
-                    <button disabled={categories.length === 0} type="submit" className="w-full rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50">
-                       {dict.saveFleet}
-                    </button>
-                 </div>
-              </form>
-      </AdminModalShell>
+        isEdit={mEditId != null}
+        dict={dict}
+        resourceVis={resourceVis}
+        categories={categories}
+        form={mForm}
+        setForm={setMForm}
+        onSubmit={handleMSave}
+        onPhotoPick={handleMachPhotoPick}
+      />
     </>
-  )
+  );
 }
-
-
-
-
-
-
-
