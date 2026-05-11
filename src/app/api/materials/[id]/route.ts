@@ -10,17 +10,18 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const id = parseInt(params.id);
     const body = await request.json();
     
-    if(!body.name || !body.type) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    if (!body.name) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
 
     const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
       ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
       : undefined;
 
+    if (categoryIds !== undefined && categoryIds.length === 0) {
+      return NextResponse.json({ error: 'missing_material_category' }, { status: 400 });
+    }
+
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.updateMaterial(id, { 
-       name: body.name,
-       type: body.type
-    }, categoryIds);
+    await DictionaryService.updateMaterial(id, { name: body.name }, categoryIds);
     
     return NextResponse.json({ success: true });
   } catch {

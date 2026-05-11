@@ -22,14 +22,14 @@ Aplikacja składa się z dwóch głównych środowisk:
 ### Panel Administratora (Web / Dispatcher)
 Główne operacje biznesowe wykonywane przez administratorów logistyki:
 - **Dyspozytornia (Gantt Chart & Map)**: Zarządzanie flotą na żywo z osią czasu. Administratorzy widzą aktualny status sprzętu oraz podgląd GPS u operatorów w trybie aktywnym.
-- **Zlecenia i Sesje (Work Orders / Sessions)**: Tworzenie zadań dla pracowników typu: Transport Kruszywa, Praca Maszyną lub Warsztat. 
+- **Zlecenia i Sesje (Work Orders / Sessions)**: Tworzenie zadań dla pracowników typu: transport materiałów, praca maszyną lub warsztat. 
 - **Baza Wiedzy (CRUD)**: Definiowanie zasobów firmy: Maszyn (Flota), Materiałów (Asortyment), Pracowników i Kontrahentów (Klientów).
 - **Raportowanie**: Zestawienia ton/godzin i rozliczenia operatorów maszyn w wybranym przedziale czasowym.
 - **Logi (System Zdrowia)**: Scentralizowane zdalne strumieniowanie błędów z urządzeń klienckich (Capacitor Remote Logs).
 
 ### Aplikacja Operatora (PWA / Mobile)
 Aplikacja zaprojektowana w ujęciu "Offline / Low-battery first":
-- **Wizard Rozpoczęcia Pracy**: Prosty kreator wyboru maszyny, rodzaju pracy oraz kruszywa, uruchamiający aktywną sesję u pracownika.
+- **Wizard Rozpoczęcia Pracy**: Prosty kreator wyboru maszyny, rodzaju pracy oraz materiału, uruchamiający aktywną sesję u pracownika.
 - **Śledzenie GPS w tle**: Użycie natywnych wtyczek (BackgroundGeolocation), agregujące koordynaty co X dystansu/czasu, które pozwalają generować wyrysowane ścieżki przejazdu operatora.
 - **Zarządzanie Zleceniami na Żywo**: Akceptacja zadań od dyspozytora. 
 - **Zdarzenia**: Przesyłanie notatek z budowy / napraw warsztatowych oraz fotografowanie (dowody wykonania, uszkodzenia).

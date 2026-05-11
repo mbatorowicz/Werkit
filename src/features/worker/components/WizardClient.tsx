@@ -248,8 +248,10 @@ export default function WizardClient() {
                   <select value={materialId} onChange={e => setMaterialId(e.target.value)}
                     className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none">
                     <option value="" disabled>{dict.wizardMaterialPlaceholder}</option>
-                    {materials.map(mat => (
-                      <option key={mat.id} value={mat.id}>{mat.name} ({mat.type})</option>
+                    {materials.map((mat) => (
+                      <option key={mat.id} value={mat.id}>
+                        {mat.name}
+                      </option>
                     ))}
                   </select>
                 </div>

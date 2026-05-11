@@ -26,7 +26,6 @@ export class DictionaryService {
     return all.map((m) => ({
       id: m.id,
       name: m.name,
-      type: m.type,
       categoryIds: links.filter((l) => l.materialId === m.id).map((l) => l.categoryId),
     }));
   }
@@ -58,8 +57,8 @@ export class DictionaryService {
   }
 
   // --- MATERIAŁY ---
-  static async addMaterial(name: string, type: string, categoryIds: number[] = []) {
-    const res = await db.insert(materials).values({ name, type }).returning();
+  static async addMaterial(name: string, categoryIds: number[] = []) {
+    const res = await db.insert(materials).values({ name }).returning();
     const mid = res[0].id;
     if (categoryIds.length > 0) {
       await db.insert(materialToCategories).values(
@@ -88,7 +87,7 @@ export class DictionaryService {
     await db.delete(materials).where(eq(materials.id, id));
   }
 
-  // --- KATEGORIE KRUSZYW ---
+  // --- KATEGORIE MATERIAŁÓW ---
   static async addMaterialCategory(data: { name: string; color?: string }) {
     await db.insert(materialCategories).values({
       name: data.name.trim(),
@@ -199,5 +198,5 @@ export class DictionaryService {
 /** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
 export type ResourceCategoryUpdateInput = Partial<typeof resourceCategories.$inferInsert>;
 
-/** Payload aktualizacji kategorii kruszyw — bez importu schematu w kontrolerze. */
+/** Payload aktualizacji kategorii materiałów — bez importu schematu w kontrolerze. */
 export type MaterialCategoryUpdateInput = Partial<typeof materialCategories.$inferInsert>;

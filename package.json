@@ -11,6 +11,7 @@
     "db:napraw-maszyny": "tsx src/scripts/apply_resources_vehicle_identity.ts",
     "db:napraw-slowniki-baza": "tsx src/scripts/apply_dictionary_schema.ts",
     "db:napraw-lokalizacja-sesji": "tsx src/scripts/apply_work_sessions_bookend_coords.ts",
+    "db:napraw-materialy-bez-typu": "tsx src/scripts/apply_materials_drop_type.ts",
     "db:apply-resources-identity": "tsx src/scripts/apply_resources_vehicle_identity.ts"
   },
   "dependencies": {

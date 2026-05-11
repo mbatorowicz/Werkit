@@ -1,5 +1,5 @@
 /**
- * Tabele kategorii kruszyw (0005) + kolumna is_stationary na resource_categories (0007).
+ * Tabele kategorii materiałów (0005) + kolumna is_stationary na resource_categories (0007).
  * Uruchom: npm run db:napraw-slowniki-baza
  */
 async function main() {
@@ -44,7 +44,7 @@ async function main() {
        OR upper(trim("name")) LIKE '%WORKSHOP%'
   `;
 
-  console.log('OK — słowniki (kruszywa + mobilność typów sprzętu).');
+  console.log('OK — słowniki (materiały + mobilność typów sprzętu).');
 }
 
 void main().catch((err: unknown) => {

@@ -24,17 +24,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, type } = body;
+    const { name } = body;
     const categoryIds: number[] = Array.isArray(body.categoryIds)
       ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
       : [];
 
-    if (!name || !type) {
-      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    if (!name || categoryIds.length === 0) {
+      return NextResponse.json(
+        { error: !name ? 'missing_fields' : 'missing_material_category' },
+        { status: 400 },
+      );
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.addMaterial(name, type, categoryIds);
+    await DictionaryService.addMaterial(name, categoryIds);
     
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

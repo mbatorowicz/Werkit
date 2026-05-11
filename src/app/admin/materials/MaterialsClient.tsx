@@ -6,7 +6,7 @@ import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 type MaterialCategory = { id: number; name: string; color?: string | null };
-type MaterialRow = { id: number; name: string; type: string; categoryIds?: number[] };
+type MaterialRow = { id: number; name: string; categoryIds?: number[] };
 
 export default function MaterialsClient() {
   const { canMutate } = useAdminAbility();
@@ -18,7 +18,6 @@ export default function MaterialsClient() {
   const [matEditId, setMatEditId] = useState<number | null>(null);
   const [matForm, setMatForm] = useState({
     name: "",
-    type: "PIASEK",
     categoryIds: [] as number[],
   });
 
@@ -119,6 +118,10 @@ export default function MaterialsClient() {
 
   const handleMatSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (matForm.categoryIds.length === 0) {
+      alert(dict.matCatRequired);
+      return;
+    }
     const url = matEditId ? `/api/materials/${matEditId}` : "/api/materials";
     const method = matEditId ? "PUT" : "POST";
     try {
@@ -127,7 +130,6 @@ export default function MaterialsClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: matForm.name,
-          type: matForm.type,
           categoryIds: matForm.categoryIds,
         }),
       });
@@ -233,7 +235,7 @@ export default function MaterialsClient() {
             type="button"
             onClick={() => {
               setMatEditId(null);
-              setMatForm({ name: "", type: "PIASEK", categoryIds: [] });
+              setMatForm({ name: "", categoryIds: [] });
               setIsMatModalOpen(true);
             }}
             className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2"
@@ -246,14 +248,11 @@ export default function MaterialsClient() {
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[600px]">
+          <table className="w-full text-left border-collapse min-w-[480px]">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   {dict.materialReg}
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                  {dict.type}
                 </th>
                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                   {machDict.dictCategory}
@@ -266,7 +265,7 @@ export default function MaterialsClient() {
             <tbody className="divide-y divide-zinc-800/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
                     {dict.fetching}
                   </td>
                 </tr>
@@ -280,11 +279,6 @@ export default function MaterialsClient() {
                         <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
                           {machDict.idReg} #{material.id}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-md text-xs font-semibold uppercase tracking-wider">
-                          {material.type}
-                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-wrap gap-1">
@@ -316,7 +310,6 @@ export default function MaterialsClient() {
                                 setMatEditId(material.id);
                                 setMatForm({
                                   name: material.name,
-                                  type: material.type,
                                   categoryIds: material.categoryIds || [],
                                 });
                                 setIsMatModalOpen(true);
@@ -343,7 +336,7 @@ export default function MaterialsClient() {
               )}
               {!isLoading && materials.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
                     {dict.noMaterials}
                   </td>
                 </tr>
@@ -417,21 +410,6 @@ export default function MaterialsClient() {
                   onChange={(e) => setMatForm({ ...matForm, name: e.target.value })}
                   className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
                 />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">{dict.typeLabel}</label>
-                <select
-                  value={matForm.type}
-                  onChange={(e) => setMatForm({ ...matForm, type: e.target.value })}
-                  className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none"
-                >
-                  <option value="PIASEK">{dict.typeSand}</option>
-                  <option value="ZWIR">{dict.typeGravel}</option>
-                  <option value="POSPOLKA">{dict.typeMix}</option>
-                  <option value="TLUCZEN">{dict.typeRubble}</option>
-                  <option value="ZIEMIA">{dict.typeSoil}</option>
-                  <option value="INNE">{dict.typeOther}</option>
-                </select>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-amber-500/80">{dict.matCatLabel}</label>

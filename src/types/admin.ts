@@ -62,7 +62,6 @@ export type BaseMachine = {
 export type BaseMaterial = {
   id: number;
   name: string;
-  type?: string;
   categoryIds?: number[];
 };
 

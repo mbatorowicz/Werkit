@@ -48,10 +48,9 @@ export const resources = pgTable('resources', {
 export const materials = pgTable('materials', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  type: varchar('type', { length: 50 }).notNull(),
 });
 
-/** Kategorie kruszyw (słownik) — analogicznie do kategorii maszyn. */
+/** Kategorie materiałów (słownik) — analogicznie do kategorii maszyn. */
 export const materialCategories = pgTable('material_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),

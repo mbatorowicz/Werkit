@@ -113,7 +113,7 @@ Trasy URL pozostają w **`src/app/worker/`** — strony importują komponenty z 
 Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samych** znaczników priorytetu i opisu bez forkowania klas CSS.
 
 - `WorkOrderPriorityRibbon` — prop `labels` (typowo wycinek `getDictionary().worker.client` dla dosłownych tłumaczeń priorytetu).
-- `WorkOrderSummaryLines` — blok maszyna / kruszywo / klient / opis / czas / zlecający (worker).
+- `WorkOrderSummaryLines` — blok maszyna / materiał / klient / opis / czas / zlecający (worker).
 
 ---
 

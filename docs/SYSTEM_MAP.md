@@ -51,7 +51,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `resource_categories` | `name` | `icon`, `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | — |
 | `resources` (= maszyny / pojazdy) | display `name` (=`brand·model · NR_REJ`) | `brand`, `model`, `registration_number`, `image_url`, `category_id` (legacy, pozostawione), N↔M przez `resource_to_categories` | `category_id → resource_categories.id` (set null) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
-| `materials` | `id` | `name`, `type` | — |
+| `materials` | `id` | `name` (klasyfikacja przez `material_to_categories`) | — |
 | `material_categories` | `id` | `name`, `color` | — |
 | `material_to_categories` | PK `(material_id, category_id)` | linki N↔M | cascade z `materials` i `material_categories` |
 | `customers` | `id` | `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | — |
@@ -80,8 +80,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0006 | `0006_resources_vehicle_identity.sql` | `resources.brand/model/registration_number` (NOT NULL DEFAULT '') |
 | 0007 | `0007_resource_categories_stationary.sql` | `resource_categories.is_stationary` + UPDATE „WARSZTAT/WORKSHOP” = true |
 | 0008 | `0008_work_sessions_bookend_coords.sql` | `work_sessions.start_latitude/longitude` + `end_latitude/longitude` |
+| 0009 | `0009_materials_drop_type.sql` | `ALTER materials DROP COLUMN type` — tylko kategorie materiałów |
 
-**Status migracji na produkcji** (na dzień ostatniej weryfikacji — 2026-05-10): **wszystkie 0000-0008 zaaplikowane** na bazie Neon `ep-rough-sea-al7ogqfl`. Migracja 0004 została chwilowo pominięta i **dodana ręcznie** po wykryciu błędu logowania (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend pokazywał „Wewnętrzny Błąd Serwera"). W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje takie błędy na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
+**Status migracji na produkcji** (na dzień ostatniej weryfikacji — 2026-05-10): **0000-0008 zaaplikowane** na bazie Neon `ep-rough-sea-al7ogqfl`. **0009** (`materials` bez kolumny `type`) — uruchom po wdrożeniu kodu: `npm run db:napraw-materialy-bez-typu` lub SQL z `drizzle/0009_*.sql`. Migracja 0004 została chwilowo pominięta i **dodana ręcznie** po wykryciu błędu logowania (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend pokazywał „Wewnętrzny Błąd Serwera"). W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje takie błędy na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
 
 **Drizzle nie ma zaczepionej automatycznej migracji w build/start.** Kolejność wdrożenia migracji na bazę produkcyjną jest manualna (skrypty `tsx src/scripts/apply_*.ts` lub bezpośrednie `psql`). Patrz `ARCHITECTURE.md §9` i `package.json#scripts`.
 
@@ -99,7 +100,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/users` | RSC | Konta (admin/viewer + biometric flagi) | admin |
 | `/admin/machines` | RSC | Maszyny / pojazdy (zarządzanie identity + kategorie + zdjęcia) | admin |
 | `/admin/customers` | RSC | Klienci (CRUD + geocode) | admin |
-| `/admin/materials` | RSC | Kruszywa + kategorie | admin |
+| `/admin/materials` | RSC | Baza materiałów + kategorie | admin |
 | `/admin/reports` | RSC | Raport operacyjny (`AdminReportService.getDashboardSnapshot`) | admin |
 | `/admin/settings` | RSC | Ustawienia firmy (singleton) | admin |
 | `/admin/logs` | RSC | Logi z urządzeń (`device_logs`, ostatnie 500) | admin |
@@ -180,6 +181,8 @@ Klasyfikacja zgodna z `src/middleware.ts`:
 
 Każda trasa w `categories|customers|materials|machines|material-categories` ma ten sam wzorzec: `GET (DictionaryService.get*) `, `POST (DictionaryService.add*)`, `PUT/DELETE` przez `[id]/route.ts`. Mutacje za `guardAdminMutation()`. Dodatkowo handlery wykrywają **brakujące migracje** (`isMissingResourcesVehicleColumns`, `isMissingMaterialCategoriesTables`, `isMissingResourceCategoriesStationaryColumn`) → 503 z czytelnym kluczem (`migration_required`, `migration_material_categories`).
 
+**Materiały:** `POST/PUT /api/materials` — ciało `{ name, categoryIds }`; **co najmniej jedna** kategoria (`categoryIds.length ≥ 1`), inaczej **400** `missing_material_category`. Kolumna `materials.type` usunięta migracją **0009** (`DictionaryService.addMaterial(name, categoryIds)`).
+
 ---
 
 ## 6. Warstwa serwisów (`src/services/*`)
@@ -221,7 +224,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `deleteArchivedSession(sessionId)` — `session_still_active` jeśli w toku; transakcja: kasuje sesję + powiązany `work_order` jeśli istniał.
 
 ### `DictionaryService`
-- Słowniki + ustawienia, **w tym mapowanie N↔M** dla maszyn (`resource_to_categories`) i kruszyw (`material_to_categories`).
+- Słowniki + ustawienia, **w tym mapowanie N↔M** dla maszyn (`resource_to_categories`) i materiałów (`material_to_categories`).
 - Wszystkie CRUD-y wymienione w sekcji 5.4. Eksportuje **`type ResourceCategoryUpdateInput`** i **`type MaterialCategoryUpdateInput`** — używane w `/api/categories/[id]` zamiast importowania `@/db/schema` w handlerze.
 - `getSettings()` zwraca tablicę 1-elementową (singleton id=1); `updateSettings()` robi `INSERT … ON CONFLICT (id) DO UPDATE`.
 
@@ -301,7 +304,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | Komponent | Prop kluczowy | Co |
 |---|---|---|
 | `WorkOrderPriorityRibbon` | `labels: WorkOrderPriorityLabels` (wycinek `worker.client`) | URGENT (red, pulse), HIGH (orange), NORMAL (zinc), LOW (emerald). Tryb `accentOnly` rysuje tylko URGENT/HIGH. |
-| `WorkOrderSummaryLines` | `dict` (wycinek), `taskItalic?`, `showDurationCreator?` | Maszyna / kruszywo (+t) / klient / opis / czas / zlecający. |
+| `WorkOrderSummaryLines` | `dict` (wycinek), `taskItalic?`, `showDurationCreator?` | Maszyna / materiał (+t) / klient / opis / czas / zlecający. |
 
 ---
 
@@ -380,6 +383,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 | `npm run db:napraw-maszyny` | Migracja 0006 (resources brand/model/registration_number) | `apply_resources_vehicle_identity.ts` |
 | `npm run db:napraw-slowniki-baza` | Migracje 0005 + 0007 (material_categories + is_stationary) | `apply_dictionary_schema.ts` |
 | `npm run db:napraw-lokalizacja-sesji` | Migracja 0008 (work_sessions bookend coords) | `apply_work_sessions_bookend_coords.ts` |
+| `npm run db:napraw-materialy-bez-typu` | Migracja 0009 (`materials` bez `type`) | `apply_materials_drop_type.ts` |
 | `npm run db:apply-resources-identity` | Alias dla 0006 | jw. |
 | `npm run db:migrate` | `drizzle-kit migrate` (oficjalny pipeline; w praktyce wdrożenie szło ręcznymi skryptami) | — |
 
@@ -426,4 +430,4 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-11. Jeśli któreś przypisanie endpoint↔serwis tu się rozjedzie z kodem — to TEN plik jest do aktualizacji w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-11 (materiały: usunięcie `type`, migracja 0009). Jeśli któreś przypisanie endpoint↔serwis tu się rozjedzie z kodem — to TEN plik jest do aktualizacji w tym samym PR.*
