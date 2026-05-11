@@ -6,7 +6,7 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 
 - **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
 - **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
-- **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy, ryzyko); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
+- **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte** w repo; archiwum decyzji + placeholder §5 na przyszły dług); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
 
 ---
 
