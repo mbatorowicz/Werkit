@@ -163,14 +163,10 @@ export default function ActiveSessionDashboard({
       </div>
       )}
 
-      {/* MAPA */}
+      {/* MAPA — ukryta dla trybu stacjonarnego (brak sensu śledzenia trasy na mapie) */}
+      {!isStationarySession && (
       <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
-        {isStationarySession ? (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-6 text-center bg-emerald-500/5 dark:bg-emerald-500/10">
-            <MapPin className="w-10 h-10 text-emerald-600 dark:text-emerald-400 opacity-80" />
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">{dict.sessionStationaryMapHint}</p>
-          </div>
-        ) : location ? (
+        {location ? (
           <LiveMap
             currentLocation={location}
             pathTraveled={pathTraveled}
@@ -191,6 +187,7 @@ export default function ActiveSessionDashboard({
           </div>
         )}
       </div>
+      )}
 
       {/* OŚ CZASU */}
       {timelineEvents.length > 0 && (
