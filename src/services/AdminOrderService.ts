@@ -10,11 +10,11 @@ import {
 } from '@/db/schema';
 import { eq, desc, aliasedTable, or, and, inArray } from 'drizzle-orm';
 import {
-  sqlSessionHasNotes,
-  sqlSessionHasPhotos,
-  sqlWorkOrderHasNotes,
-  sqlWorkOrderHasPhotos,
-} from '@/services/sql/attachmentExistsSql';
+  applyWorkOrderListJoins,
+  newWorkOrderCreatorUserAlias,
+  workOrderListSharedSelectFields,
+} from '@/services/workOrders/workOrderListQueryParts';
+import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 
 export class AdminOrderService {
   /**
@@ -65,42 +65,25 @@ export class AdminOrderService {
    * Pobiera zlecenia w kolejce dyspozycji — wyłącznie `PENDING` (zrealizowane / w toku realizacji poza kolejką).
    */
   static async getActiveWorkOrders() {
-    const creator = aliasedTable(users, 'creator');
+    const creator = newWorkOrderCreatorUserAlias();
 
-    return db.select({
-      id: workOrders.id,
-      status: workOrders.status,
-      categoryId: workOrders.categoryId,
-      categoryName: resourceCategories.name,
-      categoryIsStationary: resourceCategories.isStationary,
-      taskDescription: workOrders.taskDescription,
-      createdAt: workOrders.createdAt,
-      workerName: users.fullName,
-      userId: workOrders.userId,
-      creatorName: creator.fullName,
-      resourceName: resources.name,
-      resourceId: workOrders.resourceId,
-      materialId: workOrders.materialId,
-      materialName: materials.name,
-      customerId: workOrders.customerId,
-      customerFirstName: customers.firstName,
-      customerLastName: customers.lastName,
-      quantityTons: workOrders.quantityTons,
-      priority: workOrders.priority,
-      expectedDurationHours: workOrders.expectedDurationHours,
-      dueDate: workOrders.dueDate,
-      hasPhotos: sqlWorkOrderHasPhotos(),
-      hasNotes: sqlWorkOrderHasNotes(),
-    })
-    .from(workOrders)
-    .leftJoin(users, eq(workOrders.userId, users.id))
-    .leftJoin(creator, eq(workOrders.createdById, creator.id))
-    .leftJoin(resourceCategories, eq(workOrders.categoryId, resourceCategories.id))
-    .leftJoin(resources, eq(workOrders.resourceId, resources.id))
-    .leftJoin(materials, eq(workOrders.materialId, materials.id))
-    .leftJoin(customers, eq(workOrders.customerId, customers.id))
-    .where(eq(workOrders.status, 'PENDING'))
-    .orderBy(desc(workOrders.createdAt));
+    return applyWorkOrderListJoins(
+      db
+        .select({
+          ...workOrderListSharedSelectFields(creator),
+          status: workOrders.status,
+          categoryIsStationary: resourceCategories.isStationary,
+          workerName: users.fullName,
+          userId: workOrders.userId,
+          customerFirstName: customers.firstName,
+          customerLastName: customers.lastName,
+        })
+        .from(workOrders),
+      creator,
+      { joinAssignedWorker: true },
+    )
+      .where(eq(workOrders.status, 'PENDING'))
+      .orderBy(desc(workOrders.createdAt));
   }
 
   /**
