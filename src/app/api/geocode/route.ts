@@ -9,6 +9,9 @@ export async function GET(request: Request) {
   if (!q || q.length < 3) {
     return NextResponse.json({ error: "short_query" }, { status: 400 });
   }
+  if (q.length > 280) {
+    return NextResponse.json({ error: "query_too_long" }, { status: 400 });
+  }
 
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;

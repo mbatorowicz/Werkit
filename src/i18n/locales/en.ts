@@ -34,6 +34,8 @@ export const en: AppDictionary = {
     biometric_workers_only: "Biometric login is only available for worker accounts.",
     biometric_password_required: "Enter your current password to enable biometrics.",
     invalid_payload: "Invalid form data.",
+    short_query: "Geocode query is too short (min. 3 characters).",
+    query_too_long: "Geocode query is too long (max. 280 characters).",
     invalid_category: "Missing or invalid job category.",
     missing_customer: "This job type requires selecting a customer.",
     missing_material: "This job type requires selecting a material.",

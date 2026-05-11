@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
 import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
+import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
 export async function GET() {
@@ -25,15 +26,26 @@ export async function POST(request: Request) {
     const { resourceId, categoryId, materialId, customerId, taskDescription, quantityTons } = body;
     const startCoord = coordsFromRequestBody(body);
 
-    if (!resourceId || !categoryId) {
-       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    const resId = parsePositiveIntParam(resourceId);
+    const catId = parsePositiveIntParam(categoryId);
+    if (resId == null || catId == null) {
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    }
+
+    const matId = materialId != null && materialId !== '' ? parsePositiveIntParam(materialId) : null;
+    const custId = customerId != null && customerId !== '' ? parsePositiveIntParam(customerId) : null;
+    if (materialId != null && materialId !== '' && matId == null) {
+      return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
+    }
+    if (customerId != null && customerId !== '' && custId == null) {
+      return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
     }
 
     const newSession = await WorkerSessionService.createWizardSession(userId, {
-      resourceId: parseInt(resourceId),
-      categoryId: parseInt(categoryId),
-      materialId: materialId ? parseInt(materialId) : null,
-      customerId: customerId ? parseInt(customerId) : null,
+      resourceId: resId,
+      categoryId: catId,
+      materialId: matId,
+      customerId: custId,
       quantityTons: quantityTons || null,
       taskDescription,
       startCoord,

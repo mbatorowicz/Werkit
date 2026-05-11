@@ -26,10 +26,12 @@ export class SystemLogService {
   }
 
   static async insertLog(userId: number, level: string, message: string, metadata?: Record<string, unknown> | null) {
+    const safeLevel = (level || 'INFO').slice(0, 20);
+    const safeMessage = (message || 'Brak wiadomości').slice(0, 4000);
     await db.insert(deviceLogs).values({
       userId,
-      level: level || 'INFO',
-      message: message || 'Brak wiadomości',
+      level: safeLevel,
+      message: safeMessage,
       metadata: metadata || null
     });
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
+import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
 export async function POST(request: Request) {
@@ -32,7 +33,12 @@ export async function PUT(request: Request) {
     const { noteId, note } = body;
     if (!noteId || !note) return NextResponse.json({ error: 'Note ID and content are required' }, { status: 400 });
 
-    await WorkerSessionService.updateNote(userId, parseInt(noteId), note);
+    const nid = parsePositiveIntParam(noteId);
+    if (nid == null) {
+      return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+    }
+
+    await WorkerSessionService.updateNote(userId, nid, note);
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

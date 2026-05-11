@@ -36,7 +36,12 @@ export async function POST(request: Request) {
     if (!categoryIds || !Array.isArray(categoryIds)) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
-    const parsedCatIds = categoryIds.map((c: string | number) => parseInt(String(c), 10));
+    const parsedCatIds = categoryIds
+      .map((c: string | number) => parseInt(String(c), 10))
+      .filter((n: number) => Number.isFinite(n) && n > 0);
+    if (parsedCatIds.length === 0) {
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    }
     const { DictionaryService } = await import('@/services/DictionaryService');
     const vis = await DictionaryService.mergeResourceFormVisibility(parsedCatIds);
     const name = buildResourceCanonicalName(

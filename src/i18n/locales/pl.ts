@@ -32,6 +32,8 @@ export const pl = {
     biometric_workers_only: "Logowanie biometryczne jest dostępne tylko dla kont pracownika.",
     biometric_password_required: "Podaj aktualne hasło, aby włączyć biometrię.",
     invalid_payload: "Nieprawidłowe dane formularza.",
+    short_query: "Zapytanie geokodowania jest za krótkie (min. 3 znaki).",
+    query_too_long: "Zapytanie geokodowania jest za długie (maks. 280 znaków).",
     invalid_category: "Brak lub nieprawidłowy typ pracy (kategoria).",
     missing_customer: "Ten typ zlecenia wymaga wyboru klienta.",
     missing_material: "Ten typ zlecenia wymaga wyboru materiału.",

@@ -22,7 +22,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (!body.categoryIds || !Array.isArray(body.categoryIds)) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
-    const parsedCatIds = body.categoryIds.map((c: string | number) => parseInt(String(c), 10));
+    const parsedCatIds = body.categoryIds
+      .map((c: string | number) => parseInt(String(c), 10))
+      .filter((n: number) => Number.isFinite(n) && n > 0);
+    if (parsedCatIds.length === 0) {
+      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    }
     const { DictionaryService } = await import('@/services/DictionaryService');
     const vis = await DictionaryService.mergeResourceFormVisibility(parsedCatIds);
     const name = buildResourceCanonicalName(
@@ -64,8 +69,10 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
 
   try {
     const params = await context.params;
-    const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
+    const id = parseInt(params.id, 10);
+    if (!Number.isFinite(id) || id < 1) {
+      return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+    }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
     await DictionaryService.deleteResource(id);
