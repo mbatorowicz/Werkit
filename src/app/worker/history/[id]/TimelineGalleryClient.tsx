@@ -3,15 +3,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import type { AppDictionary } from "@/i18n/types";
+import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 
 type TimelineEntry = {
   id: string;
   type: "photo" | "note";
-  createdAt: string; // ISO
-  content: string; // url albo tekst
+  createdAt: string;
+  content: string;
 };
 
-export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] }) {
+type HistoryLabels = AppDictionary["worker"]["history"];
+
+export function TimelineGalleryClient({
+  entries,
+  labels,
+}: {
+  entries: TimelineEntry[];
+  labels: HistoryLabels;
+}) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const photoEntries = useMemo(
@@ -48,12 +58,10 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
 
   return (
     <>
-      <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-8">
-        Oś Czasu (Notatki i Zdjęcia)
-      </h3>
+      <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-8">{labels.timelineTitle}</h3>
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 flex flex-col gap-4 shadow-sm">
         {entries.map((item, index) => {
-          const timeLabel = new Date(item.createdAt).toLocaleString("pl-PL");
+          const timeLabel = new Date(item.createdAt).toLocaleString(DEFAULT_UI_LOCALE);
           const isPhoto = item.type === "photo";
           const photoIdx = isPhoto ? photoEntries.findIndex((p) => p.id === item.id) : -1;
 
@@ -69,7 +77,11 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
                     : "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
                 }`}
               >
-                {isPhoto ? <span className="text-[10px] font-black">F</span> : <span className="text-[10px] font-black">N</span>}
+                {isPhoto ? (
+                  <span className="text-[10px] font-black">{labels.badgePhoto}</span>
+                ) : (
+                  <span className="text-[10px] font-black">{labels.badgeNote}</span>
+                )}
               </div>
               <div className="flex-1 pb-2">
                 <div className="text-[10px] text-zinc-400 mb-1">{timeLabel}</div>
@@ -80,11 +92,11 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
                     onClick={() => {
                       if (photoIdx >= 0) setLightboxIndex(photoIdx);
                     }}
-                    title="Powiększ zdjęcie"
+                    title={labels.expandPhotoTitle}
                   >
                     <Image
                       src={item.content}
-                      alt="Zdjęcie"
+                      alt={labels.photoThumbAlt}
                       width={112}
                       height={112}
                       unoptimized
@@ -114,7 +126,7 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
                 type="button"
                 onClick={close}
                 className="p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                title="Zamknij"
+                title={labels.closeGallery}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -123,7 +135,7 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
             <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black/30 border border-white/10 rounded-xl overflow-hidden">
               <Image
                 src={photoEntries[lightboxIndex]?.content ?? ""}
-                alt="Podgląd zdjęcia"
+                alt={labels.photoLightboxAlt}
                 fill
                 unoptimized
                 className="object-contain"
@@ -136,7 +148,7 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
                   type="button"
                   onClick={goPrev}
                   className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                  title="Poprzednie"
+                  title={labels.prevPhoto}
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -144,7 +156,7 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
                   type="button"
                   onClick={goNext}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                  title="Następne"
+                  title={labels.nextPhoto}
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
@@ -156,4 +168,3 @@ export function TimelineGalleryClient({ entries }: { entries: TimelineEntry[] })
     </>
   );
 }
-

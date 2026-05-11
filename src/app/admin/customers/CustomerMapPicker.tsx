@@ -16,7 +16,7 @@ const iconLocation = L.icon({
 interface CustomerMapPickerProps {
   lat: string;
   lng: string;
-  /** Adres wpisany w formularzu — używany do przycisku „Pokaż na mapie”. */
+  /** Address from the form — used for the geocode / “show on map” action. */
   address: string;
   onChange: (lat: string, lng: string) => void;
 }

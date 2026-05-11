@@ -2,13 +2,24 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { formatDict, getDictionary } from "@/i18n";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import dynamic from "next/dynamic";
 
-const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), { ssr: false, loading: () => <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">Ładowanie mapy...</div> });
+function CustomerMapPickerLoading() {
+  return (
+    <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
+      {getDictionary().admin.customers.mapLoading}
+    </div>
+  );
+}
+
+const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
+  ssr: false,
+  loading: CustomerMapPickerLoading,
+});
 
 type Customer = {
   id: number;
@@ -30,6 +41,8 @@ export default function CustomersClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.customers;
+  const machinesDict = dictionary.admin.machines;
+  const ordersDict = dictionary.admin.orders;
   const pageTitle = dictionary.admin.sidebar.customers;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
@@ -61,7 +74,7 @@ export default function CustomersClient() {
       if(res.ok) { setIsModalOpen(false); fetchData(); }
       else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
     } catch {
-      alert(getDictionary().admin.machines.apiError);
+      alert(machinesDict.apiError);
     }
     setIsSubmitting(false);
   };
@@ -113,7 +126,7 @@ export default function CustomersClient() {
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.customerData}</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.defaultAddress}</th>
                  {canMutate && (
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{getDictionary().admin.machines.management}</th>
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{machinesDict.management}</th>
                  )}
                </tr>
              </thead>
@@ -141,10 +154,10 @@ export default function CustomersClient() {
                    {canMutate && (
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
-                        <button onClick={() => openEditModal(customer)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={getDictionary().admin.machines.editTitle}>
+                        <button onClick={() => openEditModal(customer)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={machinesDict.editTitle}>
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(customer.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={getDictionary().admin.machines.deleteTitle}>
+                        <button onClick={() => handleDelete(customer.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={machinesDict.deleteTitle}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                      </div>
@@ -191,13 +204,18 @@ export default function CustomersClient() {
                      onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
                    />
                    {(form.latitude && form.longitude) && (
-                     <div className="text-[10px] text-emerald-500">Zapisano pinezkę: {parseFloat(form.latitude).toFixed(5)}, {parseFloat(form.longitude).toFixed(5)}</div>
+                     <div className="text-[10px] text-emerald-500">
+                       {formatDict(dict.pinSaved, {
+                         lat: parseFloat(form.latitude).toFixed(5),
+                         lng: parseFloat(form.longitude).toFixed(5),
+                       })}
+                     </div>
                    )}
                  </div>
                  
                  <div className="pt-4 border-t border-zinc-800">
                     <button disabled={isSubmitting} type="submit" className="w-full bg-indigo-600 text-zinc-900 dark:text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
-                       {isSubmitting ? getDictionary().admin.orders.saving : (editId ? dict.save : dict.create)}
+                       {isSubmitting ? ordersDict.saving : editId ? dict.save : dict.create}
                     </button>
                  </div>
               </form>

@@ -3,8 +3,10 @@ import Link from "next/link";
 import { TimelineItem } from "@/types/worker";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
-import { JWT_SECRET } from '@/lib/auth';
+import { JWT_SECRET } from "@/lib/auth";
 import { notFound } from "next/navigation";
+import { getDictionary } from "@/i18n";
+import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { TimelineGalleryClient } from "./TimelineGalleryClient";
@@ -30,8 +32,12 @@ async function getUserId() {
 export const dynamic = 'force-dynamic';
 
 export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const dict = getDictionary();
+  const historyLabels = dict.worker.history;
+  const workerClient = dict.worker.client;
+
   const userId = await getUserId();
-  if (!userId) return <div>Brak dostępu</div>;
+  if (!userId) return <div>{historyLabels.accessDenied}</div>;
 
   const resolvedParams = await params;
   const sessionId = parseInt(resolvedParams.id);
@@ -86,22 +92,22 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
     <div className="py-6 pb-20">
       <Link href="/worker/history" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-semibold">Wróć do historii</span>
+        <span className="text-sm font-semibold">{historyLabels.backToHistory}</span>
       </Link>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 mb-6 shadow-sm">
         <OrderLabelCard
           tone="done"
           orderNo={sessionData.workOrderId ? `#${sessionData.workOrderId}` : `#${sessionData.id}`}
-          mode={sessionData.categoryName || "Brak kategorii"}
+          mode={sessionData.categoryName || workerClient.noCategoryName}
           machine={sessionData.resourceName || "—"}
           material={sessionData.materialName}
           quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}
           customer={sessionData.customerLastName || null}
           description={sessionData.taskDescription}
-          dateLabel={asDate(sessionData.startTime)?.toLocaleDateString("pl-PL") ?? "—"}
-          timeLabel={`${asDate(sessionData.startTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
-            asDate(sessionData.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
+          dateLabel={asDate(sessionData.startTime)?.toLocaleDateString(DEFAULT_UI_LOCALE) ?? "—"}
+          timeLabel={`${asDate(sessionData.startTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
+            asDate(sessionData.endTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"
           }`}
           attachmentPhotos={photos.length > 0}
           attachmentNotes={notes.length > 0}
@@ -110,7 +116,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
       {!isStationary ? (
         <>
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">Zapisana Trasa i Zdarzenia</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">{historyLabels.routeAndEventsTitle}</h3>
           <div className="w-full h-64 md:h-96 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-zinc-100 dark:bg-zinc-900 mb-6">
             {pathTraveled.length > 0 || mapEvents.length > 0 ? (
               <MapWrapper
@@ -122,7 +128,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
             ) : (
               <div className="w-full h-full flex items-center justify-center flex-col gap-2 text-zinc-500">
                 <MapPin className="w-8 h-8 opacity-50" />
-                <span className="text-sm">Brak zapisanych danych GPS dla tego zlecenia.</span>
+                <span className="text-sm">{historyLabels.noGpsForSession}</span>
               </div>
             )}
           </div>
@@ -131,6 +137,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
       {(notes.length > 0 || photos.length > 0) && (
         <TimelineGalleryClient
+          labels={historyLabels}
           entries={timelineEvents.map((e) => ({
             id: e.id,
             type: e.type,

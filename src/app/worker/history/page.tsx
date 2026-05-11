@@ -3,8 +3,10 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { getDictionary } from "@/i18n";
+import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 
-import { JWT_SECRET } from '@/lib/auth';
+import { JWT_SECRET } from "@/lib/auth";
 
 function asDate(v: unknown): Date | null {
   if (!v) return null;
@@ -26,19 +28,23 @@ async function getUserId() {
 export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage() {
-  const userId = await getUserId();
-  if (!userId) return <div>Brak dostępu</div>;
+  const dict = getDictionary();
+  const h = dict.worker.history;
+  const workerClient = dict.worker.client;
 
-  const { WorkerSessionService } = await import('@/services/WorkerSessionService');
+  const userId = await getUserId();
+  if (!userId) return <div>{h.accessDenied}</div>;
+
+  const { WorkerSessionService } = await import("@/services/WorkerSessionService");
   const sessions = await WorkerSessionService.getCompletedSessions(userId);
 
   return (
     <div className="py-6 pb-20">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Historia Pracy</h1>
-      
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6">{h.listTitle}</h1>
+
       {sessions.length === 0 ? (
          <div className="text-center p-8 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg">
-           <p className="text-zinc-500 text-sm">Nie masz jeszcze żadnych zakończonych sesji.</p>
+           <p className="text-zinc-500 text-sm">{h.listEmpty}</p>
          </div>
       ) : (
          <div className="space-y-4">
@@ -47,24 +53,24 @@ export default async function HistoryPage() {
                  <div className="flex items-center gap-2 mb-3">
                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                    <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">
-                     Zakończono
+                     {h.sessionCompletedBadge}
                    </span>
                    <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto group-hover:text-emerald-600 transition-colors">
-                     {asDate(s.endTime)?.toLocaleDateString('pl-PL')}
+                     {asDate(s.endTime)?.toLocaleDateString(DEFAULT_UI_LOCALE)}
                    </span>
                  </div>
                  <OrderLabelCard
                    tone="done"
                    orderNo={s.workOrderId ? `#${s.workOrderId}` : `#${s.id}`}
-                   mode={s.categoryName || "Brak kategorii"}
+                   mode={s.categoryName || workerClient.noCategoryName}
                    machine={s.resourceName || "—"}
                    material={s.materialName}
                    quantity={s.quantityTons ? `${s.quantityTons}t` : null}
                    customer={s.customerLastName || null}
                    description={s.taskDescription}
-                   dateLabel={asDate(s.startTime)?.toLocaleDateString("pl-PL") ?? "—"}
-                   timeLabel={`${asDate(s.startTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
-                     asDate(s.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
+                   dateLabel={asDate(s.startTime)?.toLocaleDateString(DEFAULT_UI_LOCALE) ?? "—"}
+                   timeLabel={`${asDate(s.startTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
+                     asDate(s.endTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"
                    }`}
                    className="mt-2"
                    attachmentPhotos={Boolean(s.hasPhotos)}

@@ -436,7 +436,9 @@ export const pl = {
       mapHint:
         "Po wpisaniu adresu użyj przycisku powyżej. Możesz też kliknąć mapę albo przeciągnąć czerwoną pinezkę, żeby doprecyzować miejsce dostawy.",
       save: "Zapisz Zmiany",
-      create: "Dodaj do Systemu"
+      create: "Dodaj do Systemu",
+      mapLoading: "Ładowanie mapy…",
+      pinSaved: "Zapisano pinezkę: {lat}, {lng}",
     },
     settings: {
       companyData: "Dane firmy",
@@ -621,6 +623,24 @@ export const pl = {
       biometricConfirmSave: "Zapisz i włącz",
       biometricSaveError: "Nie udało się zapisać ustawień.",
       biometricVaultError: "Nie udało się zapisać danych w zabezpieczonym magazynie. Spróbuj ponownie.",
+    },
+    history: {
+      accessDenied: "Brak dostępu",
+      listTitle: "Historia pracy",
+      listEmpty: "Nie masz jeszcze żadnych zakończonych sesji.",
+      sessionCompletedBadge: "Zakończono",
+      backToHistory: "Wróć do historii",
+      routeAndEventsTitle: "Zapisana trasa i zdarzenia",
+      noGpsForSession: "Brak zapisanych danych GPS dla tego zlecenia.",
+      timelineTitle: "Oś czasu: zdjęcia i notatki",
+      expandPhotoTitle: "Powiększ zdjęcie",
+      photoThumbAlt: "Zdjęcie",
+      photoLightboxAlt: "Podgląd zdjęcia",
+      closeGallery: "Zamknij",
+      prevPhoto: "Poprzednie",
+      nextPhoto: "Następne",
+      badgePhoto: "Z",
+      badgeNote: "N",
     },
     help: {
       title: "Instrukcja Obsługi",

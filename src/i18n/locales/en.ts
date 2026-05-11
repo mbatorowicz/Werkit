@@ -439,7 +439,9 @@ export const en: AppDictionary = {
       mapHint:
         "After typing the address, use the button above. You can also click the map or drag the red pin to fine-tune the delivery spot.",
       save: "Save Changes",
-      create: "Add to System"
+      create: "Add to System",
+      mapLoading: "Loading map…",
+      pinSaved: "Pin saved: {lat}, {lng}",
     },
     settings: {
       companyData: "Company Data",
@@ -624,6 +626,24 @@ export const en: AppDictionary = {
       biometricConfirmSave: "Save and enable",
       biometricSaveError: "Could not save settings.",
       biometricVaultError: "Could not store credentials in the secure vault. Please try again.",
+    },
+    history: {
+      accessDenied: "Access denied",
+      listTitle: "Work history",
+      listEmpty: "You don’t have any completed sessions yet.",
+      sessionCompletedBadge: "Completed",
+      backToHistory: "Back to history",
+      routeAndEventsTitle: "Recorded route and events",
+      noGpsForSession: "No GPS data was recorded for this job.",
+      timelineTitle: "Timeline: photos and notes",
+      expandPhotoTitle: "Enlarge photo",
+      photoThumbAlt: "Photo",
+      photoLightboxAlt: "Photo preview",
+      closeGallery: "Close",
+      prevPhoto: "Previous",
+      nextPhoto: "Next",
+      badgePhoto: "P",
+      badgeNote: "N",
     },
     help: {
       title: "User Manual",
