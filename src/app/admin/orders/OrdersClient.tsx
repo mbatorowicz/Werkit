@@ -208,7 +208,8 @@ export default function OrdersClient() {
     fetchData(true);
   };
 
-  const tableColSpan = canMutate ? 5 : 4;
+  // +1 kolumna na pionowy pasek statusu
+  const tableColSpan = canMutate ? 6 : 5;
 
   const unifiedItems = useMemo(
     () => buildUnifiedDispatchItems(orders, sessions, searchQuery),
