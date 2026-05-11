@@ -50,10 +50,12 @@ export const pl = {
       defaultCompany: "Dodaj Nazwę Firmy",
       logisticsSystem: "System Logistyczny",
       mainDashboard: "Główny Pulpit",
-      fleetAndPeople: "Flota i Ludzie",
+      dispatch: "Dyspozycja",
+      deviceLogs: "Logi urządzeń",
+      fleetAndPeople: "Organizacja",
       workers: "Użytkownicy",
       machinesAndWorkshop: "Zasoby operacyjne",
-      logistics: "Logistyka",
+      logistics: "Zasoby i kontrahenci",
       ordersAndDispatch: "Zlecenia i Dyspozycja",
       materialsBase: "Baza materiałów",
       customersAndAddresses: "Klienci i Adresy",
@@ -438,6 +440,10 @@ export const pl = {
       savedSuccess: "Ustawienia zostały zapisane.",
       saving: "Zapisywanie...",
       saveBtn: "Zapisz"
+    },
+    logs: {
+      title: "Logi urządzeń",
+      subtitle: "Podgląd zdarzeń z aplikacji pracowniczej w terenie.",
     }
   },
   worker: {

@@ -95,7 +95,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/` | RSC | `redirect('/login')` | root |
 | `/login` | Client (`use client`) | Login + biometryczny przycisk; POST `/api/auth/login` | root |
 | `/privacy-policy` | static | Polityka prywatności | root |
-| `/admin` | RSC | Dashboard / pulpit (statystyki, mapa, lista aktywnych) | `admin/layout.tsx` |
+| `/admin` | RSC | Dyspozycja (`OrdersClient`: Gantt, mapa, zlecenia) | `admin/layout.tsx` |
+| `/admin/orders` | RSC | Ten sam widok co `/admin` (alias pod linki `?open=` z Gantta) | jw. |
 | `/admin/workers` | RSC | Lista pracowników (CRUD) | admin |
 | `/admin/users` | RSC | Konta (admin/viewer + biometric flagi) | admin |
 | `/admin/machines` | RSC | Zasoby operacyjne — pojazdy/sprzęt (identity + kategorie zadań + zdjęcia) | admin |
@@ -283,7 +284,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### Lokalizacja komponentów
 
 `src/components/Admin/**`:
-- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
+- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
 - `Reports/ReportsDashboard.tsx`, `Reports/ReportStatCard.tsx`.

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Menu, X, Map, Users, Package, Activity, Wrench, HardHat, Settings, TerminalSquare, BarChart3 } from "lucide-react";
+import { Menu, X, Users } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
@@ -8,6 +8,8 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { usePathname } from "next/navigation";
 
 import type { AppDictionary } from "@/i18n/types";
+import { buildAdminNavLinks } from "./adminNavLinks";
+import { isAdminDispatchNavActive } from "./adminNavActive";
 
 export function MobileAdminNav({
   companyName,
@@ -25,94 +27,92 @@ export function MobileAdminNav({
   const pathname = usePathname();
   const closeMenu = () => setIsOpen(false);
 
-  const links = [
-    { href: "/admin", icon: Activity, label: dict.dashboard.title },
-    { href: "/admin/reports", icon: BarChart3, label: dict.reports.title },
-    { type: "section", label: dict.sidebar.fleetAndPeople },
-    { href: "/admin/users", icon: Users, label: dict.workers.title },
-    { href: "/admin/machines", icon: Wrench, label: dict.machines.fleetTitle },
-    { type: "section", label: dict.sidebar.logistics },
-    { href: "/admin/orders", icon: Map, label: dict.orders.title },
-    { href: "/admin/materials", icon: HardHat, label: dict.materials.title },
-    { href: "/admin/customers", icon: Package, label: dict.customers.title },
-    { type: "section", label: dict.sidebar.system },
-    { href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings },
-    { href: "/admin/logs", icon: TerminalSquare, label: "Logi Urządzeń" }
-  ];
+  const links = buildAdminNavLinks(dict);
 
   return (
     <>
-      <button onClick={() => setIsOpen(true)} className="p-2 -mr-2 text-zinc-600 dark:text-zinc-400 focus:outline-none">
+      <button type="button" onClick={() => setIsOpen(true)} className="p-2 -mr-2 text-zinc-600 dark:text-zinc-400 focus:outline-none">
         <Menu className="w-6 h-6" />
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu}></div>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu} />
           <div className="relative w-72 max-w-[80vw] h-full bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col animate-in slide-in-from-left duration-200">
-             <div className="h-[72px] flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
-               <div>
-                 <div className="flex items-center gap-2">
-                   <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
-                   <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{version}</span>
-                 </div>
-                 <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-[200px]">{companyName}</p>
-               </div>
-               <button onClick={closeMenu} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
-             </div>
-             
-             <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1.5 custom-scrollbar">
-               {links.map((link, idx) => {
-                 if (link.type === "section") {
-                   return (
-                     <div key={idx} className="pt-4 pb-2 px-3">
-                       <p className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">{link.label}</p>
-                     </div>
-                   );
-                 }
+            <div className="h-[72px] flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
+                    WERKIT
+                  </h1>
+                  <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
+                    v{version}
+                  </span>
+                </div>
+                <p
+                  className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-[200px]"
+                  title={companyName}
+                >
+                  {companyName}
+                </p>
+              </div>
+              <button type="button" onClick={closeMenu} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                 const Icon = link.icon!;
-                 const isActive = pathname === link.href;
-                 const isSettings = link.href === "/admin/settings";
-                 const shouldHighlight = isActive && !isSettings;
+            <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1.5 custom-scrollbar">
+              {links.map((link, idx) => {
+                if (link.kind === "section") {
+                  return (
+                    <div key={`section-${idx}`} className="pt-4 pb-2 px-3">
+                      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">{link.label}</p>
+                    </div>
+                  );
+                }
 
-                 return (
-                   <Link 
-                     key={link.href}
-                     onClick={closeMenu}
-                     href={link.href!}
-                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
-                       shouldHighlight
-                         ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white" 
-                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
-                     }`}
-                   >
-                     <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
-                     <span>{link.label}</span>
-                   </Link>
-                 );
-               })}
-             </div>
+                const Icon = link.icon;
+                const isActive = isAdminDispatchNavActive(pathname, link.href);
+                const isSettings = link.href === "/admin/settings";
+                const shouldHighlight = isActive && !isSettings;
 
-             <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
-               {loggedInUser && (
-                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-                    <Users className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="font-medium truncate">{loggedInUser}</span>
-                 </div>
-               )}
-               <div className="flex items-center justify-between gap-2">
-                  <LogoutButton
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm"
-                    iconClass="w-4 h-4"
-                    text="Wyloguj"
-                  />
-                 <ThemeToggle />
-               </div>
-             </div>
+                return (
+                  <Link
+                    key={link.href}
+                    onClick={closeMenu}
+                    href={link.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all font-medium text-sm ${
+                      shouldHighlight
+                        ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
+                    <span>{link.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+              {loggedInUser && (
+                <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+                  <Users className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="font-medium truncate">{loggedInUser}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between gap-2">
+                <LogoutButton
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm"
+                  iconClass="w-4 h-4"
+                  text="Wyloguj"
+                />
+                <ThemeToggle />
+              </div>
+            </div>
           </div>
         </div>
       )}
     </>
-  )
+  );
 }

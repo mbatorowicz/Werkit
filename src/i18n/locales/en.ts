@@ -52,10 +52,12 @@ export const en: AppDictionary = {
       defaultCompany: "Add Company Name",
       logisticsSystem: "Logistics System",
       mainDashboard: "Main Dashboard",
-      fleetAndPeople: "Fleet & People",
+      dispatch: "Dispatch",
+      deviceLogs: "Device logs",
+      fleetAndPeople: "Organization",
       workers: "Users",
       machinesAndWorkshop: "Operational resources",
-      logistics: "Logistics",
+      logistics: "Resources & contacts",
       ordersAndDispatch: "Orders & Dispatch",
       materialsBase: "Materials",
       customersAndAddresses: "Customers & Addresses",
@@ -440,6 +442,10 @@ export const en: AppDictionary = {
       savedSuccess: "Settings saved.",
       saving: "Saving...",
       saveBtn: "Save"
+    },
+    logs: {
+      title: "Device logs",
+      subtitle: "Events from worker devices in the field.",
     }
   },
   worker: {
