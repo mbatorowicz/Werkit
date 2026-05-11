@@ -47,8 +47,9 @@ src/
 ├── app/                    # Trasy Next (pages, layouts), Route Handlers api/**/route.ts
 ├── features/worker/        # Moduł aplikacji pracownika (komponenty, hooki, lib prezentacji zleceń)
 │   ├── components/         # m.in. WizardClient, PendingOrdersList, ActiveSessionDashboard, Modals
-│   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications
-│   └── lib/                # workOrderPresentation, workOrderPriority (normalizacja priorytetu)
+│   ├── gps/                # stałe + singleton BackgroundGeolocation + mapowanie odczytu natywnego
+│   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications, useWorkerSessionSync
+│   └── lib/                # workOrderPresentation, workOrderPriority, workerSessionTimeline
 ├── components/
 │   ├── work-orders/        # UI **współdzielony** worker ↔ admin (WorkOrderPriorityRibbon, WorkOrderSummaryLines)
 │   ├── Admin/, Map/, GanttChart/, …

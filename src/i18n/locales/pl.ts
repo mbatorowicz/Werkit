@@ -394,7 +394,7 @@ export const pl = {
       confirmCatDelete: "Usunięcie kategorii odłączy ją od materiałów. Kontynuować?",
       modalCatEditTitle: "Edycja kategorii",
       modalCatCreateTitle: "Nowa kategoria materiałów",
-      catPlaceholder: "Np. Frakcja 0–4 mm",
+      catPlaceholder: "Np. piasek, ziemia, tłuczeń",
       saveDict: "Zapisz kategorię",
       modalEditTitle: "Edycja materiału",
       modalCreateTitle: "Nowy materiał",

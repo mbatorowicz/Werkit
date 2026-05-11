@@ -397,7 +397,7 @@ export const en: AppDictionary = {
       confirmCatDelete: "Deleting this category will unlink it from materials. Continue?",
       modalCatEditTitle: "Edit category",
       modalCatCreateTitle: "New material category",
-      catPlaceholder: "e.g. Fraction 0–4 mm",
+      catPlaceholder: "e.g. sand, soil, crushed stone",
       saveDict: "Save category",
       modalEditTitle: "Edit material",
       modalCreateTitle: "New material",

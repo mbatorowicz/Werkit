@@ -22,6 +22,7 @@ import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchT
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
+import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
 
 async function parseJsonArray(res: Response): Promise<unknown[]> {
   if (!res.ok) return [];
@@ -118,12 +119,51 @@ export default function OrdersClient() {
     queueMicrotask(() => {
       void fetchData(true);
     });
-    const interval = setInterval(() => {
-      queueMicrotask(() => {
-        void fetchData(false);
-      });
-    }, 10000);
-    return () => clearInterval(interval);
+
+    let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+    const stopPolling = () => {
+      if (pollTimer !== null) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    };
+
+    const startPolling = () => {
+      if (pollTimer !== null) return;
+      pollTimer = setInterval(() => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+        queueMicrotask(() => {
+          void fetchData(false);
+        });
+      }, UI_BACKGROUND_SYNC_INTERVAL_MS);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        queueMicrotask(() => {
+          void fetchData(false);
+        });
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      if (document.visibilityState === "visible") {
+        startPolling();
+      }
+      document.addEventListener("visibilitychange", onVisibility);
+      return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
+        stopPolling();
+      };
+    }
+
+    return () => {
+      stopPolling();
+    };
   }, [fetchData]);
 
   const setViewModePersisted = (m: DispatchViewMode) => {

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { formatDict } from '@/i18n';
+import type { AppDictionary } from '@/i18n/types';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
 interface UseWorkerActionsProps {
-  dict: Record<string, string>;
+  dict: AppDictionary['worker']['client'];
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => Promise<void>;
   setIsLoading: (val: boolean) => void;
   timelineEvents: TimelineItem[];

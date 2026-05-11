@@ -1,10 +1,7 @@
 "use client";
 
 import { Navigation } from "lucide-react";
-import { registerPlugin } from '@capacitor/core';
-import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
-
-const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
+import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
 
 interface GpsWarningModalProps {
   showGpsWarning: boolean;
@@ -38,8 +35,8 @@ export default function GpsWarningModal({
         <div className="flex flex-col gap-3">
           <button 
             onClick={async () => { 
-              if (BackgroundGeolocation && typeof BackgroundGeolocation.openSettings === 'function') {
-                await BackgroundGeolocation.openSettings(); 
+              if (typeof backgroundGeolocation.openSettings === "function") {
+                await backgroundGeolocation.openSettings();
               }
             }} 
             className="w-full bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 font-bold text-sm transition-all"

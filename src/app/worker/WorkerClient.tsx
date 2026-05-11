@@ -7,8 +7,10 @@ import { Capacitor } from '@capacitor/core';
 
 import { useWorkerNotifications } from '@/features/worker/hooks/useWorkerNotifications';
 import { useWorkerGPS } from '@/features/worker/hooks/useWorkerGPS';
+import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
 import { GPSManager } from '@/lib/gpsManager';
 import { getCurrentPositionOnce } from '@/lib/geolocationOnce';
+import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
 import PendingOrdersList from "@/features/worker/components/PendingOrdersList";
@@ -18,24 +20,9 @@ import GpsWarningModal from "@/features/worker/components/Modals/GpsWarningModal
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
-  const getInitialTimeline = () => {
-    const arr: TimelineItem[] = [];
-    if (initialData?.events && Array.isArray(initialData.events)) {
-      arr.push(...initialData.events.map(e => ({
-        id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
-        lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
-      })));
-    }
-    if (initialData?.notes && Array.isArray(initialData.notes)) {
-      arr.push(...initialData.notes.map(n => ({
-        id: `note_${n.id}`, type: 'note' as const, content: n.note,
-        lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
-      })));
-    }
-    return arr.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-  };
-
-  const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(getInitialTimeline());
+  const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(() =>
+    initialData ? buildWorkerSessionTimeline(initialData.events, initialData.notes) : [],
+  );
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
@@ -108,21 +95,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
       if (sessData.session) {
         setSession(sessData.session);
-        const newTimeline: TimelineItem[] = [];
-        if (sessData.events && Array.isArray(sessData.events)) {
-          newTimeline.push(...sessData.events.map((e: { id: number, photoUrl?: string, latitude?: string, longitude?: string, createdAt: string }) => ({
-            id: `photo_${e.id}`, type: 'photo' as const, content: e.photoUrl || '',
-            lat: parseFloat(e.latitude || '0'), lng: parseFloat(e.longitude || '0'), createdAt: new Date(e.createdAt).toISOString()
-          })));
-        }
-        if (sessData.notes && Array.isArray(sessData.notes)) {
-          newTimeline.push(...sessData.notes.map((n: { id: number, note: string, latitude?: string, longitude?: string, createdAt: string }) => ({
-            id: `note_${n.id}`, type: 'note' as const, content: n.note,
-            lat: parseFloat(n.latitude || '0'), lng: parseFloat(n.longitude || '0'), createdAt: new Date(n.createdAt).toISOString()
-          })));
-        }
-        newTimeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        setTimelineEvents(newTimeline);
+        setTimelineEvents(buildWorkerSessionTimeline(sessData.events, sessData.notes));
 
         const sessStationary = Boolean(sessData.session.categoryIsStationary);
         if (!sessStationary) {
@@ -151,24 +124,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     if (showLoader) setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      if (!initialData) void fetchSessionAndPath(true, true);
-      else void fetchSessionAndPath(false, true);
-    });
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void fetchSessionAndPath(false, false);
-        GPSManager.flushQueue();
-      }
-    };
-
-    if (typeof document !== 'undefined') {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-      return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-    }
-  }, [initialData, fetchSessionAndPath]);
+  useWorkerSessionSync(initialData, fetchSessionAndPath);
 
   useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
 
