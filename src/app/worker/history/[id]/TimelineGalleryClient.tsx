@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
@@ -14,6 +15,9 @@ type TimelineEntry = {
 };
 
 type HistoryLabels = AppDictionary["worker"]["history"];
+
+/** Nad warstwami Leaflet (pane ~400+) i kontrolkami LiveMap (np. z-[1000]). */
+const LIGHTBOX_Z = "z-[10050]";
 
 export function TimelineGalleryClient({
   entries,
@@ -114,57 +118,65 @@ export function TimelineGalleryClient({
         })}
       </div>
 
-      {lightboxIndex !== null && photoEntries.length > 0 ? (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/70" onClick={close} />
-          <div className="relative z-10 w-full max-w-5xl">
-            <div className="absolute right-2 top-2 flex items-center gap-2 z-20">
-              <div className="text-[11px] font-mono text-white/80 bg-black/40 border border-white/10 px-2 py-1 rounded">
-                {lightboxIndex + 1}/{photoEntries.length}
+      {lightboxIndex !== null && photoEntries.length > 0 && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className={`fixed inset-0 ${LIGHTBOX_Z} flex items-center justify-center p-4`}
+              role="dialog"
+              aria-modal="true"
+              aria-label={labels.photoLightboxAlt}
+            >
+              <div className="absolute inset-0 bg-black/70" onClick={close} aria-hidden />
+              <div className="relative z-10 w-full max-w-5xl">
+                <div className="absolute right-2 top-2 z-20 flex items-center gap-2">
+                  <div className="rounded border border-white/10 bg-black/40 px-2 py-1 font-mono text-[11px] text-white/80">
+                    {lightboxIndex + 1}/{photoEntries.length}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={close}
+                    className="rounded-lg border border-white/10 bg-black/40 p-2 text-white transition hover:bg-black/60"
+                    title={labels.closeGallery}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-white/10 bg-black/30 sm:aspect-[16/10]">
+                  <Image
+                    src={photoEntries[lightboxIndex]?.content ?? ""}
+                    alt={labels.photoLightboxAlt}
+                    fill
+                    unoptimized
+                    className="object-contain"
+                  />
+                </div>
+
+                {photoEntries.length > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={goPrev}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 rounded-lg border border-white/10 bg-black/40 p-2 text-white transition hover:bg-black/60"
+                      title={labels.prevPhoto}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goNext}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg border border-white/10 bg-black/40 p-2 text-white transition hover:bg-black/60"
+                      title={labels.nextPhoto}
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+                  </>
+                ) : null}
               </div>
-              <button
-                type="button"
-                onClick={close}
-                className="p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                title={labels.closeGallery}
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-black/30 border border-white/10 rounded-xl overflow-hidden">
-              <Image
-                src={photoEntries[lightboxIndex]?.content ?? ""}
-                alt={labels.photoLightboxAlt}
-                fill
-                unoptimized
-                className="object-contain"
-              />
-            </div>
-
-            {photoEntries.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                  title={labels.prevPhoto}
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-black/40 hover:bg-black/60 border border-white/10 text-white transition"
-                  title={labels.nextPhoto}
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }

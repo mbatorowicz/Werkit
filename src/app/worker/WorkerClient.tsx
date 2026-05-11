@@ -1,265 +1,165 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2 } from "lucide-react";
+import { useState, useCallback } from "react";
+import { Capacitor } from "@capacitor/core";
 import { getDictionary } from "@/i18n";
-import { Capacitor } from '@capacitor/core';
+import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
+import type { InitialWorkerData } from "@/types/worker";
 
-import { useWorkerNotifications } from '@/features/worker/hooks/useWorkerNotifications';
-import { useWorkerGPS } from '@/features/worker/hooks/useWorkerGPS';
-import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
-import { GPSManager } from '@/lib/gpsManager';
-import { getCurrentPositionOnce } from '@/lib/geolocationOnce';
-import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
-import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
-
-import PendingOrdersList from "@/features/worker/components/PendingOrdersList";
-import ActiveSessionDashboard from "@/features/worker/components/ActiveSessionDashboard";
-import NotesModal from "@/features/worker/components/Modals/NotesModal";
-import GpsWarningModal from "@/features/worker/components/Modals/GpsWarningModal";
+import { useWorkerNotifications } from "@/features/worker/hooks/useWorkerNotifications";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
+import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
+import { WorkerActiveSessionSection } from "@/features/worker/components/worker/WorkerActiveSessionSection";
+import { WorkerClientFooter } from "@/features/worker/components/worker/WorkerClientFooter";
+import { WorkerClientLoading } from "@/features/worker/components/worker/WorkerClientLoading";
+import { WorkerClientModals } from "@/features/worker/components/worker/WorkerClientModals";
+import { WorkerPendingOrdersSection } from "@/features/worker/components/worker/WorkerPendingOrdersSection";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
-  const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(() =>
-    initialData ? buildWorkerSessionTimeline(initialData.events, initialData.notes) : [],
-  );
-  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-
-  const [session, setSession] = useState<Session | null>(initialData?.session || null);
-  const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders || []);
-  const [isLoading, setIsLoading] = useState(!initialData);
-
-  const [settings, setSettings] = useState<AppSettings | null>(initialData?.settings || null);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user || null);
-
-  const [location, setLocation] = useState<Coord | null>(null);
-  const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
-  const [destination, setDestination] = useState<Coord | null>(null);
-  const destinationRef = useRef<Coord | null>(null);
-  useEffect(() => {
-    destinationRef.current = destination;
-  }, [destination]);
-  const [distanceToDestKm, setDistanceToDestKm] = useState<number | null>(null);
-  const [traveledKm, setTraveledKm] = useState(0);
-
-  const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
   const dict = getDictionary().worker.client;
   const adminDict = getDictionary().admin.orders;
 
-  const [showGpsWarning, setShowGpsWarning] = useState(false);
-  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
-
-  const fetchSessionAndPath = useCallback(async (showLoader = true, fetchGpsPath = true) => {
-    if (showLoader) setIsLoading(true);
-    try {
-      const [resSess, resOrders] = await Promise.all([
-        fetch("/api/worker/session", { cache: "no-store" }),
-        fetch("/api/worker/work-orders", { cache: "no-store" })
-      ]);
-      
-      if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
-      if (!resOrders.ok) throw new Error(`Orders fetch failed: ${resOrders.status}`);
-
-      const sessData = await resSess.json();
-      const ordersData = await resOrders.json();
-      setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
-
-      const stationary = Boolean(sessData?.session?.categoryIsStationary);
-      if (stationary) {
-        setPathTraveled([]);
-        setTraveledKm(0);
-        setDestination(null);
-        setDistanceToDestKm(null);
-      }
-
-      if (fetchGpsPath && sessData?.session && !stationary) {
-        try {
-          const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
-          const pathData = await resPath.json();
-          if (pathData.logs) {
-            setPathTraveled(pathData.logs);
-            let dist = 0;
-            for (let i = 1; i < pathData.logs.length; i++) {
-              dist += GPSManager.getDistance(pathData.logs[i - 1], pathData.logs[i]);
-            }
-            setTraveledKm(dist / 1000);
-          }
-        } catch {
-          /* ścieżka GPS opcjonalna */
-        }
-      }
-
-      if (sessData.settings) setSettings(sessData.settings);
-      if (sessData.user) setCurrentUser(sessData.user);
-
-      if (sessData.session) {
-        setSession(sessData.session);
-        setTimelineEvents(buildWorkerSessionTimeline(sessData.events, sessData.notes));
-
-        const sessStationary = Boolean(sessData.session.categoryIsStationary);
-        if (!sessStationary) {
-          if (sessData.session.customerLat && sessData.session.customerLng) {
-            setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
-          } else if (sessData.session.customerAddress && !destinationRef.current) {
-            try {
-              const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
-              const geoData = await geo.json();
-              if (geoData && geoData.length > 0) {
-                setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
-              }
-            } catch {
-              /* geokodowanie opcjonalne */
-            }
-          }
-        }
-      } else {
-        setSession(null);
-        setDestination(null);
-        setDistanceToDestKm(null);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    if (showLoader) setIsLoading(false);
-  }, []);
-
-  useWorkerSessionSync(initialData, fetchSessionAndPath);
-
-  useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
+  const shell = useWorkerShellState(initialData);
 
   const {
-    isNotesModalOpen, setIsNotesModalOpen,
-    noteText, setNoteText,
+    isNotesModalOpen,
+    setIsNotesModalOpen,
+    noteText,
+    setNoteText,
     isSubmittingNote,
-    editingNoteId, setEditingNoteId,
+    editingNoteId,
+    setEditingNoteId,
     handleEndSession: submitEndSession,
     handleAcceptOrder: submitAcceptOrder,
     handleCancelSession,
     handleCheckpoint,
     handleSaveNote,
-    handlePhotoUpload
+    handlePhotoUpload,
   } = useWorkerActions({
     dict,
-    fetchSessionAndPath,
-    setIsLoading,
-    timelineEvents,
-    settings,
-    distanceToDestKm,
-    categoryIsStationary: !!session?.categoryIsStationary,
+    fetchSessionAndPath: shell.fetchSessionAndPath,
+    setIsLoading: shell.setIsLoading,
+    timelineEvents: shell.timelineEvents,
+    settings: shell.settings,
+    distanceToDestKm: shell.distanceToDestKm,
+    categoryIsStationary: Boolean(shell.session?.categoryIsStationary),
   });
 
-  const requestAcceptOrder = (orderId: number) => {
-    if (Capacitor.isNativePlatform()) {
-      const verified = localStorage.getItem('werkit_bg_loc_verified');
-      if (verified !== 'true') {
-        setPendingOrderId(orderId);
-        setShowGpsWarning(true);
-        return;
+  const [showGpsWarning, setShowGpsWarning] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+
+  const requestAcceptOrder = useCallback(
+    (orderId: number) => {
+      if (Capacitor.isNativePlatform()) {
+        const verified = localStorage.getItem("werkit_bg_loc_verified");
+        if (verified !== "true") {
+          setPendingOrderId(orderId);
+          setShowGpsWarning(true);
+          return;
+        }
       }
-    }
-    void (async () => {
-      const startLoc = location ?? (await getCurrentPositionOnce());
-      await submitAcceptOrder(orderId, startLoc);
-    })();
-  };
+      void (async () => {
+        const startLoc = shell.location ?? (await getCurrentPositionOnce());
+        await submitAcceptOrder(orderId, startLoc);
+      })();
+    },
+    [shell.location, submitAcceptOrder],
+  );
 
-  const isCancelWindowOpen = session && settings?.cancelWindowMinutes
-    ? (new Date().getTime() - new Date(session.startTime).getTime()) / 60000 <= settings.cancelWindowMinutes
-    : true;
+  const isCancelWindowOpen =
+    shell.session && shell.settings?.cancelWindowMinutes
+      ? (Date.now() - new Date(shell.session.startTime).getTime()) / 60000 <= shell.settings.cancelWindowMinutes
+      : true;
 
-  const { isTimeOverrun, overdueOrder, upcomingOrder } = useWorkerNotifications(session, workOrders, settings, currentUser);
+  const { isTimeOverrun, overdueOrder, upcomingOrder } = useWorkerNotifications(
+    shell.session,
+    shell.workOrders,
+    shell.settings,
+    shell.currentUser,
+  );
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
-        <p className="text-zinc-500 mt-4 text-sm">Wczytywanie statusu...</p>
-      </div>
-    );
+  if (shell.isLoading) {
+    return <WorkerClientLoading message={dict.loadingWorkerDashboard} />;
   }
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-[80vh] py-4 space-y-6">
-      {!session ? (
-        <PendingOrdersList 
-          workOrders={workOrders}
+    <div className="flex min-h-[80vh] flex-col items-center justify-start space-y-6 py-4">
+      {!shell.session ? (
+        <WorkerPendingOrdersSection
+          workOrders={shell.workOrders}
           overdueOrder={overdueOrder}
           upcomingOrder={upcomingOrder}
-          currentUser={currentUser}
+          currentUser={shell.currentUser}
           dict={dict}
           requestAcceptOrder={requestAcceptOrder}
-          fetchSessionAndPath={fetchSessionAndPath}
+          fetchSessionAndPath={shell.fetchSessionAndPath}
         />
       ) : (
-        <ActiveSessionDashboard 
-          session={session}
-          isStationarySession={!!session.categoryIsStationary}
-          queuedPendingOrders={workOrders}
+        <WorkerActiveSessionSection
+          session={shell.session}
+          isStationarySession={Boolean(shell.session.categoryIsStationary)}
+          queuedPendingOrders={shell.workOrders}
           dict={dict}
           adminDict={adminDict}
           isTimeOverrun={isTimeOverrun}
-          gpsStatus={gpsStatus}
-          traveledKm={traveledKm}
-          destination={destination}
-          distanceToDestKm={distanceToDestKm}
-          location={location}
-          pathTraveled={pathTraveled}
-          timelineEvents={timelineEvents}
-          isTimelineOpen={isTimelineOpen}
-          setIsTimelineOpen={setIsTimelineOpen}
-          selectedEventId={selectedEventId}
-          setSelectedEventId={setSelectedEventId}
+          gpsStatus={shell.gpsStatus}
+          traveledKm={shell.traveledKm}
+          destination={shell.destination}
+          distanceToDestKm={shell.distanceToDestKm}
+          location={shell.location}
+          pathTraveled={shell.pathTraveled}
+          timelineEvents={shell.timelineEvents}
+          isTimelineOpen={shell.isTimelineOpen}
+          setIsTimelineOpen={shell.setIsTimelineOpen}
+          selectedEventId={shell.selectedEventId}
+          setSelectedEventId={shell.setSelectedEventId}
           setNoteText={setNoteText}
           setEditingNoteId={setEditingNoteId}
           setIsNotesModalOpen={setIsNotesModalOpen}
-          handlePhotoUpload={(e: React.ChangeEvent<HTMLInputElement>) => handlePhotoUpload(e, location)}
-          handleCheckpoint={() => handleCheckpoint(location)}
+          handlePhotoUpload={(e: React.ChangeEvent<HTMLInputElement>) => handlePhotoUpload(e, shell.location)}
+          handleCheckpoint={() => handleCheckpoint(shell.location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}
           handleEndSession={() => {
             void (async () => {
-              const endLoc = location ?? (await getCurrentPositionOnce());
+              const endLoc = shell.location ?? (await getCurrentPositionOnce());
               await submitEndSession(endLoc);
             })();
           }}
-          settings={settings}
-          setDistanceToDestKm={setDistanceToDestKm}
+          settings={shell.settings}
+          setDistanceToDestKm={shell.setDistanceToDestKm}
         />
       )}
 
-      <NotesModal 
-        isNotesModalOpen={isNotesModalOpen}
-        setIsNotesModalOpen={setIsNotesModalOpen}
-        dict={dict}
-        noteText={noteText}
-        setNoteText={setNoteText}
-        isSubmittingNote={isSubmittingNote}
-        handleSaveNote={() => handleSaveNote(location)}
-        editingNoteId={editingNoteId}
-        setEditingNoteId={setEditingNoteId}
-        timelineEvents={timelineEvents}
-      />
-
-      <GpsWarningModal
-        dict={dict}
-        showGpsWarning={showGpsWarning}
-        setShowGpsWarning={setShowGpsWarning}
-        pendingOrderId={pendingOrderId}
-        setPendingOrderId={setPendingOrderId}
-        handleAcceptOrder={(orderId) => {
-          void (async () => {
-            const startLoc = location ?? (await getCurrentPositionOnce());
-            await submitAcceptOrder(orderId, startLoc);
-          })();
+      <WorkerClientModals
+        notes={{
+          dict,
+          isNotesModalOpen,
+          setIsNotesModalOpen,
+          noteText,
+          setNoteText,
+          isSubmittingNote,
+          handleSaveNote: () => handleSaveNote(shell.location),
+          editingNoteId,
+          setEditingNoteId,
+          timelineEvents: shell.timelineEvents,
+        }}
+        gps={{
+          dict,
+          showGpsWarning,
+          setShowGpsWarning,
+          pendingOrderId,
+          setPendingOrderId,
+          handleAcceptOrder: (orderId) => {
+            void (async () => {
+              const startLoc = shell.location ?? (await getCurrentPositionOnce());
+              await submitAcceptOrder(orderId, startLoc);
+            })();
+          },
         }}
       />
 
-      <div className="mt-4 text-center text-[10px] text-zinc-400 dark:text-zinc-500 font-mono uppercase tracking-widest opacity-60">
-        Werkit v{process.env.APP_VERSION || '0.0.0'}
-      </div>
+      <WorkerClientFooter />
     </div>
   );
 }
-
-

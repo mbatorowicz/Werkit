@@ -499,6 +499,7 @@ export const pl = {
   worker: {
     client: {
       refresh: "Odśwież listę",
+      loadingWorkerDashboard: "Wczytywanie statusu…",
       readyToStart: "Gotowy do startu?",
       selectOrder: "Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.",
       pendingOrders: "Oczekujące zlecenia",

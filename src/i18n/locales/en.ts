@@ -502,6 +502,7 @@ export const en: AppDictionary = {
   worker: {
     client: {
       refresh: "Refresh list",
+      loadingWorkerDashboard: "Loading status…",
       readyToStart: "Ready to start?",
       selectOrder: "Select a prepared order or start work manually.",
       pendingOrders: "Pending orders",
