@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
@@ -14,6 +14,9 @@ export function OrdersDispatchToolbar({
   onTableLimitChange,
   viewMode,
   onViewModeChange,
+  page,
+  totalPages,
+  onPageChange,
 }: {
   dict: OrdersDict;
   searchQuery: string;
@@ -22,6 +25,9 @@ export function OrdersDispatchToolbar({
   onTableLimitChange: (n: number) => void;
   viewMode: DispatchViewMode;
   onViewModeChange: (m: DispatchViewMode) => void;
+  page: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
 }) {
   const sizes = [10, 20, 50, 100] as const;
 
@@ -61,6 +67,31 @@ export function OrdersDispatchToolbar({
           Tabela
         </button>
       </div>
+      {viewMode === "table" && totalPages > 1 ? (
+        <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden shadow-sm">
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(1, page - 1))}
+            disabled={page <= 1}
+            className="px-2.5 py-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition"
+            title="Poprzednia strona"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <div className="px-3 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200 border-x border-zinc-200 dark:border-zinc-700">
+            {page}/{totalPages}
+          </div>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+            disabled={page >= totalPages}
+            className="px-2.5 py-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition"
+            title="Następna strona"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      ) : null}
       <select
         value={tableLimit}
         onChange={(e) => onTableLimitChange(Number(e.target.value))}

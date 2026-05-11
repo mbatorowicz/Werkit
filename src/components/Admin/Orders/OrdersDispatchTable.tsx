@@ -46,6 +46,7 @@ export function OrdersDispatchTable({
   tableLimit,
   unifiedItems,
   viewMode,
+  page,
   onRowClick,
   onDeleteWorkOrder,
   onForceCompleteSession,
@@ -60,6 +61,7 @@ export function OrdersDispatchTable({
   tableLimit: number;
   unifiedItems: UnifiedGanttItem[];
   viewMode: DispatchViewMode;
+  page: number;
   onRowClick: (item: UnifiedGanttItem) => void;
   onDeleteWorkOrder: (id: number) => Promise<void>;
   onForceCompleteSession: (sessionId: number) => Promise<void>;
@@ -121,10 +123,9 @@ export function OrdersDispatchTable({
     );
   }
 
-  const items = unifiedItems.slice(0, tableLimit);
-  const planned = items.filter((i) => i.status === "PENDING");
-  const active = items.filter((i) => i.status === "IN_PROGRESS");
-  const done = items.filter((i) => i.status === "COMPLETED");
+  const plannedAll = unifiedItems.filter((i) => i.status === "PENDING");
+  const activeAll = unifiedItems.filter((i) => i.status === "IN_PROGRESS");
+  const doneAll = unifiedItems.filter((i) => i.status === "COMPLETED");
 
   const renderCard = (item: UnifiedGanttItem) => {
     const isWorking = item.status === "IN_PROGRESS";
@@ -281,7 +282,7 @@ export function OrdersDispatchTable({
       IN_PROGRESS: 1,
       COMPLETED: 2,
     };
-    const sortedItems = [...items].sort((a, b) => {
+    const sortedItems = [...unifiedItems].sort((a, b) => {
       const ra = statusRank[a.status] ?? 9;
       const rb = statusRank[b.status] ?? 9;
       if (ra !== rb) return ra - rb;
@@ -290,6 +291,8 @@ export function OrdersDispatchTable({
       const db = (b._sortDate as number | undefined) ?? Date.parse(String(b.dueDate ?? b.startTime ?? b.createdAt ?? 0));
       return (db || 0) - (da || 0);
     });
+    const start = Math.max(0, (Math.max(1, page) - 1) * Math.max(1, tableLimit));
+    const pageItems = sortedItems.slice(start, start + Math.max(1, tableLimit));
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -301,7 +304,7 @@ export function OrdersDispatchTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
-            {sortedItems.map((item) => (
+            {pageItems.map((item) => (
               <tr
                 key={`${item._type}-${item.id}`}
                 onClick={() => onRowClick(item)}
@@ -325,6 +328,10 @@ export function OrdersDispatchTable({
       </div>
     );
   }
+
+  const planned = plannedAll.slice(0, tableLimit);
+  const active = activeAll.slice(0, tableLimit);
+  const done = doneAll.slice(0, tableLimit);
 
   return (
     <div className="px-4 py-4">

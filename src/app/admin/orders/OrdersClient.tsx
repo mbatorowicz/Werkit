@@ -57,6 +57,7 @@ export default function OrdersClient() {
   const [sessions, setSessions] = useState<UnifiedGanttItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<DispatchViewMode>(() => {
     try {
@@ -127,11 +128,20 @@ export default function OrdersClient() {
 
   const setViewModePersisted = (m: DispatchViewMode) => {
     setViewMode(m);
+    setPage(1);
     try {
       localStorage.setItem("werkit_admin_dispatch_view", m);
     } catch {
       /* ignore */
     }
+  };
+  const setSearchQueryAndResetPage = (q: string) => {
+    setSearchQuery(q);
+    setPage(1);
+  };
+  const setTableLimitAndResetPage = (n: number) => {
+    setTableLimit(n);
+    setPage(1);
   };
 
   const handleEditClick = useCallback((item: UnifiedGanttItem) => {
@@ -234,6 +244,13 @@ export default function OrdersClient() {
     [orders, sessions, searchQuery],
   );
 
+  const totalPages = useMemo(() => {
+    if (viewMode !== "table") return 1;
+    return Math.max(1, Math.ceil(unifiedItems.length / Math.max(1, tableLimit)));
+  }, [unifiedItems.length, tableLimit, viewMode]);
+
+  const safePage = Math.min(page, totalPages);
+
   const handleRowClick = (item: UnifiedGanttItem) => {
     if (item._type === "ORDER") {
       if (canMutate) handleEditClick(item);
@@ -308,11 +325,14 @@ export default function OrdersClient() {
         <OrdersDispatchToolbar
           dict={dict}
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={setSearchQueryAndResetPage}
           tableLimit={tableLimit}
-          onTableLimitChange={setTableLimit}
+          onTableLimitChange={setTableLimitAndResetPage}
           viewMode={viewMode}
           onViewModeChange={setViewModePersisted}
+          page={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
         <OrdersDispatchTable
           ordersDict={dict}
@@ -324,6 +344,7 @@ export default function OrdersClient() {
           tableLimit={tableLimit}
           unifiedItems={unifiedItems}
           viewMode={viewMode}
+          page={safePage}
           onRowClick={handleRowClick}
           onDeleteWorkOrder={handleDeleteWorkOrder}
           onForceCompleteSession={handleForceCompleteSession}
