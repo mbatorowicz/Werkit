@@ -5,6 +5,13 @@ import { jwtVerify } from "jose";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 
 import { JWT_SECRET } from '@/lib/auth';
+
+function asDate(v: unknown): Date | null {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  const d = new Date(String(v));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
   if (!token) return null;
@@ -43,7 +50,7 @@ export default async function HistoryPage() {
                      Zakończono
                    </span>
                    <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto group-hover:text-emerald-600 transition-colors">
-                     {s.endTime?.toLocaleDateString('pl-PL')}
+                     {asDate(s.endTime)?.toLocaleDateString('pl-PL')}
                    </span>
                  </div>
                  <OrderLabelCard
@@ -55,9 +62,9 @@ export default async function HistoryPage() {
                    quantity={s.quantityTons ? `${s.quantityTons}t` : null}
                    customer={s.customerLastName || null}
                    description={s.taskDescription}
-                   dateLabel={s.startTime.toLocaleDateString("pl-PL")}
-                   timeLabel={`${s.startTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – ${
-                     s.endTime ? s.endTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "—"
+                   dateLabel={asDate(s.startTime)?.toLocaleDateString("pl-PL") ?? "—"}
+                   timeLabel={`${asDate(s.startTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
+                     asDate(s.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
                    }`}
                    className="mt-2"
                  />

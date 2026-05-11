@@ -9,6 +9,13 @@ import MapWrapper from "./MapWrapper";
 import Image from "next/image";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 
+function asDate(v: unknown): Date | null {
+  if (!v) return null;
+  if (v instanceof Date) return v;
+  const d = new Date(String(v));
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
   if (!token) return null;
@@ -78,9 +85,9 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
           quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}
           customer={sessionData.customerLastName || null}
           description={sessionData.taskDescription}
-          dateLabel={sessionData.startTime.toLocaleDateString("pl-PL")}
-          timeLabel={`${sessionData.startTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – ${
-            sessionData.endTime ? sessionData.endTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "—"
+          dateLabel={asDate(sessionData.startTime)?.toLocaleDateString("pl-PL") ?? "—"}
+          timeLabel={`${asDate(sessionData.startTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
+            asDate(sessionData.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
           }`}
         />
       </div>
