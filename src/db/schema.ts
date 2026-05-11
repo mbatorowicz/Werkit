@@ -19,6 +19,12 @@ export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   icon: varchar('icon', { length: 50 }).default('Truck'),
+  /** Widoczność pól w formularzach (UI). */
+  showCustomer: boolean('show_customer').notNull().default(true),
+  showMaterial: boolean('show_material').notNull().default(true),
+  showQuantity: boolean('show_quantity').notNull().default(true),
+  showTaskDescription: boolean('show_task_description').notNull().default(true),
+  /** Wymagalność pól w formularzach (walidacja). */
   reqCustomer: boolean('req_customer').notNull().default(false),
   reqMaterial: boolean('req_material').notNull().default(false),
   reqQuantity: boolean('req_quantity').notNull().default(false),

@@ -63,10 +63,10 @@ export default function WizardClient() {
         body: JSON.stringify({
           categoryId,
           resourceId,
-          materialId: selectedCategory?.reqMaterial ? materialId : null,
-          customerId: selectedCategory?.reqCustomer ? customerId : null,
-          quantityTons: selectedCategory?.reqQuantity ? quantityTons : null,
-          taskDescription: selectedCategory?.reqTaskDescription ? taskDescription : null
+          materialId: selectedCategory?.showMaterial ? (materialId || null) : null,
+          customerId: selectedCategory?.showCustomer ? (customerId || null) : null,
+          quantityTons: selectedCategory?.showQuantity ? (quantityTons || null) : null,
+          taskDescription: selectedCategory?.showTaskDescription ? (taskDescription || null) : null
         })
       });
 
@@ -268,7 +268,7 @@ export default function WizardClient() {
             </div>
 
             <div className="space-y-5">
-              {selectedCategory?.reqMaterial && (
+              {selectedCategory?.showMaterial && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
                   <select value={materialId} onChange={e => setMaterialId(e.target.value)}
@@ -283,7 +283,7 @@ export default function WizardClient() {
                 </div>
               )}
 
-              {selectedCategory?.reqCustomer && (
+              {selectedCategory?.showCustomer && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">{dict.wizardCustomerLabel}</label>
                   <select value={customerId} onChange={e => setCustomerId(e.target.value)}
@@ -296,7 +296,7 @@ export default function WizardClient() {
                 </div>
               )}
 
-              {selectedCategory?.reqQuantity && (
+              {selectedCategory?.showQuantity && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
                   <input
@@ -309,7 +309,7 @@ export default function WizardClient() {
                 </div>
               )}
 
-              {(!selectedCategory || selectedCategory?.reqTaskDescription) && (
+              {(!selectedCategory || selectedCategory?.showTaskDescription) && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
                   <textarea
@@ -327,7 +327,12 @@ export default function WizardClient() {
                 <ChevronLeft className="w-4 h-4" /> {dict.wizardBack}
               </button>
               <button
-                disabled={(selectedCategory?.reqMaterial && !materialId) || (selectedCategory?.reqCustomer && !customerId) || (selectedCategory?.reqQuantity && !quantityTons) || ((!selectedCategory || selectedCategory?.reqTaskDescription) && !taskDescription)}
+                disabled={
+                  (selectedCategory?.reqMaterial && !materialId) ||
+                  (selectedCategory?.reqCustomer && !customerId) ||
+                  (selectedCategory?.reqQuantity && !quantityTons) ||
+                  (selectedCategory?.reqTaskDescription && !taskDescription)
+                }
                 onClick={() => setStep(4)}
                 className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
               >
@@ -355,7 +360,7 @@ export default function WizardClient() {
                 <span className="text-zinc-500 text-sm">{dict.wizardSummaryMachine}</span>
                 <span className="text-zinc-900 dark:text-white font-medium">{machines.find(m => m.id.toString() === resourceId)?.name}</span>
               </div>
-              {selectedCategory?.reqMaterial && (
+              {selectedCategory?.showMaterial && (
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
                   <span className="text-zinc-500 text-sm">{dict.wizardSummaryAggregate}</span>
                   <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">
@@ -363,7 +368,7 @@ export default function WizardClient() {
                   </span>
                 </div>
               )}
-              {selectedCategory?.reqCustomer && (
+              {selectedCategory?.showCustomer && (
                 <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
                   <span className="text-zinc-500 text-sm">{dict.wizardSummaryCustomer}</span>
                   <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">

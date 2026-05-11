@@ -12,6 +12,10 @@ type Category = {
   id: number;
   name: string;
   icon?: string;
+  showCustomer: boolean;
+  showMaterial: boolean;
+  showQuantity: boolean;
+  showTaskDescription: boolean;
   reqCustomer: boolean;
   reqMaterial: boolean;
   reqQuantity: boolean;
@@ -90,6 +94,10 @@ export default function MachinesClient() {
   const [cForm, setCForm] = useState({
     name: '',
     icon: 'blue',
+    showCustomer: true,
+    showMaterial: true,
+    showQuantity: true,
+    showTaskDescription: true,
     reqCustomer: false,
     reqMaterial: false,
     reqQuantity: false,
@@ -143,6 +151,10 @@ export default function MachinesClient() {
           return {
             ...(row as Category),
             isStationary: Boolean(r.isStationary),
+            showCustomer: Boolean(r.showCustomer),
+            showMaterial: Boolean(r.showMaterial),
+            showQuantity: Boolean(r.showQuantity),
+            showTaskDescription: Boolean(r.showTaskDescription),
           };
         }),
       );
@@ -249,7 +261,7 @@ export default function MachinesClient() {
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
         {canMutate && (
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', showCustomer: true, showMaterial: true, showQuantity: true, showTaskDescription: true, reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
         )}
@@ -270,7 +282,7 @@ export default function MachinesClient() {
                 </div>
                 {canMutate && (
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', showCustomer: cat.showCustomer, showMaterial: cat.showMaterial, showQuantity: cat.showQuantity, showTaskDescription: cat.showTaskDescription, reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
                 )}
@@ -410,21 +422,87 @@ export default function MachinesClient() {
 
                  <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catParamsTitle}</h3>
-                    <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqCustomer}</label>
-                       <input type="checkbox" checked={cForm.reqCustomer} onChange={e => setCForm({...cForm, reqCustomer: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqMaterial}</label>
-                       <input type="checkbox" checked={cForm.reqMaterial} onChange={e => setCForm({...cForm, reqMaterial: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqQuantity}</label>
-                       <input type="checkbox" checked={cForm.reqQuantity} onChange={e => setCForm({...cForm, reqQuantity: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <label className="text-sm text-zinc-700 dark:text-zinc-300">{dict.reqTaskDescription}</label>
-                       <input type="checkbox" checked={cForm.reqTaskDescription} onChange={e => setCForm({...cForm, reqTaskDescription: e.target.checked})} className="h-4 w-4 rounded text-amber-500" />
+
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-2 items-center">
+                      <div />
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{dict.fieldsVisible}</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{dict.fieldsRequired}</div>
+
+                      {/* Klient */}
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldCustomer}</div>
+                      <input
+                        type="checkbox"
+                        checked={cForm.showCustomer}
+                        onChange={(e) => {
+                          const v = e.target.checked;
+                          setCForm({ ...cForm, showCustomer: v, reqCustomer: v ? cForm.reqCustomer : false });
+                        }}
+                        className="h-4 w-4 rounded text-emerald-600"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={cForm.reqCustomer}
+                        disabled={!cForm.showCustomer}
+                        onChange={(e) => setCForm({ ...cForm, reqCustomer: e.target.checked })}
+                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
+                      />
+
+                      {/* Materiał */}
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldMaterial}</div>
+                      <input
+                        type="checkbox"
+                        checked={cForm.showMaterial}
+                        onChange={(e) => {
+                          const v = e.target.checked;
+                          setCForm({ ...cForm, showMaterial: v, reqMaterial: v ? cForm.reqMaterial : false });
+                        }}
+                        className="h-4 w-4 rounded text-emerald-600"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={cForm.reqMaterial}
+                        disabled={!cForm.showMaterial}
+                        onChange={(e) => setCForm({ ...cForm, reqMaterial: e.target.checked })}
+                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
+                      />
+
+                      {/* Ilość */}
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldQuantity}</div>
+                      <input
+                        type="checkbox"
+                        checked={cForm.showQuantity}
+                        onChange={(e) => {
+                          const v = e.target.checked;
+                          setCForm({ ...cForm, showQuantity: v, reqQuantity: v ? cForm.reqQuantity : false });
+                        }}
+                        className="h-4 w-4 rounded text-emerald-600"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={cForm.reqQuantity}
+                        disabled={!cForm.showQuantity}
+                        onChange={(e) => setCForm({ ...cForm, reqQuantity: e.target.checked })}
+                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
+                      />
+
+                      {/* Opis */}
+                      <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldTaskDescription}</div>
+                      <input
+                        type="checkbox"
+                        checked={cForm.showTaskDescription}
+                        onChange={(e) => {
+                          const v = e.target.checked;
+                          setCForm({ ...cForm, showTaskDescription: v, reqTaskDescription: v ? cForm.reqTaskDescription : false });
+                        }}
+                        className="h-4 w-4 rounded text-emerald-600"
+                      />
+                      <input
+                        type="checkbox"
+                        checked={cForm.reqTaskDescription}
+                        disabled={!cForm.showTaskDescription}
+                        onChange={(e) => setCForm({ ...cForm, reqTaskDescription: e.target.checked })}
+                        className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
+                      />
                     </div>
                     <div className="flex items-center justify-between pt-2">
                        <div className="flex flex-col gap-0.5">

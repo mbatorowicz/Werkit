@@ -22,6 +22,10 @@ async function migrate() {
       console.log(`Creating category ${name}...`);
       const inserted = await db.insert(resourceCategories).values({
         name,
+        showCustomer: true,
+        showMaterial: key === 'TRANSPORT',
+        showQuantity: key === 'TRANSPORT',
+        showTaskDescription: true,
         reqCustomer: key === 'TRANSPORT',
         reqMaterial: key === 'TRANSPORT',
         reqQuantity: key === 'TRANSPORT',

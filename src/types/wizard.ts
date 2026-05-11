@@ -4,6 +4,10 @@ export type WizardCategory = {
   id: number;
   name: string;
   icon?: string;
+  showCustomer: boolean;
+  showMaterial: boolean;
+  showQuantity: boolean;
+  showTaskDescription: boolean;
   reqCustomer: boolean;
   reqMaterial: boolean;
   reqQuantity: boolean;

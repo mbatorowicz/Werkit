@@ -16,6 +16,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 
     const { DictionaryService } = await import('@/services/DictionaryService');
     const updateData: ResourceCategoryUpdateInput = { name: body.name.trim(), icon: body.icon || 'Truck' };
+    if (body.showCustomer !== undefined) updateData.showCustomer = !!body.showCustomer;
+    if (body.showMaterial !== undefined) updateData.showMaterial = !!body.showMaterial;
+    if (body.showQuantity !== undefined) updateData.showQuantity = !!body.showQuantity;
+    if (body.showTaskDescription !== undefined) updateData.showTaskDescription = !!body.showTaskDescription;
     if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
     if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
     if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
@@ -23,6 +27,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
     if (body.isStationary !== undefined) updateData.isStationary = !!body.isStationary;
     if (body.color !== undefined) updateData.color = body.color;
+
+    // Jeśli pole jest wymagane, musi być też widoczne.
+    if (updateData.reqCustomer) updateData.showCustomer = true;
+    if (updateData.reqMaterial) updateData.showMaterial = true;
+    if (updateData.reqQuantity) updateData.showQuantity = true;
+    if (updateData.reqTaskDescription) updateData.showTaskDescription = true;
     
     await DictionaryService.updateCategory(id, updateData);
     return NextResponse.json({ success: true });

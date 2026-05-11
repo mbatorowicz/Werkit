@@ -75,6 +75,10 @@ export type BaseCustomer = {
 export type BaseCategory = {
   id: number;
   name: string;
+  showCustomer: boolean;
+  showMaterial: boolean;
+  showQuantity: boolean;
+  showTaskDescription: boolean;
   reqCustomer: boolean;
   reqMaterial: boolean;
   reqQuantity: boolean;

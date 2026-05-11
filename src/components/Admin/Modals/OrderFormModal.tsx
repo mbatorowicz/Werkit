@@ -181,7 +181,7 @@ export default function OrderFormModal({
           </div>
 
           {/* 4. Warunkowe: materiał, klient, ilość */}
-          {selectedCategory?.reqMaterial ? (
+          {selectedCategory?.showMaterial ? (
             <div className={FIELD}>
               <label className={LABEL}>{materialLabel}</label>
               <select
@@ -202,7 +202,7 @@ export default function OrderFormModal({
             </div>
           ) : null}
 
-          {selectedCategory?.reqCustomer ? (
+          {selectedCategory?.showCustomer ? (
             <div className={FIELD}>
               <label className={LABEL}>{customerLabel}</label>
               <select
@@ -223,11 +223,11 @@ export default function OrderFormModal({
             </div>
           ) : null}
 
-          {selectedCategory?.reqQuantity ? (
+          {selectedCategory?.showQuantity ? (
             <div className={FIELD}>
               <label className={LABEL}>{dict.quantityTonsLabel}</label>
               <input
-                required
+                required={selectedCategory.reqQuantity}
                 type="number"
                 step="0.01"
                 min="0"
@@ -240,7 +240,7 @@ export default function OrderFormModal({
           ) : null}
 
           {/* 5. Opis — tylko po wyborze kategorii */}
-          {selectedCategory ? (
+          {selectedCategory && selectedCategory.showTaskDescription ? (
             <div className={FIELD}>
               <label className={LABEL}>
                 {dict.taskDesc}

@@ -71,6 +71,13 @@
       "when": 1779532800000,
       "tag": "0009_materials_drop_type",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784090400000,
+      "tag": "0010_resource_categories_visibility",
+      "breakpoints": true
     }
   ]
 }

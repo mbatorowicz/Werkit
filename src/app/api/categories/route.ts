@@ -24,20 +24,46 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal, isStationary, color } = body;
+    const {
+      name,
+      icon,
+      showCustomer,
+      showMaterial,
+      showQuantity,
+      showTaskDescription,
+      reqCustomer,
+      reqMaterial,
+      reqQuantity,
+      reqTaskDescription,
+      isGlobal,
+      isStationary,
+      color,
+    } = body;
 
     if(!name) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
+    const sc = showCustomer !== undefined ? !!showCustomer : true;
+    const sm = showMaterial !== undefined ? !!showMaterial : true;
+    const sq = showQuantity !== undefined ? !!showQuantity : true;
+    const std = showTaskDescription !== undefined ? !!showTaskDescription : true;
+    const rc = !!reqCustomer;
+    const rm = !!reqMaterial;
+    const rq = !!reqQuantity;
+    const rtd = reqTaskDescription !== undefined ? !!reqTaskDescription : true;
     await DictionaryService.addCategory({
       name: name.trim(),
       icon: icon || 'Truck',
-      reqCustomer: !!reqCustomer,
-      reqMaterial: !!reqMaterial,
-      reqQuantity: !!reqQuantity,
-      reqTaskDescription: reqTaskDescription !== undefined ? !!reqTaskDescription : true,
+      showCustomer: sc || rc,
+      showMaterial: sm || rm,
+      showQuantity: sq || rq,
+      showTaskDescription: std || rtd,
+      reqCustomer: rc,
+      reqMaterial: rm,
+      reqQuantity: rq,
+      reqTaskDescription: rtd,
       isGlobal: !!isGlobal,
       isStationary: !!isStationary,
       color: color || '#3f3f46',
