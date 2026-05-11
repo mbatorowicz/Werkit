@@ -71,6 +71,17 @@ export function OrderLabelCard({
   className?: string;
 }) {
   const cls = toneClasses(tone);
+  const defaultLabels = {
+    mode: "Tryb pracy",
+    machine: "Maszyna",
+    material: "Materiał",
+    quantity: "Ilość",
+    customer: "Klient",
+    description: "Opis",
+    date: "Data",
+    time: "Godzina",
+  } as const;
+  const labels = defaultLabels;
 
   return (
     <div className={`rounded-xl border ${cls.border} bg-white dark:bg-zinc-900 p-3 shadow-sm ${className}`}>
@@ -79,19 +90,19 @@ export function OrderLabelCard({
       </div>
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-        <LabelItem labelClass={cls.label} k="Tryb pracy" v={mode || "—"} />
-        <LabelItem labelClass={cls.label} k="Maszyna" v={machine || "—"} />
-        <LabelItem labelClass={cls.label} k="Materiał" v={material?.trim() ? material : "—"} />
-        <LabelItem labelClass={cls.label} k="Ilość" v={quantity?.trim() ? quantity : "—"} />
-        <LabelItem labelClass={cls.label} k="Klient" v={customer?.trim() ? customer : "—"} />
+        <LabelItem labelClass={cls.label} k={labels.mode} v={mode || "—"} />
+        <LabelItem labelClass={cls.label} k={labels.machine} v={machine || "—"} />
+        <LabelItem labelClass={cls.label} k={labels.material} v={material?.trim() ? material : "—"} />
+        <LabelItem labelClass={cls.label} k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
+        <LabelItem labelClass={cls.label} k={labels.customer} v={customer?.trim() ? customer : "—"} />
         <LabelItem
           labelClass={cls.label}
-          k="Opis"
+          k={labels.description}
           v={description?.trim() ? description : "—"}
           title={description ?? undefined}
         />
-        <LabelItem labelClass={cls.label} k="Data" v={dateLabel?.trim() ? dateLabel : "—"} />
-        <LabelItem labelClass={cls.label} k="Godzina" v={timeLabel?.trim() ? timeLabel : "—"} />
+        <LabelItem labelClass={cls.label} k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
+        <LabelItem labelClass={cls.label} k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} />
       </div>
     </div>
   );

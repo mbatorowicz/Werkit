@@ -5,6 +5,7 @@ import { Clock, MapPin, Camera, FileText, X, Square, ChevronUp, ChevronDown } fr
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Session, Coord, AppSettings, TimelineItem } from "@/types/worker";
+import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
 
@@ -89,39 +90,21 @@ export default function ActiveSessionDashboard({
     <div className="w-full flex flex-col items-center gap-4">
       {/* SZCZEGÓŁY ZLECENIA */}
       <div className="w-full bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm">
-         <h2 className="text-xl font-black text-amber-600 dark:text-amber-500 mb-3">{session.workOrderId ? adminDict.orderNumber.replace('{id}', session.workOrderId.toString()) : `Sesja #${session.id}`}</h2>
-         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-           <p>
-             <span className="font-bold text-lg text-emerald-500 uppercase tracking-wider">{session.categoryName || 'Zadanie'}</span>
-             {session.resourceName ? `- ${session.resourceName}` : ''}
-           </p>
-           
-           {(session.materialName || session.quantityTons) && (
-             <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.materialAndQuantity}</span> {session.materialName || ''} {session.quantityTons ? `(${session.quantityTons}${adminDict.tons})` : ''}</p>
-           )}
-           
-           {(session.customerFirstName || session.customerLastName || session.customerAddress) && (
-             <p><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.customer}</span> {session.customerFirstName || ''} {session.customerLastName || ''} {session.customerAddress ? `- ${session.customerAddress}` : ''}</p>
-           )}
-
-           {session.taskDescription && (
-             <p className="sm:col-span-2"><span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.taskDescLabel}</span> {session.taskDescription}</p>
-           )}
-           
-           {session.materialName && (
-            <div className="flex justify-between items-center py-2 border-t border-zinc-200 dark:border-zinc-700">
-              <span className="text-zinc-500 text-sm">Materiał:</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{session.materialName}</span>
-            </div>
-           )}
-
-           <p className="sm:col-span-2 mt-1 pt-2 border-t border-zinc-200 dark:border-zinc-700 text-xs flex items-center gap-2">
-             <span className="font-semibold text-zinc-900 dark:text-zinc-300">{adminDict.startedAt}</span> 
-             <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded">
-               {new Date(session.startTime).toLocaleString('pl-PL')}
-             </span>
-           </p>
-         </div>
+        <OrderLabelCard
+          tone="active"
+          orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
+          mode={session.categoryName || "Brak kategorii"}
+          machine={session.resourceName || "—"}
+          material={session.materialName}
+          quantity={session.quantityTons ? `${session.quantityTons}${adminDict.tons}` : null}
+          customer={
+            `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim() ||
+            (session.customerAddress ? session.customerAddress : null)
+          }
+          description={session.taskDescription}
+          dateLabel={new Date(session.startTime).toLocaleDateString("pl-PL")}
+          timeLabel={`${new Date(session.startTime).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – …`}
+        />
       </div>
 
       {/* WIDGET STATUSU */}
