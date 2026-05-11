@@ -240,7 +240,8 @@ export default function SessionDetailsModal({
           <OrderLabelCard
             tone={item.status === "IN_PROGRESS" ? "active" : item.status === "COMPLETED" ? "done" : "planned"}
             orderNo={`#${item.workOrderId || item.id}`}
-            orderedBy={item.creatorName ?? null}
+            title={(item.workerName as string) || null}
+            orderedBy={(item.creatorName ?? item.workerName) ?? null}
             orderedByLabel={dict.orderedBy}
             mode={categoryLabel}
             machine={machineLabel}
