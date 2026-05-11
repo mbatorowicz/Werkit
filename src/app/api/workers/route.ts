@@ -1,36 +1,34 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { hashPassword } from '@/lib/passwordCrypto';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const { AdminUserService } = await import('@/services/AdminUserService');
-    const allUsers = await AdminUserService.getAllUsers();
-    
-    return NextResponse.json(allUsers);
-  } catch {
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+export const GET = withApiErrorHandling(async () => {
+  const { AdminUserService } = await import("@/services/AdminUserService");
+  const allUsers = await AdminUserService.getAllUsers();
+  return jsonOk(allUsers);
+}, { defaultErrorCode: "fetch_error" });
 
-export async function POST(request: Request) {
-  const denied = await guardAdminMutation();
-  if (denied) return denied;
+export const POST = withApiErrorHandling(
+  async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const { fullName, usernameEmail, password, role, canCreateOwnOrders } = body;
+    const body = await parseJsonBody(request);
+    const fullName = typeof body.fullName === "string" ? body.fullName : "";
+    const usernameEmail = typeof body.usernameEmail === "string" ? body.usernameEmail : "";
+    const password = typeof body.password === "string" ? body.password : "";
+    const role = body.role;
+    const canCreateOwnOrders = body.canCreateOwnOrders;
 
-    if(!fullName || !usernameEmail || !password) {
-      return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+    if (!fullName || !usernameEmail || !password) {
+      return jsonError("missing_fields", 400);
     }
 
-    const normalizedRole =
-      role === 'admin' ? 'admin' : role === 'viewer' ? 'viewer' : 'worker';
+    const normalizedRole = role === "admin" ? "admin" : role === "viewer" ? "viewer" : "worker";
 
-    const { AdminUserService } = await import('@/services/AdminUserService');
+    const { AdminUserService } = await import("@/services/AdminUserService");
     const hashedPassword = await hashPassword(password, 10);
 
     await AdminUserService.createUser({
@@ -38,15 +36,16 @@ export async function POST(request: Request) {
       usernameEmail,
       passwordHash: hashedPassword,
       role: normalizedRole,
-      canCreateOwnOrders:
-        normalizedRole === 'worker' ? !!canCreateOwnOrders : false,
+      canCreateOwnOrders: normalizedRole === "worker" ? !!canCreateOwnOrders : false,
     });
 
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error("Worker register error", err);
-    let msg = 'save_error';
-    if (typeof err === 'object' && err !== null && 'code' in err && err.code === '23505') msg = 'user_exists';
-    return NextResponse.json({ error: msg }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  {
+    mapUnknownError: (err) =>
+      typeof err === "object" && err !== null && "code" in err && (err as { code?: unknown }).code === "23505"
+        ? jsonError("user_exists", 500)
+        : null,
+    defaultErrorCode: "save_error",
+  },
+);

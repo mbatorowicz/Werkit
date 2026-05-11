@@ -27,7 +27,7 @@ export class ApiRouteError extends Error {
   }
 }
 
-export function jsonOk<T>(data: T, init?: { status?: number }): Response {
+export function jsonOk<T>(data: T, init?: { status?: number }) {
   return NextResponse.json(data, { status: init?.status ?? 200 });
 }
 
@@ -35,8 +35,20 @@ export function jsonError(
   code: ApiErrorCode,
   status: number,
   opts?: { details?: Record<string, unknown> },
-): Response {
+) {
   return NextResponse.json({ error: code, ...(opts?.details ?? {}) }, { status });
+}
+
+/** Odpowiedź z `Content-Disposition: attachment` (JSON jako plik). */
+export function jsonFileAttachment(filename: string, jsonBody: string) {
+  return new NextResponse(jsonBody, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
 export function throwApiError(code: ApiErrorCode, status: number, details?: Record<string, unknown>): never {
@@ -56,6 +68,19 @@ export async function parseJsonBody<T extends Record<string, unknown> = Record<s
       throwApiError("invalid_json", 400);
     }
     return body as T;
+  } catch (cause) {
+    throw new ApiRouteError("invalid_json", 400, { cause });
+  }
+}
+
+/** Parsuje JSON jako `unknown` (pozwala na tablice) — do endpointów typu GPS sync. */
+export async function parseJson(request: Request): Promise<unknown> {
+  const ct = request.headers.get("content-type") ?? "";
+  if (!ct.includes("application/json")) {
+    throwApiError("invalid_json", 400);
+  }
+  try {
+    return await request.json();
   } catch (cause) {
     throw new ApiRouteError("invalid_json", 400, { cause });
   }

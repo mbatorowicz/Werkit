@@ -1,54 +1,57 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { getUserId } from '@/lib/auth';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
-export async function POST(request: Request) {
-  try {
+export const POST = withApiErrorHandling(
+  async (request: Request) => {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return jsonError("Unauthorized", 401);
 
-    const body = await request.json();
-    const { note, location } = body;
-    if (!note) return NextResponse.json({ error: 'Note is required' }, { status: 400 });
+    const body = await parseJsonBody(request);
+    const note = typeof body.note === "string" ? body.note : "";
+    const location = body.location as { lat?: unknown; lng?: unknown } | undefined;
+    if (!note.trim()) return jsonError("missing_fields", 400);
 
-    await WorkerSessionService.addNote(userId, note, location?.lat?.toString(), location?.lng?.toString());
+    await WorkerSessionService.addNote(
+      userId,
+      note,
+      location?.lat != null ? String(location.lat) : null,
+      location?.lng != null ? String(location.lng) : null,
+    );
 
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error(err);
-    if (err instanceof Error && err.message === 'no_active_session') {
-      return NextResponse.json({ error: 'No active session' }, { status: 400 });
-    }
-    return NextResponse.json({ error: 'Failed to add note' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  {
+    mapUnknownError: (err) => (err instanceof Error && err.message === "no_active_session" ? jsonError("no_active_session", 400) : null),
+    defaultErrorCode: "save_error",
+  },
+);
 
-export async function PUT(request: Request) {
-  try {
+export const PUT = withApiErrorHandling(
+  async (request: Request) => {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return jsonError("Unauthorized", 401);
 
-    const body = await request.json();
-    const { noteId, note } = body;
-    if (!noteId || !note) return NextResponse.json({ error: 'Note ID and content are required' }, { status: 400 });
+    const body = await parseJsonBody(request);
+    const noteId = body.noteId;
+    const note = typeof body.note === "string" ? body.note : "";
+    if (!noteId || !note.trim()) return jsonError("missing_fields", 400);
 
     const nid = parsePositiveIntParam(noteId);
     if (nid == null) {
-      return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+      return jsonError("invalid_id", 400);
     }
 
     await WorkerSessionService.updateNote(userId, nid, note);
-
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error(err);
-    if (err instanceof Error && err.message === 'no_active_session') {
-      return NextResponse.json({ error: 'No active session' }, { status: 400 });
-    }
-    if (err instanceof Error && err.message === 'unauthorized_note') {
-      return NextResponse.json({ error: 'Note not found or unauthorized' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Failed to update note' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  {
+    mapUnknownError: (err) => {
+      if (err instanceof Error && err.message === "no_active_session") return jsonError("no_active_session", 400);
+      if (err instanceof Error && err.message === "unauthorized_note") return jsonError("unauthorized_note", 404);
+      return null;
+    },
+    defaultErrorCode: "save_error",
+  },
+);

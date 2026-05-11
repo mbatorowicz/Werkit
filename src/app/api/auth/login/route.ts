@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { SignJWT } from 'jose';
 
 import { JWT_SECRET } from '@/lib/auth';
@@ -14,87 +14,71 @@ function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   );
 }
 
-export async function POST(req: Request) {
+export const POST = withApiErrorHandling(async (req: Request) => {
   const url = new URL(req.url);
-  const forwardedProto = req.headers.get('x-forwarded-proto');
-  const isHttps = forwardedProto === 'https' || url.protocol === 'https:';
-  const cookieSameSite = (isHttps ? 'none' : 'lax') as 'none' | 'lax';
+  const forwardedProto = req.headers.get("x-forwarded-proto");
+  const isHttps = forwardedProto === "https" || url.protocol === "https:";
+  const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
-  }
-
-  if (!body || typeof body !== 'object') {
-    return NextResponse.json({ error: 'invalid_payload' }, { status: 400 });
-  }
-
-  const u = (body as Record<string, unknown>).usernameEmail;
-  const p = (body as Record<string, unknown>).password;
-  const usernameEmail = typeof u === 'string' ? u.trim().toLowerCase() : '';
-  const password = typeof p === 'string' ? p : '';
+  const body = await parseJsonBody(req);
+  const u = body.usernameEmail;
+  const p = body.password;
+  const usernameEmail = typeof u === "string" ? u.trim().toLowerCase() : "";
+  const password = typeof p === "string" ? p : "";
 
   if (!usernameEmail || !password) {
-    return NextResponse.json({ error: 'missing_credentials' }, { status: 400 });
+    return jsonError("missing_credentials", 400);
   }
 
+  const { AdminUserService } = await import("@/services/AdminUserService");
+  const user = await AdminUserService.getUserByUsername(usernameEmail);
+
+  if (!user) {
+    return jsonError("invalid_credentials", 401);
+  }
+
+  if (!user.isActive) {
+    return jsonError("account_blocked", 403);
+  }
+
+  let isPasswordValid = false;
   try {
-    const { AdminUserService } = await import('@/services/AdminUserService');
-    const user = await AdminUserService.getUserByUsername(usernameEmail);
-
-    if (!user) {
-      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
-    }
-
-    if (!user.isActive) {
-      return NextResponse.json({ error: 'account_blocked' }, { status: 403 });
-    }
-
-    let isPasswordValid = false;
-    try {
-      isPasswordValid = await comparePassword(password, user.passwordHash);
-    } catch (compareErr) {
-      console.error('Login password compare error:', compareErr);
-      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
-    }
-
-    if (!isPasswordValid) {
-      return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
-    }
-
-    const jwt = await new SignJWT({
-      userId: user.id,
-      role: user.role,
-      username: user.usernameEmail,
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('7d')
-      .sign(JWT_SECRET);
-
-    const response = NextResponse.json({
-      success: true,
-      user: { id: user.id, fullName: user.fullName, role: user.role },
-    });
-
-    response.cookies.set({
-      name: 'auth_token',
-      value: jwt,
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: cookieSameSite,
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
-
-    return response;
-  } catch (error) {
-    console.error('Login error:', error);
-    if (isLikelyDatabaseOrInfraError(error)) {
-      return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
-    }
-    return NextResponse.json({ error: 'server_error' }, { status: 500 });
+    isPasswordValid = await comparePassword(password, user.passwordHash);
+  } catch {
+    return jsonError("invalid_credentials", 401);
   }
-}
+
+  if (!isPasswordValid) {
+    return jsonError("invalid_credentials", 401);
+  }
+
+  const jwt = await new SignJWT({
+    userId: user.id,
+    role: user.role,
+    username: user.usernameEmail,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("7d")
+    .sign(JWT_SECRET);
+
+  const response = jsonOk({
+    success: true,
+    user: { id: user.id, fullName: user.fullName, role: user.role },
+  });
+
+  response.cookies.set({
+    name: "auth_token",
+    value: jwt,
+    httpOnly: true,
+    secure: isHttps,
+    sameSite: cookieSameSite,
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
+  });
+
+  return response;
+}, {
+  mapUnknownError: (err) => (isLikelyDatabaseOrInfraError(err) ? jsonError("service_unavailable", 503) : null),
+  defaultErrorCode: "server_error",
+});

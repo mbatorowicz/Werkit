@@ -1,62 +1,49 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { hashPassword } from '@/lib/passwordCrypto';
 import type { UserUpdatePayload } from '@/services/AdminUserService';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
-export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+export const PUT = withApiErrorHandling(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
-  try {
-    const params = await context.params;
-    const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
+  const params = await context.params;
+  const id = parseInt(params.id, 10);
+  if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
-    const body = await request.json();
-    
-    const normalizedRole =
-      body.role === 'admin' ? 'admin' : body.role === 'viewer' ? 'viewer' : 'worker';
+  const body = await parseJsonBody(request);
+  const normalizedRole = body.role === "admin" ? "admin" : body.role === "viewer" ? "viewer" : "worker";
 
-    const updateData: UserUpdatePayload = {
-      fullName: body.fullName,
-      usernameEmail: body.usernameEmail,
-      role: normalizedRole,
-    };
+  const updateData: UserUpdatePayload = {
+    fullName: typeof body.fullName === "string" ? body.fullName : "",
+    usernameEmail: typeof body.usernameEmail === "string" ? body.usernameEmail : "",
+    role: normalizedRole,
+  };
 
-    if (normalizedRole === 'worker' && body.canCreateOwnOrders !== undefined) {
-      updateData.canCreateOwnOrders = !!body.canCreateOwnOrders;
-    } else {
-      updateData.canCreateOwnOrders = false;
-    }
-
-    if (body.password && body.password.trim() !== '') {
-       updateData.passwordHash = await hashPassword(body.password, 10);
-    }
-
-    const { AdminUserService } = await import('@/services/AdminUserService');
-    await AdminUserService.updateUser(id, updateData);
-    
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error("Update user error", err);
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
+  if (normalizedRole === "worker" && body.canCreateOwnOrders !== undefined) {
+    updateData.canCreateOwnOrders = !!body.canCreateOwnOrders;
+  } else {
+    updateData.canCreateOwnOrders = false;
   }
-}
 
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  if (typeof body.password === "string" && body.password.trim() !== "") {
+    updateData.passwordHash = await hashPassword(body.password, 10);
+  }
+
+  const { AdminUserService } = await import("@/services/AdminUserService");
+  await AdminUserService.updateUser(id, updateData);
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });
+
+export const DELETE = withApiErrorHandling(async (_request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
-  try {
-    const params = await context.params;
-    const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
+  const params = await context.params;
+  const id = parseInt(params.id, 10);
+  if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
-    const { AdminUserService } = await import('@/services/AdminUserService');
-    await AdminUserService.deleteUser(id);
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error("Delete user error", err);
-    return NextResponse.json({ error: 'delete_error' }, { status: 500 });
-  }
-}
+  const { AdminUserService } = await import("@/services/AdminUserService");
+  await AdminUserService.deleteUser(id);
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "delete_error" });

@@ -1,43 +1,45 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
-export async function GET() {
-  try {
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    const data = await DictionaryService.getSettings();
-    return NextResponse.json(data[0] || {});
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
-  }
-}
+export const GET = withApiErrorHandling(async () => {
+  const { DictionaryService } = await import("@/services/DictionaryService");
+  const data = await DictionaryService.getSettings();
+  return jsonOk(data[0] || {});
+}, { defaultErrorCode: "fetch_error" });
 
-export async function POST(request: Request) {
+export const POST = withApiErrorHandling(async (request: Request) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    
-    await DictionaryService.updateSettings({
-       companyName: body.companyName || 'Werkit ERP', 
-       companyAddress: body.companyAddress || '', 
-       zipCode: body.zipCode || '', 
-       city: body.city || '', 
-       phone: body.phone || '', 
-       email: body.email || '', 
-       baseLatitude: body.baseLatitude, 
-       baseLongitude: body.baseLongitude,
-       cancelWindowMinutes: body.cancelWindowMinutes ?? 5,
-       requirePhotoToFinish: body.requirePhotoToFinish ?? false,
-       geofenceRadiusMeters: body.geofenceRadiusMeters ?? 500,
-       timeOverrunReminder: body.timeOverrunReminder ?? true,
-       upcomingOrderReminderMinutes: body.upcomingOrderReminderMinutes ?? 120
-    });
+  const body = await parseJsonBody(request);
+  const { DictionaryService } = await import("@/services/DictionaryService");
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Settings saving error", err);
-    return NextResponse.json({ error: 'System save failed' }, { status: 500 });
-  }
-}
+  await DictionaryService.updateSettings({
+    companyName: typeof body.companyName === "string" ? body.companyName : "Werkit ERP",
+    companyAddress: typeof body.companyAddress === "string" ? body.companyAddress : "",
+    zipCode: typeof body.zipCode === "string" ? body.zipCode : "",
+    city: typeof body.city === "string" ? body.city : "",
+    phone: typeof body.phone === "string" ? body.phone : "",
+    email: typeof body.email === "string" ? body.email : "",
+    baseLatitude:
+      body.baseLatitude === null || body.baseLatitude === undefined
+        ? null
+        : typeof body.baseLatitude === "string" || typeof body.baseLatitude === "number"
+          ? String(body.baseLatitude)
+          : null,
+    baseLongitude:
+      body.baseLongitude === null || body.baseLongitude === undefined
+        ? null
+        : typeof body.baseLongitude === "string" || typeof body.baseLongitude === "number"
+          ? String(body.baseLongitude)
+          : null,
+    cancelWindowMinutes: typeof body.cancelWindowMinutes === "number" ? body.cancelWindowMinutes : 5,
+    requirePhotoToFinish: typeof body.requirePhotoToFinish === "boolean" ? body.requirePhotoToFinish : false,
+    geofenceRadiusMeters: typeof body.geofenceRadiusMeters === "number" ? body.geofenceRadiusMeters : 500,
+    timeOverrunReminder: typeof body.timeOverrunReminder === "boolean" ? body.timeOverrunReminder : true,
+    upcomingOrderReminderMinutes:
+      typeof body.upcomingOrderReminderMinutes === "number" ? body.upcomingOrderReminderMinutes : 120,
+  });
+
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });

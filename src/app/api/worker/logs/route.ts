@@ -1,19 +1,18 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
 
-export async function POST(req: Request) {
-  try {
-    const token = (await cookies()).get('auth_token')?.value;
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    const verified = await jwtVerify(token, JWT_SECRET);
-    const userId = verified.payload.userId as number;
-    
-    const body = (await req.json()) as Record<string, unknown>;
+export const POST = withApiErrorHandling(async (req: Request) => {
+  const token = (await cookies()).get("auth_token")?.value;
+  if (!token) {
+    return jsonError("Unauthorized", 401);
+  }
+
+  const verified = await jwtVerify(token, JWT_SECRET);
+  const userId = verified.payload.userId as number;
+
+  const body = await parseJsonBody(req);
     const rawLevel = typeof body.level === 'string' ? body.level.trim().toUpperCase() : 'INFO';
     const allowed = new Set(['INFO', 'WARN', 'ERROR', 'DEBUG']);
     const level = allowed.has(rawLevel) ? rawLevel : 'INFO';
@@ -37,10 +36,6 @@ export async function POST(req: Request) {
 
     const { SystemLogService } = await import('@/services/SystemLogService');
     await SystemLogService.insertLog(userId, level, message, metadata);
-    
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error('Błąd dodawania logu z urządzenia:', e);
-    return NextResponse.json({ error: 'Failed to insert log' }, { status: 500 });
-  }
-}
+
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });

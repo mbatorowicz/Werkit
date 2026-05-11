@@ -1,19 +1,13 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
 import { getUserId } from '@/lib/auth';
 import { WorkerOrderService } from '@/services/WorkerOrderService';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export const GET = withApiErrorHandling(async () => {
+  const userId = await getUserId();
+  if (!userId) return jsonError("Unauthorized", 401);
 
-    const orders = await WorkerOrderService.getPendingOrders(userId);
-
-    return NextResponse.json(orders);
-  } catch (err: unknown) {
-    console.error(err);
-    return NextResponse.json({ error: 'Failed to fetch work orders' }, { status: 500 });
-  }
-}
+  const orders = await WorkerOrderService.getPendingOrders(userId);
+  return jsonOk(orders);
+}, { defaultErrorCode: "fetch_error" });

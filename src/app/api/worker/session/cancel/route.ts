@@ -1,20 +1,17 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
 import { getUserId } from '@/lib/auth';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
-export async function POST() {
-  try {
+export const POST = withApiErrorHandling(
+  async () => {
     const userId = await getUserId();
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!userId) return jsonError("Unauthorized", 401);
 
     await WorkerSessionService.cancelActiveSession(userId);
-
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error(err);
-    if (err instanceof Error && err.message === 'no_active_session') {
-      return NextResponse.json({ error: 'Brak aktywnej sesji' }, { status: 404 });
-    }
-    return NextResponse.json({ error: 'Błąd podczas cofania zlecenia' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  {
+    mapUnknownError: (err) => (err instanceof Error && err.message === "no_active_session" ? jsonError("no_active_session", 404) : null),
+    defaultErrorCode: "save_error",
+  },
+);

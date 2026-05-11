@@ -1,48 +1,44 @@
-import { NextResponse } from 'next/server';
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 
-export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+export const PUT = withApiErrorHandling(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
-  try {
-    const params = await context.params;
-    const id = parseInt(params.id);
-    const body = await request.json();
-    
-    if (!body.name) return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
+  const params = await context.params;
+  const id = parseInt(params.id, 10);
+  if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
-    const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
-      ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
-      : undefined;
+  const body = await parseJsonBody(request);
+  const name = typeof body.name === "string" ? body.name : "";
+  if (!name.trim()) return jsonError("missing_fields", 400);
 
-    if (categoryIds !== undefined && categoryIds.length === 0) {
-      return NextResponse.json({ error: 'missing_material_category' }, { status: 400 });
-    }
+  const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
+    ? body.categoryIds.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+    : undefined;
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.updateMaterial(id, { name: body.name }, categoryIds);
-    
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
+  if (categoryIds !== undefined && categoryIds.length === 0) {
+    return jsonError("missing_material_category", 400);
   }
-}
 
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
-  const denied = await guardAdminMutation();
-  if (denied) return denied;
+  const { DictionaryService } = await import("@/services/DictionaryService");
+  await DictionaryService.updateMaterial(id, { name }, categoryIds);
 
-  try {
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });
+
+export const DELETE = withApiErrorHandling(
+  async (_request: Request, context: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const params = await context.params;
-    const id = parseInt(params.id);
-    if (!id) return NextResponse.json({ error: 'fetch_error' }, { status: 400 });
+    const id = parseInt(params.id, 10);
+    if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
+    const { DictionaryService } = await import("@/services/DictionaryService");
     await DictionaryService.deleteMaterial(id);
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    console.error("Delete material error", err);
-    return NextResponse.json({ error: 'material_in_use' }, { status: 500 });
-  }
-}
+    return jsonOk({ success: true });
+  },
+  { defaultErrorCode: "material_in_use" },
+);

@@ -1,41 +1,30 @@
-import { NextResponse } from 'next/server';
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  try {
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    const allCustomers = await DictionaryService.getCustomers();
-    return NextResponse.json(allCustomers);
-  } catch {
-    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
-  }
-}
+export const GET = withApiErrorHandling(async () => {
+  const { DictionaryService } = await import("@/services/DictionaryService");
+  const allCustomers = await DictionaryService.getCustomers();
+  return jsonOk(allCustomers);
+}, { defaultErrorCode: "fetch_error" });
 
-export async function POST(request: Request) {
+export const POST = withApiErrorHandling(async (request: Request) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
-  try {
-    const body = await request.json();
-    const { firstName, lastName, defaultAddress, latitude, longitude } = body;
+  const body = await parseJsonBody(request);
+  const firstName = typeof body.firstName === "string" ? body.firstName : null;
+  const lastName = typeof body.lastName === "string" ? body.lastName : "";
+  const defaultAddress = typeof body.defaultAddress === "string" ? body.defaultAddress : null;
+  const latitude = body.latitude != null && String(body.latitude).trim() !== "" ? String(body.latitude) : null;
+  const longitude = body.longitude != null && String(body.longitude).trim() !== "" ? String(body.longitude) : null;
 
-    if(!lastName) {
-      return NextResponse.json({ error: 'missing_name' }, { status: 400 });
-    }
-
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    await DictionaryService.addCustomer(
-      firstName || null, 
-      lastName, 
-      defaultAddress || null,
-      latitude ? latitude.toString() : null,
-      longitude ? longitude.toString() : null
-    );
-    
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'save_error' }, { status: 500 });
+  if (!lastName.trim()) {
+    return jsonError("missing_name", 400);
   }
-}
+
+  const { DictionaryService } = await import("@/services/DictionaryService");
+  await DictionaryService.addCustomer(firstName, lastName, defaultAddress, latitude, longitude);
+  return jsonOk({ success: true });
+}, { defaultErrorCode: "save_error" });
