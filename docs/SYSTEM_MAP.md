@@ -82,7 +82,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0008 | `0008_work_sessions_bookend_coords.sql` | `work_sessions.start_latitude/longitude` + `end_latitude/longitude` |
 | 0009 | `0009_materials_drop_type.sql` | `ALTER materials DROP COLUMN type` — tylko kategorie materiałów |
 
-**Status migracji na produkcji** (na dzień ostatniej weryfikacji — 2026-05-10): **0000-0008 zaaplikowane** na bazie Neon `ep-rough-sea-al7ogqfl`. **0009** (`materials` bez kolumny `type`) — uruchom po wdrożeniu kodu: `npm run db:napraw-materialy-bez-typu` lub SQL z `drizzle/0009_*.sql`. Migracja 0004 została chwilowo pominięta i **dodana ręcznie** po wykryciu błędu logowania (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend pokazywał „Wewnętrzny Błąd Serwera"). W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje takie błędy na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
+**Status migracji na produkcji** (na dzień ostatniej weryfikacji — 2026-05-10): **0000-0008 zaaplikowane** na bazie Neon `ep-rough-sea-al7ogqfl`. **0009** (`materials` bez kolumny `type`) — `npm run db:napraw-materialy-bez-typu` lub SQL z `drizzle/0009_*.sql`; można w jednym przebiegu: `npm run db:napraw-wszystko`. Migracja 0004 została chwilowo pominięta i **dodana ręcznie** po wykryciu błędu logowania (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend pokazywał „Wewnętrzny Błąd Serwera"). W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje takie błędy na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
 
 **Drizzle nie ma zaczepionej automatycznej migracji w build/start.** Kolejność wdrożenia migracji na bazę produkcyjną jest manualna (skrypty `tsx src/scripts/apply_*.ts` lub bezpośrednie `psql`). Patrz `ARCHITECTURE.md §9` i `package.json#scripts`.
 
@@ -98,7 +98,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin` | RSC | Dashboard / pulpit (statystyki, mapa, lista aktywnych) | `admin/layout.tsx` |
 | `/admin/workers` | RSC | Lista pracowników (CRUD) | admin |
 | `/admin/users` | RSC | Konta (admin/viewer + biometric flagi) | admin |
-| `/admin/machines` | RSC | Maszyny / pojazdy (zarządzanie identity + kategorie + zdjęcia) | admin |
+| `/admin/machines` | RSC | Flota / pojazdy (identity + kategorie zadań + zdjęcia) | admin |
 | `/admin/customers` | RSC | Klienci (CRUD + geocode) | admin |
 | `/admin/materials` | RSC | Baza materiałów + kategorie | admin |
 | `/admin/reports` | RSC | Raport operacyjny (`AdminReportService.getDashboardSnapshot`) | admin |
@@ -384,6 +384,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 | `npm run db:napraw-slowniki-baza` | Migracje 0005 + 0007 (material_categories + is_stationary) | `apply_dictionary_schema.ts` |
 | `npm run db:napraw-lokalizacja-sesji` | Migracja 0008 (work_sessions bookend coords) | `apply_work_sessions_bookend_coords.ts` |
 | `npm run db:napraw-materialy-bez-typu` | Migracja 0009 (`materials` bez `type`) | `apply_materials_drop_type.ts` |
+| `npm run db:napraw-wszystko` | Kolejno: 0006 → 0005+0007 → 0008 → 0009 (idempotentne, jedna komenda) | — |
 | `npm run db:apply-resources-identity` | Alias dla 0006 | jw. |
 | `npm run db:migrate` | `drizzle-kit migrate` (oficjalny pipeline; w praktyce wdrożenie szło ręcznymi skryptami) | — |
 

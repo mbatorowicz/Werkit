@@ -50,7 +50,7 @@ async function main() {
 
   console.log('');
   console.log('OK — baza jest na miejscu.');
-  console.log('Odśwież stronę „Maszyny i warsztat” w przeglądarce.');
+  console.log('Odśwież stronę „Flota i pojazdy” w przeglądarce.');
   console.log('');
 }
 
