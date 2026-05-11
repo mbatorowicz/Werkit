@@ -22,6 +22,7 @@ export type UnifiedGanttItem = {
   priority?: WorkOrderPriority | string | null;
   categoryId?: number | null;
   categoryName?: string | null;
+  categoryIsStationary?: boolean | null;
   customerId?: number | null;
   materialId?: number | null;
   createdAt?: string | Date | null;

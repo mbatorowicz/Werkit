@@ -101,6 +101,7 @@ export default function SessionDetailsModal({
       })),
   ];
   const hasMapData = logs.length > 0 || events.length > 0;
+  const isStationary = Boolean(item.categoryIsStationary);
   const currentLocation = logs.length > 0 ? pathTraveled[pathTraveled.length - 1] : (events.length > 0 ? events[events.length - 1] : { lat: 52.2297, lng: 21.0122 });
 
   const timelineItems = [...photos.map(p => ({ ...p, type: 'photo' as const, time: new Date(p.createdAt ?? 0).getTime() })), ...notes.map(n => ({ ...n, type: 'note' as const, time: new Date(n.createdAt ?? 0).getTime() }))].sort((a, b) => b.time - a.time);
@@ -166,21 +167,23 @@ export default function SessionDetailsModal({
                   <div className="text-center py-12 text-zinc-500">{dict.loadingData}</div>
                 ) : (
                   <>
-                    <div className="h-[400px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800">
-                       {hasMapData ? (
-                         <LiveMap 
-                           currentLocation={currentLocation} 
-                           pathTraveled={pathTraveled} 
-                           destination={null} 
-                           events={events} 
-                         />
-                       ) : (
-                         <div className="w-full h-full bg-zinc-50 dark:bg-zinc-800/50 flex flex-col items-center justify-center text-zinc-500">
-                           <MapIcon className="w-8 h-8 mb-2 opacity-50" />
-                           <p>{dict.noGpsData}</p>
-                         </div>
-                       )}
-                    </div>
+                    {!isStationary ? (
+                      <div className="h-[400px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800">
+                        {hasMapData ? (
+                          <LiveMap
+                            currentLocation={currentLocation}
+                            pathTraveled={pathTraveled}
+                            destination={null}
+                            events={events}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-zinc-50 dark:bg-zinc-800/50 flex flex-col items-center justify-center text-zinc-500">
+                            <MapIcon className="w-8 h-8 mb-2 opacity-50" />
+                            <p>{dict.noGpsData}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
 
                     {timelineItems.length > 0 && (
                       <div className="mt-8">
