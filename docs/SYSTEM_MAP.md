@@ -420,6 +420,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient zawsze wysyła tablicę (zob. `GPSManager.flushQueue`), ale serwer toleruje też pojedynczy.
 9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
 10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli middleware już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
+11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 
 ---
 
@@ -434,4 +435,4 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-11 (materiały: usunięcie `type`, migracja 0009). Jeśli któreś przypisanie endpoint↔serwis tu się rozjedzie z kodem — to TEN plik jest do aktualizacji w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-11 (migracja 0010/0011 `resource_categories.show_*`, fallback GET kategorii, skrypt `db:napraw-kategorie-widocznosc`). Jeśli któreś przypisanie endpoint↔serwis tu się rozjedzie z kodem — to TEN plik jest do aktualizacji w tym samym PR.*

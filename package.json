@@ -12,7 +12,8 @@
     "db:napraw-slowniki-baza": "tsx src/scripts/apply_dictionary_schema.ts",
     "db:napraw-lokalizacja-sesji": "tsx src/scripts/apply_work_sessions_bookend_coords.ts",
     "db:napraw-materialy-bez-typu": "tsx src/scripts/apply_materials_drop_type.ts",
-    "db:napraw-wszystko": "npm run db:napraw-maszyny && npm run db:napraw-slowniki-baza && npm run db:napraw-lokalizacja-sesji && npm run db:napraw-materialy-bez-typu",
+    "db:napraw-kategorie-widocznosc": "tsx src/scripts/apply_resource_categories_visibility.ts",
+    "db:napraw-wszystko": "npm run db:napraw-maszyny && npm run db:napraw-slowniki-baza && npm run db:napraw-lokalizacja-sesji && npm run db:napraw-materialy-bez-typu && npm run db:napraw-kategorie-widocznosc",
     "db:apply-resources-identity": "tsx src/scripts/apply_resources_vehicle_identity.ts"
   },
   "dependencies": {

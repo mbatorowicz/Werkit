@@ -4,7 +4,7 @@ export const en: AppDictionary = {
   apiErrors: {
     fetch_error: "Error while fetching data from server.",
     migration_required:
-      "Database schema is out of date. Run locally: npm run db:napraw-maszyny, npm run db:napraw-slowniki-baza, npm run db:napraw-lokalizacja-sesji — or apply SQL files from the drizzle folder.",
+      "Database schema is out of date. For resource categories (field visibility): npm run db:napraw-kategorie-widocznosc — or npm run db:napraw-wszystko / SQL from drizzle/.",
     migration_material_categories:
       "Material dictionary tables are missing (migration 0005). Run: npm run db:napraw-slowniki-baza or execute drizzle/0005_material_categories.sql.",
     missing_material_category: "Select at least one material category.",

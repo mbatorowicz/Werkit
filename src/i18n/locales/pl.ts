@@ -2,7 +2,7 @@ export const pl = {
   apiErrors: {
     fetch_error: "Błąd podczas pobierania danych z serwera.",
     migration_required:
-      "Baza jest niezsynchronizowana z aplikacją. Uruchom lokalnie: npm run db:napraw-maszyny, npm run db:napraw-slowniki-baza, npm run db:napraw-lokalizacja-sesji — albo wklej SQL z folderu drizzle.",
+      "Baza jest niezsynchronizowana z aplikacją. Dla kategorii zadań (widoczność pól): npm run db:napraw-kategorie-widocznosc — albo npm run db:napraw-wszystko / SQL z drizzle/.",
     migration_material_categories:
       "Brakuje tabel słownika materiałów (migracja 0005). Uruchom: npm run db:napraw-slowniki-baza albo SQL z drizzle/0005_material_categories.sql.",
     missing_material_category: "Wybierz co najmniej jedną kategorię materiału.",

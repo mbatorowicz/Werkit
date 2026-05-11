@@ -1,4 +1,5 @@
 import { db } from '@/db';
+import { isMissingResourceCategoriesVisibilityColumns } from '@/lib/postgresMigrationHints';
 import {
   resourceCategories,
   customers,
@@ -12,8 +13,42 @@ import {
 import { eq, desc } from 'drizzle-orm';
 
 export class DictionaryService {
+  /** Zapytanie bez `show_*` — działa na bazie sprzed migracji 0010. */
+  private static async getCategoriesLegacyColumnsOnly() {
+    return db
+      .select({
+        id: resourceCategories.id,
+        name: resourceCategories.name,
+        icon: resourceCategories.icon,
+        reqCustomer: resourceCategories.reqCustomer,
+        reqMaterial: resourceCategories.reqMaterial,
+        reqQuantity: resourceCategories.reqQuantity,
+        reqTaskDescription: resourceCategories.reqTaskDescription,
+        isGlobal: resourceCategories.isGlobal,
+        isStationary: resourceCategories.isStationary,
+        color: resourceCategories.color,
+      })
+      .from(resourceCategories)
+      .orderBy(desc(resourceCategories.id));
+  }
+
   static async getCategories() {
-    return await db.select().from(resourceCategories).orderBy(desc(resourceCategories.id));
+    try {
+      return await db.select().from(resourceCategories).orderBy(desc(resourceCategories.id));
+    } catch (err: unknown) {
+      if (!isMissingResourceCategoriesVisibilityColumns(err)) throw err;
+      console.warn(
+        'DictionaryService.getCategories: brak kolumn show_* na resource_categories — zapytanie legacy; uruchom migrację (npm run db:napraw-kategorie-widocznosc lub drizzle/0010).',
+      );
+      const legacy = await DictionaryService.getCategoriesLegacyColumnsOnly();
+      return legacy.map((row) => ({
+        ...row,
+        showCustomer: true,
+        showMaterial: true,
+        showQuantity: true,
+        showTaskDescription: true,
+      }));
+    }
   }
 
   static async getCustomers() {

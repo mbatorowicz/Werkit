@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { ResourceCategoryUpdateInput } from '@/services/DictionaryService';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { isMissingResourceCategoriesStationaryColumn } from '@/lib/postgresMigrationHints';
+import {
+  isMissingResourceCategoriesStationaryColumn,
+  isMissingResourceCategoriesVisibilityColumns,
+} from '@/lib/postgresMigrationHints';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   const denied = await guardAdminMutation();
@@ -38,7 +41,10 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error('Category update error:', err);
-    if (isMissingResourceCategoriesStationaryColumn(err)) {
+    if (
+      isMissingResourceCategoriesStationaryColumn(err) ||
+      isMissingResourceCategoriesVisibilityColumns(err)
+    ) {
       return NextResponse.json({ error: 'migration_required' }, { status: 503 });
     }
     return NextResponse.json({ error: 'category_in_use' }, { status: 500 });

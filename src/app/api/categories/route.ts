@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { isMissingResourceCategoriesStationaryColumn } from '@/lib/postgresMigrationHints';
+import {
+  isMissingResourceCategoriesStationaryColumn,
+  isMissingResourceCategoriesVisibilityColumns,
+} from '@/lib/postgresMigrationHints';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,7 +72,14 @@ export async function POST(request: Request) {
       color: color || '#3f3f46',
     });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err: unknown) {
+    console.error('Categories POST:', err);
+    if (
+      isMissingResourceCategoriesVisibilityColumns(err) ||
+      isMissingResourceCategoriesStationaryColumn(err)
+    ) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'category_exists' }, { status: 500 });
   }
 }
