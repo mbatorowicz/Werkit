@@ -208,6 +208,27 @@ export function OrdersDispatchTable({
             ) : null}
           </>
         }
+        subheader={
+          <div className="flex items-center gap-2 flex-wrap">
+            {item.expectedDurationHours && (
+              <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
+                {workerUiLabels.durationLabel} {item.expectedDurationHours}h
+              </div>
+            )}
+            {item.dueDate && (
+              <div className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
+                {formatDict(workerUiLabels.term, {
+                  date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
+                  time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                })}
+              </div>
+            )}
+          </div>
+        }
+        showDateTime={false}
         mode={mode}
         machine={machine}
         material={material || "—"}
@@ -219,22 +240,6 @@ export function OrdersDispatchTable({
         footer={
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
-              {item.expectedDurationHours && (
-                <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                  {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-                </div>
-              )}
-              {item.dueDate && (
-                <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                  {formatDict(workerUiLabels.term, {
-                    date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-                    time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
-                  })}
-                </div>
-              )}
               {item.status === "COMPLETED" && item.startTime && item.endTime && (
                 <>
                   <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">

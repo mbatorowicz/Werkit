@@ -53,7 +53,9 @@ export function OrderLabelCard({
   title,
   badges,
   footer,
+  subheader,
   density = "normal",
+  showDateTime = true,
   mode,
   machine,
   material,
@@ -69,7 +71,9 @@ export function OrderLabelCard({
   title?: string | null;
   badges?: React.ReactNode;
   footer?: React.ReactNode;
+  subheader?: React.ReactNode;
   density?: Density;
+  showDateTime?: boolean;
   mode: string;
   machine: string;
   material?: string | null;
@@ -106,15 +110,17 @@ export function OrderLabelCard({
           {/* Nr zlecenia — jedyny element w kolorze statusu */}
           <div className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}>
             <div className="min-w-0">
-              <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
-              {title?.trim() ? (
-                <div className="mt-0.5 text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                  {title}
-                </div>
-              ) : null}
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
+                {title?.trim() ? (
+                  <div className={`text-sm font-black truncate ${cls.label}`}>{title}</div>
+                ) : null}
+              </div>
             </div>
             {badges ? <div className="shrink-0 flex items-center gap-2">{badges}</div> : null}
           </div>
+
+          {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}
 
           <div className={`grid grid-cols-2 ${isCompact ? "md:grid-cols-4 gap-x-4 gap-y-1.5" : "gap-x-4 gap-y-2"}`}>
             <LabelItem k={labels.mode} v={mode || "—"} />
@@ -123,8 +129,8 @@ export function OrderLabelCard({
             <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
             <LabelItem k={labels.customer} v={customer?.trim() ? customer : "—"} />
             <LabelItem k={labels.description} v={description?.trim() ? description : "—"} title={description ?? undefined} />
-            <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
-            <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} />
+            {showDateTime ? <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} /> : null}
+            {showDateTime ? <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} /> : null}
           </div>
 
           {footer ? <div className={isCompact ? "mt-2" : "mt-3"}>{footer}</div> : null}
