@@ -15,6 +15,11 @@ function isLikelyDatabaseOrInfraError(err: unknown): boolean {
 }
 
 export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const forwardedProto = req.headers.get('x-forwarded-proto');
+  const isHttps = forwardedProto === 'https' || url.protocol === 'https:';
+  const cookieSameSite = (isHttps ? 'none' : 'lax') as 'none' | 'lax';
+
   let body: unknown;
   try {
     body = await req.json();
@@ -78,8 +83,8 @@ export async function POST(req: Request) {
       name: 'auth_token',
       value: jwt,
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isHttps,
+      sameSite: cookieSameSite,
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
