@@ -8,7 +8,8 @@ import {
   workOrderCategoryHeadingClass,
   workOrderPendingListCardClass,
 } from "@/features/worker/lib/workOrderPresentation";
-import { WorkOrderPriorityRibbon, WorkOrderSummaryLines } from "@/components/work-orders";
+import { WorkOrderPriorityRibbon } from "@/components/work-orders";
+import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { WorkOrder, UserData } from "@/types/worker";
 
 interface PendingOrdersListProps {
@@ -98,21 +99,29 @@ export default function PendingOrdersList({
                   </span>
                   <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
                 </div>
-                <WorkOrderSummaryLines order={order} dict={dict} />
-                {order.dueDate && (
-                  <div className="mt-2 flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded w-fit">
-                    <Clock className="w-3 h-3 shrink-0" />
-                    <span className="text-xs">
-                      {formatDict(dict.term, {
-                        date: new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE),
-                        time: new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }),
-                      })}
-                    </span>
-                  </div>
-                )}
+                <div className="mt-2">
+                  <OrderLabelCard
+                    tone="planned"
+                    orderNo={`#${order.id}`}
+                    mode={order.categoryName || dict.noCategoryName}
+                    machine={order.resourceName || "—"}
+                    material={order.materialName}
+                    quantity={order.quantityTons ? `${order.quantityTons}t` : null}
+                    customer={order.customerName}
+                    description={order.taskDescription}
+                    dateLabel={
+                      order.dueDate
+                        ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
+                        : new Date(order.createdAt).toLocaleDateString(DEFAULT_UI_LOCALE)
+                    }
+                    timeLabel={
+                      order.dueDate
+                        ? new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                        : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                    }
+                    className="bg-white/60 dark:bg-zinc-950/30"
+                  />
+                </div>
               </div>
               <button
                 type="button"

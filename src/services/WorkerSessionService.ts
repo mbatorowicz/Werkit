@@ -202,6 +202,7 @@ export class WorkerSessionService {
   static async getCompletedSessions(userId: number, limitCount: number = 20) {
     return await db.select({
       id: workSessions.id,
+      workOrderId: workSessions.workOrderId,
       categoryId: workSessions.categoryId,
       categoryName: resourceCategories.name,
       startTime: workSessions.startTime,
@@ -209,10 +210,12 @@ export class WorkerSessionService {
       taskDescription: workSessions.taskDescription,
       quantityTons: workSessions.quantityTons,
       materialName: materials.name,
-      customerLastName: customers.lastName
+      customerLastName: customers.lastName,
+      resourceName: resources.name,
     })
     .from(workSessions)
     .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
+    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
@@ -226,6 +229,7 @@ export class WorkerSessionService {
   static async getSessionHistoryFull(sessionId: number, userId: number) {
     const [sessionData] = await db.select({
       id: workSessions.id,
+      workOrderId: workSessions.workOrderId,
       categoryId: workSessions.categoryId,
       categoryName: resourceCategories.name,
       startTime: workSessions.startTime,
@@ -233,6 +237,7 @@ export class WorkerSessionService {
       taskDescription: workSessions.taskDescription,
       quantityTons: workSessions.quantityTons,
       materialName: materials.name,
+      resourceName: resources.name,
       customerFirstName: customers.firstName,
       customerLastName: customers.lastName,
       customerAddress: customers.defaultAddress,
@@ -241,6 +246,7 @@ export class WorkerSessionService {
     })
     .from(workSessions)
     .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
+    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
     .leftJoin(materials, eq(workSessions.materialId, materials.id))
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
     .where(and(eq(workSessions.id, sessionId), eq(workSessions.userId, userId)));

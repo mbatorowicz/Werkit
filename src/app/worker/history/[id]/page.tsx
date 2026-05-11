@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, MapPin, Camera, FileText } from "lucide-react";
+import { ArrowLeft, MapPin, Camera, FileText } from "lucide-react";
 import Link from "next/link";
 import { TimelineItem } from "@/types/worker";
 import { cookies } from "next/headers";
@@ -7,6 +7,7 @@ import { JWT_SECRET } from '@/lib/auth';
 import { notFound } from "next/navigation";
 import MapWrapper from "./MapWrapper";
 import Image from "next/image";
+import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 
 async function getUserId() {
   const token = (await cookies()).get('auth_token')?.value;
@@ -68,22 +69,20 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 mb-6 shadow-sm">
-        <div className="text-xl font-bold text-amber-500 mt-2">{sessionData.categoryName || 'Brak Kategorii'}</div>
-        <div className="flex flex-col gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-           <p className="flex items-center gap-2">
-             <Clock className="w-4 h-4 text-zinc-400" />
-             <span>{sessionData.startTime.toLocaleString('pl-PL')} - {sessionData.endTime?.toLocaleString('pl-PL')}</span>
-           </p>
-           {sessionData.materialName && (
-            <div className="flex justify-between items-center py-2 border-t border-zinc-200 dark:border-zinc-700">
-              <span className="text-zinc-500 text-sm">Materiał:</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">{sessionData.materialName}</span>
-            </div>
-          )}
-           <p className="bg-zinc-50 dark:bg-zinc-800 p-3 rounded text-zinc-700 dark:text-zinc-300">
-             {sessionData.taskDescription || 'Brak szczegółowego opisu zadań.'}
-           </p>
-        </div>
+        <OrderLabelCard
+          tone="done"
+          orderNo={sessionData.workOrderId ? `#${sessionData.workOrderId}` : `#${sessionData.id}`}
+          mode={sessionData.categoryName || "Brak kategorii"}
+          machine={sessionData.resourceName || "—"}
+          material={sessionData.materialName}
+          quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}
+          customer={sessionData.customerLastName || null}
+          description={sessionData.taskDescription}
+          dateLabel={sessionData.startTime.toLocaleDateString("pl-PL")}
+          timeLabel={`${sessionData.startTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – ${
+            sessionData.endTime ? sessionData.endTime.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) : "—"
+          }`}
+        />
       </div>
 
       <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">Zapisana Trasa i Zdarzenia</h3>

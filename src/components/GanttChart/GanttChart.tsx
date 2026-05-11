@@ -268,7 +268,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                               style={{ left: plannedDims.left, width: plannedDims.width }}
-                              title={`${dict.pendingOrder} #${item.workOrderId || item.id}\n${dict.date}: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.estimatedTime}: ${plannedDurationHours}h\n${dict.clickToEdit}`}
+                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${plannedStart?.toLocaleDateString('pl-PL')}\nGodzina: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.clickToEdit}`}
                             >
                               <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
@@ -277,7 +277,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                               style={{ left: actualDims.left, width: actualDims.width }}
-                              title={`Zlecenie #${item.workOrderId || item.id} (${item.status === 'IN_PROGRESS' ? dict.inProgress : dict.completed})\n${dict.start}: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.end}: ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : dict.inProgressShort}\n${dict.clickToDetails}`}
+                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${actualStart?.toLocaleDateString('pl-PL')}\nGodzina: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} – ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : dict.inProgressShort}\n${dict.clickToDetails}`}
                             >
                               <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>

@@ -11,8 +11,10 @@ import {
   workOrderCategoryHeadingClass,
   workOrderInteractiveSurfaceClass,
 } from "@/features/worker/lib/workOrderPresentation";
-import { WorkOrderPriorityRibbon, WorkOrderSummaryLines } from "@/components/work-orders";
+import { WorkOrderPriorityRibbon } from "@/components/work-orders";
+import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
+import { DEFAULT_UI_LOCALE } from "@/i18n";
 
 export default function WizardClient() {
   const router = useRouter();
@@ -144,7 +146,29 @@ export default function WizardClient() {
                         </div>
                         <WorkOrderPriorityRibbon priority={order.priority} labels={dict} accentOnly />
                       </div>
-                      <WorkOrderSummaryLines order={order} dict={dict} taskItalic showDurationCreator />
+                      <div className="mt-2">
+                        <OrderLabelCard
+                          tone="planned"
+                          orderNo={`#${order.id}`}
+                          mode={order.categoryName || dict.noCategoryName}
+                          machine={order.resourceName || "—"}
+                          material={order.materialName}
+                          quantity={order.quantityTons ? `${order.quantityTons}t` : null}
+                          customer={order.customerName}
+                          description={order.taskDescription}
+                          dateLabel={
+                            order.dueDate
+                              ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
+                              : new Date(order.createdAt).toLocaleDateString(DEFAULT_UI_LOCALE)
+                          }
+                          timeLabel={
+                            order.dueDate
+                              ? new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                              : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                          }
+                          className="bg-white/60 dark:bg-zinc-950/30"
+                        />
+                      </div>
                       <div className="mt-3 text-amber-500 font-semibold text-sm">{dict.startTask} &rarr;</div>
                     </button>
                   ))}
