@@ -32,6 +32,7 @@ export default function UsersClient() {
   });
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
+  const pageTitle = dictionary.admin.sidebar.users;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const roleSubtitle = (role: string) => {
@@ -124,7 +125,7 @@ export default function UsersClient() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2">
-            <Users className="w-6 h-6 text-emerald-500" /> {dict.title}
+            <Users className="w-6 h-6 text-emerald-500" /> {pageTitle}
           </h2>
           <p className="text-zinc-500 mt-1 text-sm">{dict.subtitle}</p>
         </div>

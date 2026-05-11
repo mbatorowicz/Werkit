@@ -27,6 +27,7 @@ export function ReportsDashboard({
   snapshot: ReportsDashboardSnapshot;
 }) {
   const r = adminDict.reports;
+  const nav = adminDict.sidebar;
   const d = adminDict.dashboard;
   const companyLabel = snapshot.companyName ?? "";
 
@@ -59,7 +60,7 @@ export function ReportsDashboard({
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-emerald-500" /> {r.title}
+            <BarChart3 className="w-6 h-6 text-emerald-500" /> {nav.reports}
           </h1>
           <p className="text-zinc-500 mt-1">
             {r.subtitle} {companyLabel ? `${companyLabel}.` : ""}

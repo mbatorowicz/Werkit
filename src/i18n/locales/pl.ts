@@ -51,9 +51,13 @@ export const pl = {
       logisticsSystem: "System Logistyczny",
       mainDashboard: "Główny Pulpit",
       dispatch: "Dyspozycja",
+      reports: "Raport",
+      users: "Użytkownicy",
+      resources: "Zasoby",
+      materials: "Materiały",
+      customers: "Klienci",
       deviceLogs: "Logi urządzeń",
       fleetAndPeople: "Organizacja",
-      workers: "Użytkownicy",
       machinesAndWorkshop: "Zasoby operacyjne",
       logistics: "Zasoby i kontrahenci",
       ordersAndDispatch: "Zlecenia i Dyspozycja",
@@ -86,7 +90,7 @@ export const pl = {
     },
     reports: {
       title: "Raporty operacyjne",
-      subtitle: "Obciążenie floty, realizacja i kolejka dyspozycji dla",
+      subtitle: "Podsumowanie realizacji i obciążenia dla",
       periodHint: "Zakres „w tym miesiącu”: od 1. dnia bieżącego miesiąca do teraz (sesje zakończone).",
       workersWithAssignedOrders: "Pracownicy z oczekującymi zleceniami",
       workersCurrentlyWorking: "Pracownicy wykonujący zadanie teraz",
@@ -123,7 +127,7 @@ export const pl = {
       none: "Brak"
     },
     orders: {
-      title: "Zlecenia i Dyspozycja",
+      title: "Dyspozycja",
       subtitle: "Wydawaj gotowe zlecenia dla konkretnych pracowników w terenie.",
       newOrder: "Nowa dyspozycja",
       workerDate: "Pracownik / Data",
@@ -297,6 +301,8 @@ export const pl = {
       addCategory: "Dodaj kategorię",
       noCategories: "Dodaj pierwszą kategorię (np. transport, plac stacjonarny), żeby przypisywać pojazdy.",
       fleetTitle: "Zasoby operacyjne",
+      pageSubtitle: "Kategorie zadań oraz pojazdy przypisane do floty.",
+      sectionVehiclesTitle: "Rejestr pojazdów",
       fleetSubtitle: "Środki zarejestrowane wg kategorii powyżej (pojazdy, maszyny itd.).",
       registerVehicle: "Dodaj pojazd",
       vehicleReg: "Pojazd",
@@ -348,7 +354,9 @@ export const pl = {
     },
     materials: {
       title: "Baza materiałów",
-      subtitle: "Najpierw kategorie materiałów, potem pozycje w magazynie — ten sam układ co w module Zasobów operacyjnych.",
+      subtitle: "Najpierw kategorie materiałów, potem pozycje — ten sam układ co w module Zasobów.",
+      pageSubtitle: "Kategorie materiałów oraz pozycje magazynowe.",
+      sectionItemsTitle: "Pozycje w bazie",
       dictTitle: "Słownik kategorii materiałów",
       dictSubtitle: "Grupy do przypisania pozycjom w bazie materiałów.",
       addCategory: "Dodaj kategorię",
@@ -378,7 +386,7 @@ export const pl = {
       create: "Dodaj materiał"
     },
     customers: {
-      title: "Klienci i Adresy",
+      title: "Klienci",
       subtitle: "Stali klienci, firmy, budowy i zrzuty powiązane z transportami.",
       addCustomer: "Dodaj Kontrahenta",
       customerData: "Dane Klienta / Nazwa Budowy",
@@ -442,7 +450,6 @@ export const pl = {
       saveBtn: "Zapisz"
     },
     logs: {
-      title: "Logi urządzeń",
       subtitle: "Podgląd zdarzeń z aplikacji pracowniczej w terenie.",
     }
   },

@@ -53,9 +53,13 @@ export const en: AppDictionary = {
       logisticsSystem: "Logistics System",
       mainDashboard: "Main Dashboard",
       dispatch: "Dispatch",
+      reports: "Report",
+      users: "Users",
+      resources: "Resources",
+      materials: "Materials",
+      customers: "Customers",
       deviceLogs: "Device logs",
       fleetAndPeople: "Organization",
-      workers: "Users",
       machinesAndWorkshop: "Operational resources",
       logistics: "Resources & contacts",
       ordersAndDispatch: "Orders & Dispatch",
@@ -88,7 +92,7 @@ export const en: AppDictionary = {
     },
     reports: {
       title: "Operational reports",
-      subtitle: "Fleet load, execution, and dispatch queue for",
+      subtitle: "Performance summary and workload for",
       periodHint: "“This month” means completed sessions that started from the 1st of the current calendar month through now.",
       workersWithAssignedOrders: "Workers with pending orders",
       workersCurrentlyWorking: "Workers on a job right now",
@@ -125,7 +129,7 @@ export const en: AppDictionary = {
       none: "None"
     },
     orders: {
-      title: "Orders & Dispatch",
+      title: "Dispatch",
       subtitle: "Issue ready orders for specific workers in the field.",
       newOrder: "New dispatch",
       workerDate: "Worker / Date",
@@ -299,6 +303,8 @@ export const en: AppDictionary = {
       addCategory: "Add category",
       noCategories: "Add a category first (e.g. transport, stationary yard) to assign vehicles.",
       fleetTitle: "Operational resources",
+      pageSubtitle: "Job categories and vehicles assigned to your fleet.",
+      sectionVehiclesTitle: "Vehicle registry",
       fleetSubtitle: "Registered units under the categories above (vehicles, machines, etc.).",
       registerVehicle: "Add vehicle",
       vehicleReg: "Vehicle",
@@ -350,7 +356,9 @@ export const en: AppDictionary = {
     },
     materials: {
       title: "Materials base",
-      subtitle: "Material categories first, then inventory — same layout as Operational resources.",
+      subtitle: "Material categories first, then inventory — same layout as Resources.",
+      pageSubtitle: "Material categories and inventory lines.",
+      sectionItemsTitle: "Inventory items",
       dictTitle: "Material category dictionary",
       dictSubtitle: "Groups assigned to items in your materials inventory.",
       addCategory: "Add category",
@@ -380,7 +388,7 @@ export const en: AppDictionary = {
       create: "Add material"
     },
     customers: {
-      title: "Customers and Addresses",
+      title: "Customers",
       subtitle: "Regular customers, companies, construction sites related to transports.",
       addCustomer: "Add Contractor",
       customerData: "Customer Data / Site Name",
@@ -444,7 +452,6 @@ export const en: AppDictionary = {
       saveBtn: "Save"
     },
     logs: {
-      title: "Device logs",
       subtitle: "Events from worker devices in the field.",
     }
   },

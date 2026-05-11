@@ -27,6 +27,7 @@ export default function MaterialsClient() {
 
   const dictionary = getDictionary();
   const dict = dictionary.admin.materials;
+  const nav = dictionary.admin.sidebar;
   const machDict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
@@ -157,6 +158,14 @@ export default function MaterialsClient() {
 
   return (
     <>
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+          <HardHat className="w-6 h-6 text-emerald-500" />
+          {nav.materials}
+        </h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">{dict.pageSubtitle}</p>
+      </div>
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2">
@@ -225,9 +234,9 @@ export default function MaterialsClient() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-t border-zinc-800/80 pt-10">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
-            <HardHat className="w-6 h-6 text-emerald-500" /> {dict.fleetTitle}
-          </h1>
+          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Layers className="w-6 h-6 text-emerald-500" /> {dict.sectionItemsTitle}
+          </h2>
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
         {canMutate && (

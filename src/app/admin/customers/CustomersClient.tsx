@@ -28,6 +28,7 @@ export default function CustomersClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.customers;
+  const pageTitle = dictionary.admin.sidebar.customers;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const fetchData = useCallback(async () => {
@@ -92,7 +93,7 @@ export default function CustomersClient() {
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Package className="w-6 h-6 text-emerald-500" /> {dict.title}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Package className="w-6 h-6 text-emerald-500" /> {pageTitle}</h1>
           <p className="text-zinc-500 mt-1">{dict.subtitle}</p>
         </div>
         {canMutate && (

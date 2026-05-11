@@ -4,7 +4,7 @@ import { getDictionary } from "@/i18n";
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogsPage() {
-  const dict = getDictionary().admin.logs;
+  const { sidebar, logs } = getDictionary().admin;
   const { SystemLogService } = await import('@/services/SystemLogService');
   const { AdminUserService } = await import('@/services/AdminUserService');
 
@@ -16,9 +16,9 @@ export default async function AdminLogsPage() {
   return (
     <div className="p-6 pb-24 lg:pb-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{dict.title}</h1>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{sidebar.deviceLogs}</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-          {dict.subtitle}
+          {logs.subtitle}
         </p>
       </div>
 
