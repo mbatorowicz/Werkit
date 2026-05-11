@@ -48,6 +48,7 @@ export class AdminOrderService {
    * Pobiera historię aktywnych oraz archiwalnych sesji.
    */
   static async getArchivedSessions(limitCount = 500) {
+    const creator = aliasedTable(users, 'creator');
     return db.select({
        id: workSessions.id,
        workOrderId: workSessions.workOrderId,
@@ -60,6 +61,7 @@ export class AdminOrderService {
        endTime: workSessions.endTime,
        workerName: users.fullName,
        userId: workSessions.userId,
+       creatorName: creator.fullName,
        resourceName: resources.name,
        resourceId: workSessions.resourceId,
        materialId: workSessions.materialId,
@@ -73,6 +75,8 @@ export class AdminOrderService {
      })
      .from(workSessions)
      .leftJoin(users, eq(workSessions.userId, users.id))
+      .leftJoin(workOrders, eq(workSessions.workOrderId, workOrders.id))
+      .leftJoin(creator, eq(workOrders.createdById, creator.id))
      .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
      .leftJoin(resources, eq(workSessions.resourceId, resources.id))
      .leftJoin(materials, eq(workSessions.materialId, materials.id))

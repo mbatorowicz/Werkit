@@ -191,7 +191,7 @@ export function OrdersDispatchTable({
         tone={tone}
         orderNo={orderNo}
         title={item.workerName as string}
-        orderedBy={item.creatorName ?? null}
+        orderedBy={(item.creatorName ?? item.workerName) ?? null}
         orderedByLabel={dict.orderedBy}
         badges={
           <>
@@ -408,7 +408,7 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
-                  orderedBy={item.creatorName ?? null}
+                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
                   badges={
                     <>
@@ -548,7 +548,7 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
-                  orderedBy={item.creatorName ?? null}
+                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
                   badges={
                     <>
@@ -661,7 +661,7 @@ export function OrdersDispatchTable({
                   tone={tone}
                   orderNo={orderNo}
                   title={item.workerName as string}
-                  orderedBy={item.creatorName ?? null}
+                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
                   badges={
                     <span
