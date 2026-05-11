@@ -1,7 +1,7 @@
 "use client";
 
 import { TimelineItem } from "@/types/worker";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   X,
   Map as MapIcon,
@@ -15,19 +15,33 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { getDictionary } from "@/i18n";
+import { getDictionary, type Locale } from "@/i18n";
 import { formatDict } from "@/i18n/format";
 import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
 
+const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
+
+function formatUiDate(value: string | number | Date): string {
+  return new Date(value).toLocaleDateString(DEFAULT_UI_LOCALE);
+}
+
+function formatUiTime(value: string | number | Date): string {
+  return new Date(value).toLocaleTimeString(DEFAULT_UI_LOCALE, timeHM);
+}
+
+const SessionDetailsLocaleContext = createContext<Locale>("pl");
+
+/** next/dynamic nie przekazuje propsów do `loading` — locale ze kontekstu jak w rodzicu. */
 function SessionMapLoader() {
-  const dict = getDictionary().admin.orders;
+  const locale = useContext(SessionDetailsLocaleContext);
+  const ordersDict = getDictionary(locale).admin.orders;
   return (
     <div
       role="status"
-      aria-label={dict.sessionMapLoadingLabel}
+      aria-label={ordersDict.sessionMapLoadingLabel}
       className="flex h-full w-full animate-pulse items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800"
     >
       <MapIcon className="h-8 w-8 text-zinc-400" />
@@ -47,6 +61,7 @@ export default function SessionDetailsModal({
   canMutate,
   onForceCompleteSession,
   onDeleteArchivedSession,
+  locale,
 }: {
   item: UnifiedGanttItem;
   onClose: () => void;
@@ -54,8 +69,13 @@ export default function SessionDetailsModal({
   canMutate?: boolean;
   onForceCompleteSession?: (sessionId: number) => Promise<void>;
   onDeleteArchivedSession?: (sessionId: number) => Promise<void>;
+  /** Domyślnie PL; w przyszłości z cookies / profilem (jak `getDictionary` w layoutach). */
+  locale?: Locale;
 }) {
-  const dict = getDictionary().admin.orders;
+  const resolvedLocale = locale ?? "pl";
+  const dictionary = useMemo(() => getDictionary(resolvedLocale), [resolvedLocale]);
+  const dict = dictionary.admin.orders;
+  const adminUi = dictionary.admin.ui;
 
   const [logs, setLogs] = useState<{ latitude?: string; longitude?: string }[]>([]);
   const [photos, setPhotos] = useState<
@@ -204,7 +224,8 @@ export default function SessionDetailsModal({
   const machineLabel = ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
 
   return (
-    <>
+    <SessionDetailsLocaleContext.Provider value={resolvedLocale}>
+      <>
       <AdminModalShell
         open
         onClose={onClose}
@@ -231,20 +252,18 @@ export default function SessionDetailsModal({
             description={(item.taskDescription as string) || null}
             dateLabel={
               item.startTime
-                ? new Date(item.startTime as string).toLocaleDateString(DEFAULT_UI_LOCALE)
+                ? formatUiDate(item.startTime as string)
                 : item.dueDate
-                  ? new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE)
+                  ? formatUiDate(item.dueDate as string)
                   : null
             }
             timeLabel={
               item.startTime
-                ? `${new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-                    item.endTime
-                      ? ` – ${new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}`
-                      : ""
+                ? `${formatUiTime(item.startTime as string)}${
+                    item.endTime ? ` – ${formatUiTime(item.endTime as string)}` : ""
                   }`
                 : item.dueDate
-                  ? new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                  ? formatUiTime(item.dueDate as string)
                   : null
             }
             className="mb-6"
@@ -298,11 +317,8 @@ export default function SessionDetailsModal({
                       <div className="relative ml-4 space-y-8 border-l-2 border-zinc-200 dark:border-zinc-800">
                         {timelineItems.map((entry) => {
                           const isNote = entry.type === "note";
-                          const timeStr = new Date(entry.time).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          });
-                          const dateStr = new Date(entry.time).toLocaleDateString(DEFAULT_UI_LOCALE);
+                          const timeStr = formatUiTime(entry.time);
+                          const dateStr = formatUiDate(entry.time);
 
                           return (
                             <div key={`${entry.type}-${entry.id}`} className="relative flex w-full items-start">
@@ -369,7 +385,7 @@ export default function SessionDetailsModal({
               type="button"
               onClick={() => setLightboxIndex(null)}
               className="rounded-full p-2 transition hover:bg-white/10 hover:text-white"
-              aria-label={dict.lightboxCloseGallery}
+              aria-label={adminUi.closeModal}
             >
               <X className="h-6 w-6" />
             </button>
@@ -432,5 +448,6 @@ export default function SessionDetailsModal({
         </div>
       ) : null}
     </>
+    </SessionDetailsLocaleContext.Provider>
   );
 }
