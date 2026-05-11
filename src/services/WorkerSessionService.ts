@@ -232,6 +232,7 @@ export class WorkerSessionService {
       workOrderId: workSessions.workOrderId,
       categoryId: workSessions.categoryId,
       categoryName: resourceCategories.name,
+      categoryIsStationary: resourceCategories.isStationary,
       startTime: workSessions.startTime,
       endTime: workSessions.endTime,
       taskDescription: workSessions.taskDescription,
