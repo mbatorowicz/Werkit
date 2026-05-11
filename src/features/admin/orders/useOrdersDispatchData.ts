@@ -10,7 +10,7 @@ import type {
   UnifiedGanttItem,
 } from "@/types/admin";
 import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
-import { parseJsonArray } from "./parseJsonArray";
+import { parseJsonArray } from "@/lib/parseJsonArray";
 
 export function useOrdersDispatchData() {
   const [workers, setWorkers] = useState<BaseWorker[]>([]);

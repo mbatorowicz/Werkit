@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Trash2, Shield, Plus, X, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
+import { Trash2, Shield, Plus, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { parseJsonArray } from "@/lib/parseJsonArray";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 
 type UserRow = {
   id: number;
@@ -45,8 +47,8 @@ export default function UsersClient() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/workers", { cache: "no-store" });
-      const data = await res.json();
-      setUsers(Array.isArray(data) ? data : []);
+      const data = await parseJsonArray(res);
+      setUsers(data as UserRow[]);
     } catch {
       /* sieć */
     }
@@ -220,17 +222,13 @@ export default function UsersClient() {
         </div>
       </div>
 
-      {isModalOpen && canMutate && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{editId ? dict.modalEditTitle : dict.modalCreateTitle}</h2>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      <AdminModalShell
+        open={isModalOpen && canMutate}
+        onClose={() => setIsModalOpen(false)}
+        title={editId ? dict.modalEditTitle : dict.modalCreateTitle}
+        maxWidthClass="max-w-lg"
+        titleSize="lg"
+      >
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-400">{dict.fullNameLabel}</label>
@@ -329,9 +327,7 @@ export default function UsersClient() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
+      </AdminModalShell>
     </>
   );
 }

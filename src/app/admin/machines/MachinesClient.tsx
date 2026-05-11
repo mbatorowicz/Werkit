@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ChangeEvent } from "react";
 import Image from "next/image";
-import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, Camera } from "lucide-react";
+import { Trash2, Wrench, Plus, Truck, Edit2, Layers, Camera } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 
 type Category = {
@@ -436,14 +437,13 @@ export default function MachinesClient() {
       </div>
 
       {/* MODAL KATEGORII */}
-      {isCMOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsCMOpen(false)}></div>
-           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-sm rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-base font-semibold text-zinc-900 dark:text-white">{cEditId ? dict.modalCatEditTitle : dict.modalCatCreateTitle}</h2>
-                 <button onClick={() => setIsCMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-4 h-4"/></button>
-              </div>
+      <AdminModalShell
+        open={isCMOpen}
+        onClose={() => setIsCMOpen(false)}
+        title={cEditId ? dict.modalCatEditTitle : dict.modalCatCreateTitle}
+        maxWidthClass="max-w-sm"
+        titleSize="sm"
+      >
               <form onSubmit={handleCSave} className="p-6 space-y-4">
                  <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
                  <AdminCategoryColorFieldRow
@@ -593,19 +593,16 @@ export default function MachinesClient() {
 
                  <button type="submit" className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 dark:bg-emerald-600">{dict.saveDict}</button>
               </form>
-           </div>
-        </div>
-      )}
+      </AdminModalShell>
 
       {/* MODAL MASZYNY */}
-      {isMMOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMMOpen(false)}></div>
-           <div className="relative z-10 flex w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900">
-              <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{mEditId ? dict.modalMachEditTitle : dict.modalMachCreateTitle}</h2>
-                 <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
-              </div>
+      <AdminModalShell
+        open={isMMOpen}
+        onClose={() => setIsMMOpen(false)}
+        title={mEditId ? dict.modalMachEditTitle : dict.modalMachCreateTitle}
+        maxWidthClass="max-w-2xl"
+        titleSize="lg"
+      >
               <form onSubmit={handleMSave} className="p-6 space-y-6">
                  {(resourceVis.showResourceName || resourceVis.showRegistrationNumber) && (
                  <div className={`grid grid-cols-1 gap-4 ${resourceVis.showResourceName && resourceVis.showRegistrationNumber ? "sm:grid-cols-3" : resourceVis.showResourceName ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
@@ -692,9 +689,7 @@ export default function MachinesClient() {
                     </button>
                  </div>
               </form>
-           </div>
-        </div>
-      )}
+      </AdminModalShell>
     </>
   )
 }

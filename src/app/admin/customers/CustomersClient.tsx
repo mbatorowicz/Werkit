@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Trash2, Package, Plus, X, Edit2, MapPin } from "lucide-react";
+import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { parseJsonArray } from "@/lib/parseJsonArray";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import dynamic from "next/dynamic";
 
 const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), { ssr: false, loading: () => <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">Ładowanie mapy...</div> });
@@ -35,8 +37,8 @@ export default function CustomersClient() {
     setIsLoading(true);
     try {
       const res = await fetch("/api/customers", { cache: "no-store" });
-      const data = await res.json();
-      setCustomers(Array.isArray(data) ? data : []);
+      const data = await parseJsonArray(res);
+      setCustomers(data as Customer[]);
     } catch {
       /* sieć */
     }
@@ -158,14 +160,13 @@ export default function CustomersClient() {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 w-full max-w-lg rounded-lg shadow-2xl relative z-10 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-700 flex justify-between items-center bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-900 dark:text-white">{editId ? dict.modalEditTitle : dict.modalCreateTitle}</h2>
-                 <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
-              </div>
+      <AdminModalShell
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editId ? dict.modalEditTitle : dict.modalCreateTitle}
+        maxWidthClass="max-w-lg"
+        titleSize="lg"
+      >
               <form onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
@@ -200,9 +201,7 @@ export default function CustomersClient() {
                     </button>
                  </div>
               </form>
-           </div>
-        </div>
-      )}
+      </AdminModalShell>
     </>
   )
 }

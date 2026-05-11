@@ -79,6 +79,9 @@ export const pl = {
       companySettings: "Ustawienia Firmy",
       logoutSession: "Wyloguj sesję"
     },
+    ui: {
+      closeModal: "Zamknij okno",
+    },
     dashboard: {
       title: "Główny Pulpit",
       subtitle: "Bieżące podsumowanie floty i działalności dla",

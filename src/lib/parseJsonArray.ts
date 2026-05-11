@@ -1,4 +1,4 @@
-/** Bezpieczne parsowanie odpowiedzi API jako tablicy (admin dyspozycja i inne listy). */
+/** Bezpieczne parsowanie odpowiedzi API jako tablicy (listy z fetch). */
 export async function parseJsonArray(res: Response): Promise<unknown[]> {
   if (!res.ok) return [];
   const ct = res.headers.get("content-type") ?? "";

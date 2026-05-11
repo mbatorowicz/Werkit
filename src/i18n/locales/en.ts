@@ -81,6 +81,9 @@ export const en: AppDictionary = {
       companySettings: "Company Settings",
       logoutSession: "Logout session"
     },
+    ui: {
+      closeModal: "Close dialog",
+    },
     dashboard: {
       title: "Main Dashboard",
       subtitle: "Current summary of fleet and operations for",
