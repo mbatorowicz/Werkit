@@ -12,6 +12,7 @@ import {
   workOrderInteractiveSurfaceClass,
 } from "@/features/worker/lib/workOrderPresentation";
 import { WorkOrderPriorityRibbon, WorkOrderSummaryLines } from "@/components/work-orders";
+import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 
 export default function WizardClient() {
   const router = useRouter();
@@ -83,7 +84,12 @@ export default function WizardClient() {
   const handleAcceptOrder = async (orderId: number) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
+      const loc = await getCurrentPositionOnce();
+      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
+      });
       if (res.ok) {
         router.push("/worker");
       } else {

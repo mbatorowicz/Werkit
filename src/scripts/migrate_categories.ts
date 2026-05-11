@@ -26,7 +26,8 @@ async function migrate() {
         reqMaterial: key === 'TRANSPORT',
         reqQuantity: key === 'TRANSPORT',
         reqTaskDescription: key !== 'TRANSPORT',
-        isGlobal: key === 'WORKSHOP', // As discussed
+        isGlobal: key === 'WORKSHOP',
+        isStationary: key === 'WORKSHOP',
       }).returning();
       cat = inserted[0];
     }

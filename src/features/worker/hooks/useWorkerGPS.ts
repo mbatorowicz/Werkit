@@ -37,6 +37,15 @@ export function useWorkerGPS(
       return;
     }
 
+    if (session.categoryIsStationary) {
+      clearWatcher();
+      if (isMounted) setGpsStatus("active");
+      return () => {
+        isMounted = false;
+        clearWatcher();
+      };
+    }
+
     const handleNewLoc = (newLoc: Coord) => {
       if (!isMounted) return;
       setLocation(newLoc);

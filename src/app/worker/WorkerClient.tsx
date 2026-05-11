@@ -8,6 +8,7 @@ import { Capacitor } from '@capacitor/core';
 import { useWorkerNotifications } from '@/features/worker/hooks/useWorkerNotifications';
 import { useWorkerGPS } from '@/features/worker/hooks/useWorkerGPS';
 import { GPSManager } from '@/lib/gpsManager';
+import { getCurrentPositionOnce } from '@/lib/geolocationOnce';
 import { Session, WorkOrder, Coord, AppSettings, UserData, TimelineItem, InitialWorkerData } from "@/types/worker";
 
 import PendingOrdersList from "@/features/worker/components/PendingOrdersList";
@@ -77,7 +78,15 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       const ordersData = await resOrders.json();
       setWorkOrders(Array.isArray(ordersData) ? ordersData : []);
 
-      if (fetchGpsPath) {
+      const stationary = Boolean(sessData?.session?.categoryIsStationary);
+      if (stationary) {
+        setPathTraveled([]);
+        setTraveledKm(0);
+        setDestination(null);
+        setDistanceToDestKm(null);
+      }
+
+      if (fetchGpsPath && sessData?.session && !stationary) {
         try {
           const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
           const pathData = await resPath.json();
@@ -115,21 +124,26 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         newTimeline.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         setTimelineEvents(newTimeline);
 
-        if (sessData.session.customerLat && sessData.session.customerLng) {
-          setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
-        } else if (sessData.session.customerAddress && !destinationRef.current) {
-          try {
-            const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
-            const geoData = await geo.json();
-            if (geoData && geoData.length > 0) {
-              setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+        const sessStationary = Boolean(sessData.session.categoryIsStationary);
+        if (!sessStationary) {
+          if (sessData.session.customerLat && sessData.session.customerLng) {
+            setDestination({ lat: parseFloat(sessData.session.customerLat), lng: parseFloat(sessData.session.customerLng) });
+          } else if (sessData.session.customerAddress && !destinationRef.current) {
+            try {
+              const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(sessData.session.customerAddress)}`);
+              const geoData = await geo.json();
+              if (geoData && geoData.length > 0) {
+                setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+              }
+            } catch {
+              /* geokodowanie opcjonalne */
             }
-          } catch {
-            /* geokodowanie opcjonalne */
           }
         }
       } else {
         setSession(null);
+        setDestination(null);
+        setDistanceToDestKm(null);
       }
     } catch (e) {
       console.error(e);
@@ -163,8 +177,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     noteText, setNoteText,
     isSubmittingNote,
     editingNoteId, setEditingNoteId,
-    handleEndSession,
-    handleAcceptOrder,
+    handleEndSession: submitEndSession,
+    handleAcceptOrder: submitAcceptOrder,
     handleCancelSession,
     handleCheckpoint,
     handleSaveNote,
@@ -175,7 +189,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     setIsLoading,
     timelineEvents,
     settings,
-    distanceToDestKm
+    distanceToDestKm,
+    categoryIsStationary: !!session?.categoryIsStationary,
   });
 
   const requestAcceptOrder = (orderId: number) => {
@@ -187,7 +202,10 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         return;
       }
     }
-    handleAcceptOrder(orderId);
+    void (async () => {
+      const startLoc = location ?? (await getCurrentPositionOnce());
+      await submitAcceptOrder(orderId, startLoc);
+    })();
   };
 
   const isCancelWindowOpen = session && settings?.cancelWindowMinutes
@@ -220,6 +238,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       ) : (
         <ActiveSessionDashboard 
           session={session}
+          isStationarySession={!!session.categoryIsStationary}
           dict={dict}
           adminDict={adminDict}
           isTimeOverrun={isTimeOverrun}
@@ -241,7 +260,12 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           handleCheckpoint={() => handleCheckpoint(location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}
-          handleEndSession={handleEndSession}
+          handleEndSession={() => {
+            void (async () => {
+              const endLoc = location ?? (await getCurrentPositionOnce());
+              await submitEndSession(endLoc);
+            })();
+          }}
           settings={settings}
           setDistanceToDestKm={setDistanceToDestKm}
         />
@@ -265,7 +289,12 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         setShowGpsWarning={setShowGpsWarning}
         pendingOrderId={pendingOrderId}
         setPendingOrderId={setPendingOrderId}
-        handleAcceptOrder={handleAcceptOrder}
+        handleAcceptOrder={(orderId) => {
+          void (async () => {
+            const startLoc = location ?? (await getCurrentPositionOnce());
+            await submitAcceptOrder(orderId, startLoc);
+          })();
+        }}
       />
 
       <div className="mt-4 text-center text-[10px] text-zinc-400 dark:text-zinc-500 font-mono uppercase tracking-widest opacity-60">

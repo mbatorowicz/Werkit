@@ -80,6 +80,8 @@ export type BaseCategory = {
   reqQuantity: boolean;
   reqTaskDescription: boolean;
   isGlobal: boolean;
+  /** Warsztat / plac — bez GPS trasy i bez „dojechał na miejsce” wg odległości. */
+  isStationary: boolean;
   color?: string | null;
 };
 

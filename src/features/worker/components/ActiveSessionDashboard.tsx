@@ -29,6 +29,8 @@ function SessionTimer({ startTime }: { startTime: string }) {
 
 interface ActiveSessionDashboardProps {
   session: Session;
+  /** Kategoria sprzętu „stacjonarna” — uproszczony panel bez mapy trasy i bez pilnowania GPS. */
+  isStationarySession?: boolean;
   dict: Record<string, string>;
   adminDict: Record<string, string>;
   isTimeOverrun: boolean;
@@ -57,6 +59,7 @@ interface ActiveSessionDashboardProps {
 
 export default function ActiveSessionDashboard({
   session,
+  isStationarySession = false,
   dict,
   adminDict,
   isTimeOverrun,
@@ -129,18 +132,25 @@ export default function ActiveSessionDashboard({
             <SessionTimer startTime={session.startTime} />
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5 flex items-center justify-end gap-1">
-            {dict.gpsSignal}
-            <div title="GPS jest aktywny tylko w trakcie trwania zlecenia i wyłączy się po naciśnięciu Zakończ." className="text-zinc-400 bg-zinc-200 dark:bg-zinc-700 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold cursor-help cursor-pointer">?</div>
+        {isStationarySession ? (
+          <div className="max-w-[58%] text-right">
+            <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.sessionStationaryBadge}</div>
+            <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium leading-snug">{dict.sessionStationaryGpsNote}</p>
           </div>
-          <div className="flex items-center justify-end gap-1.5">
-            <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
-            <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
-              {gpsStatus === 'active' ? dict.connOk : gpsStatus === 'waiting' ? dict.searching : dict.error}
-            </span>
+        ) : (
+          <div className="text-right">
+            <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5 flex items-center justify-end gap-1">
+              {dict.gpsSignal}
+              <div title="GPS jest aktywny tylko w trakcie trwania zlecenia i wyłączy się po naciśnięciu Zakończ." className="text-zinc-400 bg-zinc-200 dark:bg-zinc-700 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold cursor-help cursor-pointer">?</div>
+            </div>
+            <div className="flex items-center justify-end gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${gpsStatus === 'active' ? 'bg-emerald-500 animate-pulse' : gpsStatus === 'waiting' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}`} />
+              <span className={`text-xs font-bold ${gpsStatus === 'active' ? 'text-emerald-500' : gpsStatus === 'waiting' ? 'text-amber-500' : 'text-red-500'}`}>
+                {gpsStatus === 'active' ? dict.connOk : gpsStatus === 'waiting' ? dict.searching : dict.error}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {isTimeOverrun && (
@@ -155,6 +165,7 @@ export default function ActiveSessionDashboard({
       )}
 
       {/* WIDGET TRASY */}
+      {!isStationarySession && (
       <div className="w-full flex gap-4 mt-4">
         <div className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">
           <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1">{dict.routeTraveled}</div>
@@ -167,10 +178,16 @@ export default function ActiveSessionDashboard({
           </div>
         )}
       </div>
+      )}
 
       {/* MAPA */}
       <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
-        {location ? (
+        {isStationarySession ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-6 text-center bg-emerald-500/5 dark:bg-emerald-500/10">
+            <MapPin className="w-10 h-10 text-emerald-600 dark:text-emerald-400 opacity-80" />
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">{dict.sessionStationaryMapHint}</p>
+          </div>
+        ) : location ? (
           <LiveMap
             currentLocation={location}
             pathTraveled={pathTraveled}
@@ -243,12 +260,14 @@ export default function ActiveSessionDashboard({
         </label>
       </div>
 
+      {!isStationarySession && (
       <div className="w-full mt-4">
         <button onClick={handleCheckpoint} className="w-full bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 rounded-lg py-4 flex items-center justify-center gap-2 transition-all active:scale-95">
           <MapPin className="w-5 h-5" />
           <span className="font-bold uppercase tracking-wider text-sm">{dict.reportArrived}</span>
         </button>
       </div>
+      )}
 
       <div className={`mt-4 w-full grid ${isCancelWindowOpen ? 'grid-cols-2 gap-4' : 'grid-cols-1'}`}>
         {isCancelWindowOpen && (

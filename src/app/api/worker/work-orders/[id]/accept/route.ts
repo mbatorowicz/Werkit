@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
+import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 import { WorkerOrderService } from '@/services/WorkerOrderService';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -8,7 +9,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const { id } = await params;
 
-    const sessionId = await WorkerOrderService.acceptOrder(userId, parseInt(id));
+    let body: unknown = {};
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+    const startCoord = coordsFromRequestBody(body);
+
+    const sessionId = await WorkerOrderService.acceptOrder(userId, parseInt(id), startCoord);
 
     return NextResponse.json({ success: true, sessionId });
   } catch (err: unknown) {

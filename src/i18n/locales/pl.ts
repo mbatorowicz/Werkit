@@ -1,6 +1,10 @@
 export const pl = {
   apiErrors: {
     fetch_error: "Błąd podczas pobierania danych z serwera.",
+    migration_required:
+      "Baza jest niezsynchronizowana z aplikacją. Uruchom lokalnie: npm run db:napraw-maszyny, npm run db:napraw-slowniki-baza, npm run db:napraw-lokalizacja-sesji — albo wklej SQL z folderu drizzle.",
+    migration_material_categories:
+      "Brakuje tabel bazy kruszyw (migracja 0005). Uruchom: npm run db:napraw-slowniki-baza albo SQL z drizzle/0005_material_categories.sql.",
     category_exists: "Kategoria o tej nazwie prawdopodobnie już istnieje.",
     category_in_use: "Kategoria jest już w użyciu lub wystąpił inny błąd.",
     category_has_machines: "Nie można usunąć kategorii, do której przypisane są maszyny.",
@@ -330,6 +334,11 @@ export const pl = {
       reqTaskDescription: "Wymaga opisu zadania",
       isGlobalLabel: "Wszystkie pojazdy (globalna)",
       isGlobalDesc: "Np. warsztat — widać całą flotę przy wyborze.",
+      catMobilityTitle: "Mobilność",
+      isStationaryLabel: "Tryb stacjonarny",
+      isStationaryDesc:
+        "Warsztat, plac załadunku itp. — bez śledzenia trasy GPS i bez ostrzeżenia „za daleko od celu” przy meldunku dotarcia.",
+      badgeStationary: "Stacjonarny",
       machPhotoLabel: "Zdjęcie",
       machPhotoChoose: "Wybierz zdjęcie",
       machPhotoRemove: "Usuń zdjęcie",
@@ -469,6 +478,10 @@ export const pl = {
       error: "BŁĄD",
       timeOverrunWarn: "Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?",
       routeTraveled: "Przebyta Trasa",
+      sessionStationaryBadge: "Tryb pracy",
+      sessionStationaryGpsNote: "Stacjonarnie — bez śledzenia trasy GPS.",
+      sessionStationaryMapHint:
+        "Dla tego typu sprzętu nie zapisujemy trasy ani odległości do adresu klienta. Możesz normalnie dodawać notatki i zdjęcia.",
       toDest: "Do Celu",
       km: "km",
       addNote: "Dodaj Notatkę",

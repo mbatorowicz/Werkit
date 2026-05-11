@@ -152,8 +152,8 @@ export default function LoginPage() {
               type="text"
               required
               className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all placeholder-zinc-700"
-              placeholder="np. admin"
-              defaultValue="admin"
+              placeholder="login"
+              autoComplete="username"
             />
           </div>
           <div className="space-y-1.5">
@@ -167,7 +167,7 @@ export default function LoginPage() {
               required
               className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all placeholder-zinc-700"
               placeholder="••••••••"
-              defaultValue="admin123"
+              autoComplete="current-password"
             />
           </div>
 

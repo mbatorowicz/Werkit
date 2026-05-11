@@ -34,21 +34,49 @@ export default function MaterialsClient() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [mData, cData] = await Promise.all([
-        fetch("/api/materials", { cache: "no-store" }).then((r) => r.json()),
-        fetch("/api/material-categories", { cache: "no-store" }).then((r) => r.json()),
+      const parseList = async (
+        url: string,
+      ): Promise<{ rows: unknown[]; errorCode?: string }> => {
+        const res = await fetch(url, { cache: "no-store" });
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {
+          body = null;
+        }
+        if (!res.ok) {
+          const code =
+            body !== null &&
+            typeof body === "object" &&
+            "error" in body &&
+            typeof (body as { error: unknown }).error === "string"
+              ? (body as { error: string }).error
+              : "";
+          return { rows: [], errorCode: code || "fetch_error" };
+        }
+        if (!Array.isArray(body)) {
+          return { rows: [], errorCode: "fetch_error" };
+        }
+        return { rows: body };
+      };
+
+      const [mList, cList] = await Promise.all([
+        parseList("/api/materials"),
+        parseList("/api/material-categories"),
       ]);
-      setMaterials(Array.isArray(mData) ? mData : []);
-      setCategories(Array.isArray(cData) ? cData : []);
-      if (!Array.isArray(mData) || !Array.isArray(cData)) {
-        console.error("Materials API:", { mData, cData });
-        alert(machDict.dbError);
+      setMaterials((Array.isArray(mList.rows) ? mList.rows : []) as MaterialRow[]);
+      setCategories((Array.isArray(cList.rows) ? cList.rows : []) as MaterialCategory[]);
+
+      const errCode = mList.errorCode ?? cList.errorCode;
+      if (errCode) {
+        console.error("Materials API:", { materials: mList, categories: cList });
+        alert(apiErrors[errCode] ?? machDict.dbError);
       }
     } catch {
-      /* sieć */
+      alert(machDict.dbError);
     }
     setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- machDict.dbError z i18n; pełny obiekt co render generowałby pętlę
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- machDict/apiErrors z i18n; pełny obiekt co render generowałby pętlę
   }, []);
 
   useEffect(() => {

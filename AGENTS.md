@@ -2,7 +2,10 @@
 
 Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kto modyfikuje kod Werkit — w tym agentów AI. Ma pierwszeństwo przed „domysłami z sieci”: najpierw tu sprawdzasz fakty o repo, potem dopisujesz kod.
 
-**Towarzyszy mu:** [`ARCHITECTURE.md`](./ARCHITECTURE.md) — głębszy opis warstw, modułów i długu technicznego.
+**Towarzyszy mu:**
+
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — głębszy opis warstw, modułów i długu technicznego.
+- [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **brutalna inwentaryzacja**: wszystkie tabele DB z kolumnami, wszystkie endpointy API z metodą i serwisem za nimi, wszystkie hooki, sloty `i18n`, status migracji na produkcji, częste pułapki i debug-recipes. **Czytaj zanim ruszysz większą zmianę.**
 
 ---
 

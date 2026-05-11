@@ -3,6 +3,10 @@ import type { AppDictionary } from "../types";
 export const en: AppDictionary = {
   apiErrors: {
     fetch_error: "Error while fetching data from server.",
+    migration_required:
+      "Database schema is out of date. Run locally: npm run db:napraw-maszyny, npm run db:napraw-slowniki-baza, npm run db:napraw-lokalizacja-sesji — or apply SQL files from the drizzle folder.",
+    migration_material_categories:
+      "Aggregate/material dictionary tables are missing (migration 0005). Run: npm run db:napraw-slowniki-baza or execute drizzle/0005_material_categories.sql.",
     category_exists: "A category with this name probably already exists.",
     category_in_use: "Category is already in use or another error occurred.",
     category_has_machines: "Cannot delete a category that has machines assigned to it.",
@@ -332,6 +336,11 @@ export const en: AppDictionary = {
       reqTaskDescription: "Requires task description",
       isGlobalLabel: "All vehicles (global)",
       isGlobalDesc: "e.g. workshop — full fleet appears when selecting.",
+      catMobilityTitle: "Mobility",
+      isStationaryLabel: "Stationary mode",
+      isStationaryDesc:
+        "Workshop, yard loading, etc. — no GPS route tracking and no “too far from destination” warning when reporting arrival.",
+      badgeStationary: "Stationary",
       machPhotoLabel: "Photo",
       machPhotoChoose: "Choose photo",
       machPhotoRemove: "Remove photo",
@@ -471,6 +480,10 @@ export const en: AppDictionary = {
       error: "ERROR",
       timeOverrunWarn: "Estimated order time exceeded. Did you forget to finish work?",
       routeTraveled: "Route Traveled",
+      sessionStationaryBadge: "Job mode",
+      sessionStationaryGpsNote: "Stationary — no GPS route tracking.",
+      sessionStationaryMapHint:
+        "For this equipment type we do not record route or distance to the customer address. You can still add notes and photos as usual.",
       toDest: "To Dest.",
       km: "km",
       addNote: "Add Note",

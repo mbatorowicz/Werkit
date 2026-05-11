@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs, resourceCategories } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 
 export class WorkerSessionService {
   /**
@@ -17,6 +18,7 @@ export class WorkerSessionService {
       resourceName: resources.name,
       categoryId: workSessions.categoryId,
       categoryName: resourceCategories.name,
+      categoryIsStationary: resourceCategories.isStationary,
       materialName: materials.name
     }).from(workSessions)
     .leftJoin(customers, eq(workSessions.customerId, customers.id))
@@ -53,6 +55,7 @@ export class WorkerSessionService {
          resourceName: data.resourceName, 
          categoryId: data.categoryId,
          categoryName: data.categoryName,
+         categoryIsStationary: Boolean(data.categoryIsStationary),
          materialName: data.materialName 
        }, 
        events: photos,
@@ -72,6 +75,7 @@ export class WorkerSessionService {
     customerId?: number | null;
     quantityTons?: string | null;
     taskDescription?: string | null;
+    startCoord?: { lat: number; lng: number } | null;
   }) {
     // Sprawdzenie czy już trwa sesja
     const existing = await db.select().from(workSessions)
@@ -80,6 +84,8 @@ export class WorkerSessionService {
     if (existing.length > 0) {
        throw new Error('session_active');
     }
+
+    const startNums = payload.startCoord ? coordPairToNumericStrings(payload.startCoord) : null;
 
     const newSession = await db.insert(workSessions).values({
       userId,
@@ -91,6 +97,12 @@ export class WorkerSessionService {
       quantityTons: payload.quantityTons || null,
       taskDescription: payload.taskDescription || null,
       status: 'IN_PROGRESS',
+      ...(startNums
+        ? {
+            startLatitude: startNums.lat,
+            startLongitude: startNums.lng,
+          }
+        : {}),
     }).returning();
 
     return newSession[0];
@@ -99,7 +111,7 @@ export class WorkerSessionService {
   /**
    * Zamyka obecnie aktywną sesję.
    */
-  static async endActiveSession(userId: number) {
+  static async endActiveSession(userId: number, endCoord?: { lat: number; lng: number } | null) {
     const existing = await db.select().from(workSessions)
       .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     
@@ -108,9 +120,16 @@ export class WorkerSessionService {
     }
 
     const sessionId = existing[0].id;
+    const endNums = endCoord ? coordPairToNumericStrings(endCoord) : null;
     await db.update(workSessions).set({
       status: 'COMPLETED',
       endTime: new Date(),
+      ...(endNums
+        ? {
+            endLatitude: endNums.lat,
+            endLongitude: endNums.lng,
+          }
+        : {}),
     }).where(eq(workSessions.id, sessionId));
 
     return true;

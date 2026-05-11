@@ -6,6 +6,8 @@ export type Session = {
   endTime?: string;
   categoryId: number;
   categoryName: string | null;
+  /** Typ sprzętu „stacjonarny” — bez śledzenia trasy i geofencingu dotarcia. */
+  categoryIsStationary?: boolean;
   status: string;
   customerAddress?: string | null;
   customerLat?: string | null;

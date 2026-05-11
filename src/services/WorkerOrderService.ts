@@ -3,6 +3,7 @@ import { workOrders, resources, materials, customers, users, workSessions } from
 import { eq, and, aliasedTable, asc } from 'drizzle-orm';
 import { resourceCategories } from '@/db/schema';
 import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
+import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 
 export class WorkerOrderService {
   /**
@@ -44,11 +45,17 @@ export class WorkerOrderService {
     }));
   }
 
-  static async acceptOrder(userId: number, orderId: number) {
+  static async acceptOrder(
+    userId: number,
+    orderId: number,
+    startCoord?: { lat: number; lng: number } | null,
+  ) {
     const [order] = await db.select().from(workOrders).where(and(eq(workOrders.id, orderId), eq(workOrders.userId, userId)));
     if (!order) throw new Error('order_not_found');
 
     await db.update(workOrders).set({ status: 'COMPLETED' }).where(eq(workOrders.id, order.id));
+
+    const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
     const [newSession] = await db.insert(workSessions).values({
       workOrderId: order.id,
@@ -62,7 +69,13 @@ export class WorkerOrderService {
       quantityTons: order.quantityTons,
       expectedDurationHours: order.expectedDurationHours,
       dueDate: order.dueDate,
-      status: 'IN_PROGRESS'
+      status: 'IN_PROGRESS',
+      ...(startNums
+        ? {
+            startLatitude: startNums.lat,
+            startLongitude: startNums.lng,
+          }
+        : {}),
     }).returning();
 
     return newSession.id;

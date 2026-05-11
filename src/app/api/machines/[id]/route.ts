@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { isMissingResourcesVehicleColumns } from '@/lib/postgresMigrationHints';
 import { buildResourceDisplayName, isVehicleIdentityEmpty } from '@/lib/resourceDisplayName';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -39,7 +40,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     );
     
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err: unknown) {
+    console.error('PUT /api/machines/[id]:', err);
+    if (isMissingResourcesVehicleColumns(err)) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

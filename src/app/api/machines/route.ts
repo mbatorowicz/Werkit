@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import {
+  isMissingResourcesVehicleColumns,
+} from '@/lib/postgresMigrationHints';
 import { buildResourceDisplayName, isVehicleIdentityEmpty } from '@/lib/resourceDisplayName';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +13,11 @@ export async function GET() {
     const allMachines = await DictionaryService.getResources();
     return NextResponse.json(allMachines);
   } catch (err: unknown) {
-    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)), stack: (err instanceof Error ? err.stack : undefined) }, { status: 500 });
+    console.error('GET /api/machines:', err);
+    if (isMissingResourcesVehicleColumns(err)) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
 
@@ -43,6 +50,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error("Machine register error", err);
+    if (isMissingResourcesVehicleColumns(err)) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'save_error' }, { status: 500 });
   }
 }

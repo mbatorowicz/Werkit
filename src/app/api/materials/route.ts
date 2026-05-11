@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,11 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const allMaterials = await DictionaryService.getMaterials();
     return NextResponse.json(allMaterials);
-  } catch {
+  } catch (err: unknown) {
+    console.error('Materials GET:', err);
+    if (isMissingMaterialCategoriesTables(err)) {
+      return NextResponse.json({ error: 'migration_material_categories' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }

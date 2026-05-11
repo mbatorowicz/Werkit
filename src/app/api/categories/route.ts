@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { isMissingResourceCategoriesStationaryColumn } from '@/lib/postgresMigrationHints';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,11 @@ export async function GET() {
     const { DictionaryService } = await import('@/services/DictionaryService');
     const allCategories = await DictionaryService.getCategories();
     return NextResponse.json(allCategories);
-  } catch {
+  } catch (err: unknown) {
+    console.error('Categories GET:', err);
+    if (isMissingResourceCategoriesStationaryColumn(err)) {
+      return NextResponse.json({ error: 'migration_required' }, { status: 503 });
+    }
     return NextResponse.json({ error: 'fetch_error' }, { status: 500 });
   }
 }
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal, color } = body;
+    const { name, icon, reqCustomer, reqMaterial, reqQuantity, reqTaskDescription, isGlobal, isStationary, color } = body;
 
     if(!name) {
       return NextResponse.json({ error: 'missing_name' }, { status: 400 });
@@ -34,6 +39,7 @@ export async function POST(request: Request) {
       reqQuantity: !!reqQuantity,
       reqTaskDescription: reqTaskDescription !== undefined ? !!reqTaskDescription : true,
       isGlobal: !!isGlobal,
+      isStationary: !!isStationary,
       color: color || '#3f3f46',
     });
     return NextResponse.json({ success: true });

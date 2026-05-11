@@ -24,6 +24,8 @@ export const resourceCategories = pgTable('resource_categories', {
   reqQuantity: boolean('req_quantity').notNull().default(false),
   reqTaskDescription: boolean('req_task_description').notNull().default(true),
   isGlobal: boolean('is_global').notNull().default(false),
+  /** Warsztat / załadunek na placu — bez śledzenia trasy GPS i bez geofencingu „dojazdu”. */
+  isStationary: boolean('is_stationary').notNull().default(false),
   color: varchar('color', { length: 50 }).default('#3f3f46'),
 });
 
@@ -99,6 +101,12 @@ export const workSessions = pgTable('work_sessions', {
   clientAbsent: boolean('client_absent').default(false),
   expectedDurationHours: numeric('expected_duration_hours', { precision: 5, scale: 2 }),
   dueDate: timestamp('due_date'),
+  /** Snapshot GPS w momencie startu (akceptacja zlecenia / kreator). */
+  startLatitude: numeric('start_latitude', { precision: 10, scale: 8 }),
+  startLongitude: numeric('start_longitude', { precision: 11, scale: 8 }),
+  /** Snapshot GPS przy zakończeniu sesji. */
+  endLatitude: numeric('end_latitude', { precision: 10, scale: 8 }),
+  endLongitude: numeric('end_longitude', { precision: 11, scale: 8 }),
 });
 
 export const sessionPhotos = pgTable('session_photos', {

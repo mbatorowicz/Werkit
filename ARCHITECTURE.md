@@ -1,7 +1,11 @@
 # Architektura Werkit — przegląd techniczny
 
-Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next **16**, modularny worker pod `features/worker`) oraz zasady warstwy serwisów.  
-Skrót operacyjny dla codziennej pracy: **[`AGENTS.md`](./AGENTS.md)**.
+Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next **16**, modularny worker pod `features/worker`) oraz zasady warstwy serwisów.
+
+**Powiązane dokumenty:**
+
+- **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
+- **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — pełna inwentaryzacja: wszystkie tabele DB, endpointy API, serwisy z metodami, hooki, sloty i18n, pułapki i dług techniczny. **Otwórz przed większą zmianą** — szybciej znajdziesz odpowiedź niż grepem.
 
 ---
 
@@ -129,7 +133,21 @@ Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samy
 - **Migracje wygenerowane / śledzone:** [`drizzle/`](./drizzle/), meta [`drizzle/meta/_journal.json`](./drizzle/meta/_journal.json).
 - **Priorytet zlecenia:** wartości wyłącznie z zestawu **URGENT | HIGH | NORMAL | LOW** — constraint **`work_orders_priority_chk`** (migracja m.in. **`0003_work_orders_priority_chk.sql`**): najpierw UPDATE niepoprawnych wierszy, potem `CHECK`.
 
-Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkcji sama zrobi” — procedura wdrożenia zespołu musi ją uruchomić.
+### 9.1. Pipeline migracji (rzeczywistość)
+
+W repo **nie ma** automatycznej migracji w `next build` ani w starcie aplikacji. Wdrożenie idzie ręcznie:
+
+1. Lokalnie: zmiana w `schema.ts` + nowy plik `drizzle/000X_<nazwa>.sql` (idempotentny: `ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`) + wpis w `drizzle/meta/_journal.json`.
+2. Na bazę produkcyjną: skrypt `npm run db:napraw-*` (gotowe runnery `tsx` w `src/scripts/apply_*.ts`) **albo** `psql` z wklejonym SQL-em.
+3. Deploy aplikacji.
+
+Pełna lista skryptów i mapowanie do migracji — patrz **[`docs/SYSTEM_MAP.md` §15](./docs/SYSTEM_MAP.md)**.
+
+### 9.2. Status migracji na bazie produkcyjnej (2026-05-10)
+
+Wszystkie migracje **0000-0008 są zaaplikowane** na Neon (`ep-rough-sea-al7ogqfl`). Migracja **0004_users_biometric_login** została chwilowo pominięta (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend „Wewnętrzny Błąd Serwera"). Naprawione punktowo `ALTER TABLE … ADD COLUMN IF NOT EXISTS`. Lekcja: **nawet idempotentne migracje muszą trafić na produkcję — `IF NOT EXISTS` chroni przed re-runem, nie przed pominięciem.**
+
+Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkcji sama zrobi" — procedura wdrożenia zespołu musi ją uruchomić, a **handler API powinien wykrywać brak migracji** (`src/lib/postgresMigrationHints.ts` + sprawdzenie po `column .*does not exist`/`relation .*does not exist`/`Failed query`/`NeonDbError`) i zwracać czytelny `503` z kluczem i18n (`migration_required`, `migration_material_categories` itp.) zamiast suchego `500`.
 
 ---
 
@@ -162,6 +180,11 @@ Reguła nadal obowiązuje w **Next 16** dla dynamicznych tras — nie polegaj na
 
 - **`CapacitorBackButton`** — pojedyncze miejsce obsługi wstecz na Androidzie.
 - **`sendRemoteLog`** — ścieżka diagnostyczna na urządzeniach w terenie; persystencja w **`device_logs`**.
+- **`GlobalErrorHandler`** — listener `window.error` + `unhandledrejection` w `worker/layout.tsx`; każdy nieobsłużony wyjątek leci do `device_logs`.
+- **GPS bookend** — `work_sessions.start_*` / `end_*` zapisywane przy akceptacji zlecenia (`POST /api/worker/work-orders/:id/accept`) i przy kończeniu sesji (`PUT /api/worker/session`). Body opcjonalne — bez zgody na GPS po prostu `null`.
+- **`isStationary`** (warsztat / plac) — kategoria z tym flagiem ⇒ `useWorkerGPS` **wyłącza watcher**, a `handleCheckpoint` pomija geofence-confirm.
+
+Pełna mapa modułu mobilnego (hooki, konfig Capacitor, biometria, kolejka GPS) — **[`docs/SYSTEM_MAP.md` §14](./docs/SYSTEM_MAP.md)**.
 
 ---
 

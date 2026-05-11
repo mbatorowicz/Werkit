@@ -50,6 +50,20 @@
       "when": 1779273600000,
       "tag": "0006_resources_vehicle_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779360000000,
+      "tag": "0007_resource_categories_stationary",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779446400000,
+      "tag": "0008_work_sessions_bookend_coords",
+      "breakpoints": true
     }
   ]
 }

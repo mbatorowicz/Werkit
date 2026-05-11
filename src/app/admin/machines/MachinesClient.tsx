@@ -8,7 +8,18 @@ import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { isVehicleIdentityEmpty } from "@/lib/resourceDisplayName";
 
-type Category = { id: number, name: string, icon?: string, reqCustomer: boolean, reqMaterial: boolean, reqQuantity: boolean, reqTaskDescription: boolean, isGlobal: boolean, color?: string };
+type Category = {
+  id: number;
+  name: string;
+  icon?: string;
+  reqCustomer: boolean;
+  reqMaterial: boolean;
+  reqQuantity: boolean;
+  reqTaskDescription: boolean;
+  isGlobal: boolean;
+  isStationary: boolean;
+  color?: string;
+};
 type Machine = {
   id: number;
   name: string;
@@ -76,7 +87,17 @@ export default function MachinesClient() {
   // States for Category Modal
   const [isCMOpen, setIsCMOpen] = useState(false); // Category Modal
   const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState({ name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, color: '#3f3f46' });
+  const [cForm, setCForm] = useState({
+    name: '',
+    icon: 'blue',
+    reqCustomer: false,
+    reqMaterial: false,
+    reqQuantity: false,
+    reqTaskDescription: true,
+    isGlobal: false,
+    isStationary: false,
+    color: '#3f3f46',
+  });
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -84,21 +105,57 @@ export default function MachinesClient() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [mData, cData] = await Promise.all([
-        fetch("/api/machines", { cache: "no-store" }).then(r => r.json()),
-        fetch("/api/categories", { cache: "no-store" }).then(r => r.json())
+      const parseList = async (
+        url: string,
+      ): Promise<{ rows: unknown[]; errorCode?: string }> => {
+        const res = await fetch(url, { cache: "no-store" });
+        let body: unknown = null;
+        try {
+          body = await res.json();
+        } catch {
+          body = null;
+        }
+        if (!res.ok) {
+          const code =
+            body !== null &&
+            typeof body === "object" &&
+            "error" in body &&
+            typeof (body as { error: unknown }).error === "string"
+              ? (body as { error: string }).error
+              : "";
+          return { rows: [], errorCode: code || "fetch_error" };
+        }
+        if (!Array.isArray(body)) {
+          return { rows: [], errorCode: "fetch_error" };
+        }
+        return { rows: body };
+      };
+
+      const [mList, cList] = await Promise.all([
+        parseList("/api/machines"),
+        parseList("/api/categories"),
       ]);
-      setMachines(Array.isArray(mData) ? mData : []);
-      setCategories(Array.isArray(cData) ? cData : []);
-      if (!Array.isArray(mData) || !Array.isArray(cData)) {
-         console.error("API Error details:", {mData, cData});
-         alert(dict.dbError);
+      setMachines((Array.isArray(mList.rows) ? mList.rows : []) as Machine[]);
+      setCategories(
+        (Array.isArray(cList.rows) ? cList.rows : []).map((row) => {
+          const r = row as Record<string, unknown>;
+          return {
+            ...(row as Category),
+            isStationary: Boolean(r.isStationary),
+          };
+        }),
+      );
+
+      const errCode = mList.errorCode ?? cList.errorCode;
+      if (errCode) {
+        console.error("Machines/categories API:", { machines: mList, categories: cList });
+        alert(apiErrors[errCode] ?? dict.dbError);
       }
     } catch {
-      /* sieć */
+      alert(dict.dbError);
     }
     setIsLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- dict.dbError z i18n; pełny `dict` zmieniałby referencję co render
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- dict/apiErrors z i18n; pełny `dict` zmieniałby referencję co render
   }, []);
 
   useEffect(() => {
@@ -183,7 +240,7 @@ export default function MachinesClient() {
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
         {canMutate && (
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
         )}
@@ -196,10 +253,15 @@ export default function MachinesClient() {
                 <div className="flex items-center gap-3 truncate">
                   <div className={`w-5 h-5 rounded-md shadow-sm shrink-0`} style={{ backgroundColor: cat.color || '#3f3f46' }} />
                   <span className="text-zinc-900 dark:text-zinc-200 font-medium truncate">{cat.name}</span>
+                  {cat.isStationary ? (
+                    <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+                      {dict.badgeStationary}
+                    </span>
+                  ) : null}
                 </div>
                 {canMutate && (
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
                 )}
@@ -324,6 +386,17 @@ export default function MachinesClient() {
                    </div>
                  </div>
                  
+                 <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catMobilityTitle}</h3>
+                    <div className="flex items-start justify-between gap-3">
+                       <div className="flex flex-col gap-0.5 pr-2">
+                         <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isStationaryLabel}</label>
+                         <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.isStationaryDesc}</span>
+                       </div>
+                       <input type="checkbox" checked={cForm.isStationary} onChange={e => setCForm({...cForm, isStationary: e.target.checked})} className="h-4 w-4 rounded text-emerald-600 shrink-0 mt-0.5" />
+                    </div>
+                 </div>
+
                  <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catParamsTitle}</h3>
                     <div className="flex items-center justify-between">

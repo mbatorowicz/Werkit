@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "drizzle-kit migrate",
+    "db:napraw-maszyny": "tsx src/scripts/apply_resources_vehicle_identity.ts",
+    "db:napraw-slowniki-baza": "tsx src/scripts/apply_dictionary_schema.ts",
+    "db:napraw-lokalizacja-sesji": "tsx src/scripts/apply_work_sessions_bookend_coords.ts",
+    "db:apply-resources-identity": "tsx src/scripts/apply_resources_vehicle_identity.ts"
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "^1.2.26",

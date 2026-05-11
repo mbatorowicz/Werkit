@@ -9,6 +9,8 @@ export type WizardCategory = {
   reqQuantity: boolean;
   reqTaskDescription: boolean;
   isGlobal: boolean;
+  /** Z API `/api/categories` — tryb stacjonarny (warsztat / plac). */
+  isStationary?: boolean;
 };
 
 export type WizardMachine = { id: number; name: string; categoryIds: number[] };

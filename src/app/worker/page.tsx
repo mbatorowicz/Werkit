@@ -37,6 +37,12 @@ export default async function WorkerPage() {
     status: rawSession.status,
     categoryId: rawSession.categoryId ?? 0,
     categoryName: rawSession.categoryName ?? null,
+    categoryIsStationary: Boolean(
+      rawSession &&
+        typeof rawSession === 'object' &&
+        'categoryIsStationary' in rawSession &&
+        (rawSession as { categoryIsStationary?: boolean }).categoryIsStationary,
+    ),
     workOrderId: rawSession.workOrderId ?? null,
     resourceName: rawSession.resourceName ?? null,
     materialName: rawSession.materialName ?? null,

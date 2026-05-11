@@ -10,6 +10,8 @@ interface UseWorkerActionsProps {
   timelineEvents: TimelineItem[];
   settings: AppSettings | null;
   distanceToDestKm: number | null;
+  /** Typ sprzętu stacjonarny — bez kontroli odległości przy „dojechał”. */
+  categoryIsStationary?: boolean;
 }
 
 export function useWorkerActions({
@@ -18,14 +20,15 @@ export function useWorkerActions({
   setIsLoading,
   timelineEvents,
   settings,
-  distanceToDestKm
+  distanceToDestKm,
+  categoryIsStationary = false,
 }: UseWorkerActionsProps) {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
 
-  const handleEndSession = async () => {
+  const handleEndSession = async (endLocation: Coord | null) => {
     if (settings?.requirePhotoToFinish) {
       const hasPhoto = timelineEvents.some(e => e.type === 'photo');
       if (!hasPhoto) {
@@ -36,7 +39,15 @@ export function useWorkerActions({
     if (!confirm(dict.confirmEndSession)) return;
     setIsLoading(true);
     try {
-      await fetch("/api/worker/session", { method: "PUT" });
+      await fetch("/api/worker/session", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          endLocation
+            ? { latitude: endLocation.lat, longitude: endLocation.lng }
+            : {},
+        ),
+      });
       sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy');
       await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
@@ -47,10 +58,18 @@ export function useWorkerActions({
     }
   };
 
-  const handleAcceptOrder = async (orderId: number) => {
+  const handleAcceptOrder = async (orderId: number, startLocation: Coord | null) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, { method: "POST" });
+      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          startLocation
+            ? { latitude: startLocation.lat, longitude: startLocation.lng }
+            : {},
+        ),
+      });
       if (res.ok) {
         sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId });
         await fetchSessionAndPath(false, false);
@@ -88,7 +107,7 @@ export function useWorkerActions({
   };
 
   const handleCheckpoint = async (location: Coord | null) => {
-    if (settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
+    if (!categoryIsStationary && settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
       const distMeters = distanceToDestKm * 1000;
       if (distMeters > settings.geofenceRadiusMeters) {
         const msg = formatDict(dict.geofenceConfirm, {

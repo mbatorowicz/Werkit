@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
+import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 
 export async function GET() {
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { resourceId, categoryId, materialId, customerId, taskDescription, quantityTons } = body;
+    const startCoord = coordsFromRequestBody(body);
 
     if (!resourceId || !categoryId) {
        return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
@@ -33,7 +35,8 @@ export async function POST(request: Request) {
       materialId: materialId ? parseInt(materialId) : null,
       customerId: customerId ? parseInt(customerId) : null,
       quantityTons: quantityTons || null,
-      taskDescription
+      taskDescription,
+      startCoord,
     });
 
     return NextResponse.json({ success: true, session: newSession });
@@ -46,12 +49,20 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT() {
+export async function PUT(request: Request) {
   try {
     const userId = await getUserId();
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    await WorkerSessionService.endActiveSession(userId);
+    let body: unknown = {};
+    try {
+      body = await request.json();
+    } catch {
+      body = {};
+    }
+    const endCoord = coordsFromRequestBody(body);
+
+    await WorkerSessionService.endActiveSession(userId, endCoord);
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     console.error(err);

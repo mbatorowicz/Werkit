@@ -6,7 +6,12 @@ import { JWT_SECRET } from '@/lib/auth';
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
-  return /POSTGRES|postgres|Neon|connection|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|database/i.test(msg);
+  return (
+    /POSTGRES|postgres|Neon|connection|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|database/i.test(msg) ||
+    /column .*does not exist|relation .*does not exist|failed query|socket|websocket|NeonDbError/i.test(
+      msg,
+    )
+  );
 }
 
 export async function POST(req: Request) {
