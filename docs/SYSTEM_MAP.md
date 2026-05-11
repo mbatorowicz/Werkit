@@ -128,8 +128,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
-- Montuje **`<CapacitorBackButton />`** (jeden listener `App.addListener('backButton')`; root pages → `App.minimizeApp()`, inne → `router.back()`).
 - Montuje **`<GlobalErrorHandler />`** (window `error` + `unhandledrejection` → `sendRemoteLog('ERROR', ...)`).
+- Hardware back (Android): patrz root `app/layout.tsx` — **`CapacitorBackButton`** (cała aplikacja mobilna).
 - Bottom nav: `Sesja / Historia / Profil / Pomoc` z `pb-safe`.
 
 ---
@@ -349,6 +349,7 @@ matcher: ['/admin/:path*', '/worker/:path*', '/login', '/api/:path*']
 ```
 
 Klasyfikacja → autoryzacja → role:
+- **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji.
 - **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: tylko `admin`.
 - **`WORKER_APP_ROLES = ['worker', 'admin']`** — `/worker` i `/api/worker`.
 - **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: tylko `admin`.
@@ -382,7 +383,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 
 - `capacitor.config.ts`: `appId: 'com.werkit.app'`, `appName: 'Werkit'`, `webDir: 'public'`, `server.url: https://werkit.cncsolutions.dev/`.
 - WebView ładuje **produkcyjną** wersję — lokalne zmiany w UI są widoczne na telefonie tylko po deploy. Do testów na telefonie w sieci LAN: tymczasowo zmień `server.url` na `http://192.168.x.x:3000` + `cleartext: true` (uwaga: w repo `cleartext` jest celowo wyłączone — patrz commit `e7285b5 security: remove cleartext HTTP flag to enforce HTTPS`).
-- **Hardware back (Android)**: jedyne miejsce obsługi — `<CapacitorBackButton />` w `worker/layout.tsx`. Root pages → `App.minimizeApp()`, reszta → `router.back()`. **Nie dodawaj własnych listenerów `backButton`.**
+- **Hardware back (Android)**: jedyne miejsce obsługi — `<CapacitorBackButton />` w root `app/layout.tsx` (Capacitor native). Jeśli `window.history.length > 1` → **`router.back()`**, w przeciwnym razie **`App.minimizeApp()`** (pierwszy ekran w sesji WebView). **Nie dodawaj własnych listenerów `backButton`.**
 - **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` + `distanceFilter: 10m`. Bufor `localStorage` (`werkit_gps_queue`) → flush co 30s lub natychmiast po nowej koordynacie. Dla `categoryIsStationary` (warsztat/plac) GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
 - **Notyfikacje natywne**: `LocalNotifications.schedule({at: now+1s})`. Persistencja IDs: `werkit_notified_orders` (localStorage).
 - **Logi z urządzenia**: każda krytyczna ścieżka woła `sendRemoteLog('LEVEL', 'msg', meta)` → `/api/worker/logs` → tabela `device_logs` → admin `/admin/logs`. **Globalne błędy JS** łapie `<GlobalErrorHandler />` (window error + unhandledrejection).

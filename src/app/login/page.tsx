@@ -52,7 +52,7 @@ export default function LoginPage() {
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
       if (res.ok) {
         router.refresh();
-        router.push(data.user?.role === "admin" ? "/admin" : "/worker");
+        router.replace(data.user?.role === "admin" ? "/admin" : "/worker");
       } else {
         const apiErrors = dict.apiErrors as Record<string, string>;
         setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         router.refresh();
-        router.push(data.user?.role === "admin" ? "/admin" : "/worker");
+        router.replace(data.user?.role === "admin" ? "/admin" : "/worker");
       } else {
         const apiErrors = dict.apiErrors as Record<string, string>;
         setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");

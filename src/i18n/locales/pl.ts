@@ -42,6 +42,14 @@ export const pl = {
     session_still_active: "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
     not_in_progress: "Ta sesja nie jest już w stanie „w toku”.",
   },
+  routeLoading: {
+    title: "Ładowanie…",
+    preparingApp: "Przygotowuję aplikację",
+    adminPanel: "Wczytuję panel administratora",
+    workerApp: "Wczytuję aplikację pracownika",
+    loginScreen: "Wczytuję ekran logowania",
+    staticPage: "Wczytuję treść strony",
+  },
   login: {
     submit: "Zaloguj",
     biometricLogin: "Zaloguj odciskiem lub twarzą",

@@ -9,7 +9,6 @@ import { APP_VERSION } from "@/lib/version";
 import { JWT_SECRET } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 
-import { CapacitorBackButton } from "@/components/CapacitorBackButton";
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +33,6 @@ export default async function WorkerLayout({ children }: { children: React.React
 
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-[#f2fbfa] dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
-      <CapacitorBackButton />
       <GlobalErrorHandler />
       <header className="h-16 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 sticky top-0 z-50">
         <div>

@@ -1,45 +1,35 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
+/**
+ * Android (Capacitor): hardware „wstecz” — jeden listener w root `layout.tsx`.
+ * Gdy w WebView jest więcej niż jeden wpis historii → `router.back()`; na pierwszym ekranie
+ * (brak sensownego „wstecz”) → `App.minimizeApp()`.
+ */
 export function CapacitorBackButton() {
   const router = useRouter();
-  const pathname = usePathname();
-  const pathnameRef = useRef(pathname);
 
   useEffect(() => {
-    pathnameRef.current = pathname;
-  }, [pathname]);
+    if (!Capacitor.isNativePlatform()) return;
 
-  useEffect(() => {
     let listenerHandle: { remove: () => void } | null = null;
-    
-    // Ustawienie listenera tylko raz na cykl życia aplikacji
-    App.addListener("backButton", () => {
-      const currentPath = pathnameRef.current || "";
-      const isRootPage = [
-        "/worker", 
-        "/worker/history", 
-        "/worker/profile", 
-        "/worker/help",
-        "/worker/wizard"
-      ].includes(currentPath);
-      
-      if (!isRootPage) {
+
+    void App.addListener("backButton", () => {
+      if (typeof window !== "undefined" && window.history.length > 1) {
         router.back();
       } else {
-        App.minimizeApp();
+        void App.minimizeApp();
       }
-    }).then(handle => {
+    }).then((handle) => {
       listenerHandle = handle;
     });
 
     return () => {
-      if (listenerHandle) {
-        listenerHandle.remove();
-      }
+      listenerHandle?.remove();
     };
   }, [router]);
 

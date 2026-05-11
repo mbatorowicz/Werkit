@@ -100,7 +100,7 @@ Design: **zinc / emerald**, motion lekkie (CSS), bez blokowania głównego wątk
 
 - **`setInterval` / `setTimeout`** na frontcie **nie są niezawodne** przy zablokowanym ekranie.
 - Bufforowanie GPS / wysyłka na backend: **fetch od razu**, **`keepalive: true`** tam, gdzie już przyjęto ten wzorzec — nie polegaj na „kolejce co N sekund” w JS w tle.
-- **Hardware back (Android):** używaj **`CapacitorBackButton`** z layoutów — nie rozrzucaj własnych listenerów `backButton`.
+- **Hardware back (Android):** **`CapacitorBackButton`** w root `app/layout.tsx` — `history.length > 1` → `router.back()`, inaczej `App.minimizeApp()` (pierwszy ekran); nie rozrzucaj własnych listenerów `backButton`.
 
 ---
 

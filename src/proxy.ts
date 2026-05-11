@@ -30,12 +30,36 @@ export async function proxy(request: NextRequest) {
 
   const requiresAuth = isAdminPage || isWorkerPage || isAdminApi || isWorkerApi || isSharedApi;
 
-  // 2. PUBLIC ROUTES
-  if (!requiresAuth || isApiAuth) {
+  // 2. API logowania/wylogowania — zawsze bez straży tras
+  if (isApiAuth) {
     return NextResponse.next();
   }
 
-  // 3. AUTHENTICATION (Token Extraction)
+  // 3. /login: ważne przed `!requiresAuth` — inaczej zalogowany użytkownik (np. wstecz z WebView)
+  //    widziałby formularz mimo ważnego JWT; cookie zostaje, sesja jest aktywna.
+  if (isAuthPage) {
+    const loginToken = request.cookies.get('auth_token')?.value;
+    if (!loginToken) {
+      return NextResponse.next();
+    }
+    try {
+      const verified = await jwtVerify(loginToken, JWT_SECRET);
+      const role = verified.payload.role as string;
+      const dest = role === 'worker' ? '/worker' : '/admin';
+      return NextResponse.redirect(new URL(dest, request.url));
+    } catch {
+      const res = NextResponse.next();
+      res.cookies.delete('auth_token');
+      return res;
+    }
+  }
+
+  // 4. Pozostałe publiczne (poza /login — już obsłużone)
+  if (!requiresAuth) {
+    return NextResponse.next();
+  }
+
+  // 5. AUTHENTICATION (Token Extraction)
   const token = request.cookies.get('auth_token')?.value;
 
   const handleUnauthorized = () => {
@@ -47,16 +71,10 @@ export async function proxy(request: NextRequest) {
 
   const isMutation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
 
-  // 4. AUTHORIZATION (Role Verification)
+  // 6. AUTHORIZATION (Role Verification)
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     const role = verified.payload.role as string;
-
-    // Role-based redirects for auth pages (logged-in users shouldn't see login)
-    if (isAuthPage) {
-      const dest = role === 'worker' ? '/worker' : '/admin';
-      return NextResponse.redirect(new URL(dest, request.url));
-    }
 
     // Panel administratora (admin + podgląd)
     if (isAdminPage || isAdminApi) {

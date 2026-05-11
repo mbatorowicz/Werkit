@@ -1,6 +1,8 @@
 import { RouteLoading } from "@/components/RouteLoading";
+import { getDictionary } from "@/i18n";
 
 export default function Loading() {
-  return <RouteLoading title="Ładowanie…" subtitle="Przygotowuję aplikację" />;
+  const t = getDictionary().routeLoading;
+  return <RouteLoading title={t.title} subtitle={t.preparingApp} />;
 }
 

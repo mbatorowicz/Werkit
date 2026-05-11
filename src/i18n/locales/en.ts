@@ -44,6 +44,14 @@ export const en: AppDictionary = {
     session_still_active: "Session is still active — finish it manually first or from the worker app.",
     not_in_progress: "This session is no longer in progress.",
   },
+  routeLoading: {
+    title: "Loading…",
+    preparingApp: "Preparing the app",
+    adminPanel: "Loading admin panel",
+    workerApp: "Loading worker app",
+    loginScreen: "Loading sign-in",
+    staticPage: "Loading page content",
+  },
   login: {
     submit: "Sign in",
     biometricLogin: "Sign in with fingerprint or face",
