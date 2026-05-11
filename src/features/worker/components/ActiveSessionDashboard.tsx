@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import { Clock, MapPin, Camera, FileText, X, Square, ChevronUp, ChevronDown } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { Session, Coord, AppSettings, TimelineItem } from "@/types/worker";
+import type { AppDictionary } from "@/i18n/types";
+import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/QueuedPendingOrdersDuringSession";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
 
@@ -32,8 +34,10 @@ interface ActiveSessionDashboardProps {
   session: Session;
   /** Kategoria sprzętu „stacjonarna” — uproszczony panel bez mapy trasy i bez pilnowania GPS. */
   isStationarySession?: boolean;
-  dict: Record<string, string>;
-  adminDict: Record<string, string>;
+  /** Zlecenia PENDING przypisane do pracownika (kolejka po zakończeniu bieżącej sesji). */
+  queuedPendingOrders: WorkOrder[];
+  dict: AppDictionary["worker"]["client"];
+  adminDict: AppDictionary["admin"]["orders"];
   isTimeOverrun: boolean;
   gpsStatus: "waiting" | "active" | "error";
   traveledKm: number;
@@ -61,6 +65,7 @@ interface ActiveSessionDashboardProps {
 export default function ActiveSessionDashboard({
   session,
   isStationarySession = false,
+  queuedPendingOrders,
   dict,
   adminDict,
   isTimeOverrun,
@@ -90,6 +95,7 @@ export default function ActiveSessionDashboard({
     <div className="w-full flex flex-col items-center gap-4">
       {/* SZCZEGÓŁY ZLECENIA */}
       <div className="w-full bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm">
+        <QueuedPendingOrdersDuringSession orders={queuedPendingOrders} dict={dict} adminDict={adminDict} />
         <OrderLabelCard
           tone="active"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}

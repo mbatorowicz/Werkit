@@ -273,7 +273,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 |---|---|
 | `components/WizardClient.tsx` | Kreator własnej sesji (kategoria → maszyna → materiał? → klient? → start) — używa `@/components/work-orders/*`, `@/types/wizard`. |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących (sortowanie/klasyfikacja w `lib/workOrderPresentation.ts`). |
-| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji: zegar, GPS path, akcje (notatka/zdjęcie/checkpoint/zakończ/cofnij). |
+| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji: nad `OrderLabelCard` — **`QueuedPendingOrdersDuringSession`** (rozwijana kolejka `PENDING` z `/api/worker/work-orders`); zegar, GPS, akcje. |
 | `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx` | Modale. |
 
 ### Hooki

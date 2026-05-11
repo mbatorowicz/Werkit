@@ -492,6 +492,10 @@ export const en: AppDictionary = {
       readyToStart: "Ready to start?",
       selectOrder: "Select a prepared order or start work manually.",
       pendingOrders: "Pending orders",
+      queuedOrdersToggle: "Queued after this session ({count})",
+      queuedOrdersHint:
+        "Dispatch lined up more pending orders — expand to plan ahead. You do not accept them from here.",
+      queuedOrdersPosition: "{n} in queue",
       upcomingTerm: "Upcoming deadline!",
       orderOverdueTitle: "Order overdue!",
       orderOverdueBody: "Order #{id} should have already started.",

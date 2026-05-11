@@ -489,6 +489,10 @@ export const pl = {
       readyToStart: "Gotowy do startu?",
       selectOrder: "Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.",
       pendingOrders: "Oczekujące zlecenia",
+      queuedOrdersToggle: "Kolejka po tej sesji ({count})",
+      queuedOrdersHint:
+        "Dyspozycja przygotowała kolejne oczekujące zlecenia — rozwiń, żeby zaplanować pracę. Nie akceptujesz ich z tego widoku.",
+      queuedOrdersPosition: "{n}. w kolejce",
       upcomingTerm: "Zbliżający się termin!",
       orderOverdueTitle: "Zlecenie opóźnione!",
       orderOverdueBody: "Zlecenie #{id} powinno było się już rozpocząć.",

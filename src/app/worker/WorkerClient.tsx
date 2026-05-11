@@ -239,6 +239,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         <ActiveSessionDashboard 
           session={session}
           isStationarySession={!!session.categoryIsStationary}
+          queuedPendingOrders={workOrders}
           dict={dict}
           adminDict={adminDict}
           isTimeOverrun={isTimeOverrun}
