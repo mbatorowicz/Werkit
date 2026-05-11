@@ -1,4 +1,5 @@
 type Tone = "planned" | "active" | "done";
+type Density = "normal" | "compact";
 
 function toneClasses(tone: Tone) {
   switch (tone) {
@@ -51,6 +52,8 @@ export function OrderLabelCard({
   orderNo,
   title,
   badges,
+  footer,
+  density = "normal",
   mode,
   machine,
   material,
@@ -65,6 +68,8 @@ export function OrderLabelCard({
   orderNo: string;
   title?: string | null;
   badges?: React.ReactNode;
+  footer?: React.ReactNode;
+  density?: Density;
   mode: string;
   machine: string;
   material?: string | null;
@@ -76,6 +81,7 @@ export function OrderLabelCard({
   className?: string;
 }) {
   const cls = toneClasses(tone);
+  const isCompact = density === "compact";
   const defaultLabels = {
     mode: "Tryb pracy",
     machine: "Maszyna",
@@ -96,9 +102,9 @@ export function OrderLabelCard({
         {/* Pasek statusu (pełna wysokość wiersza) */}
         <div className={`w-1.5 shrink-0 ${cls.bar}`} />
 
-        <div className="flex-1 p-3">
+        <div className={`flex-1 ${isCompact ? "p-2.5" : "p-3"}`}>
           {/* Nr zlecenia — jedyny element w kolorze statusu */}
-          <div className="flex items-start justify-between gap-3 mb-2">
+          <div className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}>
             <div className="min-w-0">
               <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
               {title?.trim() ? (
@@ -110,7 +116,7 @@ export function OrderLabelCard({
             {badges ? <div className="shrink-0 flex items-center gap-2">{badges}</div> : null}
           </div>
 
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          <div className={`grid grid-cols-2 ${isCompact ? "md:grid-cols-4 gap-x-4 gap-y-1.5" : "gap-x-4 gap-y-2"}`}>
             <LabelItem k={labels.mode} v={mode || "—"} />
             <LabelItem k={labels.machine} v={machine || "—"} />
             <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
@@ -120,6 +126,8 @@ export function OrderLabelCard({
             <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
             <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} />
           </div>
+
+          {footer ? <div className={isCompact ? "mt-2" : "mt-3"}>{footer}</div> : null}
         </div>
       </div>
     </div>
