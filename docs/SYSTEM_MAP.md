@@ -48,7 +48,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
 | `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
-| `resource_categories` | `name` | `icon`, `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | — |
+| `resource_categories` | `name` | `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (widoczność pól w formularzach — ustawia admin), `req_customer`, `req_material`, `req_quantity`, `req_task_description` (wymagalność), `is_global`, `is_stationary`, `color` | — |
 | `resources` (= maszyny / pojazdy) | display `name` (=`brand·model · NR_REJ`) | `brand`, `model`, `registration_number`, `image_url`, `category_id` (legacy, pozostawione), N↔M przez `resource_to_categories` | `category_id → resource_categories.id` (set null) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
 | `materials` | `id` | `name` (klasyfikacja przez `material_to_categories`) | — |
@@ -81,6 +81,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0007 | `0007_resource_categories_stationary.sql` | `resource_categories.is_stationary` + UPDATE „WARSZTAT/WORKSHOP” = true |
 | 0008 | `0008_work_sessions_bookend_coords.sql` | `work_sessions.start_latitude/longitude` + `end_latitude/longitude` |
 | 0009 | `0009_materials_drop_type.sql` | `ALTER materials DROP COLUMN type` — tylko kategorie materiałów |
+| 0010 | `0010_resource_categories_visibility.sql` | `resource_categories.show_*` (boolean NOT NULL DEFAULT true) — **bez** powiązania z `is_stationary` |
+| 0011 | `0011_undo_stationary_auto_hide_fields.sql` | Cofnięcie ewentualnego `UPDATE` z wczesnej wersji 0010: `show_material`/`show_quantity` = true tylko gdy `is_stationary` oraz oba `show_*` były `false` (podpis starej automatyzacji) |
 
 **Status migracji na produkcji** (na dzień ostatniej weryfikacji — 2026-05-10): **0000-0008 zaaplikowane** na bazie Neon `ep-rough-sea-al7ogqfl`. **0009** (`materials` bez kolumny `type`) — `npm run db:napraw-materialy-bez-typu` lub SQL z `drizzle/0009_*.sql`; można w jednym przebiegu: `npm run db:napraw-wszystko`. Migracja 0004 została chwilowo pominięta i **dodana ręcznie** po wykryciu błędu logowania (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend pokazywał „Wewnętrzny Błąd Serwera"). W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje takie błędy na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
 

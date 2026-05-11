@@ -78,6 +78,13 @@
       "when": 1784090400000,
       "tag": "0010_resource_categories_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784176800000,
+      "tag": "0011_undo_stationary_auto_hide_fields",
+      "breakpoints": true
     }
   ]
 }
