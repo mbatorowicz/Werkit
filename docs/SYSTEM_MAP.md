@@ -98,7 +98,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin` | RSC | Dashboard / pulpit (statystyki, mapa, lista aktywnych) | `admin/layout.tsx` |
 | `/admin/workers` | RSC | Lista pracowników (CRUD) | admin |
 | `/admin/users` | RSC | Konta (admin/viewer + biometric flagi) | admin |
-| `/admin/machines` | RSC | Flota / pojazdy (identity + kategorie zadań + zdjęcia) | admin |
+| `/admin/machines` | RSC | Zasoby operacyjne — pojazdy/sprzęt (identity + kategorie zadań + zdjęcia) | admin |
 | `/admin/customers` | RSC | Klienci (CRUD + geocode) | admin |
 | `/admin/materials` | RSC | Baza materiałów + kategorie | admin |
 | `/admin/reports` | RSC | Raport operacyjny (`AdminReportService.getDashboardSnapshot`) | admin |
