@@ -2,29 +2,18 @@
 
 import { useCallback, useState, type MutableRefObject } from "react";
 import type { MaterialCategory, MaterialRow } from "@/features/admin/materials/types";
+import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { narrowMaterialCategoryRows, narrowMaterialRowRows } from "@/lib/narrowApiListRows";
 
 async function parseList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
   const res = await fetch(url, { cache: "no-store" });
-  let body: unknown = null;
-  try {
-    body = await res.json();
-  } catch {
-    body = null;
-  }
   if (!res.ok) {
-    const code =
-      body !== null &&
-      typeof body === "object" &&
-      "error" in body &&
-      typeof (body as { error: unknown }).error === "string"
-        ? (body as { error: string }).error
-        : "";
-    return { rows: [], errorCode: code || "fetch_error" };
+    const body = await parseJsonUnknown(res);
+    return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };
   }
-  if (!Array.isArray(body)) {
-    return { rows: [], errorCode: "fetch_error" };
-  }
-  return { rows: body };
+  const rows = await parseJsonArray(res);
+  return { rows };
 }
 
 export type MaterialsAdminAlertContext = {
@@ -48,8 +37,8 @@ export function useMaterialsAdminData(alertCtxRef: MutableRefObject<MaterialsAdm
         parseList("/api/materials"),
         parseList("/api/material-categories"),
       ]);
-      setMaterials((Array.isArray(mList.rows) ? mList.rows : []) as MaterialRow[]);
-      setCategories((Array.isArray(cList.rows) ? cList.rows : []) as MaterialCategory[]);
+      setMaterials(narrowMaterialRowRows(mList.rows));
+      setCategories(narrowMaterialCategoryRows(cList.rows));
 
       const errCode = mList.errorCode ?? cList.errorCode;
       if (errCode) {

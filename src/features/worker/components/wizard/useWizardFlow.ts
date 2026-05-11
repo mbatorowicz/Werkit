@@ -7,6 +7,14 @@ import { WorkOrder } from "@/types/worker";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import {
+  narrowWizardCategories,
+  narrowWizardCustomers,
+  narrowWizardMachines,
+  narrowWizardMaterials,
+  narrowWorkOrders,
+} from "@/lib/narrowApiListRows";
 
 export function useWizardFlow() {
   const router = useRouter();
@@ -41,11 +49,11 @@ export function useWizardFlow() {
           fetch("/api/worker/work-orders", { cache: "no-store" }).then(parseJsonArray),
         ]);
         if (cancelled) return;
-        setCategories(cat as WizardCategory[]);
-        setMachines(mac as WizardMachine[]);
-        setMaterials(mat as WizardMaterial[]);
-        setCustomers(cus as WizardCustomer[]);
-        setOrders(ord as WorkOrder[]);
+        setCategories(narrowWizardCategories(cat));
+        setMachines(narrowWizardMachines(mac));
+        setMaterials(narrowWizardMaterials(mat));
+        setCustomers(narrowWizardCustomers(cus));
+        setOrders(narrowWorkOrders(ord));
       } catch {
         /* sieć — zostaw puste listy */
       }
@@ -87,8 +95,9 @@ export function useWizardFlow() {
       if (res.ok) {
         router.push("/worker");
       } else {
-        const data = (await res.json()) as { error?: string };
-        alert(apiErrors[data.error ?? ""] ?? data.error ?? apiErrors.save_error);
+        const body = await parseJsonUnknown(res);
+        const code = readApiErrorString(body);
+        alert(apiErrors[code ?? ""] ?? code ?? apiErrors.save_error);
         setIsLoading(false);
       }
     } catch {

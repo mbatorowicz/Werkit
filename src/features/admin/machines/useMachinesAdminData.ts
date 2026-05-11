@@ -2,45 +2,19 @@
 
 import { useCallback, useState } from "react";
 import { getDictionary } from "@/i18n";
+import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { narrowMachinesCategoryRows, narrowMachinesResourceRows } from "@/lib/narrowApiListRows";
 import type { MachinesCategory, MachinesResource } from "./types";
 
 async function parseJsonList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
   const res = await fetch(url, { cache: "no-store" });
-  let body: unknown = null;
-  try {
-    body = await res.json();
-  } catch {
-    body = null;
-  }
   if (!res.ok) {
-    const code =
-      body !== null &&
-      typeof body === "object" &&
-      "error" in body &&
-      typeof (body as { error: unknown }).error === "string"
-        ? (body as { error: string }).error
-        : "";
-    return { rows: [], errorCode: code || "fetch_error" };
+    const body = await parseJsonUnknown(res);
+    return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };
   }
-  if (!Array.isArray(body)) {
-    return { rows: [], errorCode: "fetch_error" };
-  }
-  return { rows: body };
-}
-
-function normalizeCategoryRow(row: unknown): MachinesCategory {
-  const r = row as Record<string, unknown>;
-  return {
-    ...(row as MachinesCategory),
-    isStationary: Boolean(r.isStationary),
-    showCustomer: Boolean(r.showCustomer),
-    showMaterial: Boolean(r.showMaterial),
-    showQuantity: Boolean(r.showQuantity),
-    showTaskDescription: Boolean(r.showTaskDescription),
-    showResourceName: r.showResourceName !== false,
-    showResourceDescription: Boolean(r.showResourceDescription),
-    showRegistrationNumber: r.showRegistrationNumber !== false,
-  };
+  const rows = await parseJsonArray(res);
+  return { rows };
 }
 
 export function useMachinesAdminData() {
@@ -54,8 +28,8 @@ export function useMachinesAdminData() {
     const apiErrors = getDictionary().apiErrors as Record<string, string>;
     try {
       const [mList, cList] = await Promise.all([parseJsonList("/api/machines"), parseJsonList("/api/categories")]);
-      setMachines((Array.isArray(mList.rows) ? mList.rows : []) as MachinesResource[]);
-      setCategories((Array.isArray(cList.rows) ? cList.rows : []).map(normalizeCategoryRow));
+      setMachines(narrowMachinesResourceRows(mList.rows));
+      setCategories(narrowMachinesCategoryRows(cList.rows));
 
       const errCode = mList.errorCode ?? cList.errorCode;
       if (errCode) {

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
 import { formatDict, getDictionary } from "@/i18n";
 import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { narrowAdminCustomerRows, type AdminCustomerListRow } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import dynamic from "next/dynamic";
@@ -21,14 +23,7 @@ const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
   loading: CustomerMapPickerLoading,
 });
 
-type Customer = {
-  id: number;
-  firstName: string | null;
-  lastName: string;
-  defaultAddress: string | null;
-  latitude: string | null;
-  longitude: string | null;
-};
+type Customer = AdminCustomerListRow;
 
 export default function CustomersClient() {
   const { canMutate } = useAdminAbility();
@@ -51,7 +46,7 @@ export default function CustomersClient() {
     try {
       const res = await fetch("/api/customers", { cache: "no-store" });
       const data = await parseJsonArray(res);
-      setCustomers(data as Customer[]);
+      setCustomers(narrowAdminCustomerRows(data));
     } catch {
       /* sieć */
     }
@@ -71,8 +66,14 @@ export default function CustomersClient() {
     const method = editId ? "PUT" : "POST";
     try {
       const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
-      if(res.ok) { setIsModalOpen(false); fetchData(); }
-      else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
+      if (res.ok) {
+        setIsModalOpen(false);
+        fetchData();
+      } else {
+        const body = await parseJsonUnknown(res);
+        const err = readApiErrorString(body);
+        alert(apiErrors[err ?? ""] ?? err ?? machinesDict.apiError);
+      }
     } catch {
       alert(machinesDict.apiError);
     }
@@ -82,8 +83,12 @@ export default function CustomersClient() {
   const handleDelete = async (id: number) => {
      if(!confirm(dict.confirmDelete)) return;
      const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
-     if(res.ok) fetchData();
-     else { const err = (await res.json()).error; alert(apiErrors[err] || err); }
+     if (res.ok) fetchData();
+     else {
+       const body = await parseJsonUnknown(res);
+       const err = readApiErrorString(body);
+       alert(apiErrors[err ?? ""] ?? err ?? machinesDict.apiError);
+     }
   };
 
   const openNewModal = () => {

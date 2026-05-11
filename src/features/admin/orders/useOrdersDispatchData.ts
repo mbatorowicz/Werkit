@@ -11,6 +11,14 @@ import type {
 } from "@/types/admin";
 import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
 import { parseJsonArray } from "@/lib/parseJsonArray";
+import {
+  narrowBaseCategories,
+  narrowBaseCustomers,
+  narrowBaseMachines,
+  narrowBaseMaterials,
+  narrowBaseWorkers,
+  narrowUnifiedGanttItems,
+} from "@/lib/narrowApiListRows";
 
 export function useOrdersDispatchData() {
   const [workers, setWorkers] = useState<BaseWorker[]>([]);
@@ -34,13 +42,13 @@ export function useOrdersDispatchData() {
         fetch("/api/admin/work-orders", { cache: "no-store" }).then(parseJsonArray),
         fetch("/api/admin/archive", { cache: "no-store" }).then(parseJsonArray),
       ]);
-      setWorkers(wor as BaseWorker[]);
-      setMachines(mac as BaseMachine[]);
-      setMaterials(mat as BaseMaterial[]);
-      setCustomers(cus as BaseCustomer[]);
-      setCategories(cats as BaseCategory[]);
-      setOrders(ords as UnifiedGanttItem[]);
-      setSessions(arch as UnifiedGanttItem[]);
+      setWorkers(narrowBaseWorkers(wor));
+      setMachines(narrowBaseMachines(mac));
+      setMaterials(narrowBaseMaterials(mat));
+      setCustomers(narrowBaseCustomers(cus));
+      setCategories(narrowBaseCategories(cats));
+      setOrders(narrowUnifiedGanttItems(ords));
+      setSessions(narrowUnifiedGanttItems(arch));
     } catch {
       /* sieć / parsowanie — bez crasha UI */
     } finally {

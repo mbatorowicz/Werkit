@@ -15,6 +15,8 @@ import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettin
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
 import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { isRecord } from "@/lib/narrowApiListRows";
 
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
@@ -83,8 +85,8 @@ export default function OrdersClient() {
   };
 
   const readAdminError = async (res: Response): Promise<string | undefined> => {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    return data.error;
+    const body = await parseJsonUnknown(res);
+    return readApiErrorString(body);
   };
 
   const handleDeleteWorkOrder = async (orderId: number) => {
@@ -152,7 +154,10 @@ export default function OrdersClient() {
               setIsSettingsOpen(true);
               try {
                 const res = await fetch("/api/settings");
-                if (res.ok) setSettingsData(await res.json());
+                if (res.ok) {
+                  const raw = await parseJsonUnknown(res);
+                  if (isRecord(raw)) setSettingsData(raw);
+                }
               } catch {
                 /* ignore */
               }
@@ -256,8 +261,9 @@ export default function OrdersClient() {
               closeOrderModal();
               fetchData(true);
             } else {
-              const data = await res.json();
-              alert(apiErrors[data.error] || data.error || dict.error);
+              const body = await parseJsonUnknown(res);
+              const code = readApiErrorString(body);
+              alert(apiErrors[code ?? ""] ?? code ?? dict.error);
             }
           }}
           editingOrderId={editingOrderId}

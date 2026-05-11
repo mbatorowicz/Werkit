@@ -4,21 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Trash2, Shield, Plus, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { narrowAdminUserRows, type AdminUserListRow } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 
-type UserRow = {
-  id: number;
-  fullName: string;
-  usernameEmail: string;
-  role: string;
-  isActive: boolean;
-  canCreateOwnOrders: boolean;
-};
-
 export default function UsersClient() {
   const { canMutate } = useAdminAbility();
-  const [users, setUsers] = useState<UserRow[]>([]);
+  const [users, setUsers] = useState<AdminUserListRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +41,7 @@ export default function UsersClient() {
     try {
       const res = await fetch("/api/workers", { cache: "no-store" });
       const data = await parseJsonArray(res);
-      setUsers(data as UserRow[]);
+      setUsers(narrowAdminUserRows(data));
     } catch {
       /* sieć */
     }
@@ -68,15 +61,16 @@ export default function UsersClient() {
       if (res.ok) {
         fetchUsers();
       } else {
-        const data = await res.json();
-        alert(apiErrors[data.error] || data.error || dict.deleteError);
+        const body = await parseJsonUnknown(res);
+        const code = readApiErrorString(body);
+        alert(apiErrors[code ?? ""] ?? code ?? dict.deleteError);
       }
     } catch {
       alert(dict.networkError);
     }
   };
 
-  const openEdit = (u: UserRow) => {
+  const openEdit = (u: AdminUserListRow) => {
     setEditId(u.id);
     setShowPassword(false);
     setForm({
@@ -109,12 +103,13 @@ export default function UsersClient() {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const body = await parseJsonUnknown(res);
+      const code = readApiErrorString(body);
       if (res.ok) {
         setIsModalOpen(false);
         fetchUsers();
       } else {
-        alert(apiErrors[data.error] || data.error || dict.saveError);
+        alert(apiErrors[code ?? ""] ?? code ?? dict.saveError);
       }
     } catch {
       alert(dict.networkError);

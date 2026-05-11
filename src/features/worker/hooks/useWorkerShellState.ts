@@ -7,6 +7,16 @@ import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionT
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
 import { useWorkerGPS } from "@/features/worker/hooks/useWorkerGPS";
 import type { AppSettings, Coord, InitialWorkerData, Session, TimelineItem, UserData, WorkOrder } from "@/types/worker";
+import { parseJsonArray } from "@/lib/parseJsonArray";
+import { parseJsonUnknown } from "@/lib/parseApiJson";
+import { narrowWorkOrders } from "@/lib/narrowApiListRows";
+import {
+  narrowAppSettings,
+  narrowGpsPathLogs,
+  narrowNominatimHits,
+  narrowSession,
+  narrowUserData,
+} from "@/features/worker/lib/narrowWorkerClientPayload";
 
 export function useWorkerShellState(initialData: InitialWorkerData | null) {
   const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(() =>
@@ -45,11 +55,17 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
       if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
       if (!resOrders.ok) throw new Error(`Orders fetch failed: ${resOrders.status}`);
 
-      const sessData = (await resSess.json()) as Record<string, unknown>;
-      const ordersData: unknown = await resOrders.json();
-      setWorkOrders(Array.isArray(ordersData) ? (ordersData as WorkOrder[]) : []);
+      const sessRaw = await parseJsonUnknown(resSess);
+      const ordersRows = await parseJsonArray(resOrders);
+      setWorkOrders(narrowWorkOrders(ordersRows));
 
-      const stationary = Boolean((sessData?.session as Session | undefined)?.categoryIsStationary);
+      const sessData: Record<string, unknown> =
+        sessRaw !== null && typeof sessRaw === "object" && !Array.isArray(sessRaw)
+          ? (sessRaw as Record<string, unknown>)
+          : {};
+
+      const sessionRowEarly = narrowSession(sessData.session);
+      const stationary = Boolean(sessionRowEarly?.categoryIsStationary);
       if (stationary) {
         setPathTraveled([]);
         setTraveledKm(0);
@@ -57,15 +73,16 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         setDistanceToDestKm(null);
       }
 
-      if (fetchGpsPath && sessData?.session && !stationary) {
+      if (fetchGpsPath && sessionRowEarly && !stationary) {
         try {
           const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
-          const pathData = (await resPath.json()) as { logs?: Coord[] };
-          if (pathData.logs) {
-            setPathTraveled(pathData.logs);
+          const pathBody = await parseJsonUnknown(resPath);
+          const logs = narrowGpsPathLogs(pathBody);
+          if (logs.length > 0) {
+            setPathTraveled(logs);
             let dist = 0;
-            for (let i = 1; i < pathData.logs.length; i++) {
-              dist += GPSManager.getDistance(pathData.logs[i - 1], pathData.logs[i]);
+            for (let i = 1; i < logs.length; i++) {
+              dist += GPSManager.getDistance(logs[i - 1], logs[i]);
             }
             setTraveledKm(dist / 1000);
           }
@@ -74,16 +91,22 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         }
       }
 
-      if (sessData.settings) setSettings(sessData.settings as AppSettings);
-      if (sessData.user) setCurrentUser(sessData.user as UserData);
+      if ("settings" in sessData) {
+        const settingsParsed = narrowAppSettings(sessData.settings);
+        if (settingsParsed !== null) setSettings(settingsParsed);
+      }
+      if ("user" in sessData) {
+        const userParsed = narrowUserData(sessData.user);
+        if (userParsed !== null) setCurrentUser(userParsed);
+      }
 
-      if (sessData.session) {
-        setSession(sessData.session as Session);
+      if (sessionRowEarly) {
+        setSession(sessionRowEarly);
         setTimelineEvents(buildWorkerSessionTimeline(sessData.events, sessData.notes));
 
-        const sessStationary = Boolean((sessData.session as Session).categoryIsStationary);
+        const sessStationary = Boolean(sessionRowEarly.categoryIsStationary);
         if (!sessStationary) {
-          const s = sessData.session as Session;
+          const s = sessionRowEarly;
           if (s.customerLat && s.customerLng) {
             setDestination({ lat: parseFloat(s.customerLat), lng: parseFloat(s.customerLng) });
           } else if (s.customerAddress && !destinationRef.current) {
@@ -91,9 +114,10 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
               const geo = await fetch(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s.customerAddress)}`,
               );
-              const geoData = (await geo.json()) as { lat?: string; lon?: string }[];
-              if (geoData?.length > 0 && geoData[0].lat && geoData[0].lon) {
-                setDestination({ lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) });
+              const geoRows = await parseJsonArray(geo);
+              const hits = narrowNominatimHits(geoRows);
+              if (hits.length > 0) {
+                setDestination({ lat: parseFloat(hits[0].lat), lng: parseFloat(hits[0].lon) });
               }
             } catch {
               /* geokodowanie opcjonalne */
