@@ -1,0 +1,11 @@
+---
+description: Agent wdraża kod, commituje i pushuje na GitHub — użytkownik tylko instruuje.
+alwaysApply: true
+---
+
+# Werkit — Git i rola agenta
+
+- **Implementacja kodu:** agent pisze i utrzymuje zmiany w repo zgodnie z prośbą użytkownika oraz `AGENTS.md`.
+- **Git:** po zakończeniu sensownego pakietu pracy agent sam robi **`git add`**, **`git commit`** (jasny komunikat) i **`git push`** na aktualną gałąź (domyślnie `main`), o ile użytkownik **nie** powiedział wyraźnie, że ma zostać lokalnie / bez pusha / WIP.
+- **Wykluczenia:** nigdy nie commituj **`.env.local`**, haseł, connection stringów ani innych sekretów; te pliki mają pozostać poza Gitem.
+- **Jeśli `git push` się nie uda** (auth, sieć): agent podaje przyczynę i konkretne kroki naprawy; nie udaje, że zmiany są na GitHubie.

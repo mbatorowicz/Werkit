@@ -22,6 +22,7 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 2. Po zmianie **`src/db/schema.ts`** lub SQL w **`drizzle/`**: sam uruchom **`npm run db:napraw-wszystko`** (albo właściwy **`npm run db:napraw-*`**) oraz **`npm run db:verify-schema`**, żeby potwierdzić pokrycie kolumn z kodem (`src/scripts/verify_schema_alignment.ts` ↔ `schema.ts`).
 3. **Nie kończ** zdania w stylu „musisz uruchomić migrację” — jeśli środowisko ma połączenie do bazy, **wykonaj migrację/weryfikację w ramach sesji**.
 4. Szczegółowa mapa tabel i migracji: **`docs/SYSTEM_MAP.md`** §3; porównanie kanoniczne jest utrzymywane **równolegle** w skrypcie `db:verify-schema` (przy rozszerzeniu schematu **zaktualizuj oba**: `schema.ts` + `verify_schema_alignment.ts`).
+5. **GitHub:** domyślny model pracy — **agent** kończy zlecenie przez **`git commit` + `git push`** na bieżącą gałąź (zwykle `main`), o ile użytkownik nie poprosi o wyłączenie pusha / sam staging. **Nie commituj** sekretów (np. `.env.local`). Szczegóły: [`.cursor/rules/werkit-git-workflow.mdc`](./.cursor/rules/werkit-git-workflow.mdc).
 
 ---
 
