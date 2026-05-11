@@ -3,7 +3,7 @@
 > **Cel:** referencja „kto, gdzie, jak”. Każda tabela DB, endpoint API, serwis, hook i ważny komponent w jednym miejscu.
 > Zaktualizuj ten plik **w tym samym PR** co zmianę struktury — inaczej traci sens.
 >
-> Plik towarzyszący: [`AGENTS.md`](../AGENTS.md) (zasady pracy), [`ARCHITECTURE.md`](../ARCHITECTURE.md) (warstwy i wzorce).
+> Plik towarzyszący: [`AGENTS.md`](../AGENTS.md) (zasady pracy), [`ARCHITECTURE.md`](../ARCHITECTURE.md) (warstwy i wzorce), [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (plan redukcji długu — **SSOT planu**, nie duplikuj go tutaj w rozmiarze essay).
 
 ---
 
@@ -11,9 +11,9 @@
 
 | Element | Wartość |
 |---|---|
-| Wersja aplikacji | `package.json#version` (obecnie **1.9.1**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
+| Wersja aplikacji | `package.json#version` (obecnie **1.9.2**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
 | Framework | **Next.js 16.2.4**, React 19.2.4, App Router. |
-| Runtime API | Domyślne Vercel Node.js (login używa `bcrypt` — natywny moduł). Tras **edge** brak. |
+| Runtime API | Domyślne Vercel Node.js (hasło: **`passwordCrypto`** — domyślnie natywny `bcrypt`, opcjonalnie `bcryptjs` przez `WERKIT_USE_BCRYPTJS`). Tras **edge** brak. |
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
 | Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. |
 | Lokalny dev | `npm run dev` na porcie 3000. Połączenie do Neon — patrz `.env.local` (już istnieje, wskazuje produkcyjną bazę `ep-rough-sea-al7ogqfl`). |
@@ -26,7 +26,7 @@
 ```
 Klient (PWA/WebView) ── HTTP ──▶ Next.js
                                   │
-                          src/middleware.ts (JWT + role)
+                          src/proxy.ts (JWT + role, Edge proxy)
                                   │
                 ┌─────────────────┼─────────────────┐
                 │                                   │
@@ -39,7 +39,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
                               Neon Postgres
 ```
 
-**Reguła**: kod w `src/app/**` **nie importuje** `@/db` ani `@/db/schema` — wszystkie zapytania w **`src/services/*`**. Wyjątki na dziś (do uprzątnięcia): `src/lib/schedule.ts` (oblicza konflikty harmonogramu, używa Drizzle bezpośrednio).
+**Reguła**: kod w `src/app/**` **nie importuje** `@/db` ani `@/db/schema` — wszystkie zapytania w **`src/services/*`** (w tym wykrywanie konfliktów harmonogramu zleceń: `AdminOrderService.checkScheduleConflict`).
 
 ---
 
@@ -48,14 +48,14 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
 | `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
-| `resource_categories` | `name` | `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (widoczność pól w formularzach — ustawia admin), `req_customer`, `req_material`, `req_quantity`, `req_task_description` (wymagalność), `is_global`, `is_stationary`, `color` | — |
-| `resources` (= maszyny / pojazdy) | display `name` (=`brand·model · NR_REJ`) | `brand`, `model`, `registration_number`, `image_url`, `category_id` (legacy, pozostawione), N↔M przez `resource_to_categories` | `category_id → resource_categories.id` (set null) |
+| `resource_categories` | `name` | `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (formularz zlecenia), **`show_resource_name`**, **`show_resource_description`**, **`show_registration_number`** (formularz zasobu w rejestrze), `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | — |
+| `resources` (= zasoby w rejestrze) | display `name` (składana z widocznych pól + opcjonalnie `description`) | `brand`, `model`, `registration_number`, **`description`**, `image_url`; przypisanie do kategorii **wyłącznie** N↔M przez `resource_to_categories` | — |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
 | `materials` | `id` | `name` (klasyfikacja przez `material_to_categories`) | — |
 | `material_categories` | `id` | `name`, `color` | — |
 | `material_to_categories` | PK `(material_id, category_id)` | linki N↔M | cascade z `materials` i `material_categories` |
 | `customers` | `id` | `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | — |
-| `work_orders` | `id` | `user_id` (przypisany pracownik), `resource_id`, `category_id`, `material_id?`, `customer_id?`, `task_description?`, `status` ∈ `PENDING\|COMPLETED\|CANCELLED`, `quantity_tons?`, `expected_duration_hours?`, **`priority` ∈ `URGENT\|HIGH\|NORMAL\|LOW`** (CHECK `work_orders_priority_chk`), `due_date?`, `locked_until?`, `created_by_id?`, `created_at` | `user_id`/`created_by_id → users.id` (cascade/set null), `resource_id → resources.id` (set null), `category_id → resource_categories.id` (set null) |
+| `work_orders` | `id` | `user_id` (przypisany pracownik), `resource_id`, `category_id`, `material_id?`, `customer_id?`, `task_description?`, `status` ∈ **`PENDING`** (kolejka dyspozycji) **\|`IN_PROGRESS`** (worker zaakceptował; żywa sesja `work_sessions`) **\|`COMPLETED`** **\|`CANCELLED`**, `quantity_tons?`, `expected_duration_hours?`, **`priority` ∈ `URGENT\|HIGH\|NORMAL\|LOW`** (CHECK `work_orders_priority_chk`), `due_date?`, `locked_until?`, `created_by_id?`, `created_at` | `user_id`/`created_by_id → users.id` (cascade/set null), `resource_id → resources.id` (set null), `category_id → resource_categories.id` (set null) |
 | `work_sessions` | `id` | `work_order_id?` (powiązanie z dyspozycją), `user_id`, `resource_id`, `category_id?`, `material_id?`, `customer_id?`, `status` ∈ `IN_PROGRESS\|COMPLETED`, `start_time`, `end_time?`, `quantity_tons?`, `task_description?`, `machine_hours_photo_url?`, `signature_url?`, `client_absent?`, `expected_duration_hours?`, `due_date?`, **GPS bookend** `start_latitude?`, `start_longitude?`, `end_latitude?`, `end_longitude?` | `work_order_id → work_orders.id` (set null), `user_id → users.id` (cascade), `resource_id → resources.id` (set null), `material_id`/`customer_id`/`category_id → set null` |
 | `session_photos` | `id` | `work_session_id`, `photo_url` (data URL JPEG, kompresja 800px/0.7 po stronie klienta), `photo_type` ∈ `START\|END\|AD_HOC`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
 | `gps_logs` | `id` | `work_session_id`, `latitude`, `longitude`, `timestamp` | cascade z `work_sessions` |
@@ -65,7 +65,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ### 3.1. Drizzle relations
 
-`usersRelations` ⟶ many `workSessions` · `workSessionsRelations` ⟶ user/resource/material/customer + many photos/gpsLogs/notes · `resourcesRelations` ⟶ kategoria · `workOrdersRelations` ⟶ user/resource/material/customer.
+`usersRelations` ⟶ many `workSessions` · `workSessionsRelations` ⟶ user/resource/material/customer + many photos/gpsLogs/notes · `workOrdersRelations` ⟶ user/resource/material/customer.
 
 ### 3.2. Migracje (kolejne `drizzle/*.sql`)
 
@@ -83,8 +83,16 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0009 | `0009_materials_drop_type.sql` | `ALTER materials DROP COLUMN type` — tylko kategorie materiałów |
 | 0010 | `0010_resource_categories_visibility.sql` | `resource_categories.show_*` (boolean NOT NULL DEFAULT true) — **bez** powiązania z `is_stationary` |
 | 0011 | `0011_undo_stationary_auto_hide_fields.sql` | Cofnięcie ewentualnego `UPDATE` z wczesnej wersji 0010: `show_material`/`show_quantity` = true tylko gdy `is_stationary` oraz oba `show_*` były `false` (podpis starej automatyzacji) |
+| 0012 | `0012_resources_description_category_resource_fields.sql` | `resources.description`; na `resource_categories`: `show_resource_name`, `show_resource_description`, `show_registration_number` |
+| 0013 | `0013_work_orders_in_progress_status.sql` | Backfill: `work_orders.status = 'IN_PROGRESS'` tam, gdzie jest powiązana sesja `work_sessions.status = 'IN_PROGRESS'` (naprawa stanów po zmianie semantyki vs stary marker `COMPLETED`). |
+| 0014 | `0014_drop_legacy_session_type_resource_category.sql` | `DROP COLUMN session_type` z `work_sessions` i `work_orders`; `DROP COLUMN category_id` z `resources` (N↔M tylko przez `resource_to_categories`). **Kolejność wdrożenia:** uruchom **0014** na Postgres **przed lub razem z** deployem wersji aplikacji bez tych pól — stara baza z `NOT NULL session_type` zrzuci INSERT sesji/zlecenia. |
 
-**Status migracji na produkcji** (2026-05-11): **Kanoniczne wyrównanie schematu pod bieżącą aplikację** to **`npm run db:napraw-wszystko`** — uruchamia kolejno skrypty odpowiadające m.in. migracjom **0006–0009** (tożsamość zasobów, słowniki materiałów + `is_stationary`, bookend GPS sesji, drop `materials.type`) oraz **0010/0011** (`resource_categories.show_*`). Katalog `drizzle/*.sql` + `meta/_journal.json` zachowuje historię i jest SSOT dla review; wdrożenie na Neon często odbywa się przez te skrypty (`tsx`) lub `psql`, a nie przez automatyczny hook w buildzie Vercela. **Historia:** wcześniej na części środowisk pominięto **0004** (`users.biometric_login_enabled`) — objaw: `Failed query … users` / „Wewnętrzny Błąd Serwera”; naprawa ręcznym SQL lub skryptami słownika. W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje typowe błędy schematu na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
+### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
+
+- **`npm run db:verify-schema`** — uruchamia `src/scripts/verify_schema_alignment.ts`: odczyt `information_schema.columns` i porównanie z kanoniczną listą kolumn **zsynchronizowaną z `src/db/schema.ts`** (brak wymaganej kolumny → exit code `1`).
+- Przy **każdej zmianie kolumn** w `schema.ts` agent aktualizuje **również** tablicę `EXPECTED` w tym skrypcie (jedna zmiana = dwa pliki).
+
+**Status migracji na produkcji** (2026-05-11): **Jedna kanoniczna procedura** po zmianie oczekiwań wobec bazy (skrypty idempotentne pod aktualny kod): **`npm run db:napraw-wszystko-i-zweryfikuj`** = `db:napraw-wszystko` (kolejno m.in. **0006–0009**, **0010/0011**, **0012** — patrz `package.json`) **oraz** `db:verify-schema`. **Migracja Drizzle `0013`/`0014`** (statusy zleceń + DROP legacy kolumn) uruchamiane przez **`npm run db:migrate`** lub ręczne SQL na Neon — **po deployu** kodu oczekującego nowego schematu. Alternatywnie ten sam efekt dwoma krokami ręcznie: najpierw `npm run db:napraw-wszystko`, potem `npm run db:verify-schema`. Katalog `drizzle/*.sql` + `meta/_journal.json` zachowuje historię i jest SSOT dla review; wdrożenie na Neon często odbywa się przez te skrypty (`tsx`) lub `psql`, a nie przez automatyczny hook w buildzie Vercela. **`npm run db:migrate`** (`drizzle-kit migrate`) pozostaje osobną ścieżką oficjalnego pipeline’u Drizzle — nie zastępuje skryptów `apply_*`, dopóki zespół nie zunifikuje procesu. **Historia:** wcześniej na części środowisk pominięto **0004** (`users.biometric_login_enabled`) — objaw: `Failed query … users` / „Wewnętrzny Błąd Serwera”; naprawa ręcznym SQL lub skryptami słownika. W `src/app/api/auth/login/route.ts` funkcja `isLikelyDatabaseOrInfraError` mapuje typowe błędy schematu na **503 `service_unavailable`** (wzorce m.in. `Failed query`, `column … does not exist`, `NeonDbError`).
 
 **Drizzle nie ma zaczepionej automatycznej migracji w build/start.** Kolejność wdrożenia migracji na bazę produkcyjną jest manualna (skrypty `tsx src/scripts/apply_*.ts` lub bezpośrednie `psql`). Patrz `ARCHITECTURE.md §9` i `package.json#scripts`.
 
@@ -92,27 +100,27 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ## 4. Routing — strony (`src/app/**/page.tsx`)
 
-| Ścieżka | Rodzaj | Co | Layout |
-|---|---|---|---|
-| `/` | RSC | `redirect('/login')` | root |
-| `/login` | Client (`use client`) | Login + biometryczny przycisk; POST `/api/auth/login` | root |
-| `/privacy-policy` | static | Polityka prywatności | root |
-| `/admin` | RSC | Dyspozycja (`OrdersClient`: Gantt, mapa, zlecenia) | `admin/layout.tsx` |
-| `/admin/orders` | RSC | Ten sam widok co `/admin` (alias pod linki `?open=` z Gantta) | jw. |
-| `/admin/workers` | RSC | Lista pracowników (CRUD) | admin |
-| `/admin/users` | RSC | Konta (admin/viewer + biometric flagi) | admin |
-| `/admin/machines` | RSC | Zasoby operacyjne — pojazdy/sprzęt (identity + kategorie zadań + zdjęcia) | admin |
-| `/admin/customers` | RSC | Klienci (CRUD + geocode) | admin |
-| `/admin/materials` | RSC | Baza materiałów + kategorie | admin |
-| `/admin/reports` | RSC | Raport operacyjny (`AdminReportService.getDashboardSnapshot`) | admin |
-| `/admin/settings` | RSC | Ustawienia firmy (singleton) | admin |
-| `/admin/logs` | RSC | Logi z urządzeń (`device_logs`, ostatnie 500) | admin |
-| `/worker` | RSC → `WorkerClient` | Aktywna sesja, lista zleceń pendujących, GPS, notatki, zdjęcia | `worker/layout.tsx` |
-| `/worker/wizard` | RSC | Kreator własnej sesji (kategoria→maszyna→materiał→klient→start) | worker |
-| `/worker/history` | RSC | Lista ostatnich 20 zakończonych sesji | worker |
-| `/worker/history/[id]` | RSC | Szczegóły historycznej sesji (GPS path, notatki, zdjęcia) | worker |
-| `/worker/profile` | RSC | Profil (notyfikacje + włączenie biometrii z hasłem) | worker |
-| `/worker/help` | RSC | Akordeon pomocy | worker |
+| Ścieżka | Rodzaj | Główny komponent UI | Opis | Layout |
+|---|---|---|---|---|
+| `/` | RSC | — | `redirect('/login')` | root |
+| `/login` | Client (`use client`) | treść w `login/page.tsx` | Login + biometryczny przycisk; POST `/api/auth/login` | root |
+| `/privacy-policy` | static | treść w `privacy-policy/page.tsx` | Polityka prywatności | root |
+| `/admin` | RSC | `OrdersClient` | Dyspozycja (Gantt, mapa, zlecenia); `admin/page.tsx` importuje `./orders/OrdersClient` | `admin/layout.tsx` |
+| `/admin/orders` | RSC | `OrdersClient` | Alias jak `/admin` (`admin/orders/page.tsx`) pod linki `?open=` z Gantta | jw. |
+| `/admin/workers` | RSC | — | `redirect('/admin/users')` — zachowany URL „workers” | admin |
+| `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi biometrii (`admin/users/UsersClient.tsx`) | admin |
+| `/admin/machines` | RSC | `MachinesClient` | Rejestr zasobów + kategorie zleceń (`admin/machines/MachinesClient.tsx`) | admin |
+| `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + geocode | admin |
+| `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów | admin |
+| `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
+| `/admin/settings` | RSC | `SettingsForm` | Singleton ustawień firmy (`admin/settings/SettingsForm.tsx`) | admin |
+| `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR zbiera dane w `page.tsx`) | admin |
+| `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
+| `/worker/wizard` | RSC | `WizardClient` | Kreator sesji: `@/features/worker/components/WizardClient` | worker |
+| `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
+| `/worker/history/[id]` | RSC | `MapWrapper`, `TimelineGalleryClient` | Szczegóły sesji (mapa GPS, galeria); reszta JSX w `page.tsx` | worker |
+| `/worker/profile` | RSC | `ProfileSettings` | Profil: notyfikacje + biometria (`worker/profile/ProfileSettings.tsx`) | worker |
+| `/worker/help` | RSC | `HelpAccordion` | Akordeon pomocy (`components/HelpAccordion.tsx`) | worker |
 
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
@@ -128,7 +136,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ## 5. Routing — API (`src/app/api/**/route.ts`)
 
-Klasyfikacja zgodna z `src/middleware.ts`:
+Klasyfikacja zgodna z `src/proxy.ts`:
 
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
@@ -147,7 +155,7 @@ Klasyfikacja zgodna z `src/middleware.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/worker/work-orders` | GET | `WorkerOrderService.getPendingOrders(userId)` — sortowanie po `dueDate`, potem `createdAt` |
-| `/api/worker/work-orders/[id]/accept` | POST `{latitude?,longitude?}` | `WorkerOrderService.acceptOrder` — oznacza `workOrders.status='COMPLETED'` (legacy marker), tworzy `workSessions IN_PROGRESS` z bookend GPS |
+| `/api/worker/work-orders/[id]/accept` | POST `{latitude?,longitude?}` | `WorkerOrderService.acceptOrder` — `work_orders.status='IN_PROGRESS'`, INSERT `work_sessions` (`work_order_id`, bookend GPS opcjonalnie) |
 | `/api/worker/session` | GET | `WorkerSessionService.getActiveSessionWithDetails(userId)` — sesja + ustawienia + user (z `notificationsEnabled`/`canCreateOwnOrders`) |
 | `/api/worker/session` | POST `{resourceId, categoryId, materialId?, customerId?, quantityTons?, taskDescription?, latitude?, longitude?}` | Wizard — `createWizardSession` (rzuca `session_active` jeśli już trwa) |
 | `/api/worker/session` | PUT `{latitude?, longitude?}` | `endActiveSession` — ustawia `COMPLETED` + `end_time` + bookend GPS |
@@ -164,9 +172,9 @@ Klasyfikacja zgodna z `src/middleware.ts`:
 
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
-| `/api/admin/work-orders` | GET | `AdminOrderService.getActiveWorkOrders` (≠ COMPLETED) |
-| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii (`validateWorkOrderFieldsAgainstCategory`) + `coerceWorkOrderPriority` + `checkScheduleConflict` (chyba że `forceSave`). 409 jeśli konflikt. |
-| `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); `guardAdminMutation` |
+| `/api/admin/work-orders` | GET | `AdminOrderService.getActiveWorkOrders` — tylko **`PENDING`** (kolejka dyspozycji) |
+| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii (`validateWorkOrderFieldsAgainstCategory`) + `coerceWorkOrderPriority` + `AdminOrderService.checkScheduleConflict` (chyba że `forceSave`). 409 jeśli konflikt. |
+| `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — `AdminOrderService.checkScheduleConflict` (+ `forceSave`); `guardAdminMutation` |
 | `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
@@ -204,18 +212,19 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `WorkerOrderService`
 - `getPendingOrders(userId)` — JOIN: resources, materials, customers, creator (alias users), resource_categories. Sort: dueDate asc → createdAt asc. Mapuje `priority` przez `normalizeWorkOrderPriority`.
-- `acceptOrder(userId, orderId, startCoord?)` — UPDATE order COMPLETED + INSERT `workSessions IN_PROGRESS` z bookend GPS. Zwraca `sessionId`.
+- `acceptOrder(userId, orderId, startCoord?)` — UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS` (`work_order_id` ustawione) z bookend GPS. Po **`WorkerSessionService.endActiveSession`** / **`AdminSessionService.forceCompleteSession`** zlecenie przechodzi na **`COMPLETED`**. Zwraca `sessionId`.
 
 ### `WorkerSessionService`
 - `getActiveSessionWithDetails(userId)` — sesja IN_PROGRESS + JOIN klient/maszyna/kategoria (z `categoryIsStationary`)/materiał + ustawienia + user (`notificationsEnabled`, `canCreateOwnOrders`) + zdjęcia + notatki.
 - `createWizardSession(userId, payload)` — rzuca `session_active` jeśli już trwa.
 - `endActiveSession(userId, endCoord?)` — `no_active_session` jeśli brak.
 - `addNote/updateNote/addPhoto`.
-- `cancelActiveSession(userId)` — szuka ostatniego COMPLETED `work_order` z tym samym `resourceId`+`categoryId`+`userId` i przywraca PENDING; potem kasuje sesję.
+- `cancelActiveSession(userId)` — jeśli `work_sessions.work_order_id` jest ustawione, **`work_orders.status → PENDING`**; usuwa wiersz sesji (również dla wizarda bez zlecenia).
 - `getCompletedSessions(userId, limit=20)`, `getSessionHistoryFull(sessionId, userId)` (GPS + notatki + zdjęcia).
 
 ### `AdminOrderService`
-- `getActiveWorkOrders()` — wszystko ≠ COMPLETED z JOIN-ami pod tabelę dyspozycji.
+- `checkScheduleConflict(userId, resourceId, dueDate, durationHours, excludeOrderId?)` — nakładające się zlecenia **`PENDING`** lub **`IN_PROGRESS`** dla tego pracownika lub zasobu; zwraca komunikat PL albo `null`.
+- `getActiveWorkOrders()` — wyłącznie **`PENDING`** z JOIN-ami pod kolejkę dyspozycji.
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
 - `createOrder(orderData)`.
 - `updateOrder(orderId, updates)` — rzuca `not_found` lub `not_pending`.
@@ -223,7 +232,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `AdminSessionService`
 - `getSessionDetails(sessionId)` — logi GPS, zdjęcia, notatki (sortowane od najnowszych).
-- `forceCompleteSession(sessionId)` — `not_found` / `not_in_progress`.
+- `forceCompleteSession(sessionId)` — `not_found` / `not_in_progress`; domyka sesję i powiązane **`work_orders.status → COMPLETED`** gdy `work_order_id` jest ustawione.
 - `deleteArchivedSession(sessionId)` — `session_still_active` jeśli w toku; transakcja: kasuje sesję + powiązany `work_order` jeśli istniał.
 
 ### `DictionaryService`
@@ -316,14 +325,14 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | Plik | Co |
 |---|---|
 | `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Fallback `super-secret-fallback`** jeśli brak `JWT_SECRET` — `console.warn`. **Na produkcji ustaw `JWT_SECRET`!** |
-| `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za middleware. |
+| `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/workers`, biometria w `AdminUserService`). |
+| `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za `proxy`. |
 | `coordsFromRequestBody.ts` | `coordsFromRequestBody(body) → {lat,lng}\|null` (walidacja zakresu), `coordPairToNumericStrings({lat,lng})` (toFixed(8) pod numeric Postgres). |
 | `geolocationOnce.ts` | `getCurrentPositionOnce(timeout=12000)` — jednorazowy odczyt (wizard/end-session). |
 | `gpsManager.ts` | `GPSManager` (klasa statyczna): `localStorage 'werkit_gps_queue'`, `enqueue/flushQueue/getDistance` (Haversine). `flushQueue` używa `keepalive:true` + retry przy `online`. |
 | `biometricLogin.ts` | Owijka `@capgo/capacitor-native-biometric` (server tag `com.werkit.app.auth`). Funkcje: `isNativeBiometricContext`, `biometricHardwareAvailable`, `hasSavedBiometricCredentials`, `saveBiometricCredentials`, `clearBiometricCredentials`, `fetchCredentialsWithBiometricPrompt`. |
 | `remoteLogger.ts` | `sendRemoteLog(level, message, metadata?)` → POST `/api/worker/logs` z `keepalive: true`, błędy są zjadane (`.catch(() => {})`). |
 | `version.ts` | `APP_VERSION = ${pkg.version}${gitHash}` (z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
-| `schedule.ts` | `checkScheduleConflict(userId, resourceId, dueDate, durationHours, excludeOrderId?)` — sprawdza nakładające się `PENDING` workOrdery. **Używa Drizzle bezpośrednio** (jeden z dwóch wyjątków od konwencji „src/app bez Drizzle”; drugi to fakt, że żyje pod `lib/`, więc poza `app/`). |
 | `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload) → 'ok' \| 'invalid_category' \| 'missing_customer' \| 'missing_material' \| 'missing_quantity' \| 'missing_task_description'`; `coerceWorkOrderPriority(value) → URGENT\|HIGH\|NORMAL\|LOW`. |
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
@@ -331,7 +340,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ---
 
-## 12. Middleware (`src/middleware.ts`)
+## 12. Proxy Edge (`src/proxy.ts`)
 
 ```
 matcher: ['/admin/:path*', '/worker/:path*', '/login', '/api/:path*']
@@ -387,13 +396,16 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 | `npm run db:napraw-slowniki-baza` | Migracje 0005 + 0007 (material_categories + is_stationary) | `apply_dictionary_schema.ts` |
 | `npm run db:napraw-lokalizacja-sesji` | Migracja 0008 (work_sessions bookend coords) | `apply_work_sessions_bookend_coords.ts` |
 | `npm run db:napraw-materialy-bez-typu` | Migracja 0009 (`materials` bez `type`) | `apply_materials_drop_type.ts` |
-| `npm run db:napraw-wszystko` | Kolejno: 0006 → 0005+0007 → 0008 → 0009 (idempotentne, jedna komenda) | — |
+| `npm run db:napraw-wszystko` | Kolejno skrypty `apply_*`: pojazdy → słowniki → bookend GPS → drop `materials.type` → widoczność pól kategorii → rozszerzenie zasobów (idempotentne) | — |
+| `npm run db:napraw-wszystko-i-zweryfikuj` | **`db:napraw-wszystko`** następnie **`db:verify-schema`** — zalecane „jedno polecenie” po aktualizacji kodu oczekującego nowego schematu | — |
 | `npm run db:apply-resources-identity` | Alias dla 0006 | jw. |
-| `npm run db:migrate` | `drizzle-kit migrate` (oficjalny pipeline; w praktyce wdrożenie szło ręcznymi skryptami) | — |
+| `npm run db:migrate` | `drizzle-kit migrate` (WebSocket `@vercel/postgres` — na części środowisk Windows/CLI bywa niestabilne) | — |
+| `npm run db:migrate:pg` | **`tsx src/scripts/run_drizzle_migrate_pg.ts`** — ten sam katalog `drizzle/` przez TCP (`pg`), preferuje **`DATABASE_URL_UNPOOLED`**. Gdy baza powstała ze skryptów `apply_*` bez historii Drizzle: **baseline** dla migracji &lt; 0013 przy błędzie „already exists”, potem wykonuje **0013** i **0014** jak w journal. |
+| `npm run db:verify-schema` | Porównanie kolumn Postgres ↔ `schema.ts` (`verify_schema_alignment.ts`) | — |
 
 **Wszystkie skrypty** używają `loadEnvConfig(cwd)` + `ensurePostgresUrlForVercelDriver()` z `src/lib/resolveNeonPostgresUrl.ts`. Brak `DATABASE_URL`/`POSTGRES_URL` → komunikat instruujący wklejenie connection stringa do `.env.local`.
 
-`src/scripts/migrate_categories.ts` — pomocniczy skrypt do migracji kategorii (legacy data fix).
+`src/scripts/migrate_categories.ts` — **noop** po migracji **0014** (komunikat informacyjny); historyczny proces opisany w komentarzu w pliku.
 
 ---
 
@@ -405,6 +417,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 | `POSTGRES_URL` | używa `@vercel/postgres` automatycznie | **TAK** |
 | `DATABASE_URL` (+ `DATABASE_URL_UNPOOLED`, `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, `POSTGRES_*` itd.) | `src/lib/resolveNeonPostgresUrl.ts` zbiera dowolny z aliasów (Neon/Vercel) i ustawia `POSTGRES_URL` dla skryptów `tsx` | przynajmniej jeden z nich |
 | `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` | wstrzykiwana przez Vercel; pokazana w `APP_VERSION` | nie (ozdobna) |
+| `WERKIT_USE_BCRYPTJS` | `src/lib/passwordCrypto.ts` — `1` wymusza `bcryptjs` zamiast natywnego `bcrypt` (hash + compare) | nie |
 
 ---
 
@@ -414,25 +427,22 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 2. **`Array.isArray` przed `.map`/`.filter` na odpowiedzi API** — error handler może zwrócić `{error}` zamiast tablicy → crash mobilki.
 3. **`params` w `[id]/route.ts` jest `Promise`** w Next 16 — `const { id } = await context.params;`.
 4. **Duplikaty pod `src/components/Worker/**`** — w repo już ich nie ma; UI pracownika tylko w `@/features/worker/...`.
-5. **`src/lib/schedule.ts`** — używa Drizzle bezpośrednio. Jeśli refaktorujesz, przenieś do `AdminOrderService` jako prywatną metodę.
+5. **Konflikty harmonogramu zleceń** — logika w `AdminOrderService.checkScheduleConflict`; nie dodawaj ponownie zapytań Drizzle do `src/lib/` dla tego case’u.
 6. **JWT_SECRET fallback** — `'super-secret-fallback'`. Jeśli kiedykolwiek `console.warn` pojawi się na produkcji, traktuj jako incydent bezpieczeństwa.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient zawsze wysyła tablicę (zob. `GPSManager.flushQueue`), ale serwer toleruje też pojedynczy.
 9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
-10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli middleware już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
+10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli `proxy` już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 
 ---
 
-## 18. Dług techniczny (do uprzątnięcia w wolnej chwili)
+## 18. Dług techniczny
 
-- [ ] Przenieść `src/lib/schedule.ts` do `AdminOrderService` (eliminacja Drizzle poza `services/`).
-- [ ] Skonsolidować skrypty migracji `apply_*.ts` do jednego (`scripts/apply_pending_migrations.ts`) z auto-detekcją po `information_schema`.
-- [x] Pliki SQL `drizzle/0007_*.sql`, `drizzle/0008_*.sql` oraz helpery `resolveNeonPostgresUrl` / skrypty `apply_*.ts` — w repozytorium (2026-05-11).
-- [ ] `package.json` — rozważyć `drizzle-kit migrate` jako główny pipeline produkcyjny obok ręcznych `apply_*.ts` (już jest `db:migrate`).
-- [ ] `src/app/admin/page.tsx` i pozostałe `admin/*/page.tsx` — opisać w sekcji 4 jakie konkretnie komponenty montują (po refaktorze nazewnictwa).
-- [ ] `bcrypt` (natywny) ↔ Vercel — rozważyć `bcryptjs` jako fallback gdy `bcrypt` nie załaduje się na serverless.
+**Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
+
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`db:migrate`** dla **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI.
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-11 (`db:napraw-wszystko` obejmuje m.in. show_* kategorii; audyt `src/` pod kątem długu — patrz §18). Jeśli któreś przypisanie endpoint↔serwis tu się rozjedzie z kodem — to TEN plik jest do aktualizacji w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-11. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*

@@ -10,7 +10,8 @@ const ADMIN_PANEL_ROLES = ['admin', 'viewer'];
 const WORKER_APP_ROLES = ['worker', 'admin'];
 const SHARED_READ_ROLES = ['worker', 'admin', 'viewer'];
 
-export async function middleware(request: NextRequest) {
+/** Strażnik Edge JWT/ról — konwencja Next.js 16: `proxy` zamiast `middleware`. */
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. ROUTE CLASSIFICATION

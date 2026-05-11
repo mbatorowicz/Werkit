@@ -4,7 +4,7 @@ export function isMissingResourcesVehicleColumns(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
     /column .*does not exist/i.test(msg) &&
-    /(brand|model|registration_number)/i.test(msg)
+    /(brand|model|registration_number|description)/i.test(msg)
   );
 }
 
@@ -21,7 +21,9 @@ export function isMissingResourceCategoriesVisibilityColumns(err: unknown): bool
   const msg = err instanceof Error ? err.message : String(err);
   return (
     /column .*does not exist/i.test(msg) &&
-    /show_customer|show_material|show_quantity|show_task_description/i.test(msg)
+    /show_customer|show_material|show_quantity|show_task_description|show_resource_name|show_resource_description|show_registration_number/i.test(
+      msg,
+    )
   );
 }
 

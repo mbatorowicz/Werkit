@@ -1,3 +1,6 @@
+import { Camera, FileText } from "lucide-react";
+import { getDictionary } from "@/i18n";
+
 type Tone = "planned" | "active" | "done";
 type Density = "normal" | "compact";
 
@@ -66,6 +69,9 @@ export function OrderLabelCard({
   description,
   dateLabel,
   timeLabel,
+  /** Ikony załączników z realizacji zlecenia (sesja: zdjęcia / notatki). */
+  attachmentPhotos,
+  attachmentNotes,
   className = "",
 }: {
   tone: Tone;
@@ -79,6 +85,8 @@ export function OrderLabelCard({
   orderedByLabel?: string;
   density?: Density;
   showDateTime?: boolean;
+  attachmentPhotos?: boolean;
+  attachmentNotes?: boolean;
   mode: string;
   machine: string;
   material?: string | null;
@@ -91,9 +99,10 @@ export function OrderLabelCard({
 }) {
   const cls = toneClasses(tone);
   const isCompact = density === "compact";
+  const attachDict = getDictionary().worker.client;
   const defaultLabels = {
     mode: "Tryb pracy",
-    machine: "Maszyna",
+    machine: "Zasób",
     material: "Materiał",
     quantity: "Ilość",
     customer: "Klient",
@@ -122,7 +131,29 @@ export function OrderLabelCard({
                 ) : null}
               </div>
             </div>
-            {badges ? <div className="shrink-0 flex items-center gap-2">{badges}</div> : null}
+            <div className="shrink-0 flex items-center gap-2">
+              {(attachmentPhotos || attachmentNotes) && (
+                <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 mr-1">
+                  {attachmentPhotos ? (
+                    <span title={attachDict.orderAttachmentPhotosTitle}>
+                      <Camera
+                        className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
+                        aria-hidden
+                      />
+                    </span>
+                  ) : null}
+                  {attachmentNotes ? (
+                    <span title={attachDict.orderAttachmentNotesTitle}>
+                      <FileText
+                        className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
+                        aria-hidden
+                      />
+                    </span>
+                  ) : null}
+                </div>
+              )}
+              {badges ? badges : null}
+            </div>
           </div>
 
           {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}

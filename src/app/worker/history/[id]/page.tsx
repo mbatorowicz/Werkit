@@ -103,6 +103,8 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
           timeLabel={`${asDate(sessionData.startTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
             asDate(sessionData.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
           }`}
+          attachmentPhotos={photos.length > 0}
+          attachmentNotes={notes.length > 0}
         />
       </div>
 

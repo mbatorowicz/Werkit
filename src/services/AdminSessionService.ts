@@ -26,6 +26,11 @@ export class AdminSessionService {
       .update(workSessions)
       .set({ status: 'COMPLETED', endTime: new Date() })
       .where(eq(workSessions.id, sessionId));
+
+    const wid = rows[0].workOrderId;
+    if (wid != null) {
+      await db.update(workOrders).set({ status: 'COMPLETED' }).where(eq(workOrders.id, wid));
+    }
   }
 
   /**

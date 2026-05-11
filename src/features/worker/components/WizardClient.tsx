@@ -169,6 +169,8 @@ export default function WizardClient() {
                               : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
                           }
                           className="bg-white/60 dark:bg-zinc-950/30"
+                          attachmentPhotos={Boolean(order.hasPhotos)}
+                          attachmentNotes={Boolean(order.hasNotes)}
                         />
                       </div>
                       <div className="mt-3 text-amber-500 font-semibold text-sm">{dict.startTask} &rarr;</div>

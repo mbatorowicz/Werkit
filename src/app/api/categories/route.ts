@@ -41,6 +41,9 @@ export async function POST(request: Request) {
       isGlobal,
       isStationary,
       color,
+      showResourceName,
+      showResourceDescription,
+      showRegistrationNumber,
     } = body;
 
     if(!name) {
@@ -56,6 +59,9 @@ export async function POST(request: Request) {
     const rm = !!reqMaterial;
     const rq = !!reqQuantity;
     const rtd = reqTaskDescription !== undefined ? !!reqTaskDescription : true;
+    const srn = showResourceName !== undefined ? !!showResourceName : true;
+    const srd = showResourceDescription !== undefined ? !!showResourceDescription : false;
+    const sreg = showRegistrationNumber !== undefined ? !!showRegistrationNumber : true;
     await DictionaryService.addCategory({
       name: name.trim(),
       icon: icon || 'Truck',
@@ -63,6 +69,9 @@ export async function POST(request: Request) {
       showMaterial: sm || rm,
       showQuantity: sq || rq,
       showTaskDescription: std || rtd,
+      showResourceName: srn,
+      showResourceDescription: srd,
+      showRegistrationNumber: sreg,
       reqCustomer: rc,
       reqMaterial: rm,
       reqQuantity: rq,

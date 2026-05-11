@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { isMissingResourcesVehicleColumns } from '@/lib/postgresMigrationHints';
-import { buildResourceDisplayName, isVehicleIdentityEmpty } from '@/lib/resourceDisplayName';
+import { buildResourceCanonicalName } from '@/lib/resourceDisplayName';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   const denied = await guardAdminMutation();
@@ -17,26 +17,35 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const brand = typeof body.brand === 'string' ? body.brand : '';
     const model = typeof body.model === 'string' ? body.model : '';
     const registrationNumber = typeof body.registrationNumber === 'string' ? body.registrationNumber : '';
+    const description = typeof body.description === 'string' ? body.description : '';
 
     if (!body.categoryIds || !Array.isArray(body.categoryIds)) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
-    if (isVehicleIdentityEmpty(brand, model, registrationNumber)) {
+    const parsedCatIds = body.categoryIds.map((c: string | number) => parseInt(String(c), 10));
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const vis = await DictionaryService.mergeResourceFormVisibility(parsedCatIds);
+    const name = buildResourceCanonicalName(
+      vis.showResourceName ? brand : '',
+      vis.showResourceName ? model : '',
+      vis.showRegistrationNumber ? registrationNumber : '',
+      vis.showResourceDescription ? description : null,
+    );
+    if (!name.trim()) {
       return NextResponse.json({ error: 'missing_fields' }, { status: 400 });
     }
 
-    const name = buildResourceDisplayName(brand, model, registrationNumber);
-    const { DictionaryService } = await import('@/services/DictionaryService');
     await DictionaryService.updateResource(
       id,
       {
         name,
-        brand,
-        model,
-        registrationNumber,
+        brand: vis.showResourceName ? brand : '',
+        model: vis.showResourceName ? model : '',
+        registrationNumber: vis.showRegistrationNumber ? registrationNumber : '',
+        description: vis.showResourceDescription ? description : null,
         imageUrl: body.imageUrl === null || typeof body.imageUrl === 'string' ? body.imageUrl : undefined,
       },
-      body.categoryIds.map((c: string | number) => parseInt(String(c), 10)),
+      parsedCatIds,
     );
     
     return NextResponse.json({ success: true });

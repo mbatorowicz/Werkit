@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+import { hashPassword } from '@/lib/passwordCrypto';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       role === 'admin' ? 'admin' : role === 'viewer' ? 'viewer' : 'worker';
 
     const { AdminUserService } = await import('@/services/AdminUserService');
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password, 10);
 
     await AdminUserService.createUser({
       fullName,

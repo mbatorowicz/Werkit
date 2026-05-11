@@ -1,3 +1,8 @@
+/**
+ * SSOT struktury tabel dla Drizzle. Porównanie z faktyczną bazą: `npm run db:verify-schema`
+ * (kanoniczna lista kolumn w `src/scripts/verify_schema_alignment.ts` — przy zmianach tu aktualizuj i tam).
+ * Dokumentacja biznesowa i migracji: `docs/SYSTEM_MAP.md` §3; zasady autonomicznych migracji: `AGENTS.md` §1a.
+ */
 import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -19,11 +24,15 @@ export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   icon: varchar('icon', { length: 50 }).default('Truck'),
-  /** Widoczność pól w formularzach (UI). */
+  /** Widoczność pól w formularzach zlecenia (UI). */
   showCustomer: boolean('show_customer').notNull().default(true),
   showMaterial: boolean('show_material').notNull().default(true),
   showQuantity: boolean('show_quantity').notNull().default(true),
   showTaskDescription: boolean('show_task_description').notNull().default(true),
+  /** Widoczność pól przy dodawaniu zasobu przypisanego do tej kategorii (marka/model, opis, nr rej.). */
+  showResourceName: boolean('show_resource_name').notNull().default(true),
+  showResourceDescription: boolean('show_resource_description').notNull().default(false),
+  showRegistrationNumber: boolean('show_registration_number').notNull().default(true),
   /** Wymagalność pól w formularzach (walidacja). */
   reqCustomer: boolean('req_customer').notNull().default(false),
   reqMaterial: boolean('req_material').notNull().default(false),
@@ -47,7 +56,8 @@ export const resources = pgTable('resources', {
   brand: varchar('brand', { length: 120 }).notNull().default(''),
   model: varchar('model', { length: 120 }).notNull().default(''),
   registrationNumber: varchar('registration_number', { length: 32 }).notNull().default(''),
-  categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // TODO: remove after migration
+  /** Opcjonalny opis zasobu (np. lokalizacja, warsztat — nie tylko pojazd). */
+  description: text('description'),
   imageUrl: text('image_url'),
 });
 
@@ -93,7 +103,6 @@ export const workSessions = pgTable('work_sessions', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
-  sessionType: varchar('session_type', { length: 50 }).notNull(), // TODO: remove after migration
   status: varchar('status', { length: 50 }).notNull().default('IN_PROGRESS'),
   startTime: timestamp('start_time').notNull().defaultNow(),
   endTime: timestamp('end_time'),
@@ -163,11 +172,10 @@ export const workOrders = pgTable('work_orders', {
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
-  sessionType: varchar('session_type', { length: 50 }).notNull(), // TODO: remove after migration
   materialId: integer('material_id').references(() => materials.id, { onDelete: 'set null' }),
   customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   taskDescription: text('task_description'),
-  status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING, COMPLETED, CANCELLED
+  status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING | IN_PROGRESS (powiązana sesja aktywna) | COMPLETED | CANCELLED
   createdAt: timestamp('created_at').notNull().defaultNow(),
   createdById: integer('created_by_id').references(() => users.id, { onDelete: 'set null' }),
   quantityTons: numeric('quantity_tons', { precision: 10, scale: 2 }),
@@ -212,13 +220,6 @@ export const workSessionsRelations = relations(workSessions, ({ one, many }) => 
   photos: many(sessionPhotos),
   gpsLogs: many(gpsLogs),
   notes: many(sessionNotes),
-}));
-
-export const resourcesRelations = relations(resources, ({ one }) => ({
-  category: one(resourceCategories, {
-    fields: [resources.categoryId],
-    references: [resourceCategories.id]
-  })
 }));
 
 export const workOrdersRelations = relations(workOrders, ({ one }) => ({

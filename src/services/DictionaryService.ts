@@ -10,7 +10,7 @@ import {
   companySettings,
   resourceToCategories,
 } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, inArray } from 'drizzle-orm';
 
 export class DictionaryService {
   /** Zapytanie bez `show_*` — działa na bazie sprzed migracji 0010. */
@@ -47,6 +47,9 @@ export class DictionaryService {
         showMaterial: true,
         showQuantity: true,
         showTaskDescription: true,
+        showResourceName: true,
+        showResourceDescription: false,
+        showRegistrationNumber: true,
       }));
     }
   }
@@ -81,10 +84,47 @@ export class DictionaryService {
         brand: r.brand ?? '',
         model: r.model ?? '',
         registrationNumber: r.registrationNumber ?? '',
+        description: r.description ?? null,
         categoryIds: cats,
         imageUrl: r.imageUrl,
       };
     });
+  }
+
+  /** Łączenie widoczności pól zasobu — pole widoczne, jeśli któraś z wybranych kategorii je pokazuje. */
+  static async mergeResourceFormVisibility(categoryIds: number[]): Promise<{
+    showResourceName: boolean;
+    showResourceDescription: boolean;
+    showRegistrationNumber: boolean;
+  }> {
+    const ids = categoryIds.map((n) => Number(n)).filter((n) => Number.isFinite(n) && n > 0);
+    if (ids.length === 0) {
+      return {
+        showResourceName: true,
+        showResourceDescription: true,
+        showRegistrationNumber: true,
+      };
+    }
+    const cats = await db
+      .select({
+        showResourceName: resourceCategories.showResourceName,
+        showResourceDescription: resourceCategories.showResourceDescription,
+        showRegistrationNumber: resourceCategories.showRegistrationNumber,
+      })
+      .from(resourceCategories)
+      .where(inArray(resourceCategories.id, ids));
+    if (cats.length === 0) {
+      return {
+        showResourceName: true,
+        showResourceDescription: true,
+        showRegistrationNumber: true,
+      };
+    }
+    return {
+      showResourceName: cats.some((c) => c.showResourceName),
+      showResourceDescription: cats.some((c) => c.showResourceDescription),
+      showRegistrationNumber: cats.some((c) => c.showRegistrationNumber),
+    };
   }
 
   static async getSettings() {
@@ -172,10 +212,15 @@ export class DictionaryService {
       brand: string;
       model: string;
       registrationNumber: string;
+      description?: string | null;
     },
     categoryIds: number[],
     imageUrl?: string | null,
   ) {
+    const desc =
+      identity.description != null && String(identity.description).trim() !== ''
+        ? String(identity.description).trim().slice(0, 4000)
+        : null;
     const res = await db
       .insert(resources)
       .values({
@@ -183,6 +228,7 @@ export class DictionaryService {
         brand: identity.brand.slice(0, 120),
         model: identity.model.slice(0, 120),
         registrationNumber: identity.registrationNumber.slice(0, 32),
+        description: desc,
         imageUrl: imageUrl ?? null,
       })
       .returning();
@@ -201,6 +247,7 @@ export class DictionaryService {
     if (data.brand !== undefined) patch.brand = data.brand;
     if (data.model !== undefined) patch.model = data.model;
     if (data.registrationNumber !== undefined) patch.registrationNumber = data.registrationNumber;
+    if (data.description !== undefined) patch.description = data.description;
     if (data.imageUrl !== undefined) patch.imageUrl = data.imageUrl;
     if (Object.keys(patch).length > 0) {
       await db.update(resources).set(patch).where(eq(resources.id, id));

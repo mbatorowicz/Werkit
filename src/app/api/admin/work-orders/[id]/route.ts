@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth';
-import { checkScheduleConflict } from '@/lib/schedule';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { AdminOrderService } from '@/services/AdminOrderService';
@@ -46,12 +45,12 @@ export async function PUT(request: Request, props: { params: Promise<{ id: strin
     const prio = coerceWorkOrderPriority(priority);
 
     if (!forceSave) {
-      const conflict = await checkScheduleConflict(
+      const conflict = await AdminOrderService.checkScheduleConflict(
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
         expectedDurationHours ? parseFloat(String(expectedDurationHours)) : null,
-        orderId
+        orderId,
       );
       if (conflict) {
         return NextResponse.json({ error: conflict }, { status: 409 });

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
 import { SignJWT } from 'jose';
 
 import { JWT_SECRET } from '@/lib/auth';
+import { comparePassword } from '@/lib/passwordCrypto';
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
@@ -54,9 +54,9 @@ export async function POST(req: Request) {
 
     let isPasswordValid = false;
     try {
-      isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      isPasswordValid = await comparePassword(password, user.passwordHash);
     } catch (compareErr) {
-      console.error('Login bcrypt.compare error:', compareErr);
+      console.error('Login password compare error:', compareErr);
       return NextResponse.json({ error: 'invalid_credentials' }, { status: 401 });
     }
 

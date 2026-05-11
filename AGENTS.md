@@ -4,14 +4,24 @@ Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kt
 
 **Towarzyszy mu:**
 
-- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — głębszy opis warstw, modułów i długu technicznego.
-- [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **brutalna inwentaryzacja**: wszystkie tabele DB z kolumnami, wszystkie endpointy API z metodą i serwisem za nimi, wszystkie hooki, sloty `i18n`, status migracji na produkcji, częste pułapki i debug-recipes. **Czytaj zanim ruszysz większą zmianę.**
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — warstwy, przepływ żądania, wzorce (bez duplikowania długiej listy API).
+- [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **inwentaryzacja**: tabele DB, endpointy ↔ serwisy, hooki, `i18n`, pułapki. **Czytaj zanim ruszysz większą zmianę.**
+- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz.
 
 ---
 
 ## 1. Produkt i stawka błędu
 
 Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pracy, zleceniu lub GPS może realnie zatrzymać lub zmąc wybrane procesy w terenie. Zanim zmienisz API odpowiedzi, typ tablicy → obiekt, lub pole bazy — **przejrzyj call-site’y i serwisy**.
+
+---
+
+## 1a. Agenci AI — autonomia (bez przerzucania pracy na człowieka)
+
+1. **Zrób sam**, co da się zrobić w tym workspace: migracje na bazę podłączoną przez **`.env.local`** (`DATABASE_URL` / `POSTGRES_URL` — **nigdy nie loguj ani nie commituj** wartości, nie cytuj connection stringów w odpowiedziach).
+2. Po zmianie **`src/db/schema.ts`** lub SQL w **`drizzle/`**: sam uruchom **`npm run db:napraw-wszystko`** (albo właściwy **`npm run db:napraw-*`**) oraz **`npm run db:verify-schema`**, żeby potwierdzić pokrycie kolumn z kodem (`src/scripts/verify_schema_alignment.ts` ↔ `schema.ts`).
+3. **Nie kończ** zdania w stylu „musisz uruchomić migrację” — jeśli środowisko ma połączenie do bazy, **wykonaj migrację/weryfikację w ramach sesji**.
+4. Szczegółowa mapa tabel i migracji: **`docs/SYSTEM_MAP.md`** §3; porównanie kanoniczne jest utrzymywane **równolegle** w skrypcie `db:verify-schema` (przy rozszerzeniu schematu **zaktualizuj oba**: `schema.ts` + `verify_schema_alignment.ts`).
 
 ---
 
@@ -25,7 +35,7 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 | Mobilka | **Capacitor** + PWA; tło i zgaszony ekran = throttle JS i GPS — patrz sekcja 8. |
 | UI | **Tailwind CSS**. Paleta bazowa: **zinc** + akcent **emerald**; spójne animacje (CSS / utility), bez „losowych” palet. |
 | Typy | **Strict TypeScript**, zakaz luźnego **`any`**. Typy domenowe: [`src/types/worker.ts`](./src/types/worker.ts), [`src/types/admin.ts`](./src/types/admin.ts), [`src/types/wizard.ts`](./src/types/wizard.ts). |
-| Wersja aplikacji | Z [`package.json`](./package.json) (np. `1.8.x`). |
+| Wersja aplikacji | Z [`package.json`](./package.json) (`version` — jedyna akceptowana wartość w tekście docs). |
 
 ---
 
@@ -46,7 +56,7 @@ src/
 ├── types/                  # Kontrakty TS dla worker / admin / wizard
 ├── i18n/                   # locales/pl.ts, locales/en.ts, types.ts, format.ts, constants.ts (DEFAULT_UI_LOCALE)
 ├── lib/                    # auth, gpsManager, remoteLogger, helpers bez UI
-└── middleware.ts           # Strażnik JWT i ról (nazwa pliku musi pozostać middleware.ts)
+└── proxy.ts                # Strażnik JWT i ról na Edge (konwencja Next.js 16 „proxy”)
 ```
 
 Routing worker nadal w **`src/app/worker/**`** — komponenty biznesowe są **importowane** z `@/features/worker/...`.
@@ -60,7 +70,7 @@ Routing worker nadal w **`src/app/worker/**`** — komponenty biznesowe są **im
 3. **Priorytet zlecenia** — wartości domenowe: `URGENT` \| `HIGH` \| `NORMAL` \| `LOW`. Normalizacja po stronie serwera tam, gdzie już jest (`normalizeWorkOrderPriority`). W bazie egzekwuje to migracja **CHECK** `work_orders_priority_chk` (patrz `drizzle/`).
 4. **Nowy kod DB** — **wyłącznie `src/services/`** (Drizzle); **`src/app/`** nie importuje `@/db` / `@/db/schema`. Szczegóły: **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
 5. **Teksty UI** — stringi widoczne dla użytkownika przez **`getDictionary()`** / sloty `worker.client`, `admin.*`, `apiErrors`. Placeholdery `{klucz}` przez **`formatDict`**. Domyślny locale formatów dat: **`DEFAULT_UI_LOCALE`** (`src/i18n/constants.ts`), dopóki nie ma wyboru języka użytkownika.
-6. **Middleware** — musi pozostać plik **`src/middleware.ts`** z eksportem `middleware`. Next 16 może ostrzegać o deprecacji konwencji „middleware” na rzecz „proxy” — **nie zmieniaj nazwy pliku bez świadomej migracji dokumentacji Vercel**, bo wyłączysz ochronę tras.
+6. **Proxy (Edge)** — strażnik tras to **`src/proxy.ts`** z eksportem **`proxy`** (Next.js 16; dawniej `middleware.ts`). Ta sama rola: JWT, role, matcher — bez zmian logiki nie psuj ochrony `/admin`, `/worker`, `/api`.
 
 ---
 
@@ -102,6 +112,7 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 ## 9. Migracje i produkcja
 
 - Zmiana **`schema.ts`** wymaga **skryptu migracji** w `drizzle/` + aktualizacji **`drizzle/meta/_journal.json`** (jeśli dodajesz ręcznie) albo wygenerowania przez **`drizzle-kit`** zgodnie z workflow zespołu.
+- Po zmianie schematu agent uruchamia **`npm run db:napraw-*`** / **`db:napraw-wszystko`** na bazie z `.env.local` oraz **`npm run db:verify-schema`** (patrz §1a).
 - **Wdrożenie na Vercel:** migracja musi zostać **uruchomiona na bazie produkcyjnej** zgodnie z procedurą firmy (jedna pusta migracja lub duplikat constraintta na DB = błąd operacyjny — sprawdzaj idempotentność).
 
 ---
@@ -115,10 +126,10 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 
 ---
 
-## 11. Kiedy czytać ARCHITECTURE.md
+## 11. Kiedy czytać ARCHITECTURE.md i roadmap długu
 
-Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **middleware**. Tam są: diagram przepływu, **lista serwisów** i konwencja „app bez Drizzle”.
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**.
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, constraint priorytetu zleceń w migracji Drizzle. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*

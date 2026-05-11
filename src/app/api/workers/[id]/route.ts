@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
+import { hashPassword } from '@/lib/passwordCrypto';
 import type { UserUpdatePayload } from '@/services/AdminUserService';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 
@@ -30,7 +30,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }
 
     if (body.password && body.password.trim() !== '') {
-       updateData.passwordHash = await bcrypt.hash(body.password, 10);
+       updateData.passwordHash = await hashPassword(body.password, 10);
     }
 
     const { AdminUserService } = await import('@/services/AdminUserService');

@@ -30,6 +30,9 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
     if (body.isStationary !== undefined) updateData.isStationary = !!body.isStationary;
     if (body.color !== undefined) updateData.color = body.color;
+    if (body.showResourceName !== undefined) updateData.showResourceName = !!body.showResourceName;
+    if (body.showResourceDescription !== undefined) updateData.showResourceDescription = !!body.showResourceDescription;
+    if (body.showRegistrationNumber !== undefined) updateData.showRegistrationNumber = !!body.showRegistrationNumber;
 
     // Jeśli pole jest wymagane, musi być też widoczne.
     if (updateData.reqCustomer) updateData.showCustomer = true;

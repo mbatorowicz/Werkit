@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 
 import { JWT_SECRET } from '@/lib/auth';
-import { checkScheduleConflict } from '@/lib/schedule';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { AdminOrderService } from '@/services/AdminOrderService';
 
@@ -51,11 +50,11 @@ export async function POST(request: Request) {
     const prio = coerceWorkOrderPriority(priority);
 
     if (!forceSave) {
-      const conflict = await checkScheduleConflict(
+      const conflict = await AdminOrderService.checkScheduleConflict(
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours ? parseFloat(String(expectedDurationHours)) : null
+        expectedDurationHours ? parseFloat(String(expectedDurationHours)) : null,
       );
       if (conflict) {
         return NextResponse.json({ error: conflict }, { status: 409 });
@@ -66,7 +65,6 @@ export async function POST(request: Request) {
       userId: uidNum,
       resourceId: resIdNum,
       categoryId: catIdNum,
-      sessionType: 'MIGRATED', // Keep for now until deleted
       materialId: materialId ? parseInt(String(materialId), 10) : null,
       customerId: customerId ? parseInt(String(customerId), 10) : null,
       taskDescription: taskDescription || null,

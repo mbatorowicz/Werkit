@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -141,20 +141,56 @@ function FitContentDebounced({
   return null;
 }
 
-function MapRotator({ heading, isAutoRotate }: { heading?: number | null, isAutoRotate: boolean }) {
+/** Obrót warstwy mapy wokół punktu bieżącej pozycji (ekranowych px), żeby „środek” obrotu = GPS. */
+function MapRotator({
+  heading,
+  isAutoRotate,
+  pivotLat,
+  pivotLng,
+}: {
+  heading?: number | null;
+  isAutoRotate: boolean;
+  pivotLat: number;
+  pivotLng: number;
+}) {
+  const map = useMap();
+  const apply = useCallback(() => {
+    const pane = map.getPane("mapPane");
+    if (!pane) return;
+    if (!isAutoRotate || heading === undefined || heading === null) {
+      pane.style.transform = "";
+      pane.style.transformOrigin = "";
+      pane.style.transition = "";
+      return;
+    }
+    const pt = map.latLngToContainerPoint(L.latLng(pivotLat, pivotLng));
+    pane.style.transformOrigin = `${pt.x}px ${pt.y}px`;
+    pane.style.transform = `rotate(${-heading}deg)`;
+    pane.style.transition = "transform 0.35s ease-out";
+  }, [map, isAutoRotate, heading, pivotLat, pivotLng]);
+
+  useEffect(() => {
+    apply();
+    map.on("move zoom moveend zoomend resize", apply);
+    return () => {
+      map.off("move zoom moveend zoomend resize", apply);
+      const pane = map.getPane("mapPane");
+      if (pane) {
+        pane.style.transform = "";
+        pane.style.transformOrigin = "";
+      }
+    };
+  }, [map, apply]);
+  return null;
+}
+
+/** U pracownika w trasie: mapa śledzi bieżący punkt na środku widoku. */
+function FollowPivotCenter({ lat, lng, active }: { lat: number; lng: number; active: boolean }) {
   const map = useMap();
   useEffect(() => {
-    const pane = map.getPane('mapPane');
-    if (pane) {
-      if (isAutoRotate && heading !== undefined && heading !== null) {
-        pane.style.transform = `rotate(${-heading}deg)`;
-        pane.style.transformOrigin = "center center";
-        pane.style.transition = "transform 0.5s ease-out";
-      } else {
-        pane.style.transform = "";
-      }
-    }
-  }, [heading, isAutoRotate, map]);
+    if (!active) return;
+    map.panTo([lat, lng], { animate: true, duration: 0.35 });
+  }, [lat, lng, map, active]);
   return null;
 }
 
@@ -165,19 +201,40 @@ interface LiveMapProps {
   onRouteDistance?: (distanceKm: number) => void;
   events?: TimelineItem[];
   onEventClick?: (id: string) => void;
+  /**
+   * Widok mobilny w aktywnej sesji: centruj na bieżącej pozycji i obracaj mapę wokół niej
+   * (zamiast pivotu w środku ekranu po fitBounds).
+   */
+  preferPivotNavigation?: boolean;
 }
 
-export default function LiveMap({ currentLocation, pathTraveled, destination, onRouteDistance, events = [], onEventClick }: LiveMapProps) {
+export default function LiveMap({
+  currentLocation,
+  pathTraveled,
+  destination,
+  onRouteDistance,
+  events = [],
+  onEventClick,
+  preferPivotNavigation = false,
+}: LiveMapProps) {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
   const [isAutoRotate, setIsAutoRotate] = useState(true);
   const dict = getDictionary().admin.map;
 
-  const fitContentMode = Boolean(
-    destination ||
-      pathTraveled.length > 0 ||
-      events.length > 0 ||
-      routeToDest.length > 0,
-  );
+  const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
+  /** W aktywnej sesji pracownika: środek mapy = bieżący GPS (bez fitBounds po całej trasie). */
+  const navPivotMode = Boolean(preferPivotNavigation);
+  /** Obrót warstwy tylko gdy użytkownik ma włączoną nawigację i znany azymut. */
+  const rotateMap = Boolean(navPivotMode && isAutoRotate && headingKnown);
+
+  const fitContentMode =
+    !navPivotMode &&
+    Boolean(
+      destination ||
+        pathTraveled.length > 0 ||
+        events.length > 0 ||
+        routeToDest.length > 0,
+    );
 
   // OSRM Routing
   useEffect(() => {
@@ -282,8 +339,22 @@ export default function LiveMap({ currentLocation, pathTraveled, destination, on
           routeToDest={routeToDest}
           events={events}
         />
-        <FollowPan lat={currentLocation.lat} lng={currentLocation.lng} active={!fitContentMode} />
-        <MapRotator heading={currentLocation.heading} isAutoRotate={isAutoRotate} />
+        <FollowPivotCenter
+          lat={currentLocation.lat}
+          lng={currentLocation.lng}
+          active={navPivotMode}
+        />
+        <FollowPan
+          lat={currentLocation.lat}
+          lng={currentLocation.lng}
+          active={!navPivotMode && !fitContentMode}
+        />
+        <MapRotator
+          heading={currentLocation.heading}
+          isAutoRotate={rotateMap}
+          pivotLat={currentLocation.lat}
+          pivotLng={currentLocation.lng}
+        />
       </MapContainer>
     </div>
   );

@@ -151,6 +151,8 @@ export default function SessionDetailsModal({
                     : null
               }
               className="mb-6"
+              attachmentPhotos={Boolean(item.hasPhotos) || photos.length > 0}
+              attachmentNotes={Boolean(item.hasNotes) || notes.length > 0}
             />
             {item._type === 'ORDER' ? (
               <div className="text-center py-12">

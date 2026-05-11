@@ -193,6 +193,8 @@ export function OrdersDispatchTable({
         title={item.workerName as string}
         orderedBy={(item.creatorName ?? item.workerName) ?? null}
         orderedByLabel={dict.orderedBy}
+        attachmentPhotos={Boolean(item.hasPhotos)}
+        attachmentNotes={Boolean(item.hasNotes)}
         badges={
           <>
             <span
@@ -410,6 +412,8 @@ export function OrdersDispatchTable({
                   title={item.workerName as string}
                   orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
+                  attachmentPhotos={Boolean(item.hasPhotos)}
+                  attachmentNotes={Boolean(item.hasNotes)}
                   badges={
                     <>
                       <span
@@ -550,6 +554,8 @@ export function OrdersDispatchTable({
                   title={item.workerName as string}
                   orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
+                  attachmentPhotos={Boolean(item.hasPhotos)}
+                  attachmentNotes={Boolean(item.hasNotes)}
                   badges={
                     <>
                       <span
@@ -663,6 +669,8 @@ export function OrdersDispatchTable({
                   title={item.workerName as string}
                   orderedBy={(item.creatorName ?? item.workerName) ?? null}
                   orderedByLabel={dict.orderedBy}
+                  attachmentPhotos={Boolean(item.hasPhotos)}
+                  attachmentNotes={Boolean(item.hasNotes)}
                   badges={
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(

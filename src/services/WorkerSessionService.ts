@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs, resourceCategories } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 
 export class WorkerSessionService {
@@ -91,7 +91,6 @@ export class WorkerSessionService {
       userId,
       resourceId: payload.resourceId,
       categoryId: payload.categoryId,
-      sessionType: 'MIGRATED', // Keep for backward compatibility
       materialId: payload.materialId || null,
       customerId: payload.customerId || null,
       quantityTons: payload.quantityTons || null,
@@ -119,7 +118,8 @@ export class WorkerSessionService {
        throw new Error('no_active_session');
     }
 
-    const sessionId = existing[0].id;
+    const row = existing[0];
+    const sessionId = row.id;
     const endNums = endCoord ? coordPairToNumericStrings(endCoord) : null;
     await db.update(workSessions).set({
       status: 'COMPLETED',
@@ -131,6 +131,13 @@ export class WorkerSessionService {
           }
         : {}),
     }).where(eq(workSessions.id, sessionId));
+
+    if (row.workOrderId != null) {
+      await db
+        .update(workOrders)
+        .set({ status: 'COMPLETED' })
+        .where(eq(workOrders.id, row.workOrderId));
+    }
 
     return true;
   }
@@ -178,20 +185,8 @@ export class WorkerSessionService {
       .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
     if (!session) throw new Error('no_active_session');
 
-    // Restore the linked work order if it was created from one.
-    // We look for the most recently COMPLETED order for this user with matching resource and type.
-    const [order] = await db.select().from(workOrders)
-      .where(and(
-        eq(workOrders.userId, userId),
-        eq(workOrders.status, 'COMPLETED'),
-        eq(workOrders.resourceId, session.resourceId),
-        eq(workOrders.categoryId, session.categoryId!)
-      ))
-      .orderBy(desc(workOrders.id))
-      .limit(1);
-
-    if (order) {
-      await db.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, order.id));
+    if (session.workOrderId != null) {
+      await db.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, session.workOrderId));
     }
     await db.delete(workSessions).where(eq(workSessions.id, session.id));
   }
@@ -200,27 +195,42 @@ export class WorkerSessionService {
    * Pobiera historię zakończonych sesji dla pracownika.
    */
   static async getCompletedSessions(userId: number, limitCount: number = 20) {
-    return await db.select({
-      id: workSessions.id,
-      workOrderId: workSessions.workOrderId,
-      categoryId: workSessions.categoryId,
-      categoryName: resourceCategories.name,
-      startTime: workSessions.startTime,
-      endTime: workSessions.endTime,
-      taskDescription: workSessions.taskDescription,
-      quantityTons: workSessions.quantityTons,
-      materialName: materials.name,
-      customerLastName: customers.lastName,
-      resourceName: resources.name,
-    })
-    .from(workSessions)
-    .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
-    .leftJoin(resources, eq(workSessions.resourceId, resources.id))
-    .leftJoin(materials, eq(workSessions.materialId, materials.id))
-    .leftJoin(customers, eq(workSessions.customerId, customers.id))
-    .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
-    .orderBy(desc(workSessions.endTime))
-    .limit(limitCount);
+    const rows = await db
+      .select({
+        id: workSessions.id,
+        workOrderId: workSessions.workOrderId,
+        categoryId: workSessions.categoryId,
+        categoryName: resourceCategories.name,
+        startTime: workSessions.startTime,
+        endTime: workSessions.endTime,
+        taskDescription: workSessions.taskDescription,
+        quantityTons: workSessions.quantityTons,
+        materialName: materials.name,
+        customerLastName: customers.lastName,
+        resourceName: resources.name,
+        hasPhotos: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${sessionPhotos}
+        WHERE ${sessionPhotos.workSessionId} = ${workSessions.id}
+      )`,
+        hasNotes: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${sessionNotes}
+        WHERE ${sessionNotes.workSessionId} = ${workSessions.id}
+      )`,
+      })
+      .from(workSessions)
+      .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
+      .leftJoin(resources, eq(workSessions.resourceId, resources.id))
+      .leftJoin(materials, eq(workSessions.materialId, materials.id))
+      .leftJoin(customers, eq(workSessions.customerId, customers.id))
+      .where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'COMPLETED')))
+      .orderBy(desc(workSessions.endTime))
+      .limit(limitCount);
+
+    return rows.map((row) => ({
+      ...row,
+      hasPhotos: Boolean(row.hasPhotos),
+      hasNotes: Boolean(row.hasNotes),
+    }));
   }
 
   /**

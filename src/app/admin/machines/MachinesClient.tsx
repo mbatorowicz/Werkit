@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ChangeEvent } from "react";
 import Image from "next/image";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, Camera } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { isVehicleIdentityEmpty } from "@/lib/resourceDisplayName";
+import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 
 type Category = {
   id: number;
@@ -16,6 +16,9 @@ type Category = {
   showMaterial: boolean;
   showQuantity: boolean;
   showTaskDescription: boolean;
+  showResourceName: boolean;
+  showResourceDescription: boolean;
+  showRegistrationNumber: boolean;
   reqCustomer: boolean;
   reqMaterial: boolean;
   reqQuantity: boolean;
@@ -30,9 +33,29 @@ type Machine = {
   brand?: string;
   model?: string;
   registrationNumber?: string;
+  description?: string | null;
   categoryIds: number[];
   imageUrl?: string | null;
 };
+
+function mergeResourceFieldVisibility(
+  categoryIds: number[],
+  categories: Category[],
+): {
+  showResourceName: boolean;
+  showResourceDescription: boolean;
+  showRegistrationNumber: boolean;
+} {
+  const selected = categories.filter((c) => categoryIds.includes(c.id));
+  if (selected.length === 0) {
+    return { showResourceName: true, showResourceDescription: true, showRegistrationNumber: true };
+  }
+  return {
+    showResourceName: selected.some((c) => c.showResourceName !== false),
+    showResourceDescription: selected.some((c) => Boolean(c.showResourceDescription)),
+    showRegistrationNumber: selected.some((c) => c.showRegistrationNumber !== false),
+  };
+}
 
 async function compressVehiclePhotoToDataUrl(file: File): Promise<string | null> {
   if (!file.type.startsWith("image/")) return null;
@@ -84,6 +107,7 @@ export default function MachinesClient() {
     brand: "",
     model: "",
     registrationNumber: "",
+    description: "",
     categoryIds: [] as number[],
     imageUrl: null as string | null,
   });
@@ -105,11 +129,19 @@ export default function MachinesClient() {
     isGlobal: false,
     isStationary: false,
     color: '#3f3f46',
+    showResourceName: true,
+    showResourceDescription: false,
+    showRegistrationNumber: true,
   });
   const dictionary = getDictionary();
   const dict = dictionary.admin.machines;
   const nav = dictionary.admin.sidebar;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
+
+  const resourceVis = useMemo(
+    () => mergeResourceFieldVisibility(mForm.categoryIds, categories),
+    [mForm.categoryIds, categories],
+  );
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -155,6 +187,9 @@ export default function MachinesClient() {
             showMaterial: Boolean(r.showMaterial),
             showQuantity: Boolean(r.showQuantity),
             showTaskDescription: Boolean(r.showTaskDescription),
+            showResourceName: r.showResourceName !== false,
+            showResourceDescription: Boolean(r.showResourceDescription),
+            showRegistrationNumber: r.showRegistrationNumber !== false,
           };
         }),
       );
@@ -200,7 +235,14 @@ export default function MachinesClient() {
   // --- Maszyny ---
   const handleMSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isVehicleIdentityEmpty(mForm.brand, mForm.model, mForm.registrationNumber)) {
+    const vis = mergeResourceFieldVisibility(mForm.categoryIds, categories);
+    const canonical = buildResourceCanonicalName(
+      vis.showResourceName ? mForm.brand : "",
+      vis.showResourceName ? mForm.model : "",
+      vis.showRegistrationNumber ? mForm.registrationNumber : "",
+      vis.showResourceDescription ? mForm.description : null,
+    );
+    if (!canonical.trim()) {
       alert(dict.machIdentityRequired);
       return;
     }
@@ -210,6 +252,7 @@ export default function MachinesClient() {
       brand: mForm.brand,
       model: mForm.model,
       registrationNumber: mForm.registrationNumber,
+      description: mForm.description,
       categoryIds: mForm.categoryIds,
       imageUrl: mForm.imageUrl,
     };
@@ -261,7 +304,7 @@ export default function MachinesClient() {
           <p className="text-zinc-500 mt-1 text-sm">{dict.dictSubtitle}</p>
         </div>
         {canMutate && (
-        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', showCustomer: true, showMaterial: true, showQuantity: true, showTaskDescription: true, reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46'}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
+        <button onClick={() => {setCEditId(null); setCForm({name: '', icon: 'blue', showCustomer: true, showMaterial: true, showQuantity: true, showTaskDescription: true, reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: true, isGlobal: false, isStationary: false, color: '#3f3f46', showResourceName: true, showResourceDescription: false, showRegistrationNumber: true}); setIsCMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-4 py-2 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition flex items-center gap-2">
           <Plus className="w-4 h-4" /> {dict.addCategory}
         </button>
         )}
@@ -282,7 +325,7 @@ export default function MachinesClient() {
                 </div>
                 {canMutate && (
                 <div className="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', showCustomer: cat.showCustomer, showMaterial: cat.showMaterial, showQuantity: cat.showQuantity, showTaskDescription: cat.showTaskDescription, reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46'}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
+                   <button onClick={() => {setCEditId(cat.id); setCForm({name: cat.name, icon: cat.icon || 'blue', showCustomer: cat.showCustomer, showMaterial: cat.showMaterial, showQuantity: cat.showQuantity, showTaskDescription: cat.showTaskDescription, reqCustomer: cat.reqCustomer, reqMaterial: cat.reqMaterial, reqQuantity: cat.reqQuantity, reqTaskDescription: cat.reqTaskDescription, isGlobal: cat.isGlobal, isStationary: cat.isStationary, color: cat.color || '#3f3f46', showResourceName: cat.showResourceName !== false, showResourceDescription: Boolean(cat.showResourceDescription), showRegistrationNumber: cat.showRegistrationNumber !== false}); setIsCMOpen(true);}} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-amber-500 rounded-md transition"><Edit2 className="w-3.5 h-3.5"/></button>
                    <button onClick={() => handleCDelete(cat.id)} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-500 rounded-md transition"><Trash2 className="w-3.5 h-3.5"/></button>
                 </div>
                 )}
@@ -302,9 +345,9 @@ export default function MachinesClient() {
           <p className="text-zinc-500 mt-1">{dict.fleetSubtitle}</p>
         </div>
         {canMutate && (
-        <button onClick={() => {setMEditId(null); setMForm({ brand: "", model: "", registrationNumber: "", categoryIds: [], imageUrl: null }); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
+        <button onClick={() => {setMEditId(null); setMForm({ brand: "", model: "", registrationNumber: "", description: "", categoryIds: [], imageUrl: null }); setIsMMOpen(true);}} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          {dict.registerVehicle}
+          {dict.addResource}
         </button>
         )}
       </div>
@@ -314,7 +357,7 @@ export default function MachinesClient() {
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
                <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.vehicleReg}</th>
+                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.resourceColTitle}</th>
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.dictCategory}</th>
                  {canMutate && (
                  <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{dict.management}</th>
@@ -367,6 +410,7 @@ export default function MachinesClient() {
                             brand: hasStoredParts ? (machine.brand ?? "") : (machine.name ?? ""),
                             model: machine.model ?? "",
                             registrationNumber: machine.registrationNumber ?? "",
+                            description: machine.description ?? "",
                             categoryIds: machine.categoryIds ?? [],
                             imageUrl: machine.imageUrl ?? null,
                           });
@@ -417,6 +461,40 @@ export default function MachinesClient() {
                          <span className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.isStationaryDesc}</span>
                        </div>
                        <input type="checkbox" checked={cForm.isStationary} onChange={e => setCForm({...cForm, isStationary: e.target.checked})} className="h-4 w-4 rounded text-emerald-600 shrink-0 mt-0.5" />
+                    </div>
+                 </div>
+
+                 <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catResourceFormTitle}</h3>
+                    <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.catResourceFormHint}</p>
+                    <div className="space-y-2">
+                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <span>{dict.fieldResourceName}</span>
+                        <input
+                          type="checkbox"
+                          checked={cForm.showResourceName}
+                          onChange={(e) => setCForm({ ...cForm, showResourceName: e.target.checked })}
+                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <span>{dict.fieldResourceDescription}</span>
+                        <input
+                          type="checkbox"
+                          checked={cForm.showResourceDescription}
+                          onChange={(e) => setCForm({ ...cForm, showResourceDescription: e.target.checked })}
+                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
+                        />
+                      </label>
+                      <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        <span>{dict.fieldResourceRegistration}</span>
+                        <input
+                          type="checkbox"
+                          checked={cForm.showRegistrationNumber}
+                          onChange={(e) => setCForm({ ...cForm, showRegistrationNumber: e.target.checked })}
+                          className="h-4 w-4 shrink-0 rounded text-emerald-600"
+                        />
+                      </label>
                     </div>
                  </div>
 
@@ -529,7 +607,10 @@ export default function MachinesClient() {
                  <button onClick={() => setIsMMOpen(false)} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"><X className="w-5 h-5"/></button>
               </div>
               <form onSubmit={handleMSave} className="p-6 space-y-6">
-                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                 {(resourceVis.showResourceName || resourceVis.showRegistrationNumber) && (
+                 <div className={`grid grid-cols-1 gap-4 ${resourceVis.showResourceName && resourceVis.showRegistrationNumber ? "sm:grid-cols-3" : resourceVis.showResourceName ? "sm:grid-cols-2" : "sm:grid-cols-1"}`}>
+                   {resourceVis.showResourceName ? (
+                   <>
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">{dict.machBrandLabel}</label>
                      <input type="text" autoComplete="off" placeholder={dict.machBrandPlaceholder} value={mForm.brand} onChange={(e) => setMForm({ ...mForm, brand: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
@@ -538,11 +619,28 @@ export default function MachinesClient() {
                      <label className="text-sm font-medium text-zinc-400">{dict.machModelLabel}</label>
                      <input type="text" autoComplete="off" placeholder={dict.machModelPlaceholder} value={mForm.model} onChange={(e) => setMForm({ ...mForm, model: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
                    </div>
+                   </>
+                   ) : null}
+                   {resourceVis.showRegistrationNumber ? (
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">{dict.machRegLabel}</label>
                      <input type="text" autoComplete="off" placeholder={dict.machRegPlaceholder} value={mForm.registrationNumber} onChange={(e) => setMForm({ ...mForm, registrationNumber: e.target.value })} className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 uppercase tracking-wide text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white" />
                    </div>
+                   ) : null}
                  </div>
+                 )}
+                 {resourceVis.showResourceDescription ? (
+                   <div className="space-y-2">
+                     <label className="text-sm font-medium text-zinc-400">{dict.machDescLabel}</label>
+                     <textarea
+                       rows={3}
+                       value={mForm.description}
+                       onChange={(e) => setMForm({ ...mForm, description: e.target.value })}
+                       placeholder={dict.machDescPlaceholder}
+                       className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white resize-y min-h-[88px]"
+                     />
+                   </div>
+                 ) : null}
                  <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
                    <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">

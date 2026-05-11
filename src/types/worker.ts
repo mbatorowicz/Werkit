@@ -20,6 +20,9 @@ export type Session = {
   resourceName?: string | null;
   materialName?: string | null;
   quantityTons?: number | null;
+  /** Z załączników sesji (lista historii). */
+  hasPhotos?: boolean;
+  hasNotes?: boolean;
 };
 
 export type WorkOrder = {
@@ -36,6 +39,9 @@ export type WorkOrder = {
   expectedDurationHours?: number | null;
   quantityTons?: number | null;
   creatorName?: string | null;
+  /** Z realizacji powiązanej sesji (jeśli była). */
+  hasPhotos?: boolean;
+  hasNotes?: boolean;
 };
 
 export type Coord = { lat: number; lng: number; heading?: number | null };

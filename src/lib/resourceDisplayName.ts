@@ -22,3 +22,17 @@ export function isVehicleIdentityEmpty(
 ): boolean {
   return buildResourceDisplayName(brand, model, registrationNumber) === "";
 }
+
+/** Jedna linia nazwy zasobu: najpierw marka/model/nr rej., inaczej opis (np. lokalizacja). */
+export function buildResourceCanonicalName(
+  brand: string,
+  model: string,
+  registrationNumber: string,
+  description?: string | null,
+): string {
+  const base = buildResourceDisplayName(brand, model, registrationNumber);
+  if (base) return base.slice(0, 255);
+  const d = typeof description === "string" ? description.trim() : "";
+  if (d) return d.slice(0, 255);
+  return "";
+}

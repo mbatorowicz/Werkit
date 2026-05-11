@@ -104,6 +104,8 @@ export default function ActiveSessionDashboard({
           description={session.taskDescription}
           dateLabel={new Date(session.startTime).toLocaleDateString("pl-PL")}
           timeLabel={`${new Date(session.startTime).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – …`}
+          attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}
+          attachmentNotes={timelineEvents.some((e) => e.type === "note")}
         />
       </div>
 
@@ -171,6 +173,7 @@ export default function ActiveSessionDashboard({
             currentLocation={location}
             pathTraveled={pathTraveled}
             destination={destination}
+            preferPivotNavigation
             onRouteDistance={(km) => setDistanceToDestKm(km)}
             events={timelineEvents}
             onEventClick={(id) => {

@@ -1,86 +1,16 @@
-import { db } from '../db';
-import { resourceCategories, resources, resourceToCategories, workSessions, workOrders } from '../db/schema';
-import { eq, isNotNull } from 'drizzle-orm';
-
-async function migrate() {
-  console.log("Starting DB migration...");
-
-  // 1. Ensure categories exist based on sessionType
-  const typeMap: Record<string, string> = {
-    'TRANSPORT': 'Transport',
-    'MACHINE_OP': 'Praca Maszyny',
-    'WORKSHOP': 'Warsztat'
-  };
-
-  const categoryIds: Record<string, number> = {};
-
-  const existingCategories = await db.select().from(resourceCategories);
-  
-  for (const [key, name] of Object.entries(typeMap)) {
-    let cat = existingCategories.find(c => c.name.toUpperCase() === key || c.name.toUpperCase() === name.toUpperCase());
-    if (!cat) {
-      console.log(`Creating category ${name}...`);
-      const inserted = await db.insert(resourceCategories).values({
-        name,
-        showCustomer: true,
-        showMaterial: key === 'TRANSPORT',
-        showQuantity: key === 'TRANSPORT',
-        showTaskDescription: true,
-        reqCustomer: key === 'TRANSPORT',
-        reqMaterial: key === 'TRANSPORT',
-        reqQuantity: key === 'TRANSPORT',
-        reqTaskDescription: key !== 'TRANSPORT',
-        isGlobal: key === 'WORKSHOP',
-        isStationary: key === 'WORKSHOP',
-      }).returning();
-      cat = inserted[0];
-    }
-    categoryIds[key] = cat.id;
-  }
-
-  // 2. Migrate existing resources to resourceToCategories
-  console.log("Migrating resource categories...");
-  const existingResources = await db.select().from(resources).where(isNotNull(resources.categoryId));
-  for (const res of existingResources) {
-    if (res.categoryId) {
-      // Check if link exists
-      const existingLink = await db.select().from(resourceToCategories).where(
-        eq(resourceToCategories.resourceId, res.id)
-      );
-      // We don't have a direct eq(a, b) AND eq(c, d) easily without importing `and`, so let's just insert if empty
-      const hasLink = existingLink.some(l => l.categoryId === res.categoryId);
-      if (!hasLink) {
-        await db.insert(resourceToCategories).values({
-          resourceId: res.id,
-          categoryId: res.categoryId
-        });
-      }
-    }
-  }
-
-  // 3. Migrate workSessions
-  console.log("Migrating workSessions...");
-  const sessions = await db.select().from(workSessions);
-  for (const s of sessions) {
-    if (s.sessionType && categoryIds[s.sessionType]) {
-      await db.update(workSessions)
-        .set({ categoryId: categoryIds[s.sessionType] })
-        .where(eq(workSessions.id, s.id));
-    }
-  }
-
-  // 4. Migrate workOrders
-  console.log("Migrating workOrders...");
-  const orders = await db.select().from(workOrders);
-  for (const o of orders) {
-    if (o.sessionType && categoryIds[o.sessionType]) {
-      await db.update(workOrders)
-        .set({ categoryId: categoryIds[o.sessionType] })
-        .where(eq(workOrders.id, o.id));
-    }
-  }
-
-  console.log("Migration complete!");
+/**
+ * Historyczny skrypt jednorazowy (mapowanie starych typów sesji → `category_id`, kopiowanie `resources.category_id` → `resource_to_categories`).
+ *
+ * Po migracji **`0014_drop_legacy_session_type_resource_category.sql`** te kolumny nie istnieją — uruchomienie jest zbędne.
+ * Zachowane jako dokumentacja; dla bardzo starych kopii DB użyj commitu sprzed usunięcia kolumn lub ręcznego SQL z repo history.
+ */
+async function main() {
+  console.info(
+    '[migrate_categories] Pominięto — schema bez session_type oraz bez resources.category_id (patrz drizzle/0014_*.sql).',
+  );
 }
 
-migrate().catch(console.error);
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

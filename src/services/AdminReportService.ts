@@ -92,7 +92,6 @@ export class AdminReportService {
     const rows = await db
       .select({
         id: workSessions.id,
-        sessionType: workSessions.sessionType,
         categoryName: resourceCategories.name,
         taskDescription: workSessions.taskDescription,
         startTime: workSessions.startTime,
@@ -110,7 +109,6 @@ export class AdminReportService {
 
     return rows.map((r) => ({
       id: r.id,
-      sessionType: r.sessionType,
       categoryName: r.categoryName ?? null,
       taskDescription: r.taskDescription ?? null,
       startTime: r.startTime,

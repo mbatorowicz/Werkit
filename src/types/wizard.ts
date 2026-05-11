@@ -8,6 +8,9 @@ export type WizardCategory = {
   showMaterial: boolean;
   showQuantity: boolean;
   showTaskDescription: boolean;
+  showResourceName: boolean;
+  showResourceDescription: boolean;
+  showRegistrationNumber: boolean;
   reqCustomer: boolean;
   reqMaterial: boolean;
   reqQuantity: boolean;
@@ -17,7 +20,7 @@ export type WizardCategory = {
   isStationary?: boolean;
 };
 
-export type WizardMachine = { id: number; name: string; categoryIds: number[] };
+export type WizardMachine = { id: number; name: string; categoryIds: number[]; description?: string | null };
 
 export type WizardMaterial = { id: number; name: string; categoryIds?: number[] };
 

@@ -1,6 +1,15 @@
 import { db } from '@/db';
-import { workOrders, resources, materials, customers, users, workSessions } from '@/db/schema';
-import { eq, and, aliasedTable, asc } from 'drizzle-orm';
+import {
+  workOrders,
+  resources,
+  materials,
+  customers,
+  users,
+  workSessions,
+  sessionPhotos,
+  sessionNotes,
+} from '@/db/schema';
+import { eq, and, aliasedTable, asc, sql } from 'drizzle-orm';
 import { resourceCategories } from '@/db/schema';
 import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
@@ -28,7 +37,17 @@ export class WorkerOrderService {
       expectedDurationHours: workOrders.expectedDurationHours,
       priority: workOrders.priority,
       dueDate: workOrders.dueDate,
-      createdAt: workOrders.createdAt
+      createdAt: workOrders.createdAt,
+      hasPhotos: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${sessionPhotos}
+        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionPhotos.workSessionId}
+        WHERE ${workSessions.workOrderId} = ${workOrders.id}
+      )`,
+      hasNotes: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${sessionNotes}
+        INNER JOIN ${workSessions} ON ${workSessions.id} = ${sessionNotes.workSessionId}
+        WHERE ${workSessions.workOrderId} = ${workOrders.id}
+      )`,
     })
     .from(workOrders)
     .leftJoin(resources, eq(workOrders.resourceId, resources.id))
@@ -39,9 +58,11 @@ export class WorkerOrderService {
     .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
     .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
 
-    return rows.map(row => ({
+    return rows.map((row) => ({
       ...row,
       priority: normalizeWorkOrderPriority(row.priority),
+      hasPhotos: Boolean(row.hasPhotos),
+      hasNotes: Boolean(row.hasNotes),
     }));
   }
 
@@ -53,7 +74,7 @@ export class WorkerOrderService {
     const [order] = await db.select().from(workOrders).where(and(eq(workOrders.id, orderId), eq(workOrders.userId, userId)));
     if (!order) throw new Error('order_not_found');
 
-    await db.update(workOrders).set({ status: 'COMPLETED' }).where(eq(workOrders.id, order.id));
+    await db.update(workOrders).set({ status: 'IN_PROGRESS' }).where(eq(workOrders.id, order.id));
 
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
@@ -61,7 +82,6 @@ export class WorkerOrderService {
       workOrderId: order.id,
       userId: userId,
       categoryId: order.categoryId!,
-      sessionType: 'MIGRATED',
       resourceId: order.resourceId,
       materialId: order.materialId,
       customerId: order.customerId,

@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { desc, eq, sql } from 'drizzle-orm';
-import bcrypt from 'bcrypt';
+import { comparePassword } from '@/lib/passwordCrypto';
 
 export class AdminUserService {
   static async getAllUsers() {
@@ -72,7 +72,7 @@ export class AdminUserService {
       .where(eq(users.id, userId))
       .limit(1);
     if (!row[0]) return false;
-    return bcrypt.compare(plainPassword, row[0].passwordHash);
+    return comparePassword(plainPassword, row[0].passwordHash);
   }
 
   static async deleteUser(userId: number) {

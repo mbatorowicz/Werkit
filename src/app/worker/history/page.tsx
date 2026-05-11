@@ -67,6 +67,8 @@ export default async function HistoryPage() {
                      asDate(s.endTime)?.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" }) ?? "—"
                    }`}
                    className="mt-2"
+                   attachmentPhotos={Boolean(s.hasPhotos)}
+                   attachmentNotes={Boolean(s.hasNotes)}
                  />
               </Link>
            ))}

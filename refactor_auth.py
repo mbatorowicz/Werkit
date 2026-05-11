@@ -24,7 +24,7 @@ for root, _, files in os.walk('src'):
     for f in files:
         if f.endswith('.ts') or f.endswith('.tsx'):
             path = os.path.join(root, f)
-            if 'middleware.ts' in path or 'lib\\auth.ts' in path or 'lib/auth.ts' in path: continue
+            if 'proxy.ts' in path or 'middleware.ts' in path or 'lib\\auth.ts' in path or 'lib/auth.ts' in path: continue
             
             with open(path, 'r', encoding='utf-8') as file:
                 content = file.read()

@@ -28,6 +28,8 @@ export type UnifiedGanttItem = {
   createdAt?: string | Date | null;
   _sortDate?: number;
   _statusGroup?: number;
+  hasPhotos?: boolean | null;
+  hasNotes?: boolean | null;
   [key: string]: unknown;
 };
 
@@ -56,6 +58,7 @@ export type BaseMachine = {
   brand?: string;
   model?: string;
   registrationNumber?: string;
+  description?: string | null;
   categoryIds?: number[]; // IDs of classifiers
   imageUrl?: string | null;
 };
@@ -87,12 +90,15 @@ export type BaseCategory = {
   /** Warsztat / plac — bez GPS trasy i bez „dojechał na miejsce” wg odległości. */
   isStationary: boolean;
   color?: string | null;
+  /** Formularz zasobu: marka i model. */
+  showResourceName: boolean;
+  showResourceDescription: boolean;
+  showRegistrationNumber: boolean;
 };
 
 /** Wiersz aktywnej sesji w module Raporty (serwer → RSC). */
 export type ReportActiveSessionRow = {
   id: number;
-  sessionType: string;
   categoryName: string | null;
   taskDescription: string | null;
   startTime: Date;

@@ -5,7 +5,8 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 **Powiązane dokumenty:**
 
 - **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
-- **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — pełna inwentaryzacja: wszystkie tabele DB, endpointy API, serwisy z metodami, hooki, sloty i18n, pułapki i dług techniczny. **Otwórz przed większą zmianą** — szybciej znajdziesz odpowiedź niż grepem.
+- **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
+- **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy, ryzyko); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
 
 ---
 
@@ -26,7 +27,7 @@ Architektura **warstwowa z serwisami** (od **v1.6.6**, utrwalona m.in. w **v1.9*
 [Klient: przeglądarka / WebView Capacitor]
         │
         ▼
-[src/middleware.ts] — JWT (jose), rola admin/worker, segmentacja tras API
+[`src/proxy.ts`] — JWT (jose), rola admin/worker, segmentacja tras API (Edge proxy)
         │
         ├──► Route Handler src/app/api/.../route.ts → src/services/* → db (Drizzle)
         │
@@ -81,7 +82,7 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 
 ### Docelowy wzorzec kontrolera
 
-1. Autoryzacja (uzupełnienie middleware, jeśli potrzebne).
+1. Autoryzacja (uzupełnienie `proxy.ts`, jeśli potrzebne).
 2. Parsowanie wejścia / kodów odpowiedzi HTTP.
 3. **Wywołanie metody serwisu**.
 4. `NextResponse.json(...)` lub delegacja błędu.
@@ -135,7 +136,11 @@ Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samy
 
 ### 9.1. Pipeline migracji (rzeczywistość)
 
-W repo **nie ma** automatycznej migracji w `next build` ani w starcie aplikacji. Wdrożenie idzie ręcznie:
+W repo **nie ma** automatycznej migracji w `next build` ani w starcie aplikacji. Wdrożenie realizuje się ze skryptów (`tsx`), przy czym **agenci AI** uruchamiają je samodzielnie na bazie z `.env.local` — patrz [`AGENTS.md` §1a](./AGENTS.md).
+
+Mechanizm sprawdzania zgodności kolumn DB z kodem: **`npm run db:verify-schema`** (`src/scripts/verify_schema_alignment.ts` ↔ lista zsynchronizowana z `src/db/schema.ts`).
+
+Wdrożenie na konkretną bazę idzie przez:
 
 1. Lokalnie: zmiana w `schema.ts` + nowy plik `drizzle/000X_<nazwa>.sql` (idempotentny: `ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`) + wpis w `drizzle/meta/_journal.json`.
 2. Na bazę produkcyjną: skrypt `npm run db:napraw-*` (gotowe runnery `tsx` w `src/scripts/apply_*.ts`) **albo** `psql` z wklejonym SQL-em.
@@ -151,13 +156,11 @@ Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkc
 
 ---
 
-## 10. Uwierzytelnienie i middleware
+## 10. Uwierzytelnienie i proxy (Edge)
 
 - Cookie **`auth_token`**, weryfikacja **`jose`** (`jwtVerify`).
-- **`src/middleware.ts`** — matcher dla `/admin`, `/worker`, `/login`, `/api`.
-- **API współdzielone** (worker + ewentualnie konfiguracja offline urządzeń): prefiksy zdefiniowane jako **`SHARED_API_PREFIXES`** w middleware (`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`). Nowy publiczny shard API → **dopisz prefiks tam**, inaczej trafi pod domyślne reguły **admin API**.
-
-**Next.js 16** może wyświetlać ostrzeżenie o deprecacji nazwy „middleware” na rzecz „proxy” — zmiana nazwy pliku bez pełnej migracji **wyłączy ochronę** tras.
+- **`src/proxy.ts`** — eksport **`proxy`**, matcher dla `/admin`, `/worker`, `/login`, `/api`.
+- **API współdzielone** (worker + ewentualnie konfiguracja offline urządzeń): prefiksy zdefiniowane jako **`SHARED_API_PREFIXES`** w `proxy.ts` (`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`). Nowy publiczny shard API → **dopisz prefiks tam**, inaczej trafi pod domyślne reguły **admin API**.
 
 ---
 
