@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Map, Trash2 } from "lucide-react";
+import { Map } from "lucide-react";
 import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
@@ -66,6 +66,9 @@ export function OrdersDispatchTable({
   onDeleteArchivedSession: (sessionId: number) => Promise<void>;
 }) {
   void _tableColSpan;
+  void onDeleteWorkOrder;
+  void onForceCompleteSession;
+  void onDeleteArchivedSession;
   const dict = ordersDict;
   /** Clock poza renderem — unika Date.now() podczas czystego renderu (React Compiler). */
   const [liveClockMs, setLiveClockMs] = useState<number | null>(null);
@@ -273,6 +276,20 @@ export function OrdersDispatchTable({
   };
 
   if (viewMode === "table") {
+    const statusRank: Record<UnifiedGanttItem["status"], number> = {
+      PENDING: 0,
+      IN_PROGRESS: 1,
+      COMPLETED: 2,
+    };
+    const sortedItems = [...items].sort((a, b) => {
+      const ra = statusRank[a.status] ?? 9;
+      const rb = statusRank[b.status] ?? 9;
+      if (ra !== rb) return ra - rb;
+      // w ramach grupy: najnowsze/aktualne wyżej (bez hard-dependency na danych)
+      const da = (a._sortDate as number | undefined) ?? Date.parse(String(a.dueDate ?? a.startTime ?? a.createdAt ?? 0));
+      const db = (b._sortDate as number | undefined) ?? Date.parse(String(b.dueDate ?? b.startTime ?? b.createdAt ?? 0));
+      return (db || 0) - (da || 0);
+    });
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -281,15 +298,10 @@ export function OrdersDispatchTable({
               <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 {dict.workerDate}
               </th>
-              {canMutate && (
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right w-[140px]">
-                  {dict.actionsColumn}
-                </th>
-              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
-            {items.map((item) => (
+            {sortedItems.map((item) => (
               <tr
                 key={`${item._type}-${item.id}`}
                 onClick={() => onRowClick(item)}
@@ -306,51 +318,6 @@ export function OrdersDispatchTable({
                     </div>
                   )}
                 </td>
-                {canMutate && (
-                  <td className="px-6 py-4 text-right align-top" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-end gap-1 flex-wrap">
-                      {item._type === "ORDER" && (
-                        <button
-                          type="button"
-                          title={dict.titleTooltipDeleteOrder}
-                          onClick={() => {
-                            if (!dict.deletePendingConfirm || !confirm(dict.deletePendingConfirm)) return;
-                            void onDeleteWorkOrder(item.id).catch(() => {});
-                          }}
-                          className="p-2 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                      {item._type === "SESSION" && item.status === "IN_PROGRESS" && (
-                        <button
-                          type="button"
-                          title={dict.titleTooltipForceComplete}
-                          onClick={() => {
-                            if (!dict.forceCompleteConfirm || !confirm(dict.forceCompleteConfirm)) return;
-                            void onForceCompleteSession(item.id).catch(() => {});
-                          }}
-                          className="p-2 rounded-lg text-zinc-500 hover:text-emerald-600 hover:bg-emerald-500/10 transition border border-transparent hover:border-emerald-500/20"
-                        >
-                          <CheckCircle2 className="w-4 h-4" />
-                        </button>
-                      )}
-                      {item._type === "SESSION" && item.status === "COMPLETED" && (
-                        <button
-                          type="button"
-                          title={dict.titleTooltipDeleteArchive}
-                          onClick={() => {
-                            if (!dict.deleteArchivedConfirm || !confirm(dict.deleteArchivedConfirm)) return;
-                            void onDeleteArchivedSession(item.id).catch(() => {});
-                          }}
-                          className="p-2 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
@@ -512,23 +479,6 @@ export function OrdersDispatchTable({
                         )}
                       </div>
 
-                      {canMutate && (
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          {item._type === "ORDER" && (
-                            <button
-                              type="button"
-                              title={dict.titleTooltipDeleteOrder}
-                              onClick={() => {
-                                if (!dict.deletePendingConfirm || !confirm(dict.deletePendingConfirm)) return;
-                                void onDeleteWorkOrder(item.id).catch(() => {});
-                              }}
-                              className="p-2 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   }
                 />
@@ -653,23 +603,6 @@ export function OrdersDispatchTable({
                         </div>
                       </div>
 
-                      {canMutate && (
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          {item._type === "SESSION" && item.status === "IN_PROGRESS" && (
-                            <button
-                              type="button"
-                              title={dict.titleTooltipForceComplete}
-                              onClick={() => {
-                                if (!dict.forceCompleteConfirm || !confirm(dict.forceCompleteConfirm)) return;
-                                void onForceCompleteSession(item.id).catch(() => {});
-                              }}
-                              className="p-2 rounded-lg text-zinc-500 hover:text-emerald-600 hover:bg-emerald-500/10 transition border border-transparent hover:border-emerald-500/20"
-                            >
-                              <CheckCircle2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   }
                 />
@@ -783,23 +716,6 @@ export function OrdersDispatchTable({
                         )}
                       </div>
 
-                      {canMutate && (
-                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          {item._type === "SESSION" && item.status === "COMPLETED" && (
-                            <button
-                              type="button"
-                              title={dict.titleTooltipDeleteArchive}
-                              onClick={() => {
-                                if (!dict.deleteArchivedConfirm || !confirm(dict.deleteArchivedConfirm)) return;
-                                void onDeleteArchivedSession(item.id).catch(() => {});
-                              }}
-                              className="p-2 rounded-lg text-zinc-500 hover:text-red-600 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      )}
                     </div>
                   }
                 />
