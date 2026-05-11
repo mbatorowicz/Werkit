@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, Wrench, Plus, X, Truck, Edit2, Layers, Camera } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 
 type Category = {
@@ -445,13 +446,12 @@ export default function MachinesClient() {
               </div>
               <form onSubmit={handleCSave} className="p-6 space-y-4">
                  <input required type="text" placeholder={dict.catPlaceholder} value={cForm.name} onChange={e => setCForm({...cForm, name: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none" />
-                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{dict.catColorLabel}</label>
-                   <div className="flex items-center gap-3">
-                     <input type="color" value={cForm.color} onChange={e => setCForm({...cForm, color: e.target.value})} className="w-10 h-10 rounded border-0 p-0 cursor-pointer" />
-                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.catColorHint}</span>
-                   </div>
-                 </div>
+                 <AdminCategoryColorFieldRow
+                   color={cForm.color}
+                   onColorChange={(color) => setCForm({ ...cForm, color })}
+                   label={dict.catColorLabel}
+                   hint={dict.catColorHint}
+                 />
                  
                  <div className="space-y-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{dict.catMobilityTitle}</h3>

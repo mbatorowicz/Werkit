@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Trash2, HardHat, Plus, X, Edit2, Layers } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 
 type MaterialCategory = { id: number; name: string; color?: string | null };
 type MaterialRow = { id: number; name: string; categoryIds?: number[] };
@@ -376,18 +377,12 @@ export default function MaterialsClient() {
                 onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
                 className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
               />
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{machDict.catColorLabel}</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="color"
-                    value={catForm.color}
-                    onChange={(e) => setCatForm({ ...catForm, color: e.target.value })}
-                    className="w-10 h-10 rounded border-0 p-0 cursor-pointer"
-                  />
-                  <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{machDict.catColorHint}</span>
-                </div>
-              </div>
+              <AdminCategoryColorFieldRow
+                color={catForm.color}
+                onColorChange={(color) => setCatForm({ ...catForm, color })}
+                label={machDict.catColorLabel}
+                hint={machDict.catColorHint}
+              />
               <button type="submit" className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold py-2.5 rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition mt-4">
                 {dict.saveDict}
               </button>

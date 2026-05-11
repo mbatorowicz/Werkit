@@ -241,7 +241,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         timelineEvents={timelineEvents}
       />
 
-      <GpsWarningModal 
+      <GpsWarningModal
+        dict={dict}
         showGpsWarning={showGpsWarning}
         setShowGpsWarning={setShowGpsWarning}
         pendingOrderId={pendingOrderId}

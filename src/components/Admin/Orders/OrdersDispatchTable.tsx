@@ -1,14 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Map } from "lucide-react";
-import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
-import { WorkOrderPriorityRibbon } from "@/components/work-orders";
-import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
-import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
+import { sortUnifiedDispatchTableRows } from "@/features/admin/orders/dispatchTableUi";
+import { OrdersDispatchItemCard } from "@/components/Admin/Orders/OrdersDispatchItemCard";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
@@ -21,7 +20,7 @@ function DispatchColumn({
 }: {
   title: string;
   count: number;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <div className="min-w-0">
@@ -42,7 +41,7 @@ export function OrdersDispatchTable({
   workerUiLabels,
   canMutate,
   isLoading,
-  tableColSpan: _tableColSpan, // zgodność API (fallback-y w parent), nieużywane w układzie board
+  tableColSpan: _tableColSpan,
   tableLimit,
   unifiedItems,
   viewMode,
@@ -71,30 +70,9 @@ export function OrdersDispatchTable({
   void onDeleteWorkOrder;
   void onForceCompleteSession;
   void onDeleteArchivedSession;
+
   const dict = ordersDict;
-  /** Clock poza renderem — unika Date.now() podczas czystego renderu (React Compiler). */
   const [liveClockMs, setLiveClockMs] = useState<number | null>(null);
-
-  const statusTone = (status: UnifiedGanttItem["status"]) => {
-    // planned / in progress / done
-    if (status === "PENDING") return "planned";
-    if (status === "IN_PROGRESS") return "active";
-    return "done";
-  };
-
-  const statusPillClass = (status: UnifiedGanttItem["status"]) => {
-    if (status === "PENDING")
-      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20";
-    if (status === "IN_PROGRESS")
-      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20";
-    return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20";
-  };
-
-  const statusLabel = (status: UnifiedGanttItem["status"]) => {
-    if (status === "PENDING") return dict.pending;
-    if (status === "IN_PROGRESS") return archiveDict.inProgress;
-    return archiveDict.completed;
-  };
 
   useEffect(() => {
     const tick = () => setLiveClockMs(Date.now());
@@ -127,180 +105,8 @@ export function OrdersDispatchTable({
   const activeAll = unifiedItems.filter((i) => i.status === "IN_PROGRESS");
   const doneAll = unifiedItems.filter((i) => i.status === "COMPLETED");
 
-  const renderCard = (item: UnifiedGanttItem) => {
-    const isWorking = item.status === "IN_PROGRESS";
-    const tone = statusTone(item.status);
-    let progress = 0;
-    if (isWorking && item._sortDate && liveClockMs !== null) {
-      const start = new Date(item._sortDate as number).getTime();
-      const elapsedMs = liveClockMs - start;
-      const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
-      progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
-    }
-
-    const orderNo = `#${item.workOrderId || item.id}`;
-    const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
-    const machine = ((item.resourceName as string) || dict.noMachine) as string;
-    const material = (item.materialName as string) || "";
-    const qty = item.quantityTons ? `${item.quantityTons}t` : "";
-    const customer = [
-      item.customerLastName ? (item.customerLastName as string) : "",
-      item.customerFirstName ? (item.customerFirstName as string) : "",
-    ]
-      .join(" ")
-      .trim();
-    const desc = (item.taskDescription as string) || "";
-
-    const tStart =
-      item.status === "PENDING"
-        ? item.dueDate
-          ? new Date(item.dueDate as string)
-          : new Date(item.createdAt as string)
-        : item.startTime
-          ? new Date(item.startTime as string)
-          : null;
-    const tEnd =
-      item.status === "COMPLETED" && item.endTime
-        ? new Date(item.endTime as string)
-        : item.status === "IN_PROGRESS" && item.startTime && liveClockMs !== null
-          ? new Date(liveClockMs)
-          : item.status === "PENDING" && item.dueDate && item.expectedDurationHours
-            ? new Date(
-                new Date(item.dueDate as string).getTime() +
-                  Number(item.expectedDurationHours) * 60 * 60 * 1000,
-              )
-            : null;
-
-    const dateLabel = tStart
-      ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-      : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
-    const timeLabel = tStart
-      ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-          tEnd
-            ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}`
-            : ""
-        }`
-      : "";
-
-    return (
-      <OrderLabelCard
-        density="compact"
-        tone={tone}
-        orderNo={orderNo}
-        title={item.workerName as string}
-        orderedBy={(item.creatorName ?? item.workerName) ?? null}
-        orderedByLabel={dict.orderedBy}
-        attachmentPhotos={Boolean(item.hasPhotos)}
-        attachmentNotes={Boolean(item.hasNotes)}
-        badges={
-          <>
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(
-                item.status,
-              )}`}
-            >
-              {statusLabel(item.status)}
-            </span>
-            {item._type === "ORDER" ? (
-              <WorkOrderPriorityRibbon
-                priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
-                labels={workerUiLabels}
-              />
-            ) : null}
-          </>
-        }
-        subheader={
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.expectedDurationHours && (
-              <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-              </div>
-            )}
-            {item.dueDate && (
-              <div className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                {formatDict(workerUiLabels.term, {
-                  date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-                  time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                })}
-              </div>
-            )}
-          </div>
-        }
-        showDateTime={false}
-        mode={mode}
-        machine={machine}
-        material={material || "—"}
-        quantity={qty || "—"}
-        customer={customer || "—"}
-        description={desc || "—"}
-        dateLabel={dateLabel}
-        timeLabel={timeLabel || "—"}
-        footer={
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {item.status === "COMPLETED" && item.startTime && item.endTime && (
-                <>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                    {dict.start}:{" "}
-                    {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                    {dict.end}:{" "}
-                    {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </>
-              )}
-              {isWorking && (
-                <div className="w-[140px]">
-                  <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                    <span>{dict.timeProgressLabel}</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 relative"
-                      style={{ width: `${Math.max(5, progress)}%` }}
-                    >
-                      <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        }
-      />
-    );
-  };
-
   if (viewMode === "table") {
-    type ItemStatus = NonNullable<UnifiedGanttItem["status"]>;
-    const statusRank: Record<ItemStatus, number> = {
-      PENDING: 0,
-      IN_PROGRESS: 1,
-      COMPLETED: 2,
-    };
-    const sortedItems = [...unifiedItems].sort((a, b) => {
-      const ra = a.status ? (statusRank[a.status as ItemStatus] ?? 9) : 9;
-      const rb = b.status ? (statusRank[b.status as ItemStatus] ?? 9) : 9;
-      if (ra !== rb) return ra - rb;
-      // w ramach grupy: najnowsze/aktualne wyżej (bez hard-dependency na danych)
-      const da = (a._sortDate as number | undefined) ?? Date.parse(String(a.dueDate ?? a.startTime ?? a.createdAt ?? 0));
-      const db = (b._sortDate as number | undefined) ?? Date.parse(String(b.dueDate ?? b.startTime ?? b.createdAt ?? 0));
-      return (db || 0) - (da || 0);
-    });
+    const sortedItems = sortUnifiedDispatchTableRows(unifiedItems);
     const start = Math.max(0, (Math.max(1, page) - 1) * Math.max(1, tableLimit));
     const pageItems = sortedItems.slice(start, start + Math.max(1, tableLimit));
     return (
@@ -323,7 +129,14 @@ export function OrdersDispatchTable({
                 }`}
               >
                 <td className="px-6 py-4">
-                  {renderCard(item)}
+                  <OrdersDispatchItemCard
+                    item={item}
+                    layout="table"
+                    liveClockMs={liveClockMs}
+                    ordersDict={ordersDict}
+                    archiveDict={archiveDict}
+                    workerUiLabels={workerUiLabels}
+                  />
                 </td>
               </tr>
             ))}
@@ -337,402 +150,50 @@ export function OrdersDispatchTable({
   const active = activeAll.slice(0, tableLimit);
   const done = doneAll.slice(0, tableLimit);
 
+  const cardProps = {
+    liveClockMs,
+    ordersDict,
+    archiveDict,
+    workerUiLabels,
+  };
+
   return (
     <div className="px-4 py-4">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DispatchColumn title={dict.pending} count={planned.length}>
-          {planned.map((item) => {
-            const isWorking = item.status === "IN_PROGRESS";
-            const tone = statusTone(item.status);
-            let progress = 0;
-            if (isWorking && item._sortDate && liveClockMs !== null) {
-              const start = new Date(item._sortDate as number).getTime();
-              const elapsedMs = liveClockMs - start;
-              const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
-              progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
-            }
-
-            const orderNo = `#${item.workOrderId || item.id}`;
-            const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
-            const machine = ((item.resourceName as string) || dict.noMachine) as string;
-            const material = (item.materialName as string) || "";
-            const qty = item.quantityTons ? `${item.quantityTons}t` : "";
-            const customer = [
-              item.customerLastName ? (item.customerLastName as string) : "",
-              item.customerFirstName ? (item.customerFirstName as string) : "",
-            ]
-              .join(" ")
-              .trim();
-            const desc = (item.taskDescription as string) || "";
-
-            const tStart =
-              item.status === "PENDING"
-                ? item.dueDate
-                  ? new Date(item.dueDate as string)
-                  : new Date(item.createdAt as string)
-                : item.startTime
-                  ? new Date(item.startTime as string)
-                  : null;
-            const tEnd =
-              item.status === "COMPLETED" && item.endTime
-                ? new Date(item.endTime as string)
-                : item.status === "IN_PROGRESS" && item.startTime && liveClockMs !== null
-                  ? new Date(liveClockMs)
-                  : item.status === "PENDING" && item.dueDate && item.expectedDurationHours
-                    ? new Date(
-                        new Date(item.dueDate as string).getTime() +
-                          Number(item.expectedDurationHours) * 60 * 60 * 1000,
-                      )
-                    : null;
-
-            const dateLabel = tStart
-              ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-              : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
-            const timeLabel = tStart
-              ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-                  tEnd
-                    ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}`
-                    : ""
-                }`
-              : "";
-
-            return (
-              <div
-                key={`${item._type}-${item.id}`}
-                onClick={() => onRowClick(item)}
-                className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-              >
-                <OrderLabelCard
-                  density="compact"
-                  tone={tone}
-                  orderNo={orderNo}
-                  title={item.workerName as string}
-                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
-                  orderedByLabel={dict.orderedBy}
-                  attachmentPhotos={Boolean(item.hasPhotos)}
-                  attachmentNotes={Boolean(item.hasNotes)}
-                  badges={
-                    <>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(
-                          item.status,
-                        )}`}
-                      >
-                        {statusLabel(item.status)}
-                      </span>
-                      {item._type === "ORDER" ? (
-                        <WorkOrderPriorityRibbon
-                          priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
-                          labels={workerUiLabels}
-                        />
-                      ) : null}
-                    </>
-                  }
-                  mode={mode}
-                  machine={machine}
-                  material={material || "—"}
-                  quantity={qty || "—"}
-                  customer={customer || "—"}
-                  description={desc || "—"}
-                  dateLabel={dateLabel}
-                  timeLabel={timeLabel || "—"}
-                  footer={
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {item.expectedDurationHours && (
-                          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-                          </div>
-                        )}
-                        {item.dueDate && (
-                          <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {formatDict(workerUiLabels.term, {
-                              date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-                              time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }),
-                            })}
-                          </div>
-                        )}
-                        {item.status === "COMPLETED" && item.startTime && item.endTime && (
-                          <>
-                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              {dict.start}:{" "}
-                              {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              {dict.end}:{" "}
-                              {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                          </>
-                        )}
-                        {isWorking && (
-                          <div className="w-[140px]">
-                            <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                              <span>{dict.timeProgressLabel}</span>
-                              <span>{progress}%</span>
-                            </div>
-                            <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 relative"
-                                style={{ width: `${Math.max(5, progress)}%` }}
-                              >
-                                <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                    </div>
-                  }
-                />
-              </div>
-            );
-          })}
+          {planned.map((item) => (
+            <div
+              key={`${item._type}-${item.id}`}
+              onClick={() => onRowClick(item)}
+              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
+            >
+              <OrdersDispatchItemCard item={item} layout="boardPending" {...cardProps} />
+            </div>
+          ))}
         </DispatchColumn>
 
         <DispatchColumn title={archiveDict.inProgress} count={active.length}>
-          {active.map((item) => {
-            // reuse planned rendering by delegating to same JSX via minimal duplication
-            // (kept inline to avoid extra components; static DispatchColumn is already hoisted)
-            const isWorking = item.status === "IN_PROGRESS";
-            const tone = statusTone(item.status);
-            let progress = 0;
-            if (isWorking && item._sortDate && liveClockMs !== null) {
-              const start = new Date(item._sortDate as number).getTime();
-              const elapsedMs = liveClockMs - start;
-              const expectedMs = Number(item.expectedDurationHours || 8) * 60 * 60 * 1000;
-              progress = Math.min(100, Math.round((elapsedMs / expectedMs) * 100));
-            }
-
-            const orderNo = `#${item.workOrderId || item.id}`;
-            const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
-            const machine = ((item.resourceName as string) || dict.noMachine) as string;
-            const material = (item.materialName as string) || "";
-            const qty = item.quantityTons ? `${item.quantityTons}t` : "";
-            const customer = [
-              item.customerLastName ? (item.customerLastName as string) : "",
-              item.customerFirstName ? (item.customerFirstName as string) : "",
-            ]
-              .join(" ")
-              .trim();
-            const desc = (item.taskDescription as string) || "";
-
-            const tStart = item.startTime ? new Date(item.startTime as string) : null;
-            const dateLabel = tStart
-              ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-              : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
-            const timeLabel = tStart
-              ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })} – ${
-                  liveClockMs !== null
-                    ? new Date(liveClockMs).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
-                    : ""
-                }`
-              : "—";
-
-            return (
-              <div
-                key={`${item._type}-${item.id}`}
-                onClick={() => onRowClick(item)}
-                className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-              >
-                <OrderLabelCard
-                  density="compact"
-                  tone={tone}
-                  orderNo={orderNo}
-                  title={item.workerName as string}
-                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
-                  orderedByLabel={dict.orderedBy}
-                  attachmentPhotos={Boolean(item.hasPhotos)}
-                  attachmentNotes={Boolean(item.hasNotes)}
-                  badges={
-                    <>
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(
-                          item.status,
-                        )}`}
-                      >
-                        {statusLabel(item.status)}
-                      </span>
-                      {item._type === "ORDER" ? (
-                        <WorkOrderPriorityRibbon
-                          priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
-                          labels={workerUiLabels}
-                        />
-                      ) : null}
-                    </>
-                  }
-                  mode={mode}
-                  machine={machine}
-                  material={material || "—"}
-                  quantity={qty || "—"}
-                  customer={customer || "—"}
-                  description={desc || "—"}
-                  dateLabel={dateLabel}
-                  timeLabel={timeLabel || "—"}
-                  footer={
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {item.expectedDurationHours && (
-                          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-                          </div>
-                        )}
-                        {item.dueDate && (
-                          <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {formatDict(workerUiLabels.term, {
-                              date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-                              time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }),
-                            })}
-                          </div>
-                        )}
-                        <div className="w-[140px]">
-                          <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-                            <span>{dict.timeProgressLabel}</span>
-                            <span>{progress}%</span>
-                          </div>
-                          <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 relative"
-                              style={{ width: `${Math.max(5, progress)}%` }}
-                            >
-                              <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                    </div>
-                  }
-                />
-              </div>
-            );
-          })}
+          {active.map((item) => (
+            <div
+              key={`${item._type}-${item.id}`}
+              onClick={() => onRowClick(item)}
+              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
+            >
+              <OrdersDispatchItemCard item={item} layout="boardActive" {...cardProps} />
+            </div>
+          ))}
         </DispatchColumn>
 
         <DispatchColumn title={archiveDict.completed} count={done.length}>
-          {done.map((item) => {
-            const tone = statusTone(item.status);
-            const orderNo = `#${item.workOrderId || item.id}`;
-            const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
-            const machine = ((item.resourceName as string) || dict.noMachine) as string;
-            const material = (item.materialName as string) || "";
-            const qty = item.quantityTons ? `${item.quantityTons}t` : "";
-            const customer = [
-              item.customerLastName ? (item.customerLastName as string) : "",
-              item.customerFirstName ? (item.customerFirstName as string) : "",
-            ]
-              .join(" ")
-              .trim();
-            const desc = (item.taskDescription as string) || "";
-
-            const tStart = item.startTime ? new Date(item.startTime as string) : null;
-            const tEnd = item.endTime ? new Date(item.endTime as string) : null;
-            const dateLabel = tStart
-              ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-              : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
-            const timeLabel = tStart
-              ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-                  tEnd
-                    ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}`
-                    : ""
-                }`
-              : "—";
-
-            return (
-              <div
-                key={`${item._type}-${item.id}`}
-                onClick={() => onRowClick(item)}
-                className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-              >
-                <OrderLabelCard
-                  density="compact"
-                  tone={tone}
-                  orderNo={orderNo}
-                  title={item.workerName as string}
-                  orderedBy={(item.creatorName ?? item.workerName) ?? null}
-                  orderedByLabel={dict.orderedBy}
-                  attachmentPhotos={Boolean(item.hasPhotos)}
-                  attachmentNotes={Boolean(item.hasNotes)}
-                  badges={
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusPillClass(
-                        item.status,
-                      )}`}
-                    >
-                      {statusLabel(item.status)}
-                    </span>
-                  }
-                  mode={mode}
-                  machine={machine}
-                  material={material || "—"}
-                  quantity={qty || "—"}
-                  customer={customer || "—"}
-                  description={desc || "—"}
-                  dateLabel={dateLabel}
-                  timeLabel={timeLabel || "—"}
-                  footer={
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {item.expectedDurationHours && (
-                          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-                          </div>
-                        )}
-                        {item.dueDate && (
-                          <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-                            {formatDict(workerUiLabels.term, {
-                              date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-                              time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              }),
-                            })}
-                          </div>
-                        )}
-                        {item.startTime && item.endTime && (
-                          <>
-                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              {dict.start}:{" "}
-                              {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                            <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                              {dict.end}:{" "}
-                              {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </div>
-                          </>
-                        )}
-                      </div>
-
-                    </div>
-                  }
-                />
-              </div>
-            );
-          })}
+          {done.map((item) => (
+            <div
+              key={`${item._type}-${item.id}`}
+              onClick={() => onRowClick(item)}
+              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
+            >
+              <OrdersDispatchItemCard item={item} layout="boardDone" {...cardProps} />
+            </div>
+          ))}
         </DispatchColumn>
       </div>
     </div>

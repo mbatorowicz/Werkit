@@ -2,6 +2,9 @@
 
 import { Navigation } from "lucide-react";
 import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
+import type { AppDictionary } from "@/i18n/types";
+
+type WorkerClientDict = AppDictionary["worker"]["client"];
 
 interface GpsWarningModalProps {
   showGpsWarning: boolean;
@@ -9,6 +12,7 @@ interface GpsWarningModalProps {
   pendingOrderId: number | null;
   setPendingOrderId: (id: number | null) => void;
   handleAcceptOrder: (orderId: number) => void;
+  dict: WorkerClientDict;
 }
 
 export default function GpsWarningModal({
@@ -16,7 +20,8 @@ export default function GpsWarningModal({
   setShowGpsWarning,
   pendingOrderId,
   setPendingOrderId,
-  handleAcceptOrder
+  handleAcceptOrder,
+  dict,
 }: GpsWarningModalProps) {
   if (!showGpsWarning) return null;
 
@@ -27,34 +32,37 @@ export default function GpsWarningModal({
         <div className="bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-4">
           <Navigation className="w-8 h-8" />
         </div>
-        <h2 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">Uprawnienia GPS</h2>
+        <h2 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">{dict.gpsAlwaysPermissionTitle}</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center mb-6">
-          Aby trasa zapisywała się poprawnie w kieszeni (z wygaszonym ekranem), system wymaga, aby uprawnienie lokalizacji było ustawione na <strong className="text-zinc-900 dark:text-white">„Zawsze zezwalaj”</strong>.<br/><br/>
-          Jeśli masz „Tylko podczas używania”, trasa będzie się rwać na proste linie.
+          {dict.gpsAlwaysPermissionLead}
+          <strong className="text-zinc-900 dark:text-white">{dict.gpsAlwaysPermissionEmphasis}</strong>
+          {dict.gpsAlwaysPermissionTail}
         </p>
         <div className="flex flex-col gap-3">
-          <button 
-            onClick={async () => { 
+          <button
+            type="button"
+            onClick={async () => {
               if (typeof backgroundGeolocation.openSettings === "function") {
                 await backgroundGeolocation.openSettings();
               }
-            }} 
+            }}
             className="w-full bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 font-bold text-sm transition-all"
           >
-            Otwórz ustawienia telefonu
+            {dict.gpsOpenPhoneSettings}
           </button>
-          <button 
+          <button
+            type="button"
             onClick={() => {
-              localStorage.setItem('werkit_bg_loc_verified', 'true');
+              localStorage.setItem("werkit_bg_loc_verified", "true");
               setShowGpsWarning(false);
               if (pendingOrderId !== null) {
                 handleAcceptOrder(pendingOrderId);
                 setPendingOrderId(null);
               }
-            }} 
+            }}
             className="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-3 font-bold text-sm transition-all"
           >
-            Rozumiem, mam ustawione „Zawsze”
+            {dict.gpsUnderstandAlwaysSet}
           </button>
         </div>
       </div>

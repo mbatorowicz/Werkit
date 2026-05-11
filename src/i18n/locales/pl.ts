@@ -562,6 +562,14 @@ export const pl = {
       orderedBy: "Zlecił(a):",
       durationLabel: "Przewidywany czas:",
       noCategoryName: "Brak kategorii",
+      gpsAlwaysPermissionTitle: "Uprawnienia GPS",
+      gpsAlwaysPermissionLead:
+        "Aby trasa zapisywała się poprawnie w kieszeni (z wygaszonym ekranem), system wymaga, aby uprawnienie lokalizacji było ustawione na ",
+      gpsAlwaysPermissionEmphasis: "„Zawsze zezwalaj”",
+      gpsAlwaysPermissionTail:
+        ". Jeśli masz „Tylko podczas używania”, trasa będzie się rwać na proste linie.",
+      gpsOpenPhoneSettings: "Otwórz ustawienia telefonu",
+      gpsUnderstandAlwaysSet: "Rozumiem, mam ustawione „Zawsze”",
       wizardTitle: "Co dzisiaj robimy?",
       wizardSubtitle: "Wybierz rodzaj zaplanowanej dla Ciebie pracy.",
       wizardTitleOwn: "Inicjatywa własna",

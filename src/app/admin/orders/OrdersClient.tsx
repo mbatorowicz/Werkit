@@ -1,41 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
 import { Map, Plus, Settings, RefreshCw } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
-import {
-  UnifiedGanttItem,
-  OrderFormState,
-  BaseWorker,
-  BaseMachine,
-  BaseMaterial,
-  BaseCustomer,
-  BaseCategory,
-} from "@/types/admin";
+import { UnifiedGanttItem, OrderFormState } from "@/types/admin";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { buildUnifiedDispatchItems, formatDueDatetimeLocal } from "@/features/admin/orders/dispatchPlanning";
 import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
-import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
-
-async function parseJsonArray(res: Response): Promise<unknown[]> {
-  if (!res.ok) return [];
-  const ct = res.headers.get("content-type") ?? "";
-  if (!ct.includes("application/json")) return [];
-  try {
-    const data: unknown = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
   const searchParams = useSearchParams();
@@ -49,17 +28,21 @@ export default function OrdersClient() {
   const workerUiLabels = dictionary.worker.client;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const [workers, setWorkers] = useState<BaseWorker[]>([]);
-  const [machines, setMachines] = useState<BaseMachine[]>([]);
-  const [materials, setMaterials] = useState<BaseMaterial[]>([]);
-  const [customers, setCustomers] = useState<BaseCustomer[]>([]);
-  const [categories, setCategories] = useState<BaseCategory[]>([]);
-  const [orders, setOrders] = useState<UnifiedGanttItem[]>([]);
-  const [sessions, setSessions] = useState<UnifiedGanttItem[]>([]);
+  const {
+    workers,
+    machines,
+    materials,
+    customers,
+    categories,
+    orders,
+    sessions,
+    isLoading,
+    fetchData,
+  } = useOrdersDispatchData();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<DispatchViewMode>(() => {
     try {
       const raw = localStorage.getItem("werkit_admin_dispatch_view");
@@ -88,83 +71,6 @@ export default function OrdersClient() {
   const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
 
   const handledOpenRef = useRef<string | null>(null);
-
-  const fetchData = useCallback(async (showLoader = true) => {
-    if (showLoader) setIsLoading(true);
-    try {
-      const [wor, mac, mat, cus, cats, ords, arch] = await Promise.all([
-        fetch("/api/workers", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/machines", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/materials", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/customers", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/categories", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/admin/work-orders", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/admin/archive", { cache: "no-store" }).then(parseJsonArray),
-      ]);
-      setWorkers(wor as BaseWorker[]);
-      setMachines(mac as BaseMachine[]);
-      setMaterials(mat as BaseMaterial[]);
-      setCustomers(cus as BaseCustomer[]);
-      setCategories(cats as BaseCategory[]);
-      setOrders(ords as UnifiedGanttItem[]);
-      setSessions(arch as UnifiedGanttItem[]);
-    } catch {
-      /* sieć / parsowanie — bez crasha UI */
-    } finally {
-      if (showLoader) setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      void fetchData(true);
-    });
-
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
-
-    const stopPolling = () => {
-      if (pollTimer !== null) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-      }
-    };
-
-    const startPolling = () => {
-      if (pollTimer !== null) return;
-      pollTimer = setInterval(() => {
-        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
-        queueMicrotask(() => {
-          void fetchData(false);
-        });
-      }, UI_BACKGROUND_SYNC_INTERVAL_MS);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        queueMicrotask(() => {
-          void fetchData(false);
-        });
-        startPolling();
-      } else {
-        stopPolling();
-      }
-    };
-
-    if (typeof document !== "undefined") {
-      if (document.visibilityState === "visible") {
-        startPolling();
-      }
-      document.addEventListener("visibilitychange", onVisibility);
-      return () => {
-        document.removeEventListener("visibilitychange", onVisibility);
-        stopPolling();
-      };
-    }
-
-    return () => {
-      stopPolling();
-    };
-  }, [fetchData]);
 
   const setViewModePersisted = (m: DispatchViewMode) => {
     setViewMode(m);

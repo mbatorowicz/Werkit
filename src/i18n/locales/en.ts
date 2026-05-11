@@ -565,6 +565,14 @@ export const en: AppDictionary = {
       orderedBy: "Ordered by:",
       durationLabel: "Estimated time:",
       noCategoryName: "No category",
+      gpsAlwaysPermissionTitle: "Location permission",
+      gpsAlwaysPermissionLead:
+        "For routes to record correctly in the background (with the screen off), location permission must be set to ",
+      gpsAlwaysPermissionEmphasis: "\"Always allow\"",
+      gpsAlwaysPermissionTail:
+        ". If you use \"While using the app\", the route will break into straight segments.",
+      gpsOpenPhoneSettings: "Open phone settings",
+      gpsUnderstandAlwaysSet: "I understand — it's set to Always",
       wizardTitle: "What are we doing today?",
       wizardSubtitle: "Choose the type of work planned for you.",
       wizardTitleOwn: "Own initiative",
