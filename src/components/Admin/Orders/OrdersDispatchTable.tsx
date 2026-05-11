@@ -277,14 +277,15 @@ export function OrdersDispatchTable({
   };
 
   if (viewMode === "table") {
-    const statusRank: Record<UnifiedGanttItem["status"], number> = {
+    type ItemStatus = NonNullable<UnifiedGanttItem["status"]>;
+    const statusRank: Record<ItemStatus, number> = {
       PENDING: 0,
       IN_PROGRESS: 1,
       COMPLETED: 2,
     };
     const sortedItems = [...unifiedItems].sort((a, b) => {
-      const ra = statusRank[a.status] ?? 9;
-      const rb = statusRank[b.status] ?? 9;
+      const ra = a.status ? (statusRank[a.status as ItemStatus] ?? 9) : 9;
+      const rb = b.status ? (statusRank[b.status as ItemStatus] ?? 9) : 9;
       if (ra !== rb) return ra - rb;
       // w ramach grupy: najnowsze/aktualne wyżej (bez hard-dependency na danych)
       const da = (a._sortDate as number | undefined) ?? Date.parse(String(a.dueDate ?? a.startTime ?? a.createdAt ?? 0));
