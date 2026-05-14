@@ -1,6 +1,6 @@
 "use client";
 
-import { TimelineItem } from "@/types/worker";
+import type { Coord, TimelineItem } from "@/types/worker";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   X,
@@ -22,6 +22,7 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
 import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
+import { finiteLatLng, isoTimestampFromUnknown } from "@/lib/finiteLatLng";
 
 const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
 
@@ -78,7 +79,7 @@ export default function SessionDetailsModal({
   const dict = dictionary.admin.orders;
   const adminUi = dictionary.admin.ui;
 
-  const [logs, setLogs] = useState<{ latitude?: string; longitude?: string; timestamp?: string }[]>([]);
+  const [logs, setLogs] = useState<Array<{ latitude?: unknown; longitude?: unknown; timestamp?: unknown }>>([]);
   const [photos, setPhotos] = useState<
     { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[]
   >([]);
@@ -97,7 +98,7 @@ export default function SessionDetailsModal({
       try {
         const r = await fetch(`/api/admin/work-sessions/${item.id}`);
         const data = (await r.json()) as {
-          logs?: { latitude?: string; longitude?: string; timestamp?: string }[];
+          logs?: { latitude?: unknown; longitude?: unknown; timestamp?: unknown }[];
           photos?: { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[];
           notes?: { id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[];
         };
@@ -119,20 +120,13 @@ export default function SessionDetailsModal({
 
   const pathTraveled = foldMicroJumpsInPath(
     logs
-      .filter(
-        (l): l is { latitude: string; longitude: string; timestamp?: string } =>
-          typeof l.latitude === "string" &&
-          typeof l.longitude === "string" &&
-          l.latitude !== "" &&
-          l.longitude !== "",
-      )
       .map((l) => {
-        const lat = parseFloat(l.latitude);
-        const lng = parseFloat(l.longitude);
-        const recordedAt =
-          typeof l.timestamp === "string" && l.timestamp.length > 0 ? l.timestamp : undefined;
-        return { lat, lng, ...(recordedAt ? { recordedAt } : {}) };
+        const base = finiteLatLng(l.latitude, l.longitude);
+        if (!base) return null;
+        const recordedAt = isoTimestampFromUnknown(l.timestamp);
+        return { ...base, ...(recordedAt ? { recordedAt } : {}) };
       })
+      .filter((p): p is Coord => p !== null)
       .reverse(),
   );
   const events: TimelineItem[] = [
