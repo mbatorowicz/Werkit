@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   web:
-    name: Lint, TypeScript, Next build
+    name: Lint, TypeScript, Vitest, Next build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,6 +32,10 @@ jobs:
 
       - name: TypeScript
         run: npx tsc --noEmit
+
+      # Po `tsc`: testy Vitest nie wymagają Postgresa; przed `build` (najwolniejszy krok) szybka weryfikacja logiki.
+      - name: Unit tests (Vitest)
+        run: npm test
 
       - name: Production build
         run: npm run build

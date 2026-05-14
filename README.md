@@ -69,6 +69,13 @@ npm run db:verify-schema    # zgodność schema.ts ↔ baza
 npm run dev
 ```
 
+Testy jednostkowe (Vitest, bez PostgreSQL): `npm test`.
+
+```bash
+# (opcjonalnie) Vitest w trybie watch
+npx vitest
+```
+
 Platforma będzie dostępna pod [http://localhost:3000](http://localhost:3000).
 
 ### Budowa Produkcyjna (PWA):

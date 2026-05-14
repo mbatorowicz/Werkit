@@ -11,6 +11,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "db:migrate": "drizzle-kit migrate",
     "db:migrate:pg": "tsx src/scripts/run_drizzle_migrate_pg.ts",
     "db:napraw-maszyny": "tsx src/scripts/apply_resources_vehicle_identity.ts",
@@ -64,6 +65,7 @@
     "pg": "^8.20.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }
