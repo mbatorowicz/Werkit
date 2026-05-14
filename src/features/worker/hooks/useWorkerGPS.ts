@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import type { Dispatch } from "react";
 import { Capacitor } from "@capacitor/core";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import { GPSManager } from "@/lib/gpsManager";
@@ -10,13 +11,14 @@ import {
   WORKER_GPS_QUEUE_FLUSH_INTERVAL_MS,
   WORKER_WEB_GEO_WATCH_OPTIONS,
 } from "@/features/worker/gps/workerGpsConstants";
+import type { WorkerRouteAction } from "@/features/worker/hooks/workerRouteReducer";
+
 import type { Coord, Session } from "@/types/worker";
 
 export function useWorkerGPS(
   session: Session | null,
   setLocation: (loc: Coord) => void,
-  setPathTraveled: (update: (prev: Coord[]) => Coord[]) => void,
-  setTraveledKm: (update: (prev: number) => number) => void,
+  dispatchRoute: Dispatch<WorkerRouteAction>,
   setGpsStatus: (status: "waiting" | "active" | "error") => void,
 ) {
   const watchIdRef = useRef<string | number | null>(null);
@@ -53,15 +55,7 @@ export function useWorkerGPS(
     const handleNewLoc = (newLoc: Coord) => {
       if (!isMounted) return;
       setLocation(newLoc);
-
-      setPathTraveled((prev) => {
-        if (prev.length > 0) {
-          const lastLoc = prev[prev.length - 1];
-          const distIncrement = GPSManager.getDistance(lastLoc, newLoc) / 1000;
-          setTraveledKm((k) => k + distIncrement);
-        }
-        return [...prev, newLoc];
-      });
+      dispatchRoute({ type: "gps", loc: newLoc });
 
       GPSManager.enqueue(newLoc);
       GPSManager.flushQueue(() => {
@@ -161,5 +155,5 @@ export function useWorkerGPS(
       clearWatcher();
       clearInterval(flushInterval);
     };
-  }, [session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus]);
+  }, [session, setLocation, dispatchRoute, setGpsStatus]);
 }

@@ -21,6 +21,7 @@ import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
+import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
 
 const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
 
@@ -116,16 +117,18 @@ export default function SessionDetailsModal({
     };
   }, [item]);
 
-  const pathTraveled = logs
-    .filter(
-      (l): l is { latitude: string; longitude: string } =>
-        typeof l.latitude === "string" &&
-        typeof l.longitude === "string" &&
-        l.latitude !== "" &&
-        l.longitude !== "",
-    )
-    .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
-    .reverse();
+  const pathTraveled = foldMicroJumpsInPath(
+    logs
+      .filter(
+        (l): l is { latitude: string; longitude: string } =>
+          typeof l.latitude === "string" &&
+          typeof l.longitude === "string" &&
+          l.latitude !== "" &&
+          l.longitude !== "",
+      )
+      .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
+      .reverse(),
+  );
   const events: TimelineItem[] = [
     ...photos
       .filter((p): p is typeof p & { latitude: string; longitude: string } => Boolean(p.latitude && p.longitude))

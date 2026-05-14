@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { GPSManager } from "@/lib/gpsManager";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
+import { workerRouteReducer } from "@/features/worker/hooks/workerRouteReducer";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
@@ -33,14 +34,15 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
   const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user ?? null);
 
   const [location, setLocation] = useState<Coord | null>(null);
-  const [pathTraveled, setPathTraveled] = useState<Coord[]>([]);
+  const [route, dispatchRoute] = useReducer(workerRouteReducer, { path: [], km: 0 });
+  const pathTraveled = route.path;
+  const traveledKm = route.km;
   const [destination, setDestination] = useState<Coord | null>(null);
   const destinationRef = useRef<Coord | null>(null);
   useEffect(() => {
     destinationRef.current = destination;
   }, [destination]);
   const [distanceToDestKm, setDistanceToDestKm] = useState<number | null>(null);
-  const [traveledKm, setTraveledKm] = useState(0);
 
   const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
 
@@ -67,8 +69,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
       const sessionRowEarly = narrowSession(sessData.session);
       const stationary = Boolean(sessionRowEarly?.categoryIsStationary);
       if (stationary) {
-        setPathTraveled([]);
-        setTraveledKm(0);
+        dispatchRoute({ type: "reset", path: [] });
         setDestination(null);
         setDistanceToDestKm(null);
       }
@@ -79,12 +80,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
           const pathBody = await parseJsonUnknown(resPath);
           const logs = narrowGpsPathLogs(pathBody);
           if (logs.length > 0) {
-            setPathTraveled(logs);
-            let dist = 0;
-            for (let i = 1; i < logs.length; i++) {
-              dist += GPSManager.getDistance(logs[i - 1], logs[i]);
-            }
-            setTraveledKm(dist / 1000);
+            const folded = foldMicroJumpsInPath(logs);
+            dispatchRoute({ type: "reset", path: folded });
           }
         } catch {
           /* ścieżka GPS opcjonalna */
@@ -139,7 +136,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
   useWorkerSessionSync(initialData, fetchSessionAndPath);
 
-  useWorkerGPS(session, setLocation, setPathTraveled, setTraveledKm, setGpsStatus);
+  useWorkerGPS(session, setLocation, dispatchRoute, setGpsStatus);
 
   return {
     timelineEvents,

@@ -10,6 +10,7 @@ import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { TimelineGalleryClient } from "./TimelineGalleryClient";
+import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
 
 function asDate(v: unknown): Date | null {
   if (!v) return null;
@@ -52,10 +53,12 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   const { sessionData, logs, notes, photos } = historyData;
 
-  const pathTraveled = logs
-    .filter((l) => Boolean(l.latitude && l.longitude))
-    .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
-    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const pathTraveled = foldMicroJumpsInPath(
+    logs
+      .filter((l) => Boolean(l.latitude && l.longitude))
+      .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
+      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)),
+  );
 
   const isStationary = Boolean((sessionData as { categoryIsStationary?: boolean | null }).categoryIsStationary);
 
