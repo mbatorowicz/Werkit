@@ -3,8 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { getDictionary } from "@/i18n";
-import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
+import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 
 import { JWT_SECRET } from "@/lib/auth";
 
@@ -48,7 +47,11 @@ export default async function HistoryPage() {
          </div>
       ) : (
          <div className="space-y-4">
-           {sessions.map(s => (
+           {sessions.map((s) => {
+             const endD = asDate(s.endTime);
+             const st = asDate(s.startTime);
+             const en = asDate(s.endTime);
+             return (
               <Link href={`/worker/history/${s.id}`} key={s.id} className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:border-emerald-500 transition-colors cursor-pointer group shadow-sm hover:shadow-md">
                  <div className="flex items-center gap-2 mb-3">
                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
@@ -56,7 +59,7 @@ export default async function HistoryPage() {
                      {h.sessionCompletedBadge}
                    </span>
                    <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto group-hover:text-emerald-600 transition-colors">
-                     {asDate(s.endTime)?.toLocaleDateString(DEFAULT_UI_LOCALE)}
+                     {endD ? formatUiDateOnly(endD) : ""}
                    </span>
                  </div>
                  <OrderLabelCard
@@ -68,16 +71,15 @@ export default async function HistoryPage() {
                    quantity={s.quantityTons ? `${s.quantityTons}t` : null}
                    customer={s.customerLastName || null}
                    description={s.taskDescription}
-                   dateLabel={asDate(s.startTime)?.toLocaleDateString(DEFAULT_UI_LOCALE) ?? "—"}
-                   timeLabel={`${asDate(s.startTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
-                     asDate(s.endTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"
-                   }`}
+                   dateLabel={st ? formatUiDateOnly(st) : "—"}
+                   timeLabel={`${st ? formatUiTimeHm(st) : "—"} – ${en ? formatUiTimeHm(en) : "—"}`}
                    className="mt-2"
                    attachmentPhotos={Boolean(s.hasPhotos)}
                    attachmentNotes={Boolean(s.hasNotes)}
                  />
               </Link>
-           ))}
+             );
+           })}
          </div>
       )}
     </div>

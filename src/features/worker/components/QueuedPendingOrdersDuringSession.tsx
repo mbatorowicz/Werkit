@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
-import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
+import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import {
   workOrderCategoryHeadingClass,
   workOrderPendingListCardClass,
@@ -86,20 +86,10 @@ export function QueuedPendingOrdersDuringSession({ orders, dict, adminDict }: Pr
                   orderedBy={order.creatorName ?? null}
                   orderedByLabel={dict.orderedBy}
                   dateLabel={
-                    order.dueDate
-                      ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
-                      : new Date(order.createdAt).toLocaleDateString(DEFAULT_UI_LOCALE)
+                    order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
                   }
                   timeLabel={
-                    order.dueDate
-                      ? new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                    order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
                   }
                   className="bg-white/60 dark:bg-zinc-950/30"
                   attachmentPhotos={Boolean(order.hasPhotos)}

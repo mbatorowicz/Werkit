@@ -28,7 +28,8 @@ export const GET = withApiErrorHandling(async (request: Request) => {
 
   const data: unknown = await res.json();
   if (!Array.isArray(data) || data.length === 0) {
-    return jsonError("not_found", 404);
+    /** 200 — brak wyniku to normalny przypadek; 404 myliło telemetrykę i „Failed to fetch” w UI. */
+    return jsonOk({ lat: null, lng: null, error: "not_found" as const });
   }
 
   const row = data[0] as Record<string, unknown>;

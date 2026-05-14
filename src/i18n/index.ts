@@ -10,8 +10,8 @@ const dictionaries = {
 export type Locale = keyof typeof dictionaries;
 
 export type { AppDictionary };
-export { formatDict } from "./format";
-export { DEFAULT_UI_LOCALE } from "./constants";
+export { formatDict, formatUiDateOnly, formatUiTimeHm, formatUiDateTimeShort } from "./format";
+export { DEFAULT_UI_LOCALE, DEFAULT_UI_TIMEZONE } from "./constants";
 
 /** Domyślnie PL; w przyszłości można pobierać locale z cookies lub nagłówka Accept-Language. */
 export function getDictionary(locale: Locale = "pl"): AppDictionary {

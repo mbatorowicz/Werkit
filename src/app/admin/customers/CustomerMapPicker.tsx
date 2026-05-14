@@ -119,9 +119,13 @@ export default function CustomerMapPicker({ lat, lng, address, onChange }: Custo
         { cache: "no-store" },
         { category: "admin" },
       );
-      const data = (await res.json()) as { lat?: number; lng?: number; error?: string };
+      const data = (await res.json()) as { lat?: number | null; lng?: number | null; error?: string };
 
-      if (!res.ok || typeof data.lat !== "number" || typeof data.lng !== "number") {
+      if (!res.ok) {
+        setGeocodeMsg(dict.geocodeNoResults);
+        return;
+      }
+      if (data.error === "not_found" || typeof data.lat !== "number" || typeof data.lng !== "number") {
         setGeocodeMsg(dict.geocodeNoResults);
         return;
       }

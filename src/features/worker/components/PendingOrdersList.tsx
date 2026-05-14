@@ -3,7 +3,7 @@
 import { Play, Clock } from "lucide-react";
 import Link from "next/link";
 import type { AppDictionary } from "@/i18n/types";
-import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
+import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import {
   workOrderCategoryHeadingClass,
   workOrderPendingListCardClass,
@@ -75,10 +75,7 @@ export default function PendingOrdersList({
                 <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
                   {formatDict(dict.orderFastReq, {
                     id: upcomingOrder.id,
-                    time: new Date(upcomingOrder.dueDate!).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
+                    time: formatUiTimeHm(upcomingOrder.dueDate!),
                   })}
                 </span>
               </div>
@@ -112,14 +109,10 @@ export default function PendingOrdersList({
                     orderedBy={order.creatorName ?? null}
                     orderedByLabel={dict.orderedBy}
                     dateLabel={
-                      order.dueDate
-                        ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
-                        : new Date(order.createdAt).toLocaleDateString(DEFAULT_UI_LOCALE)
+                      order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
                     }
                     timeLabel={
-                      order.dueDate
-                        ? new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
-                        : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
+                      order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
                     }
                     className="bg-white/60 dark:bg-zinc-950/30"
                     attachmentPhotos={Boolean(order.hasPhotos)}

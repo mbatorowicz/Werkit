@@ -5,6 +5,7 @@ import { Clock, MapPin, Camera, FileText, X, Square, ChevronUp, ChevronDown } fr
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import type { AppDictionary } from "@/i18n/types";
+import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/QueuedPendingOrdersDuringSession";
@@ -108,8 +109,8 @@ export default function ActiveSessionDashboard({
             (session.customerAddress ? session.customerAddress : null)
           }
           description={session.taskDescription}
-          dateLabel={new Date(session.startTime).toLocaleDateString("pl-PL")}
-          timeLabel={`${new Date(session.startTime).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })} – …`}
+          dateLabel={formatUiDateOnly(session.startTime)}
+          timeLabel={`${formatUiTimeHm(session.startTime)} – …`}
           attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}
           attachmentNotes={timelineEvents.some((e) => e.type === "note")}
         />
@@ -220,7 +221,7 @@ export default function ActiveSessionDashboard({
                     {item.type === 'photo' ? <Camera className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
                   </div>
                   <div className="flex-1 pb-2">
-                    <div className="text-[10px] text-zinc-400 mb-1">{new Date(item.createdAt).toLocaleTimeString()}</div>
+                    <div className="text-[10px] text-zinc-400 mb-1">{formatUiTimeHm(item.createdAt)}</div>
                     {item.type === 'photo' ? (
                       <div className="w-16 h-16 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
                         <Image src={item.content} alt="" width={64} height={64} unoptimized className="w-full h-full object-cover" />

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
-import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
+import { formatUiDateTimeShort } from "@/i18n";
 
 type TimelineEntry = {
   id: string;
@@ -65,7 +65,7 @@ export function TimelineGalleryClient({
       <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-8">{labels.timelineTitle}</h3>
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 flex flex-col gap-4 shadow-sm">
         {entries.map((item, index) => {
-          const timeLabel = new Date(item.createdAt).toLocaleString(DEFAULT_UI_LOCALE);
+          const timeLabel = formatUiDateTimeShort(item.createdAt);
           const isPhoto = item.type === "photo";
           const photoIdx = isPhoto ? photoEntries.findIndex((p) => p.id === item.id) : -1;
 

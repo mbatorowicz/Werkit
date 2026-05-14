@@ -2,6 +2,7 @@
 
 import { X, Loader2 } from "lucide-react";
 import { TimelineItem } from "@/types/worker";
+import { formatUiTimeHm } from "@/i18n";
 
 interface NotesModalProps {
   isNotesModalOpen: boolean;
@@ -65,7 +66,7 @@ export default function NotesModal({
                 <div key={n.id} className="flex justify-between items-start gap-2 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded border border-zinc-200 dark:border-zinc-700/50">
                   <div className="flex flex-col">
                     <span className="text-xs text-zinc-800 dark:text-zinc-200 break-words">{n.content}</span>
-                    <span className="text-[9px] text-zinc-400">{new Date(n.createdAt).toLocaleTimeString('pl-PL')}</span>
+                    <span className="text-[9px] text-zinc-400">{formatUiTimeHm(n.createdAt)}</span>
                   </div>
                   <button
                     onClick={() => { 

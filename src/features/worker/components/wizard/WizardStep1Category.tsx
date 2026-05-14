@@ -4,7 +4,7 @@ import { Truck, Tractor, Wrench } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory } from "@/types/wizard";
-import { DEFAULT_UI_LOCALE } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import {
   sortWorkOrdersByPriorityThenCreated,
   workOrderCategoryHeadingClass,
@@ -66,20 +66,10 @@ export function WizardStep1Category({
                     orderedBy={order.creatorName ?? null}
                     orderedByLabel={dict.orderedBy}
                     dateLabel={
-                      order.dueDate
-                        ? new Date(order.dueDate).toLocaleDateString(DEFAULT_UI_LOCALE)
-                        : new Date(order.createdAt).toLocaleDateString(DEFAULT_UI_LOCALE)
+                      order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
                     }
                     timeLabel={
-                      order.dueDate
-                        ? new Date(order.dueDate).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                        : new Date(order.createdAt).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                      order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
                     }
                     className="bg-white/60 dark:bg-zinc-950/30"
                     attachmentPhotos={Boolean(order.hasPhotos)}

@@ -5,8 +5,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
 import { notFound } from "next/navigation";
-import { getDictionary } from "@/i18n";
-import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
+import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { TimelineGalleryClient } from "./TimelineGalleryClient";
@@ -86,6 +85,9 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
     destination = { lat: parseFloat(sessionData.customerLat), lng: parseFloat(sessionData.customerLng) };
   }
 
+  const st = asDate(sessionData.startTime);
+  const en = asDate(sessionData.endTime);
+
   return (
     <div className="py-6 pb-20">
       <Link href="/worker/history" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors">
@@ -103,10 +105,8 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
           quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}
           customer={sessionData.customerLastName || null}
           description={sessionData.taskDescription}
-          dateLabel={asDate(sessionData.startTime)?.toLocaleDateString(DEFAULT_UI_LOCALE) ?? "—"}
-          timeLabel={`${asDate(sessionData.startTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"} – ${
-            asDate(sessionData.endTime)?.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" }) ?? "—"
-          }`}
+          dateLabel={st ? formatUiDateOnly(st) : "—"}
+          timeLabel={`${st ? formatUiTimeHm(st) : "—"} – ${en ? formatUiTimeHm(en) : "—"}`}
           attachmentPhotos={photos.length > 0}
           attachmentNotes={notes.length > 0}
         />
