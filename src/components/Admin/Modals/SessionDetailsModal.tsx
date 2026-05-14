@@ -22,6 +22,7 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
 const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
 
@@ -95,7 +96,13 @@ export default function SessionDetailsModal({
     const run = async () => {
       setIsLoading(true);
       try {
-        const r = await fetch(`/api/admin/work-sessions/${item.id}`);
+        const r = await fetchWithDeviceTelemetry(
+          `Admin: work-session ${item.id}`,
+          `/api/admin/work-sessions/${item.id}`,
+          undefined,
+          { category: "admin" },
+        );
+        if (!r.ok) return;
         const data = (await r.json()) as {
           logs?: { latitude?: unknown; longitude?: unknown; timestamp?: unknown }[];
           photos?: { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[];

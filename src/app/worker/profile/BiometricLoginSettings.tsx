@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Fingerprint } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import {
   biometricHardwareAvailable,
   clearBiometricCredentials,
@@ -78,11 +79,11 @@ export function BiometricLoginSettings({
     setError("");
     try {
       await clearBiometricCredentials();
-      const res = await fetch("/api/worker/profile", {
+      const res = await fetchWithDeviceTelemetry("Worker profile: biometric off", "/api/worker/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ biometricLoginEnabled: false }),
-      });
+      }, { category: "profile" });
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
         const data = (await res.json()) as { error?: string };
@@ -100,14 +101,14 @@ export function BiometricLoginSettings({
     setBusy(true);
     setError("");
     try {
-      const res = await fetch("/api/worker/profile", {
+      const res = await fetchWithDeviceTelemetry("Worker profile: biometric on", "/api/worker/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           biometricLoginEnabled: true,
           password: pwd,
         }),
-      });
+      }, { category: "profile" });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
@@ -117,11 +118,16 @@ export function BiometricLoginSettings({
       try {
         await saveBiometricCredentials(usernameEmail, pwd);
       } catch {
-        await fetch("/api/worker/profile", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ biometricLoginEnabled: false }),
-        });
+        await fetchWithDeviceTelemetry(
+          "Worker profile: biometric rollback",
+          "/api/worker/profile",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ biometricLoginEnabled: false }),
+          },
+          { category: "profile" },
+        );
         setError(dict.biometricVaultError);
         setPwd("");
         setPwdOpen(false);

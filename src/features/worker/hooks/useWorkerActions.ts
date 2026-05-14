@@ -49,7 +49,7 @@ export function useWorkerActions({
             ? { latitude: endLocation.lat, longitude: endLocation.lng }
             : {},
         ),
-      });
+      }, { category: "session" });
       sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy', undefined, { category: 'session' });
       await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
@@ -75,6 +75,7 @@ export function useWorkerActions({
               : {},
           ),
         },
+        { category: "orders" },
       );
       if (res.ok) {
         sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId }, { category: 'orders' });
@@ -95,7 +96,7 @@ export function useWorkerActions({
     if (!confirm(dict.confirmCancelSession)) return;
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" });
+      const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" }, { category: "orders" });
       if (res.ok) {
         sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' }, { category: 'orders' });
         alert(dict.cancelSuccess);
@@ -129,7 +130,7 @@ export function useWorkerActions({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: dict.checkpointNote, location })
-      });
+      }, { category: "session" });
       if (res.ok) {
         sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)', undefined, { category: 'session' });
         await fetchSessionAndPath(false, false);
@@ -164,6 +165,7 @@ export function useWorkerActions({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         },
+        { category: "session" },
       );
       if (res.ok) {
         sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę', undefined, { category: 'session' });
@@ -207,7 +209,7 @@ export function useWorkerActions({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ photoUrl: base64, location })
-        });
+        }, { category: "session" });
         if (res.ok) {
           sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie', undefined, { category: 'session' });
           await fetchSessionAndPath(false, false);

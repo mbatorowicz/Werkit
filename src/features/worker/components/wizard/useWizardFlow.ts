@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import {
@@ -42,11 +43,21 @@ export function useWizardFlow() {
     void (async () => {
       try {
         const [cat, mac, mat, cus, ord] = await Promise.all([
-          fetch("/api/categories", { cache: "no-store" }).then(parseJsonArray),
-          fetch("/api/machines", { cache: "no-store" }).then(parseJsonArray),
-          fetch("/api/materials", { cache: "no-store" }).then(parseJsonArray),
-          fetch("/api/customers", { cache: "no-store" }).then(parseJsonArray),
-          fetch("/api/worker/work-orders", { cache: "no-store" }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: categories", "/api/categories", { cache: "no-store" }, {
+            category: "lifecycle",
+          }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: machines", "/api/machines", { cache: "no-store" }, {
+            category: "lifecycle",
+          }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: materials", "/api/materials", { cache: "no-store" }, {
+            category: "lifecycle",
+          }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: customers", "/api/customers", { cache: "no-store" }, {
+            category: "lifecycle",
+          }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: work-orders", "/api/worker/work-orders", { cache: "no-store" }, {
+            category: "orders",
+          }).then(parseJsonArray),
         ]);
         if (cancelled) return;
         setCategories(narrowWizardCategories(cat));
@@ -79,7 +90,7 @@ export function useWizardFlow() {
   const handleStart = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/worker/session", {
+      const res = await fetchWithDeviceTelemetry("Worker wizard: start session POST", "/api/worker/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -90,7 +101,7 @@ export function useWizardFlow() {
           quantityTons: selectedCategory?.showQuantity ? (quantityTons || null) : null,
           taskDescription: selectedCategory?.showTaskDescription ? (taskDescription || null) : null,
         }),
-      });
+      }, { category: "session" });
 
       if (res.ok) {
         router.push("/worker");
@@ -122,11 +133,16 @@ export function useWizardFlow() {
       setIsLoading(true);
       try {
         const loc = await getCurrentPositionOnce();
-        const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
-        });
+        const res = await fetchWithDeviceTelemetry(
+          `Worker wizard: accept order POST ${orderId}`,
+          `/api/worker/work-orders/${orderId}/accept`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
+          },
+          { category: "orders" },
+        );
         if (res.ok) {
           router.push("/worker");
         } else {

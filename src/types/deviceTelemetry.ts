@@ -11,7 +11,10 @@ export type WerkitLogCategory =
   | "lifecycle"
   | "ui"
   | "errors"
-  | "unknown";
+  | "unknown"
+  | "admin"
+  | "auth"
+  | "profile";
 
 /** Część klienta — zawsze doklejana do `metadata.werkitContext.client` */
 export type WerkitClientTelemetry = {

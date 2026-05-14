@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
 import { formatDict, getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminCustomerRows, type AdminCustomerListRow } from "@/lib/narrowApiListRows";
@@ -44,7 +45,9 @@ export default function CustomersClient() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/customers", { cache: "no-store" });
+      const res = await fetchWithDeviceTelemetry("Admin customers: list", "/api/customers", { cache: "no-store" }, {
+        category: "admin",
+      });
       const data = await parseJsonArray(res);
       setCustomers(narrowAdminCustomerRows(data));
     } catch {
@@ -65,7 +68,12 @@ export default function CustomersClient() {
     const url = editId ? `/api/customers/${editId}` : "/api/customers";
     const method = editId ? "PUT" : "POST";
     try {
-      const res = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(form) });
+      const res = await fetchWithDeviceTelemetry(
+        editId ? `Admin customers: save PUT ${editId}` : "Admin customers: save POST",
+        url,
+        { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) },
+        { category: "admin" },
+      );
       if (res.ok) {
         setIsModalOpen(false);
         fetchData();
@@ -82,7 +90,12 @@ export default function CustomersClient() {
 
   const handleDelete = async (id: number) => {
      if(!confirm(dict.confirmDelete)) return;
-     const res = await fetch(`/api/customers/${id}`, { method: 'DELETE' });
+     const res = await fetchWithDeviceTelemetry(
+       `Admin customers: delete ${id}`,
+       `/api/customers/${id}`,
+       { method: "DELETE" },
+       { category: "admin" },
+     );
      if (res.ok) fetchData();
      else {
        const body = await parseJsonUnknown(res);

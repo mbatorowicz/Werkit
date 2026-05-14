@@ -1,4 +1,5 @@
 import type { Coord } from '@/types/worker';
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
 export type GPSQueueItem = Coord & { timestamp: string };
 
@@ -49,12 +50,17 @@ export class GPSManager {
     const sentTimestamps = new Set(queue.map(q => q.timestamp));
 
     try {
-      const res = await fetch("/api/worker/gps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(queue),
-        keepalive: true
-      });
+      const res = await fetchWithDeviceTelemetry(
+        "Worker: GPS batch POST",
+        "/api/worker/gps",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(queue),
+          keepalive: true,
+        },
+        { category: "gps", throttleKey: "gps_batch_post", throttleMs: 60_000 },
+      );
 
       if (res.ok) {
         const currentQueue = this.getQueue();

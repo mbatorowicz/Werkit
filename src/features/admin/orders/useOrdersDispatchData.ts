@@ -10,6 +10,7 @@ import type {
   UnifiedGanttItem,
 } from "@/types/admin";
 import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import {
   narrowBaseCategories,
@@ -34,13 +35,27 @@ export function useOrdersDispatchData() {
     if (showLoader) setIsLoading(true);
     try {
       const [wor, mac, mat, cus, cats, ords, arch] = await Promise.all([
-        fetch("/api/workers", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/machines", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/materials", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/customers", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/categories", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/admin/work-orders", { cache: "no-store" }).then(parseJsonArray),
-        fetch("/api/admin/archive", { cache: "no-store" }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: workers", "/api/workers", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: machines", "/api/machines", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: materials", "/api/materials", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: customers", "/api/customers", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: categories", "/api/categories", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: work-orders", "/api/admin/work-orders", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry("Admin dispatch: archive", "/api/admin/archive", { cache: "no-store" }, {
+          category: "admin",
+        }).then(parseJsonArray),
       ]);
       setWorkers(narrowBaseWorkers(wor));
       setMachines(narrowBaseMachines(mac));

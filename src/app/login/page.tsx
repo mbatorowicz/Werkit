@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Fingerprint } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getDictionary } from "@/i18n";
 import {
@@ -40,7 +41,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      const res = await fetch("/api/auth/login", {
+      const res = await fetchWithDeviceTelemetry("Auth: login POST (biometric)", "/api/auth/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -48,7 +49,7 @@ export default function LoginPage() {
           usernameEmail: creds.username,
           password: creds.password,
         }),
-      });
+      }, { category: "auth" });
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
       if (res.ok) {
         router.refresh();
@@ -74,12 +75,12 @@ export default function LoginPage() {
     const password = formData.get("password");
 
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetchWithDeviceTelemetry("Auth: login POST (form)", "/api/auth/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ usernameEmail, password }),
-      });
+      }, { category: "auth" });
 
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
 

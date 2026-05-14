@@ -15,6 +15,7 @@ import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettin
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
 import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { isRecord } from "@/lib/narrowApiListRows";
 
@@ -90,7 +91,12 @@ export default function OrdersClient() {
   };
 
   const handleDeleteWorkOrder = async (orderId: number) => {
-    const res = await fetch(`/api/admin/work-orders/${orderId}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin orders: delete work-order ${orderId}`,
+      `/api/admin/work-orders/${orderId}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (!res.ok) {
       const code = await readAdminError(res);
       alert(apiErrors[code ?? ""] ?? code ?? dict.error);
@@ -101,7 +107,12 @@ export default function OrdersClient() {
   };
 
   const handleForceCompleteSession = async (sessionId: number) => {
-    const res = await fetch(`/api/admin/work-sessions/${sessionId}/force-complete`, { method: "POST" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin sessions: force-complete ${sessionId}`,
+      `/api/admin/work-sessions/${sessionId}/force-complete`,
+      { method: "POST" },
+      { category: "admin" },
+    );
     if (!res.ok) {
       const code = await readAdminError(res);
       alert(apiErrors[code ?? ""] ?? code ?? dict.error);
@@ -113,7 +124,12 @@ export default function OrdersClient() {
   };
 
   const handleDeleteArchivedSession = async (sessionId: number) => {
-    const res = await fetch(`/api/admin/work-sessions/${sessionId}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin sessions: delete archived ${sessionId}`,
+      `/api/admin/work-sessions/${sessionId}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (!res.ok) {
       const code = await readAdminError(res);
       alert(apiErrors[code ?? ""] ?? code ?? dict.error);
@@ -153,7 +169,9 @@ export default function OrdersClient() {
             onClick={async () => {
               setIsSettingsOpen(true);
               try {
-                const res = await fetch("/api/settings");
+                const res = await fetchWithDeviceTelemetry("Admin dispatch: settings GET", "/api/settings", undefined, {
+                  category: "admin",
+                });
                 if (res.ok) {
                   const raw = await parseJsonUnknown(res);
                   if (isRecord(raw)) setSettingsData(raw);
@@ -251,11 +269,16 @@ export default function OrdersClient() {
             if (payload.dueDate) {
               payload.dueDate = new Date(payload.dueDate).toISOString();
             }
-            const res = await fetch(url, {
-              method,
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
+            const res = await fetchWithDeviceTelemetry(
+              editingOrderId ? `Admin orders: save PUT ${editingOrderId}` : "Admin orders: save POST",
+              url,
+              {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              },
+              { category: "admin" },
+            );
             if (res.ok) {
               alert(dict.success);
               closeOrderModal();

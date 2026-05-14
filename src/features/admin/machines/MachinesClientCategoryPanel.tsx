@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { AppDictionary } from "@/i18n/types";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { CategoryFormModal } from "@/features/admin/machines/CategoryFormModal";
 import { MachinesCategoryGrid, categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
 import {
@@ -38,11 +39,16 @@ export function MachinesClientCategoryPanel({
     const url = cEditId ? `/api/categories/${cEditId}` : "/api/categories";
     const method = cEditId ? "PUT" : "POST";
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cForm),
-      });
+      const res = await fetchWithDeviceTelemetry(
+        cEditId ? `Admin machines: save category PUT ${cEditId}` : "Admin machines: save category POST",
+        url,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cForm),
+        },
+        { category: "admin" },
+      );
       if (res.ok) {
         setIsCMOpen(false);
         void fetchData();
@@ -57,7 +63,12 @@ export function MachinesClientCategoryPanel({
 
   const handleCDelete = async (id: number) => {
     if (!confirm(dict.confirmCatDelete)) return;
-    const res = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin machines: delete category ${id}`,
+      `/api/categories/${id}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()).error;

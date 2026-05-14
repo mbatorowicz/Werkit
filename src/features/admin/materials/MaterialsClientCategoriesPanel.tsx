@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Edit2, Layers, Plus, Trash2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { MaterialsCategoryFormModal } from "@/features/admin/materials/MaterialsCategoryFormModal";
 import {
   EMPTY_CATEGORY_FORM,
@@ -41,11 +42,16 @@ export function MaterialsClientCategoriesPanel({
     const url = catEditId ? `/api/material-categories/${catEditId}` : "/api/material-categories";
     const method = catEditId ? "PUT" : "POST";
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(catForm),
-      });
+      const res = await fetchWithDeviceTelemetry(
+        catEditId ? `Admin materials: save category PUT ${catEditId}` : "Admin materials: save category POST",
+        url,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(catForm),
+        },
+        { category: "admin" },
+      );
       if (res.ok) {
         setIsCatModalOpen(false);
         void fetchData();
@@ -60,7 +66,12 @@ export function MaterialsClientCategoriesPanel({
 
   const handleCatDelete = async (id: number) => {
     if (!confirm(dict.confirmCatDelete)) return;
-    const res = await fetch(`/api/material-categories/${id}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin materials: delete category ${id}`,
+      `/api/material-categories/${id}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()) as { error?: string };

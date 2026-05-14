@@ -3,6 +3,7 @@
 import type { ChangeEvent } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from "react";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { ResourceFormModal } from "@/features/admin/machines/ResourceFormModal";
 import { machineResourceNameForEdit } from "@/features/admin/machines/machineResourceDisplay";
 import { mergeResourceFieldVisibility } from "@/features/admin/machines/resourceVisibility";
@@ -64,11 +65,16 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         imageUrl: mForm.imageUrl,
       };
       try {
-        const res = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
+        const res = await fetchWithDeviceTelemetry(
+          mEditId ? `Admin machines: save machine PUT ${mEditId}` : "Admin machines: save machine POST",
+          url,
+          {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          },
+          { category: "admin" },
+        );
         if (res.ok) {
           setIsMMOpen(false);
           void fetchData();

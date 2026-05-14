@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Edit2, Layers, Plus, Trash2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { MaterialsMaterialFormModal } from "@/features/admin/materials/MaterialsMaterialFormModal";
 import {
   EMPTY_MATERIAL_FORM,
@@ -48,14 +49,19 @@ export function MaterialsClientMaterialsTablePanel({
     const url = matEditId ? `/api/materials/${matEditId}` : "/api/materials";
     const method = matEditId ? "PUT" : "POST";
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: matForm.name,
-          categoryIds: matForm.categoryIds,
-        }),
-      });
+      const res = await fetchWithDeviceTelemetry(
+        matEditId ? `Admin materials: save material PUT ${matEditId}` : "Admin materials: save material POST",
+        url,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: matForm.name,
+            categoryIds: matForm.categoryIds,
+          }),
+        },
+        { category: "admin" },
+      );
       if (res.ok) {
         setIsMatModalOpen(false);
         void fetchData();
@@ -70,7 +76,12 @@ export function MaterialsClientMaterialsTablePanel({
 
   const handleMatDelete = async (id: number) => {
     if (!confirm(dict.confirmDelete)) return;
-    const res = await fetch(`/api/materials/${id}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin materials: delete material ${id}`,
+      `/api/materials/${id}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()) as { error?: string };

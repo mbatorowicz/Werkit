@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash2, Shield, Plus, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminUserRows, type AdminUserListRow } from "@/lib/narrowApiListRows";
@@ -39,7 +40,9 @@ export default function UsersClient() {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/workers", { cache: "no-store" });
+      const res = await fetchWithDeviceTelemetry("Admin users: list", "/api/workers", { cache: "no-store" }, {
+        category: "admin",
+      });
       const data = await parseJsonArray(res);
       setUsers(narrowAdminUserRows(data));
     } catch {
@@ -57,7 +60,9 @@ export default function UsersClient() {
   const handleDelete = async (id: number, name: string) => {
     if (!confirm(`${dict.confirmDelete} ${name}?`)) return;
     try {
-      const res = await fetch(`/api/workers/${id}`, { method: "DELETE" });
+      const res = await fetchWithDeviceTelemetry(`Admin users: delete ${id}`, `/api/workers/${id}`, { method: "DELETE" }, {
+        category: "admin",
+      });
       if (res.ok) {
         fetchUsers();
       } else {
@@ -97,11 +102,16 @@ export default function UsersClient() {
       const url = editId ? `/api/workers/${editId}` : "/api/workers";
       const method = editId ? "PUT" : "POST";
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const res = await fetchWithDeviceTelemetry(
+        editId ? `Admin users: save PUT ${editId}` : "Admin users: save POST",
+        url,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+        { category: "admin" },
+      );
 
       const body = await parseJsonUnknown(res);
       const code = readApiErrorString(body);

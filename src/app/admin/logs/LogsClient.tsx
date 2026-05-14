@@ -7,6 +7,7 @@ import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import { formatDict } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
 const LOG_CATEGORIES: WerkitLogCategory[] = [
   "http",
@@ -18,6 +19,9 @@ const LOG_CATEGORIES: WerkitLogCategory[] = [
   "ui",
   "errors",
   "unknown",
+  "admin",
+  "auth",
+  "profile",
 ];
 
 type LogItem = {
@@ -108,7 +112,9 @@ export default function LogsClient({
   const handleExportJson = async () => {
     setExporting(true);
     try {
-      const res = await fetch("/api/admin/logs/export", { credentials: "same-origin" });
+      const res = await fetchWithDeviceTelemetry("Admin logs: export JSON", "/api/admin/logs/export", {
+        credentials: "same-origin",
+      }, { category: "admin" });
       if (!res.ok) {
         window.alert(logsDict.exportJsonError);
         return;

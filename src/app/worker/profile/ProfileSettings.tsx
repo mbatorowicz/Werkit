@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { BiometricLoginSettings } from "./BiometricLoginSettings";
 
 export function ProfileSettings({
@@ -20,11 +21,16 @@ export function ProfileSettings({
   const toggleNotifications = async () => {
     const newVal = !enabled;
     setEnabled(newVal);
-    await fetch("/api/worker/profile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ notificationsEnabled: newVal })
-    });
+    await fetchWithDeviceTelemetry(
+      "Worker profile: notifications toggle",
+      "/api/worker/profile",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationsEnabled: newVal }),
+      },
+      { category: "profile" },
+    );
   };
 
   return (

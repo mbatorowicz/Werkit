@@ -2,13 +2,16 @@
 
 import { useCallback, useState } from "react";
 import { getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowMachinesCategoryRows, narrowMachinesResourceRows } from "@/lib/narrowApiListRows";
 import type { MachinesCategory, MachinesResource } from "./types";
 
 async function parseJsonList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithDeviceTelemetry(`Admin machines: GET ${url}`, url, { cache: "no-store" }, {
+    category: "admin",
+  });
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
     return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };

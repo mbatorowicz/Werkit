@@ -2,12 +2,15 @@
 
 import { useCallback, useState, type MutableRefObject } from "react";
 import type { MaterialCategory, MaterialRow } from "@/features/admin/materials/types";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowMaterialCategoryRows, narrowMaterialRowRows } from "@/lib/narrowApiListRows";
 
 async function parseList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
-  const res = await fetch(url, { cache: "no-store" });
+  const res = await fetchWithDeviceTelemetry(`Admin materials: GET ${url}`, url, { cache: "no-store" }, {
+    category: "admin",
+  });
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
     return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };

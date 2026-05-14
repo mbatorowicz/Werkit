@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 export type SettingsSnapshot = {
@@ -52,25 +53,25 @@ export default function SettingsForm({
     if (!canMutate) return;
     setSaveStatus("SAVING");
     try {
-       const res = await fetch('/api/settings', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ 
-           companyName: name, 
-           companyAddress: address, 
-           zipCode, 
-           city, 
-           phone, 
-           email, 
-           baseLatitude: lat.toString(), 
+       const res = await fetchWithDeviceTelemetry("Admin settings: save POST", "/api/settings", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           companyName: name,
+           companyAddress: address,
+           zipCode,
+           city,
+           phone,
+           email,
+           baseLatitude: lat.toString(),
            baseLongitude: lng.toString(),
            cancelWindowMinutes,
            requirePhotoToFinish,
            geofenceRadiusMeters,
            timeOverrunReminder,
-           upcomingOrderReminderMinutes
-         })
-       });
+           upcomingOrderReminderMinutes,
+         }),
+       }, { category: "admin" });
        if(res.ok) {
           setSaveStatus("SAVED");
           router.refresh(); // Tells Next.js to reload DB variables on SSR Layouts and Dashboard

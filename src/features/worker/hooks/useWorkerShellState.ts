@@ -51,8 +51,12 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
     if (showLoader) setIsLoading(true);
     try {
       const [resSess, resOrders] = await Promise.all([
-        fetchWithDeviceTelemetry("Worker: session GET", "/api/worker/session", { cache: "no-store" }),
-        fetchWithDeviceTelemetry("Worker: work-orders GET", "/api/worker/work-orders", { cache: "no-store" }),
+        fetchWithDeviceTelemetry("Worker: session GET", "/api/worker/session", { cache: "no-store" }, {
+          category: "session",
+        }),
+        fetchWithDeviceTelemetry("Worker: work-orders GET", "/api/worker/work-orders", { cache: "no-store" }, {
+          category: "orders",
+        }),
       ]);
 
       if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
@@ -79,7 +83,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         try {
           const resPath = await fetchWithDeviceTelemetry("Worker: gps path GET", "/api/worker/gps", {
             cache: "no-store",
-          });
+          }, { category: "gps" });
           const pathBody = await parseJsonUnknown(resPath);
           const logs = narrowGpsPathLogs(pathBody);
           if (logs.length > 0) {
@@ -114,6 +118,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
               const geo = await fetchWithDeviceTelemetry(
                 "Worker: Nominatim geocode",
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s.customerAddress)}`,
+                undefined,
+                { category: "http" },
               );
               const geoRows = await parseJsonArray(geo);
               const hits = narrowNominatimHits(geoRows);

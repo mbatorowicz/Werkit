@@ -1,6 +1,7 @@
 "use client";
 
 import type { AppDictionary } from "@/i18n/types";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { MachinesResourcesTable } from "@/features/admin/machines/MachinesResourcesTable";
 import type { MachinesCategory, MachinesResource } from "@/features/admin/machines/types";
 
@@ -31,7 +32,12 @@ export function MachinesClientResourcesTablePanel({
 }: Props) {
   const handleMDelete = async (id: number) => {
     if (!confirm(dict.confirmMachDelete)) return;
-    const res = await fetch(`/api/machines/${id}`, { method: "DELETE" });
+    const res = await fetchWithDeviceTelemetry(
+      `Admin machines: delete resource ${id}`,
+      `/api/machines/${id}`,
+      { method: "DELETE" },
+      { category: "admin" },
+    );
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()).error;

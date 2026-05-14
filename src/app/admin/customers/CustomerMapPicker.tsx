@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-lea
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
 const iconLocation = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -112,7 +113,12 @@ export default function CustomerMapPicker({ lat, lng, address, onChange }: Custo
 
     setGeocodeBusy(true);
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`, { cache: "no-store" });
+      const res = await fetchWithDeviceTelemetry(
+        "Admin customers: geocode",
+        `/api/geocode?q=${encodeURIComponent(q)}`,
+        { cache: "no-store" },
+        { category: "admin" },
+      );
       const data = (await res.json()) as { lat?: number; lng?: number; error?: string };
 
       if (!res.ok || typeof data.lat !== "number" || typeof data.lng !== "number") {
