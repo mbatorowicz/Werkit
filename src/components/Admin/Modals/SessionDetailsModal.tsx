@@ -16,23 +16,12 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { getDictionary, type Locale } from "@/i18n";
-import { formatDict } from "@/i18n/format";
-import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
+import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-
-const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
-
-function formatUiDate(value: string | number | Date): string {
-  return new Date(value).toLocaleDateString(DEFAULT_UI_LOCALE);
-}
-
-function formatUiTime(value: string | number | Date): string {
-  return new Date(value).toLocaleTimeString(DEFAULT_UI_LOCALE, timeHM);
-}
 
 const SessionDetailsLocaleContext = createContext<Locale>("pl");
 
@@ -252,18 +241,18 @@ export default function SessionDetailsModal({
             description={(item.taskDescription as string) || null}
             dateLabel={
               item.startTime
-                ? formatUiDate(item.startTime as string)
+                ? formatUiDateOnly(item.startTime as string)
                 : item.dueDate
-                  ? formatUiDate(item.dueDate as string)
+                  ? formatUiDateOnly(item.dueDate as string)
                   : null
             }
             timeLabel={
               item.startTime
-                ? `${formatUiTime(item.startTime as string)}${
-                    item.endTime ? ` – ${formatUiTime(item.endTime as string)}` : ""
+                ? `${formatUiTimeHm(item.startTime as string)}${
+                    item.endTime ? ` – ${formatUiTimeHm(item.endTime as string)}` : ""
                   }`
                 : item.dueDate
-                  ? formatUiTime(item.dueDate as string)
+                  ? formatUiTimeHm(item.dueDate as string)
                   : null
             }
             className="mb-6"
@@ -317,8 +306,8 @@ export default function SessionDetailsModal({
                       <div className="relative ml-4 space-y-8 border-l-2 border-zinc-200 dark:border-zinc-800">
                         {timelineItems.map((entry) => {
                           const isNote = entry.type === "note";
-                          const timeStr = formatUiTime(entry.time);
-                          const dateStr = formatUiDate(entry.time);
+                          const timeStr = formatUiTimeHm(entry.time);
+                          const dateStr = formatUiDateOnly(entry.time);
 
                           return (
                             <div key={`${entry.type}-${entry.id}`} className="relative flex w-full items-start">

@@ -1,7 +1,7 @@
 import LiveMap from "@/components/Map/LiveMap";
 import type { AppDictionary } from "@/i18n/types";
 import type { ReportsDashboardSnapshot } from "@/types/admin";
-import { DEFAULT_UI_LOCALE } from "@/i18n";
+import { formatUiTimeHm } from "@/i18n";
 import {
   Activity,
   BarChart3,
@@ -168,10 +168,7 @@ export function ReportsDashboard({
                         {session.resourceName ?? "—"}
                       </td>
                       <td className="px-6 py-4 text-sm text-zinc-500">
-                        {session.startTime.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {formatUiTimeHm(session.startTime)}
                       </td>
                     </tr>
                   ))}

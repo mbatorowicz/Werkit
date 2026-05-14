@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
 
@@ -184,7 +184,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                   style={{ left: `${currentTimeLeft}%` }}
                 >
                   <div className="absolute -left-5 top-1 px-1.5 py-0.5 bg-red-400/80 dark:bg-red-500/60 text-white/90 text-[9px] font-semibold rounded-sm whitespace-nowrap shadow-sm">
-                    {currentTime?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}
+                    {currentTime ? formatUiTimeHm(currentTime) : ""}
                   </div>
                 </div>
               )}
@@ -268,7 +268,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                               style={{ left: plannedDims.left, width: plannedDims.width }}
-                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${plannedStart?.toLocaleDateString('pl-PL')}\nGodzina: ${plannedStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}\n${dict.clickToEdit}`}
+                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${plannedStart ? formatUiDateOnly(plannedStart) : "—"}\nGodzina: ${plannedStart ? formatUiTimeHm(plannedStart) : "—"}\n${dict.clickToEdit}`}
                             >
                               <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
@@ -277,7 +277,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                               style={{ left: actualDims.left, width: actualDims.width }}
-                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${actualStart?.toLocaleDateString('pl-PL')}\nGodzina: ${actualStart?.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })} – ${actualEnd ? actualEnd.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) : dict.inProgressShort}\n${dict.clickToDetails}`}
+                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${actualStart ? formatUiDateOnly(actualStart) : "—"}\nGodzina: ${actualStart ? formatUiTimeHm(actualStart) : "—"} – ${actualEnd ? formatUiTimeHm(actualEnd) : dict.inProgressShort}\n${dict.clickToDetails}`}
                             >
                               <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>

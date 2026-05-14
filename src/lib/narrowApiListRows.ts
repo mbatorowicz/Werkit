@@ -12,7 +12,7 @@ import type { MachinesCategory, MachinesResource } from "@/features/admin/machin
 import type { MaterialCategory, MaterialRow } from "@/features/admin/materials/types";
 
 export function isRecord(u: unknown): u is Record<string, unknown> {
-  return u !== null && typeof u === "object";
+  return u !== null && typeof u === "object" && !Array.isArray(u);
 }
 
 function narrowPriority(p: unknown): WorkOrderPriority | null {

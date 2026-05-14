@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { DEFAULT_UI_LOCALE, formatDict } from "@/i18n";
+import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
@@ -101,11 +101,8 @@ export function OrdersDispatchItemCard({
         {item.dueDate && (
           <div className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
             {formatDict(workerUiLabels.term, {
-              date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-              time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
+              date: formatUiDateOnly(item.dueDate as string),
+              time: formatUiTimeHm(item.dueDate as string),
             })}
           </div>
         )}
@@ -121,11 +118,8 @@ export function OrdersDispatchItemCard({
   const dueChipBoard = item.dueDate ? (
     <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
       {formatDict(workerUiLabels.term, {
-        date: new Date(item.dueDate as string).toLocaleDateString(DEFAULT_UI_LOCALE),
-        time: new Date(item.dueDate as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        date: formatUiDateOnly(item.dueDate as string),
+        time: formatUiTimeHm(item.dueDate as string),
       })}
     </div>
   ) : null;
@@ -135,17 +129,11 @@ export function OrdersDispatchItemCard({
       <>
         <div className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${startClass}`}>
           {dict.start}:{" "}
-          {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {formatUiTimeHm(item.startTime as string)}
         </div>
         <div className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${endClass}`}>
           {dict.end}:{" "}
-          {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {formatUiTimeHm(item.endTime as string)}
         </div>
       </>
     ) : null;
@@ -160,17 +148,11 @@ export function OrdersDispatchItemCard({
             <>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                 {dict.start}:{" "}
-                {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatUiTimeHm(item.startTime as string)}
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                 {dict.end}:{" "}
-                {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatUiTimeHm(item.endTime as string)}
               </div>
             </>
           )}
@@ -209,17 +191,11 @@ export function OrdersDispatchItemCard({
             <>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                 {dict.start}:{" "}
-                {new Date(item.startTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatUiTimeHm(item.startTime as string)}
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
                 {dict.end}:{" "}
-                {new Date(item.endTime as string).toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatUiTimeHm(item.endTime as string)}
               </div>
             </>
           )}

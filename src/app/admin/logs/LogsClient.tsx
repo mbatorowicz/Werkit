@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { TerminalSquare, RefreshCcw, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
-import { formatDict } from "@/i18n/format";
+import { formatDict, formatUiDateTimeShort } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -245,7 +244,7 @@ export default function LogsClient({
                   className="hover:bg-white/5 px-2 py-1.5 rounded transition-colors break-words border border-transparent hover:border-zinc-800/80"
                 >
                   <div className="whitespace-pre-wrap">
-                    <span className="text-zinc-500">[{new Date(log.createdAt).toLocaleString(DEFAULT_UI_LOCALE)}]</span>
+                    <span className="text-zinc-500">[{formatUiDateTimeShort(log.createdAt)}]</span>
                     <span className={`mx-2 font-bold rounded border px-1 ${getLevelColor(log.level)}`}>
                       [{log.level}]
                     </span>

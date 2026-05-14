@@ -11,17 +11,19 @@ export function formatDict(template: string, vars: Record<string, string | numbe
   return out;
 }
 
-function asDate(value: string | Date): Date {
-  return value instanceof Date ? value : new Date(value);
+function asDate(value: string | Date | number): Date {
+  if (value instanceof Date) return value;
+  if (typeof value === "number") return new Date(value);
+  return new Date(value);
 }
 
 /** Data kalendarzowa w stałej strefie UI (spójny SSR + klient). */
-export function formatUiDateOnly(value: string | Date): string {
+export function formatUiDateOnly(value: string | Date | number): string {
   return asDate(value).toLocaleDateString(DEFAULT_UI_LOCALE, { timeZone: DEFAULT_UI_TIMEZONE });
 }
 
 /** Godzina HH:mm w stałej strefie UI. */
-export function formatUiTimeHm(value: string | Date): string {
+export function formatUiTimeHm(value: string | Date | number): string {
   return asDate(value).toLocaleTimeString(DEFAULT_UI_LOCALE, {
     timeZone: DEFAULT_UI_TIMEZONE,
     hour: "2-digit",
@@ -30,7 +32,7 @@ export function formatUiTimeHm(value: string | Date): string {
 }
 
 /** Data + godzina (krótko) w stałej strefie UI — zamiast `toLocaleString` bez `timeZone` (SSR vs klient). */
-export function formatUiDateTimeShort(value: string | Date): string {
+export function formatUiDateTimeShort(value: string | Date | number): string {
   return asDate(value).toLocaleString(DEFAULT_UI_LOCALE, {
     timeZone: DEFAULT_UI_TIMEZONE,
     year: "numeric",

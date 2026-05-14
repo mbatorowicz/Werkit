@@ -96,7 +96,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 
 | ID | Temat | Status |
 |----|--------|--------|
-| D-01 | Ujednolicenie dat/czasu w panelu admin (`formatUi*` / strefa jak worker) | planned |
+| D-01 | Ujednolicenie dat/czasu w panelu admin (`formatUi*` / strefa jak worker) | done |
 | D-02 | Rozszerzenie testów: krytyczne ścieżki (sesja, zlecenia, parsowanie API) | in_progress |
 | D-03 | Wspólny moduł okien czasowych dla telemetrii (dedupe + throttle fetch) | planned |
 | D-04 | Abstrakcja providera trasy mapy (OSRM / ewentualna wymiana backendu) | planned |

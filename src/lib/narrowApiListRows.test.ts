@@ -9,9 +9,12 @@ describe("isRecord", () => {
     expect(isRecord(1)).toBe(false);
   });
 
-  it("akceptuje zwykły obiekt i tablicę (tablica też jest object)", () => {
-    expect(isRecord({})).toBe(true);
-    expect(isRecord([])).toBe(true);
+  it("odrzuca tablice (API zwraca obiekty wierszy, nie tablice zagnieżdżone)", () => {
+    expect(isRecord([])).toBe(false);
+  });
+
+  it("akceptuje zwykły obiekt rekordu", () => {
+    expect(isRecord({ a: 1 })).toBe(true);
   });
 });
 

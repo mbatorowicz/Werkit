@@ -1,4 +1,4 @@
-import { DEFAULT_UI_LOCALE } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
 
@@ -91,13 +91,11 @@ export function dispatchItemDateTimeLabels(
   if (layout === "boardActive") {
     const tStart = item.startTime ? new Date(item.startTime as string) : null;
     const dateLabel = tStart
-      ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-      : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
+      ? formatUiDateOnly(tStart)
+      : formatUiDateOnly(item.createdAt as string);
     const timeLabel = tStart
-      ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })} – ${
-          liveClockMs !== null
-            ? new Date(liveClockMs).toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })
-            : ""
+      ? `${formatUiTimeHm(tStart)} – ${
+          liveClockMs !== null ? formatUiTimeHm(new Date(liveClockMs)) : ""
         }`
       : "—";
     return { dateLabel, timeLabel };
@@ -107,16 +105,11 @@ export function dispatchItemDateTimeLabels(
     const tStart = item.startTime ? new Date(item.startTime as string) : null;
     const tEnd = item.endTime ? new Date(item.endTime as string) : null;
     const dateLabel = tStart
-      ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-      : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
+      ? formatUiDateOnly(tStart)
+      : formatUiDateOnly(item.createdAt as string);
     const timeLabel = tStart
-      ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-          tEnd
-            ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}`
-            : ""
+      ? `${formatUiTimeHm(tStart)}${
+          tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""
         }`
       : "—";
     return { dateLabel, timeLabel };
@@ -143,16 +136,11 @@ export function dispatchItemDateTimeLabels(
           : null;
 
   const dateLabel = tStart
-    ? tStart.toLocaleDateString(DEFAULT_UI_LOCALE)
-    : new Date(item.createdAt as string).toLocaleDateString(DEFAULT_UI_LOCALE);
+    ? formatUiDateOnly(tStart)
+    : formatUiDateOnly(item.createdAt as string);
   const timeLabel = tStart
-    ? `${tStart.toLocaleTimeString(DEFAULT_UI_LOCALE, { hour: "2-digit", minute: "2-digit" })}${
-        tEnd
-          ? ` – ${tEnd.toLocaleTimeString(DEFAULT_UI_LOCALE, {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}`
-          : ""
+    ? `${formatUiTimeHm(tStart)}${
+        tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""
       }`
     : "";
 
