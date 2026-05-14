@@ -11,12 +11,12 @@
 
 | Element | Wartość |
 |---|---|
-| Wersja aplikacji | `package.json#version` (obecnie **1.9.2**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
+| Wersja aplikacji | `package.json#version` (obecnie **1.9.3**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). Android: `versionName` w `android/app/build.gradle`. |
 | Framework | **Next.js 16.2.4**, React 19.2.4, App Router. |
 | Runtime API | Domyślne Vercel Node.js (hasło: **`passwordCrypto`** — domyślnie natywny `bcrypt`, opcjonalnie `bcryptjs` przez `WERKIT_USE_BCRYPTJS`). Tras **edge** brak. |
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
 | Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. |
-| Lokalny dev | `npm run dev` na porcie 3000. Połączenie do Neon — patrz `.env.local` (już istnieje, wskazuje produkcyjną bazę `ep-rough-sea-al7ogqfl`). |
+| Lokalny dev | `npm run dev` na porcie 3000. Baza: `DATABASE_URL` / `POSTGRES_URL` w `.env.local` (nie commituj). |
 | Domyślny język | `'pl'` (zob. `src/i18n/index.ts`); locale formatowania dat: `DEFAULT_UI_LOCALE = 'pl-PL'`. |
 
 ---
@@ -437,7 +437,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
 10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli `proxy` już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
-12. **`GET /api/geocode`** — `q` min. 3 znaki, **maks. 280** (anty-nadużycie wobec Nominatim); błędy `short_query` / `query_too_long` w `apiErrors`.
+12. **`GET /api/geocode`** — `q` min. 3 znaki, **maks. 280** (anty-nadużycie wobec Nominatim); błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
 13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem (stabilność + rozmiar wiersza w `device_logs`).
 
 ---
@@ -450,4 +450,4 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-11. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-14. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*

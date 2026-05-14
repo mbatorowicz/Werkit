@@ -39,7 +39,7 @@ Aplikacja zaprojektowana w ujęciu "Offline / Low-battery first":
 ## 2. Stack Technologiczny
 
 System został zbudowany z zachowaniem restrykcyjnych standardów czystego kodu:
-- **Framework Core**: [Next.js 15 (App Router)](https://nextjs.org) (React Server Components domyślnie).
+- **Framework Core**: [Next.js 16 (App Router)](https://nextjs.org) (React Server Components domyślnie; szczegóły w `AGENTS.md` / `ARCHITECTURE.md`).
 - **Język i Bezpieczeństwo**: Strict TypeScript (całkowity zakaz rzutowania `any`).
 - **Stylizacja**: Tailwind CSS (tryb Ciemny/Jasny, palety Zinc & Emerald).
 - **Baza Danych ORM**: [Drizzle ORM](https://orm.drizzle.team) połączony z Vercel Postgres / PostgreSQL. Zmiany schematów leżą w `src/db/schema.ts`.
@@ -51,8 +51,8 @@ System został zbudowany z zachowaniem restrykcyjnych standardów czystego kodu:
 ## 3. Uruchamianie Projektu
 
 ### Wymagania wstępne:
-- Node.js >= 18
-- Środowisko bazodanowe PostgreSQL (np. Vercel Postgres, Docker, lokalny Postgres). Zdefiniowane w pliku `.env.local` jako `POSTGRES_URL`.
+- Node.js **>= 20.9** (pole `engines` w `package.json`)
+- PostgreSQL (np. Vercel Postgres, Neon, Docker). Connection string w `.env.local` — **`DATABASE_URL` / `POSTGRES_URL`** (bez commitowania pliku; patrz `AGENTS.md`).
 
 ### Instalacja i uruchamianie deweloperskie:
 
@@ -60,9 +60,10 @@ System został zbudowany z zachowaniem restrykcyjnych standardów czystego kodu:
 # 1. Instalacja zależności
 npm install
 
-# 2. Synchronizacja bazy danych (Drizzle)
-npm run db:push     # "Wypycha" schematy TypeScript z pliku db/schema.ts wprost do schematu Bazy Postgres
-npm run db:studio   # (Opcjonalnie) Uruchamia lokalnego Drizzle Studio (Baza danych w GUI webowym)
+# 2. Baza danych (Drizzle) — pełny workflow: `AGENTS.md` oraz skrypty w `package.json`
+npm run db:migrate:pg       # migracje z journalu Drizzle na bazę z .env.local
+npm run db:verify-schema    # zgodność schema.ts ↔ baza
+# opcjonalnie: npm run db:napraw-wszystko  (skrypty idempotentne poza journal)
 
 # 3. Uruchomienie deweloperskie
 npm run dev
