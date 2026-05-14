@@ -92,10 +92,18 @@ export function narrowGpsPathLogs(body: unknown): Coord[] {
           : typeof p.heading === "string"
             ? parseFloat(p.heading)
             : undefined;
+    let recordedAt: string | undefined;
+    const rawT = p.recordedAt ?? p.timestamp;
+    if (typeof rawT === "string" && rawT.length > 0) {
+      recordedAt = rawT;
+    } else if (typeof rawT === "number" && Number.isFinite(rawT)) {
+      recordedAt = new Date(rawT).toISOString();
+    }
     out.push({
       lat,
       lng,
       heading: heading !== undefined && Number.isFinite(heading) ? heading : undefined,
+      ...(recordedAt !== undefined ? { recordedAt } : {}),
     });
   }
   return out;

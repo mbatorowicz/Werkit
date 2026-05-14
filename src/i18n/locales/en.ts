@@ -276,6 +276,9 @@ export const en: AppDictionary = {
       headingOn: "Heading on marker: on",
       headingOff: "Heading on marker: off",
       followResume: "Follow position",
+      speedLegendTitle: "Speed (GPS time)",
+      speedLegendSlow: "slow",
+      speedLegendFast: "fast",
     },
     workers: {
       title: "Users",

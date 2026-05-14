@@ -5,7 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet"
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
-import type { TimelineItem } from "@/types/worker";
+import type { Coord, TimelineItem } from "@/types/worker";
+import { buildSpeedColoredSegments, pathHasTimestampsForSpeed } from "@/lib/speedColoredPath";
 import {
   FitContentDebounced,
   FollowPan,
@@ -24,7 +25,7 @@ import {
 
 interface LiveMapProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
-  pathTraveled: { lat: number; lng: number }[];
+  pathTraveled: Coord[];
   destination: { lat: number; lng: number } | null;
   onRouteDistance?: (distanceKm: number) => void;
   events?: TimelineItem[];
@@ -78,6 +79,9 @@ export default function LiveMap({
       }),
     [showNeedleOnMarker, currentLocation.heading],
   );
+
+  const showSpeedColors = pathHasTimestampsForSpeed(pathTraveled);
+  const speedSegments = useMemo(() => buildSpeedColoredSegments(pathTraveled), [pathTraveled]);
 
   useEffect(() => {
     if (currentLocation && destination) {
@@ -152,8 +156,35 @@ export default function LiveMap({
         <MapInvalidateOnResize />
         <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
 
-        {pathTraveled.length > 0 ? (
-          <Polyline positions={pathTraveled.map((p) => [p.lat, p.lng])} color="#3b82f6" weight={5} opacity={0.7} />
+        {pathTraveled.length >= 2 ? (
+          showSpeedColors ? (
+            speedSegments.map((s, idx) => (
+              <Polyline key={`traveled-spd-${idx}`} positions={s.positions} color={s.color} weight={5} opacity={0.85} />
+            ))
+          ) : (
+            <Polyline
+              positions={pathTraveled.map((p) => [p.lat, p.lng])}
+              color="#3b82f6"
+              weight={5}
+              opacity={0.7}
+            />
+          )
+        ) : null}
+
+        {showSpeedColors && pathTraveled.length >= 2 ? (
+          <div className="pointer-events-none absolute bottom-14 left-1/2 z-[999] flex -translate-x-1/2 flex-col items-center gap-1 rounded-lg border border-zinc-200/80 bg-white/95 px-2.5 py-1.5 text-[10px] text-zinc-600 shadow-md dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-300">
+            <span className="font-semibold uppercase tracking-wide">{dict.speedLegendTitle}</span>
+            <div className="flex w-40 items-center gap-1">
+              <span className="shrink-0 text-zinc-400">{dict.speedLegendSlow}</span>
+              <div
+                className="h-2 flex-1 rounded-full"
+                style={{
+                  background: "linear-gradient(90deg,#64748b,#047857,#10b981,#eab308,#ea580c)",
+                }}
+              />
+              <span className="shrink-0 text-zinc-400">{dict.speedLegendFast}</span>
+            </div>
+          </div>
         ) : null}
 
         {pathTraveled.length > 0 ? (

@@ -11,7 +11,11 @@ export class GpsService {
     if (activeSessions.length === 0) return [];
 
     const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, activeSessions[0].id)).orderBy(asc(gpsLogs.timestamp));
-    return logs.map(l => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }));
+    return logs.map((l) => ({
+      lat: parseFloat(l.latitude),
+      lng: parseFloat(l.longitude),
+      recordedAt: l.timestamp instanceof Date ? l.timestamp.toISOString() : String(l.timestamp),
+    }));
   }
 
   static async saveGpsLogs(userId: number, points: GpsPoint[]) {

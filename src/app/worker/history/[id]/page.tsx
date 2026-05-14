@@ -56,7 +56,18 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
   const pathTraveled = foldMicroJumpsInPath(
     logs
       .filter((l) => Boolean(l.latitude && l.longitude))
-      .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
+      .map((l) => {
+        const lat = parseFloat(String(l.latitude));
+        const lng = parseFloat(String(l.longitude));
+        const ts = (l as { timestamp?: string | Date | null }).timestamp;
+        const recordedAt =
+          ts instanceof Date
+            ? ts.toISOString()
+            : typeof ts === "string" && ts.length > 0
+              ? ts
+              : undefined;
+        return { lat, lng, ...(recordedAt ? { recordedAt } : {}) };
+      })
       .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)),
   );
 

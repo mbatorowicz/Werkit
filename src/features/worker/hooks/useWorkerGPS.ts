@@ -55,7 +55,10 @@ export function useWorkerGPS(
     const handleNewLoc = (newLoc: Coord) => {
       if (!isMounted) return;
       setLocation(newLoc);
-      dispatchRoute({ type: "gps", loc: newLoc });
+      dispatchRoute({
+        type: "gps",
+        loc: { ...newLoc, recordedAt: new Date().toISOString() },
+      });
 
       GPSManager.enqueue(newLoc);
       GPSManager.flushQueue(() => {

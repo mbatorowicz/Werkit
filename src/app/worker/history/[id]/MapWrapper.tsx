@@ -12,11 +12,11 @@ const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
   )
 });
 
-import { TimelineItem } from "@/types/worker";
+import type { Coord, TimelineItem } from "@/types/worker";
 
 interface MapWrapperProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
-  pathTraveled: { lat: number; lng: number }[];
+  pathTraveled: Coord[];
   destination: { lat: number; lng: number } | null;
   events?: TimelineItem[];
 }

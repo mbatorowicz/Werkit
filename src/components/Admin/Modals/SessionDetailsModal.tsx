@@ -78,7 +78,7 @@ export default function SessionDetailsModal({
   const dict = dictionary.admin.orders;
   const adminUi = dictionary.admin.ui;
 
-  const [logs, setLogs] = useState<{ latitude?: string; longitude?: string }[]>([]);
+  const [logs, setLogs] = useState<{ latitude?: string; longitude?: string; timestamp?: string }[]>([]);
   const [photos, setPhotos] = useState<
     { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[]
   >([]);
@@ -97,7 +97,7 @@ export default function SessionDetailsModal({
       try {
         const r = await fetch(`/api/admin/work-sessions/${item.id}`);
         const data = (await r.json()) as {
-          logs?: { latitude?: string; longitude?: string }[];
+          logs?: { latitude?: string; longitude?: string; timestamp?: string }[];
           photos?: { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[];
           notes?: { id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[];
         };
@@ -120,13 +120,19 @@ export default function SessionDetailsModal({
   const pathTraveled = foldMicroJumpsInPath(
     logs
       .filter(
-        (l): l is { latitude: string; longitude: string } =>
+        (l): l is { latitude: string; longitude: string; timestamp?: string } =>
           typeof l.latitude === "string" &&
           typeof l.longitude === "string" &&
           l.latitude !== "" &&
           l.longitude !== "",
       )
-      .map((l) => ({ lat: parseFloat(l.latitude), lng: parseFloat(l.longitude) }))
+      .map((l) => {
+        const lat = parseFloat(l.latitude);
+        const lng = parseFloat(l.longitude);
+        const recordedAt =
+          typeof l.timestamp === "string" && l.timestamp.length > 0 ? l.timestamp : undefined;
+        return { lat, lng, ...(recordedAt ? { recordedAt } : {}) };
+      })
       .reverse(),
   );
   const events: TimelineItem[] = [

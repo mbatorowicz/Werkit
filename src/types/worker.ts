@@ -44,7 +44,13 @@ export type WorkOrder = {
   hasNotes?: boolean;
 };
 
-export type Coord = { lat: number; lng: number; heading?: number | null };
+export type Coord = {
+  lat: number;
+  lng: number;
+  heading?: number | null;
+  /** ISO 8601 — do kolorowania śladu wg prędkości (odstęp czasu między próbkami). */
+  recordedAt?: string;
+};
 
 export type Note = {
   id: number;

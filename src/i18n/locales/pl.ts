@@ -274,6 +274,9 @@ export const pl = {
       headingOn: "Kierunek na znaczniku: wł.",
       headingOff: "Kierunek na znaczniku: wył.",
       followResume: "Śledź pozycję",
+      speedLegendTitle: "Prędkość (czas GPS)",
+      speedLegendSlow: "wolno",
+      speedLegendFast: "szybko",
     },
     workers: {
       title: "Użytkownicy",
