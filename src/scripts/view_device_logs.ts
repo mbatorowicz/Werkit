@@ -6,10 +6,11 @@
  *   npm run logs:device
  *   npm run logs:device -- --limit 80 --level ERROR
  *   npm run logs:device -- --user 3 --category admin
+ *   npm run logs:device -- --minutes 10 --limit 200
  *   npm run logs:device -- --full
  */
 import { loadEnvConfig } from "@next/env";
-import { and, desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gte, sql, type SQL } from "drizzle-orm";
 
 function printHelp(): void {
   console.log(`Użycie: npm run logs:device -- [opcje]
@@ -19,6 +20,7 @@ Opcje:
   --level L     Filtr: INFO | WARN | ERROR | DEBUG
   --user ID     Filtr po user_id
   --category C  Filtr po metadata.category lub werkitContext.category (np. admin, http, session)
+  --minutes M   Tylko wpisy z ostatnich M minut (1–1440)
   --full          Pełny JSON metadanych zamiast jednej linii podsumowania
   --json          Cały rekord jako JSON (NDJSON) — do przekierowania / narzędzi
   --help          Ta pomoc
@@ -105,6 +107,16 @@ async function main(): Promise<void> {
   const userRaw = optString("user");
   const userId = userRaw !== undefined ? Number.parseInt(userRaw, 10) : undefined;
   const category = optString("category")?.trim();
+  const minutesRaw = optString("minutes");
+  const minutesParsed = minutesRaw !== undefined ? Number.parseInt(minutesRaw, 10) : undefined;
+  const minutes =
+    minutesParsed !== undefined && !Number.isNaN(minutesParsed)
+      ? Math.min(1440, Math.max(1, minutesParsed))
+      : undefined;
+  if (minutesRaw !== undefined && minutes === undefined) {
+    console.error("Nieprawidłowy --minutes (oczekiwano liczby 1–1440).");
+    process.exit(1);
+  }
   const full = hasFlag("full");
   const asJson = hasFlag("json");
 
@@ -127,6 +139,10 @@ async function main(): Promise<void> {
     filters.push(
       sql`coalesce(${deviceLogs.metadata}->>'category', ${deviceLogs.metadata}#>>'{werkitContext,category}') = ${category}`,
     );
+  }
+  if (minutes !== undefined) {
+    const since = new Date(Date.now() - minutes * 60_000);
+    filters.push(gte(deviceLogs.createdAt, since));
   }
   const whereClause: SQL = filters.length === 0 ? sql`true` : filters.length === 1 ? filters[0]! : and(...filters)!;
 
