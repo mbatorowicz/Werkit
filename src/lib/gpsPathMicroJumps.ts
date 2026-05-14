@@ -2,10 +2,11 @@ import type { Coord } from "@/types/worker";
 import { GPSManager } from "@/lib/gpsManager";
 
 /**
- * Próbki bliżej niż ten dystans od ostatniego punktu na śladzie = typowy szum przy postoju (telefon stoi w ~kilku metrach).
- * Nie dopinamy wtedy nowego segmentu — tylko aktualizujemy ostatni punkt (mapa bez „pajęczyny”).
+ * Scalanie wyłącznie mikroszumu (kilka metrów). Musi być wyraźnie mniejsze niż typowy odstęp próbek
+ * w ruchu (np. natywny filtr ≈ 10 m): przy zbyt dużym progu kolejne próbki w trasie wpadały w
+ * „zastąp ogon” i cała droga zwijała się do prawie prostej start–koniec zamiast pełnego śladu.
  */
-export const GPS_PATH_STATIONARY_MERGE_MAX_METERS = 14;
+export const GPS_PATH_STATIONARY_MERGE_MAX_METERS = 6;
 
 /**
  * Inkrementalne dodanie próbki: jeśli jest blisko poprzedniego punktu trasy (typowy szum przy postoju),
