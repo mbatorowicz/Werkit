@@ -1,5 +1,5 @@
 import type { Coord } from "@/types/worker";
-import { foldAppendGpsSample, sumPathLengthKm } from "@/lib/gpsPathMicroJumps";
+import { foldAppendGpsSample, sumPathLengthKm } from "@/lib/gps/stationaryPath";
 
 export type WorkerRouteState = { path: Coord[]; km: number };
 

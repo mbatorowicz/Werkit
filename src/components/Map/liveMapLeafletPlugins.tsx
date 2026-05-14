@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
-import type { TimelineItem } from "@/types/worker";
+import type { Coord, TimelineItem } from "@/types/worker";
 
 /** Podążanie za pojazdem, gdy nie ma jeszcze trasy ani celu na mapie. */
 export function FollowPan({
@@ -35,7 +35,7 @@ export function FitContentDebounced({
   enabled,
 }: {
   currentLocation: { lat: number; lng: number };
-  pathTraveled: { lat: number; lng: number }[];
+  pathTraveled: Coord[];
   destination: { lat: number; lng: number } | null;
   routeToDest: [number, number][];
   events: TimelineItem[];

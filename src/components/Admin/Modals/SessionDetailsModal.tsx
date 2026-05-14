@@ -1,6 +1,6 @@
 "use client";
 
-import type { Coord, TimelineItem } from "@/types/worker";
+import type { TimelineItem } from "@/types/worker";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   X,
@@ -21,8 +21,7 @@ import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { UnifiedGanttItem } from "@/types/admin";
-import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
-import { finiteLatLng, isoTimestampFromUnknown } from "@/lib/finiteLatLng";
+import { displayPathFromRawGpsRows } from "@/lib/gps";
 
 const timeHM: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit" };
 
@@ -118,17 +117,7 @@ export default function SessionDetailsModal({
     };
   }, [item]);
 
-  const pathTraveled = foldMicroJumpsInPath(
-    logs
-      .map((l) => {
-        const base = finiteLatLng(l.latitude, l.longitude);
-        if (!base) return null;
-        const recordedAt = isoTimestampFromUnknown(l.timestamp);
-        return { ...base, ...(recordedAt ? { recordedAt } : {}) };
-      })
-      .filter((p): p is Coord => p !== null)
-      .reverse(),
-  );
+  const pathTraveled = displayPathFromRawGpsRows(logs, { reverseToChronological: true });
   const events: TimelineItem[] = [
     ...photos
       .filter((p): p is typeof p & { latitude: string; longitude: string } => Boolean(p.latitude && p.longitude))

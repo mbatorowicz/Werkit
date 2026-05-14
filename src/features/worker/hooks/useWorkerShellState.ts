@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
-import { workerRouteReducer } from "@/features/worker/hooks/workerRouteReducer";
+import { foldMicroJumpsInPath } from "@/lib/gps";
+import { workerRouteReducer } from "@/features/worker/gps/workerRouteReducer";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";

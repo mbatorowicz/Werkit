@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
 import type { Coord, TimelineItem } from "@/types/worker";
-import { buildSpeedColoredSegments, pathHasTimestampsForSpeed } from "@/lib/speedColoredPath";
 import {
   FitContentDebounced,
   FollowPan,
@@ -22,6 +21,8 @@ import {
   iconPhoto,
   iconStart,
 } from "./liveMapIcons";
+import { TraveledPathLayers } from "./TraveledPathLayers";
+import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
 
 interface LiveMapProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
@@ -46,9 +47,8 @@ export default function LiveMap({
   onEventClick,
   preferPivotNavigation = false,
 }: LiveMapProps) {
-  const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
+  const routeToDest = useOsrmRouteToDestination(currentLocation, destination, onRouteDistance);
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
-  /** Po przeciągnięciu / zoomie gestem nie walczymy z GPS-em o środek mapy. */
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const dict = getDictionary().admin.map;
 
@@ -80,40 +80,16 @@ export default function LiveMap({
     [showNeedleOnMarker, currentLocation.heading],
   );
 
-  const showSpeedColors = pathHasTimestampsForSpeed(pathTraveled);
-  const speedSegments = useMemo(() => buildSpeedColoredSegments(pathTraveled), [pathTraveled]);
+  const speedLegend = useMemo(
+    () => ({
+      speedLegendTitle: dict.speedLegendTitle,
+      speedLegendSlow: dict.speedLegendSlow,
+      speedLegendFast: dict.speedLegendFast,
+    }),
+    [dict.speedLegendTitle, dict.speedLegendSlow, dict.speedLegendFast],
+  );
 
-  useEffect(() => {
-    if (currentLocation && destination) {
-      const fetchRoute = async () => {
-        try {
-          const url = `https://router.project-osrm.org/route/v1/driving/${currentLocation.lng},${currentLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
-          const res = await fetch(url);
-          const data: unknown = await res.json();
-          const routes = (data as { routes?: { geometry: { coordinates: [number, number][] }; distance: number }[] })
-            .routes;
-          if (Array.isArray(routes) && routes.length > 0) {
-            const route = routes[0];
-            const coordinates = route.geometry.coordinates.map(
-              (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
-            );
-            setRouteToDest(coordinates);
-
-            if (onRouteDistance) {
-              onRouteDistance(route.distance / 1000);
-            }
-          }
-        } catch {
-          /* OSRM — brak trasy nie powinien blokować mapy */
-        }
-      };
-      void fetchRoute();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- śledzimy wyłącznie współrzędne
-  }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng]);
-
-  const showResumeFollow =
-    !cameraFollowGps && (navPivotMode || followPanMode);
+  const showResumeFollow = !cameraFollowGps && (navPivotMode || followPanMode);
 
   return (
     <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800 relative">
@@ -156,36 +132,7 @@ export default function LiveMap({
         <MapInvalidateOnResize />
         <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
 
-        {pathTraveled.length >= 2 ? (
-          showSpeedColors ? (
-            speedSegments.map((s, idx) => (
-              <Polyline key={`traveled-spd-${idx}`} positions={s.positions} color={s.color} weight={5} opacity={0.85} />
-            ))
-          ) : (
-            <Polyline
-              positions={pathTraveled.map((p) => [p.lat, p.lng])}
-              color="#3b82f6"
-              weight={5}
-              opacity={0.7}
-            />
-          )
-        ) : null}
-
-        {showSpeedColors && pathTraveled.length >= 2 ? (
-          <div className="pointer-events-none absolute bottom-14 left-1/2 z-[999] flex -translate-x-1/2 flex-col items-center gap-1 rounded-lg border border-zinc-200/80 bg-white/95 px-2.5 py-1.5 text-[10px] text-zinc-600 shadow-md dark:border-zinc-600 dark:bg-zinc-900/95 dark:text-zinc-300">
-            <span className="font-semibold uppercase tracking-wide">{dict.speedLegendTitle}</span>
-            <div className="flex w-40 items-center gap-1">
-              <span className="shrink-0 text-zinc-400">{dict.speedLegendSlow}</span>
-              <div
-                className="h-2 flex-1 rounded-full"
-                style={{
-                  background: "linear-gradient(90deg,#64748b,#047857,#10b981,#eab308,#ea580c)",
-                }}
-              />
-              <span className="shrink-0 text-zinc-400">{dict.speedLegendFast}</span>
-            </div>
-          </div>
-        ) : null}
+        <TraveledPathLayers path={pathTraveled} legend={speedLegend} />
 
         {pathTraveled.length > 0 ? (
           <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>

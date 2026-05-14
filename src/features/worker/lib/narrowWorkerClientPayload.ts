@@ -1,4 +1,5 @@
 import { isRecord } from "@/lib/narrowApiListRows";
+import { coordFromRawGpsRow, type RawGpsCoordinateRow } from "@/lib/gps/pathFromLogRows";
 import type { AppSettings, Coord, Session, UserData } from "@/types/worker";
 
 export function narrowSession(v: unknown): Session | null {
@@ -81,30 +82,9 @@ export function narrowGpsPathLogs(body: unknown): Coord[] {
   const out: Coord[] = [];
   for (const p of body.logs) {
     if (!isRecord(p)) continue;
-    const lat = typeof p.lat === "number" ? p.lat : typeof p.lat === "string" ? parseFloat(p.lat) : NaN;
-    const lng = typeof p.lng === "number" ? p.lng : typeof p.lng === "string" ? parseFloat(p.lng) : NaN;
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    const heading =
-      p.heading === null || p.heading === undefined
-        ? undefined
-        : typeof p.heading === "number"
-          ? p.heading
-          : typeof p.heading === "string"
-            ? parseFloat(p.heading)
-            : undefined;
-    let recordedAt: string | undefined;
-    const rawT = p.recordedAt ?? p.timestamp;
-    if (typeof rawT === "string" && rawT.length > 0) {
-      recordedAt = rawT;
-    } else if (typeof rawT === "number" && Number.isFinite(rawT)) {
-      recordedAt = new Date(rawT).toISOString();
-    }
-    out.push({
-      lat,
-      lng,
-      heading: heading !== undefined && Number.isFinite(heading) ? heading : undefined,
-      ...(recordedAt !== undefined ? { recordedAt } : {}),
-    });
+    const c = coordFromRawGpsRow(p as RawGpsCoordinateRow);
+    if (!c) continue;
+    out.push(c);
   }
   return out;
 }

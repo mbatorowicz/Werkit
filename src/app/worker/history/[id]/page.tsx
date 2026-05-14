@@ -10,7 +10,7 @@ import { DEFAULT_UI_LOCALE } from "@/i18n/constants";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { TimelineGalleryClient } from "./TimelineGalleryClient";
-import { foldMicroJumpsInPath } from "@/lib/gpsPathMicroJumps";
+import { displayPathFromRawGpsRows } from "@/lib/gps";
 
 function asDate(v: unknown): Date | null {
   if (!v) return null;
@@ -53,23 +53,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   const { sessionData, logs, notes, photos } = historyData;
 
-  const pathTraveled = foldMicroJumpsInPath(
-    logs
-      .filter((l) => Boolean(l.latitude && l.longitude))
-      .map((l) => {
-        const lat = parseFloat(String(l.latitude));
-        const lng = parseFloat(String(l.longitude));
-        const ts = (l as { timestamp?: string | Date | null }).timestamp;
-        const recordedAt =
-          ts instanceof Date
-            ? ts.toISOString()
-            : typeof ts === "string" && ts.length > 0
-              ? ts
-              : undefined;
-        return { lat, lng, ...(recordedAt ? { recordedAt } : {}) };
-      })
-      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)),
-  );
+  const pathTraveled = displayPathFromRawGpsRows(logs, { reverseToChronological: false });
 
   const isStationary = Boolean((sessionData as { categoryIsStationary?: boolean | null }).categoryIsStationary);
 

@@ -11,7 +11,7 @@ import {
   WORKER_GPS_QUEUE_FLUSH_INTERVAL_MS,
   WORKER_WEB_GEO_WATCH_OPTIONS,
 } from "@/features/worker/gps/workerGpsConstants";
-import type { WorkerRouteAction } from "@/features/worker/hooks/workerRouteReducer";
+import type { WorkerRouteAction } from "@/features/worker/gps/workerRouteReducer";
 
 import type { Coord, Session } from "@/types/worker";
 

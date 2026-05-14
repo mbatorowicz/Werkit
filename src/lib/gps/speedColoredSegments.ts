@@ -12,7 +12,6 @@ function parseTimeMs(iso: string | undefined): number | null {
   return Number.isFinite(t) ? t : null;
 }
 
-/** Kolory ~ km/h (szacunek z odległości / Δt); pasuje do palety emerald/zinc aplikacji. */
 function colorForSpeedKmh(kmh: number): string {
   if (kmh < 1) return "#64748b";
   if (kmh < 22) return "#047857";
