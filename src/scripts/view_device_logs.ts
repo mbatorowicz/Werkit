@@ -1,19 +1,24 @@
 /**
- * Podgląd ostatnich wpisów `device_logs` z bazy (to samo źródło co `/admin/logs`).
+ * Logi systemowe (health / telemetria z aplikacji) — tabela `device_logs`, to samo źródło co panel `/admin/logs`.
  * Uruchom z katalogu projektu przy ustawionym `DATABASE_URL` / `POSTGRES_URL` w `.env.local`.
  *
+ * Skrypt npm (oba aliasy do tego samego pliku):
+ *   `npm run logs:system`  ·  `npm run logs:device`
+ *
  * Przykłady:
- *   npm run logs:device
- *   npm run logs:device -- --limit 80 --level ERROR
- *   npm run logs:device -- --user 3 --category admin
- *   npm run logs:device -- --minutes 10 --limit 200
- *   npm run logs:device -- --full
+ *   npm run logs:system
+ *   npm run logs:system -- --minutes 20 --limit 200
+ *   npm run logs:system -- --limit 80 --level ERROR
+ *   npm run logs:system -- --user 3 --category admin
+ *   npm run logs:system -- --full
  */
 import { loadEnvConfig } from "@next/env";
 import { and, desc, eq, gte, sql, type SQL } from "drizzle-orm";
 
 function printHelp(): void {
-  console.log(`Użycie: npm run logs:device -- [opcje]
+  console.log(`Logi systemowe (device_logs) — to samo co /admin/logs
+
+Użycie: npm run logs:system -- [opcje]   (alias: npm run logs:device)
 
 Opcje:
   --limit N     Liczba wierszy (domyślnie 40, max 500)
