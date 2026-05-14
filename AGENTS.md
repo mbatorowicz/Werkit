@@ -23,6 +23,7 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 3. **Nie kończ** zdania w stylu „musisz uruchomić migrację” — jeśli środowisko ma połączenie do bazy, **wykonaj migrację/weryfikację w ramach sesji**.
 4. Szczegółowa mapa tabel i migracji: **`docs/SYSTEM_MAP.md`** §3; porównanie kanoniczne jest utrzymywane **równolegle** w skrypcie `db:verify-schema` (przy rozszerzeniu schematu **zaktualizuj oba**: `schema.ts` + `verify_schema_alignment.ts`).
 5. **GitHub:** domyślny model pracy — **agent** kończy zlecenie przez **`git commit` + `git push`** na bieżącą gałąź (zwykle `main`), o ile użytkownik nie poprosi o wyłączenie pusha / sam staging. **Nie commituj** sekretów (np. `.env.local`). Szczegóły: [`.cursor/rules/werkit-git-workflow.mdc`](./.cursor/rules/werkit-git-workflow.mdc).
+6. **Logi urządzenia (`device_logs`):** do podglądu z bazy bez panelu admina uruchom **`npm run logs:device`** (opcje: `--limit`, `--level`, `--user`, `--category`, `--full`, `--json`, `--help`). Wymaga działającego `DATABASE_URL` / `POSTGRES_URL` w `.env.local`.
 
 ---
 
