@@ -10,6 +10,24 @@ export type FetchDeviceTelemetryOptions = {
 
 const throttleLast = new Map<string, number>();
 
+/** Sieć / abort — nie traktujemy jak krytyczny błąd aplikacji (mniej szumu w `device_logs`). */
+function isLikelyTransientFetchFailure(e: unknown): boolean {
+  if (e === null || e === undefined) return false;
+  if (typeof e !== "object") return false;
+  const name = "name" in e && typeof (e as { name?: unknown }).name === "string" ? (e as { name: string }).name : "";
+  if (name === "AbortError") return true;
+  const msg =
+    "message" in e && typeof (e as { message?: unknown }).message === "string"
+      ? String((e as { message: string }).message)
+      : "";
+  const lower = msg.toLowerCase();
+  if (lower.includes("failed to fetch") || lower.includes("networkerror") || lower.includes("load failed"))
+    return true;
+  if (lower.includes("network request failed") || lower.includes("fetch failed")) return true;
+  if (lower.includes("ecconnreset") || lower.includes("etimedout") || lower.includes("econnrefused")) return true;
+  return false;
+}
+
 /** Zwraca `true`, gdy log ma zostać pominięty (w oknie throttlingu). */
 function shouldSuppressTelemetryLog(key: string, windowMs: number): boolean {
   const now = Date.now();
@@ -70,11 +88,13 @@ export async function fetchWithDeviceTelemetry(
     return res;
   } catch (e) {
     if (allowThrowLog()) {
+      const transient = isLikelyTransientFetchFailure(e);
       sendRemoteLog(
-        "ERROR",
+        transient ? "WARN" : "ERROR",
         `${label}: wyjątek fetch`,
         {
           url: urlStr.slice(0, 900),
+          transientNetwork: transient,
           error:
             e instanceof Error
               ? { name: e.name, message: e.message, stack: e.stack?.slice(0, 4000) }

@@ -34,7 +34,8 @@ export function useOrdersDispatchData() {
   const fetchData = useCallback(async (showLoader = true) => {
     if (showLoader) setIsLoading(true);
     try {
-      const [wor, mac, mat, cus, cats, ords, arch] = await Promise.all([
+      /** `allSettled` — przy padnięciu sieci jeden endpoint nie przerywa reszty; UI dostaje część danych. */
+      const settled = await Promise.allSettled([
         fetchWithDeviceTelemetry("Admin dispatch: workers", "/api/workers", { cache: "no-store" }, {
           category: "admin",
         }).then(parseJsonArray),
@@ -57,6 +58,17 @@ export function useOrdersDispatchData() {
           category: "admin",
         }).then(parseJsonArray),
       ]);
+      const pick = (i: number): unknown[] => {
+        const r = settled[i];
+        return r?.status === "fulfilled" ? r.value : [];
+      };
+      const wor = pick(0);
+      const mac = pick(1);
+      const mat = pick(2);
+      const cus = pick(3);
+      const cats = pick(4);
+      const ords = pick(5);
+      const arch = pick(6);
       setWorkers(narrowBaseWorkers(wor));
       setMachines(narrowBaseMachines(mac));
       setMaterials(narrowBaseMaterials(mat));

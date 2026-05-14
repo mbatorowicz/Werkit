@@ -17,7 +17,9 @@ export function useOsrmRouteToDestination(
 
   useEffect(() => {
     if (!destination) {
-      setRouteToDest([]);
+      queueMicrotask(() => {
+        setRouteToDest([]);
+      });
       return;
     }
 

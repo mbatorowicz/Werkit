@@ -6,12 +6,14 @@ import { sendRemoteLog } from "@/lib/remoteLogger";
 export function GlobalErrorHandler() {
   useEffect(() => {
     const handleWindowError = (event: ErrorEvent) => {
+      const msg = event.message ?? "";
+      if (msg.includes("ResizeObserver loop")) return;
       sendRemoteLog("ERROR", "Nieobsłużony wyjątek (window.onerror)", {
         message: event.message,
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno,
-        error: event.error?.stack || event.error
+        error: event.error?.stack || event.error,
       }, { category: "errors" });
     };
 

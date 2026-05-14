@@ -68,7 +68,9 @@ export default function LiveMap({
   const followPanMode = !navPivotMode && !fitContentMode;
 
   useEffect(() => {
-    setCameraFollowGps(true);
+    queueMicrotask(() => {
+      setCameraFollowGps(true);
+    });
   }, [preferPivotNavigation]);
 
   const currentMarkerIcon = useMemo(
