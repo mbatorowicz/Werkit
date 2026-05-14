@@ -1,3 +1,4 @@
+import { shouldSkipClientLogDedupe } from "@/lib/clientLogDedupe";
 import { buildWerkitClientTelemetry } from "@/lib/deviceTelemetryContext";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 
@@ -6,6 +7,10 @@ export type RemoteLogLevel = "INFO" | "WARN" | "ERROR" | "DEBUG";
 export type RemoteLogOptions = {
   /** Ułatwia filtrowanie w `/admin/logs` i w eksporcie JSON */
   category?: WerkitLogCategory;
+  /** Pomija kolejne identyczne (wg klucza) wpisy w zadanym oknie — mniej duplikatów w `device_logs`. */
+  dedupeWindowMs?: number;
+  /** Rozszerza klucz deduplikacji (np. plik:linia); domyślnie klucz = category + level + początek message. */
+  dedupeKeyExtra?: string;
 };
 
 function mergeWerkitMetadata(
@@ -53,6 +58,13 @@ export function sendRemoteLog(
   opts?: RemoteLogOptions,
 ): void {
   if (typeof window === "undefined") return;
+  const dedupeMs = opts?.dedupeWindowMs;
+  if (dedupeMs !== undefined && dedupeMs > 0) {
+    const cat = opts?.category ?? "http";
+    const extra = opts?.dedupeKeyExtra ?? "";
+    const key = `${cat}|${level}|${message.slice(0, 240)}|${extra}`.slice(0, 500);
+    if (shouldSkipClientLogDedupe(key, dedupeMs)) return;
+  }
   const merged = mergeWerkitMetadata(metadata, opts);
   void fetch("/api/worker/logs", {
     method: "POST",

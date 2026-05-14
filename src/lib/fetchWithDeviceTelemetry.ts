@@ -1,4 +1,4 @@
-import { sendRemoteLog } from "@/lib/remoteLogger";
+import { sendRemoteLog, type RemoteLogOptions } from "@/lib/remoteLogger";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 
 export type FetchDeviceTelemetryOptions = {
@@ -82,13 +82,25 @@ export async function fetchWithDeviceTelemetry(
           statusText: res.statusText,
           responsePreview: preview,
         },
-        { category },
+        {
+          category,
+          dedupeWindowMs: 12_000,
+          dedupeKeyExtra: `http|${res.status}|${urlStr.slice(0, 240)}`,
+        },
       );
     }
     return res;
   } catch (e) {
     if (allowThrowLog()) {
       const transient = isLikelyTransientFetchFailure(e);
+      const remoteOpts: RemoteLogOptions = { category };
+      if (transient && category === "admin") {
+        remoteOpts.dedupeWindowMs = 5000;
+        remoteOpts.dedupeKeyExtra = "admin|transient_fetch_burst";
+      } else if (transient) {
+        remoteOpts.dedupeWindowMs = 8000;
+        remoteOpts.dedupeKeyExtra = `transient|${label}`;
+      }
       sendRemoteLog(
         transient ? "WARN" : "ERROR",
         `${label}: wyjątek fetch`,
@@ -100,7 +112,7 @@ export async function fetchWithDeviceTelemetry(
               ? { name: e.name, message: e.message, stack: e.stack?.slice(0, 4000) }
               : { raw: String(e) },
         },
-        { category },
+        remoteOpts,
       );
     }
     throw e;
