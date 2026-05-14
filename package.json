@@ -1,6 +1,7 @@
 {
   "name": "werkit",
   "version": "1.9.3",
+  "license": "UNLICENSED",
   "private": true,
   "engines": {
     "node": ">=20.9.0"

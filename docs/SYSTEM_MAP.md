@@ -17,7 +17,7 @@
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
 | Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. |
 | Lokalny dev | `npm run dev` na porcie 3000. Baza: `DATABASE_URL` / `POSTGRES_URL` w `.env.local` (nie commituj). |
-| Domyślny język | `'pl'` (zob. `src/i18n/index.ts`); locale formatowania dat: `DEFAULT_UI_LOCALE = 'pl-PL'`. |
+| Domyślny język | `'pl'` (zob. `src/i18n/index.ts`); locale dat/czasu: `DEFAULT_UI_LOCALE = 'pl-PL'`, strefa UI (SSR + hydracja): `DEFAULT_UI_TIMEZONE = 'Europe/Warsaw'` (`src/i18n/constants.ts`; formaty w `src/i18n/format.ts`). |
 
 ---
 
@@ -451,3 +451,14 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 ---
 
 *Ostatnia weryfikacja vs repo: 2026-05-14. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+
+---
+
+## 19. CI i formalności repozytorium
+
+| Element | Lokalizacja |
+|---|---|
+| CI (lint, TypeScript, build Next) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `main`, PR do `main` |
+| Build Android (Capacitor) | [`.github/workflows/android-build.yml`](../.github/workflows/android-build.yml) |
+| Licencja (zastrzeżone prawa) | [`LICENSE`](../LICENSE); pole `license` w `package.json`: `UNLICENSED` |
+| Raportowanie podatności | [`SECURITY.md`](../SECURITY.md) |

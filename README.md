@@ -88,6 +88,7 @@ System wdraża rygorystyczny "Defensive Programming". Typy (TypeScript), modele 
 
 ## 5. Ważne Zastrzeżenia / Gotchas (Wiedza dla Deweloperów)
 
-- **Next.js 15 Async Params**: Parametry routingu (`params.id` / `searchParams`) są asynchronicznymi obietnicami. Zawsze używaj `await params;`.
+- **Next.js 16 — async `params` / `searchParams`**: W App Router są obietnicami. Zawsze używaj `await params` / `await searchParams` tam, gdzie framework tego wymaga.
 - **Zdalne Logi Mobilne**: Nigdy nie polegaj na samej konsoli Chrome/Safari (DevTools) podczas testowania logiki dla operatorów mobilnych. Wykorzystuj stworzony ekosystem logowania: wywołanie funkcji `sendRemoteLog('ERROR', 'Msg', err)` spowoduje, że błąd poleci prosto do dyspozytorni w przeglądarce (`/admin/logs`). Uratuje ci to życie, ponieważ wtyczki Capacitor/GPS wykazują inne zachowania uśpionego na Androidzie ekranu.
 - **Katalog `src/services/`**: Logika biznesowa nie leży w komponencie interfejsu użytkownika (`page.tsx`) ani w trasie API. Komponenty/API jedynie delegują obsługę zdarzeń klasom `AdminOrderService` lub `WorkerSessionService`.
+- **CI (GitHub Actions)**: Workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) — na `push`/`pull_request` do `main`: `npm ci`, `npm run lint`, `npx tsc --noEmit`, `npm run build`. Licencja: plik [`LICENSE`](./LICENSE) (oprogramowanie zastrzeżone); raporty podatności: [`SECURITY.md`](./SECURITY.md).
