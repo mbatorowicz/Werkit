@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-
-type LngLat = { lat: number; lng: number };
+import {
+  projectOsrmPublicRouteGeometryProvider,
+  type RouteGeometryProvider,
+  type RouteLngLat,
+} from "@/lib/map/routeGeometryProvider";
 
 /**
  * Trasa OSRM driving do celu (GeoJSON [lng,lat] → Leaflet [lat,lng]).
  */
 export function useOsrmRouteToDestination(
-  currentLocation: LngLat,
-  destination: LngLat | null,
+  currentLocation: RouteLngLat,
+  destination: RouteLngLat | null,
   onRouteDistance?: (distanceKm: number) => void,
+  routeGeometryProvider: RouteGeometryProvider = projectOsrmPublicRouteGeometryProvider,
 ): [number, number][] {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
 
@@ -25,7 +29,10 @@ export function useOsrmRouteToDestination(
 
     const fetchRoute = async () => {
       try {
-        const url = `https://router.project-osrm.org/route/v1/driving/${currentLocation.lng},${currentLocation.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+        const url = routeGeometryProvider.buildDrivingRouteUrl(
+          currentLocation,
+          destination,
+        );
         const res = await fetchWithDeviceTelemetry(
           "Map: OSRM driving route",
           url,
