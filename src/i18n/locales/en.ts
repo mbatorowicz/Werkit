@@ -272,7 +272,10 @@ export const en: AppDictionary = {
       destination: "Destination",
       currentLocation: "Current position",
       rotateOn: "Rotation: ON",
-      navigateRotate: "Navigate (Rotate)"
+      navigateRotate: "Navigate (Rotate)",
+      headingOn: "Heading on marker: on",
+      headingOff: "Heading on marker: off",
+      followResume: "Follow position",
     },
     workers: {
       title: "Users",

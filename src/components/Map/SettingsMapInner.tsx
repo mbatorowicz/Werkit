@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-lea
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
+import { MapInvalidateOnResize } from "./liveMapLeafletPlugins";
 
 const customIcon = L.divIcon({
   className: "custom-div-icon",
@@ -47,6 +48,7 @@ export default function SettingsMapInner({ lat, lng, onLocationChange }: Setting
         url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap &copy; CartoDB"
       />
+      <MapInvalidateOnResize />
       <MapUpdater center={[lat, lng]} />
       <MapEvents onLocationSelect={onLocationChange} />
       <Marker position={[lat, lng]} icon={customIcon} />

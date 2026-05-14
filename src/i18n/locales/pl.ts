@@ -270,7 +270,10 @@ export const pl = {
       destination: "Cel",
       currentLocation: "Aktualna pozycja",
       rotateOn: "Obracanie: WŁ",
-      navigateRotate: "Nawigacja (Obracaj)"
+      navigateRotate: "Nawigacja (Obracaj)",
+      headingOn: "Kierunek na znaczniku: wł.",
+      headingOff: "Kierunek na znaczniku: wył.",
+      followResume: "Śledź pozycję",
     },
     workers: {
       title: "Użytkownicy",

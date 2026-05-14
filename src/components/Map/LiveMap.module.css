@@ -1,0 +1,6 @@
+/* Leaflet domyślnie maluje .leaflet-div-icon na biało — przezroczysty znacznik z igłą azymutu */
+.markerRoot {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
