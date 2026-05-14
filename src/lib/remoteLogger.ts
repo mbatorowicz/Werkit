@@ -1,4 +1,4 @@
-import { shouldSkipClientLogDedupe } from "@/lib/clientLogDedupe";
+import { shouldSkipClientLogDedupe } from "@/lib/clientRateLimit";
 import { buildWerkitClientTelemetry } from "@/lib/deviceTelemetryContext";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 

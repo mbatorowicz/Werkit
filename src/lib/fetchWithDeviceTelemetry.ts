@@ -1,4 +1,5 @@
 import { sendRemoteLog, type RemoteLogOptions } from "@/lib/remoteLogger";
+import { shouldThrottleTelemetryLog } from "@/lib/clientRateLimit";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 
 export type FetchDeviceTelemetryOptions = {
@@ -7,8 +8,6 @@ export type FetchDeviceTelemetryOptions = {
   throttleKey?: string;
   throttleMs?: number;
 };
-
-const throttleLast = new Map<string, number>();
 
 /** Sieć / abort — nie traktujemy jak krytyczny błąd aplikacji (mniej szumu w `device_logs`). */
 function isLikelyTransientFetchFailure(e: unknown): boolean {
@@ -25,17 +24,6 @@ function isLikelyTransientFetchFailure(e: unknown): boolean {
     return true;
   if (lower.includes("network request failed") || lower.includes("fetch failed")) return true;
   if (lower.includes("ecconnreset") || lower.includes("etimedout") || lower.includes("econnrefused")) return true;
-  return false;
-}
-
-/** Zwraca `true`, gdy log ma zostać pominięty (w oknie throttlingu). */
-function shouldSuppressTelemetryLog(key: string, windowMs: number): boolean {
-  const now = Date.now();
-  const last = throttleLast.get(key);
-  if (last !== undefined && now - last < windowMs) {
-    return true;
-  }
-  throttleLast.set(key, now);
   return false;
 }
 
@@ -61,9 +49,9 @@ export async function fetchWithDeviceTelemetry(
         : input.url;
 
   const allowHttpLog = () =>
-    !(throttleKey && throttleMs > 0 && shouldSuppressTelemetryLog(`${throttleKey}:http`, throttleMs));
+    !(throttleKey && throttleMs > 0 && shouldThrottleTelemetryLog(`${throttleKey}:http`, throttleMs));
   const allowThrowLog = () =>
-    !(throttleKey && throttleMs > 0 && shouldSuppressTelemetryLog(`${throttleKey}:throw`, throttleMs));
+    !(throttleKey && throttleMs > 0 && shouldThrottleTelemetryLog(`${throttleKey}:throw`, throttleMs));
 
   try {
     const res = await fetch(input, init);

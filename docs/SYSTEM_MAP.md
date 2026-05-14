@@ -334,6 +334,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `gpsManager.ts` | `GPSManager` (klasa statyczna): `localStorage 'werkit_gps_queue'`, `enqueue/flushQueue/getDistance` (Haversine). `flushQueue` używa `keepalive:true` + retry przy `online`. |
 | `biometricLogin.ts` | Owijka `@capgo/capacitor-native-biometric` (server tag `com.werkit.app.auth`). Funkcje: `isNativeBiometricContext`, `biometricHardwareAvailable`, `hasSavedBiometricCredentials`, `saveBiometricCredentials`, `clearBiometricCredentials`, `fetchCredentialsWithBiometricPrompt`. |
 | `remoteLogger.ts` | `sendRemoteLog(level, message, metadata?)` → POST `/api/worker/logs` z `keepalive: true`, błędy są zjadane (`.catch(() => {})`). |
+| `clientRateLimit.ts` | Jedna implementacja okien czasowych: dedupe przed wysłaniem logu oraz throttle w `fetchWithDeviceTelemetry` (osobne mapy kluczy). |
 | `version.ts` | `APP_VERSION = ${pkg.version}${gitHash}` (z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
 | `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload) → 'ok' \| 'invalid_category' \| 'missing_customer' \| 'missing_material' \| 'missing_quantity' \| 'missing_task_description'`; `coerceWorkOrderPriority(value) → URGENT\|HIGH\|NORMAL\|LOW`. |
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
