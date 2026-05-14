@@ -92,12 +92,15 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 
 ---
 
-## 5. Następny dług (placeholder — puste do pierwszego wpisu)
+## 5. Następny dług
 
 | ID | Temat | Status |
 |----|--------|--------|
-| — | *Brak zgłoszonego następcy po zamknięciu A–F.* | — |
+| D-01 | Ujednolicenie dat/czasu w panelu admin (`formatUi*` / strefa jak worker) | planned |
+| D-02 | Rozszerzenie testów: krytyczne ścieżki (sesja, zlecenia, parsowanie API) | in_progress |
+| D-03 | Wspólny moduł okien czasowych dla telemetrii (dedupe + throttle fetch) | planned |
+| D-04 | Abstrakcja providera trasy mapy (OSRM / ewentualna wymiana backendu) | planned |
 
 ---
 
-*Ostatnia aktualizacja roadmapu (domknięcie A–F + §5): 2026-05-11.*
+*Ostatnia aktualizacja roadmapu: 2026-05-14.*
