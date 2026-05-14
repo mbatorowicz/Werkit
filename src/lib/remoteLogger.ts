@@ -22,8 +22,10 @@ function mergeWerkitMetadata(
   const restFromCaller =
     typeof rawCtx === "object" && rawCtx !== null && !Array.isArray(rawCtx)
       ? (() => {
-          const { server: _drop, client: _dropC, ...rest } = rawCtx as Record<string, unknown>;
-          return rest;
+          const copy = { ...(rawCtx as Record<string, unknown>) };
+          delete copy.server;
+          delete copy.client;
+          return copy;
         })()
       : {};
 
