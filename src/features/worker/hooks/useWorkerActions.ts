@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatDict } from '@/i18n';
 import type { AppDictionary } from '@/i18n/types';
+import { fetchWithDeviceTelemetry } from '@/lib/fetchWithDeviceTelemetry';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
@@ -40,7 +41,7 @@ export function useWorkerActions({
     if (!confirm(dict.confirmEndSession)) return;
     setIsLoading(true);
     try {
-      await fetch("/api/worker/session", {
+      await fetchWithDeviceTelemetry("Worker: end session PUT", "/api/worker/session", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -49,10 +50,10 @@ export function useWorkerActions({
             : {},
         ),
       });
-      sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy');
+      sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy', undefined, { category: 'session' });
       await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
-      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e instanceof Error ? e.message : String(e) });
+      sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
       alert(dict.errEndSession);
     } finally {
       setIsLoading(false);
@@ -62,24 +63,28 @@ export function useWorkerActions({
   const handleAcceptOrder = async (orderId: number, startLocation: Coord | null) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/worker/work-orders/${orderId}/accept`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          startLocation
-            ? { latitude: startLocation.lat, longitude: startLocation.lng }
-            : {},
-        ),
-      });
+      const res = await fetchWithDeviceTelemetry(
+        `Worker: accept order POST ${orderId}`,
+        `/api/worker/work-orders/${orderId}/accept`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            startLocation
+              ? { latitude: startLocation.lat, longitude: startLocation.lng }
+              : {},
+          ),
+        },
+      );
       if (res.ok) {
-        sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId });
+        sendRemoteLog('INFO', 'Zlecenie rozpoczęte pomyślnie', { orderId }, { category: 'orders' });
         await fetchSessionAndPath(false, false);
       } else {
-        sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status });
+        sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status }, { category: 'orders' });
         alert(dict.errAcceptOrder);
       }
     } catch (e: unknown) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e instanceof Error ? e.message : String(e) });
+      sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e instanceof Error ? e.message : String(e) }, { category: 'orders' });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -90,17 +95,17 @@ export function useWorkerActions({
     if (!confirm(dict.confirmCancelSession)) return;
     setIsLoading(true);
     try {
-      const res = await fetch("/api/worker/session/cancel", { method: "POST" });
+      const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" });
       if (res.ok) {
-        sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' });
+        sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' }, { category: 'orders' });
         alert(dict.cancelSuccess);
         await fetchSessionAndPath(true, true);
       } else {
-        sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error');
+        sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error', undefined, { category: 'orders' });
         alert(dict.errCancel);
       }
     } catch (e: unknown) {
-      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e instanceof Error ? e.message : String(e) });
+      sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e instanceof Error ? e.message : String(e) }, { category: 'orders' });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -120,20 +125,20 @@ export function useWorkerActions({
     }
     setIsLoading(true);
     try {
-      const res = await fetch("/api/worker/session/notes", {
+      const res = await fetchWithDeviceTelemetry("Worker: checkpoint POST", "/api/worker/session/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ note: dict.checkpointNote, location })
       });
       if (res.ok) {
-        sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)');
+        sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)', undefined, { category: 'session' });
         await fetchSessionAndPath(false, false);
       } else {
-        sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)');
+        sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)', undefined, { category: 'session' });
         alert(dict.errSaveNote);
       }
     } catch (e: unknown) {
-      sendRemoteLog('ERROR', 'Błąd sieci przy zapisie checkpointu', { error: e instanceof Error ? e.message : String(e) });
+      sendRemoteLog('ERROR', 'Błąd sieci przy zapisie checkpointu', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
       alert(dict.errNetwork);
     } finally {
       setIsLoading(false);
@@ -151,23 +156,27 @@ export function useWorkerActions({
         ? { noteId: editingNoteId, note: noteText }
         : { note: noteText, location };
 
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      const res = await fetchWithDeviceTelemetry(
+        isEditing ? "Worker: edit note PUT" : "Worker: add note POST",
+        url,
+        {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
       if (res.ok) {
-        sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę');
+        sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę', undefined, { category: 'session' });
         setIsNotesModalOpen(false);
         setNoteText("");
         setEditingNoteId(null);
         await fetchSessionAndPath(false, false);
       } else {
-        sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)');
+        sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)', undefined, { category: 'session' });
         alert(dict.errSaveNote);
       }
     } catch (e: unknown) {
-      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e instanceof Error ? e.message : String(e) });
+      sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
       alert(dict.errNetwork);
     } finally {
       setIsSubmittingNote(false);
@@ -194,20 +203,20 @@ export function useWorkerActions({
         ctx?.drawImage(img, 0, 0, width, height);
         const base64 = canvas.toDataURL('image/jpeg', 0.7);
 
-        const res = await fetch("/api/worker/session/photos", {
+        const res = await fetchWithDeviceTelemetry("Worker: upload photo POST", "/api/worker/session/photos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ photoUrl: base64, location })
         });
         if (res.ok) {
-          sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie');
+          sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie', undefined, { category: 'session' });
           await fetchSessionAndPath(false, false);
         } else {
-          sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)');
+          sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)', undefined, { category: 'session' });
           alert(dict.photoError);
         }
       } catch (err: unknown) {
-        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err instanceof Error ? err.message : String(err) });
+        sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err instanceof Error ? err.message : String(err) }, { category: 'session' });
         alert(dict.errProcessPhoto);
       } finally {
         setIsLoading(false);

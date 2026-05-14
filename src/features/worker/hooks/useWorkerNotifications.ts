@@ -48,7 +48,7 @@ export function useWorkerNotifications(
           }
 
           if (!hasPermission) {
-            sendRemoteLog('WARN', 'Brak uprawnień do LocalNotifications', { id, title });
+            sendRemoteLog('WARN', 'Brak uprawnień do LocalNotifications', { id, title }, { category: 'notifications' });
             return;
           }
 
@@ -68,7 +68,7 @@ export function useWorkerNotifications(
 
         } catch (e: unknown) {
           console.error(`Failed to trigger notification [${id}]:`, e);
-          sendRemoteLog('ERROR', 'Błąd podczas LocalNotifications.schedule', { error: e instanceof Error ? e.message : String(e), id });
+          sendRemoteLog('ERROR', 'Błąd podczas LocalNotifications.schedule', { error: e instanceof Error ? e.message : String(e), id }, { category: 'notifications' });
         }
       };
 

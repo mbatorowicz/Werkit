@@ -84,7 +84,9 @@ export function useWorkerGPS(
           (location, error) => {
             if (error) {
               if (isMounted) setGpsStatus("error");
-              sendRemoteLog("ERROR", "Błąd w BackgroundGeolocation.addWatcher", error as unknown as Record<string, unknown>);
+              sendRemoteLog("ERROR", "Błąd w BackgroundGeolocation.addWatcher", error as unknown as Record<string, unknown>, {
+                category: "gps",
+              });
               return;
             }
             if (!location) return;
@@ -96,7 +98,7 @@ export function useWorkerGPS(
                   accuracy: location.accuracy,
                   lat: location.latitude,
                   lng: location.longitude,
-                });
+                }, { category: "gps" });
               }
               return;
             }
@@ -109,13 +111,14 @@ export function useWorkerGPS(
         } else {
           watchIdRef.current = watcherId;
           setGpsStatus("active");
-          sendRemoteLog("INFO", "Uruchomiono BackgroundGeolocation.addWatcher", { id: watcherId });
+          sendRemoteLog("INFO", "Uruchomiono BackgroundGeolocation.addWatcher", { id: watcherId }, { category: "gps" });
         }
       } catch (err) {
         sendRemoteLog(
           "ERROR",
           "Nie udało się uruchomić BackgroundGeolocation",
           err instanceof Error ? { error: err.message } : undefined,
+          { category: "gps" },
         );
         if (isMounted) setGpsStatus("error");
       }

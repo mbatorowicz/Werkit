@@ -12,13 +12,13 @@ export function GlobalErrorHandler() {
         lineno: event.lineno,
         colno: event.colno,
         error: event.error?.stack || event.error
-      });
+      }, { category: "errors" });
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       sendRemoteLog("ERROR", "Nieobsłużona obietnica (unhandledrejection)", {
         reason: event.reason?.stack || event.reason || "Brak szczegółów",
-      });
+      }, { category: "errors" });
     };
 
     window.addEventListener("error", handleWindowError);

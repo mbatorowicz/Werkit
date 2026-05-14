@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { foldMicroJumpsInPath } from "@/lib/gps";
 import { workerRouteReducer } from "@/features/worker/gps/workerRouteReducer";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
@@ -50,8 +51,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
     if (showLoader) setIsLoading(true);
     try {
       const [resSess, resOrders] = await Promise.all([
-        fetch("/api/worker/session", { cache: "no-store" }),
-        fetch("/api/worker/work-orders", { cache: "no-store" }),
+        fetchWithDeviceTelemetry("Worker: session GET", "/api/worker/session", { cache: "no-store" }),
+        fetchWithDeviceTelemetry("Worker: work-orders GET", "/api/worker/work-orders", { cache: "no-store" }),
       ]);
 
       if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
@@ -76,7 +77,9 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
       if (fetchGpsPath && sessionRowEarly && !stationary) {
         try {
-          const resPath = await fetch("/api/worker/gps", { cache: "no-store" });
+          const resPath = await fetchWithDeviceTelemetry("Worker: gps path GET", "/api/worker/gps", {
+            cache: "no-store",
+          });
           const pathBody = await parseJsonUnknown(resPath);
           const logs = narrowGpsPathLogs(pathBody);
           if (logs.length > 0) {
@@ -108,7 +111,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
             setDestination({ lat: parseFloat(s.customerLat), lng: parseFloat(s.customerLng) });
           } else if (s.customerAddress && !destinationRef.current) {
             try {
-              const geo = await fetch(
+              const geo = await fetchWithDeviceTelemetry(
+                "Worker: Nominatim geocode",
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s.customerAddress)}`,
               );
               const geoRows = await parseJsonArray(geo);
@@ -127,9 +131,14 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         setDistanceToDestKm(null);
       }
     } catch (e) {
-      void sendRemoteLog("ERROR", "WorkerClient fetchSessionAndPath", {
-        error: e instanceof Error ? e.message : String(e),
-      });
+      void sendRemoteLog(
+        "ERROR",
+        "WorkerClient fetchSessionAndPath",
+        {
+          error: e instanceof Error ? e.message : String(e),
+        },
+        { category: "session" },
+      );
     }
     if (showLoader) setIsLoading(false);
   }, []);
