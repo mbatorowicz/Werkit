@@ -47,11 +47,15 @@ function getLogCategory(metadata: Record<string, unknown> | null | undefined): W
   return undefined;
 }
 
-function summarizeTelemetryLine(metadata: Record<string, unknown> | null | undefined): string | null {
+function summarizeTelemetryLine(
+  metadata: Record<string, unknown> | null | undefined,
+  logsDict: LogsDict,
+): string | null {
   if (!metadata) return null;
   const parts: string[] = [];
+  const tl = logsDict.telemetryLine;
   const cat = getLogCategory(metadata);
-  if (cat) parts.push(cat);
+  if (cat) parts.push(logsDict.logCategoryLabels[cat]);
 
   const wc = metadata.werkitContext;
   if (wc && typeof wc === "object" && !Array.isArray(wc)) {
@@ -59,24 +63,31 @@ function summarizeTelemetryLine(metadata: Record<string, unknown> | null | undef
     const client = wco.client;
     if (client && typeof client === "object" && !Array.isArray(client)) {
       const c = client as Record<string, unknown>;
-      if (typeof c.appVersion === "string") parts.push(`app ${c.appVersion}`);
+      if (typeof c.appVersion === "string") parts.push(formatDict(tl.appVersion, { version: c.appVersion }));
       if (typeof c.platform === "string") parts.push(c.platform);
       if (typeof c.path === "string") parts.push(c.path);
       if (typeof c.correlationId === "string") {
         const id = c.correlationId;
-        parts.push(id.length > 12 ? `trace ${id.slice(0, 12)}…` : `trace ${id}`);
+        const idDisplay = id.length > 12 ? `${id.slice(0, 12)}…` : id;
+        parts.push(formatDict(tl.trace, { id: idDisplay }));
       }
-      if (c.online === false) parts.push("offline");
-      if (typeof c.connEffectiveType === "string") parts.push(`net ${c.connEffectiveType}`);
+      if (c.online === false) parts.push(tl.offline);
+      if (typeof c.connEffectiveType === "string") {
+        parts.push(formatDict(tl.net, { type: c.connEffectiveType }));
+      }
     }
     const server = wco.server;
     if (server && typeof server === "object" && !Array.isArray(server)) {
       const s = server as Record<string, unknown>;
-      if (typeof s.region === "string" && s.region) parts.push(`edge ${s.region}`);
+      if (typeof s.region === "string" && s.region) {
+        parts.push(formatDict(tl.edge, { region: s.region }));
+      }
     }
   }
 
-  if (typeof metadata.status === "number") parts.push(`HTTP ${metadata.status}`);
+  if (typeof metadata.status === "number") {
+    parts.push(formatDict(tl.httpStatus, { status: metadata.status }));
+  }
   if (typeof metadata.url === "string" && metadata.url.length > 0) {
     const u = metadata.url.length > 96 ? `${metadata.url.slice(0, 96)}…` : metadata.url;
     parts.push(u);
@@ -123,7 +134,7 @@ export default function LogsClient({
       const a = document.createElement("a");
       a.href = url;
       const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-      a.download = `werkit-device-logs-${stamp}.json`;
+      a.download = formatDict(logsDict.exportJsonFileName, { stamp });
       a.rel = "noopener";
       a.click();
       URL.revokeObjectURL(url);
@@ -185,10 +196,10 @@ export default function LogsClient({
             className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500"
           >
             <option value="ALL">{logsDict.filterAllLevels}</option>
-            <option value="INFO">INFO</option>
-            <option value="WARN">WARN</option>
-            <option value="ERROR">ERROR</option>
-            <option value="DEBUG">DEBUG</option>
+            <option value="INFO">{logsDict.logLevelLabels.INFO}</option>
+            <option value="WARN">{logsDict.logLevelLabels.WARN}</option>
+            <option value="ERROR">{logsDict.logLevelLabels.ERROR}</option>
+            <option value="DEBUG">{logsDict.logLevelLabels.DEBUG}</option>
           </select>
           <select
             value={filterCategory}
@@ -200,7 +211,7 @@ export default function LogsClient({
             <option value="ALL">{logsDict.filterAllCategories}</option>
             {LOG_CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {logsDict.logCategoryLabels[c]}
               </option>
             ))}
           </select>
@@ -235,7 +246,7 @@ export default function LogsClient({
         ) : (
           <div className="space-y-2 selection:bg-emerald-500/30">
             {filteredLogs.map((log) => {
-              const summary = summarizeTelemetryLine(log.metadata);
+              const summary = summarizeTelemetryLine(log.metadata, logsDict);
               const expanded = expandedId === log.id;
               const hasPayload = hasMetadataPayload(log.metadata);
               return (
