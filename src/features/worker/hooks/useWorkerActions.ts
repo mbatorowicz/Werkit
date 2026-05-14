@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatDict } from '@/i18n';
 import type { AppDictionary } from '@/i18n/types';
 import { fetchWithDeviceTelemetry } from '@/lib/fetchWithDeviceTelemetry';
+import { GPSManager } from '@/lib/gpsManager';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
@@ -41,7 +42,7 @@ export function useWorkerActions({
     if (!confirm(dict.confirmEndSession)) return;
     setIsLoading(true);
     try {
-      await fetchWithDeviceTelemetry("Worker: end session PUT", "/api/worker/session", {
+      const endRes = await fetchWithDeviceTelemetry("Worker: end session PUT", "/api/worker/session", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -50,6 +51,11 @@ export function useWorkerActions({
             : {},
         ),
       }, { category: "session" });
+      if (!endRes.ok) {
+        alert(dict.errEndSession);
+        return;
+      }
+      GPSManager.clearQueue();
       sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy', undefined, { category: 'session' });
       await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
@@ -99,6 +105,7 @@ export function useWorkerActions({
       const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" }, { category: "orders" });
       if (res.ok) {
         sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' }, { category: 'orders' });
+        GPSManager.clearQueue();
         alert(dict.cancelSuccess);
         await fetchSessionAndPath(true, true);
       } else {

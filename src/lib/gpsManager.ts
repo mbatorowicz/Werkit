@@ -25,6 +25,15 @@ export class GPSManager {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
   }
 
+  /** Czyści kolejkę (np. po zakończonej sesji — punkty bez aktywnej sesji i tak nie zapiszą się na serwerze). */
+  static clearQueue(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
   static enqueue(location: Coord): GPSQueueItem {
     const payload = { ...location, timestamp: new Date().toISOString() };
     const queue = this.getQueue();
@@ -67,6 +76,19 @@ export class GPSManager {
         const updatedQueue = currentQueue.filter(q => !sentTimestamps.has(q.timestamp));
         this.saveQueue(updatedQueue);
         if (onSuccess) onSuccess();
+      } else if (res.status === 400) {
+        let code: string | undefined;
+        try {
+          const j = (await res.clone().json()) as { error?: string };
+          code = typeof j.error === "string" ? j.error : undefined;
+        } catch {
+          /* nie-JSON */
+        }
+        if (code === "no_active_session") {
+          const currentQueue = this.getQueue();
+          const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
+          this.saveQueue(updatedQueue);
+        }
       }
     } catch (error) {
       console.error("GPS flush failed:", error);
