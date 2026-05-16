@@ -16,11 +16,9 @@ const CustomerRoutePlannerMap = dynamic(
   () => import("@/components/Map/CustomerRoutePlannerMap").then((m) => m.CustomerRoutePlannerMap),
   {
     ssr: false,
-    loading: () => <div className="h-[200px] bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />,
+    loading: () => <div className="h-[280px] bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />,
   },
 );
-
-const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), { ssr: false });
 
 type LocationForm = {
   label: string;
@@ -38,6 +36,10 @@ const emptyForm = (): LocationForm => ({
   isDefault: false,
 });
 
+function isCustomerLocationRow(v: unknown): v is CustomerLocationRow {
+  return v !== null && typeof v === "object" && typeof (v as CustomerLocationRow).id === "number";
+}
+
 export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   const dictionary = getDictionary();
   const dict = dictionary.admin.customers;
@@ -46,11 +48,15 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [locations, setLocations] = useState<CustomerLocationRow[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isDraftOpen, setIsDraftOpen] = useState(false);
   const [form, setForm] = useState<LocationForm>(emptyForm());
   const [waypoints, setWaypoints] = useState<RouteLngLat[]>([]);
   const [routeOrigin, setRouteOrigin] = useState<RouteLngLat | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [geocodeBusy, setGeocodeBusy] = useState(false);
+
+  const editorOpen = isDraftOpen || selectedId !== null;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,14 +69,11 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
           { category: "admin" },
         ),
         fetchWithDeviceTelemetry("Admin: settings for route origin", "/api/settings", { cache: "no-store" }, {
-          category: "admin" },
-        ),
+          category: "admin",
+        }),
       ]);
       const locData = await parseJsonArray(locRes);
-      const rows = locData.filter(
-        (r): r is CustomerLocationRow =>
-          r !== null && typeof r === "object" && typeof (r as CustomerLocationRow).id === "number",
-      ) as CustomerLocationRow[];
+      const rows = locData.filter(isCustomerLocationRow);
       setLocations(rows);
       const settingsBody = await parseJsonUnknown(settingsRes);
       if (settingsBody && typeof settingsBody === "object" && !Array.isArray(settingsBody)) {
@@ -85,24 +88,18 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   }, [customerId]);
 
   useEffect(() => {
-    if (selectedId !== null || locations.length === 0) return;
-    const first = locations[0];
-    setSelectedId(first.id);
-    setForm({
-      label: first.label,
-      address: first.address ?? "",
-      latitude: first.latitude,
-      longitude: first.longitude,
-      isDefault: first.isDefault,
-    });
-    setWaypoints(first.routeWaypoints);
-  }, [locations, selectedId]);
-
-  useEffect(() => {
     void load();
   }, [load]);
 
+  const startNewLocation = () => {
+    setSelectedId(null);
+    setIsDraftOpen(true);
+    setForm(emptyForm());
+    setWaypoints([]);
+  };
+
   const selectLocation = (loc: CustomerLocationRow) => {
+    setIsDraftOpen(false);
     setSelectedId(loc.id);
     setForm({
       label: loc.label,
@@ -112,6 +109,41 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       isDefault: loc.isDefault,
     });
     setWaypoints(loc.routeWaypoints);
+  };
+
+  const applyDestination = (lat: number, lng: number) => {
+    setForm((prev) => ({
+      ...prev,
+      latitude: lat.toString(),
+      longitude: lng.toString(),
+    }));
+  };
+
+  const handleGeocode = async () => {
+    const q = form.address.trim();
+    if (!q) {
+      await appAlert({ message: dict.geocodeNeedAddress });
+      return;
+    }
+    setGeocodeBusy(true);
+    try {
+      const res = await fetchWithDeviceTelemetry(
+        "Admin: geocode customer location",
+        `/api/geocode?q=${encodeURIComponent(q)}`,
+        { cache: "no-store" },
+        { category: "admin" },
+      );
+      const data = (await res.json()) as { lat?: number | null; lng?: number | null; error?: string };
+      if (!res.ok || data.error === "not_found" || typeof data.lat !== "number" || typeof data.lng !== "number") {
+        await appAlert({ message: dict.geocodeNoResults });
+        return;
+      }
+      applyDestination(data.lat, data.lng);
+    } catch {
+      await appAlert({ message: dict.geocodeError });
+    } finally {
+      setGeocodeBusy(false);
+    }
   };
 
   const saveLocation = async () => {
@@ -142,7 +174,13 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
         return;
       }
+      const saved = await parseJsonUnknown(res);
       await load();
+      if (isCustomerLocationRow(saved)) {
+        selectLocation(saved);
+      } else {
+        setIsDraftOpen(false);
+      }
     } finally {
       setSaving(false);
     }
@@ -159,6 +197,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     if (res.ok) {
       if (selectedId === id) {
         setSelectedId(null);
+        setIsDraftOpen(false);
         setForm(emptyForm());
         setWaypoints([]);
       }
@@ -166,7 +205,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     }
   };
 
-  const dest =
+  const destination =
     form.latitude && form.longitude
       ? { lat: Number.parseFloat(form.latitude), lng: Number.parseFloat(form.longitude) }
       : null;
@@ -181,11 +220,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{dict.locationsTitle}</h3>
         <button
           type="button"
-          onClick={() => {
-            setSelectedId(null);
-            setForm(emptyForm());
-            setWaypoints([]);
-          }}
+          onClick={startNewLocation}
           className="text-xs flex items-center gap-1 text-emerald-600 font-medium"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -200,10 +235,10 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
               key={loc.id}
               type="button"
               onClick={() => selectLocation(loc)}
-              className={`text-xs px-3 py-1.5 rounded-full border ${
-                selectedId === loc.id
+              className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                selectedId === loc.id && !isDraftOpen
                   ? "bg-emerald-600 text-white border-emerald-600"
-                  : "border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300"
+                  : "border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500"
               }`}
             >
               {loc.label}
@@ -215,67 +250,79 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         <p className="text-xs text-zinc-500">{dict.locationsEmpty}</p>
       )}
 
-      <div className="space-y-3">
-        <input
-          type="text"
-          value={form.label}
-          onChange={(e) => setForm({ ...form, label: e.target.value })}
-          placeholder={dict.locationLabelPlaceholder}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
-        />
-        <input
-          type="text"
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-          placeholder={dict.addressPlaceholder}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
-        />
-        <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+      {!editorOpen ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 py-2">{dict.locationSelectPrompt}</p>
+      ) : (
+        <div className="space-y-3 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 bg-zinc-50/80 dark:bg-zinc-950/40">
+          <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+            {isDraftOpen && selectedId === null ? dict.locationNewHeading : dict.locationEditHeading}
+          </p>
           <input
-            type="checkbox"
-            checked={form.isDefault}
-            onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-            className="rounded border-zinc-400"
+            type="text"
+            value={form.label}
+            onChange={(e) => setForm({ ...form, label: e.target.value })}
+            placeholder={dict.locationLabelPlaceholder}
+            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
           />
-          {dict.locationDefaultCheckbox}
-        </label>
-        <CustomerMapPicker
-          lat={form.latitude}
-          lng={form.longitude}
-          address={form.address}
-          defaultCenter={routeOrigin ?? undefined}
-          onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
-        />
-        {dest && routeOrigin ? (
-          <CustomerRoutePlannerMap
-            routeOrigin={routeOrigin}
-            destination={dest}
-            waypoints={waypoints}
-            onWaypointsChange={setWaypoints}
-            editable
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => setForm({ ...form, address: e.target.value })}
+            placeholder={dict.addressPlaceholder}
+            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
           />
-        ) : null}
-        <div className="flex gap-2">
+          <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <input
+              type="checkbox"
+              checked={form.isDefault}
+              onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
+              className="rounded border-zinc-400"
+            />
+            {dict.locationDefaultCheckbox}
+          </label>
           <button
             type="button"
-            disabled={saving}
-            onClick={() => void saveLocation()}
-            className="flex-1 bg-indigo-600 text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
+            onClick={() => void handleGeocode()}
+            disabled={geocodeBusy}
+            className="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 transition"
           >
-            {saving ? dict.locationSaving : dict.locationSave}
+            {geocodeBusy ? dict.geocodeLoading : dict.geocodeBtn}
           </button>
-          {selectedId ? (
+          {routeOrigin ? (
+            <CustomerRoutePlannerMap
+              routeOrigin={routeOrigin}
+              destination={destination}
+              waypoints={waypoints}
+              onWaypointsChange={setWaypoints}
+              onDestinationChange={applyDestination}
+              editable
+              heightClass="h-[300px]"
+            />
+          ) : null}
+          <div className="flex gap-2 pt-1">
             <button
               type="button"
-              onClick={() => void deleteLocation(selectedId)}
-              className="p-2.5 rounded-lg border border-red-300 text-red-600"
-              title={dict.locationDelete}
+              disabled={saving}
+              onClick={() => void saveLocation()}
+              className="flex-1 bg-indigo-600 text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
             >
-              <Trash2 className="w-4 h-4" />
+              {saving ? dict.locationSaving : dict.locationSave}
             </button>
-          ) : null}
+            {selectedId ? (
+              <button
+                type="button"
+                onClick={() => void deleteLocation(selectedId)}
+                className="p-2.5 rounded-lg border border-red-300 text-red-600"
+                title={dict.locationDelete}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+
+

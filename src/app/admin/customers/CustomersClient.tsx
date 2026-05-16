@@ -225,6 +225,8 @@ export default function CustomersClient() {
                      <input required type="text" placeholder={dict.lastNamePlaceholder} value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                    </div>
                  </div>
+                 {!editId ? (
+                 <>
                  <div className="space-y-2">
                    <label className="text-sm font-medium text-zinc-400">{dict.addressLabel}</label>
                    <input type="text" placeholder={dict.addressPlaceholder} value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
@@ -246,6 +248,10 @@ export default function CustomersClient() {
                      </div>
                    )}
                  </div>
+                 </>
+                 ) : (
+                   <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
+                 )}
 
                  {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
               </form>

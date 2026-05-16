@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMapEvents } from "react-leaflet";
+import { useCallback, useEffect, useMemo } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
@@ -22,17 +22,33 @@ const iconStart = L.icon({
   iconAnchor: [12, 41],
 });
 
-function MapClickAddWaypoint({
+function MapFlyTo({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, map.getZoom() < 12 ? 13 : map.getZoom(), { duration: 0.5 });
+  }, [center, map]);
+  return null;
+}
+
+function MapClickLayer({
   editable,
-  onAdd,
+  hasDestination,
+  onSetDestination,
+  onAddWaypoint,
 }: {
   editable: boolean;
-  onAdd: (lat: number, lng: number) => void;
+  hasDestination: boolean;
+  onSetDestination: (lat: number, lng: number) => void;
+  onAddWaypoint: (lat: number, lng: number) => void;
 }) {
   useMapEvents({
     click(e) {
       if (!editable) return;
-      onAdd(e.latlng.lat, e.latlng.lng);
+      if (!hasDestination) {
+        onSetDestination(e.latlng.lat, e.latlng.lng);
+      } else {
+        onAddWaypoint(e.latlng.lat, e.latlng.lng);
+      }
     },
   });
   return null;
@@ -43,26 +59,40 @@ export function CustomerRoutePlannerMap({
   destination,
   waypoints,
   onWaypointsChange,
+  onDestinationChange,
   editable = true,
   heightClass = "h-[320px]",
 }: {
-  /** Punkt startu trasy (baza firmy lub pozycja GPS). */
+  /** Punkt startu trasy (baza firmy). */
   routeOrigin: RouteLngLat;
-  destination: RouteLngLat;
+  destination: RouteLngLat | null;
   waypoints: RouteLngLat[];
   onWaypointsChange: (next: RouteLngLat[]) => void;
+  /** Przeciąganie / pierwsze kliknięcie ustawia cel lokalizacji. */
+  onDestinationChange?: (lat: number, lng: number) => void;
   editable?: boolean;
   heightClass?: string;
 }) {
   const dict = getDictionary().admin.customers;
+  const hasDestination = destination !== null;
 
   const routeLine = usePlannedDrivingRoute(routeOrigin, destination, waypoints);
 
   const center = useMemo((): [number, number] => {
-    return [destination.lat, destination.lng];
-  }, [destination.lat, destination.lng]);
+    if (destination) return [destination.lat, destination.lng];
+    return [routeOrigin.lat, routeOrigin.lng];
+  }, [destination, routeOrigin.lat, routeOrigin.lng]);
 
-  const onAdd = useCallback(
+  const centerSig = `${center[0].toFixed(5)},${center[1].toFixed(5)}`;
+
+  const onSetDestination = useCallback(
+    (lat: number, lng: number) => {
+      onDestinationChange?.(lat, lng);
+    },
+    [onDestinationChange],
+  );
+
+  const onAddWaypoint = useCallback(
     (lat: number, lng: number) => {
       onWaypointsChange([...waypoints, { lat, lng }]);
     },
@@ -74,11 +104,15 @@ export function CustomerRoutePlannerMap({
     onWaypointsChange(waypoints.slice(0, -1));
   };
 
+  const canEditDestination = editable && Boolean(onDestinationChange);
+
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 flex-1 min-w-[200px]">{dict.routePlannerHint}</p>
-        {editable ? (
+        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 flex-1 min-w-[200px]">
+          {hasDestination ? dict.routePlannerHint : dict.routePlannerSetDestinationHint}
+        </p>
+        {editable && hasDestination ? (
           <button
             type="button"
             onClick={onRemoveLast}
@@ -89,15 +123,35 @@ export function CustomerRoutePlannerMap({
           </button>
         ) : null}
       </div>
-      <div className={`w-full ${heightClass} rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0`}>
+      <div
+        className={`w-full ${heightClass} rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0`}
+      >
         <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
             attribution="&copy; OpenStreetMap contributors"
           />
-          <MapClickAddWaypoint editable={editable} onAdd={onAdd} />
+          <MapFlyTo center={center} key={centerSig} />
+          <MapClickLayer
+            editable={canEditDestination}
+            hasDestination={hasDestination}
+            onSetDestination={onSetDestination}
+            onAddWaypoint={onAddWaypoint}
+          />
           <Marker position={[routeOrigin.lat, routeOrigin.lng]} icon={iconStart} />
-          <Marker position={[destination.lat, destination.lng]} icon={iconDest} />
+          {destination ? (
+            <Marker
+              position={[destination.lat, destination.lng]}
+              icon={iconDest}
+              draggable={canEditDestination}
+              eventHandlers={{
+                dragend: (e) => {
+                  const p = e.target.getLatLng();
+                  onDestinationChange?.(p.lat, p.lng);
+                },
+              }}
+            />
+          ) : null}
           {waypoints.map((wp, i) => (
             <CircleMarker
               key={`${wp.lat}-${wp.lng}-${i}`}
@@ -114,3 +168,5 @@ export function CustomerRoutePlannerMap({
     </div>
   );
 }
+
+

@@ -477,6 +477,12 @@ export const pl = {
       locationSaving: "Zapisywanie…",
       locationDelete: "Usuń lokalizację",
       locationConfirmDelete: "Usunąć tę lokalizację i zapisaną trasę?",
+      locationSelectPrompt: "Wybierz lokalizację z listy powyżej lub dodaj nową.",
+      locationNewHeading: "Nowa lokalizacja",
+      locationEditHeading: "Edycja lokalizacji",
+      locationsEditHint: "Adresy i trasy ustawiasz w sekcji lokalizacji poniżej.",
+      routePlannerSetDestinationHint:
+        "Zielona pinezka — baza firmy. Użyj geokodowania, kliknij mapę lub przeciągnij czerwoną pinezkę, aby ustawić cel.",
       routePlannerHint: "Kliknij mapę, aby dodać punkt pośredni — trasa przeliczy się automatycznie.",
       routeUndoWaypoint: "Cofnij ostatni punkt",
     },

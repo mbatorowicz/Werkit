@@ -480,6 +480,12 @@ export const en: AppDictionary = {
       locationSaving: "Saving…",
       locationDelete: "Delete location",
       locationConfirmDelete: "Delete this location and its saved route?",
+      locationSelectPrompt: "Select a location from the list above or add a new one.",
+      locationNewHeading: "New location",
+      locationEditHeading: "Edit location",
+      locationsEditHint: "Set addresses and routes in the locations section below.",
+      routePlannerSetDestinationHint:
+        "Green pin — company base. Geocode, click the map, or drag the red pin to set the destination.",
       routePlannerHint: "Click the map to add a via point — the route recalculates automatically.",
       routeUndoWaypoint: "Undo last point",
     },
