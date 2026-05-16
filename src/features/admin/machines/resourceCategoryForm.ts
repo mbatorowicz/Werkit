@@ -1,13 +1,10 @@
-"use client";
-
+import { hierarchyFieldsFromRow } from "@/features/admin/categories/categoryHierarchyForm";
 import type { CategoryFormState, MachinesCategory } from "./types";
 
-export function categoryToForm(cat: MachinesCategory): CategoryFormState {
+export function resourceCategoryToForm(cat: MachinesCategory): CategoryFormState {
   return {
     name: cat.name,
-    parentId: cat.parentId,
-    isGroup: cat.isGroup,
-    sortOrder: cat.sortOrder,
+    ...hierarchyFieldsFromRow(cat),
     icon: cat.icon || "blue",
     showCustomer: cat.showCustomer,
     showMaterial: cat.showMaterial,

@@ -46,7 +46,6 @@ export default function MaterialsClient() {
       </div>
 
       <MaterialsClientCategoriesPanel
-        dict={dict}
         machDict={machDict}
         apiErrors={apiErrors}
         categories={categories}

@@ -26,7 +26,7 @@ export function CategoryHierarchyFields({
   onIsGroupChange,
   onSortOrderChange,
 }: Props) {
-  const g = getDictionary().admin.groups;
+  const g = getDictionary().admin.categories.shared;
   const parentOptions = filterCategoryGroups(categories).filter((c) => c.id !== excludeId);
 
   return (

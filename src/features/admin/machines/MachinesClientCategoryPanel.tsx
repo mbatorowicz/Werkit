@@ -1,18 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
-import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
-import { CategoryTreePanel } from "@/components/Admin/CategoryTreePanel";
-import { CategoryFormModal } from "@/features/admin/machines/CategoryFormModal";
-import { categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
-import {
-  EMPTY_CATEGORY_FORM,
-  type CategoryFormState,
-  type MachinesCategory,
-} from "@/features/admin/machines/types";
+import { CategoryAdminSection } from "@/features/admin/categories/CategoryAdminSection";
+import { ResourceCategoryFormModal } from "@/features/admin/machines/ResourceCategoryFormModal";
+import { resourceCategoryToForm } from "@/features/admin/machines/resourceCategoryForm";
+import { EMPTY_CATEGORY_FORM, type MachinesCategory } from "@/features/admin/machines/types";
 
 type Dict = AppDictionary["admin"]["machines"];
 
@@ -33,92 +25,31 @@ export function MachinesClientCategoryPanel({
   canMutate,
   fetchData,
 }: Props) {
-  const groups = getDictionary().admin.groups;
-  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
-  const [isCMOpen, setIsCMOpen] = useState(false);
-  const [cEditId, setCEditId] = useState<number | null>(null);
-  const [cForm, setCForm] = useState<CategoryFormState>(() => ({ ...EMPTY_CATEGORY_FORM }));
-
-  const handleCSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const url = cEditId ? `/api/categories/${cEditId}` : "/api/categories";
-    const method = cEditId ? "PUT" : "POST";
-    try {
-      const res = await fetchWithDeviceTelemetry(
-        cEditId ? `Admin machines: save category PUT ${cEditId}` : "Admin machines: save category POST",
-        url,
-        {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(cForm),
-        },
-        { category: "admin" },
-      );
-      if (res.ok) {
-        setIsCMOpen(false);
-        void fetchData();
-      } else {
-        const err = (await res.json()).error;
-        await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
-      }
-    } catch {
-      await appAlert({ message: dict.apiError });
-    }
-  };
-
-  const handleCDelete = async (id: number) => {
-    if (!(await appConfirm({ message: dict.confirmCatDelete, variant: "danger" }))) return;
-    const res = await fetchWithDeviceTelemetry(
-      `Admin machines: delete category ${id}`,
-      `/api/categories/${id}`,
-      { method: "DELETE" },
-      { category: "admin" },
-    );
-    if (res.ok) void fetchData();
-    else {
-      const err = (await res.json()).error;
-      await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
-    }
-  };
-
-  const openNewCategory = useCallback(() => {
-    setCEditId(null);
-    setCForm({ ...EMPTY_CATEGORY_FORM });
-    setIsCMOpen(true);
-  }, []);
-
   return (
-    <>
-      <CategoryTreePanel
-        title={dict.dictTitle}
-        subtitle={dict.dictSubtitle}
-        addLabel={dict.addCategory}
-        emptyLabel={dict.noCategories}
-        groupBadge={groups.badgeGroup}
-        stationaryBadge={dict.badgeStationary}
-        items={categories}
-        isLoading={isLoading}
-        canMutate={canMutate}
-        onAdd={openNewCategory}
-        onEdit={(cat) => {
-          setCEditId(cat.id);
-          setCForm(categoryToForm(cat));
-          setIsCMOpen(true);
-        }}
-        onDelete={handleCDelete}
-      />
-
-      <CategoryFormModal
-        open={isCMOpen}
-        onClose={() => setIsCMOpen(false)}
-        isEdit={cEditId != null}
-        dict={dict}
-        categories={categories}
-        excludeId={cEditId}
-        form={cForm}
-        setForm={setCForm}
-        onSubmit={handleCSave}
-      />
-    </>
+    <CategoryAdminSection
+      variant="workOrders"
+      apiErrors={apiErrors}
+      apiErrorFallback={dict.apiError}
+      items={categories}
+      isLoading={isLoading}
+      canMutate={canMutate}
+      fetchData={fetchData}
+      createEmptyForm={() => ({ ...EMPTY_CATEGORY_FORM })}
+      itemToForm={resourceCategoryToForm}
+      stationaryBadge={dict.badgeStationary}
+      renderModal={({ open, onClose, isEdit, editId, form, setForm, categories: tree, onSubmit }) => (
+        <ResourceCategoryFormModal
+          open={open}
+          onClose={onClose}
+          isEdit={isEdit}
+          dict={dict}
+          categories={tree}
+          editId={editId}
+          form={form}
+          setForm={setForm}
+          onSubmit={onSubmit}
+        />
+      )}
+    />
   );
 }
