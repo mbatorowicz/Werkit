@@ -26,6 +26,12 @@ export const PUT = withApiErrorHandling(async (request: Request, context: { para
     updateData.canCreateOwnOrders = false;
   }
 
+  if (normalizedRole === "worker" && body.canEditRoute !== undefined) {
+    updateData.canEditRoute = !!body.canEditRoute;
+  } else {
+    updateData.canEditRoute = false;
+  }
+
   if (typeof body.password === "string" && body.password.trim() !== "") {
     updateData.passwordHash = await hashPassword(body.password, 10);
   }

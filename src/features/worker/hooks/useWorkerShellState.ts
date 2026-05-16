@@ -43,6 +43,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
   useEffect(() => {
     destinationRef.current = destination;
   }, [destination]);
+  const [routeWaypoints, setRouteWaypoints] = useState<Coord[]>([]);
+  const [customerLocationId, setCustomerLocationId] = useState<number | null>(null);
   const [distanceToDestKm, setDistanceToDestKm] = useState<number | null>(null);
 
   const [gpsStatus, setGpsStatus] = useState<"waiting" | "active" | "error">("waiting");
@@ -111,6 +113,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         const sessStationary = Boolean(sessionRowEarly.categoryIsStationary);
         if (!sessStationary) {
           const s = sessionRowEarly;
+          setRouteWaypoints(Array.isArray(s.routeWaypoints) ? s.routeWaypoints : []);
+          setCustomerLocationId(typeof s.customerLocationId === "number" ? s.customerLocationId : null);
           if (s.customerLat && s.customerLng) {
             setDestination({ lat: parseFloat(s.customerLat), lng: parseFloat(s.customerLng) });
           } else if (s.customerAddress && !destinationRef.current) {
@@ -134,6 +138,8 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
       } else {
         setSession(null);
         setDestination(null);
+        setRouteWaypoints([]);
+        setCustomerLocationId(null);
         setDistanceToDestKm(null);
       }
     } catch (e) {
@@ -153,6 +159,28 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
   useWorkerGPS(session, setLocation, dispatchRoute, setGpsStatus);
 
+  const persistRouteWaypoints = useCallback(
+    async (next: Coord[]) => {
+      setRouteWaypoints(next);
+      if (!customerLocationId || !currentUser?.canEditRoute) return;
+      try {
+        await fetchWithDeviceTelemetry(
+          `Worker: save route waypoints ${customerLocationId}`,
+          `/api/worker/customer-locations/${customerLocationId}/route`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ waypoints: next }),
+          },
+          { category: "orders" },
+        );
+      } catch {
+        /* zapis trasy opcjonalny */
+      }
+    },
+    [customerLocationId, currentUser?.canEditRoute],
+  );
+
   return {
     timelineEvents,
     isTimelineOpen,
@@ -168,6 +196,10 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
     location,
     pathTraveled,
     destination,
+    routeWaypoints,
+    setRouteWaypoints,
+    customerLocationId,
+    persistRouteWaypoints,
     distanceToDestKm,
     traveledKm,
     gpsStatus,

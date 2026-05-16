@@ -45,7 +45,20 @@ export class WorkerOrderService {
     const [order] = await db.select().from(workOrders).where(and(eq(workOrders.id, orderId), eq(workOrders.userId, userId)));
     if (!order) throw new Error('order_not_found');
 
-    await db.update(workOrders).set({ status: 'IN_PROGRESS' }).where(eq(workOrders.id, order.id));
+    let customerLocationId = order.customerLocationId;
+    if (!customerLocationId && order.customerId) {
+      const { CustomerLocationService } = await import("@/services/CustomerLocationService");
+      const def = await CustomerLocationService.getDefaultForCustomer(order.customerId);
+      if (def) customerLocationId = def.id;
+    }
+
+    await db
+      .update(workOrders)
+      .set({
+        status: 'IN_PROGRESS',
+        ...(customerLocationId && !order.customerLocationId ? { customerLocationId } : {}),
+      })
+      .where(eq(workOrders.id, order.id));
 
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 

@@ -12,6 +12,8 @@ export type Session = {
   customerAddress?: string | null;
   customerLat?: string | null;
   customerLng?: string | null;
+  customerLocationId?: number | null;
+  routeWaypoints?: { lat: number; lng: number }[];
   expectedDurationHours?: string | null;
   taskDescription?: string | null;
   workOrderId?: number | null;
@@ -70,6 +72,7 @@ export type UserData = {
   id?: number;
   canCreateOwnOrders?: boolean;
   notificationsEnabled?: boolean;
+  canEditRoute?: boolean;
 };
 
 export type TimelineItem = {

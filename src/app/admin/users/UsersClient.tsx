@@ -25,6 +25,7 @@ export default function UsersClient() {
     password: "",
     role: "worker",
     canCreateOwnOrders: true,
+    canEditRoute: false,
   });
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
@@ -84,6 +85,7 @@ export default function UsersClient() {
       role: u.role,
       password: "",
       canCreateOwnOrders: u.canCreateOwnOrders ?? true,
+      canEditRoute: u.canEditRoute ?? false,
     });
     setIsModalOpen(true);
   };
@@ -91,7 +93,7 @@ export default function UsersClient() {
   const openNewModal = () => {
     setEditId(null);
     setShowPassword(false);
-    setForm({ fullName: "", usernameEmail: "", password: "", role: "worker", canCreateOwnOrders: true });
+    setForm({ fullName: "", usernameEmail: "", password: "", role: "worker", canCreateOwnOrders: true, canEditRoute: false });
     setIsModalOpen(true);
   };
 
@@ -256,6 +258,7 @@ export default function UsersClient() {
                       ...form,
                       role: e.target.value,
                       canCreateOwnOrders: e.target.value === "worker" ? form.canCreateOwnOrders : false,
+                      canEditRoute: e.target.value === "worker" ? form.canEditRoute : false,
                     })
                   }
                   className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none"
@@ -304,17 +307,31 @@ export default function UsersClient() {
               </div>
 
               {form.role === "worker" && (
-                <div className="flex items-center gap-3 pt-2">
-                  <label className="relative flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="sr-only peer"
-                      checked={form.canCreateOwnOrders}
-                      onChange={(e) => setForm({ ...form, canCreateOwnOrders: e.target.checked })}
-                    />
-                    <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
-                  </label>
-                  <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canCreateOwnOrdersLabel}</span>
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center gap-3">
+                    <label className="relative flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.canCreateOwnOrders}
+                        onChange={(e) => setForm({ ...form, canCreateOwnOrders: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
+                    </label>
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canCreateOwnOrdersLabel}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="relative flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={form.canEditRoute}
+                        onChange={(e) => setForm({ ...form, canEditRoute: e.target.checked })}
+                      />
+                      <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
+                    </label>
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canEditRouteLabel}</span>
+                  </div>
                 </div>
               )}
 

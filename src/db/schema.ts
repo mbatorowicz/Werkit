@@ -3,7 +3,7 @@
  * (kanoniczna lista kolumn w `src/scripts/verify_schema_alignment.ts` — przy zmianach tu aktualizuj i tam).
  * Dokumentacja biznesowa i migracji: `docs/SYSTEM_MAP.md` §3; zasady autonomicznych migracji: `AGENTS.md` §1a.
  */
-import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, jsonb, primaryKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -18,6 +18,8 @@ export const users = pgTable('users', {
   notificationsEnabled: boolean('notifications_enabled').notNull().default(true),
   /** Pracownik włączył logowanie biometryczne na urządzeniu (preferencja konta + secure storage). */
   biometricLoginEnabled: boolean('biometric_login_enabled').notNull().default(false),
+  /** Czy pracownik może edytować zaplanowaną trasę dojazdu (punkty pośrednie) w terenie. */
+  canEditRoute: boolean('can_edit_route').notNull().default(false),
 });
 
 export const resourceCategories = pgTable('resource_categories', {
@@ -97,6 +99,20 @@ export const customers = pgTable('customers', {
   longitude: numeric('longitude', { precision: 11, scale: 8 }),
 });
 
+/** Lokalizacje klienta (wiele adresów) + zaplanowana trasa dojazdu (punkty pośrednie w JSON). */
+export const customerLocations = pgTable('customer_locations', {
+  id: serial('id').primaryKey(),
+  customerId: integer('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
+  label: varchar('label', { length: 255 }).notNull().default('Główna'),
+  address: text('address'),
+  latitude: numeric('latitude', { precision: 10, scale: 8 }).notNull(),
+  longitude: numeric('longitude', { precision: 11, scale: 8 }).notNull(),
+  isDefault: boolean('is_default').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  /** Tablica `{ lat, lng }[]` — punkty pośrednie (bez punktu docelowego). */
+  routeWaypoints: jsonb('route_waypoints').notNull().default([]),
+});
+
 export const workSessions = pgTable('work_sessions', {
   id: serial('id').primaryKey(),
   workOrderId: integer('work_order_id').references(() => workOrders.id, { onDelete: 'set null' }),
@@ -174,6 +190,7 @@ export const workOrders = pgTable('work_orders', {
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
   materialId: integer('material_id').references(() => materials.id, { onDelete: 'set null' }),
   customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  customerLocationId: integer('customer_location_id').references(() => customerLocations.id, { onDelete: 'set null' }),
   taskDescription: text('task_description'),
   status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING | IN_PROGRESS (powiązana sesja aktywna) | COMPLETED | CANCELLED
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -222,9 +239,21 @@ export const workSessionsRelations = relations(workSessions, ({ one, many }) => 
   notes: many(sessionNotes),
 }));
 
+export const customersRelations = relations(customers, ({ many }) => ({
+  locations: many(customerLocations),
+}));
+
+export const customerLocationsRelations = relations(customerLocations, ({ one }) => ({
+  customer: one(customers, { fields: [customerLocations.customerId], references: [customers.id] }),
+}));
+
 export const workOrdersRelations = relations(workOrders, ({ one }) => ({
   user: one(users, { fields: [workOrders.userId], references: [users.id] }),
   resource: one(resources, { fields: [workOrders.resourceId], references: [resources.id] }),
   material: one(materials, { fields: [workOrders.materialId], references: [materials.id] }),
-  customer: one(customers, { fields: [workOrders.customerId], references: [customers.id] })
+  customer: one(customers, { fields: [workOrders.customerId], references: [customers.id] }),
+  customerLocation: one(customerLocations, {
+    fields: [workOrders.customerLocationId],
+    references: [customerLocations.id],
+  }),
 }));

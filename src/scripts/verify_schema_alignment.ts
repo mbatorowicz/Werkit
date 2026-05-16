@@ -29,6 +29,7 @@ async function main() {
       'can_create_own_orders',
       'notifications_enabled',
       'biometric_login_enabled',
+      'can_edit_route',
     ]),
     resource_categories: new Set([
       'id',
@@ -69,6 +70,17 @@ async function main() {
       'default_address',
       'latitude',
       'longitude',
+    ]),
+    customer_locations: new Set([
+      'id',
+      'customer_id',
+      'label',
+      'address',
+      'latitude',
+      'longitude',
+      'is_default',
+      'sort_order',
+      'route_waypoints',
     ]),
     work_sessions: new Set([
       'id',
@@ -134,6 +146,7 @@ async function main() {
       'category_id',
       'material_id',
       'customer_id',
+      'customer_location_id',
       'task_description',
       'status',
       'created_at',

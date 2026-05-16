@@ -205,7 +205,20 @@ export class DictionaryService {
 
   // --- KLIENCI ---
   static async addCustomer(firstName: string | null, lastName: string, defaultAddress?: string | null, latitude?: string | null, longitude?: string | null) {
-    await db.insert(customers).values({ firstName, lastName, defaultAddress, latitude, longitude });
+    const [row] = await db.insert(customers).values({ firstName, lastName, defaultAddress, latitude, longitude }).returning();
+    if (row && latitude && longitude) {
+      const { CustomerLocationService } = await import("@/services/CustomerLocationService");
+      await CustomerLocationService.createLocation({
+        customerId: row.id,
+        label: "Główna",
+        address: defaultAddress ?? null,
+        latitude,
+        longitude,
+        isDefault: true,
+        routeWaypoints: [],
+      });
+    }
+    return row?.id;
   }
   static async updateCustomer(id: number, data: Partial<typeof customers.$inferInsert>) {
     await db.update(customers).set(data).where(eq(customers.id, id));

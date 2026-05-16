@@ -21,6 +21,7 @@ export const POST = withApiErrorHandling(
     const password = typeof body.password === "string" ? body.password : "";
     const role = body.role;
     const canCreateOwnOrders = body.canCreateOwnOrders;
+    const canEditRoute = body.canEditRoute;
 
     if (!fullName || !usernameEmail || !password) {
       return jsonError("missing_fields", 400);
@@ -37,6 +38,7 @@ export const POST = withApiErrorHandling(
       passwordHash: hashedPassword,
       role: normalizedRole,
       canCreateOwnOrders: normalizedRole === "worker" ? !!canCreateOwnOrders : false,
+      canEditRoute: normalizedRole === "worker" ? !!canEditRoute : false,
     });
 
     return jsonOk({ success: true });

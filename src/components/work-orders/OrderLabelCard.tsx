@@ -35,15 +35,26 @@ function LabelItem({
   k,
   v,
   title,
+  multiline,
+  className = "",
 }: {
   k: string;
   v: string;
   title?: string;
+  multiline?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="min-w-0">
+    <div className={`min-w-0 ${className}`}>
       <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">{k}</div>
-      <div className="text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate" title={title}>
+      <div
+        className={
+          multiline
+            ? "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold break-words whitespace-pre-wrap leading-snug"
+            : "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate"
+        }
+        title={!multiline ? title : undefined}
+      >
         {v}
       </div>
     </div>
@@ -158,13 +169,22 @@ export function OrderLabelCard({
 
           {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}
 
-          <div className={`grid grid-cols-2 ${isCompact ? "md:grid-cols-4 gap-x-4 gap-y-1.5" : "gap-x-4 gap-y-2"}`}>
+          <div
+            className={`grid ${
+              isCompact ? "grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-1.5" : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
+            }`}
+          >
             <LabelItem k={labels.mode} v={mode || "—"} />
             <LabelItem k={labels.machine} v={machine || "—"} />
             <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
             <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
             <LabelItem k={labels.customer} v={customer?.trim() ? customer : "—"} />
-            <LabelItem k={labels.description} v={description?.trim() ? description : "—"} title={description ?? undefined} />
+            <LabelItem
+              k={labels.description}
+              v={description?.trim() ? description : "—"}
+              multiline
+              className="md:col-span-2"
+            />
             {showDateTime ? <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} /> : null}
             {showDateTime ? <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} /> : null}
           </div>

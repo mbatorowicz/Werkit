@@ -1,6 +1,7 @@
 import { isRecord } from "@/lib/narrowApiListRows";
 import { coordFromRawGpsRow, type RawGpsCoordinateRow } from "@/lib/gps/pathFromLogRows";
 import type { AppSettings, Coord, Session, UserData } from "@/types/worker";
+import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 
 export function narrowSession(v: unknown): Session | null {
   if (!isRecord(v)) return null;
@@ -47,6 +48,9 @@ export function narrowSession(v: unknown): Session | null {
       v.quantityTons === null || typeof v.quantityTons === "number" ? (v.quantityTons as number | null) : undefined,
     hasPhotos: typeof v.hasPhotos === "boolean" ? v.hasPhotos : undefined,
     hasNotes: typeof v.hasNotes === "boolean" ? v.hasNotes : undefined,
+    customerLocationId:
+      typeof v.customerLocationId === "number" ? v.customerLocationId : v.customerLocationId === null ? null : undefined,
+    routeWaypoints: parseRouteWaypoints(v.routeWaypoints),
   };
 }
 
@@ -73,6 +77,7 @@ export function narrowUserData(v: unknown): UserData | null {
   if (typeof v.id === "number") u.id = v.id;
   if (typeof v.canCreateOwnOrders === "boolean") u.canCreateOwnOrders = v.canCreateOwnOrders;
   if (typeof v.notificationsEnabled === "boolean") u.notificationsEnabled = v.notificationsEnabled;
+  if (typeof v.canEditRoute === "boolean") u.canEditRoute = v.canEditRoute;
   return u;
 }
 

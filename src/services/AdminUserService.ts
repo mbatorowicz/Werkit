@@ -12,6 +12,7 @@ export class AdminUserService {
       role: users.role,
       isActive: users.isActive,
       canCreateOwnOrders: users.canCreateOwnOrders,
+      canEditRoute: users.canEditRoute,
     }).from(users).orderBy(desc(users.id));
   }
 
@@ -42,6 +43,7 @@ export class AdminUserService {
     passwordHash: string;
     role?: 'worker' | 'admin' | 'viewer';
     canCreateOwnOrders?: boolean;
+    canEditRoute?: boolean;
   }) {
     const role = payload.role || 'worker';
     const canCreateOwnOrders =
@@ -50,6 +52,7 @@ export class AdminUserService {
           ? payload.canCreateOwnOrders
           : true
         : false;
+    const canEditRoute = role === 'worker' ? !!payload.canEditRoute : false;
     await db.insert(users).values({
       fullName: payload.fullName,
       usernameEmail: payload.usernameEmail,
@@ -57,6 +60,7 @@ export class AdminUserService {
       role,
       isActive: true,
       canCreateOwnOrders,
+      canEditRoute,
     });
   }
 

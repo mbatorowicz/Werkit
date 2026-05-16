@@ -9,38 +9,33 @@ import {
 } from "@/lib/map/routeGeometryProvider";
 
 /**
- * Trasa OSRM driving do celu (GeoJSON [lng,lat] → Leaflet [lat,lng]).
+ * Trasa OSRM przez opcjonalne punkty pośrednie (GeoJSON [lng,lat] → Leaflet [lat,lng]).
  */
-export function useOsrmRouteToDestination(
-  currentLocation: RouteLngLat,
-  destination: RouteLngLat | null,
+export function usePlannedDrivingRoute(
+  from: RouteLngLat,
+  to: RouteLngLat | null,
+  waypoints: RouteLngLat[],
   onRouteDistance?: (distanceKm: number) => void,
   routeGeometryProvider: RouteGeometryProvider = projectOsrmPublicRouteGeometryProvider,
-  waypoints: RouteLngLat[] = [],
 ): [number, number][] {
-  const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
-  const wpKey = JSON.stringify(waypoints);
+  const [routeLine, setRouteLine] = useState<[number, number][]>([]);
+
+  const wpKey = waypoints.map((w) => `${w.lat},${w.lng}`).join("|");
 
   useEffect(() => {
-    if (!destination) {
-      queueMicrotask(() => {
-        setRouteToDest([]);
-      });
+    if (!to) {
+      queueMicrotask(() => setRouteLine([]));
       return;
     }
 
     const fetchRoute = async () => {
       try {
-        const url = routeGeometryProvider.buildDrivingRouteUrl(
-          currentLocation,
-          destination,
-          waypoints,
-        );
+        const url = routeGeometryProvider.buildDrivingRouteUrl(from, to, waypoints);
         const res = await fetchWithDeviceTelemetry(
-          "Map: OSRM driving route",
+          "Map: OSRM planned route",
           url,
           undefined,
-          { category: "http", throttleKey: "osrm_driving_route", throttleMs: 12_000 },
+          { category: "http", throttleKey: "osrm_driving_route", throttleMs: 8_000 },
         );
         const data: unknown = await res.json();
         const routes = (data as { routes?: { geometry: { coordinates: [number, number][] }; distance: number }[] })
@@ -50,7 +45,7 @@ export function useOsrmRouteToDestination(
           const coordinates = route.geometry.coordinates.map(
             (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
           );
-          setRouteToDest(coordinates);
+          setRouteLine(coordinates);
           onRouteDistance?.(route.distance / 1000);
         }
       } catch {
@@ -59,8 +54,8 @@ export function useOsrmRouteToDestination(
     };
 
     void fetchRoute();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- śledzimy wyłącznie współrzędne
-  }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng, wpKey, routeGeometryProvider, onRouteDistance]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- współrzędne + waypoints
+  }, [from.lat, from.lng, to?.lat, to?.lng, wpKey]);
 
-  return routeToDest;
+  return routeLine;
 }

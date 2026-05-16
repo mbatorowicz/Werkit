@@ -21,7 +21,7 @@ export function WorkerAlarmModal({
   onSnooze: (minutes: number) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[200]">
+    <div className="fixed inset-0 z-[9999]" role="dialog" aria-modal="true">
       <AlarmBackdrop />
       <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
         <div className="pointer-events-auto w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 shadow-xl">

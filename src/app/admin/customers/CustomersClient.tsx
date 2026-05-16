@@ -19,6 +19,8 @@ function CustomerMapPickerLoading() {
   );
 }
 
+import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
+
 const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
   ssr: false,
   loading: CustomerMapPickerLoading,
@@ -195,7 +197,7 @@ export default function CustomersClient() {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editId ? dict.modalEditTitle : dict.modalCreateTitle}
-        maxWidthClass="max-w-lg"
+        maxWidthClass={editId ? "max-w-3xl" : "max-w-lg"}
         titleSize="lg"
       >
               <form onSubmit={handleSave} className="p-6 space-y-5">
@@ -230,7 +232,9 @@ export default function CustomersClient() {
                      </div>
                    )}
                  </div>
-                 
+
+                 {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
+
                  <div className="pt-4 border-t border-zinc-800">
                     <button disabled={isSubmitting} type="submit" className="w-full bg-indigo-600 text-zinc-900 dark:text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
                        {isSubmitting ? ordersDict.saving : editId ? dict.save : dict.create}

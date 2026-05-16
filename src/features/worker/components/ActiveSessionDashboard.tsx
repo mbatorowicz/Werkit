@@ -42,6 +42,9 @@ interface ActiveSessionDashboardProps {
   handleEndSession: () => void;
   settings: AppSettings | null;
   setDistanceToDestKm: (val: number | null) => void;
+  plannedRouteWaypoints: Coord[];
+  canEditRoute: boolean;
+  onRouteWaypointsChange: (next: Coord[]) => void;
 }
 
 export default function ActiveSessionDashboard({
@@ -71,7 +74,10 @@ export default function ActiveSessionDashboard({
   handleCancelSession,
   handleEndSession,
   settings,
-  setDistanceToDestKm
+  setDistanceToDestKm,
+  plannedRouteWaypoints,
+  canEditRoute,
+  onRouteWaypointsChange,
 }: ActiveSessionDashboardProps) {
   return (
     <div className="w-full flex flex-col items-center gap-4">
@@ -155,13 +161,18 @@ export default function ActiveSessionDashboard({
 
       {/* MAPA — ukryta dla trybu stacjonarnego (brak sensu śledzenia trasy na mapie) */}
       {!isStationarySession && (
-      <div className="w-full h-64 md:h-80 mt-4 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
+      <div className="w-full h-64 md:h-80 mt-4 relative z-0 isolate rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
         {location ? (
           <LiveMap
             currentLocation={location}
             pathTraveled={pathTraveled}
             destination={destination}
+            plannedRouteWaypoints={plannedRouteWaypoints}
             preferPivotNavigation
+            editableRoute={canEditRoute}
+            onAddRouteWaypoint={(lat, lng) => {
+              onRouteWaypointsChange([...plannedRouteWaypoints, { lat, lng }]);
+            }}
             onRouteDistance={(km) => setDistanceToDestKm(km)}
             events={timelineEvents}
             onEventClick={(id) => {
@@ -179,6 +190,12 @@ export default function ActiveSessionDashboard({
         )}
       </div>
       )}
+
+      {canEditRoute && destination && location ? (
+        <p className="w-full mt-2 text-xs text-emerald-600 dark:text-emerald-400 text-center px-2">
+          {dict.routeEditHint}
+        </p>
+      ) : null}
 
       <ActiveSessionTimelinePanel
         timelineEvents={timelineEvents}

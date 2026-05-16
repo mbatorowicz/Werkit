@@ -3,6 +3,7 @@ import { workSessions, resources, materials, customers, sessionPhotos, sessionNo
 import { eq, and, desc } from 'drizzle-orm';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
+import { CustomerLocationService } from '@/services/CustomerLocationService';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number) {
@@ -35,9 +36,10 @@ export class WorkerSessionService {
     const companySettingsData = settingsRows[0] || null;
 
     const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const userData = userRows[0] ? { 
-      canCreateOwnOrders: userRows[0].canCreateOwnOrders, 
-      notificationsEnabled: userRows[0].notificationsEnabled 
+    const userData = userRows[0] ? {
+      canCreateOwnOrders: userRows[0].canCreateOwnOrders,
+      notificationsEnabled: userRows[0].notificationsEnabled,
+      canEditRoute: userRows[0].canEditRoute,
     } : null;
 
     if (activeSessions.length === 0) {
@@ -48,20 +50,27 @@ export class WorkerSessionService {
     const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
 
-    return { 
-       session: { 
-         ...data.session, 
-         customerAddress: data.customerAddress, 
-         customerLat: data.customerLat, 
-         customerLng: data.customerLng, 
-         customerFirstName: data.customerFirstName, 
-         customerLastName: data.customerLastName, 
-         resourceName: data.resourceName, 
+    const resolvedLocation = await CustomerLocationService.resolveForWorkOrder(
+      data.session.workOrderId,
+      data.session.customerId,
+    );
+
+    return {
+       session: {
+         ...data.session,
+         customerAddress: resolvedLocation?.address ?? data.customerAddress,
+         customerLat: resolvedLocation?.latitude ?? data.customerLat,
+         customerLng: resolvedLocation?.longitude ?? data.customerLng,
+         customerFirstName: data.customerFirstName,
+         customerLastName: data.customerLastName,
+         resourceName: data.resourceName,
          categoryId: data.categoryId,
          categoryName: data.categoryName,
          categoryIsStationary: Boolean(data.categoryIsStationary),
-         materialName: data.materialName 
-       }, 
+         materialName: data.materialName,
+         customerLocationId: resolvedLocation?.id ?? null,
+         routeWaypoints: resolvedLocation?.routeWaypoints ?? [],
+       },
        events: photos,
        notes: notes,
        settings: companySettingsData,

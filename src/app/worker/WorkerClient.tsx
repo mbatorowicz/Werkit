@@ -153,6 +153,11 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           }}
           settings={shell.settings}
           setDistanceToDestKm={shell.setDistanceToDestKm}
+          plannedRouteWaypoints={shell.routeWaypoints}
+          canEditRoute={Boolean(shell.currentUser?.canEditRoute)}
+          onRouteWaypointsChange={(next) => {
+            void shell.persistRouteWaypoints(next);
+          }}
         />
       )}
 

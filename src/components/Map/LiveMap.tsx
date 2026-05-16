@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
@@ -24,10 +24,28 @@ import {
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
 
+function RouteWaypointClickLayer({
+  editable,
+  onAdd,
+}: {
+  editable: boolean;
+  onAdd?: (lat: number, lng: number) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      if (!editable || !onAdd) return;
+      onAdd(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+}
+
 interface LiveMapProps {
   currentLocation: { lat: number; lng: number; heading?: number | null };
   pathTraveled: Coord[];
   destination: { lat: number; lng: number } | null;
+  /** Punkty pośrednie zaplanowanej trasy (z bazy — customer_locations.route_waypoints). */
+  plannedRouteWaypoints?: { lat: number; lng: number }[];
   onRouteDistance?: (distanceKm: number) => void;
   events?: TimelineItem[];
   onEventClick?: (id: string) => void;
@@ -36,18 +54,30 @@ interface LiveMapProps {
    * Obrót mapPane jest wyłączony — kierunek na znaczniku (patrz igła azymutu).
    */
   preferPivotNavigation?: boolean;
+  /** Klik na mapę dodaje punkt pośredni (wymaga `onAddRouteWaypoint`). */
+  editableRoute?: boolean;
+  onAddRouteWaypoint?: (lat: number, lng: number) => void;
 }
 
 export default function LiveMap({
   currentLocation,
   pathTraveled,
   destination,
+  plannedRouteWaypoints = [],
   onRouteDistance,
   events = [],
   onEventClick,
   preferPivotNavigation = false,
+  editableRoute = false,
+  onAddRouteWaypoint,
 }: LiveMapProps) {
-  const routeToDest = useOsrmRouteToDestination(currentLocation, destination, onRouteDistance);
+  const routeToDest = useOsrmRouteToDestination(
+    currentLocation,
+    destination,
+    onRouteDistance,
+    undefined,
+    plannedRouteWaypoints,
+  );
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const dict = getDictionary().admin.map;
@@ -133,8 +163,18 @@ export default function LiveMap({
 
         <MapInvalidateOnResize />
         <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
+        <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
 
         <TraveledPathLayers path={pathTraveled} legend={speedLegend} />
+
+        {plannedRouteWaypoints.map((wp, i) => (
+          <CircleMarker
+            key={`wp-${wp.lat}-${wp.lng}-${i}`}
+            center={[wp.lat, wp.lng]}
+            radius={6}
+            pathOptions={{ color: "#f59e0b", fillColor: "#fbbf24", fillOpacity: 0.9, weight: 2 }}
+          />
+        ))}
 
         {pathTraveled.length > 0 ? (
           <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
