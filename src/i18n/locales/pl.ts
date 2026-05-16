@@ -540,6 +540,16 @@ export const pl = {
       routeUndoWaypoint: "Cofnij ostatni punkt",
     },
     settings: {
+      pageSubtitle: "Globalne parametry wyświetlania dla aplikacji logistycznej Werkit.",
+      appDownloadTitle: "Aplikacja mobilna (Android)",
+      appDownloadDesc:
+        "Pobierz plik APK i zainstaluj na telefonach pracowników. Na Androidzie po pobraniu zatwierdź instalację z tego źródła (Ustawienia → Bezpieczeństwo).",
+      appDownloadButton: "Pobierz APK",
+      appDownloadVersion: "Wersja: {version}",
+      appDownloadUnavailable:
+        "Plik instalacyjny nie jest jeszcze dostępny na serwerze. Administrator platformy musi opublikować APK (zmienna WERKIT_ANDROID_APK_URL lub plik w public/downloads/).",
+      appDownloadHint:
+        "Otwórz ten przycisk na telefonie z Androidem — przeglądarka pobierze plik, a po zakończeniu pobierania wybierz instalację. Wymagane logowanie do panelu admina.",
       companyData: "Dane firmy",
       orderSettings: "Ustawienia Zleceń",
       generalInfo: "Informacje Ogólne",

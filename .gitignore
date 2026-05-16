@@ -20,6 +20,9 @@
 # production
 /build
 
+# Android APK (host via WERKIT_ANDROID_APK_URL or copy to public/downloads/ locally)
+/public/downloads/*.apk
+
 # misc
 .DS_Store
 *.pem

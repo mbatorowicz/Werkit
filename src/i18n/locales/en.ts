@@ -542,6 +542,16 @@ export const en: AppDictionary = {
       routeUndoWaypoint: "Undo last point",
     },
     settings: {
+      pageSubtitle: "Global display parameters for the Werkit logistics application.",
+      appDownloadTitle: "Mobile app (Android)",
+      appDownloadDesc:
+        "Download the APK and install it on workers' phones. On Android, allow installation from this source after download (Settings → Security).",
+      appDownloadButton: "Download APK",
+      appDownloadVersion: "Version: {version}",
+      appDownloadUnavailable:
+        "The install file is not available on the server yet. The platform administrator must publish the APK (WERKIT_ANDROID_APK_URL or a file in public/downloads/).",
+      appDownloadHint:
+        "Open this button on an Android phone — the browser will download the file, then choose install. Admin login required.",
       companyData: "Company Data",
       orderSettings: "Order Settings",
       generalInfo: "General Information",

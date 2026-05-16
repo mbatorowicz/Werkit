@@ -6,6 +6,7 @@ import { isCompanyScopedRole, isSuperadminRole } from '@/lib/tenantContext';
 
 // --- CONFIGURATION ---
 const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers', '/api/categories'];
+const APP_DISTRIBUTION_API_PREFIXES = ['/api/app'];
 
 const ADMIN_PANEL_ROLES = ['admin', 'viewer'];
 const WORKER_APP_ROLES = ['worker', 'admin'];
@@ -35,10 +36,13 @@ export async function proxy(request: NextRequest) {
 
   const isAdminPage = pathname.startsWith('/admin');
   const isSharedApi = SHARED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isAppDistributionApi = APP_DISTRIBUTION_API_PREFIXES.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
 
   // SECURE DEFAULT: Any API route not specifically for workers, shared, platform, or auth is treated as an admin API
   const isAdminApi =
-    isApi && !isApiAuth && !isWorkerApi && !isSharedApi && !isPlatformApi;
+    isApi && !isApiAuth && !isWorkerApi && !isSharedApi && !isPlatformApi && !isAppDistributionApi;
 
   const requiresAuth =
     isAdminPage ||
@@ -47,7 +51,8 @@ export async function proxy(request: NextRequest) {
     isAdminApi ||
     isWorkerApi ||
     isSharedApi ||
-    isPlatformApi;
+    isPlatformApi ||
+    isAppDistributionApi;
 
   // 2. API logowania/wylogowania — zawsze bez straży tras
   if (isApiAuth) {
@@ -119,7 +124,10 @@ export async function proxy(request: NextRequest) {
     }
 
     // Superadmin nie wchodzi w panel firmy ani worker bez kontekstu firmy
-    if (isSuperadmin && (isAdminPage || isWorkerPage || isAdminApi || isWorkerApi || isSharedApi)) {
+    if (
+      isSuperadmin &&
+      (isAdminPage || isWorkerPage || isAdminApi || isWorkerApi || isSharedApi || isAppDistributionApi)
+    ) {
       if (isApi) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       return NextResponse.redirect(new URL('/platform', request.url));
     }
@@ -149,6 +157,16 @@ export async function proxy(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
       if (isMutation && role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
+    // Dystrybucja APK (GET: worker/admin/viewer)
+    if (isAppDistributionApi) {
+      if (request.method !== 'GET') {
+        return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
+      }
+      if (!SHARED_READ_ROLES.includes(role)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
