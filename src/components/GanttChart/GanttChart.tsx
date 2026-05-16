@@ -16,6 +16,31 @@ type GanttProps = {
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
   const dict = getDictionary().admin.gantt;
+  const fields = getDictionary().admin.orderFields;
+
+  const formatItemTooltip = (
+    item: UnifiedGanttItem,
+    opts: {
+      date?: string;
+      time?: string;
+      footer: string;
+    },
+  ) => {
+    const customerName = `${item.customerLastName || ""} ${item.customerFirstName || ""}`.trim();
+    return [
+      `#${item.workOrderId || item.id}`,
+      `${fields.orderType}: ${item.categoryName || "—"}`,
+      `${fields.resource}: ${item.resourceName || "—"}`,
+      `${fields.material}: ${item.materialName || "—"}`,
+      `${fields.quantity}: ${item.quantityTons ? `${item.quantityTons}t` : "—"}`,
+      `${fields.customer}: ${customerName || "—"}`,
+      opts.date ? `${fields.date}: ${opts.date}` : null,
+      opts.time ? `${fields.time}: ${opts.time}` : null,
+      opts.footer,
+    ]
+      .filter(Boolean)
+      .join("\n");
+  };
 
   // Default selected date to today
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
@@ -169,7 +194,9 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
           {/* Header row with hours */}
           <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-30">
             <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
-              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{groupBy === 'WORKER' ? 'Pracownik' : 'Maszyna/Pojazd'}</span>
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                {groupBy === "WORKER" ? dict.groupByWorker : dict.groupByResource}
+              </span>
             </div>
             <div className="flex-1 relative h-10">
               {hours.map(h => (
@@ -268,7 +295,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className="absolute top-1 bottom-1 border-2 border-dashed border-amber-500/50 rounded-md bg-amber-500/20 flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition"
                               style={{ left: plannedDims.left, width: plannedDims.width }}
-                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${plannedStart ? formatUiDateOnly(plannedStart) : "—"}\nGodzina: ${plannedStart ? formatUiTimeHm(plannedStart) : "—"}\n${dict.clickToEdit}`}
+                              title={formatItemTooltip(item, {
+                                date: plannedStart ? formatUiDateOnly(plannedStart) : "—",
+                                time: plannedStart ? formatUiTimeHm(plannedStart) : "—",
+                                footer: dict.clickToEdit,
+                              })}
                             >
                               <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>
@@ -277,7 +308,11 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             <div
                               className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === 'IN_PROGRESS' ? 'bg-blue-500 dark:bg-blue-600 animate-pulse' : 'bg-emerald-500 dark:bg-emerald-600'}`}
                               style={{ left: actualDims.left, width: actualDims.width }}
-                              title={`#${item.workOrderId || item.id}\nTryb pracy: ${item.categoryName || "—"}\nMaszyna: ${item.resourceName || "—"}\nMateriał: ${item.materialName || "—"}\nIlość: ${item.quantityTons ? `${item.quantityTons}t` : "—"}\nKlient: ${item.customerLastName || ""} ${item.customerFirstName || ""}\nData: ${actualStart ? formatUiDateOnly(actualStart) : "—"}\nGodzina: ${actualStart ? formatUiTimeHm(actualStart) : "—"} – ${actualEnd ? formatUiTimeHm(actualEnd) : dict.inProgressShort}\n${dict.clickToDetails}`}
+                              title={formatItemTooltip(item, {
+                                date: actualStart ? formatUiDateOnly(actualStart) : "—",
+                                time: `${actualStart ? formatUiTimeHm(actualStart) : "—"} – ${actualEnd ? formatUiTimeHm(actualEnd) : dict.inProgressShort}`,
+                                footer: dict.clickToDetails,
+                              })}
                             >
                               <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">#{item.workOrderId || item.id}</span>
                             </div>

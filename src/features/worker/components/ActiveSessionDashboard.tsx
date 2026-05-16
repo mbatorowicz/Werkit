@@ -3,7 +3,7 @@
 import { Clock, MapPin, Camera, FileText, X, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { AppDictionary } from "@/i18n/types";
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatDict, formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/QueuedPendingOrdersDuringSession";
@@ -87,7 +87,7 @@ export default function ActiveSessionDashboard({
         <OrderLabelCard
           tone="active"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
-          mode={session.categoryName || "Brak kategorii"}
+          mode={session.categoryName || dict.noCategoryName}
           machine={session.resourceName || "—"}
           material={session.materialName}
           quantity={session.quantityTons ? `${session.quantityTons}${adminDict.tons}` : null}
@@ -203,7 +203,9 @@ export default function ActiveSessionDashboard({
         isTimelineOpen={isTimelineOpen}
         setIsTimelineOpen={setIsTimelineOpen}
         selectedEventId={selectedEventId}
-        timelineToggleLabel={`Oś czasu (${timelineEvents.length})`}
+        timelineToggleLabel={formatDict(getDictionary().admin.orderFields.timelineToggle, {
+          count: timelineEvents.length,
+        })}
       />
 
       {/* NOTATKI I ZDJĘCIA */}

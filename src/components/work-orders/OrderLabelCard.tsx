@@ -69,7 +69,7 @@ export function OrderLabelCard({
   footer,
   subheader,
   orderedBy,
-  orderedByLabel = "Zlecił:",
+  orderedByLabel,
   density = "normal",
   showDateTime = true,
   mode,
@@ -111,17 +111,18 @@ export function OrderLabelCard({
   const cls = toneClasses(tone);
   const isCompact = density === "compact";
   const attachDict = getDictionary().worker.client;
-  const defaultLabels = {
-    mode: "Tryb pracy",
-    machine: "Zasób",
-    material: "Materiał",
-    quantity: "Ilość",
-    customer: "Klient",
-    description: "Opis",
-    date: "Data",
-    time: "Godzina",
-  } as const;
-  const labels = defaultLabels;
+  const fieldLabels = getDictionary().admin.orderFields;
+  const labels = {
+    mode: fieldLabels.orderType,
+    machine: fieldLabels.resource,
+    material: fieldLabels.material,
+    quantity: fieldLabels.quantity,
+    customer: fieldLabels.customer,
+    description: fieldLabels.description,
+    date: fieldLabels.date,
+    time: fieldLabels.time,
+  };
+  const orderedByText = orderedByLabel ?? fieldLabels.orderedBy;
 
   return (
     <div
@@ -192,7 +193,7 @@ export function OrderLabelCard({
           {orderedBy?.trim() ? (
             <div className={isCompact ? "mt-2" : "mt-3"}>
               <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                {orderedByLabel} <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
+                {orderedByText} <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
               </div>
             </div>
           ) : null}
