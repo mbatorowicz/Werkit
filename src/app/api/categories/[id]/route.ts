@@ -6,11 +6,16 @@ import {
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const params = await context.params;
     const id = parseInt(params.id, 10);
@@ -50,7 +55,7 @@ export const PUT = withApiErrorHandling(
     if (updateData.reqQuantity) updateData.showQuantity = true;
     if (updateData.reqTaskDescription) updateData.showTaskDescription = true;
 
-    await DictionaryService.updateCategory(id, updateData);
+    await DictionaryService.updateCategory(companyId, id, updateData);
     return jsonOk({ success: true });
   },
   {
@@ -70,12 +75,16 @@ export const DELETE = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const params = await context.params;
     const id = parseInt(params.id, 10);
     if (Number.isNaN(id)) return jsonError("invalid_id", 400);
 
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.deleteCategory(id);
+    await DictionaryService.deleteCategory(companyId, id);
     return jsonOk({ success: true });
   },
   {

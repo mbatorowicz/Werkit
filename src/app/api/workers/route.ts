@@ -1,12 +1,17 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { hashPassword } from '@/lib/passwordCrypto';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(async () => {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const { AdminUserService } = await import("@/services/AdminUserService");
-  const allUsers = await AdminUserService.getAllUsers();
+  const allUsers = await AdminUserService.getAllUsers(companyId);
   return jsonOk(allUsers);
 }, { defaultErrorCode: "fetch_error" });
 
@@ -14,6 +19,10 @@ export const POST = withApiErrorHandling(
   async (request: Request) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
     const fullName = typeof body.fullName === "string" ? body.fullName : "";
@@ -32,7 +41,7 @@ export const POST = withApiErrorHandling(
     const { AdminUserService } = await import("@/services/AdminUserService");
     const hashedPassword = await hashPassword(password, 10);
 
-    await AdminUserService.createUser({
+    await AdminUserService.createUser(companyId, {
       fullName,
       usernameEmail,
       passwordHash: hashedPassword,

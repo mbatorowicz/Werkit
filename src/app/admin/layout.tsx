@@ -10,6 +10,7 @@ import { jwtVerify } from "jose";
 
 import { JWT_SECRET } from '@/lib/auth';
 import { AdminAbilityProvider } from '@/components/Admin/AdminAbilityProvider';
+import { requireServerCompanyId } from '@/lib/serverTenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { DictionaryService } = await import('@/services/DictionaryService');
   const { AdminUserService } = await import('@/services/AdminUserService');
 
-  const settings = await DictionaryService.getSettings();
+  const companyId = await requireServerCompanyId();
+  const settings = await DictionaryService.getSettings(companyId);
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
   let loggedInUser = null;

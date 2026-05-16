@@ -1,13 +1,14 @@
 import { jsonError, jsonOk, parseJsonBodyOrEmpty, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
 import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 import { parsePositiveIntFromString } from '@/lib/parseRouteParams';
 import { WorkerOrderService } from '@/services/WorkerOrderService';
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 
 export const POST = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
-    const userId = await getUserId();
-    if (!userId) return jsonError("Unauthorized", 401);
+    const ctx = await requireWorkerCompanySession();
+    if (!ctx.ok) return ctx.response;
+
     const { id } = await params;
     const orderId = parsePositiveIntFromString(id);
     if (orderId == null) {
@@ -17,7 +18,12 @@ export const POST = withApiErrorHandling(
     const body = await parseJsonBodyOrEmpty(request);
     const startCoord = coordsFromRequestBody(body);
 
-    const sessionId = await WorkerOrderService.acceptOrder(userId, orderId, startCoord);
+    const sessionId = await WorkerOrderService.acceptOrder(
+      ctx.userId,
+      ctx.companyId,
+      orderId,
+      startCoord,
+    );
     return jsonOk({ success: true, sessionId });
   },
   {

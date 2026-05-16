@@ -5,14 +5,19 @@ import {
   isMissingResourceCategoriesVisibilityColumns,
 } from '@/lib/postgresMigrationHints';
 import { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const leavesOnly = new URL(request.url).searchParams.get("leavesOnly") === "1";
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const allCategories = await DictionaryService.getCategories({ leavesOnly });
+    const allCategories = await DictionaryService.getCategories(companyId, { leavesOnly });
     return jsonOk(allCategories);
   },
   {
@@ -25,6 +30,10 @@ export const POST = withApiErrorHandling(
   async (request: Request) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
     const name = typeof body.name === "string" ? body.name : "";
@@ -62,7 +71,7 @@ export const POST = withApiErrorHandling(
     const srn = showResourceName !== undefined ? !!showResourceName : true;
     const srd = showResourceDescription !== undefined ? !!showResourceDescription : false;
     const sreg = showRegistrationNumber !== undefined ? !!showRegistrationNumber : true;
-    await DictionaryService.addCategory({
+    await DictionaryService.addCategory(companyId, {
       name: name.trim(),
       parentId: hierarchy.parentId,
       isGroup: hierarchy.isGroup,

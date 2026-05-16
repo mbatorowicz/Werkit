@@ -1,13 +1,13 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 
 export const POST = withApiErrorHandling(
   async () => {
-    const userId = await getUserId();
-    if (!userId) return jsonError("Unauthorized", 401);
+    const ctx = await requireWorkerCompanySession();
+    if (!ctx.ok) return ctx.response;
 
-    await WorkerSessionService.cancelActiveSession(userId);
+    await WorkerSessionService.cancelActiveSession(ctx.userId, ctx.companyId);
     return jsonOk({ success: true });
   },
   {

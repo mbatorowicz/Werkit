@@ -1,17 +1,13 @@
-import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
+import { AdminOrderService } from '@/services/AdminOrderService';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
-import { JWT_SECRET } from '@/lib/auth';
-import { AdminOrderService } from '@/services/AdminOrderService';
-
 export const GET = withApiErrorHandling(async () => {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return jsonError("Unauthorized", 401);
-  await jwtVerify(token, JWT_SECRET);
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
 
-  const data = await AdminOrderService.getArchivedSessions();
+  const data = await AdminOrderService.getArchivedSessions(scoped.data.companyId);
   return jsonOk(data);
 }, { defaultErrorCode: "fetch_error" });

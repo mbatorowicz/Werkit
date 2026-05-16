@@ -1,11 +1,11 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 
 export const POST = withApiErrorHandling(
   async (request: Request) => {
-    const userId = await getUserId();
-    if (!userId) return jsonError("Unauthorized", 401);
+    const ctx = await requireWorkerCompanySession();
+    if (!ctx.ok) return ctx.response;
 
     const body = await parseJsonBody(request);
     const photoUrl = typeof body.photoUrl === "string" ? body.photoUrl : "";
@@ -13,7 +13,8 @@ export const POST = withApiErrorHandling(
     if (!photoUrl.trim()) return jsonError("missing_fields", 400);
 
     await WorkerSessionService.addPhoto(
-      userId,
+      ctx.userId,
+      ctx.companyId,
       photoUrl,
       location?.lat != null ? String(location.lat) : null,
       location?.lng != null ? String(location.lng) : null,

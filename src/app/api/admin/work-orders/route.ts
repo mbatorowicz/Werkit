@@ -7,9 +7,12 @@ export const dynamic = 'force-dynamic';
 import { JWT_SECRET } from '@/lib/auth';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { AdminOrderService } from '@/services/AdminOrderService';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const GET = withApiErrorHandling(async () => {
-  const data = await AdminOrderService.getActiveWorkOrders();
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const data = await AdminOrderService.getActiveWorkOrders(scoped.data.companyId);
   return jsonOk(data);
 }, { defaultErrorCode: "fetch_error" });
 
@@ -18,6 +21,11 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   if (!token) return jsonError("Unauthorized", 401);
   const verified = await jwtVerify(token, JWT_SECRET);
   if (verified.payload.role !== "admin") return jsonError("Forbidden", 403);
+
+  const companyId = verified.payload.companyId;
+  if (companyId == null || typeof companyId !== 'number') {
+    return jsonError("Forbidden", 403);
+  }
 
   const body = await parseJsonBody(request);
 
@@ -45,7 +53,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');
-    const categoryRow = await DictionaryService.getResourceCategoryById(catIdNum);
+    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, catIdNum);
     if (!categoryRow || categoryRow.isGroup) {
       return jsonError("invalid_category", 400);
     }
@@ -63,6 +71,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
 
     if (!forceSave) {
       const conflict = await AdminOrderService.checkScheduleConflict(
+        companyId,
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
@@ -76,6 +85,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
     }
 
     await AdminOrderService.createOrder({
+      companyId,
       userId: uidNum,
       resourceId: resIdNum,
       categoryId: catIdNum,

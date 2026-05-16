@@ -1,22 +1,22 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 
 export const POST = withApiErrorHandling(async (request: Request) => {
-  const userId = await getUserId();
-  if (!userId) return jsonError("Unauthorized", 401);
+  const ctx = await requireWorkerCompanySession();
+  if (!ctx.ok) return ctx.response;
 
   const body = await parseJsonBody(request);
   const { AdminUserService } = await import("@/services/AdminUserService");
 
-  const actor = await AdminUserService.getUserById(userId);
-  if (!actor) return jsonError("Unauthorized", 401);
+  const actor = await AdminUserService.getUserById(ctx.userId);
+  if (!actor || actor.companyId !== ctx.companyId) return jsonError("Unauthorized", 401);
 
   if (body.notificationsEnabled !== undefined) {
     const v = body.notificationsEnabled;
     if (typeof v !== "boolean") {
       return jsonError("invalid_payload", 400);
     }
-    await AdminUserService.updateUser(userId, { notificationsEnabled: v });
+    await AdminUserService.updateUser(ctx.companyId, ctx.userId, { notificationsEnabled: v });
   }
 
   if (body.biometricLoginEnabled !== undefined) {
@@ -32,13 +32,13 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       if (!pwd.trim()) {
         return jsonError("biometric_password_required", 400);
       }
-      const ok = await AdminUserService.verifyPasswordForUserId(userId, pwd);
+      const ok = await AdminUserService.verifyPasswordForUserId(ctx.userId, pwd);
       if (!ok) {
         return jsonError("invalid_credentials", 401);
       }
-      await AdminUserService.updateUser(userId, { biometricLoginEnabled: true });
+      await AdminUserService.updateUser(ctx.companyId, ctx.userId, { biometricLoginEnabled: true });
     } else {
-      await AdminUserService.updateUser(userId, { biometricLoginEnabled: false });
+      await AdminUserService.updateUser(ctx.companyId, ctx.userId, { biometricLoginEnabled: false });
     }
   }
 

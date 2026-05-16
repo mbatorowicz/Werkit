@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { AdminOrderService } from '@/services/AdminOrderService';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,8 +11,9 @@ export const PUT = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
-    const userId = await getUserId();
-    if (!userId) return jsonError("Unauthorized", 401);
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const params = await props.params;
     const orderId = parseInt(params.id, 10);
@@ -43,7 +44,7 @@ export const PUT = withApiErrorHandling(
     }
 
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const categoryRow = await DictionaryService.getResourceCategoryById(catIdNum);
+    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, catIdNum);
     if (!categoryRow || categoryRow.isGroup) {
       return jsonError("invalid_category", 400);
     }
@@ -61,6 +62,7 @@ export const PUT = withApiErrorHandling(
 
     if (!forceSave) {
       const conflict = await AdminOrderService.checkScheduleConflict(
+        companyId,
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
@@ -75,7 +77,7 @@ export const PUT = withApiErrorHandling(
     }
 
     try {
-      await AdminOrderService.updateOrder(orderId, {
+      await AdminOrderService.updateOrder(companyId, orderId, {
         userId: uidNum,
         resourceId: resIdNum,
         categoryId: catIdNum,
@@ -109,7 +111,10 @@ export const DELETE = withApiErrorHandling(
     const orderId = parseInt(params.id, 10);
     if (Number.isNaN(orderId)) return jsonError("invalid_id", 400);
 
-    await AdminOrderService.deleteOrder(orderId);
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+
+    await AdminOrderService.deleteOrder(scoped.data.companyId, orderId);
     return jsonOk({ success: true });
   },
   {

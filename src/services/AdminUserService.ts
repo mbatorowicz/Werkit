@@ -1,23 +1,37 @@
 import { db } from '@/db';
 import { users } from '@/db/schema';
-import { desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql, and } from 'drizzle-orm';
 import { comparePassword } from '@/lib/passwordCrypto';
 
 export class AdminUserService {
-  static async getAllUsers() {
-    return await db.select({
-      id: users.id,
-      fullName: users.fullName,
-      usernameEmail: users.usernameEmail,
-      role: users.role,
-      isActive: users.isActive,
-      canCreateOwnOrders: users.canCreateOwnOrders,
-      canEditRoute: users.canEditRoute,
-    }).from(users).orderBy(desc(users.id));
+  static async getAllUsers(companyId: number) {
+    return await db
+      .select({
+        id: users.id,
+        fullName: users.fullName,
+        usernameEmail: users.usernameEmail,
+        role: users.role,
+        isActive: users.isActive,
+        canCreateOwnOrders: users.canCreateOwnOrders,
+        canEditRoute: users.canEditRoute,
+        companyId: users.companyId,
+      })
+      .from(users)
+      .where(eq(users.companyId, companyId))
+      .orderBy(desc(users.id));
   }
 
   static async getUserById(userId: number) {
     const userDb = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    return userDb[0] || null;
+  }
+
+  static async getUserByIdForCompany(userId: number, companyId: number) {
+    const userDb = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
+      .limit(1);
     return userDb[0] || null;
   }
 
@@ -31,20 +45,24 @@ export class AdminUserService {
     return userDb[0] || null;
   }
 
-  static async getWorkers() {
-    return await db.select({ id: users.id, fullName: users.fullName })
+  static async getWorkers(companyId: number) {
+    return await db
+      .select({ id: users.id, fullName: users.fullName })
       .from(users)
-      .where(eq(users.role, 'worker'));
+      .where(and(eq(users.companyId, companyId), eq(users.role, 'worker')));
   }
 
-  static async createUser(payload: {
-    fullName: string;
-    usernameEmail: string;
-    passwordHash: string;
-    role?: 'worker' | 'admin' | 'viewer';
-    canCreateOwnOrders?: boolean;
-    canEditRoute?: boolean;
-  }) {
+  static async createUser(
+    companyId: number,
+    payload: {
+      fullName: string;
+      usernameEmail: string;
+      passwordHash: string;
+      role?: 'worker' | 'admin' | 'viewer';
+      canCreateOwnOrders?: boolean;
+      canEditRoute?: boolean;
+    },
+  ) {
     const role = payload.role || 'worker';
     const canCreateOwnOrders =
       role === 'worker'
@@ -54,6 +72,7 @@ export class AdminUserService {
         : false;
     const canEditRoute = role === 'worker' ? !!payload.canEditRoute : false;
     await db.insert(users).values({
+      companyId,
       fullName: payload.fullName,
       usernameEmail: payload.usernameEmail,
       passwordHash: payload.passwordHash,
@@ -64,8 +83,16 @@ export class AdminUserService {
     });
   }
 
-  static async updateUser(userId: number, updates: Partial<typeof users.$inferInsert>) {
-    await db.update(users).set(updates).where(eq(users.id, userId));
+  static async updateUser(
+    companyId: number,
+    userId: number,
+    updates: Partial<typeof users.$inferInsert>,
+  ) {
+    const { companyId: _c, ...rest } = updates;
+    await db
+      .update(users)
+      .set(rest)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
   }
 
   /** Weryfikacja hasła bez zwracania pełnego rekordu użytkownika (np. włączenie biometrii). */
@@ -79,8 +106,10 @@ export class AdminUserService {
     return comparePassword(plainPassword, row[0].passwordHash);
   }
 
-  static async deleteUser(userId: number) {
-    await db.delete(users).where(eq(users.id, userId));
+  static async deleteUser(companyId: number, userId: number) {
+    await db
+      .delete(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
   }
 }
 

@@ -18,8 +18,10 @@ async function main() {
 
   /** Nazwy kolumn w PG muszą odpowiadać definicjom w schema.ts (Drizzle snake_case). */
   const EXPECTED: Record<string, ReadonlySet<string>> = {
+    companies: new Set(['id', 'name', 'slug', 'is_active', 'created_at']),
     users: new Set([
       'id',
+      'company_id',
       'full_name',
       'username_email',
       'password_hash',
@@ -33,6 +35,7 @@ async function main() {
     ]),
     resource_categories: new Set([
       'id',
+      'company_id',
       'name',
       'parent_id',
       'is_group',
@@ -56,6 +59,7 @@ async function main() {
     resource_to_categories: new Set(['resource_id', 'category_id']),
     resources: new Set([
       'id',
+      'company_id',
       'name',
       'brand',
       'model',
@@ -63,11 +67,12 @@ async function main() {
       'description',
       'image_url',
     ]),
-    materials: new Set(['id', 'name']),
-    material_categories: new Set(['id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
+    materials: new Set(['id', 'company_id', 'name']),
+    material_categories: new Set(['id', 'company_id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
     material_to_categories: new Set(['material_id', 'category_id']),
     customers: new Set([
       'id',
+      'company_id',
       'first_name',
       'last_name',
       'default_address',
@@ -87,6 +92,7 @@ async function main() {
     ]),
     work_sessions: new Set([
       'id',
+      'company_id',
       'work_order_id',
       'user_id',
       'resource_id',
@@ -128,6 +134,7 @@ async function main() {
     ]),
     company_settings: new Set([
       'id',
+      'company_id',
       'company_name',
       'company_address',
       'zip_code',
@@ -144,6 +151,7 @@ async function main() {
     ]),
     work_orders: new Set([
       'id',
+      'company_id',
       'user_id',
       'resource_id',
       'category_id',
@@ -160,7 +168,7 @@ async function main() {
       'due_date',
       'locked_until',
     ]),
-    device_logs: new Set(['id', 'user_id', 'level', 'message', 'metadata', 'created_at']),
+    device_logs: new Set(['id', 'company_id', 'user_id', 'level', 'message', 'metadata', 'created_at']),
   };
 
   const { sql } = await import('@vercel/postgres');

@@ -37,6 +37,10 @@ export const POST = withApiErrorHandling(async (req: Request) => {
 
   const verified = await jwtVerify(token, JWT_SECRET);
   const userId = verified.payload.userId as number;
+  const companyId = verified.payload.companyId;
+  if (companyId == null || typeof companyId !== 'number') {
+    return jsonError('Forbidden', 403);
+  }
 
   const body = await parseJsonBody(req);
   const rawLevel = typeof body.level === "string" ? body.level.trim().toUpperCase() : "INFO";
@@ -61,7 +65,7 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   }
 
   const { SystemLogService } = await import("@/services/SystemLogService");
-  await SystemLogService.insertLog(userId, level, message, metadata);
+  await SystemLogService.insertLog(companyId, userId, level, message, metadata);
 
   return jsonOk({ success: true });
 }, { defaultErrorCode: "save_error" });

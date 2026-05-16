@@ -4,13 +4,18 @@ import {
   isMissingResourcesVehicleColumns,
 } from '@/lib/postgresMigrationHints';
 import { buildResourceCanonicalName } from '@/lib/resourceDisplayName';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(
   async () => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const allMachines = await DictionaryService.getResources();
+    const allMachines = await DictionaryService.getResources(companyId);
     return jsonOk(allMachines);
   },
   {
@@ -23,6 +28,10 @@ export const POST = withApiErrorHandling(
   async (request: Request) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
     const brand = typeof body.brand === "string" ? body.brand : "";
@@ -42,7 +51,7 @@ export const POST = withApiErrorHandling(
       return jsonError("missing_fields", 400);
     }
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const vis = await DictionaryService.mergeResourceFormVisibility(parsedCatIds);
+    const vis = await DictionaryService.mergeResourceFormVisibility(companyId, parsedCatIds);
     const name = buildResourceCanonicalName(
       vis.showResourceName ? brand : "",
       vis.showResourceName ? model : "",
@@ -54,6 +63,7 @@ export const POST = withApiErrorHandling(
     }
 
     await DictionaryService.addResource(
+      companyId,
       {
         name,
         brand: vis.showResourceName ? brand : "",

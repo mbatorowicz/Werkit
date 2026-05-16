@@ -6,12 +6,23 @@
 import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, jsonb, primaryKey, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+/** Tenant (firma) — izolacja danych multi-firm. */
+export const companies = pgTable('companies', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
+  /** NULL tylko dla roli platformowej `superadmin`. */
+  companyId: integer('company_id').references(() => companies.id, { onDelete: 'restrict' }),
   fullName: varchar('full_name', { length: 255 }).notNull(),
   usernameEmail: varchar('username_email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  role: varchar('role', { length: 50 }).notNull().default('worker'), // admin | worker | viewer
+  role: varchar('role', { length: 50 }).notNull().default('worker'), // superadmin | admin | worker | viewer
   deviceUniqueId: varchar('device_unique_id', { length: 255 }),
   isActive: boolean('is_active').notNull().default(true),
   canCreateOwnOrders: boolean('can_create_own_orders').notNull().default(true),
@@ -24,6 +35,7 @@ export const users = pgTable('users', {
 
 export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   parentId: integer('parent_id').references((): AnyPgColumn => resourceCategories.id, { onDelete: 'set null' }),
   /** Grupa organizacyjna — nie wybierana na zleceniach ani w wizardzie. */
@@ -57,6 +69,7 @@ export const resourceToCategories = pgTable('resource_to_categories', {
 
 export const resources = pgTable('resources', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   /** Wyświetlana nazwa (składana z marki / modelu / nr rej.; pole dla kompatybilności w zapytaniach). */
   name: varchar('name', { length: 255 }).notNull(),
   brand: varchar('brand', { length: 120 }).notNull().default(''),
@@ -69,12 +82,14 @@ export const resources = pgTable('resources', {
 
 export const materials = pgTable('materials', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
 });
 
 /** Kategorie materiałów (słownik) — analogicznie do kategorii maszyn. */
 export const materialCategories = pgTable('material_categories', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
   parentId: integer('parent_id').references((): AnyPgColumn => materialCategories.id, { onDelete: 'set null' }),
   isGroup: boolean('is_group').notNull().default(false),
@@ -99,6 +114,7 @@ export const materialToCategories = pgTable(
 
 export const customers = pgTable('customers', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   firstName: varchar('first_name', { length: 255 }),
   lastName: varchar('last_name', { length: 255 }).notNull(),
   defaultAddress: text('default_address'),
@@ -122,6 +138,7 @@ export const customerLocations = pgTable('customer_locations', {
 
 export const workSessions = pgTable('work_sessions', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   workOrderId: integer('work_order_id').references(() => workOrders.id, { onDelete: 'set null' }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
@@ -175,6 +192,10 @@ export const sessionNotes = pgTable('session_notes', {
 
 export const companySettings = pgTable('company_settings', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' })
+    .unique(),
   companyName: varchar('company_name', { length: 255 }).notNull().default('Werkit ERP'),
   companyAddress: text('company_address'),
   zipCode: varchar('zip_code', { length: 20 }),
@@ -192,6 +213,7 @@ export const companySettings = pgTable('company_settings', {
 
 export const workOrders = pgTable('work_orders', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   resourceId: integer('resource_id').notNull().references(() => resources.id, { onDelete: 'set null' }),
   categoryId: integer('category_id').references(() => resourceCategories.id, { onDelete: 'set null' }), // New link to classifier
@@ -212,6 +234,7 @@ export const workOrders = pgTable('work_orders', {
 
 export const deviceLogs = pgTable('device_logs', {
   id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   level: varchar('level', { length: 20 }).notNull().default('INFO'), // INFO, WARN, ERROR, DEBUG
   message: text('message').notNull(),
@@ -220,7 +243,13 @@ export const deviceLogs = pgTable('device_logs', {
 });
 
 // Relacje ułatwiające zapytania ORM
-export const usersRelations = relations(users, ({ many }) => ({
+export const companiesRelations = relations(companies, ({ many }) => ({
+  users: many(users),
+  settings: many(companySettings),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  company: one(companies, { fields: [users.companyId], references: [companies.id] }),
   workSessions: many(workSessions),
 }));
 

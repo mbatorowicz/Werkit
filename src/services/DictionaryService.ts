@@ -10,7 +10,7 @@ import {
   companySettings,
   resourceToCategories,
 } from '@/db/schema';
-import { eq, asc, desc, inArray } from 'drizzle-orm';
+import { eq, asc, desc, inArray, and } from 'drizzle-orm';
 import { filterCategoryLeaves } from '@/lib/categoryTree';
 import {
   CategoryHierarchyError,
@@ -23,7 +23,7 @@ import {
 
 export class DictionaryService {
   /** Zapytanie bez `show_*` — działa na bazie sprzed migracji 0010. */
-  private static async getCategoriesLegacyColumnsOnly() {
+  private static async getCategoriesLegacyColumnsOnly(companyId: number) {
     return db
       .select({
         id: resourceCategories.id,
@@ -38,24 +38,27 @@ export class DictionaryService {
         color: resourceCategories.color,
       })
       .from(resourceCategories)
+      .where(eq(resourceCategories.companyId, companyId))
       .orderBy(desc(resourceCategories.id));
   }
 
-  static async getCategories(opts?: { leavesOnly?: boolean }) {
+  static async getCategories(companyId: number, opts?: { leavesOnly?: boolean }) {
     let rows;
     try {
       rows = await db
         .select()
         .from(resourceCategories)
+        .where(eq(resourceCategories.companyId, companyId))
         .orderBy(asc(resourceCategories.sortOrder), asc(resourceCategories.id));
     } catch (err: unknown) {
       if (!isMissingResourceCategoriesVisibilityColumns(err)) throw err;
       console.warn(
         'DictionaryService.getCategories: brak kolumn show_* na resource_categories — zapytanie legacy; uruchom migrację (npm run db:napraw-kategorie-widocznosc lub drizzle/0010).',
       );
-      const legacy = await DictionaryService.getCategoriesLegacyColumnsOnly();
+      const legacy = await DictionaryService.getCategoriesLegacyColumnsOnly(companyId);
       rows = legacy.map((row) => ({
         ...row,
+        companyId,
         parentId: null,
         isGroup: false,
         sortOrder: 0,
@@ -71,12 +74,20 @@ export class DictionaryService {
     return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
   }
 
-  static async getCustomers() {
-    return await db.select().from(customers).orderBy(desc(customers.id));
+  static async getCustomers(companyId: number) {
+    return await db
+      .select()
+      .from(customers)
+      .where(eq(customers.companyId, companyId))
+      .orderBy(desc(customers.id));
   }
 
-  static async getMaterials() {
-    const all = await db.select().from(materials).orderBy(desc(materials.id));
+  static async getMaterials(companyId: number) {
+    const all = await db
+      .select()
+      .from(materials)
+      .where(eq(materials.companyId, companyId))
+      .orderBy(desc(materials.id));
     const links = await db.select().from(materialToCategories);
     const byMaterialId = new Map<number, number[]>();
     for (const l of links) {
@@ -91,16 +102,21 @@ export class DictionaryService {
     }));
   }
 
-  static async getMaterialCategories(opts?: { leavesOnly?: boolean }) {
+  static async getMaterialCategories(companyId: number, opts?: { leavesOnly?: boolean }) {
     const rows = await db
       .select()
       .from(materialCategories)
+      .where(eq(materialCategories.companyId, companyId))
       .orderBy(asc(materialCategories.sortOrder), asc(materialCategories.id));
     return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
   }
 
-  static async getResources() {
-    const allResources = await db.select().from(resources).orderBy(desc(resources.id));
+  static async getResources(companyId: number) {
+    const allResources = await db
+      .select()
+      .from(resources)
+      .where(eq(resources.companyId, companyId))
+      .orderBy(desc(resources.id));
     const links = await db.select().from(resourceToCategories);
     const byResourceId = new Map<number, number[]>();
     for (const l of links) {
@@ -122,7 +138,10 @@ export class DictionaryService {
   }
 
   /** Łączenie widoczności pól zasobu — pole widoczne, jeśli któraś z wybranych kategorii je pokazuje. */
-  static async mergeResourceFormVisibility(categoryIds: number[]): Promise<{
+  static async mergeResourceFormVisibility(
+    companyId: number,
+    categoryIds: number[],
+  ): Promise<{
     showResourceName: boolean;
     showResourceDescription: boolean;
     showRegistrationNumber: boolean;
@@ -142,7 +161,12 @@ export class DictionaryService {
         showRegistrationNumber: resourceCategories.showRegistrationNumber,
       })
       .from(resourceCategories)
-      .where(inArray(resourceCategories.id, ids));
+      .where(
+        and(
+          eq(resourceCategories.companyId, companyId),
+          inArray(resourceCategories.id, ids),
+        ),
+      );
     if (cats.length === 0) {
       return {
         showResourceName: true,
@@ -157,14 +181,18 @@ export class DictionaryService {
     };
   }
 
-  static async getSettings() {
-    return await db.select().from(companySettings).limit(1);
+  static async getSettings(companyId: number) {
+    return await db
+      .select()
+      .from(companySettings)
+      .where(eq(companySettings.companyId, companyId))
+      .limit(1);
   }
 
   // --- MATERIAŁY ---
-  static async addMaterial(name: string, categoryIds: number[] = []) {
-    await assertMaterialCategoriesAssignable(categoryIds);
-    const res = await db.insert(materials).values({ name }).returning();
+  static async addMaterial(companyId: number, name: string, categoryIds: number[] = []) {
+    await assertMaterialCategoriesAssignable(categoryIds, companyId);
+    const res = await db.insert(materials).values({ name, companyId }).returning();
     const mid = res[0].id;
     if (categoryIds.length > 0) {
       await db.insert(materialToCategories).values(
@@ -174,13 +202,17 @@ export class DictionaryService {
   }
 
   static async updateMaterial(
+    companyId: number,
     id: number,
     data: Partial<typeof materials.$inferInsert>,
     categoryIds?: number[],
   ) {
-    await db.update(materials).set(data).where(eq(materials.id, id));
+    await db
+      .update(materials)
+      .set(data)
+      .where(and(eq(materials.id, id), eq(materials.companyId, companyId)));
     if (categoryIds !== undefined) {
-      await assertMaterialCategoriesAssignable(categoryIds);
+      await assertMaterialCategoriesAssignable(categoryIds, companyId);
       await db.delete(materialToCategories).where(eq(materialToCategories.materialId, id));
       if (categoryIds.length > 0) {
         await db.insert(materialToCategories).values(
@@ -190,28 +222,38 @@ export class DictionaryService {
     }
   }
 
-  static async deleteMaterial(id: number) {
-    await db.delete(materials).where(eq(materials.id, id));
+  static async deleteMaterial(companyId: number, id: number) {
+    await db
+      .delete(materials)
+      .where(and(eq(materials.id, id), eq(materials.companyId, companyId)));
   }
 
   // --- KATEGORIE MATERIAŁÓW ---
-  static async addMaterialCategory(data: Partial<typeof materialCategories.$inferInsert>) {
-    const all = await DictionaryService.getMaterialCategories();
+  static async addMaterialCategory(
+    companyId: number,
+    data: Partial<typeof materialCategories.$inferInsert>,
+  ) {
+    const all = await DictionaryService.getMaterialCategories(companyId);
     validateHierarchyPatch(all, {
       parentId: data.parentId ?? null,
       isGroup: data.isGroup ?? false,
     });
     await db.insert(materialCategories).values({
-      name: (data.name ?? "").trim(),
-      color: data.color || "#3f3f46",
+      companyId,
+      name: (data.name ?? '').trim(),
+      color: data.color || '#3f3f46',
       parentId: data.parentId ?? null,
       isGroup: data.isGroup ?? false,
       sortOrder: data.sortOrder ?? 0,
     } as typeof materialCategories.$inferInsert);
   }
 
-  static async updateMaterialCategory(id: number, data: Partial<typeof materialCategories.$inferInsert>) {
-    const all = await DictionaryService.getMaterialCategories();
+  static async updateMaterialCategory(
+    companyId: number,
+    id: number,
+    data: Partial<typeof materialCategories.$inferInsert>,
+  ) {
+    const all = await DictionaryService.getMaterialCategories(companyId);
     validateHierarchyPatch(
       all,
       { parentId: data.parentId, isGroup: data.isGroup },
@@ -220,28 +262,44 @@ export class DictionaryService {
     const self = all.find((r) => r.id === id);
     if (self?.isGroup && data.isGroup === false) {
       const childCount = await countMaterialCategoryChildren(id);
-      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
+      if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
     }
-    await db.update(materialCategories).set(data).where(eq(materialCategories.id, id));
+    await db
+      .update(materialCategories)
+      .set(data)
+      .where(and(eq(materialCategories.id, id), eq(materialCategories.companyId, companyId)));
   }
 
-  static async deleteMaterialCategory(id: number) {
+  static async deleteMaterialCategory(companyId: number, id: number) {
     const childCount = await countMaterialCategoryChildren(id);
-    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
-    await db.delete(materialCategories).where(eq(materialCategories.id, id));
+    if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+    await db
+      .delete(materialCategories)
+      .where(and(eq(materialCategories.id, id), eq(materialCategories.companyId, companyId)));
   }
 
   // --- KATEGORIE ZASOBÓW ---
-  static async addCategory(data: Partial<typeof resourceCategories.$inferInsert>) {
-    const all = await DictionaryService.getCategories();
+  static async addCategory(
+    companyId: number,
+    data: Partial<typeof resourceCategories.$inferInsert>,
+  ) {
+    const all = await DictionaryService.getCategories(companyId);
     validateHierarchyPatch(all, {
       parentId: data.parentId ?? null,
       isGroup: data.isGroup ?? false,
     });
-    await db.insert(resourceCategories).values(data as typeof resourceCategories.$inferInsert);
+    await db.insert(resourceCategories).values({
+      ...data,
+      companyId,
+    } as typeof resourceCategories.$inferInsert);
   }
-  static async updateCategory(id: number, data: Partial<typeof resourceCategories.$inferInsert>) {
-    const all = await DictionaryService.getCategories();
+
+  static async updateCategory(
+    companyId: number,
+    id: number,
+    data: Partial<typeof resourceCategories.$inferInsert>,
+  ) {
+    const all = await DictionaryService.getCategories(companyId);
     validateHierarchyPatch(
       all,
       { parentId: data.parentId, isGroup: data.isGroup },
@@ -250,29 +308,49 @@ export class DictionaryService {
     const self = all.find((r) => r.id === id);
     if (self?.isGroup && data.isGroup === false) {
       const childCount = await countResourceCategoryChildren(id);
-      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
+      if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
     }
-    await db.update(resourceCategories).set(data).where(eq(resourceCategories.id, id));
-  }
-  static async deleteCategory(id: number) {
-    const childCount = await countResourceCategoryChildren(id);
-    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
-    await db.delete(resourceCategories).where(eq(resourceCategories.id, id));
+    await db
+      .update(resourceCategories)
+      .set(data)
+      .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)));
   }
 
-  static async getResourceCategoryById(id: number) {
-    const rows = await db.select().from(resourceCategories).where(eq(resourceCategories.id, id)).limit(1);
+  static async deleteCategory(companyId: number, id: number) {
+    const childCount = await countResourceCategoryChildren(id);
+    if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+    await db
+      .delete(resourceCategories)
+      .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)));
+  }
+
+  static async getResourceCategoryById(companyId: number, id: number) {
+    const rows = await db
+      .select()
+      .from(resourceCategories)
+      .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)))
+      .limit(1);
     return rows[0] ?? null;
   }
 
   // --- KLIENCI ---
-  static async addCustomer(firstName: string | null, lastName: string, defaultAddress?: string | null, latitude?: string | null, longitude?: string | null) {
-    const [row] = await db.insert(customers).values({ firstName, lastName, defaultAddress, latitude, longitude }).returning();
+  static async addCustomer(
+    companyId: number,
+    firstName: string | null,
+    lastName: string,
+    defaultAddress?: string | null,
+    latitude?: string | null,
+    longitude?: string | null,
+  ) {
+    const [row] = await db
+      .insert(customers)
+      .values({ companyId, firstName, lastName, defaultAddress, latitude, longitude })
+      .returning();
     if (row && latitude && longitude) {
-      const { CustomerLocationService } = await import("@/services/CustomerLocationService");
+      const { CustomerLocationService } = await import('@/services/CustomerLocationService');
       await CustomerLocationService.createLocation({
         customerId: row.id,
-        label: "Główna",
+        label: 'Główna',
         address: defaultAddress ?? null,
         latitude,
         longitude,
@@ -282,15 +360,27 @@ export class DictionaryService {
     }
     return row?.id;
   }
-  static async updateCustomer(id: number, data: Partial<typeof customers.$inferInsert>) {
-    await db.update(customers).set(data).where(eq(customers.id, id));
+
+  static async updateCustomer(
+    companyId: number,
+    id: number,
+    data: Partial<typeof customers.$inferInsert>,
+  ) {
+    await db
+      .update(customers)
+      .set(data)
+      .where(and(eq(customers.id, id), eq(customers.companyId, companyId)));
   }
-  static async deleteCustomer(id: number) {
-    await db.delete(customers).where(eq(customers.id, id));
+
+  static async deleteCustomer(companyId: number, id: number) {
+    await db
+      .delete(customers)
+      .where(and(eq(customers.id, id), eq(customers.companyId, companyId)));
   }
 
   // --- ZASOBY (MASZYNY) ---
   static async addResource(
+    companyId: number,
     identity: {
       name: string;
       brand: string;
@@ -308,6 +398,7 @@ export class DictionaryService {
     const res = await db
       .insert(resources)
       .values({
+        companyId,
         name: identity.name.slice(0, 255),
         brand: identity.brand.slice(0, 120),
         model: identity.model.slice(0, 120),
@@ -318,7 +409,7 @@ export class DictionaryService {
       .returning();
     if (categoryIds && categoryIds.length > 0) {
       for (const cid of categoryIds) {
-        await assertResourceCategoryAssignable(cid);
+        await assertResourceCategoryAssignable(cid, companyId);
       }
       await db.insert(resourceToCategories).values(
         categoryIds.map((cid) => ({
@@ -328,7 +419,13 @@ export class DictionaryService {
       );
     }
   }
-  static async updateResource(id: number, data: Partial<typeof resources.$inferInsert>, categoryIds?: number[]) {
+
+  static async updateResource(
+    companyId: number,
+    id: number,
+    data: Partial<typeof resources.$inferInsert>,
+    categoryIds?: number[],
+  ) {
     const patch: Partial<typeof resources.$inferInsert> = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.brand !== undefined) patch.brand = data.brand;
@@ -337,32 +434,45 @@ export class DictionaryService {
     if (data.description !== undefined) patch.description = data.description;
     if (data.imageUrl !== undefined) patch.imageUrl = data.imageUrl;
     if (Object.keys(patch).length > 0) {
-      await db.update(resources).set(patch).where(eq(resources.id, id));
+      await db
+        .update(resources)
+        .set(patch)
+        .where(and(eq(resources.id, id), eq(resources.companyId, companyId)));
     }
     if (categoryIds !== undefined) {
       for (const cid of categoryIds) {
-        await assertResourceCategoryAssignable(cid);
+        await assertResourceCategoryAssignable(cid, companyId);
       }
       await db.delete(resourceToCategories).where(eq(resourceToCategories.resourceId, id));
       if (categoryIds.length > 0) {
-        await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
-          resourceId: id,
-          categoryId: cid
-        })));
+        await db.insert(resourceToCategories).values(
+          categoryIds.map((cid) => ({
+            resourceId: id,
+            categoryId: cid,
+          })),
+        );
       }
     }
   }
-  static async deleteResource(id: number) {
-    await db.delete(resources).where(eq(resources.id, id));
+
+  static async deleteResource(companyId: number, id: number) {
+    await db
+      .delete(resources)
+      .where(and(eq(resources.id, id), eq(resources.companyId, companyId)));
   }
 
   // --- USTAWIENIA FIRMY ---
-  static async updateSettings(updates: Partial<typeof companySettings.$inferInsert>) {
-    await db.insert(companySettings)
-      .values({ ...updates, id: 1 } as typeof companySettings.$inferInsert)
+  static async updateSettings(
+    companyId: number,
+    updates: Partial<typeof companySettings.$inferInsert>,
+  ) {
+    const { companyId: _omit, id: _id, ...rest } = updates;
+    await db
+      .insert(companySettings)
+      .values({ ...rest, companyId } as typeof companySettings.$inferInsert)
       .onConflictDoUpdate({
-        target: companySettings.id,
-        set: updates
+        target: companySettings.companyId,
+        set: rest,
       });
   }
 }

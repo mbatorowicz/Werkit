@@ -1,9 +1,14 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const PUT = withApiErrorHandling(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
+
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
 
   const params = await context.params;
   const id = parseInt(params.id, 10);
@@ -22,7 +27,7 @@ export const PUT = withApiErrorHandling(async (request: Request, context: { para
   }
 
   const { DictionaryService } = await import("@/services/DictionaryService");
-  await DictionaryService.updateMaterial(id, { name }, categoryIds);
+  await DictionaryService.updateMaterial(companyId, id, { name }, categoryIds);
 
   return jsonOk({ success: true });
 }, { defaultErrorCode: "save_error" });
@@ -32,12 +37,16 @@ export const DELETE = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const params = await context.params;
     const id = parseInt(params.id, 10);
     if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.deleteMaterial(id);
+    await DictionaryService.deleteMaterial(companyId, id);
     return jsonOk({ success: true });
   },
   { defaultErrorCode: "material_in_use" },

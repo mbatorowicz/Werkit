@@ -14,6 +14,8 @@ export const JWT_SECRET = getJwtSecret();
 export interface JwtPayload {
   userId: number;
   role: string;
+  /** NULL dla superadmina platformy. */
+  companyId?: number | null;
 }
 
 /**
@@ -27,7 +29,12 @@ export async function getAuthSession(): Promise<JwtPayload | null> {
 
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload as unknown as JwtPayload;
+    const p = verified.payload;
+    return {
+      userId: Number(p.userId),
+      role: String(p.role),
+      companyId: p.companyId == null ? null : Number(p.companyId),
+    };
   } catch {
     return null;
   }

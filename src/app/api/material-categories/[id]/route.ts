@@ -2,10 +2,15 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import type { MaterialCategoryUpdateInput } from "@/services/DictionaryService";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const PUT = withApiErrorHandling(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
+
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
 
   const params = await context.params;
   const id = parseInt(params.id, 10);
@@ -27,7 +32,7 @@ export const PUT = withApiErrorHandling(async (request: Request, context: { para
   }
 
   const { DictionaryService } = await import("@/services/DictionaryService");
-  await DictionaryService.updateMaterialCategory(id, updateData);
+  await DictionaryService.updateMaterialCategory(companyId, id, updateData);
   return jsonOk({ success: true });
 }, {
   mapUnknownError: (err) => (err instanceof CategoryHierarchyError ? jsonError(err.code, 400) : null),
@@ -39,13 +44,17 @@ export const DELETE = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const params = await context.params;
     const id = parseInt(params.id, 10);
     if (Number.isNaN(id)) {
       return jsonError("invalid_id", 400);
     }
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.deleteMaterialCategory(id);
+    await DictionaryService.deleteMaterialCategory(companyId, id);
     return jsonOk({ success: true });
   },
   {

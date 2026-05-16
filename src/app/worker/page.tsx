@@ -1,6 +1,7 @@
 import WorkerClient from "./WorkerClient";
 import { InitialWorkerData, Session } from "@/types/worker";
 import { getUserId } from "@/lib/auth";
+import { requireServerCompanyId } from '@/lib/serverTenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,12 +11,13 @@ export default async function WorkerPage() {
     return <WorkerClient initialData={null} />;
   }
 
+  const companyId = await requireServerCompanyId();
   const { WorkerOrderService } = await import('@/services/WorkerOrderService');
   const { WorkerSessionService } = await import('@/services/WorkerSessionService');
 
   const [ordersRaw, sessionDetails] = await Promise.all([
-    WorkerOrderService.getPendingOrders(userId),
-    WorkerSessionService.getActiveSessionWithDetails(userId)
+    WorkerOrderService.getPendingOrders(userId, companyId),
+    WorkerSessionService.getActiveSessionWithDetails(userId, companyId),
   ]);
 
   const orders = ordersRaw.map(o => ({

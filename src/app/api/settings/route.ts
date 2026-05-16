@@ -1,9 +1,14 @@
 import { jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const GET = withApiErrorHandling(async () => {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const { DictionaryService } = await import("@/services/DictionaryService");
-  const data = await DictionaryService.getSettings();
+  const data = await DictionaryService.getSettings(companyId);
   return jsonOk(data[0] || {});
 }, { defaultErrorCode: "fetch_error" });
 
@@ -11,10 +16,14 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const body = await parseJsonBody(request);
   const { DictionaryService } = await import("@/services/DictionaryService");
 
-  await DictionaryService.updateSettings({
+  await DictionaryService.updateSettings(companyId, {
     companyName: typeof body.companyName === "string" ? body.companyName : "Werkit ERP",
     companyAddress: typeof body.companyAddress === "string" ? body.companyAddress : "",
     zipCode: typeof body.zipCode === "string" ? body.zipCode : "",

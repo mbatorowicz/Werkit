@@ -1,13 +1,18 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(
   async () => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const allMaterials = await DictionaryService.getMaterials();
+    const allMaterials = await DictionaryService.getMaterials(companyId);
     return jsonOk(allMaterials);
   },
   {
@@ -20,6 +25,10 @@ export const POST = withApiErrorHandling(
   async (request: Request) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
     const name = typeof body.name === "string" ? body.name : "";
@@ -34,7 +43,7 @@ export const POST = withApiErrorHandling(
     }
 
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.addMaterial(name, categoryIds);
+    await DictionaryService.addMaterial(companyId, name, categoryIds);
 
     return jsonOk({ success: true });
   },

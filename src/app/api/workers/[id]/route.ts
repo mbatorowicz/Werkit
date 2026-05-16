@@ -2,10 +2,15 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { hashPassword } from '@/lib/passwordCrypto';
 import type { UserUpdatePayload } from '@/services/AdminUserService';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const PUT = withApiErrorHandling(async (request: Request, context: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
+
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
 
   const params = await context.params;
   const id = parseInt(params.id, 10);
@@ -37,7 +42,7 @@ export const PUT = withApiErrorHandling(async (request: Request, context: { para
   }
 
   const { AdminUserService } = await import("@/services/AdminUserService");
-  await AdminUserService.updateUser(id, updateData);
+  await AdminUserService.updateUser(companyId, id, updateData);
   return jsonOk({ success: true });
 }, { defaultErrorCode: "save_error" });
 
@@ -45,11 +50,15 @@ export const DELETE = withApiErrorHandling(async (_request: Request, context: { 
   const denied = await guardAdminMutation();
   if (denied) return denied;
 
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const params = await context.params;
   const id = parseInt(params.id, 10);
   if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
   const { AdminUserService } = await import("@/services/AdminUserService");
-  await AdminUserService.deleteUser(id);
+  await AdminUserService.deleteUser(companyId, id);
   return jsonOk({ success: true });
 }, { defaultErrorCode: "delete_error" });

@@ -15,7 +15,10 @@ export class AdminReportService {
   /**
    * Kompletny zestaw metryk pod stronę Raporty — jedna transakcja logiczna z punktu widzenia UI.
    */
-  static async getDashboardSnapshot(referenceDate = new Date()): Promise<ReportsDashboardSnapshot> {
+  static async getDashboardSnapshot(
+    companyId: number,
+    referenceDate = new Date(),
+  ): Promise<ReportsDashboardSnapshot> {
     const y = referenceDate.getFullYear();
     const m = referenceDate.getMonth();
     const monthStart = new Date(y, m, 1);
@@ -24,11 +27,15 @@ export class AdminReportService {
 
     const [settingsRow, activeSessions, pendingRows, monthSessions, prevMonthSessions] =
       await Promise.all([
-        db.select().from(companySettings).limit(1),
-        AdminReportService.fetchActiveSessionsRows(),
-        AdminReportService.fetchPendingOrderUserIds(),
-        AdminReportService.fetchCompletedSessionsBetween(monthStart, monthEndExclusive),
-        AdminReportService.fetchCompletedSessionsBetween(prevMonthStart, monthStart),
+        db
+          .select()
+          .from(companySettings)
+          .where(eq(companySettings.companyId, companyId))
+          .limit(1),
+        AdminReportService.fetchActiveSessionsRows(companyId),
+        AdminReportService.fetchPendingOrderUserIds(companyId),
+        AdminReportService.fetchCompletedSessionsBetween(companyId, monthStart, monthEndExclusive),
+        AdminReportService.fetchCompletedSessionsBetween(companyId, prevMonthStart, monthStart),
       ]);
 
     const settings = settingsRow[0] ?? null;
@@ -90,7 +97,9 @@ export class AdminReportService {
     };
   }
 
-  private static async fetchActiveSessionsRows(): Promise<ReportActiveSessionRow[]> {
+  private static async fetchActiveSessionsRows(
+    companyId: number,
+  ): Promise<ReportActiveSessionRow[]> {
     const rows = await db
       .select({
         id: workSessions.id,
@@ -106,7 +115,9 @@ export class AdminReportService {
       .leftJoin(users, eq(workSessions.userId, users.id))
       .leftJoin(resources, eq(workSessions.resourceId, resources.id))
       .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
-      .where(eq(workSessions.status, 'IN_PROGRESS'))
+      .where(
+        and(eq(workSessions.companyId, companyId), eq(workSessions.status, 'IN_PROGRESS')),
+      )
       .orderBy(desc(workSessions.startTime));
 
     return rows.map((r) => ({
@@ -121,14 +132,20 @@ export class AdminReportService {
     }));
   }
 
-  private static async fetchPendingOrderUserIds(): Promise<{ userId: number }[]> {
+  private static async fetchPendingOrderUserIds(
+    companyId: number,
+  ): Promise<{ userId: number }[]> {
     return db
       .select({ userId: workOrders.userId })
       .from(workOrders)
-      .where(eq(workOrders.status, 'PENDING'));
+      .where(and(eq(workOrders.companyId, companyId), eq(workOrders.status, 'PENDING')));
   }
 
-  private static async fetchCompletedSessionsBetween(start: Date, endExclusive: Date) {
+  private static async fetchCompletedSessionsBetween(
+    companyId: number,
+    start: Date,
+    endExclusive: Date,
+  ) {
     return db
       .select({
         id: workSessions.id,
@@ -139,6 +156,7 @@ export class AdminReportService {
       .leftJoin(resources, eq(workSessions.resourceId, resources.id))
       .where(
         and(
+          eq(workSessions.companyId, companyId),
           eq(workSessions.status, 'COMPLETED'),
           gte(workSessions.startTime, start),
           lt(workSessions.startTime, endExclusive),

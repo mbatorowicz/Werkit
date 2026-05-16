@@ -4,6 +4,7 @@ import { TimelineItem } from "@/types/worker";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
+import { requireServerCompanyId } from '@/lib/serverTenant';
 import { notFound } from "next/navigation";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import MapWrapper from "./MapWrapper";
@@ -43,8 +44,9 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
   const sessionId = parseInt(resolvedParams.id);
   if (isNaN(sessionId)) notFound();
 
+  const companyId = await requireServerCompanyId();
   const { WorkerSessionService } = await import('@/services/WorkerSessionService');
-  const historyData = await WorkerSessionService.getSessionHistoryFull(sessionId, userId);
+  const historyData = await WorkerSessionService.getSessionHistoryFull(sessionId, userId, companyId);
 
   if (!historyData) {
     notFound();

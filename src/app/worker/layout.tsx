@@ -7,6 +7,7 @@ import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
 
 import { JWT_SECRET } from '@/lib/auth';
+import { requireServerCompanyId } from '@/lib/serverTenant';
 export const dynamic = 'force-dynamic';
 
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
@@ -15,7 +16,8 @@ export default async function WorkerLayout({ children }: { children: React.React
   const { DictionaryService } = await import('@/services/DictionaryService');
   const { AdminUserService } = await import('@/services/AdminUserService');
 
-  const settings = await DictionaryService.getSettings();
+  const companyId = await requireServerCompanyId();
+  const settings = await DictionaryService.getSettings(companyId);
   const companyName = settings[0]?.companyName || "Werkit ERP";
 
   let userName = "Pracownik";

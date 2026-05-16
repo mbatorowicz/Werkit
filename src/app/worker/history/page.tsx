@@ -6,6 +6,7 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 
 import { JWT_SECRET } from "@/lib/auth";
+import { requireServerCompanyId } from '@/lib/serverTenant';
 
 function asDate(v: unknown): Date | null {
   if (!v) return null;
@@ -34,8 +35,9 @@ export default async function HistoryPage() {
   const userId = await getUserId();
   if (!userId) return <div>{h.accessDenied}</div>;
 
+  const companyId = await requireServerCompanyId();
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
-  const sessions = await WorkerSessionService.getCompletedSessions(userId);
+  const sessions = await WorkerSessionService.getCompletedSessions(userId, companyId);
 
   return (
     <div className="py-6 pb-20">

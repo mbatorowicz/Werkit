@@ -13,7 +13,7 @@ export class WorkerOrderService {
   /**
    * Pobiera listę oczekujących zleceń dla danego pracownika.
    */
-  static async getPendingOrders(userId: number) {
+  static async getPendingOrders(userId: number, companyId: number) {
     const creator = newWorkOrderCreatorUserAlias();
 
     const rows = await applyWorkOrderListJoins(
@@ -26,7 +26,13 @@ export class WorkerOrderService {
       creator,
       { joinAssignedWorker: false },
     )
-      .where(and(eq(workOrders.userId, userId), eq(workOrders.status, 'PENDING')))
+      .where(
+        and(
+          eq(workOrders.companyId, companyId),
+          eq(workOrders.userId, userId),
+          eq(workOrders.status, 'PENDING'),
+        ),
+      )
       .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
 
     return rows.map((row) => ({
@@ -39,10 +45,20 @@ export class WorkerOrderService {
 
   static async acceptOrder(
     userId: number,
+    companyId: number,
     orderId: number,
     startCoord?: { lat: number; lng: number } | null,
   ) {
-    const [order] = await db.select().from(workOrders).where(and(eq(workOrders.id, orderId), eq(workOrders.userId, userId)));
+    const [order] = await db
+      .select()
+      .from(workOrders)
+      .where(
+        and(
+          eq(workOrders.id, orderId),
+          eq(workOrders.userId, userId),
+          eq(workOrders.companyId, companyId),
+        ),
+      );
     if (!order) throw new Error('order_not_found');
 
     let customerLocationId = order.customerLocationId;
@@ -63,6 +79,7 @@ export class WorkerOrderService {
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
     const [newSession] = await db.insert(workSessions).values({
+      companyId,
       workOrderId: order.id,
       userId: userId,
       categoryId: order.categoryId!,

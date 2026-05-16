@@ -22,6 +22,7 @@ export class AdminOrderService {
    * Zwraca komunikat PL dla UI albo `null`, gdy brak konfliktu.
    */
   static async checkScheduleConflict(
+    companyId: number,
     userId: number,
     resourceId: number,
     dueDate: Date | null,
@@ -38,6 +39,7 @@ export class AdminOrderService {
       .from(workOrders)
       .where(
         and(
+          eq(workOrders.companyId, companyId),
           or(eq(workOrders.userId, userId), eq(workOrders.resourceId, resourceId)),
           inArray(workOrders.status, ['PENDING', 'IN_PROGRESS']),
         ),
@@ -64,7 +66,7 @@ export class AdminOrderService {
   /**
    * Pobiera zlecenia w kolejce dyspozycji — wyłącznie `PENDING` (zrealizowane / w toku realizacji poza kolejką).
    */
-  static async getActiveWorkOrders() {
+  static async getActiveWorkOrders(companyId: number) {
     const creator = newWorkOrderCreatorUserAlias();
 
     return applyWorkOrderListJoins(
@@ -82,14 +84,14 @@ export class AdminOrderService {
       creator,
       { joinAssignedWorker: true },
     )
-      .where(eq(workOrders.status, 'PENDING'))
+      .where(and(eq(workOrders.companyId, companyId), eq(workOrders.status, 'PENDING')))
       .orderBy(desc(workOrders.createdAt));
   }
 
   /**
    * Pobiera historię aktywnych oraz archiwalnych sesji.
    */
-  static async getArchivedSessions(limitCount = 500) {
+  static async getArchivedSessions(companyId: number, limitCount = 500) {
     const creator = aliasedTable(users, 'creator');
     return db.select({
        id: workSessions.id,
@@ -125,6 +127,7 @@ export class AdminOrderService {
      .leftJoin(resources, eq(workSessions.resourceId, resources.id))
      .leftJoin(materials, eq(workSessions.materialId, materials.id))
      .leftJoin(customers, eq(workSessions.customerId, customers.id))
+     .where(eq(workSessions.companyId, companyId))
      .orderBy(desc(workSessions.startTime))
      .limit(limitCount);
   }
@@ -132,22 +135,40 @@ export class AdminOrderService {
   static async createOrder(orderData: typeof workOrders.$inferInsert) {
     await db.insert(workOrders).values(orderData);
   }
-  static async updateOrder(orderId: number, updates: Partial<typeof workOrders.$inferInsert>) {
-    const existingOrder = await db.select().from(workOrders).where(eq(workOrders.id, orderId)).limit(1);
+
+  static async updateOrder(
+    companyId: number,
+    orderId: number,
+    updates: Partial<typeof workOrders.$inferInsert>,
+  ) {
+    const existingOrder = await db
+      .select()
+      .from(workOrders)
+      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)))
+      .limit(1);
     if (existingOrder.length === 0) throw new Error('not_found');
     if (existingOrder[0].status !== 'PENDING') throw new Error('not_pending');
 
-    await db.update(workOrders).set(updates).where(eq(workOrders.id, orderId));
+    await db
+      .update(workOrders)
+      .set(updates)
+      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)));
   }
 
   /** Usuwa zlecenie i sesje z `work_order_id` (podrzędne GPS/zdjęcia/notatki — kaskada z sesji). */
-  static async deleteOrder(orderId: number) {
-    const rows = await db.select({ id: workOrders.id }).from(workOrders).where(eq(workOrders.id, orderId)).limit(1);
+  static async deleteOrder(companyId: number, orderId: number) {
+    const rows = await db
+      .select({ id: workOrders.id })
+      .from(workOrders)
+      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)))
+      .limit(1);
     if (rows.length === 0) throw new Error('not_found');
 
     await db.transaction(async (tx) => {
       await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
-      await tx.delete(workOrders).where(eq(workOrders.id, orderId));
+      await tx
+        .delete(workOrders)
+        .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)));
     });
   }
 }

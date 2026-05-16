@@ -55,6 +55,7 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   const jwt = await new SignJWT({
     userId: user.id,
     role: user.role,
+    companyId: user.companyId ?? null,
     username: user.usernameEmail,
   })
     .setProtectedHeader({ alg: "HS256" })

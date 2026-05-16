@@ -2,11 +2,16 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { isMissingResourcesVehicleColumns } from "@/lib/postgresMigrationHints";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
+
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
 
     const params = await context.params;
     const id = parseInt(params.id, 10);
@@ -29,7 +34,7 @@ export const PUT = withApiErrorHandling(
       return jsonError("missing_fields", 400);
     }
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const vis = await DictionaryService.mergeResourceFormVisibility(parsedCatIds);
+    const vis = await DictionaryService.mergeResourceFormVisibility(companyId, parsedCatIds);
     const name = buildResourceCanonicalName(
       vis.showResourceName ? brand : "",
       vis.showResourceName ? model : "",
@@ -41,6 +46,7 @@ export const PUT = withApiErrorHandling(
     }
 
     await DictionaryService.updateResource(
+      companyId,
       id,
       {
         name,
@@ -66,6 +72,10 @@ export const DELETE = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
     const params = await context.params;
     const id = parseInt(params.id, 10);
     if (!Number.isFinite(id) || id < 1) {
@@ -73,7 +83,7 @@ export const DELETE = withApiErrorHandling(
     }
 
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.deleteResource(id);
+    await DictionaryService.deleteResource(companyId, id);
     return jsonOk({ success: true });
   },
   { defaultErrorCode: "machine_in_use" },

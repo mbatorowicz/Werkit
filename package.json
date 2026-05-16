@@ -24,6 +24,7 @@
     "db:napraw-wszystko": "npm run db:napraw-maszyny && npm run db:napraw-slowniki-baza && npm run db:napraw-lokalizacja-sesji && npm run db:napraw-materialy-bez-typu && npm run db:napraw-kategorie-widocznosc && npm run db:napraw-zasoby-rozszerzenie",
     "db:napraw-wszystko-i-zweryfikuj": "npm run db:napraw-wszystko && npm run db:verify-schema",
     "db:apply-resources-identity": "tsx src/scripts/apply_resources_vehicle_identity.ts",
+    "db:bootstrap-superadmin": "tsx src/scripts/bootstrap_superadmin.ts",
     "logs:device": "tsx src/scripts/view_device_logs.ts",
     "logs:system": "tsx src/scripts/view_device_logs.ts"
   },

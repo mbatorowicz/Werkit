@@ -1,6 +1,7 @@
 import { PhoneCall, AlertTriangle, Info, BookOpen, Camera, Navigation, Play } from "lucide-react";
 import { HelpAccordion } from "@/components/HelpAccordion";
 import { getDictionary } from "@/i18n";
+import { requireServerCompanyId } from '@/lib/serverTenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,8 +10,9 @@ export default async function HelpPage() {
   let phone = "112";
 
   try {
+    const companyId = await requireServerCompanyId();
     const { DictionaryService } = await import('@/services/DictionaryService');
-    const settingsData = await DictionaryService.getSettings();
+    const settingsData = await DictionaryService.getSettings(companyId);
     if (settingsData.length > 0 && settingsData[0].phone) {
       phone = settingsData[0].phone;
     }

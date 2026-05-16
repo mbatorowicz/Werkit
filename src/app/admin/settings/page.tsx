@@ -1,12 +1,14 @@
 import SettingsForm from "./SettingsForm";
 import { Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { requireServerCompanyId } from '@/lib/serverTenant';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
+  const companyId = await requireServerCompanyId();
   const { DictionaryService } = await import('@/services/DictionaryService');
-  const settings = await DictionaryService.getSettings();
+  const settings = await DictionaryService.getSettings(companyId);
   const initialData = settings.length > 0 ? settings[0] : null;
 
   return (

@@ -1,20 +1,23 @@
 import { jsonError, jsonOk, parseJsonBody, parseJsonBodyOrEmpty, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
 import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 
 export const GET = withApiErrorHandling(async () => {
-  const userId = await getUserId();
-  if (!userId) return jsonError("Unauthorized", 401);
+  const ctx = await requireWorkerCompanySession();
+  if (!ctx.ok) return ctx.response;
 
-  const sessionData = await WorkerSessionService.getActiveSessionWithDetails(userId);
+  const sessionData = await WorkerSessionService.getActiveSessionWithDetails(
+    ctx.userId,
+    ctx.companyId,
+  );
   return jsonOk(sessionData);
 });
 
 export const POST = withApiErrorHandling(async (request: Request) => {
-  const userId = await getUserId();
-  if (!userId) return jsonError("Unauthorized", 401);
+  const ctx = await requireWorkerCompanySession();
+  if (!ctx.ok) return ctx.response;
 
   const body = await parseJsonBody(request);
   const resourceId = body.resourceId;
@@ -40,7 +43,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
     return jsonError("invalid_payload", 400);
   }
 
-  const newSession = await WorkerSessionService.createWizardSession(userId, {
+  const newSession = await WorkerSessionService.createWizardSession(ctx.userId, ctx.companyId, {
     resourceId: resId,
     categoryId: catId,
     materialId: matId,
@@ -60,13 +63,13 @@ export const POST = withApiErrorHandling(async (request: Request) => {
 });
 
 export const PUT = withApiErrorHandling(async (request: Request) => {
-  const userId = await getUserId();
-  if (!userId) return jsonError("Unauthorized", 401);
+  const ctx = await requireWorkerCompanySession();
+  if (!ctx.ok) return ctx.response;
 
   const body = await parseJsonBodyOrEmpty(request);
   const endCoord = coordsFromRequestBody(body);
 
-  await WorkerSessionService.endActiveSession(userId, endCoord);
+  await WorkerSessionService.endActiveSession(ctx.userId, ctx.companyId, endCoord);
   return jsonOk({ success: true });
 }, {
   mapUnknownError: (err) => {

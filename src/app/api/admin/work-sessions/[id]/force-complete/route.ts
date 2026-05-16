@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { AdminSessionService } from '@/services/AdminSessionService';
+import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,11 +10,14 @@ export const POST = withApiErrorHandling(
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+
     const params = await props.params;
     const sessionId = parseInt(params.id, 10);
     if (Number.isNaN(sessionId)) return jsonError("invalid_id", 400);
 
-    await AdminSessionService.forceCompleteSession(sessionId);
+    await AdminSessionService.forceCompleteSession(scoped.data.companyId, sessionId);
     return jsonOk({ success: true });
   },
   {
