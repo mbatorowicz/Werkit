@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getAuthSession } from '@/lib/auth';
-import { getTenantCompanyId, isSuperadminRole } from '@/lib/tenantContext';
+import { isSuperadminRole, resolveTenantCompanyId } from '@/lib/tenantContext';
 
 /** Kontekst firmy dla Server Components (admin / worker). */
 export async function requireServerCompanyId(): Promise<number> {
@@ -8,8 +8,8 @@ export async function requireServerCompanyId(): Promise<number> {
   if (!session) redirect('/login');
   if (isSuperadminRole(session.role)) redirect('/platform');
   try {
-    return getTenantCompanyId(session);
+    return await resolveTenantCompanyId(session);
   } catch {
-    redirect('/login');
+    redirect('/login?reason=tenant');
   }
 }

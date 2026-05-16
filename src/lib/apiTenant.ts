@@ -1,6 +1,6 @@
 import { getAuthSession, type JwtPayload } from '@/lib/auth';
 import { jsonError } from '@/lib/apiRoute';
-import { getTenantCompanyId, isSuperadminRole } from '@/lib/tenantContext';
+import { isSuperadminRole, resolveTenantCompanyId } from '@/lib/tenantContext';
 
 export type CompanyScopedSession = {
   session: JwtPayload;
@@ -19,7 +19,7 @@ export async function requireWorkerCompanySession(): Promise<
     return {
       ok: true,
       userId: session.userId,
-      companyId: getTenantCompanyId(session),
+      companyId: await resolveTenantCompanyId(session),
       session,
     };
   } catch {
@@ -37,7 +37,7 @@ export async function requireCompanyScopedSession():
     return { ok: false, response: jsonError('Forbidden', 403) };
   }
   try {
-    return { ok: true, data: { session, companyId: getTenantCompanyId(session) } };
+    return { ok: true, data: { session, companyId: await resolveTenantCompanyId(session) } };
   } catch {
     return { ok: false, response: jsonError('Forbidden', 403) };
   }

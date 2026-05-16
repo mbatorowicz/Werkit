@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
-import { isSuperadminRole } from '@/lib/tenantContext';
+import { isCompanyScopedRole, isSuperadminRole } from '@/lib/tenantContext';
 
 // --- CONFIGURATION ---
 const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers', '/api/categories'];
@@ -58,12 +58,26 @@ export async function proxy(request: NextRequest) {
   //    widziałby formularz mimo ważnego JWT; cookie zostaje, sesja jest aktywna.
   if (isAuthPage) {
     const loginToken = request.cookies.get('auth_token')?.value;
-    if (!loginToken) {
-      return NextResponse.next();
+    const tenantRefresh = request.nextUrl.searchParams.get('reason') === 'tenant';
+
+    if (!loginToken || tenantRefresh) {
+      const res = NextResponse.next();
+      if (tenantRefresh) res.cookies.delete('auth_token');
+      return res;
     }
     try {
       const verified = await jwtVerify(loginToken, JWT_SECRET);
       const role = verified.payload.role as string;
+      const rawCompanyId = verified.payload.companyId;
+      const hasCompanyInJwt =
+        typeof rawCompanyId === 'number' && rawCompanyId >= 1;
+
+      // Stary JWT bez companyId — nie przekierowuj z powrotem na /admin (pętla ładowania).
+      // Layout/API i tak odczytają firmę z DB; po ponownym logowaniu token będzie kompletny.
+      if (isCompanyScopedRole(role) && !hasCompanyInJwt) {
+        return NextResponse.next();
+      }
+
       return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
     } catch {
       const res = NextResponse.next();
