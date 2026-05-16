@@ -44,6 +44,9 @@ export const en: AppDictionary = {
     missing_task_description: "This order type requires a short description.",
     session_still_active: "Session is still active — finish it manually first or from the worker app.",
     not_in_progress: "This session is no longer in progress.",
+    group_has_children: "Cannot delete a group that has child categories. Remove or move children first.",
+    parent_must_be_group: "Parent must be an entry marked as a group.",
+    invalid_parent: "Invalid parent (cycle or missing entry).",
   },
   routeLoading: {
     title: "Loading…",
@@ -81,6 +84,14 @@ export const en: AppDictionary = {
       system: "System",
       companySettings: "Company Settings",
       logoutSession: "Logout session"
+    },
+    groups: {
+      isGroupLabel: "Group (organization only)",
+      isGroupHint: "Groups are not selectable on orders or resource assignments — they organize the tree only.",
+      parentLabel: "Parent group",
+      parentNone: "— no parent group —",
+      sortOrderLabel: "Sort order",
+      badgeGroup: "Group",
     },
     ui: {
       closeModal: "Close dialog",

@@ -1,13 +1,15 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
+import { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(
-  async () => {
+  async (request: Request) => {
+    const leavesOnly = new URL(request.url).searchParams.get("leavesOnly") === "1";
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const rows = await DictionaryService.getMaterialCategories();
+    const rows = await DictionaryService.getMaterialCategories({ leavesOnly });
     return jsonOk(rows);
   },
   {
@@ -28,8 +30,23 @@ export const POST = withApiErrorHandling(
     }
     const color = typeof body.color === "string" ? body.color : "#3f3f46";
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.addMaterialCategory({ name, color });
+    const { parseHierarchyFields } = await import("@/services/categoryHierarchyValidation");
+    const hierarchy = parseHierarchyFields(body as Record<string, unknown>);
+    await DictionaryService.addMaterialCategory({
+      name,
+      color,
+      parentId: hierarchy.parentId,
+      isGroup: hierarchy.isGroup,
+      sortOrder: hierarchy.sortOrder,
+    });
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  {
+    mapUnknownError: (err) => {
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      if (isMissingMaterialCategoriesTables(err)) return jsonError("migration_material_categories", 503);
+      return null;
+    },
+    defaultErrorCode: "save_error",
+  },
 );

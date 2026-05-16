@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
+import { CategoryTreePanel } from "@/components/Admin/CategoryTreePanel";
 import { CategoryFormModal } from "@/features/admin/machines/CategoryFormModal";
-import { MachinesCategoryGrid, categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
+import { categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
 import {
   EMPTY_CATEGORY_FORM,
   type CategoryFormState,
@@ -31,6 +33,7 @@ export function MachinesClientCategoryPanel({
   canMutate,
   fetchData,
 }: Props) {
+  const groups = getDictionary().admin.groups;
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [isCMOpen, setIsCMOpen] = useState(false);
   const [cEditId, setCEditId] = useState<number | null>(null);
@@ -86,9 +89,14 @@ export function MachinesClientCategoryPanel({
 
   return (
     <>
-      <MachinesCategoryGrid
-        dict={dict}
-        categories={categories}
+      <CategoryTreePanel
+        title={dict.dictTitle}
+        subtitle={dict.dictSubtitle}
+        addLabel={dict.addCategory}
+        emptyLabel={dict.noCategories}
+        groupBadge={groups.badgeGroup}
+        stationaryBadge={dict.badgeStationary}
+        items={categories}
         isLoading={isLoading}
         canMutate={canMutate}
         onAdd={openNewCategory}
@@ -105,6 +113,8 @@ export function MachinesClientCategoryPanel({
         onClose={() => setIsCMOpen(false)}
         isEdit={cEditId != null}
         dict={dict}
+        categories={categories}
+        excludeId={cEditId}
         form={cForm}
         setForm={setCForm}
         onSubmit={handleCSave}

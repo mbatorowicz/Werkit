@@ -48,11 +48,11 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
 | `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
-| `resource_categories` | `name` | `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (formularz zlecenia), **`show_resource_name`**, **`show_resource_description`**, **`show_registration_number`** (formularz zasobu w rejestrze), `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | — |
+| `resource_categories` | `name` | **`parent_id`**, **`is_group`**, **`sort_order`**, `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (formularz zlecenia), **`show_resource_name`**, **`show_resource_description`**, **`show_registration_number`** (formularz zasobu w rejestrze), `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | self-FK `parent_id → resource_categories.id` (SET NULL) |
 | `resources` (= zasoby w rejestrze) | display `name` (składana z widocznych pól + opcjonalnie `description`) | `brand`, `model`, `registration_number`, **`description`**, `image_url`; przypisanie do kategorii **wyłącznie** N↔M przez `resource_to_categories` | — |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
 | `materials` | `id` | `name` (klasyfikacja przez `material_to_categories`) | — |
-| `material_categories` | `id` | `name`, `color` | — |
+| `material_categories` | `id` | `name`, **`parent_id`**, **`is_group`**, **`sort_order`**, `color` | self-FK `parent_id → material_categories.id` (SET NULL) |
 | `material_to_categories` | PK `(material_id, category_id)` | linki N↔M | cascade z `materials` i `material_categories` |
 | `customers` | `id` | `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | — |
 | `work_orders` | `id` | `user_id` (przypisany pracownik), `resource_id`, `category_id`, `material_id?`, `customer_id?`, `task_description?`, `status` ∈ **`PENDING`** (kolejka dyspozycji) **\|`IN_PROGRESS`** (worker zaakceptował; żywa sesja `work_sessions`) **\|`COMPLETED`** **\|`CANCELLED`**, `quantity_tons?`, `expected_duration_hours?`, **`priority` ∈ `URGENT\|HIGH\|NORMAL\|LOW`** (CHECK `work_orders_priority_chk`), `due_date?`, `locked_until?`, `created_by_id?`, `created_at` | `user_id`/`created_by_id → users.id` (cascade/set null), `resource_id → resources.id` (set null), `category_id → resource_categories.id` (set null) |
@@ -86,6 +86,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0012 | `0012_resources_description_category_resource_fields.sql` | `resources.description`; na `resource_categories`: `show_resource_name`, `show_resource_description`, `show_registration_number` |
 | 0013 | `0013_work_orders_in_progress_status.sql` | Backfill: `work_orders.status = 'IN_PROGRESS'` tam, gdzie jest powiązana sesja `work_sessions.status = 'IN_PROGRESS'` (naprawa stanów po zmianie semantyki vs stary marker `COMPLETED`). |
 | 0014 | `0014_drop_legacy_session_type_resource_category.sql` | `DROP COLUMN session_type` z `work_sessions` i `work_orders`; `DROP COLUMN category_id` z `resources` (N↔M tylko przez `resource_to_categories`). **Kolejność wdrożenia:** uruchom **0014** na Postgres **przed lub razem z** deployem wersji aplikacji bez tych pól — stara baza z `NOT NULL session_type` zrzuci INSERT sesji/zlecenia. |
+| 0016 | `0016_category_hierarchy.sql` | `parent_id`, `is_group`, `sort_order` na `resource_categories` i `material_categories` (grupy tylko w adminie; przypisania i zlecenia — liście). |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 

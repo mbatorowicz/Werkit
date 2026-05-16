@@ -42,6 +42,9 @@ export const pl = {
     missing_task_description: "Ten typ zlecenia wymaga krótkiego opisu.",
     session_still_active: "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
     not_in_progress: "Ta sesja nie jest już w stanie „w toku”.",
+    group_has_children: "Nie można usunąć grupy, która ma podkategorie. Najpierw usuń lub przenieś elementy podrzędne.",
+    parent_must_be_group: "Rodzicem może być tylko wpis oznaczony jako grupa.",
+    invalid_parent: "Nieprawidłowy rodzic (cykl lub nieistniejący wpis).",
   },
   routeLoading: {
     title: "Ładowanie…",
@@ -79,6 +82,14 @@ export const pl = {
       system: "System",
       companySettings: "Ustawienia Firmy",
       logoutSession: "Wyloguj sesję"
+    },
+    groups: {
+      isGroupLabel: "Grupa (tylko organizacja)",
+      isGroupHint: "Grupy nie wybiera się na zleceniach ani przy przypisaniu zasobów — służą do porządku w drzewie.",
+      parentLabel: "Grupa nadrzędna",
+      parentNone: "— bez grupy nadrzędnej —",
+      sortOrderLabel: "Kolejność",
+      badgeGroup: "Grupa",
     },
     ui: {
       closeModal: "Zamknij okno",

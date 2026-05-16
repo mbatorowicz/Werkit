@@ -9,6 +9,7 @@ import { ResourceFormModal } from "@/features/admin/machines/ResourceFormModal";
 import { machineResourceNameForEdit } from "@/features/admin/machines/machineResourceDisplay";
 import { mergeResourceFieldVisibility } from "@/features/admin/machines/resourceVisibility";
 import { compressVehiclePhotoToDataUrl } from "@/features/admin/machines/vehiclePhoto";
+import { filterCategoryLeaves } from "@/lib/categoryTree";
 import {
   createEmptyMachineForm,
   type MachineFormState,
@@ -37,6 +38,8 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
     const [isMMOpen, setIsMMOpen] = useState(false);
     const [mEditId, setMEditId] = useState<number | null>(null);
     const [mForm, setMForm] = useState<MachineFormState>(() => createEmptyMachineForm());
+
+    const leafCategories = useMemo(() => filterCategoryLeaves(categories), [categories]);
 
     const resourceVis = useMemo(
       () => mergeResourceFieldVisibility(mForm.categoryIds, categories),
@@ -130,7 +133,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         isEdit={mEditId != null}
         dict={dict}
         resourceVis={resourceVis}
-        categories={categories}
+        categories={leafCategories}
         form={mForm}
         setForm={setMForm}
         onSubmit={handleMSave}

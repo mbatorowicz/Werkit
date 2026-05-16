@@ -3,7 +3,7 @@
  * (kanoniczna lista kolumn w `src/scripts/verify_schema_alignment.ts` — przy zmianach tu aktualizuj i tam).
  * Dokumentacja biznesowa i migracji: `docs/SYSTEM_MAP.md` §3; zasady autonomicznych migracji: `AGENTS.md` §1a.
  */
-import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, jsonb, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, timestamp, boolean, integer, numeric, json, jsonb, primaryKey, type AnyPgColumn } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 export const users = pgTable('users', {
@@ -25,6 +25,10 @@ export const users = pgTable('users', {
 export const resourceCategories = pgTable('resource_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => resourceCategories.id, { onDelete: 'set null' }),
+  /** Grupa organizacyjna — nie wybierana na zleceniach ani w wizardzie. */
+  isGroup: boolean('is_group').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
   icon: varchar('icon', { length: 50 }).default('Truck'),
   /** Widoczność pól w formularzach zlecenia (UI). */
   showCustomer: boolean('show_customer').notNull().default(true),
@@ -72,6 +76,9 @@ export const materials = pgTable('materials', {
 export const materialCategories = pgTable('material_categories', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => materialCategories.id, { onDelete: 'set null' }),
+  isGroup: boolean('is_group').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
   color: varchar('color', { length: 50 }).default('#3f3f46'),
 });
 

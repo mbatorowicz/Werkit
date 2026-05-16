@@ -48,7 +48,7 @@ export function useOrdersDispatchData() {
         fetchWithDeviceTelemetry("Admin dispatch: customers", "/api/customers", { cache: "no-store" }, {
           category: "admin",
         }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: categories", "/api/categories", { cache: "no-store" }, {
+        fetchWithDeviceTelemetry("Admin dispatch: categories", "/api/categories?leavesOnly=1", { cache: "no-store" }, {
           category: "admin",
         }).then(parseJsonArray),
         fetchWithDeviceTelemetry("Admin dispatch: work-orders", "/api/admin/work-orders", { cache: "no-store" }, {

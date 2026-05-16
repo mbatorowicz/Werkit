@@ -1,6 +1,9 @@
 export type MachinesCategory = {
   id: number;
   name: string;
+  parentId: number | null;
+  isGroup: boolean;
+  sortOrder: number;
   icon?: string;
   showCustomer: boolean;
   showMaterial: boolean;
@@ -52,6 +55,9 @@ export function createEmptyMachineForm(): MachineFormState {
 
 export type CategoryFormState = {
   name: string;
+  parentId: number | null;
+  isGroup: boolean;
+  sortOrder: number;
   icon: string;
   showCustomer: boolean;
   showMaterial: boolean;
@@ -71,6 +77,9 @@ export type CategoryFormState = {
 
 export const EMPTY_CATEGORY_FORM: CategoryFormState = {
   name: "",
+  parentId: null,
+  isGroup: false,
+  sortOrder: 0,
   icon: "blue",
   showCustomer: true,
   showMaterial: true,

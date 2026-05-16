@@ -46,6 +46,9 @@ export const POST = withApiErrorHandling(async (request: Request) => {
 
     const { DictionaryService } = await import('@/services/DictionaryService');
     const categoryRow = await DictionaryService.getResourceCategoryById(catIdNum);
+    if (!categoryRow || categoryRow.isGroup) {
+      return jsonError("invalid_category", 400);
+    }
     const catCheck = validateWorkOrderFieldsAgainstCategory(categoryRow, {
       customerId,
       materialId,

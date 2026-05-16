@@ -10,7 +10,16 @@ import {
   companySettings,
   resourceToCategories,
 } from '@/db/schema';
-import { eq, desc, inArray } from 'drizzle-orm';
+import { eq, asc, desc, inArray } from 'drizzle-orm';
+import { filterCategoryLeaves } from '@/lib/categoryTree';
+import {
+  CategoryHierarchyError,
+  assertMaterialCategoriesAssignable,
+  assertResourceCategoryAssignable,
+  countMaterialCategoryChildren,
+  countResourceCategoryChildren,
+  validateHierarchyPatch,
+} from '@/services/categoryHierarchyValidation';
 
 export class DictionaryService {
   /** Zapytanie bez `show_*` — działa na bazie sprzed migracji 0010. */
@@ -32,17 +41,24 @@ export class DictionaryService {
       .orderBy(desc(resourceCategories.id));
   }
 
-  static async getCategories() {
+  static async getCategories(opts?: { leavesOnly?: boolean }) {
+    let rows;
     try {
-      return await db.select().from(resourceCategories).orderBy(desc(resourceCategories.id));
+      rows = await db
+        .select()
+        .from(resourceCategories)
+        .orderBy(asc(resourceCategories.sortOrder), asc(resourceCategories.id));
     } catch (err: unknown) {
       if (!isMissingResourceCategoriesVisibilityColumns(err)) throw err;
       console.warn(
         'DictionaryService.getCategories: brak kolumn show_* na resource_categories — zapytanie legacy; uruchom migrację (npm run db:napraw-kategorie-widocznosc lub drizzle/0010).',
       );
       const legacy = await DictionaryService.getCategoriesLegacyColumnsOnly();
-      return legacy.map((row) => ({
+      rows = legacy.map((row) => ({
         ...row,
+        parentId: null,
+        isGroup: false,
+        sortOrder: 0,
         showCustomer: true,
         showMaterial: true,
         showQuantity: true,
@@ -52,6 +68,7 @@ export class DictionaryService {
         showRegistrationNumber: true,
       }));
     }
+    return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
   }
 
   static async getCustomers() {
@@ -74,8 +91,12 @@ export class DictionaryService {
     }));
   }
 
-  static async getMaterialCategories() {
-    return await db.select().from(materialCategories).orderBy(desc(materialCategories.id));
+  static async getMaterialCategories(opts?: { leavesOnly?: boolean }) {
+    const rows = await db
+      .select()
+      .from(materialCategories)
+      .orderBy(asc(materialCategories.sortOrder), asc(materialCategories.id));
+    return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
   }
 
   static async getResources() {
@@ -142,6 +163,7 @@ export class DictionaryService {
 
   // --- MATERIAŁY ---
   static async addMaterial(name: string, categoryIds: number[] = []) {
+    await assertMaterialCategoriesAssignable(categoryIds);
     const res = await db.insert(materials).values({ name }).returning();
     const mid = res[0].id;
     if (categoryIds.length > 0) {
@@ -158,6 +180,7 @@ export class DictionaryService {
   ) {
     await db.update(materials).set(data).where(eq(materials.id, id));
     if (categoryIds !== undefined) {
+      await assertMaterialCategoriesAssignable(categoryIds);
       await db.delete(materialToCategories).where(eq(materialToCategories.materialId, id));
       if (categoryIds.length > 0) {
         await db.insert(materialToCategories).values(
@@ -172,29 +195,68 @@ export class DictionaryService {
   }
 
   // --- KATEGORIE MATERIAŁÓW ---
-  static async addMaterialCategory(data: { name: string; color?: string }) {
-    await db.insert(materialCategories).values({
-      name: data.name.trim(),
-      color: data.color || '#3f3f46',
+  static async addMaterialCategory(data: Partial<typeof materialCategories.$inferInsert>) {
+    const all = await DictionaryService.getMaterialCategories();
+    validateHierarchyPatch(all, {
+      parentId: data.parentId ?? null,
+      isGroup: data.isGroup ?? false,
     });
+    await db.insert(materialCategories).values({
+      name: (data.name ?? "").trim(),
+      color: data.color || "#3f3f46",
+      parentId: data.parentId ?? null,
+      isGroup: data.isGroup ?? false,
+      sortOrder: data.sortOrder ?? 0,
+    } as typeof materialCategories.$inferInsert);
   }
 
   static async updateMaterialCategory(id: number, data: Partial<typeof materialCategories.$inferInsert>) {
+    const all = await DictionaryService.getMaterialCategories();
+    validateHierarchyPatch(
+      all,
+      { parentId: data.parentId, isGroup: data.isGroup },
+      id,
+    );
+    const self = all.find((r) => r.id === id);
+    if (self?.isGroup && data.isGroup === false) {
+      const childCount = await countMaterialCategoryChildren(id);
+      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
+    }
     await db.update(materialCategories).set(data).where(eq(materialCategories.id, id));
   }
 
   static async deleteMaterialCategory(id: number) {
+    const childCount = await countMaterialCategoryChildren(id);
+    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     await db.delete(materialCategories).where(eq(materialCategories.id, id));
   }
 
   // --- KATEGORIE ZASOBÓW ---
   static async addCategory(data: Partial<typeof resourceCategories.$inferInsert>) {
+    const all = await DictionaryService.getCategories();
+    validateHierarchyPatch(all, {
+      parentId: data.parentId ?? null,
+      isGroup: data.isGroup ?? false,
+    });
     await db.insert(resourceCategories).values(data as typeof resourceCategories.$inferInsert);
   }
   static async updateCategory(id: number, data: Partial<typeof resourceCategories.$inferInsert>) {
+    const all = await DictionaryService.getCategories();
+    validateHierarchyPatch(
+      all,
+      { parentId: data.parentId, isGroup: data.isGroup },
+      id,
+    );
+    const self = all.find((r) => r.id === id);
+    if (self?.isGroup && data.isGroup === false) {
+      const childCount = await countResourceCategoryChildren(id);
+      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
+    }
     await db.update(resourceCategories).set(data).where(eq(resourceCategories.id, id));
   }
   static async deleteCategory(id: number) {
+    const childCount = await countResourceCategoryChildren(id);
+    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     await db.delete(resourceCategories).where(eq(resourceCategories.id, id));
   }
 
@@ -255,6 +317,9 @@ export class DictionaryService {
       })
       .returning();
     if (categoryIds && categoryIds.length > 0) {
+      for (const cid of categoryIds) {
+        await assertResourceCategoryAssignable(cid);
+      }
       await db.insert(resourceToCategories).values(
         categoryIds.map((cid) => ({
           resourceId: res[0].id,
@@ -275,6 +340,9 @@ export class DictionaryService {
       await db.update(resources).set(patch).where(eq(resources.id, id));
     }
     if (categoryIds !== undefined) {
+      for (const cid of categoryIds) {
+        await assertResourceCategoryAssignable(cid);
+      }
       await db.delete(resourceToCategories).where(eq(resourceToCategories.resourceId, id));
       if (categoryIds.length > 0) {
         await db.insert(resourceToCategories).values(categoryIds.map(cid => ({
@@ -298,6 +366,8 @@ export class DictionaryService {
       });
   }
 }
+
+export { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
 
 /** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
 export type ResourceCategoryUpdateInput = Partial<typeof resourceCategories.$inferInsert>;

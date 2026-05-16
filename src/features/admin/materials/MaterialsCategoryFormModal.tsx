@@ -1,10 +1,11 @@
 "use client";
 
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
+import { CategoryHierarchyFields } from "@/components/Admin/CategoryHierarchyFields";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import type { AppDictionary } from "@/i18n/types";
-import type { MaterialCategoryFormState } from "@/features/admin/materials/types";
+import type { MaterialCategory, MaterialCategoryFormState } from "@/features/admin/materials/types";
 
 type Dict = AppDictionary["admin"]["materials"];
 type MachDict = AppDictionary["admin"]["machines"];
@@ -15,12 +16,25 @@ type Props = {
   isEdit: boolean;
   dict: Dict;
   machDict: MachDict;
+  categories: MaterialCategory[];
+  excludeId?: number | null;
   form: MaterialCategoryFormState;
   setForm: React.Dispatch<React.SetStateAction<MaterialCategoryFormState>>;
   onSubmit: (e: React.FormEvent) => void;
 };
 
-export function MaterialsCategoryFormModal({ open, onClose, isEdit, dict, machDict, form, setForm, onSubmit }: Props) {
+export function MaterialsCategoryFormModal({
+  open,
+  onClose,
+  isEdit,
+  dict,
+  machDict,
+  categories,
+  excludeId,
+  form,
+  setForm,
+  onSubmit,
+}: Props) {
   return (
     <AdminModalShell
       open={open}
@@ -48,12 +62,26 @@ export function MaterialsCategoryFormModal({ open, onClose, isEdit, dict, machDi
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
         />
-        <AdminCategoryColorFieldRow
-          color={form.color}
-          onColorChange={(color) => setForm({ ...form, color })}
-          label={machDict.catColorLabel}
-          hint={machDict.catColorHint}
+
+        <CategoryHierarchyFields
+          parentId={form.parentId}
+          isGroup={form.isGroup}
+          sortOrder={form.sortOrder}
+          categories={categories}
+          excludeId={excludeId}
+          onParentIdChange={(parentId) => setForm({ ...form, parentId })}
+          onIsGroupChange={(isGroup) => setForm({ ...form, isGroup })}
+          onSortOrderChange={(sortOrder) => setForm({ ...form, sortOrder })}
         />
+
+        {!form.isGroup ? (
+          <AdminCategoryColorFieldRow
+            color={form.color}
+            onColorChange={(color) => setForm({ ...form, color })}
+            label={machDict.catColorLabel}
+            hint={machDict.catColorHint}
+          />
+        ) : null}
       </form>
     </AdminModalShell>
   );

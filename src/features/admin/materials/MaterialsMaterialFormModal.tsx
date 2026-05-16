@@ -3,6 +3,7 @@
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import type { AppDictionary } from "@/i18n/types";
+import { filterCategoryLeaves } from "@/lib/categoryTree";
 import type { MaterialCategory, MaterialItemFormState } from "@/features/admin/materials/types";
 
 type Dict = AppDictionary["admin"]["materials"];
@@ -31,6 +32,8 @@ export function MaterialsMaterialFormModal({
   setForm,
   onSubmit,
 }: Props) {
+  const leafCategories = filterCategoryLeaves(categories);
+
   return (
     <AdminModalShell
       open={open}
@@ -64,7 +67,7 @@ export function MaterialsMaterialFormModal({
         <div className="space-y-2">
           <label className="text-sm font-medium text-amber-500/80">{dict.matCatLabel}</label>
           <div className="custom-scrollbar grid max-h-48 grid-cols-2 gap-2 overflow-y-auto pr-1">
-            {categories.map((c) => (
+            {leafCategories.map((c) => (
               <label
                 key={c.id}
                 className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
@@ -82,7 +85,7 @@ export function MaterialsMaterialFormModal({
               </label>
             ))}
           </div>
-          {categories.length === 0 ? <p className="text-xs text-red-400">{machDict.machCatWarning}</p> : null}
+          {leafCategories.length === 0 ? <p className="text-xs text-red-400">{machDict.machCatWarning}</p> : null}
         </div>
       </form>
     </AdminModalShell>

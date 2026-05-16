@@ -4,13 +4,15 @@ import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
 } from '@/lib/postgresMigrationHints';
+import { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiErrorHandling(
-  async () => {
+  async (request: Request) => {
+    const leavesOnly = new URL(request.url).searchParams.get("leavesOnly") === "1";
     const { DictionaryService } = await import("@/services/DictionaryService");
-    const allCategories = await DictionaryService.getCategories();
+    const allCategories = await DictionaryService.getCategories({ leavesOnly });
     return jsonOk(allCategories);
   },
   {
@@ -47,6 +49,8 @@ export const POST = withApiErrorHandling(
     }
 
     const { DictionaryService } = await import("@/services/DictionaryService");
+    const { parseHierarchyFields } = await import("@/services/categoryHierarchyValidation");
+    const hierarchy = parseHierarchyFields(body as Record<string, unknown>);
     const sc = showCustomer !== undefined ? !!showCustomer : true;
     const sm = showMaterial !== undefined ? !!showMaterial : true;
     const sq = showQuantity !== undefined ? !!showQuantity : true;
@@ -60,6 +64,9 @@ export const POST = withApiErrorHandling(
     const sreg = showRegistrationNumber !== undefined ? !!showRegistrationNumber : true;
     await DictionaryService.addCategory({
       name: name.trim(),
+      parentId: hierarchy.parentId,
+      isGroup: hierarchy.isGroup,
+      sortOrder: hierarchy.sortOrder,
       icon: icon || "Truck",
       showCustomer: sc || rc,
       showMaterial: sm || rm,
@@ -79,10 +86,13 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      isMissingResourceCategoriesVisibilityColumns(err) || isMissingResourceCategoriesStationaryColumn(err)
-        ? jsonError("migration_required", 503)
-        : null,
+    mapUnknownError: (err) => {
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      if (isMissingResourceCategoriesVisibilityColumns(err) || isMissingResourceCategoriesStationaryColumn(err)) {
+        return jsonError("migration_required", 503);
+      }
+      return null;
+    },
     defaultErrorCode: "category_exists",
   },
 );

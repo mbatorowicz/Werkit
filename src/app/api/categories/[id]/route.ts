@@ -5,6 +5,7 @@ import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
+import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
@@ -20,9 +21,14 @@ export const PUT = withApiErrorHandling(
     if (!nameRaw.trim()) return jsonError("missing_name", 400);
 
     const { DictionaryService } = await import("@/services/DictionaryService");
+    const { parseHierarchyFields } = await import("@/services/categoryHierarchyValidation");
+    const hierarchy = parseHierarchyFields(body as Record<string, unknown>);
     const updateData: ResourceCategoryUpdateInput = {
       name: nameRaw.trim(),
       icon: typeof body.icon === "string" ? body.icon : "Truck",
+      parentId: hierarchy.parentId,
+      isGroup: hierarchy.isGroup,
+      sortOrder: hierarchy.sortOrder,
     };
     if (body.showCustomer !== undefined) updateData.showCustomer = !!body.showCustomer;
     if (body.showMaterial !== undefined) updateData.showMaterial = !!body.showMaterial;
@@ -48,10 +54,13 @@ export const PUT = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      isMissingResourceCategoriesStationaryColumn(err) || isMissingResourceCategoriesVisibilityColumns(err)
-        ? jsonError("migration_required", 503)
-        : null,
+    mapUnknownError: (err) => {
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      if (isMissingResourceCategoriesStationaryColumn(err) || isMissingResourceCategoriesVisibilityColumns(err)) {
+        return jsonError("migration_required", 503);
+      }
+      return null;
+    },
     defaultErrorCode: "category_in_use",
   },
 );
@@ -69,5 +78,11 @@ export const DELETE = withApiErrorHandling(
     await DictionaryService.deleteCategory(id);
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "category_has_machines" },
+  {
+    mapUnknownError: (err) => {
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      return null;
+    },
+    defaultErrorCode: "category_has_machines",
+  },
 );

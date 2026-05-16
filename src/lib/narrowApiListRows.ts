@@ -320,6 +320,9 @@ export function narrowMachinesCategoryRows(rows: unknown[]): MachinesCategory[] 
     out.push({
       id: raw.id,
       name: raw.name,
+      parentId: typeof raw.parentId === "number" ? raw.parentId : null,
+      isGroup: readBool(raw, "isGroup", false),
+      sortOrder: typeof raw.sortOrder === "number" ? raw.sortOrder : 0,
       icon: typeof raw.icon === "string" ? raw.icon : undefined,
       showCustomer: readBool(raw, "showCustomer", true),
       showMaterial: readBool(raw, "showMaterial", true),
@@ -352,6 +355,9 @@ export function narrowMaterialCategoryRows(rows: unknown[]): MaterialCategory[] 
     out.push({
       id: r.id,
       name: r.name,
+      parentId: typeof r.parentId === "number" ? r.parentId : null,
+      isGroup: readBool(r, "isGroup", false),
+      sortOrder: typeof r.sortOrder === "number" ? r.sortOrder : 0,
       color: r.color === null || typeof r.color === "string" ? (r.color as string | null) : null,
     });
   }

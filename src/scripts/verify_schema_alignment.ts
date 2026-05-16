@@ -34,6 +34,9 @@ async function main() {
     resource_categories: new Set([
       'id',
       'name',
+      'parent_id',
+      'is_group',
+      'sort_order',
       'icon',
       'show_customer',
       'show_material',
@@ -61,7 +64,7 @@ async function main() {
       'image_url',
     ]),
     materials: new Set(['id', 'name']),
-    material_categories: new Set(['id', 'name', 'color']),
+    material_categories: new Set(['id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
     material_to_categories: new Set(['material_id', 'category_id']),
     customers: new Set([
       'id',

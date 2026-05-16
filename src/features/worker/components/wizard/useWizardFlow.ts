@@ -45,7 +45,7 @@ export function useWizardFlow() {
     void (async () => {
       try {
         const [cat, mac, mat, cus, ord] = await Promise.all([
-          fetchWithDeviceTelemetry("Worker wizard: categories", "/api/categories", { cache: "no-store" }, {
+          fetchWithDeviceTelemetry("Worker wizard: categories", "/api/categories?leavesOnly=1", { cache: "no-store" }, {
             category: "lifecycle",
           }).then(parseJsonArray),
           fetchWithDeviceTelemetry("Worker wizard: machines", "/api/machines", { cache: "no-store" }, {
