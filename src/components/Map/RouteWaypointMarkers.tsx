@@ -3,6 +3,7 @@
 import { Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
+import { blockMapClickBriefly } from "@/lib/map/blockMapClickBriefly";
 
 const iconWaypoint = L.divIcon({
   className: "werkit-route-waypoint-icon",
@@ -29,6 +30,7 @@ export function RouteWaypointMarkers({
   };
 
   const removeAt = (index: number) => {
+    blockMapClickBriefly();
     onWaypointsChange(waypoints.filter((_, j) => j !== index));
   };
 
@@ -41,6 +43,9 @@ export function RouteWaypointMarkers({
           icon={iconWaypoint}
           draggable={editable}
           eventHandlers={{
+            click: (e) => {
+              L.DomEvent.stopPropagation(e);
+            },
             dragend: (e) => {
               const p = e.target.getLatLng();
               updateAt(i, p.lat, p.lng);
@@ -48,11 +53,26 @@ export function RouteWaypointMarkers({
           }}
         >
           {editable ? (
-            <Popup closeButton>
+            <Popup
+              closeButton
+              eventHandlers={{
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e);
+                },
+              }}
+            >
               <button
                 type="button"
                 className="text-xs font-semibold text-red-600 hover:text-red-500 whitespace-nowrap"
-                onClick={() => removeAt(i)}
+                onMouseDown={(ev) => {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                }}
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  ev.stopPropagation();
+                  removeAt(i);
+                }}
               >
                 {deleteLabel}
               </button>

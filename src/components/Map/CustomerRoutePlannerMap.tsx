@@ -8,6 +8,8 @@ import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
 import { usePlannedDrivingRoute } from "@/components/Map/usePlannedDrivingRoute";
 import { getDictionary } from "@/i18n";
+import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
+import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 
 const iconDest = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -44,7 +46,7 @@ function MapClickLayer({
 }) {
   useMapEvents({
     click(e) {
-      if (!editable) return;
+      if (!editable || isMapClickBlocked() || isLeafletUiClick(e)) return;
       if (!hasDestination) {
         onSetDestination(e.latlng.lat, e.latlng.lng);
       } else {

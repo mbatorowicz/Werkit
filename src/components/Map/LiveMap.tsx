@@ -24,6 +24,8 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
+import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
+import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 
 function RouteWaypointClickLayer({
   editable,
@@ -34,7 +36,7 @@ function RouteWaypointClickLayer({
 }) {
   useMapEvents({
     click(e) {
-      if (!editable || !onAdd) return;
+      if (!editable || !onAdd || isMapClickBlocked() || isLeafletUiClick(e)) return;
       onAdd(e.latlng.lat, e.latlng.lng);
     },
   });
