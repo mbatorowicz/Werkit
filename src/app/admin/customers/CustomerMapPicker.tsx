@@ -6,6 +6,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { FALLBACK_COMPANY_BASE } from "@/lib/map/companyBaseLocation";
 
 const iconLocation = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -19,6 +20,8 @@ interface CustomerMapPickerProps {
   lng: string;
   /** Address from the form — used for the geocode / “show on map” action. */
   address: string;
+  /** Centrum mapy bez pinezki (baza firmy z ustawień). */
+  defaultCenter?: { lat: number; lng: number };
   onChange: (lat: string, lng: string) => void;
 }
 
@@ -73,7 +76,7 @@ function MapPinLayer({
   );
 }
 
-export default function CustomerMapPicker({ lat, lng, address, onChange }: CustomerMapPickerProps) {
+export default function CustomerMapPicker({ lat, lng, address, defaultCenter, onChange }: CustomerMapPickerProps) {
   const dict = getDictionary().admin.customers;
   const [geocodeBusy, setGeocodeBusy] = useState(false);
   const [geocodeMsg, setGeocodeMsg] = useState<string | null>(null);
@@ -82,8 +85,9 @@ export default function CustomerMapPicker({ lat, lng, address, onChange }: Custo
     const la = Number.parseFloat(lat);
     const lg = Number.parseFloat(lng);
     if (!Number.isNaN(la) && !Number.isNaN(lg)) return [la, lg];
-    return [52.2297, 21.0122];
-  }, [lat, lng]);
+    const base = defaultCenter ?? FALLBACK_COMPANY_BASE;
+    return [base.lat, base.lng];
+  }, [lat, lng, defaultCenter]);
 
   const initialZoom = lat && lng && !Number.isNaN(Number.parseFloat(lat)) ? 14 : 6;
 

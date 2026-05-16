@@ -9,6 +9,7 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
+import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
 import type { CustomerLocationRow } from "@/services/CustomerLocationService";
 
 const CustomerRoutePlannerMap = dynamic(
@@ -47,7 +48,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState<LocationForm>(emptyForm());
   const [waypoints, setWaypoints] = useState<RouteLngLat[]>([]);
-  const [routeOrigin, setRouteOrigin] = useState<RouteLngLat>({ lat: 52.2297, lng: 21.0122 });
+  const [routeOrigin, setRouteOrigin] = useState<RouteLngLat | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -73,15 +74,12 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       setLocations(rows);
       const settingsBody = await parseJsonUnknown(settingsRes);
       if (settingsBody && typeof settingsBody === "object" && !Array.isArray(settingsBody)) {
-        const s = settingsBody as Record<string, unknown>;
-        const lat = Number(s.baseLatitude);
-        const lng = Number(s.baseLongitude);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          setRouteOrigin({ lat, lng });
-        }
+        setRouteOrigin(resolveCompanyBaseCoords(settingsBody as Record<string, unknown>));
+      } else {
+        setRouteOrigin(resolveCompanyBaseCoords(null));
       }
     } catch {
-      /* ignore */
+      setRouteOrigin(resolveCompanyBaseCoords(null));
     }
     setLoading(false);
   }, [customerId]);
@@ -245,9 +243,10 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
           lat={form.latitude}
           lng={form.longitude}
           address={form.address}
+          defaultCenter={routeOrigin ?? undefined}
           onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
         />
-        {dest ? (
+        {dest && routeOrigin ? (
           <CustomerRoutePlannerMap
             routeOrigin={routeOrigin}
             destination={dest}

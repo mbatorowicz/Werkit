@@ -9,6 +9,7 @@ import {
 } from '@/db/schema';
 import { eq, desc, and, gte, lt } from 'drizzle-orm';
 import type { ReportsDashboardSnapshot, ReportActiveSessionRow } from '@/types/admin';
+import { resolveCompanyBaseCoords } from '@/lib/map/companyBaseLocation';
 
 export class AdminReportService {
   /**
@@ -31,8 +32,9 @@ export class AdminReportService {
       ]);
 
     const settings = settingsRow[0] ?? null;
-    const mapLat = settings?.baseLatitude ? parseFloat(settings.baseLatitude) : 52.401;
-    const mapLng = settings?.baseLongitude ? parseFloat(settings.baseLongitude) : 22.015;
+    const companyBase = resolveCompanyBaseCoords(settings);
+    const mapLat = companyBase.lat;
+    const mapLng = companyBase.lng;
 
     const workersActiveNow = new Set(activeSessions.map((s) => s.userId)).size;
     const workersWithPendingOrders = new Set(pendingRows.map((p) => p.userId)).size;
