@@ -4,6 +4,7 @@ import { PlatformCompanyService } from '@/services/PlatformCompanyService';
 import { hashPassword } from '@/lib/passwordCrypto';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 export const GET = withApiErrorHandling(async () => {
   const auth = await requireSuperadminSession();
@@ -21,30 +22,34 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   const name = typeof body.name === 'string' ? body.name : '';
   const slug = typeof body.slug === 'string' ? body.slug : undefined;
 
-  const adminName = typeof body.adminFullName === 'string' ? body.adminFullName : '';
-  const adminEmail = typeof body.adminEmail === 'string' ? body.adminEmail : '';
+  const adminName = typeof body.adminFullName === 'string' ? body.adminFullName.trim() : '';
+  const adminEmail = typeof body.adminEmail === 'string' ? body.adminEmail.trim().toLowerCase() : '';
   const adminPassword = typeof body.adminPassword === 'string' ? body.adminPassword : '';
 
   if (!name.trim()) return jsonError('missing_name', 400);
 
-  try {
-    const company = await PlatformCompanyService.createCompany(name, slug);
+  const wantsAdmin = Boolean(adminName && adminEmail && adminPassword.trim());
+  if ((adminEmail || adminName) && !wantsAdmin) {
+    return jsonError('missing_fields', 400);
+  }
 
-    if (adminEmail.trim() && adminPassword.trim() && adminName.trim()) {
-      const passwordHash = await hashPassword(adminPassword, 10);
-      await PlatformCompanyService.createCompanyAdmin(company.id, {
-        fullName: adminName,
-        usernameEmail: adminEmail,
-        passwordHash,
-      });
-    }
+  let passwordHash: string | null = null;
+  if (wantsAdmin) {
+    passwordHash = await hashPassword(adminPassword, 10);
+  }
+
+  try {
+    const company = await PlatformCompanyService.createCompanyWithAdmin(
+      name,
+      slug,
+      wantsAdmin && passwordHash
+        ? { fullName: adminName, usernameEmail: adminEmail, passwordHash }
+        : null,
+    );
 
     return jsonOk({ success: true, company });
   } catch (e: unknown) {
-    const code =
-      typeof e === 'object' && e !== null && 'code' in e && (e as { code?: unknown }).code === '23505'
-        ? 'slug_exists'
-        : null;
+    const code = PlatformCompanyService.mapCreateError(e);
     if (code) return jsonError(code, 409);
     throw e;
   }

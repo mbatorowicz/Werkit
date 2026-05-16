@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import type { CompanyUsageRow } from '@/services/PlatformAnalyticsService';
 import type { AppDictionary } from '@/i18n/types';
+import { getDictionary } from '@/i18n';
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -19,6 +20,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [messageIsError, setMessageIsError] = useState(false);
 
   async function refreshOverview() {
     const res = await fetch('/api/platform/analytics', { credentials: 'include' });
@@ -31,6 +33,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     e.preventDefault();
     setPending(true);
     setMessage(null);
+    setMessageIsError(false);
     try {
       const res = await fetch('/api/platform/companies', {
         method: 'POST',
@@ -44,12 +47,17 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
           adminPassword: adminPassword.trim() || undefined,
         }),
       });
-      const body = await res.json().catch(() => ({}));
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setMessage(dict.createError);
+        const apiErrors = getDictionary().apiErrors as Record<string, string>;
+        const code = typeof body.error === 'string' ? body.error : '';
+        setMessageIsError(true);
+        setMessage(apiErrors[code] ?? dict.createError);
+        if (code === 'slug_exists') await refreshOverview();
         return;
       }
       setMessage(dict.createSuccess);
+      setMessageIsError(false);
       setName('');
       setSlug('');
       setAdminName('');
@@ -128,7 +136,13 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
             >
               {dict.submitCreate}
             </button>
-            {message && <p className="text-sm text-emerald-700 dark:text-emerald-400">{message}</p>}
+            {message && (
+              <p
+                className={`text-sm ${messageIsError ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'}`}
+              >
+                {message}
+              </p>
+            )}
           </div>
         </form>
       </section>
@@ -158,28 +172,41 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
                 </tr>
               ) : (
                 rows.map((r) => (
-                  <tr key={r.companyId} className="border-t border-zinc-200 dark:border-zinc-800">
-                    <td className="px-4 py-3 font-medium">{r.companyName}</td>
-                    <td className="px-4 py-3 text-zinc-500">{r.slug}</td>
-                    <td className="px-4 py-3">{r.userCount}</td>
-                    <td className="px-4 py-3">{r.workerCount}</td>
-                    <td className="px-4 py-3">{r.sessionsLast30Days}</td>
-                    <td className="px-4 py-3">{r.pendingOrders}</td>
-                    <td className="px-4 py-3">{r.deviceLogsLast7Days}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => toggleActive(r.companyId, r.isActive)}
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          r.isActive
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
-                        }`}
-                      >
-                        {r.isActive ? dict.statusActive : dict.statusInactive}
-                      </button>
-                    </td>
-                  </tr>
+                  <Fragment key={r.companyId}>
+                    <tr className="border-t border-zinc-200 dark:border-zinc-800">
+                      <td className="px-4 py-3 font-medium">{r.companyName}</td>
+                      <td className="px-4 py-3 text-zinc-500">{r.slug}</td>
+                      <td className="px-4 py-3">{r.userCount}</td>
+                      <td className="px-4 py-3">{r.workerCount}</td>
+                      <td className="px-4 py-3">{r.sessionsLast30Days}</td>
+                      <td className="px-4 py-3">{r.pendingOrders}</td>
+                      <td className="px-4 py-3">{r.deviceLogsLast7Days}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(r.companyId, r.isActive)}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            r.isActive
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                              : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                          }`}
+                        >
+                          {r.isActive ? dict.statusActive : dict.statusInactive}
+                        </button>
+                      </td>
+                    </tr>
+                    {r.userCount === 0 && (
+                      <tr className="border-t border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/80 dark:bg-zinc-900/50">
+                        <td colSpan={8} className="px-4 py-3">
+                          <CompanyAddAdminForm
+                            companyId={r.companyId}
+                            dict={dict}
+                            onDone={refreshOverview}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))
               )}
             </tbody>
@@ -187,5 +214,93 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
         </div>
       </section>
     </div>
+  );
+}
+
+function CompanyAddAdminForm({
+  companyId,
+  dict,
+  onDone,
+}: {
+  companyId: number;
+  dict: AppDictionary['platform'];
+  onDone: () => Promise<void>;
+}) {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [pending, setPending] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/platform/companies/${companyId}/admin`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, usernameEmail: email, password }),
+      });
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        const apiErrors = getDictionary().apiErrors as Record<string, string>;
+        setIsError(true);
+        setMsg(apiErrors[body.error ?? ''] ?? dict.createError);
+        return;
+      }
+      setIsError(false);
+      setMsg(dict.addAdminSuccess);
+      await onDone();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
+      <p className="w-full text-xs text-amber-700 dark:text-amber-400">{dict.noAdminYet}</p>
+      <label className="text-xs block">
+        <span className="text-zinc-500">{dict.adminName}</span>
+        <input
+          required
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          className="mt-1 block rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+        />
+      </label>
+      <label className="text-xs block">
+        <span className="text-zinc-500">{dict.adminEmail}</span>
+        <input
+          required
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="mt-1 block rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+        />
+      </label>
+      <label className="text-xs block">
+        <span className="text-zinc-500">{dict.adminPassword}</span>
+        <input
+          required
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="mt-1 block rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+        />
+      </label>
+      <button
+        type="submit"
+        disabled={pending}
+        className="rounded-lg bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 px-3 py-2 text-xs font-medium disabled:opacity-60"
+      >
+        {dict.addAdmin}
+      </button>
+      {msg && (
+        <p className={`text-xs ${isError ? 'text-red-600' : 'text-emerald-600'}`}>{msg}</p>
+      )}
+    </form>
   );
 }

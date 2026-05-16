@@ -16,6 +16,10 @@ function slugifyName(name: string): string {
   return base || 'firma';
 }
 
+function isPgUniqueViolation(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && 'code' in err && (err as { code?: unknown }).code === '23505';
+}
+
 export class PlatformCompanyService {
   static async listCompanies(): Promise<CompanyRow[]> {
     return db.select().from(companies).orderBy(desc(companies.id));
@@ -33,17 +37,61 @@ export class PlatformCompanyService {
     let slug = (slugInput?.trim() || slugifyName(trimmed)).toLowerCase();
     if (!slug) slug = 'firma';
 
-    const [row] = await db
-      .insert(companies)
-      .values({ name: trimmed, slug, isActive: true })
-      .returning();
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(companies)
+        .values({ name: trimmed, slug, isActive: true })
+        .returning();
 
-    await db.insert(companySettings).values({
-      companyId: row.id,
-      companyName: trimmed,
+      await tx.insert(companySettings).values({
+        companyId: row.id,
+        companyName: trimmed,
+      });
+
+      return row;
     });
+  }
 
-    return row;
+  /**
+   * Atomowe utworzenie firmy + opcjonalnego admina (hasło już zahashowane).
+   */
+  static async createCompanyWithAdmin(
+    name: string,
+    slugInput: string | undefined,
+    admin: { fullName: string; usernameEmail: string; passwordHash: string } | null,
+  ): Promise<CompanyRow> {
+    const trimmed = name.trim();
+    if (!trimmed) throw new Error('missing_name');
+
+    let slug = (slugInput?.trim() || slugifyName(trimmed)).toLowerCase();
+    if (!slug) slug = 'firma';
+
+    return db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(companies)
+        .values({ name: trimmed, slug, isActive: true })
+        .returning();
+
+      await tx.insert(companySettings).values({
+        companyId: row.id,
+        companyName: trimmed,
+      });
+
+      if (admin) {
+        await tx.insert(users).values({
+          companyId: row.id,
+          fullName: admin.fullName.trim(),
+          usernameEmail: admin.usernameEmail.trim().toLowerCase(),
+          passwordHash: admin.passwordHash,
+          role: 'admin',
+          isActive: true,
+          canCreateOwnOrders: false,
+          canEditRoute: false,
+        });
+      }
+
+      return row;
+    });
   }
 
   static async updateCompany(
@@ -97,5 +145,13 @@ export class PlatformCompanyService {
       canCreateOwnOrders: false,
       canEditRoute: false,
     });
+  }
+
+  static mapCreateError(err: unknown): 'slug_exists' | 'user_exists' | null {
+    if (!isPgUniqueViolation(err)) return null;
+    const msg = err instanceof Error ? err.message : String(err);
+    if (/users.*username|username_email|unique.*email/i.test(msg)) return 'user_exists';
+    if (/companies.*slug|slug/i.test(msg)) return 'slug_exists';
+    return 'slug_exists';
   }
 }
