@@ -7,7 +7,6 @@ export function getCategoryAdminLabels(variant: CategoryAdminVariant): CategoryA
   return {
     ...shared,
     panelTitle: scope.panelTitle,
-    panelSubtitle: scope.panelSubtitle,
     empty: scope.empty,
     confirmDelete: scope.confirmDelete,
     namePlaceholder: scope.namePlaceholder,

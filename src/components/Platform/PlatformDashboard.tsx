@@ -129,8 +129,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   return (
     <div className="space-y-0">
       <header className="mb-8">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 max-w-2xl">{dict.subtitle}</p>
-        <p className="mt-3 text-xs font-medium text-zinc-500 uppercase tracking-wide">
+        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
           {formatDict(dict.totalCount, { count: rows.length })}
         </p>
       </header>
@@ -143,7 +142,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
             </div>
             <div>
               <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{dict.registerTitle}</h2>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{dict.registerDesc}</p>
             </div>
           </div>
         </div>
@@ -166,12 +164,10 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
               placeholder="margaz"
               className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
             />
-            <span className="mt-1 block text-xs text-zinc-500">{dict.organizationSlugHint}</span>
           </label>
 
           <div className="md:col-span-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{dict.adminSection}</p>
-            <p className="text-xs text-zinc-500 mt-0.5 mb-4">{dict.adminSectionDesc}</p>
+            <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-4">{dict.adminSection}</p>
             <PlatformAdminFields
               dict={dict}
               adminName={adminName}

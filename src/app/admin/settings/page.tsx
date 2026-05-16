@@ -13,13 +13,11 @@ export default async function SettingsPage() {
   const settings = await DictionaryService.getSettings(companyId);
   const initialData = settings.length > 0 ? settings[0] : null;
   const appDownload = getAndroidAppDownloadInfo();
-  const dict = getDictionary().admin.settings;
 
   return (
     <div className="p-6 md:p-8 max-w-6xl mx-auto w-full">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Settings className="w-6 h-6 text-emerald-500" /> {getDictionary().admin.sidebar.companySettings}</h1>
-        <p className="text-zinc-500 mt-1">{dict.pageSubtitle}</p>
       </div>
 
       <AppDownloadCard download={appDownload} />

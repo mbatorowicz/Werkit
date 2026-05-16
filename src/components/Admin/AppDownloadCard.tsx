@@ -18,7 +18,6 @@ export function AppDownloadCard({ download }: Props) {
         </div>
         <div>
           <h2 className="font-semibold text-zinc-900 dark:text-white">{dict.appDownloadTitle}</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{dict.appDownloadDesc}</p>
         </div>
       </div>
       <div className="p-6 md:p-8">
@@ -41,7 +40,6 @@ export function AppDownloadCard({ download }: Props) {
             {dict.appDownloadUnavailable}
           </p>
         )}
-        <p className="mt-4 text-xs text-zinc-500 leading-relaxed">{dict.appDownloadHint}</p>
       </div>
     </section>
   );

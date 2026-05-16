@@ -16,7 +16,6 @@ export type CategoryHierarchyFormFields = {
 
 export type CategoryAdminLabels = {
   panelTitle: string;
-  panelSubtitle: string;
   add: string;
   empty: string;
   confirmDelete: string;

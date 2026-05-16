@@ -23,7 +23,7 @@ export type CatalogCategoryItem = CategoryHierarchyRow & {
 
 type Props<T extends CatalogCategoryItem> = {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   addCategoryLabel: string;
   addMaterialLabel?: string;
   emptyLabel: string;
@@ -341,7 +341,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
           <h2 className="flex items-center gap-2 pt-2 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white">
             <Layers className="h-5 w-5 text-amber-500" /> {title}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
+          {subtitle ? <p className="mt-1 text-sm text-zinc-500">{subtitle}</p> : null}
         </div>
         {canMutate ? (
           <div className="flex flex-wrap gap-2">

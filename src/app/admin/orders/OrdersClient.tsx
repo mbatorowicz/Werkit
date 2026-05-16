@@ -166,7 +166,6 @@ export default function OrdersClient() {
           <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
             <Map className="h-6 w-6 text-emerald-500" /> {navTitle}
           </h1>
-          <p className="mt-1 text-zinc-500">{dict.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           <button

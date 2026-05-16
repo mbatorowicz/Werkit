@@ -542,20 +542,13 @@ export const en: AppDictionary = {
       routeUndoWaypoint: "Undo last point",
     },
     settings: {
-      pageSubtitle: "Global display parameters for the Werkit logistics application.",
       appDownloadTitle: "Mobile app (Android)",
-      appDownloadDesc:
-        "One shared installer for the whole platform (not a separate build per company). Install on workers' phones — the company is selected at login.",
       appDownloadButton: "Download APK",
       appDownloadVersion: "Version: {version}",
-      appDownloadUnavailable:
-        "No APK published yet. Run the “Build Android App” workflow on GitHub (creates the android-latest release) or set WERKIT_ANDROID_APK_URL on Vercel.",
-      appDownloadHint:
-        "Open this button on an Android phone — the browser will download the file, then choose install. Admin login required.",
+      appDownloadUnavailable: "APK unavailable.",
       companyData: "Company Data",
       orderSettings: "Order Settings",
       generalInfo: "General Information",
-      generalDesc: "Company data used on documents and in the system.",
       legalNameLabel: "Legal company name",
       legalNamePlaceholder: "e.g. BuildCorp Inc",
       addressLabel: "Street and flat/house no.",
@@ -574,7 +567,6 @@ export const en: AppDictionary = {
       emailLabel: "Email Address (Correspondence)",
       emailPlaceholder: "office@company.com",
       orderSettingsUX: "Order behavior (mobile app)",
-      orderSettingsDesc: "These options affect how orders work in the worker app.",
       cancelWindowLabel: "Time to cancel order (minutes)",
       geofenceLabel: "Tolerance radius for 'Arrived' (meters)",
       reminderLabel: "Reminder before order (minutes)",
@@ -851,11 +843,7 @@ export const en: AppDictionary = {
   platform: {
     badge: "Werkit platform console",
     title: "Organizations",
-    subtitle:
-      "Register and oversee organizations using the system — isolated data, accounts, and operational metrics.",
     registerTitle: "Register organization",
-    registerDesc:
-      "Each organization gets an isolated data space. You can create an administrator account with access to the dispatch panel.",
     registryTitle: "Registered organizations",
     usageTitle: "Usage metrics",
     colOrganization: "Organization",
@@ -872,9 +860,7 @@ export const en: AppDictionary = {
     organizationName: "Organization name",
     organizationNamePlaceholder: "e.g. Acme Logistics Ltd.",
     organizationSlug: "Identifier",
-    organizationSlugHint: "System address (lowercase, digits, hyphens). Leave empty to auto-generate.",
     adminSection: "Organization administrator",
-    adminSectionDesc: "Optional — admin role for this organization's /admin panel.",
     adminName: "Full name",
     adminEmail: "Email (login)",
     adminPassword: "Initial password",

@@ -148,7 +148,6 @@ export default function SettingsForm({
             <div className="space-y-4">
               <div>
                 <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">{dict.generalInfo}</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{dict.generalDesc}</p>
               </div>
 
               <div className="space-y-2">
@@ -272,7 +271,6 @@ export default function SettingsForm({
           <div className={`space-y-6 max-w-3xl ${mode === "all" ? "pt-8 border-t border-zinc-200 dark:border-zinc-800" : ""}`}>
             <div>
               <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">{dict.orderSettingsUX}</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">{dict.orderSettingsDesc}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

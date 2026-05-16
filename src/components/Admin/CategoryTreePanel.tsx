@@ -48,7 +48,7 @@ export function CategoryTreePanel<T extends CategoryTreeItem>({
           <h2 className="flex items-center gap-2 pt-2 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white">
             <Layers className="h-5 w-5 text-amber-500" /> {title}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
+          {subtitle ? <p className="mt-1 text-sm text-zinc-500">{subtitle}</p> : null}
         </div>
         {canMutate ? (
           <button

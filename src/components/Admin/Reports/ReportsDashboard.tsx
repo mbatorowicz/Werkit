@@ -62,10 +62,9 @@ export function ReportsDashboard({
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-emerald-500" /> {nav.reports}
           </h1>
-          <p className="text-zinc-500 mt-1">
-            {r.subtitle} {companyLabel ? `${companyLabel}.` : ""}
-          </p>
-          <p className="text-xs text-zinc-400 mt-2">{r.periodHint}</p>
+          {companyLabel ? (
+            <p className="text-zinc-500 mt-1">{companyLabel}</p>
+          ) : null}
         </div>
       </div>
 
@@ -133,7 +132,6 @@ export function ReportsDashboard({
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
             <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
               <h2 className="font-semibold text-zinc-900 dark:text-white">{r.activeEquipmentTitle}</h2>
-              <p className="text-xs text-zinc-500 mt-1">{r.taskSummaryHint}</p>
             </div>
 
             <div className="overflow-x-auto">

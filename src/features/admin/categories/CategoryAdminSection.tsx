@@ -62,7 +62,6 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
     <>
       <ExpandableCatalogTree
         title={labels.panelTitle}
-        subtitle={labels.panelSubtitle}
         addCategoryLabel={labels.add}
         emptyLabel={labels.empty}
         groupBadge={labels.badgeGroup}

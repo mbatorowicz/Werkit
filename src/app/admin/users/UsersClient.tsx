@@ -149,7 +149,6 @@ export default function UsersClient() {
           <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2 pt-2">
             <Users className="w-6 h-6 text-emerald-500" /> {pageTitle}
           </h2>
-          <p className="text-zinc-500 mt-1 text-sm">{dict.subtitle}</p>
         </div>
         {canMutate && (
           <button
@@ -369,9 +368,6 @@ export default function UsersClient() {
                 </div>
               )}
 
-              <p className="-mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                {editId ? dict.passwordEditHint : dict.accountCreateHint}
-              </p>
             </form>
       </AdminModalShell>
 

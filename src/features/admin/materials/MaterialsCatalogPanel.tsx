@@ -121,7 +121,6 @@ export function MaterialsCatalogPanel({
     <>
       <ExpandableCatalogTree
         title={labels.panelTitle}
-        subtitle={dict.catalogSubtitle}
         addCategoryLabel={labels.add}
         addMaterialLabel={dict.addMaterial}
         emptyLabel={labels.empty}

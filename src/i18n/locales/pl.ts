@@ -540,20 +540,13 @@ export const pl = {
       routeUndoWaypoint: "Cofnij ostatni punkt",
     },
     settings: {
-      pageSubtitle: "Globalne parametry wyświetlania dla aplikacji logistycznej Werkit.",
       appDownloadTitle: "Aplikacja mobilna (Android)",
-      appDownloadDesc:
-        "Jeden wspólny instalator dla całej platformy (nie osobny build na firmę). Pobierz APK i zainstaluj na telefonach pracowników — firma jest wybierana przy logowaniu.",
       appDownloadButton: "Pobierz APK",
       appDownloadVersion: "Wersja: {version}",
-      appDownloadUnavailable:
-        "Brak opublikowanego APK. Uruchom workflow „Build Android App” na GitHubie (tworzy release android-latest) lub ustaw WERKIT_ANDROID_APK_URL na Vercel.",
-      appDownloadHint:
-        "Otwórz ten przycisk na telefonie z Androidem — przeglądarka pobierze plik, a po zakończeniu pobierania wybierz instalację. Wymagane logowanie do panelu admina.",
+      appDownloadUnavailable: "APK niedostępne.",
       companyData: "Dane firmy",
       orderSettings: "Ustawienia Zleceń",
       generalInfo: "Informacje Ogólne",
-      generalDesc: "Dane firmy wykorzystywane na dokumentach i w systemie.",
       legalNameLabel: "Prawna nazwa firmy",
       legalNamePlaceholder: "Jan-Met Konstrukcje",
       addressLabel: "Ulica i nr lokalu/domu",
@@ -572,7 +565,6 @@ export const pl = {
       emailLabel: "Adres Email (Korespondencja)",
       emailPlaceholder: "biuro@firma.pl",
       orderSettingsUX: "Ustawienia zleceń (aplikacja mobilna)",
-      orderSettingsDesc: "Opcje wpływające na działanie zleceń w aplikacji pracownika.",
       cancelWindowLabel: "Czas na anulowanie zlecenia (minuty)",
       geofenceLabel: "Promień tolerancji dla 'Dojechał' (metry)",
       reminderLabel: "Przypomnienie przed zleceniem (minuty)",
@@ -849,11 +841,7 @@ export const pl = {
   platform: {
     badge: "Konsola platformy Werkit",
     title: "Organizacje",
-    subtitle:
-      "Rejestracja i nadzór nad organizacjami korzystającymi z systemu — oddzielne dane, konta i wskaźniki operacyjne.",
     registerTitle: "Rejestracja organizacji",
-    registerDesc:
-      "Każda organizacja ma własną, izolowaną przestrzeń danych. Możesz od razu utworzyć konto administratora z dostępem do panelu dyspozytora.",
     registryTitle: "Zarejestrowane organizacje",
     usageTitle: "Wskaźniki użytkowania",
     colOrganization: "Organizacja",
@@ -870,9 +858,7 @@ export const pl = {
     organizationName: "Nazwa organizacji",
     organizationNamePlaceholder: "np. Margaz Sp. z o.o.",
     organizationSlug: "Identyfikator",
-    organizationSlugHint: "Adres w systemie (małe litery, cyfry, myślniki). Puste pole — wygenerujemy automatycznie.",
     adminSection: "Administrator organizacji",
-    adminSectionDesc: "Opcjonalnie — konto z rolą administratora w panelu /admin tej organizacji.",
     adminName: "Imię i nazwisko",
     adminEmail: "Adres e-mail (login)",
     adminPassword: "Hasło początkowe",
