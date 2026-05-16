@@ -14,6 +14,11 @@ function MapThemeSync({ themeKey }: { themeKey: string }) {
   const map = useMap();
   useEffect(() => {
     map.invalidateSize({ animate: false });
+    map.eachLayer((layer) => {
+      if ('redraw' in layer && typeof layer.redraw === 'function') {
+        layer.redraw();
+      }
+    });
   }, [themeKey, map]);
   return null;
 }
