@@ -1,7 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
+import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { ExpandableCatalogTree } from "@/components/Admin/ExpandableCatalogTree";
+import { getDictionary } from "@/i18n";
 import { getCategoryAdminLabels } from "./labels";
 import { useCategoryAdminCrud } from "./useCategoryAdminCrud";
 import type { CategoryAdminTreeItem, CategoryAdminVariant } from "./types";
@@ -43,6 +46,9 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
   renderModal,
 }: Props<TItem, TForm>) {
   const labels = getCategoryAdminLabels(variant);
+  const shared = getDictionary().admin.categories.shared;
+  const ui = getDictionary().admin.ui;
+  const [previewItem, setPreviewItem] = useState<TItem | null>(null);
   const crud = useCategoryAdminCrud({
     variant,
     apiErrors,
@@ -67,7 +73,11 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
         isLoading={isLoading}
         canMutate={canMutate}
         onAddCategory={crud.openNew}
-        onEditCategory={(item) => crud.openEdit(item.id, itemToForm(item))}
+        onPreviewCategory={(item) => setPreviewItem(item)}
+        onEditCategory={(item) => {
+          setPreviewItem(null);
+          crud.openEdit(item.id, itemToForm(item));
+        }}
         onDeleteCategory={crud.handleDelete}
       />
 
@@ -81,6 +91,46 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
         categories: items,
         onSubmit: crud.handleSave,
       })}
+
+      <AdminPreviewModal
+        open={previewItem != null}
+        onClose={() => setPreviewItem(null)}
+        title={ui.previewTitle}
+        canEdit={canMutate}
+        onEdit={
+          previewItem
+            ? () => {
+                setPreviewItem(null);
+                crud.openEdit(previewItem.id, itemToForm(previewItem));
+              }
+            : undefined
+        }
+        editLabel={getDictionary().admin.machines.editTitle}
+      >
+        {previewItem ? (
+          <>
+            <AdminPreviewField label={shared.fieldName} value={previewItem.name} />
+            <AdminPreviewField
+              label={shared.isGroupLabel}
+              value={previewItem.isGroup ? shared.previewTypeGroup : shared.previewTypeCategory}
+            />
+            {!previewItem.isGroup && previewItem.color ? (
+              <AdminPreviewField label={shared.colorLabel}>
+                <span
+                  className="inline-flex items-center gap-2"
+                >
+                  <span
+                    className="inline-block h-4 w-4 rounded shadow-sm"
+                    style={{ backgroundColor: previewItem.color }}
+                  />
+                  {previewItem.color}
+                </span>
+              </AdminPreviewField>
+            ) : null}
+            <AdminPreviewField label="ID" value={`#${previewItem.id}`} />
+          </>
+        ) : null}
+      </AdminPreviewModal>
     </>
   );
 }

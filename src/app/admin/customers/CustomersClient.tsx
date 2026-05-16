@@ -10,7 +10,10 @@ import { narrowAdminCustomerRows, type AdminCustomerListRow } from "@/lib/narrow
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
+import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import dynamic from "next/dynamic";
 
 function CustomerMapPickerLoading() {
@@ -37,6 +40,7 @@ export default function CustomersClient() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +49,7 @@ export default function CustomersClient() {
   const machinesDict = dictionary.admin.machines;
   const ordersDict = dictionary.admin.orders;
   const pageTitle = dictionary.admin.sidebar.customers;
+  const ui = dictionary.admin.ui;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const customerFormId = "admin-customer-form";
 
@@ -116,7 +121,12 @@ export default function CustomersClient() {
     setIsModalOpen(true);
   };
 
+  const openPreview = (customer: Customer) => {
+    setPreviewCustomer(customer);
+  };
+
   const openEditModal = (customer: Customer) => {
+    setPreviewCustomer(null);
     setEditId(customer.id);
     setForm({ 
       firstName: customer.firstName || '', 
@@ -158,7 +168,11 @@ export default function CustomersClient() {
                {isLoading ? (
                  <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
                ) : customers.map(customer => (
-                 <tr key={customer.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                 <tr
+                   key={customer.id}
+                   onClick={() => openPreview(customer)}
+                   className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
+                 >
                    <td className="px-6 py-4">
                       <div className="font-semibold text-zinc-900 dark:text-zinc-200">
                         {customer.firstName ? `${customer.firstName} ${customer.lastName}` : customer.lastName}
@@ -178,10 +192,10 @@ export default function CustomersClient() {
                    {canMutate && (
                    <td className="px-6 py-4 text-right">
                      <div className="flex justify-end gap-1">
-                        <button onClick={() => openEditModal(customer)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={machinesDict.editTitle}>
+                        <button onClick={(e) => { stopRowActionClick(e); openEditModal(customer); }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={machinesDict.editTitle}>
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(customer.id)} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={machinesDict.deleteTitle}>
+                        <button onClick={(e) => { stopRowActionClick(e); void handleDelete(customer.id); }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={machinesDict.deleteTitle}>
                           <Trash2 className="w-4 h-4" />
                         </button>
                      </div>
@@ -250,15 +264,80 @@ export default function CustomersClient() {
                  </div>
                  </>
                  ) : (
-                   <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
+                   <>
+                     {(form.defaultAddress || (form.latitude && form.longitude)) ? (
+                       <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
+                         <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.defaultAddressSummary}</p>
+                         {form.defaultAddress ? (
+                           <div className="flex items-start gap-2 text-sm text-zinc-800 dark:text-zinc-200">
+                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+                             <span>{form.defaultAddress}</span>
+                           </div>
+                         ) : (
+                           <p className="text-sm italic text-zinc-500">{dict.noAddress}</p>
+                         )}
+                         {form.latitude && form.longitude ? (
+                           <p className="text-[11px] text-zinc-500">
+                             {formatDict(dict.pinSaved, {
+                               lat: parseFloat(form.latitude).toFixed(5),
+                               lng: parseFloat(form.longitude).toFixed(5),
+                             })}
+                           </p>
+                         ) : null}
+                       </div>
+                     ) : null}
+                     <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
+                   </>
                  )}
 
                  {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
               </form>
       </AdminModalShell>
+
+      <AdminPreviewModal
+        open={previewCustomer != null}
+        onClose={() => setPreviewCustomer(null)}
+        title={ui.previewTitle}
+        canEdit={canMutate}
+        onEdit={
+          previewCustomer
+            ? () => {
+                openEditModal(previewCustomer);
+              }
+            : undefined
+        }
+        editLabel={machinesDict.editTitle}
+        maxWidthClass="max-w-lg"
+      >
+        {previewCustomer ? (
+          <>
+            <AdminPreviewField
+              label={dict.customerData}
+              value={
+                previewCustomer.firstName
+                  ? `${previewCustomer.firstName} ${previewCustomer.lastName}`
+                  : previewCustomer.lastName
+              }
+            />
+            <AdminPreviewField label="ID" value={`#${previewCustomer.id}`} />
+            <AdminPreviewField label={dict.defaultAddress}>
+              {previewCustomer.defaultAddress ? (
+                <span className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
+                  {previewCustomer.defaultAddress}
+                </span>
+              ) : (
+                <span className="italic text-zinc-500">{dict.noAddress}</span>
+              )}
+            </AdminPreviewField>
+          </>
+        ) : null}
+      </AdminPreviewModal>
     </>
   )
 }
+
+
 
 
 

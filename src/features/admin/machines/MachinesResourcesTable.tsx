@@ -1,7 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Edit2, Plus, Trash2, Truck } from "lucide-react";
+import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
+import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
+import { getDictionary } from "@/i18n";
+import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import type { AppDictionary } from "@/i18n/types";
 import type { MachinesCategory, MachinesResource } from "./types";
 
@@ -28,6 +33,9 @@ export function MachinesResourcesTable({
   onEditResource,
   onDeleteResource,
 }: Props) {
+  const ui = getDictionary().admin.ui;
+  const [previewMachine, setPreviewMachine] = useState<MachinesResource | null>(null);
+
   return (
     <>
       <div className="mb-6 flex flex-col items-start justify-between gap-4 border-t border-zinc-800/80 pt-10 md:flex-row md:items-center">
@@ -78,7 +86,11 @@ export function MachinesResourcesTable({
                 machines.map((machine) => {
                   const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
                   return (
-                    <tr key={machine.id} className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20">
+                    <tr
+                      key={machine.id}
+                      onClick={() => setPreviewMachine(machine)}
+                      className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
@@ -129,7 +141,11 @@ export function MachinesResourcesTable({
                           <div className="flex justify-end gap-1">
                             <button
                               type="button"
-                              onClick={() => onEditResource(machine)}
+                              onClick={(e) => {
+                                stopRowActionClick(e);
+                                setPreviewMachine(null);
+                                onEditResource(machine);
+                              }}
                               className="rounded-lg p-2 text-zinc-500 transition hover:bg-amber-500/10 hover:text-amber-500 dark:text-zinc-400"
                               title={dict.editTitle}
                             >
@@ -137,7 +153,10 @@ export function MachinesResourcesTable({
                             </button>
                             <button
                               type="button"
-                              onClick={() => onDeleteResource(machine.id)}
+                              onClick={(e) => {
+                                stopRowActionClick(e);
+                                void onDeleteResource(machine.id);
+                              }}
                               className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-500 dark:text-zinc-400"
                               title={dict.deleteTitle}
                             >
@@ -161,6 +180,59 @@ export function MachinesResourcesTable({
           </table>
         </div>
       </div>
+
+      <AdminPreviewModal
+        open={previewMachine != null}
+        onClose={() => setPreviewMachine(null)}
+        title={ui.previewTitle}
+        canEdit={canMutate}
+        onEdit={
+          previewMachine
+            ? () => {
+                setPreviewMachine(null);
+                onEditResource(previewMachine);
+              }
+            : undefined
+        }
+        editLabel={dict.editTitle}
+        maxWidthClass="max-w-md"
+      >
+        {previewMachine ? (
+          <>
+            <AdminPreviewField label={dict.resourceColTitle} value={previewMachine.name} />
+            <AdminPreviewField label="ID" value={`#${previewMachine.id}`} />
+            <AdminPreviewField label={dict.dictCategory}>
+              <div className="flex flex-wrap gap-1">
+                {categories
+                  .filter((c) => previewMachine.categoryIds?.includes(c.id))
+                  .map((c) => (
+                    <span
+                      key={c.id}
+                      className="rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+                      style={{
+                        backgroundColor: `${c.color || "#71717a"}1a`,
+                        color: c.color || "#71717a",
+                        borderColor: `${c.color || "#71717a"}33`,
+                      }}
+                    >
+                      {c.name}
+                    </span>
+                  ))}
+                {(previewMachine.categoryIds?.length ?? 0) === 0 ? (
+                  <span className="italic text-zinc-500">{dict.noCategoryBadge}</span>
+                ) : null}
+              </div>
+            </AdminPreviewField>
+            {previewMachine.registrationNumber ? (
+              <AdminPreviewField label={dict.machRegLabel} value={previewMachine.registrationNumber} />
+            ) : null}
+            {previewMachine.description ? (
+              <AdminPreviewField label={dict.machDescLabel} value={previewMachine.description} />
+            ) : null}
+          </>
+        ) : null}
+      </AdminPreviewModal>
     </>
   );
 }
+

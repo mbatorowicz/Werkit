@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 import { getDictionary } from "@/i18n";
@@ -55,6 +55,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [geocodeBusy, setGeocodeBusy] = useState(false);
+  const didAutoSelectRef = useRef(false);
 
   const editorOpen = isDraftOpen || selectedId !== null;
 
@@ -88,8 +89,25 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   }, [customerId]);
 
   useEffect(() => {
+    didAutoSelectRef.current = false;
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (loading || locations.length === 0 || didAutoSelectRef.current) return;
+    const preferred = locations.find((l) => l.isDefault) ?? locations[0];
+    didAutoSelectRef.current = true;
+    setIsDraftOpen(false);
+    setSelectedId(preferred.id);
+    setForm({
+      label: preferred.label,
+      address: preferred.address ?? "",
+      latitude: preferred.latitude,
+      longitude: preferred.longitude,
+      isDefault: preferred.isDefault,
+    });
+    setWaypoints(preferred.routeWaypoints);
+  }, [loading, locations]);
 
   const startNewLocation = () => {
     setSelectedId(null);

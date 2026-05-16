@@ -10,7 +10,10 @@ import { narrowAdminUserRows, type AdminUserListRow } from "@/lib/narrowApiListR
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
+import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { stopRowActionClick } from "@/lib/stopRowActionClick";
 
 export default function UsersClient() {
   const { canMutate } = useAdminAbility();
@@ -18,6 +21,7 @@ export default function UsersClient() {
   const [users, setUsers] = useState<AdminUserListRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewUser, setPreviewUser] = useState<AdminUserListRow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [editId, setEditId] = useState<number | null>(null);
@@ -33,6 +37,7 @@ export default function UsersClient() {
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
   const pageTitle = dictionary.admin.sidebar.users;
+  const ui = dictionary.admin.ui;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const roleSubtitle = (role: string) => {
@@ -79,7 +84,12 @@ export default function UsersClient() {
     }
   };
 
+  const openPreview = (u: AdminUserListRow) => {
+    setPreviewUser(u);
+  };
+
   const openEdit = (u: AdminUserListRow) => {
+    setPreviewUser(null);
     setEditId(u.id);
     setShowPassword(false);
     setForm({
@@ -172,7 +182,11 @@ export default function UsersClient() {
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
+                  <tr
+                    key={user.id}
+                    onClick={() => openPreview(user)}
+                    className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-zinc-800 border border-emerald-200 dark:border-zinc-700 flex items-center justify-center text-emerald-700 dark:text-zinc-300 font-bold">
@@ -198,7 +212,10 @@ export default function UsersClient() {
                         <div className="flex justify-end gap-1">
                           <button
                             type="button"
-                            onClick={() => openEdit(user)}
+                            onClick={(e) => {
+                              stopRowActionClick(e);
+                              openEdit(user);
+                            }}
                             className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition"
                             title={dict.editTitle}
                           >
@@ -207,7 +224,10 @@ export default function UsersClient() {
                           {user.role !== "admin" && (
                             <button
                               type="button"
-                              onClick={() => handleDelete(user.id, user.fullName)}
+                              onClick={(e) => {
+                                stopRowActionClick(e);
+                                void handleDelete(user.id, user.fullName);
+                              }}
                               className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition"
                               title={dict.deleteTitle}
                             >
@@ -354,6 +374,35 @@ export default function UsersClient() {
               </p>
             </form>
       </AdminModalShell>
+
+      <AdminPreviewModal
+        open={previewUser != null}
+        onClose={() => setPreviewUser(null)}
+        title={ui.previewTitle}
+        canEdit={canMutate}
+        onEdit={previewUser ? () => openEdit(previewUser) : undefined}
+        editLabel={dict.editTitle}
+      >
+        {previewUser ? (
+          <>
+            <AdminPreviewField label={dict.fullNameLabel} value={previewUser.fullName} />
+            <AdminPreviewField label={dict.roleLabel} value={roleSubtitle(previewUser.role)} />
+            <AdminPreviewField label={dict.loginLabel} value={previewUser.usernameEmail} />
+            {previewUser.role === "worker" ? (
+              <>
+                <AdminPreviewField
+                  label={dict.canCreateOwnOrdersLabel}
+                  value={previewUser.canCreateOwnOrders ? dict.previewYes : dict.previewNo}
+                />
+                <AdminPreviewField
+                  label={dict.canEditRouteLabel}
+                  value={previewUser.canEditRoute ? dict.previewYes : dict.previewNo}
+                />
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </AdminPreviewModal>
     </>
   );
 }

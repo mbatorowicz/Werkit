@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { ChevronRight, Edit2, Folder, Layers, Package, Plus, Trash2 } from "lucide-react";
 import { formatDict } from "@/i18n/format";
+import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import {
   buildMaterialCategoryTree,
   collectExpandableCategoryIds,
@@ -38,8 +39,10 @@ type Props<T extends CatalogCategoryItem> = {
   canMutate: boolean;
   onAddCategory: () => void;
   onAddMaterial?: () => void;
+  onPreviewCategory?: (item: T) => void;
   onEditCategory: (item: T) => void;
   onDeleteCategory: (id: number) => void;
+  onPreviewMaterial?: (material: CatalogMaterialRow) => void;
   onEditMaterial?: (material: CatalogMaterialRow) => void;
   onDeleteMaterial?: (id: number) => void;
 };
@@ -63,8 +66,10 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   canMutate,
   onAddCategory,
   onAddMaterial,
+  onPreviewCategory,
   onEditCategory,
   onDeleteCategory,
+  onPreviewMaterial,
   onEditMaterial,
   onDeleteMaterial,
 }: Props<T>) {
@@ -117,7 +122,20 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   const renderMaterialRow = (material: CatalogMaterialRow, depth: number, categoryColor?: string | null) => (
     <div
       key={`mat-${material.id}-${depth}-${String(categoryColor)}`}
-      className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
+      role={onPreviewMaterial ? "button" : undefined}
+      tabIndex={onPreviewMaterial ? 0 : undefined}
+      onClick={onPreviewMaterial ? () => onPreviewMaterial(material) : undefined}
+      onKeyDown={
+        onPreviewMaterial
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onPreviewMaterial(material);
+              }
+            }
+          : undefined
+      }
+      className={`group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900${onPreviewMaterial ? " cursor-pointer" : ""}`}
       style={{ marginLeft: `${depth * 1.25}rem` }}
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -139,14 +157,20 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
         <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
           <button
             type="button"
-            onClick={() => onEditMaterial(material)}
+            onClick={(e) => {
+              stopRowActionClick(e);
+              onEditMaterial(material);
+            }}
             className="rounded-md p-1.5 text-zinc-600 transition hover:text-amber-500 dark:text-zinc-400"
           >
             <Edit2 className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => onDeleteMaterial(material.id)}
+            onClick={(e) => {
+              stopRowActionClick(e);
+              onDeleteMaterial(material.id);
+            }}
             className="rounded-md p-1.5 text-zinc-600 transition hover:text-red-500 dark:text-zinc-400"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -185,14 +209,30 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
       return (
         <Fragment key={`cat-${node.id}`}>
           <div
-            className="group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2.5 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
+            role={onPreviewCategory ? "button" : undefined}
+            tabIndex={onPreviewCategory ? 0 : undefined}
+            onClick={onPreviewCategory ? () => onPreviewCategory(node) : undefined}
+            onKeyDown={
+              onPreviewCategory
+                ? (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onPreviewCategory(node);
+                    }
+                  }
+                : undefined
+            }
+            className={`group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2.5 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900${onPreviewCategory ? " cursor-pointer" : ""}`}
             style={{ marginLeft: `${node.depth * 1.25}rem` }}
           >
             <div className="flex min-w-0 flex-1 items-center gap-2">
               {hasChildren ? (
                 <button
                   type="button"
-                  onClick={() => toggleExpanded(node.id)}
+                  onClick={(e) => {
+                    stopRowActionClick(e);
+                    toggleExpanded(node.id);
+                  }}
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   aria-expanded={isExpanded}
                 >
@@ -252,14 +292,20 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
               <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
                 <button
                   type="button"
-                  onClick={() => onEditCategory(node)}
+                  onClick={(e) => {
+                    stopRowActionClick(e);
+                    onEditCategory(node);
+                  }}
                   className="rounded-md p-1.5 text-zinc-600 transition hover:text-amber-500 dark:text-zinc-400"
                 >
                   <Edit2 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => onDeleteCategory(node.id)}
+                  onClick={(e) => {
+                    stopRowActionClick(e);
+                    onDeleteCategory(node.id);
+                  }}
                   className="rounded-md p-1.5 text-zinc-600 transition hover:text-red-500 dark:text-zinc-400"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
