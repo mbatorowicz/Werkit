@@ -447,6 +447,10 @@ export const pl = {
       title: "Baza materiałów",
       subtitle: "Najpierw kategorie materiałów, potem wpisy w bazie — ten sam układ co w module Zasoby.",
       pageSubtitle: "Drzewo kategorii materiałów oraz materiały w bazie.",
+      catalogSubtitle:
+        "Drzewo grup, kategorii i materiałów — rozwijaj węzły, aby zobaczyć zawartość.",
+      materialBadge: "Materiał",
+      uncategorizedTitle: "Bez przypisanej kategorii",
       sectionItemsTitle: "Materiały w bazie",
       fleetTitle: "Materiały",
       fleetSubtitle: "Dodawaj materiały i przypisuj je do co najmniej jednej kategorii z drzewa powyżej.",

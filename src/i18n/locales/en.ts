@@ -449,6 +449,10 @@ export const en: AppDictionary = {
       title: "Materials base",
       subtitle: "Material categories first, then inventory — same layout as Resources.",
       pageSubtitle: "Material category tree and materials in the database.",
+      catalogSubtitle:
+        "Tree of groups, categories, and materials — expand nodes to see contents.",
+      materialBadge: "Material",
+      uncategorizedTitle: "Without assigned category",
       sectionItemsTitle: "Materials in database",
       fleetTitle: "Materials",
       fleetSubtitle: "Add materials and assign each to at least one category from the tree above.",

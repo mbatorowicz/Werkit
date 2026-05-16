@@ -4,8 +4,7 @@ import { useEffect, useRef } from "react";
 import { HardHat } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { MaterialsClientCategoriesPanel } from "@/features/admin/materials/MaterialsClientCategoriesPanel";
-import { MaterialsClientMaterialsTablePanel } from "@/features/admin/materials/MaterialsClientMaterialsTablePanel";
+import { MaterialsCatalogPanel } from "@/features/admin/materials/MaterialsCatalogPanel";
 import {
   useMaterialsAdminData,
   type MaterialsAdminAlertContext,
@@ -45,21 +44,12 @@ export default function MaterialsClient() {
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{dict.pageSubtitle}</p>
       </div>
 
-      <MaterialsClientCategoriesPanel
-        machDict={machDict}
-        apiErrors={apiErrors}
-        categories={categories}
-        isLoading={isLoading}
-        canMutate={canMutate}
-        fetchData={fetchData}
-      />
-
-      <MaterialsClientMaterialsTablePanel
+      <MaterialsCatalogPanel
         dict={dict}
         machDict={machDict}
         apiErrors={apiErrors}
-        materials={materials}
         categories={categories}
+        materials={materials}
         isLoading={isLoading}
         canMutate={canMutate}
         fetchData={fetchData}

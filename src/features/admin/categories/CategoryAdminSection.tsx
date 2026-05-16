@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CategoryTreePanel } from "@/components/Admin/CategoryTreePanel";
+import { ExpandableCatalogTree } from "@/components/Admin/ExpandableCatalogTree";
 import { getCategoryAdminLabels } from "./labels";
 import { useCategoryAdminCrud } from "./useCategoryAdminCrud";
 import type { CategoryAdminTreeItem, CategoryAdminVariant } from "./types";
@@ -54,19 +54,19 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
 
   return (
     <>
-      <CategoryTreePanel
+      <ExpandableCatalogTree
         title={labels.panelTitle}
         subtitle={labels.panelSubtitle}
-        addLabel={labels.add}
+        addCategoryLabel={labels.add}
         emptyLabel={labels.empty}
         groupBadge={labels.badgeGroup}
         stationaryBadge={stationaryBadge}
-        items={items}
+        categories={items}
         isLoading={isLoading}
         canMutate={canMutate}
-        onAdd={crud.openNew}
-        onEdit={(item) => crud.openEdit(item.id, itemToForm(item))}
-        onDelete={crud.handleDelete}
+        onAddCategory={crud.openNew}
+        onEditCategory={(item) => crud.openEdit(item.id, itemToForm(item))}
+        onDeleteCategory={crud.handleDelete}
       />
 
       {renderModal({
