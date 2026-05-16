@@ -657,7 +657,23 @@ export const pl = {
       wizardFixData: "Popraw Dane",
       wizardPendingOrders: "Oczekujące zlecenia"
     },
+    alarms: {
+      timeOverrunTitle: "Przekroczony czas pracy!",
+      timeOverrunBody: "Obecne zlecenie trwa dłużej niż zakładał plan.",
+      orderOverdueTitle: "Zlecenie opóźnione!",
+      orderOverdueBody: "Masz opóźnione zlecenie: {label}",
+      orderUpcomingTitle: "Zbliżające się zlecenie!",
+      orderUpcomingBody: "Masz zaplanowane zlecenie: {label}",
+      actionOk: "OK",
+      actionStart: "Rozpocznij zadanie",
+      actionSnooze: "Drzemka {minutes} min",
+      snoozeSection: "Drzemka",
+    },
     profile: {
+      notificationsTitle: "Powiadomienia PUSH",
+      notificationsDesc: "Zlecenia zbliżające się, opóźnione i przekroczony czas",
+      notificationSoundTitle: "Dźwięk alarmów",
+      notificationSoundDesc: "Sygnał dźwiękowy przy alarmie na telefonie",
       biometricTitle: "Logowanie biometryczne",
       biometricDesc: "Na tym urządzeniu możesz logować się odciskiem palca lub twarzą (tylko aplikacja mobilna).",
       biometricUnavailable: "Biometria nie jest dostępna na tym urządzeniu lub nie została skonfigurowana w systemie.",

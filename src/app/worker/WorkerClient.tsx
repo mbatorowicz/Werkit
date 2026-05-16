@@ -7,6 +7,8 @@ import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import type { InitialWorkerData } from "@/types/worker";
 
 import { useWorkerNotifications } from "@/features/worker/hooks/useWorkerNotifications";
+import { useWorkerNotificationActions } from "@/features/worker/hooks/useWorkerNotificationActions";
+import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
 import { WorkerActiveSessionSection } from "@/features/worker/components/worker/WorkerActiveSessionSection";
@@ -17,6 +19,7 @@ import { WorkerPendingOrdersSection } from "@/features/worker/components/worker/
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dict = getDictionary().worker.client;
+  const alarmsDict = getDictionary().worker.alarms;
   const adminDict = getDictionary().admin.orders;
 
   const shell = useWorkerShellState(initialData);
@@ -80,12 +83,25 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         shell.settings.cancelWindowMinutes
       : true;
 
-  const { isTimeOverrun, overdueOrder, upcomingOrder } = useWorkerNotifications(
+  const {
+    isTimeOverrun,
+    overdueOrder,
+    upcomingOrder,
+    activeAlarm,
+    dismissActiveAlarm,
+    snoozeActiveAlarm,
+    refreshAlarmUi,
+  } = useWorkerNotifications(
     shell.session,
     shell.workOrders,
     shell.settings,
     shell.currentUser,
   );
+
+  useWorkerNotificationActions({
+    onStartOrder: (orderId) => requestAcceptOrder(orderId),
+    onAlarmDismissed: () => refreshAlarmUi(),
+  });
 
   if (shell.isLoading) {
     return <WorkerClientLoading message={dict.loadingWorkerDashboard} />;
@@ -169,6 +185,21 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
       />
 
       <WorkerClientFooter />
+
+      {activeAlarm ? (
+        <WorkerAlarmModal
+          alarm={activeAlarm}
+          dict={alarmsDict}
+          onOk={dismissActiveAlarm}
+          onStart={() => {
+            if (activeAlarm.orderId != null) {
+              dismissActiveAlarm();
+              requestAcceptOrder(activeAlarm.orderId);
+            }
+          }}
+          onSnooze={snoozeActiveAlarm}
+        />
+      ) : null}
     </div>
   );
 }

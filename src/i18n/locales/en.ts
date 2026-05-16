@@ -660,7 +660,23 @@ export const en: AppDictionary = {
       wizardFixData: "Fix Data",
       wizardPendingOrders: "Pending orders"
     },
+    alarms: {
+      timeOverrunTitle: "Work time exceeded!",
+      timeOverrunBody: "The current order is taking longer than planned.",
+      orderOverdueTitle: "Order overdue!",
+      orderOverdueBody: "You have an overdue order: {label}",
+      orderUpcomingTitle: "Upcoming order!",
+      orderUpcomingBody: "You have a scheduled order: {label}",
+      actionOk: "OK",
+      actionStart: "Start task",
+      actionSnooze: "Snooze {minutes} min",
+      snoozeSection: "Snooze",
+    },
     profile: {
+      notificationsTitle: "Push notifications",
+      notificationsDesc: "Upcoming, overdue orders and time overrun",
+      notificationSoundTitle: "Alarm sound",
+      notificationSoundDesc: "Play a sound when an alarm fires on the phone",
       biometricTitle: "Biometric login",
       biometricDesc: "On this device you can sign in with fingerprint or face (mobile app only).",
       biometricUnavailable: "Biometrics are not available on this device or not set up in system settings.",
