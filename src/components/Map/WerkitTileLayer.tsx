@@ -44,12 +44,12 @@ export function WerkitTileLayer() {
       <MapThemeSync themeKey={themeKey} />
       {preset.layers.map((layer, index) => (
         <TileLayer
-          key={`${themeKey}-${index}`}
+          key={`${themeKey}-${index}-${layer.url}`}
           url={layer.url}
           attribution={layer.attribution ?? ''}
           subdomains={MAP_TILE_SUBDOMAINS}
           maxZoom={MAP_TILE_MAX_ZOOM}
-          zIndex={layer.zIndex}
+          zIndex={layer.zIndex ?? (index === 0 ? 0 : index)}
         />
       ))}
     </>

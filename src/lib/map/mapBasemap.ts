@@ -25,18 +25,19 @@ const LIGHT_BASE: MapBasemapLayer = {
 };
 
 /**
- * Ciemna: Dark Matter (CARTO) — `dark_nolabels` + `dark_only_labels`.
- * Uwaga: ścieżki `rastertiles/dark_matter` zwracają 404 na CDN (szare tło Leaflet).
+ * Ciemna: tło Dark Matter + jasne napisy (`light_only_labels` na `dark_nolabels`).
+ * Samo `dark_only_labels` bywa prawie niewidoczne; `rastertiles/dark_all` też działa, ale słabszy kontrast dróg.
  */
 const DARK_BASE: MapBasemapLayer = {
   url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
   attribution: MAP_ATTRIBUTION,
+  zIndex: 0,
 };
 
 const DARK_LABELS: MapBasemapLayer = {
-  url: 'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png',
+  url: 'https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png',
   attribution: '',
-  zIndex: 1,
+  zIndex: 650,
 };
 
 export function getMapBasemapPreset(isDark: boolean): MapBasemapPreset {
