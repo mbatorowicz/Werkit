@@ -7,7 +7,7 @@ import { parsePositiveIntFromString } from '@/lib/parseRouteParams';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-/** Dodanie administratora do istniejącej firmy (np. po częściowej nieudanej próbie). */
+/** Dodanie administratora do istniejącej organizacji (np. po częściowej nieudanej próbie). */
 export const POST = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const auth = await requireSuperadminSession();
