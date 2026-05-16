@@ -106,6 +106,8 @@ export const en: AppDictionary = {
         fieldName: "Name",
         previewTypeGroup: "Group",
         previewTypeCategory: "Category",
+        catalogSearchPlaceholder: "Search the tree…",
+        catalogSearchNoResults: "No results for this query.",
       },
       workOrders: {
         panelTitle: "Order & resource categories",
@@ -416,6 +418,8 @@ export const en: AppDictionary = {
       editTitle: "Edit",
       deleteTitle: "Delete",
       noMachines: "No entries in the resource registry.",
+      resourceSearchPlaceholder: "Search resources by name, plate, or category…",
+      resourceSearchNoResults: "No resources match your search.",
       confirmMachDelete: "Remove this entry from the resource registry?",
       apiError: "API Error.",
       dbError: "Could not load data. Refresh the page in a moment.",

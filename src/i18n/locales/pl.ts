@@ -104,6 +104,8 @@ export const pl = {
         fieldName: "Nazwa",
         previewTypeGroup: "Grupa",
         previewTypeCategory: "Kategoria",
+        catalogSearchPlaceholder: "Szukaj w drzewie…",
+        catalogSearchNoResults: "Brak wyników dla tego zapytania.",
       },
       workOrders: {
         panelTitle: "Kategorie zleceń i zasobów",
@@ -415,6 +417,8 @@ export const pl = {
       editTitle: "Edytuj",
       deleteTitle: "Usuń",
       noMachines: "Brak wpisów w rejestrze zasobów.",
+      resourceSearchPlaceholder: "Szukaj zasobu po nazwie, nr rej. lub kategorii…",
+      resourceSearchNoResults: "Brak zasobów pasujących do wyszukiwania.",
       confirmMachDelete: "Usunąć ten wpis z rejestru zasobów?",
       apiError: "Błąd API.",
       dbError: "Nie udało się wczytać danych. Odśwież stronę za chwilę.",

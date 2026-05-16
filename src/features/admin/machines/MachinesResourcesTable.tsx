@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
-import { Edit2, Plus, Trash2, Truck } from "lucide-react";
+import { Edit2, Plus, Search, Trash2, Truck } from "lucide-react";
+import { normalizeCatalogSearchQuery } from "@/lib/filterCatalogTree";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { getDictionary } from "@/i18n";
@@ -35,6 +36,19 @@ export function MachinesResourcesTable({
 }: Props) {
   const ui = getDictionary().admin.ui;
   const [previewMachine, setPreviewMachine] = useState<MachinesResource | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredMachines = useMemo(() => {
+    const q = normalizeCatalogSearchQuery(searchQuery);
+    if (!q) return machines;
+    return machines.filter((machine) => {
+      if (machine.name.toLocaleLowerCase("pl").includes(q)) return true;
+      if (machine.registrationNumber?.toLocaleLowerCase("pl").includes(q)) return true;
+      if (machine.description?.toLocaleLowerCase("pl").includes(q)) return true;
+      const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
+      return mCats.some((c) => c.name.toLocaleLowerCase("pl").includes(q));
+    });
+  }, [machines, categories, searchQuery]);
 
   return (
     <>
@@ -55,6 +69,18 @@ export function MachinesResourcesTable({
             {dict.addResource}
           </button>
         ) : null}
+      </div>
+
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={dict.resourceSearchPlaceholder}
+          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] py-2.5 pl-10 pr-4 text-sm text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          aria-label={dict.resourceSearchPlaceholder}
+        />
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
@@ -82,8 +108,14 @@ export function MachinesResourcesTable({
                     {dict.fetching}
                   </td>
                 </tr>
+              ) : filteredMachines.length === 0 ? (
+                <tr>
+                  <td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                    {searchQuery.trim() ? dict.resourceSearchNoResults : dict.noMachines}
+                  </td>
+                </tr>
               ) : (
-                machines.map((machine) => {
+                filteredMachines.map((machine) => {
                   const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
                   return (
                     <tr
@@ -169,13 +201,6 @@ export function MachinesResourcesTable({
                   );
                 })
               )}
-              {!isLoading && machines.length === 0 ? (
-                <tr>
-                  <td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                    {dict.noMachines}
-                  </td>
-                </tr>
-              ) : null}
             </tbody>
           </table>
         </div>
@@ -235,4 +260,5 @@ export function MachinesResourcesTable({
     </>
   );
 }
+
 

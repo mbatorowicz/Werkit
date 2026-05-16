@@ -1,12 +1,13 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
-import { ChevronRight, Edit2, Folder, Layers, Package, Plus, Trash2 } from "lucide-react";
+import { Fragment, useMemo, useState } from "react";
+import { ChevronRight, Edit2, Folder, Layers, Package, Plus, Search, Trash2 } from "lucide-react";
+import { getDictionary } from "@/i18n";
 import { formatDict } from "@/i18n/format";
+import { filterCatalogTree } from "@/lib/filterCatalogTree";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import {
   buildMaterialCategoryTree,
-  collectExpandableCategoryIds,
   computeCategoryBranchStats,
   indexMaterialsByCategory,
   type CatalogMaterialRow,
@@ -33,6 +34,8 @@ type Props<T extends CatalogCategoryItem> = {
   materialBadge?: string;
   uncategorizedTitle?: string;
   stationaryBadge?: string;
+  searchPlaceholder?: string;
+  searchNoResults?: string;
   categories: T[];
   materials?: CatalogMaterialRow[];
   isLoading: boolean;
@@ -60,6 +63,8 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   materialBadge,
   uncategorizedTitle,
   stationaryBadge,
+  searchPlaceholder,
+  searchNoResults,
   categories,
   materials,
   isLoading,
@@ -84,23 +89,21 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
     [roots, materialIndex.byCategoryId],
   );
   const showMaterialStats = Boolean(treeStatMaterials);
+  const catalogDict = getDictionary().admin.categories.shared;
+  const resolvedSearchPlaceholder = searchPlaceholder ?? catalogDict.catalogSearchPlaceholder;
+  const resolvedSearchNoResults = searchNoResults ?? catalogDict.catalogSearchNoResults;
 
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
+  const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const ids = collectExpandableCategoryIds(roots, materialIndex.byCategoryId);
-    setExpanded((prev) => {
-      let changed = false;
-      const next = new Set(prev);
-      for (const id of ids) {
-        if (!next.has(id)) {
-          next.add(id);
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [roots, materialIndex.byCategoryId]);
+  const filtered = useMemo(
+    () => filterCatalogTree(roots, materialIndex, searchQuery),
+    [roots, materialIndex, searchQuery],
+  );
+
+  const displayRoots = filtered.roots;
+  const displayMaterialIndex = filtered.materialsByCategoryId;
+  const displayUncategorized = filtered.uncategorized;
 
   const toggleExpanded = (id: number) => {
     setExpanded((prev) => {
@@ -118,6 +121,12 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
 
   const hasContent =
     categories.length > 0 || materialIndex.uncategorized.length > 0 || (isLoading && categories.length === 0);
+
+  const hasFilteredContent =
+    displayRoots.length > 0 || displayUncategorized.length > 0;
+
+  const isNodeExpanded = (id: number) =>
+    filtered.hasQuery ? filtered.expandIds.has(id) : expanded.has(id);
 
   const renderMaterialRow = (material: CatalogMaterialRow, depth: number, categoryColor?: string | null) => (
     <div
@@ -182,9 +191,9 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
 
   const renderCategoryNodes = (nodes: CategoryTreeNode<T>[]) =>
     nodes.map((node) => {
-      const childMaterials = materialIndex.byCategoryId.get(node.id) ?? [];
+      const childMaterials = displayMaterialIndex.get(node.id) ?? [];
       const hasChildren = node.children.length > 0 || childMaterials.length > 0;
-      const isExpanded = expanded.has(node.id);
+      const isExpanded = isNodeExpanded(node.id);
       const stats = branchStats.get(node.id);
       const isBranch = node.isGroup || (node.children?.length ?? 0) > 0;
       const categoryCount = stats?.descendantCategoryCount ?? 0;
@@ -356,9 +365,21 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
         ) : null}
       </div>
 
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={resolvedSearchPlaceholder}
+          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] py-2.5 pl-10 pr-4 text-sm text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          aria-label={resolvedSearchPlaceholder}
+        />
+      </div>
+
       <div className="mb-10 space-y-1">
-        {renderCategoryNodes(roots)}
-        {materialIndex.uncategorized.length > 0 ? (
+        {renderCategoryNodes(displayRoots)}
+        {displayUncategorized.length > 0 ? (
           <>
             {uncategorizedTitle ? (
               <p
@@ -368,8 +389,13 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
                 {uncategorizedTitle}
               </p>
             ) : null}
-            {materialIndex.uncategorized.map((m) => renderMaterialRow(m, 0))}
+            {displayUncategorized.map((m) => renderMaterialRow(m, 0))}
           </>
+        ) : null}
+        {!isLoading && hasContent && filtered.hasQuery && !hasFilteredContent ? (
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-700/50 dark:bg-zinc-900/50 dark:text-zinc-400">
+            {resolvedSearchNoResults}
+          </div>
         ) : null}
         {!isLoading && !hasContent ? (
           <div className="rounded-lg border border-zinc-200 bg-white p-4 text-sm text-zinc-500 dark:border-zinc-700/50 dark:bg-zinc-900/50 dark:text-zinc-400">
@@ -380,4 +406,5 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
     </>
   );
 }
+
 
