@@ -486,7 +486,9 @@ export const en: AppDictionary = {
       locationsEditHint: "Set addresses and routes in the locations section below.",
       routePlannerSetDestinationHint:
         "Green pin — company base. Geocode, click the map, or drag the red pin to set the destination.",
-      routePlannerHint: "Click the map to add a via point — the route recalculates automatically.",
+      routePlannerHint:
+        "Click the map to add a via point. Drag a yellow point to move it; tap a point and choose Delete to remove any.",
+      routeDeleteWaypoint: "Delete point",
       routeUndoWaypoint: "Undo last point",
     },
     settings: {
@@ -611,7 +613,8 @@ export const en: AppDictionary = {
       sessionStationaryGpsNote: "Stationary — no GPS route tracking.",
       sessionStationaryMapHint:
         "For this equipment type we do not record route or distance to the customer address. You can still add notes and photos as usual.",
-      routeEditHint: "Tap the map to add a via point — it saves automatically.",
+      routeEditHint:
+        "Tap the map to add a point. Drag a yellow point or tap it and choose Delete — changes save automatically.",
       toDest: "To Dest.",
       km: "km",
       addNote: "Add Note",

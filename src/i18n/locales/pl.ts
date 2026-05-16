@@ -483,7 +483,9 @@ export const pl = {
       locationsEditHint: "Adresy i trasy ustawiasz w sekcji lokalizacji poniżej.",
       routePlannerSetDestinationHint:
         "Zielona pinezka — baza firmy. Użyj geokodowania, kliknij mapę lub przeciągnij czerwoną pinezkę, aby ustawić cel.",
-      routePlannerHint: "Kliknij mapę, aby dodać punkt pośredni — trasa przeliczy się automatycznie.",
+      routePlannerHint:
+        "Kliknij mapę, aby dodać punkt pośredni. Przeciągnij żółty punkt, aby go przesunąć; kliknij punkt i wybierz „Usuń”, aby skasować dowolny.",
+      routeDeleteWaypoint: "Usuń punkt",
       routeUndoWaypoint: "Cofnij ostatni punkt",
     },
     settings: {
@@ -608,7 +610,8 @@ export const pl = {
       sessionStationaryGpsNote: "Stacjonarnie — bez śledzenia trasy GPS.",
       sessionStationaryMapHint:
         "Dla tego typu sprzętu nie zapisujemy trasy ani odległości do adresu klienta. Możesz normalnie dodawać notatki i zdjęcia.",
-      routeEditHint: "Kliknij mapę, aby dodać punkt pośredni trasy — zapisze się automatycznie.",
+      routeEditHint:
+        "Kliknij mapę, aby dodać punkt. Przeciągnij żółty punkt lub kliknij go i wybierz „Usuń” — zmiany zapisują się automatycznie.",
       toDest: "Do Celu",
       km: "km",
       addNote: "Dodaj Notatkę",

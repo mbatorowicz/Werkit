@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, CircleMarker, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
@@ -99,30 +100,14 @@ export function CustomerRoutePlannerMap({
     [onWaypointsChange, waypoints],
   );
 
-  const onRemoveLast = () => {
-    if (waypoints.length === 0) return;
-    onWaypointsChange(waypoints.slice(0, -1));
-  };
-
   const canEditDestination = editable && Boolean(onDestinationChange);
+  const canEditWaypoints = editable && hasDestination;
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <p className="text-[11px] text-zinc-500 dark:text-zinc-400 flex-1 min-w-[200px]">
-          {hasDestination ? dict.routePlannerHint : dict.routePlannerSetDestinationHint}
-        </p>
-        {editable && hasDestination ? (
-          <button
-            type="button"
-            onClick={onRemoveLast}
-            disabled={waypoints.length === 0}
-            className="text-xs px-2.5 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 disabled:opacity-40"
-          >
-            {dict.routeUndoWaypoint}
-          </button>
-        ) : null}
-      </div>
+      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-snug">
+        {hasDestination ? dict.routePlannerHint : dict.routePlannerSetDestinationHint}
+      </p>
       <div
         className={`w-full ${heightClass} rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0`}
       >
@@ -152,14 +137,12 @@ export function CustomerRoutePlannerMap({
               }}
             />
           ) : null}
-          {waypoints.map((wp, i) => (
-            <CircleMarker
-              key={`${wp.lat}-${wp.lng}-${i}`}
-              center={[wp.lat, wp.lng]}
-              radius={7}
-              pathOptions={{ color: "#f59e0b", fillColor: "#fbbf24", fillOpacity: 0.9, weight: 2 }}
-            />
-          ))}
+          <RouteWaypointMarkers
+            waypoints={waypoints}
+            editable={canEditWaypoints}
+            onWaypointsChange={onWaypointsChange}
+            deleteLabel={dict.routeDeleteWaypoint}
+          />
           {routeLine.length > 0 ? (
             <Polyline positions={routeLine} color="#ef4444" weight={4} opacity={0.85} />
           ) : null}

@@ -173,6 +173,7 @@ export default function ActiveSessionDashboard({
             onAddRouteWaypoint={(lat, lng) => {
               onRouteWaypointsChange([...plannedRouteWaypoints, { lat, lng }]);
             }}
+            onPlannedRouteWaypointsChange={onRouteWaypointsChange}
             onRouteDistance={(km) => setDistanceToDestKm(km)}
             events={timelineEvents}
             onEventClick={(id) => {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from "react-leaflet";
+import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
@@ -57,6 +58,8 @@ interface LiveMapProps {
   /** Klik na mapę dodaje punkt pośredni (wymaga `onAddRouteWaypoint`). */
   editableRoute?: boolean;
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
+  /** Pełna edycja punktów pośrednich (przeciąganie, usuwanie dowolnego). */
+  onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
 }
 
 export default function LiveMap({
@@ -70,6 +73,7 @@ export default function LiveMap({
   preferPivotNavigation = false,
   editableRoute = false,
   onAddRouteWaypoint,
+  onPlannedRouteWaypointsChange,
 }: LiveMapProps) {
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
@@ -81,6 +85,8 @@ export default function LiveMap({
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const dict = getDictionary().admin.map;
+  const customersDict = getDictionary().admin.customers;
+  const canEditWaypoints = Boolean(editableRoute && onPlannedRouteWaypointsChange);
 
   const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
   const navPivotMode = Boolean(preferPivotNavigation);
@@ -167,14 +173,12 @@ export default function LiveMap({
 
         <TraveledPathLayers path={pathTraveled} legend={speedLegend} />
 
-        {plannedRouteWaypoints.map((wp, i) => (
-          <CircleMarker
-            key={`wp-${wp.lat}-${wp.lng}-${i}`}
-            center={[wp.lat, wp.lng]}
-            radius={6}
-            pathOptions={{ color: "#f59e0b", fillColor: "#fbbf24", fillOpacity: 0.9, weight: 2 }}
-          />
-        ))}
+        <RouteWaypointMarkers
+          waypoints={plannedRouteWaypoints}
+          editable={canEditWaypoints}
+          onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
+          deleteLabel={customersDict.routeDeleteWaypoint}
+        />
 
         {pathTraveled.length > 0 ? (
           <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
