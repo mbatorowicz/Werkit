@@ -12,6 +12,8 @@ import {
 } from "@/lib/materialCatalogTree";
 import type { CategoryHierarchyRow, CategoryTreeNode } from "@/lib/categoryTree";
 
+const EMPTY_CATALOG_MATERIALS: CatalogMaterialRow[] = [];
+
 export type CatalogCategoryItem = CategoryHierarchyRow & {
   color?: string | null;
   isStationary?: boolean;
@@ -56,7 +58,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   uncategorizedTitle,
   stationaryBadge,
   categories,
-  materials = [],
+  materials,
   isLoading,
   canMutate,
   onAddCategory,
@@ -66,8 +68,12 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   onEditMaterial,
   onDeleteMaterial,
 }: Props<T>) {
+  const materialList = materials ?? EMPTY_CATALOG_MATERIALS;
   const roots = useMemo(() => buildMaterialCategoryTree(categories), [categories]);
-  const materialIndex = useMemo(() => indexMaterialsByCategory(categories, materials), [categories, materials]);
+  const materialIndex = useMemo(
+    () => indexMaterialsByCategory(categories, materialList),
+    [categories, materialList],
+  );
   const branchStats = useMemo(
     () => computeCategoryBranchStats(roots, materialIndex.byCategoryId),
     [roots, materialIndex.byCategoryId],
@@ -79,17 +85,28 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   useEffect(() => {
     const ids = collectExpandableCategoryIds(roots, materialIndex.byCategoryId);
     setExpanded((prev) => {
+      let changed = false;
       const next = new Set(prev);
-      for (const id of ids) next.add(id);
-      return next;
+      for (const id of ids) {
+        if (!next.has(id)) {
+          next.add(id);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
     });
-  }, [roots, materialIndex.byCategoryId, categories]);
+  }, [roots, materialIndex.byCategoryId]);
 
   const toggleExpanded = (id: number) => {
     setExpanded((prev) => {
+      if (!prev.has(id)) {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      }
+      if (prev.size === 1) return new Set<number>();
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.delete(id);
       return next;
     });
   };
