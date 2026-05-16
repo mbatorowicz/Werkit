@@ -10,6 +10,7 @@ import { getDictionary } from "@/i18n";
  *
  * `scrollableBody` — `max-h-[90vh]` na panelu + treść w przewijalnej strefie (`flex-1 min-h-0 overflow-y-auto`).
  * `footer` — opcjonalna belka pod treścią (np. akcje); razem ze `scrollableBody` trzyma stopkę widoczną przy długiej treści.
+ * `closeOnBackdropClick` — domyślnie true; false = zamknięcie tylko przez X / Anuluj / po zapisie.
  */
 export function AdminModalShell({
   open,
@@ -19,8 +20,10 @@ export function AdminModalShell({
   maxWidthClass = "max-w-sm",
   titleSize = "sm",
   scrollableBody = false,
+  closeOnBackdropClick = true,
   footer,
   footerClassName,
+  zIndexClass = "z-[100]",
 }: {
   open: boolean;
   onClose: () => void;
@@ -29,8 +32,11 @@ export function AdminModalShell({
   maxWidthClass?: string;
   titleSize?: "sm" | "lg";
   scrollableBody?: boolean;
+  closeOnBackdropClick?: boolean;
   footer?: ReactNode;
   footerClassName?: string;
+  /** Warstwa nad mapą Leaflet itd. — worker: `z-[9999]`. */
+  zIndexClass?: string;
 }) {
   if (!open) return null;
 
@@ -62,10 +68,14 @@ export function AdminModalShell({
     );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} aria-hidden />
+    <div className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4`}>
       <div
-        className={`relative z-10 flex w-full ${maxWidthClass} flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900 ${scrollableBody ? "max-h-[90vh]" : ""}`}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={closeOnBackdropClick ? onClose : undefined}
+        aria-hidden
+      />
+      <div
+        className={`relative z-10 flex w-full ${maxWidthClass} flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900 ${scrollableBody || footer != null ? "max-h-[90vh]" : ""}`}
       >
         <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/80">
           <h2 className={titleClass}>{title}</h2>

@@ -64,7 +64,7 @@ export function OrdersDispatchTable({
   onRowClick: (item: UnifiedGanttItem) => void;
   onDeleteWorkOrder: (id: number) => Promise<void>;
   onForceCompleteSession: (sessionId: number) => Promise<void>;
-  onDeleteArchivedSession: (sessionId: number) => Promise<void>;
+  onDeleteArchivedSession: (sessionId: number, adminPassword: string) => Promise<void>;
 }) {
   void _tableColSpan;
   void onDeleteWorkOrder;

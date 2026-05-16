@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAppDialog } from '@/components/AppDialogProvider';
 import { formatDict } from '@/i18n';
 import type { AppDictionary } from '@/i18n/types';
 import { fetchWithDeviceTelemetry } from '@/lib/fetchWithDeviceTelemetry';
@@ -26,6 +27,7 @@ export function useWorkerActions({
   distanceToDestKm,
   categoryIsStationary = false,
 }: UseWorkerActionsProps) {
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
@@ -35,11 +37,11 @@ export function useWorkerActions({
     if (settings?.requirePhotoToFinish) {
       const hasPhoto = timelineEvents.some(e => e.type === 'photo');
       if (!hasPhoto) {
-        alert(dict.photoReqFinish);
+        await appAlert({ message: dict.photoReqFinish });
         return;
       }
     }
-    if (!confirm(dict.confirmEndSession)) return;
+    if (!(await appConfirm({ message: dict.confirmEndSession, variant: "danger" }))) return;
     setIsLoading(true);
     try {
       const endRes = await fetchWithDeviceTelemetry("Worker: end session PUT", "/api/worker/session", {
@@ -52,7 +54,7 @@ export function useWorkerActions({
         ),
       }, { category: "session" });
       if (!endRes.ok) {
-        alert(dict.errEndSession);
+        await appAlert({ message: dict.errEndSession });
         return;
       }
       GPSManager.clearQueue();
@@ -60,7 +62,7 @@ export function useWorkerActions({
       await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
-      alert(dict.errEndSession);
+      await appAlert({ message: dict.errEndSession });
     } finally {
       setIsLoading(false);
     }
@@ -88,33 +90,33 @@ export function useWorkerActions({
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status }, { category: 'orders' });
-        alert(dict.errAcceptOrder);
+        await appAlert({ message: dict.errAcceptOrder });
       }
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e instanceof Error ? e.message : String(e) }, { category: 'orders' });
-      alert(dict.errNetwork);
+      await appAlert({ message: dict.errNetwork });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleCancelSession = async () => {
-    if (!confirm(dict.confirmCancelSession)) return;
+    if (!(await appConfirm({ message: dict.confirmCancelSession, variant: "danger" }))) return;
     setIsLoading(true);
     try {
       const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" }, { category: "orders" });
       if (res.ok) {
         sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' }, { category: 'orders' });
         GPSManager.clearQueue();
-        alert(dict.cancelSuccess);
+        await appAlert({ message: dict.cancelSuccess });
         await fetchSessionAndPath(true, true);
       } else {
         sendRemoteLog('ERROR', 'Błąd podczas cofania zlecenia API Error', undefined, { category: 'orders' });
-        alert(dict.errCancel);
+        await appAlert({ message: dict.errCancel });
       }
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd sieci przy cofaniu zlecenia', { error: e instanceof Error ? e.message : String(e) }, { category: 'orders' });
-      alert(dict.errNetwork);
+      await appAlert({ message: dict.errNetwork });
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +130,7 @@ export function useWorkerActions({
           dist: Math.round(distMeters),
           max: settings.geofenceRadiusMeters,
         });
-        if (!confirm(msg)) return;
+        if (!(await appConfirm({ message: msg, variant: "danger" }))) return;
       }
     }
     setIsLoading(true);
@@ -143,11 +145,11 @@ export function useWorkerActions({
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Błąd zapisywania checkpointu (API Error)', undefined, { category: 'session' });
-        alert(dict.errSaveNote);
+        await appAlert({ message: dict.errSaveNote });
       }
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd sieci przy zapisie checkpointu', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
-      alert(dict.errNetwork);
+      await appAlert({ message: dict.errNetwork });
     } finally {
       setIsLoading(false);
     }
@@ -182,11 +184,11 @@ export function useWorkerActions({
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Błąd zapisywania notatki (API Error)', undefined, { category: 'session' });
-        alert(dict.errSaveNote);
+        await appAlert({ message: dict.errSaveNote });
       }
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd sieci podczas zapisywania notatki', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
-      alert(dict.errNetwork);
+      await appAlert({ message: dict.errNetwork });
     } finally {
       setIsSubmittingNote(false);
     }
@@ -222,11 +224,11 @@ export function useWorkerActions({
           await fetchSessionAndPath(false, false);
         } else {
           sendRemoteLog('ERROR', 'Błąd wysyłania zdjęcia (API Error)', undefined, { category: 'session' });
-          alert(dict.photoError);
+          await appAlert({ message: dict.photoError });
         }
       } catch (err: unknown) {
         sendRemoteLog('ERROR', 'Błąd kompresji lub wysyłania zdjęcia', { error: err instanceof Error ? err.message : String(err) }, { category: 'session' });
-        alert(dict.errProcessPhoto);
+        await appAlert({ message: dict.errProcessPhoto });
       } finally {
         setIsLoading(false);
       }

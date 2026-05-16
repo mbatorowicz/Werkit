@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 export type SettingsSnapshot = {
   id?: number;
@@ -32,6 +33,8 @@ export default function SettingsForm({
 }) {
   const { canMutate } = useAdminAbility();
   const router = useRouter();
+  const { alert: appAlert } = useAppDialog();
+  const dict = getDictionary().admin.settings;
   const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
   const [address, setAddress] = useState(initialData?.companyAddress || "");
   const [zipCode, setZipCode] = useState(initialData?.zipCode || "");
@@ -78,14 +81,12 @@ export default function SettingsForm({
           setTimeout(() => setSaveStatus("IDLE"), 2000);
        } else {
           setSaveStatus("IDLE");
-          alert("Błąd zapisu.");
+          await appAlert({ message: dict.saveError });
        }
     } catch {
        setSaveStatus("IDLE");
     }
   };
-
-  const dict = getDictionary().admin.settings;
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">

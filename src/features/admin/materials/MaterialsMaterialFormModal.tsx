@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
 import type { AppDictionary } from "@/i18n/types";
 import type { MaterialCategory, MaterialItemFormState } from "@/features/admin/materials/types";
 
@@ -37,8 +38,18 @@ export function MaterialsMaterialFormModal({
       title={isEdit ? dict.modalEditTitle : dict.modalCreateTitle}
       maxWidthClass="max-w-lg"
       titleSize="lg"
+      scrollableBody
+      closeOnBackdropClick={false}
+      footer={
+        <FormModalFooter
+          formId="admin-material-form"
+          onCancel={onClose}
+          submitLabel={dict.saveFleet}
+          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-amber-600 text-white text-sm font-bold hover:bg-amber-500 transition flex items-center justify-center min-w-[7rem]"
+        />
+      }
     >
-      <form onSubmit={onSubmit} className="space-y-6 p-6">
+      <form id="admin-material-form" onSubmit={onSubmit} className="space-y-6 p-6">
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-400">{dict.nameLabel}</label>
           <input
@@ -72,14 +83,6 @@ export function MaterialsMaterialFormModal({
             ))}
           </div>
           {categories.length === 0 ? <p className="text-xs text-red-400">{machDict.machCatWarning}</p> : null}
-        </div>
-        <div className="border-t border-zinc-800 pt-4">
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-amber-600 py-3 font-bold text-white shadow-sm transition hover:bg-amber-500 active:scale-[0.98]"
-          >
-            {dict.saveFleet}
-          </button>
         </div>
       </form>
     </AdminModalShell>

@@ -11,6 +11,10 @@ import {
   isNativeBiometricContext,
   saveBiometricCredentials,
 } from "@/lib/biometricLogin";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
+
+const BIOMETRIC_FORM_ID = "worker-biometric-pwd-form";
 
 type Role = "worker" | "admin";
 
@@ -183,44 +187,54 @@ export function BiometricLoginSettings({
         <div className="mt-2 text-sm text-red-500 px-1">{error}</div>
       )}
 
-      {pwdOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-1">{dict.biometricConfirmTitle}</h3>
-            <p className="text-xs text-zinc-500 mb-4">{dict.biometricConfirmHint}</p>
-            <input
+      <AdminModalShell
+        open={pwdOpen}
+        onClose={() => {
+          setPwdOpen(false);
+          setPwd("");
+          setError("");
+        }}
+        title={dict.biometricConfirmTitle}
+        maxWidthClass="max-w-sm"
+        titleSize="lg"
+        zIndexClass="z-[9999]"
+        scrollableBody
+        closeOnBackdropClick={false}
+        footer={
+          <FormModalFooter
+            formId={BIOMETRIC_FORM_ID}
+            onCancel={() => {
+              setPwdOpen(false);
+              setPwd("");
+              setError("");
+            }}
+            cancelLabel={dict.biometricCancel}
+            submitLabel={busy ? "…" : dict.biometricConfirmSave}
+            isSubmitting={busy}
+            submitDisabled={!pwd.trim()}
+            submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
+          />
+        }
+      >
+        <form
+          id={BIOMETRIC_FORM_ID}
+          className="space-y-4 p-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submitEnableWithPassword();
+          }}
+        >
+          <p className="text-xs text-zinc-500">{dict.biometricConfirmHint}</p>
+          <input
               type="password"
               autoComplete="current-password"
               value={pwd}
               onChange={(e) => setPwd(e.target.value)}
               placeholder={dict.biometricPasswordPlaceholder}
-              className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 mb-4 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  setPwdOpen(false);
-                  setPwd("");
-                  setError("");
-                }}
-                className="px-4 py-2 rounded-lg text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              >
-                {dict.biometricCancel}
-              </button>
-              <button
-                type="button"
-                disabled={busy || !pwd.trim()}
-                onClick={() => void submitEnableWithPassword()}
-                className="px-4 py-2 rounded-lg text-sm bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
-              >
-                {busy ? "…" : dict.biometricConfirmSave}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          />
+        </form>
+      </AdminModalShell>
     </>
   );
 }

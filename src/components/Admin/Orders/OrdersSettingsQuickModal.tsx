@@ -1,7 +1,9 @@
 "use client";
 
-import { Loader2, Settings, X } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 import SettingsForm, { type SettingsSnapshot } from "@/app/admin/settings/SettingsForm";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { getDictionary } from "@/i18n";
 
 export function OrdersSettingsQuickModal({
   isOpen,
@@ -14,34 +16,41 @@ export function OrdersSettingsQuickModal({
   settingsData: unknown;
   title: string;
 }) {
-  if (!isOpen) return null;
+  const uiDict = getDictionary().admin.ui;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-200 overflow-y-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
-          <h2 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <Settings className="w-5 h-5 text-zinc-500" /> {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors bg-zinc-100 dark:bg-zinc-800 p-2 rounded-full"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-2">
-          {settingsData ? (
-            <SettingsForm initialData={settingsData as SettingsSnapshot} mode="orders" />
-          ) : (
-            <div className="p-12 flex justify-center">
-              <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
-            </div>
-          )}
-        </div>
+    <AdminModalShell
+      open={isOpen}
+      onClose={onClose}
+      title={
+        <span className="flex items-center gap-2">
+          <Settings className="h-5 w-5 text-zinc-500" />
+          {title}
+        </span>
+      }
+      maxWidthClass="max-w-4xl"
+      titleSize="lg"
+      scrollableBody
+      closeOnBackdropClick={false}
+      footer={
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full sm:w-auto sm:ml-auto px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+        >
+          {uiDict.modalCancel}
+        </button>
+      }
+    >
+      <div className="p-2">
+        {settingsData ? (
+          <SettingsForm initialData={settingsData as SettingsSnapshot} mode="orders" />
+        ) : (
+          <div className="flex justify-center p-12">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+          </div>
+        )}
       </div>
-    </div>
+    </AdminModalShell>
   );
 }

@@ -8,10 +8,13 @@ import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminUserRows, type AdminUserListRow } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
 
 export default function UsersClient() {
   const { canMutate } = useAdminAbility();
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [users, setUsers] = useState<AdminUserListRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,7 +62,7 @@ export default function UsersClient() {
   }, [fetchUsers]);
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`${dict.confirmDelete} ${name}?`)) return;
+    if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" }))) return;
     try {
       const res = await fetchWithDeviceTelemetry(`Admin users: delete ${id}`, `/api/workers/${id}`, { method: "DELETE" }, {
         category: "admin",
@@ -69,10 +72,10 @@ export default function UsersClient() {
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
-        alert(apiErrors[code ?? ""] ?? code ?? dict.deleteError);
+        await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.deleteError) });
       }
     } catch {
-      alert(dict.networkError);
+      await appAlert({ message: dict.networkError });
     }
   };
 
@@ -121,10 +124,10 @@ export default function UsersClient() {
         setIsModalOpen(false);
         fetchUsers();
       } else {
-        alert(apiErrors[code ?? ""] ?? code ?? dict.saveError);
+        await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.saveError) });
       }
     } catch {
-      alert(dict.networkError);
+      await appAlert({ message: dict.networkError });
     }
     setIsSubmitting(false);
   };
@@ -235,8 +238,19 @@ export default function UsersClient() {
         title={editId ? dict.modalEditTitle : dict.modalCreateTitle}
         maxWidthClass="max-w-lg"
         titleSize="lg"
+        scrollableBody
+        closeOnBackdropClick={false}
+        footer={
+          <FormModalFooter
+            formId="admin-user-form"
+            onCancel={() => setIsModalOpen(false)}
+            submitLabel={editId ? dict.saveChanges : dict.createAccount}
+            isSubmitting={isSubmitting}
+            submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-sm font-bold hover:bg-zinc-800 dark:hover:bg-white transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
+          />
+        }
       >
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <form id="admin-user-form" onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-zinc-400">{dict.fullNameLabel}</label>
                 <input
@@ -338,16 +352,6 @@ export default function UsersClient() {
               <p className="-mt-1 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {editId ? dict.passwordEditHint : dict.accountCreateHint}
               </p>
-
-              <div className="pt-4">
-                <button
-                  disabled={isSubmitting}
-                  type="submit"
-                  className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold py-3 rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition active:scale-[0.98] shadow-sm disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : editId ? dict.saveChanges : dict.createAccount}
-                </button>
-              </div>
             </form>
       </AdminModalShell>
     </>

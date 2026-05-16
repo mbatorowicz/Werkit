@@ -8,6 +8,7 @@ import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
 import type { OrderFormState } from "@/types/admin";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { buildUnifiedDispatchItems } from "@/features/admin/orders/dispatchPlanning";
 import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchToolbar";
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
@@ -21,6 +22,7 @@ import { isRecord } from "@/lib/narrowApiListRows";
 
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
+  const { alert: appAlert } = useAppDialog();
 
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
@@ -99,10 +101,10 @@ export default function OrdersClient() {
     );
     if (!res.ok) {
       const code = await readAdminError(res);
-      alert(apiErrors[code ?? ""] ?? code ?? dict.error);
+      await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.error) });
       throw new Error(code ?? "delete_failed");
     }
-    alert(dict.mutationOk);
+    await appAlert({ message: dict.mutationOk });
     fetchData(true);
   };
 
@@ -115,27 +117,30 @@ export default function OrdersClient() {
     );
     if (!res.ok) {
       const code = await readAdminError(res);
-      alert(apiErrors[code ?? ""] ?? code ?? dict.error);
+      await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.error) });
       throw new Error(code ?? "complete_failed");
     }
-    alert(dict.mutationOk);
+    await appAlert({ message: dict.mutationOk });
     closeSessionDetails();
     fetchData(true);
   };
 
-  const handleDeleteArchivedSession = async (sessionId: number) => {
+  const handleDeleteArchivedSession = async (sessionId: number, adminPassword: string) => {
     const res = await fetchWithDeviceTelemetry(
       `Admin sessions: delete archived ${sessionId}`,
       `/api/admin/work-sessions/${sessionId}`,
-      { method: "DELETE" },
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: adminPassword }),
+      },
       { category: "admin" },
     );
     if (!res.ok) {
       const code = await readAdminError(res);
-      alert(apiErrors[code ?? ""] ?? code ?? dict.error);
       throw new Error(code ?? "delete_failed");
     }
-    alert(dict.mutationOk);
+    await appAlert({ message: dict.mutationOk });
     closeSessionDetails();
     fetchData(true);
   };
@@ -280,13 +285,13 @@ export default function OrdersClient() {
               { category: "admin" },
             );
             if (res.ok) {
-              alert(dict.success);
+              await appAlert({ message: dict.success });
               closeOrderModal();
               fetchData(true);
             } else {
               const body = await parseJsonUnknown(res);
               const code = readApiErrorString(body);
-              alert(apiErrors[code ?? ""] ?? code ?? dict.error);
+              await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.error) });
             }
           }}
           editingOrderId={editingOrderId}

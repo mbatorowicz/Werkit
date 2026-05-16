@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Edit2, Layers, Plus, Trash2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { MaterialsCategoryFormModal } from "@/features/admin/materials/MaterialsCategoryFormModal";
 import {
   EMPTY_CATEGORY_FORM,
@@ -33,6 +34,7 @@ export function MaterialsClientCategoriesPanel({
   canMutate,
   fetchData,
 }: Props) {
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [catEditId, setCatEditId] = useState<number | null>(null);
   const [catForm, setCatForm] = useState<MaterialCategoryFormState>(() => ({ ...EMPTY_CATEGORY_FORM }));
@@ -57,15 +59,15 @@ export function MaterialsClientCategoriesPanel({
         void fetchData();
       } else {
         const err = (await res.json()) as { error?: string };
-        alert(apiErrors[err.error ?? ""] ?? err.error);
+        await appAlert({ message: appDialogApiMessage(apiErrors, err.error, machDict.apiError) });
       }
     } catch {
-      alert(machDict.apiError);
+      await appAlert({ message: machDict.apiError });
     }
   };
 
   const handleCatDelete = async (id: number) => {
-    if (!confirm(dict.confirmCatDelete)) return;
+    if (!(await appConfirm({ message: dict.confirmCatDelete, variant: "danger" }))) return;
     const res = await fetchWithDeviceTelemetry(
       `Admin materials: delete category ${id}`,
       `/api/material-categories/${id}`,
@@ -75,7 +77,7 @@ export function MaterialsClientCategoriesPanel({
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()) as { error?: string };
-      alert(apiErrors[err.error ?? ""] ?? err.error);
+      await appAlert({ message: appDialogApiMessage(apiErrors, err.error, machDict.apiError) });
     }
   };
 

@@ -4,6 +4,7 @@ import type { ChangeEvent } from "react";
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from "react";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { ResourceFormModal } from "@/features/admin/machines/ResourceFormModal";
 import { machineResourceNameForEdit } from "@/features/admin/machines/machineResourceDisplay";
 import { mergeResourceFieldVisibility } from "@/features/admin/machines/resourceVisibility";
@@ -32,6 +33,7 @@ type Props = {
 
 export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFormHandle, Props>(
   function MachinesClientMachineFormPanel({ dict, apiErrors, categories, fetchData }, ref) {
+    const { alert: appAlert } = useAppDialog();
     const [isMMOpen, setIsMMOpen] = useState(false);
     const [mEditId, setMEditId] = useState<number | null>(null);
     const [mForm, setMForm] = useState<MachineFormState>(() => createEmptyMachineForm());
@@ -51,7 +53,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         vis.showResourceDescription ? mForm.description : null,
       );
       if (!canonical.trim()) {
-        alert(dict.machIdentityRequired);
+        await appAlert({ message: dict.machIdentityRequired });
         return;
       }
       const url = mEditId ? `/api/machines/${mEditId}` : "/api/machines";
@@ -80,10 +82,10 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
           void fetchData();
         } else {
           const err = (await res.json()).error;
-          alert(apiErrors[err] || err);
+          await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
         }
       } catch {
-        alert(dict.apiError);
+        await appAlert({ message: dict.apiError });
       }
     };
 
@@ -94,12 +96,12 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         if (!file) return;
         const dataUrl = await compressVehiclePhotoToDataUrl(file);
         if (!dataUrl) {
-          alert(dict.apiError);
+          await appAlert({ message: dict.apiError });
           return;
         }
         setMForm((prev) => ({ ...prev, imageUrl: dataUrl }));
       },
-      [dict.apiError],
+      [appAlert, dict.apiError],
     );
 
     useImperativeHandle(ref, () => ({

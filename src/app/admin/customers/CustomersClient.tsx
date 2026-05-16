@@ -8,7 +8,9 @@ import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminCustomerRows, type AdminCustomerListRow } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
 import dynamic from "next/dynamic";
 
 function CustomerMapPickerLoading() {
@@ -30,6 +32,7 @@ type Customer = AdminCustomerListRow;
 
 export default function CustomersClient() {
   const { canMutate } = useAdminAbility();
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,6 +46,7 @@ export default function CustomersClient() {
   const ordersDict = dictionary.admin.orders;
   const pageTitle = dictionary.admin.sidebar.customers;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
+  const customerFormId = "admin-customer-form";
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -82,16 +86,16 @@ export default function CustomersClient() {
       } else {
         const body = await parseJsonUnknown(res);
         const err = readApiErrorString(body);
-        alert(apiErrors[err ?? ""] ?? err ?? machinesDict.apiError);
+        await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
       }
     } catch {
-      alert(machinesDict.apiError);
+      await appAlert({ message: machinesDict.apiError });
     }
     setIsSubmitting(false);
   };
 
   const handleDelete = async (id: number) => {
-     if(!confirm(dict.confirmDelete)) return;
+     if (!(await appConfirm({ message: dict.confirmDelete, variant: "danger" }))) return;
      const res = await fetchWithDeviceTelemetry(
        `Admin customers: delete ${id}`,
        `/api/customers/${id}`,
@@ -102,7 +106,7 @@ export default function CustomersClient() {
      else {
        const body = await parseJsonUnknown(res);
        const err = readApiErrorString(body);
-       alert(apiErrors[err ?? ""] ?? err ?? machinesDict.apiError);
+       await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
      }
   };
 
@@ -199,8 +203,18 @@ export default function CustomersClient() {
         title={editId ? dict.modalEditTitle : dict.modalCreateTitle}
         maxWidthClass={editId ? "max-w-3xl" : "max-w-lg"}
         titleSize="lg"
+        scrollableBody
+        closeOnBackdropClick={false}
+        footer={
+          <FormModalFooter
+            formId={customerFormId}
+            onCancel={() => setIsModalOpen(false)}
+            submitLabel={isSubmitting ? ordersDict.saving : editId ? dict.save : dict.create}
+            isSubmitting={isSubmitting}
+          />
+        }
       >
-              <form onSubmit={handleSave} className="p-6 space-y-5">
+              <form id={customerFormId} onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                      <label className="text-sm font-medium text-zinc-400">{dict.firstNameLabel}</label>
@@ -234,12 +248,6 @@ export default function CustomersClient() {
                  </div>
 
                  {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
-
-                 <div className="pt-4 border-t border-zinc-800">
-                    <button disabled={isSubmitting} type="submit" className="w-full bg-indigo-600 text-zinc-900 dark:text-white font-bold py-3 rounded-lg hover:bg-indigo-500 transition active:scale-[0.98] shadow-sm disabled:opacity-50">
-                       {isSubmitting ? ordersDict.saving : editId ? dict.save : dict.create}
-                    </button>
-                 </div>
               </form>
       </AdminModalShell>
     </>

@@ -179,7 +179,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
-| `/api/admin/work-sessions/[id]` | DELETE | `deleteArchivedSession` (sprzątanie + delete `work_orders` jeśli sesja z dyspozycji) |
+| `/api/admin/work-sessions/[id]` | DELETE | Body JSON `{ password }` → `AdminUserService.verifyPasswordForUserId` (zalogowany admin); potem `deleteArchivedSession`. 400 `admin_password_required`, 401 `invalid_credentials`, 409 `session_still_active` |
 | `/api/admin/work-sessions/[id]/force-complete` | POST | `forceCompleteSession` — ratunek dla zawieszonej `IN_PROGRESS` |
 | `/api/workers` | GET | `AdminUserService.getAllUsers` |
 | `/api/workers` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; `23505 → user_exists` |
@@ -297,9 +297,15 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 `src/components/Admin/**`:
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
+- `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
+- `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
 - `Reports/ReportsDashboard.tsx`, `Reports/ReportStatCard.tsx`.
+
+`src/components/` (współdzielone admin + worker):
+- `AppDialogProvider.tsx` + `useAppDialog()` — globalne alert/confirm (root `src/app/layout.tsx`); **`appDialogApiMessage`**. Zakaz natywnych `window.alert` / `confirm`.
+- `FormModalFooter.tsx` — stopka Anuluj/Zapisz w modalach CRUD.
 
 `src/components/GanttChart/GanttChart.tsx` — wykres Gantta dla `UnifiedGanttItem[]`.
 

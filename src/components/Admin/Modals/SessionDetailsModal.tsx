@@ -19,6 +19,8 @@ import { getDictionary, type Locale } from "@/i18n";
 import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { AdminPasswordConfirmModal } from "@/components/Admin/AdminPasswordConfirmModal";
+import { useAppDialog } from "@/components/AppDialogProvider";
 import { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -59,11 +61,12 @@ export default function SessionDetailsModal({
   onEdit?: (item: UnifiedGanttItem) => void;
   canMutate?: boolean;
   onForceCompleteSession?: (sessionId: number) => Promise<void>;
-  onDeleteArchivedSession?: (sessionId: number) => Promise<void>;
+  onDeleteArchivedSession?: (sessionId: number, adminPassword: string) => Promise<void>;
   /** Domyślnie PL; w przyszłości z cookies / profilem (jak `getDictionary` w layoutach). */
   locale?: Locale;
 }) {
   const resolvedLocale = locale ?? "pl";
+  const { confirm: appConfirm } = useAppDialog();
   const dictionary = useMemo(() => getDictionary(resolvedLocale), [resolvedLocale]);
   const dict = dictionary.admin.orders;
   const adminUi = dictionary.admin.ui;
@@ -78,6 +81,9 @@ export default function SessionDetailsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [actionBusy, setActionBusy] = useState<null | "complete" | "delete">(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [deletePwdOpen, setDeletePwdOpen] = useState(false);
+  const [deletePwdError, setDeletePwdError] = useState<string | null>(null);
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   useEffect(() => {
     if (item._type !== "SESSION") return;
@@ -168,7 +174,7 @@ export default function SessionDetailsModal({
           type="button"
           disabled={actionBusy !== null}
           onClick={async () => {
-            if (!dict.forceCompleteConfirm || !confirm(dict.forceCompleteConfirm)) return;
+            if (!dict.forceCompleteConfirm || !(await appConfirm({ message: dict.forceCompleteConfirm, variant: "danger" }))) return;
             setActionBusy("complete");
             try {
               await onForceCompleteSession(item.id);
@@ -188,16 +194,9 @@ export default function SessionDetailsModal({
         <button
           type="button"
           disabled={actionBusy !== null}
-          onClick={async () => {
-            if (!dict.deleteArchivedConfirm || !confirm(dict.deleteArchivedConfirm)) return;
-            setActionBusy("delete");
-            try {
-              await onDeleteArchivedSession(item.id);
-            } catch {
-              /* alert po stronie rodzica */
-            } finally {
-              setActionBusy(null);
-            }
+          onClick={() => {
+            setDeletePwdError(null);
+            setDeletePwdOpen(true);
           }}
           className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-500/15 disabled:opacity-50 dark:border-red-500/25 dark:text-red-400"
         >
@@ -221,6 +220,7 @@ export default function SessionDetailsModal({
         maxWidthClass="max-w-4xl"
         titleSize="lg"
         scrollableBody
+        closeOnBackdropClick={false}
         footer={footerContent}
         footerClassName="flex flex-wrap justify-end gap-2"
       >
@@ -363,6 +363,34 @@ export default function SessionDetailsModal({
           )}
         </div>
       </AdminModalShell>
+
+      <AdminPasswordConfirmModal
+        open={deletePwdOpen}
+        onClose={() => {
+          if (actionBusy === "delete") return;
+          setDeletePwdOpen(false);
+          setDeletePwdError(null);
+        }}
+        title={dict.deleteArchivedPasswordTitle}
+        description={dict.deleteArchivedPasswordHint}
+        confirmLabel={dict.deleteArchivedPasswordConfirm}
+        isSubmitting={actionBusy === "delete"}
+        error={deletePwdError}
+        onConfirm={async (password) => {
+          if (!onDeleteArchivedSession) return;
+          setDeletePwdError(null);
+          setActionBusy("delete");
+          try {
+            await onDeleteArchivedSession(item.id, password);
+            setDeletePwdOpen(false);
+          } catch (err) {
+            const code = err instanceof Error ? err.message : "";
+            setDeletePwdError(apiErrors[code] ?? code ?? dict.error);
+          } finally {
+            setActionBusy(null);
+          }
+        }}
+      />
 
       {lightboxIndex !== null ? (
         <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-md">

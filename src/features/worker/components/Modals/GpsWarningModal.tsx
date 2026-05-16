@@ -3,6 +3,8 @@
 import { Navigation } from "lucide-react";
 import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
 import type { AppDictionary } from "@/i18n/types";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooterActions } from "@/components/FormModalFooter";
 
 type WorkerClientDict = AppDictionary["worker"]["client"];
 
@@ -23,22 +25,22 @@ export default function GpsWarningModal({
   handleAcceptOrder,
   dict,
 }: GpsWarningModalProps) {
-  if (!showGpsWarning) return null;
+  const dismiss = () => {
+    setShowGpsWarning(false);
+    setPendingOrderId(null);
+  };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowGpsWarning(false)}></div>
-      <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
-        <div className="bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 p-3 rounded-full w-14 h-14 flex items-center justify-center mx-auto mb-4">
-          <Navigation className="w-8 h-8" />
-        </div>
-        <h2 className="text-xl font-bold text-center text-zinc-900 dark:text-white mb-2">{dict.gpsAlwaysPermissionTitle}</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center mb-6">
-          {dict.gpsAlwaysPermissionLead}
-          <strong className="text-zinc-900 dark:text-white">{dict.gpsAlwaysPermissionEmphasis}</strong>
-          {dict.gpsAlwaysPermissionTail}
-        </p>
-        <div className="flex flex-col gap-3">
+    <AdminModalShell
+      open={showGpsWarning}
+      onClose={dismiss}
+      title={dict.gpsAlwaysPermissionTitle}
+      maxWidthClass="max-w-md"
+      titleSize="lg"
+      zIndexClass="z-[9999]"
+      closeOnBackdropClick={false}
+      footer={
+        <FormModalFooterActions onCancel={dismiss}>
           <button
             type="button"
             onClick={async () => {
@@ -46,7 +48,7 @@ export default function GpsWarningModal({
                 await backgroundGeolocation.openSettings();
               }
             }}
-            className="w-full bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 font-bold text-sm transition-all"
+            className="w-full rounded-lg bg-amber-600 py-3 text-sm font-bold text-white transition hover:bg-amber-500"
           >
             {dict.gpsOpenPhoneSettings}
           </button>
@@ -60,12 +62,23 @@ export default function GpsWarningModal({
                 setPendingOrderId(null);
               }
             }}
-            className="w-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-lg py-3 font-bold text-sm transition-all"
+            className="w-full rounded-lg bg-zinc-100 py-3 text-sm font-bold text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
           >
             {dict.gpsUnderstandAlwaysSet}
           </button>
+        </FormModalFooterActions>
+      }
+    >
+      <div className="flex flex-col items-center px-6 pb-2 pt-4 text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 p-3 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
+          <Navigation className="h-8 w-8" />
         </div>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {dict.gpsAlwaysPermissionLead}
+          <strong className="text-zinc-900 dark:text-white">{dict.gpsAlwaysPermissionEmphasis}</strong>
+          {dict.gpsAlwaysPermissionTail}
+        </p>
       </div>
-    </div>
+    </AdminModalShell>
   );
 }

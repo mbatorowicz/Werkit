@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
+import { useAppDialog } from "@/components/AppDialogProvider";
 import type { AppDictionary } from "@/i18n/types";
 import {
   OrderFormState,
@@ -53,6 +55,7 @@ export default function OrderFormModal({
 }) {
   const [form, setForm] = useState<OrderFormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { confirm: appConfirm } = useAppDialog();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -96,8 +99,41 @@ export default function OrderFormModal({
       maxWidthClass="max-w-xl"
       titleSize="lg"
       scrollableBody
+      closeOnBackdropClick={false}
+      footer={
+        <FormModalFooter
+          formId="admin-order-form"
+          onCancel={onClose}
+          submitLabel={isSubmitting ? dict.saving : dict.save}
+          isSubmitting={isSubmitting}
+          submitDisabled={!selectedCategory || noMachinesForCategory}
+          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
+          leading={
+            editingOrderId && onDeletePending ? (
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={async () => {
+                  const msg = dict.deletePendingConfirm;
+                  if (!msg || !(await appConfirm({ message: msg, variant: "danger" }))) return;
+                  setIsSubmitting(true);
+                  try {
+                    await onDeletePending();
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-500/10 py-3 font-semibold text-red-700 transition hover:bg-red-500/15 active:scale-[0.98] disabled:opacity-50 dark:border-red-500/30 dark:text-red-400"
+              >
+                <Trash2 className="h-4 w-4 shrink-0" />
+                {dict.deletePendingOrderLabel}
+              </button>
+            ) : undefined
+          }
+        />
+      }
     >
-      <form onSubmit={handleSubmit} className="space-y-5 p-6">
+      <form id="admin-order-form" onSubmit={handleSubmit} className="space-y-5 p-6">
         {/* 1. Typ pracy */}
         <div className={FIELD}>
           <label className={LABEL}>{dict.jobType}</label>
@@ -306,35 +342,6 @@ export default function OrderFormModal({
           </label>
         </div>
 
-        <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-          <button
-            disabled={isSubmitting || !selectedCategory || noMachinesForCategory}
-            type="submit"
-            className="w-full rounded-lg bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? dict.saving : dict.save}
-          </button>
-          {editingOrderId && onDeletePending ? (
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={async () => {
-                const msg = dict.deletePendingConfirm;
-                if (!msg || !confirm(msg)) return;
-                setIsSubmitting(true);
-                try {
-                  await onDeletePending();
-                } finally {
-                  setIsSubmitting(false);
-                }
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-500/10 py-3 font-semibold text-red-700 transition hover:bg-red-500/15 active:scale-[0.98] disabled:opacity-50 dark:border-red-500/30 dark:text-red-400"
-            >
-              <Trash2 className="h-4 w-4 shrink-0" />
-              {dict.deletePendingOrderLabel}
-            </button>
-          ) : null}
-        </div>
       </form>
     </AdminModalShell>
   );

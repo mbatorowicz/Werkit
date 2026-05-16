@@ -2,6 +2,7 @@
 
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { MachinesResourcesTable } from "@/features/admin/machines/MachinesResourcesTable";
 import type { MachinesCategory, MachinesResource } from "@/features/admin/machines/types";
 
@@ -30,8 +31,9 @@ export function MachinesClientResourcesTablePanel({
   onAddResource,
   onEditResource,
 }: Props) {
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const handleMDelete = async (id: number) => {
-    if (!confirm(dict.confirmMachDelete)) return;
+    if (!(await appConfirm({ message: dict.confirmMachDelete, variant: "danger" }))) return;
     const res = await fetchWithDeviceTelemetry(
       `Admin machines: delete resource ${id}`,
       `/api/machines/${id}`,
@@ -41,7 +43,7 @@ export function MachinesClientResourcesTablePanel({
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()).error;
-      alert(apiErrors[err] || err);
+      await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
     }
   };
 

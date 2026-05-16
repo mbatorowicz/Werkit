@@ -96,6 +96,27 @@ Przykłady klas (aktualna lista w repo):
 
 Design: **zinc / emerald**, motion lekkie (CSS), bez blokowania głównego wątku ciężkimi pętlami w renderze.
 
+### Modale formularzy i komunikaty (SSOT — admin + worker)
+
+| Komponent | Rola |
+|-----------|------|
+| [`AdminModalShell`](./src/components/Admin/AdminModalShell.tsx) | Obudowa modali edycji: `scrollableBody`, `footer`, `closeOnBackdropClick={false}` domyślnie, opcjonalny `zIndexClass`. |
+| [`FormModalFooter`](./src/components/FormModalFooter.tsx) | Stopka Anuluj + Zapisz (lub `FormModalFooterActions`) — jeden wzorzec przycisków w formularzach. |
+| [`AppDialogProvider`](./src/components/AppDialogProvider.tsx) | Globalne **`alert`** / **`confirm`** (Promise API) — podpięty w root [`src/app/layout.tsx`](./src/app/layout.tsx). **Zakaz** `window.alert` / `window.confirm`. |
+| [`AdminPasswordConfirmModal`](./src/components/Admin/AdminPasswordConfirmModal.tsx) | Potwierdzenie hasłem przy trwałym usuwaniu zakończonej sesji z ewidencji. |
+
+**Wzorzec w Client Component / hooku:**
+
+```ts
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
+
+const { alert: appAlert, confirm: appConfirm } = useAppDialog();
+await appAlert({ message: appDialogApiMessage(apiErrors, code, fallback) });
+if (!(await appConfirm({ message: dict.deleteConfirm, variant: "danger" }))) return;
+```
+
+Tytuły i etykiety przycisków dialogów: `admin.ui.dialogAlertTitle`, `dialogConfirmTitle`, `dialogOk`, `dialogConfirm` (i18n). Usunięcie archiwum sesji: `DELETE /api/admin/work-sessions/[id]` z ciałem `{ password }` — weryfikacja `AdminUserService.verifyPasswordForUserId` (kody: `admin_password_required`, `invalid_credentials`).
+
 ---
 
 ## 7. Mobilność, GPS, tło
@@ -135,4 +156,4 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*

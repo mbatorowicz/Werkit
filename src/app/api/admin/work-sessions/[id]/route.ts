@@ -1,9 +1,10 @@
-import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { cookies } from 'next/headers';
-import { JWT_SECRET } from '@/lib/auth';
+import { JWT_SECRET, getUserId } from '@/lib/auth';
 import { jwtVerify } from 'jose';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { AdminSessionService } from '@/services/AdminSessionService';
+import { AdminUserService } from '@/services/AdminUserService';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,12 +21,22 @@ export const GET = withApiErrorHandling(async (_request: Request, context: { par
 }, { defaultErrorCode: "fetch_error" });
 
 export const DELETE = withApiErrorHandling(
-  async (_request: Request, context: { params: Promise<{ id: string }> }) => {
+  async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const denied = await guardAdminMutation();
     if (denied) return denied;
 
     const sessionId = parseInt((await context.params).id, 10);
     if (Number.isNaN(sessionId)) return jsonError("invalid_id", 400);
+
+    const body = await parseJsonBody(request);
+    const password = typeof body.password === "string" ? body.password : "";
+    if (!password.trim()) return jsonError("admin_password_required", 400);
+
+    const userId = await getUserId();
+    if (!userId) return jsonError("Unauthorized", 401);
+
+    const passwordOk = await AdminUserService.verifyPasswordForUserId(userId, password);
+    if (!passwordOk) return jsonError("invalid_credentials", 401);
 
     await AdminSessionService.deleteArchivedSession(sessionId);
     return jsonOk({ success: true });

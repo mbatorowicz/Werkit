@@ -2,6 +2,7 @@
 
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
 import type { AppDictionary } from "@/i18n/types";
 import type { MaterialCategoryFormState } from "@/features/admin/materials/types";
 
@@ -27,8 +28,18 @@ export function MaterialsCategoryFormModal({ open, onClose, isEdit, dict, machDi
       title={isEdit ? dict.modalCatEditTitle : dict.modalCatCreateTitle}
       maxWidthClass="max-w-sm"
       titleSize="sm"
+      scrollableBody
+      closeOnBackdropClick={false}
+      footer={
+        <FormModalFooter
+          formId="admin-material-category-form"
+          onCancel={onClose}
+          submitLabel={dict.saveDict}
+          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-zinc-900 dark:text-zinc-900 text-sm font-semibold hover:bg-zinc-800 dark:hover:bg-white transition flex items-center justify-center min-w-[7rem]"
+        />
+      }
     >
-      <form onSubmit={onSubmit} className="space-y-4 p-6">
+      <form id="admin-material-category-form" onSubmit={onSubmit} className="space-y-4 p-6">
         <input
           required
           type="text"
@@ -43,12 +54,6 @@ export function MaterialsCategoryFormModal({ open, onClose, isEdit, dict, machDi
           label={machDict.catColorLabel}
           hint={machDict.catColorHint}
         />
-        <button
-          type="submit"
-          className="mt-4 w-full rounded-lg bg-zinc-900 py-2.5 font-semibold text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-        >
-          {dict.saveDict}
-        </button>
       </form>
     </AdminModalShell>
   );

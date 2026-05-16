@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { CategoryFormModal } from "@/features/admin/machines/CategoryFormModal";
 import { MachinesCategoryGrid, categoryToForm } from "@/features/admin/machines/MachinesCategoryGrid";
 import {
@@ -30,6 +31,7 @@ export function MachinesClientCategoryPanel({
   canMutate,
   fetchData,
 }: Props) {
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [isCMOpen, setIsCMOpen] = useState(false);
   const [cEditId, setCEditId] = useState<number | null>(null);
   const [cForm, setCForm] = useState<CategoryFormState>(() => ({ ...EMPTY_CATEGORY_FORM }));
@@ -54,15 +56,15 @@ export function MachinesClientCategoryPanel({
         void fetchData();
       } else {
         const err = (await res.json()).error;
-        alert(apiErrors[err] || err);
+        await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
       }
     } catch {
-      alert(dict.apiError);
+      await appAlert({ message: dict.apiError });
     }
   };
 
   const handleCDelete = async (id: number) => {
-    if (!confirm(dict.confirmCatDelete)) return;
+    if (!(await appConfirm({ message: dict.confirmCatDelete, variant: "danger" }))) return;
     const res = await fetchWithDeviceTelemetry(
       `Admin machines: delete category ${id}`,
       `/api/categories/${id}`,
@@ -72,7 +74,7 @@ export function MachinesClientCategoryPanel({
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()).error;
-      alert(apiErrors[err] || err);
+      await appAlert({ message: appDialogApiMessage(apiErrors, err, dict.apiError) });
     }
   };
 

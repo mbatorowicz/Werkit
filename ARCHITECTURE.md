@@ -109,7 +109,30 @@ Trasy URL pozostają w **`src/app/worker/`** — strony importują komponenty z 
 
 ---
 
-## 7. Spójna prezentacja zlecenia (`src/components/work-orders/`)
+## 7. Modale formularzy i dialogi (admin + worker)
+
+Warstwa prezentacji używa **wspólnej obudowy** zamiast natywnych okien przeglądarki:
+
+```
+[src/app/layout.tsx]
+    └── AppDialogProvider          ← alert / confirm (Promise), z-[10000]
+            └── … trasy admin/worker
+
+Formularze (CRUD, ustawienia, wizard pomocnicze):
+    AdminModalShell (scrollableBody, footer, bez zamykania tłem)
+        └── FormModalFooter (Anuluj + Zapisz)
+
+Usunięcie zakończonej sesji z ewidencji:
+    AdminPasswordConfirmModal → DELETE /api/admin/work-sessions/[id] { password }
+```
+
+- **`useAppDialog()`** — jedyny dopuszczalny sposób na potwierdzenia i komunikaty błędów/sukcesu w UI klienta; helper **`appDialogApiMessage(apiErrors, code, fallback)`** mapuje kody API na i18n.
+- **Nie używaj** `window.alert`, `window.confirm`, `alert()`, `confirm()` — grep po repo ma być pusty w `.ts`/`.tsx`.
+- Szczegóły komponentów i endpointu DELETE — **[`docs/SYSTEM_MAP.md` §9](./docs/SYSTEM_MAP.md)**.
+
+---
+
+## 8. Spójna prezentacja zlecenia (`src/components/work-orders/`)
 
 Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samych** znaczników priorytetu i opisu bez forkowania klas CSS.
 
@@ -118,7 +141,7 @@ Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samy
 
 ---
 
-## 8. Internacjonalizacja (`src/i18n/`)
+## 9. Internacjonalizacja (`src/i18n/`)
 
 - **`locales/pl.ts`**, **`locales/en.ts`** — pełne drzewo stringów.
 - **`types.ts`** — `AppDictionary` (= `typeof pl`), angielski musi spełniać **`AppDictionary`** (TS wymusza zestaw kluczy).
@@ -128,13 +151,13 @@ Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samy
 
 ---
 
-## 9. Baza danych i migracje
+## 10. Baza danych i migracje
 
 - **Schemat:** `src/db/schema.ts` (Postgres via Drizzle).
 - **Migracje wygenerowane / śledzone:** [`drizzle/`](./drizzle/), meta [`drizzle/meta/_journal.json`](./drizzle/meta/_journal.json).
 - **Priorytet zlecenia:** wartości wyłącznie z zestawu **URGENT | HIGH | NORMAL | LOW** — constraint **`work_orders_priority_chk`** (migracja m.in. **`0003_work_orders_priority_chk.sql`**): najpierw UPDATE niepoprawnych wierszy, potem `CHECK`.
 
-### 9.1. Pipeline migracji (rzeczywistość)
+### 10.1. Pipeline migracji (rzeczywistość)
 
 W repo **nie ma** automatycznej migracji w `next build` ani w starcie aplikacji. Wdrożenie realizuje się ze skryptów (`tsx`), przy czym **agenci AI** uruchamiają je samodzielnie na bazie z `.env.local` — patrz [`AGENTS.md` §1a](./AGENTS.md).
 
@@ -148,7 +171,7 @@ Wdrożenie na konkretną bazę idzie przez:
 
 Pełna lista skryptów i mapowanie do migracji — patrz **[`docs/SYSTEM_MAP.md` §15](./docs/SYSTEM_MAP.md)**.
 
-### 9.2. Status migracji na bazie produkcyjnej (2026-05-10)
+### 10.2. Status migracji na bazie produkcyjnej (2026-05-10)
 
 Wszystkie migracje **0000-0008 są zaaplikowane** na Neon (`ep-rough-sea-al7ogqfl`). Migracja **0004_users_biometric_login** została chwilowo pominięta (kolumna `biometric_login_enabled` brakowała → `Failed query: select … from users` → frontend „Wewnętrzny Błąd Serwera"). Naprawione punktowo `ALTER TABLE … ADD COLUMN IF NOT EXISTS`. Lekcja: **nawet idempotentne migracje muszą trafić na produkcję — `IF NOT EXISTS` chroni przed re-runem, nie przed pominięciem.**
 
@@ -156,7 +179,7 @@ Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkc
 
 ---
 
-## 10. Uwierzytelnienie i proxy (Edge)
+## 11. Uwierzytelnienie i proxy (Edge)
 
 - Cookie **`auth_token`**, weryfikacja **`jose`** (`jwtVerify`).
 - **`src/proxy.ts`** — eksport **`proxy`**, matcher dla `/admin`, `/worker`, `/login`, `/api`.
@@ -164,7 +187,7 @@ Przy zmianach schematu **nie zakładaj**, że migracja „jakoś się na produkc
 
 ---
 
-## 11. Next.js App Router — dynamiczne segmenty
+## 12. Next.js App Router — dynamiczne segmenty
 
 W komponentach strony oraz tam, gdzie framework tego wymaga, **`params` jest `Promise`**:
 
@@ -179,7 +202,7 @@ Reguła nadal obowiązuje w **Next 16** dla dynamicznych tras — nie polegaj na
 
 ---
 
-## 12. PWA / Capacitor
+## 13. PWA / Capacitor
 
 - **`CapacitorBackButton`** (root `app/layout.tsx`) — jeden listener `backButton` na Androidzie (Capacitor): **`history.length > 1` → `router.back()`**, inaczej **`App.minimizeApp()`** (pierwszy ekran).
 - **`sendRemoteLog`** — ścieżka diagnostyczna na urządzeniach w terenie; persystencja w **`device_logs`**.
@@ -191,11 +214,12 @@ Pełna mapa modułu mobilnego (hooki, konfig Capacitor, biometria, kolejka GPS) 
 
 ---
 
-## 13. Checklista „co sprawdzić przed dużym PR”
+## 14. Checklista „co sprawdzić przed dużym PR”
 
 - [ ] Czy nowe pola są w **`schema.ts`** + migracji + typach **`types/`**?
 - [ ] Czy odpowiedź JSON dla mobilki pozostaje tablicą tam, gdzie klient robi `.map`?
 - [ ] Czy teksty są w **i18n**, a nie na sztywno po polsku w adminie?
+- [ ] Czy komunikaty użytkownika idą przez **`useAppDialog`**, a nie `window.alert` / `confirm`?
 - [ ] Czy nie dodajesz **`any`**?
 - [ ] Czy nowy lub zmieniany **`route.ts`** / **`page.tsx`** nie wprowadza z powrotem **Drizzle w `src/app/`** — tylko woła **serwis**?
 

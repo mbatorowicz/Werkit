@@ -19,6 +19,7 @@ export const pl = {
     customer_in_use: "Klient jest przypisany do zleceń i nie może zostać usunięty.",
     missing_credentials: "Brak loginu lub hasła.",
     invalid_credentials: "Nieprawidłowe dane logowania.",
+    admin_password_required: "Wymagane hasło administratora.",
     account_blocked: "Konto zostało zablokowane.",
     server_error: "Wewnętrzny Błąd Serwera.",
     service_unavailable:
@@ -81,6 +82,13 @@ export const pl = {
     },
     ui: {
       closeModal: "Zamknij okno",
+      modalCancel: "Anuluj",
+      adminPasswordLabel: "Hasło administratora",
+      adminPasswordPlaceholder: "Wpisz swoje hasło",
+      dialogAlertTitle: "Komunikat",
+      dialogConfirmTitle: "Potwierdzenie",
+      dialogOk: "OK",
+      dialogConfirm: "Potwierdź",
     },
     dashboard: {
       title: "Główny Pulpit",
@@ -220,6 +228,10 @@ export const pl = {
       forceCompleteConfirm:
         "Zakończyć ręcznie tę rozpoczętą sesję? Status ustawi się na „zakończone”, czas końcowy — na teraz.",
       deleteArchivedLabel: "Usuń z ewidencji",
+      deleteArchivedPasswordTitle: "Potwierdź usunięcie z ewidencji",
+      deleteArchivedPasswordHint:
+        "Ta operacja trwale usuwa zakończone zlecenie wraz z sesją (GPS, zdjęcia, notatki). Wpisz hasło administratora, aby kontynuować.",
+      deleteArchivedPasswordConfirm: "Usuń trwale",
       deleteArchivedConfirm:
         "Usunąć ten zakończony wpis? Powiązane zlecenie dyspozycji zostanie usunięte wraz z danymi sesji (GPS, zdjęcia, notatki). Tej operacji nie cofniesz.",
       deletePendingOrderLabel: "Usuń zlecenie",
@@ -501,7 +513,8 @@ export const pl = {
       timeOverrunDesc: "Pokazuj powiadomienie przypominające pracownikowi o zakończeniu zlecenia, gdy minie szacowany czas.",
       savedSuccess: "Ustawienia zostały zapisane.",
       saving: "Zapisywanie...",
-      saveBtn: "Zapisz"
+      saveBtn: "Zapisz",
+      saveError: "Błąd podczas zapisu."
     },
     logs: {
       subtitle: "Podgląd zdarzeń z aplikacji pracowniczej w terenie.",

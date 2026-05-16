@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Edit2, Layers, Plus, Trash2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { MaterialsMaterialFormModal } from "@/features/admin/materials/MaterialsMaterialFormModal";
 import {
   EMPTY_MATERIAL_FORM,
@@ -36,6 +37,7 @@ export function MaterialsClientMaterialsTablePanel({
   canMutate,
   fetchData,
 }: Props) {
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [isMatModalOpen, setIsMatModalOpen] = useState(false);
   const [matEditId, setMatEditId] = useState<number | null>(null);
   const [matForm, setMatForm] = useState<MaterialItemFormState>(() => ({ ...EMPTY_MATERIAL_FORM }));
@@ -43,7 +45,7 @@ export function MaterialsClientMaterialsTablePanel({
   const handleMatSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (matForm.categoryIds.length === 0) {
-      alert(dict.matCatRequired);
+      await appAlert({ message: dict.matCatRequired });
       return;
     }
     const url = matEditId ? `/api/materials/${matEditId}` : "/api/materials";
@@ -67,15 +69,15 @@ export function MaterialsClientMaterialsTablePanel({
         void fetchData();
       } else {
         const err = (await res.json()) as { error?: string };
-        alert(apiErrors[err.error ?? ""] ?? err.error);
+        await appAlert({ message: appDialogApiMessage(apiErrors, err.error, machDict.apiError) });
       }
     } catch {
-      alert(machDict.apiError);
+      await appAlert({ message: machDict.apiError });
     }
   };
 
   const handleMatDelete = async (id: number) => {
-    if (!confirm(dict.confirmDelete)) return;
+    if (!(await appConfirm({ message: dict.confirmDelete, variant: "danger" }))) return;
     const res = await fetchWithDeviceTelemetry(
       `Admin materials: delete material ${id}`,
       `/api/materials/${id}`,
@@ -85,7 +87,7 @@ export function MaterialsClientMaterialsTablePanel({
     if (res.ok) void fetchData();
     else {
       const err = (await res.json()) as { error?: string };
-      alert(apiErrors[err.error ?? ""] ?? err.error);
+      await appAlert({ message: appDialogApiMessage(apiErrors, err.error, machDict.apiError) });
     }
   };
 

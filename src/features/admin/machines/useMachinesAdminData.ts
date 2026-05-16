@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { getDictionary } from "@/i18n";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -21,6 +22,7 @@ async function parseJsonList(url: string): Promise<{ rows: unknown[]; errorCode?
 }
 
 export function useMachinesAdminData() {
+  const { alert: appAlert } = useAppDialog();
   const [machines, setMachines] = useState<MachinesResource[]>([]);
   const [categories, setCategories] = useState<MachinesCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,13 +38,13 @@ export function useMachinesAdminData() {
 
       const errCode = mList.errorCode ?? cList.errorCode;
       if (errCode) {
-        alert(apiErrors[errCode] ?? dict.dbError);
+        await appAlert({ message: appDialogApiMessage(apiErrors, errCode, dict.dbError) });
       }
     } catch {
-      alert(dict.dbError);
+      await appAlert({ message: dict.dbError });
     }
     setIsLoading(false);
-  }, []);
+  }, [appAlert]);
 
   return { machines, categories, isLoading, fetchData };
 }

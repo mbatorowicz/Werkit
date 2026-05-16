@@ -21,6 +21,7 @@ export const en: AppDictionary = {
     customer_in_use: "Customer is assigned to orders and cannot be deleted.",
     missing_credentials: "Missing login or password.",
     invalid_credentials: "Invalid login credentials.",
+    admin_password_required: "Administrator password is required.",
     account_blocked: "Account has been blocked.",
     server_error: "Internal Server Error.",
     service_unavailable:
@@ -83,6 +84,13 @@ export const en: AppDictionary = {
     },
     ui: {
       closeModal: "Close dialog",
+      modalCancel: "Cancel",
+      adminPasswordLabel: "Administrator password",
+      adminPasswordPlaceholder: "Enter your password",
+      dialogAlertTitle: "Notice",
+      dialogConfirmTitle: "Confirm",
+      dialogOk: "OK",
+      dialogConfirm: "Confirm",
     },
     dashboard: {
       title: "Main Dashboard",
@@ -222,6 +230,10 @@ export const en: AppDictionary = {
       forceCompleteConfirm:
         "Manually finish this started session? It will be marked completed with end time set to now.",
       deleteArchivedLabel: "Remove from registry",
+      deleteArchivedPasswordTitle: "Confirm removal from registry",
+      deleteArchivedPasswordHint:
+        "This permanently deletes the completed order and its session (GPS, photos, notes). Enter your administrator password to continue.",
+      deleteArchivedPasswordConfirm: "Delete permanently",
       deleteArchivedConfirm:
         "Delete this completed entry? The linked dispatch record and all session data (GPS, photos, notes) will be removed. This cannot be undone.",
       deletePendingOrderLabel: "Delete order",
@@ -504,7 +516,8 @@ export const en: AppDictionary = {
       timeOverrunDesc: "Show notification reminding the worker to finish the order when the estimated time has passed.",
       savedSuccess: "Settings saved.",
       saving: "Saving...",
-      saveBtn: "Save"
+      saveBtn: "Save",
+      saveError: "Error during saving."
     },
     logs: {
       subtitle: "Events from worker devices in the field.",

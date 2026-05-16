@@ -4,6 +4,7 @@ import { Bell, Play } from "lucide-react";
 import { formatDict } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkerActiveAlarm } from "@/features/worker/lib/workerAlarmTypes";
+import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 
 type AlarmDict = AppDictionary["worker"]["alarms"];
 
@@ -21,58 +22,62 @@ export function WorkerAlarmModal({
   onSnooze: (minutes: number) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[9999]" role="dialog" aria-modal="true">
-      <AlarmBackdrop />
-      <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-6 shadow-xl">
-          <div className="flex flex-col items-center mb-6">
-            <div className="bg-amber-100 dark:bg-amber-500/20 p-3 rounded-full mb-4">
-              <Bell className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-            </div>
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-white text-center">{alarm.title}</h2>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 text-center mt-2 leading-relaxed">{alarm.body}</p>
-          </div>
-          <div className="flex flex-col gap-2">
-            <button type="button" onClick={onOk} className="w-full py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-semibold text-sm">{dict.actionOk}</button>
-            {alarm.canStart && alarm.orderId != null ? (
-              <button type="button" onClick={onStart} className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm flex items-center justify-center gap-2">
-                <Play className="w-4 h-4" />
-                {dict.actionStart}
-              </button>
-            ) : null}
-            {alarm.snoozeOptions.length > 0 ? (
-              <div className="flex flex-col gap-2 pt-3 mt-1 border-t border-zinc-200 dark:border-zinc-700">
-                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide text-center">{dict.snoozeSection}</span>
-                <AlarmSnoozeRow alarm={alarm} dict={dict} onSnooze={onSnooze} />
+    <AdminModalShell
+      open
+      onClose={onOk}
+      title={alarm.title}
+      maxWidthClass="max-w-sm"
+      titleSize="lg"
+      zIndexClass="z-[9999]"
+      closeOnBackdropClick={false}
+      scrollableBody={alarm.snoozeOptions.length > 0}
+      footer={
+        <div className="flex w-full flex-col gap-2">
+          <button
+            type="button"
+            onClick={onOk}
+            className="w-full rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
+          >
+            {dict.actionOk}
+          </button>
+          {alarm.canStart && alarm.orderId != null ? (
+            <button
+              type="button"
+              onClick={onStart}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-500"
+            >
+              <Play className="h-4 w-4" />
+              {dict.actionStart}
+            </button>
+          ) : null}
+          {alarm.snoozeOptions.length > 0 ? (
+            <div className="flex flex-col gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+              <span className="text-center text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                {dict.snoozeSection}
+              </span>
+              <div className="flex flex-wrap justify-center gap-2">
+                {alarm.snoozeOptions.map((minutes) => (
+                  <button
+                    key={minutes}
+                    type="button"
+                    onClick={() => onSnooze(minutes)}
+                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  >
+                    {formatDict(dict.actionSnooze, { minutes })}
+                  </button>
+                ))}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
+      }
+    >
+      <div className="flex flex-col items-center px-6 py-4">
+        <div className="mb-4 rounded-full bg-amber-100 p-3 dark:bg-amber-500/20">
+          <Bell className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+        </div>
+        <p className="text-center text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{alarm.body}</p>
       </div>
-    </div>
-  );
-}
-
-function AlarmBackdrop() {
-  return <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />;
-}
-
-function AlarmSnoozeRow({
-  alarm,
-  dict,
-  onSnooze,
-}: {
-  alarm: WorkerActiveAlarm;
-  dict: AlarmDict;
-  onSnooze: (m: number) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2 justify-center">
-      {alarm.snoozeOptions.map((minutes) => (
-        <button key={minutes} type="button" onClick={() => onSnooze(minutes)} className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-medium text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-          {formatDict(dict.actionSnooze, { minutes })}
-        </button>
-      ))}
-    </div>
+    </AdminModalShell>
   );
 }

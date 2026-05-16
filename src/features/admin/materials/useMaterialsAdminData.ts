@@ -6,6 +6,7 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowMaterialCategoryRows, narrowMaterialRowRows } from "@/lib/narrowApiListRows";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 
 async function parseList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
   const res = await fetchWithDeviceTelemetry(`Admin materials: GET ${url}`, url, { cache: "no-store" }, {
@@ -29,6 +30,7 @@ export type MaterialsAdminAlertContext = {
  * (aktualizowany w rodzicu co render), żeby `fetchData` był stabilny.
  */
 export function useMaterialsAdminData(alertCtxRef: MutableRefObject<MaterialsAdminAlertContext>) {
+  const { alert: appAlert } = useAppDialog();
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
   const [categories, setCategories] = useState<MaterialCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,13 +48,13 @@ export function useMaterialsAdminData(alertCtxRef: MutableRefObject<MaterialsAdm
       const errCode = mList.errorCode ?? cList.errorCode;
       if (errCode) {
         const { apiErrors, listFetchFallback } = alertCtxRef.current;
-        alert(apiErrors[errCode] ?? listFetchFallback);
+        await appAlert({ message: appDialogApiMessage(apiErrors, errCode, listFetchFallback) });
       }
     } catch {
-      alert(alertCtxRef.current.listFetchFallback);
+      await appAlert({ message: alertCtxRef.current.listFetchFallback });
     }
     setIsLoading(false);
-  }, [alertCtxRef]);
+  }, [alertCtxRef, appAlert]);
 
   return { materials, categories, isLoading, fetchData };
 }

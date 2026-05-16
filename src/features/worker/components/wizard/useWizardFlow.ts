@@ -9,6 +9,7 @@ import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import {
   narrowWizardCategories,
   narrowWizardCustomers,
@@ -19,6 +20,7 @@ import {
 
 export function useWizardFlow() {
   const router = useRouter();
+  const { alert: appAlert } = useAppDialog();
   const dict = getDictionary().worker.client;
   const apiErrors = getDictionary().apiErrors as Record<string, string>;
 
@@ -108,15 +110,16 @@ export function useWizardFlow() {
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
-        alert(apiErrors[code ?? ""] ?? code ?? apiErrors.save_error);
+        await appAlert({ message: appDialogApiMessage(apiErrors, code, apiErrors.save_error) });
         setIsLoading(false);
       }
     } catch {
-      alert(dict.errNetwork);
+      await appAlert({ message: dict.errNetwork });
       setIsLoading(false);
     }
   }, [
     apiErrors,
+    appAlert,
     categoryId,
     customerId,
     dict.errNetwork,
@@ -146,15 +149,15 @@ export function useWizardFlow() {
         if (res.ok) {
           router.push("/worker");
         } else {
-          alert(dict.errAcceptOrder);
+          await appAlert({ message: dict.errAcceptOrder });
           setIsLoading(false);
         }
       } catch {
-        alert(dict.errNetwork);
+        await appAlert({ message: dict.errNetwork });
         setIsLoading(false);
       }
     },
-    [dict.errAcceptOrder, dict.errNetwork, router],
+    [appAlert, dict.errAcceptOrder, dict.errNetwork, router],
   );
 
   return {

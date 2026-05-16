@@ -7,6 +7,7 @@ import { formatDict, formatUiDateTimeShort } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useAppDialog } from "@/components/AppDialogProvider";
 
 const LOG_CATEGORIES: WerkitLogCategory[] = [
   "http",
@@ -118,6 +119,7 @@ export default function LogsClient({
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
   const router = useRouter();
+  const { alert: appAlert } = useAppDialog();
 
   const handleExportJson = async () => {
     setExporting(true);
@@ -126,7 +128,7 @@ export default function LogsClient({
         credentials: "same-origin",
       }, { category: "admin" });
       if (!res.ok) {
-        window.alert(logsDict.exportJsonError);
+        await appAlert({ message: logsDict.exportJsonError });
         return;
       }
       const blob = await res.blob();
@@ -139,7 +141,7 @@ export default function LogsClient({
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      window.alert(logsDict.exportJsonError);
+      await appAlert({ message: logsDict.exportJsonError });
     } finally {
       setExporting(false);
     }

@@ -3,6 +3,7 @@
 import type { AppDictionary } from "@/i18n/types";
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { FormModalFooter } from "@/components/FormModalFooter";
 import type { CategoryFormState } from "./types";
 
 type Dict = AppDictionary["admin"]["machines"];
@@ -25,8 +26,18 @@ export function CategoryFormModal({ open, onClose, isEdit, dict, form, setForm, 
       title={isEdit ? dict.modalCatEditTitle : dict.modalCatCreateTitle}
       maxWidthClass="max-w-sm"
       titleSize="sm"
+      scrollableBody
+      closeOnBackdropClick={false}
+      footer={
+        <FormModalFooter
+          formId="admin-machine-category-form"
+          onCancel={onClose}
+          submitLabel={dict.saveDict}
+          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 transition flex items-center justify-center min-w-[7rem]"
+        />
+      }
     >
-      <form onSubmit={onSubmit} className="space-y-4 p-6">
+      <form id="admin-machine-category-form" onSubmit={onSubmit} className="space-y-4 p-6">
         <input
           required
           type="text"
@@ -190,12 +201,6 @@ export function CategoryFormModal({ open, onClose, isEdit, dict, form, setForm, 
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="mt-4 w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-500 dark:bg-emerald-600"
-        >
-          {dict.saveDict}
-        </button>
       </form>
     </AdminModalShell>
   );

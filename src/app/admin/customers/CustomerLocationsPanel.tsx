@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -37,8 +38,11 @@ const emptyForm = (): LocationForm => ({
 });
 
 export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
-  const dict = getDictionary().admin.customers;
-  const apiErrors = getDictionary().apiErrors as Record<string, string>;
+  const dictionary = getDictionary();
+  const dict = dictionary.admin.customers;
+  const machinesDict = dictionary.admin.machines;
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
+  const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [locations, setLocations] = useState<CustomerLocationRow[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [form, setForm] = useState<LocationForm>(emptyForm());
@@ -137,7 +141,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       );
       if (!res.ok) {
         const err = readApiErrorString(await parseJsonUnknown(res));
-        alert(apiErrors[err ?? ""] ?? err ?? "Nie udało się zapisać lokalizacji.");
+        await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
         return;
       }
       await load();
@@ -147,7 +151,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   };
 
   const deleteLocation = async (id: number) => {
-    if (!confirm(dict.locationConfirmDelete)) return;
+    if (!(await appConfirm({ message: dict.locationConfirmDelete, variant: "danger" }))) return;
     const res = await fetchWithDeviceTelemetry(
       `Admin: delete location ${id}`,
       `/api/customers/${customerId}/locations/${id}`,
