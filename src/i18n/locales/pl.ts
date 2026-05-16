@@ -98,6 +98,9 @@ export const pl = {
         sortOrderLabel: "Kolejność",
         colorLabel: "Kolor",
         colorHint: "Na mapie i liście",
+        treeStatCategories: "{count} kategorii w gałęzi",
+        treeStatCategoriesShort: "{count} kat.",
+        treeStatMaterials: "{count} materiałów",
       },
       workOrders: {
         panelTitle: "Kategorie zleceń i zasobów",

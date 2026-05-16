@@ -2,9 +2,11 @@
 
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { ChevronRight, Edit2, Folder, Layers, Package, Plus, Trash2 } from "lucide-react";
+import { formatDict } from "@/i18n/format";
 import {
   buildMaterialCategoryTree,
   collectExpandableCategoryIds,
+  computeCategoryBranchStats,
   indexMaterialsByCategory,
   type CatalogMaterialRow,
 } from "@/lib/materialCatalogTree";
@@ -22,6 +24,9 @@ type Props<T extends CatalogCategoryItem> = {
   addMaterialLabel?: string;
   emptyLabel: string;
   groupBadge: string;
+  treeStatCategories?: string;
+  treeStatCategoriesShort?: string;
+  treeStatMaterials?: string;
   materialBadge?: string;
   uncategorizedTitle?: string;
   stationaryBadge?: string;
@@ -44,6 +49,9 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   addMaterialLabel,
   emptyLabel,
   groupBadge,
+  treeStatCategories,
+  treeStatCategoriesShort,
+  treeStatMaterials,
   materialBadge,
   uncategorizedTitle,
   stationaryBadge,
@@ -60,6 +68,11 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
 }: Props<T>) {
   const roots = useMemo(() => buildMaterialCategoryTree(categories), [categories]);
   const materialIndex = useMemo(() => indexMaterialsByCategory(categories, materials), [categories, materials]);
+  const branchStats = useMemo(
+    () => computeCategoryBranchStats(roots, materialIndex.byCategoryId),
+    [roots, materialIndex.byCategoryId],
+  );
+  const showMaterialStats = Boolean(treeStatMaterials);
 
   const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
 
@@ -131,6 +144,26 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
       const childMaterials = materialIndex.byCategoryId.get(node.id) ?? [];
       const hasChildren = node.children.length > 0 || childMaterials.length > 0;
       const isExpanded = expanded.has(node.id);
+      const stats = branchStats.get(node.id);
+      const isBranch = node.isGroup || (node.children?.length ?? 0) > 0;
+      const categoryCount = stats?.descendantCategoryCount ?? 0;
+      const categoryStatLong =
+        stats && treeStatCategories && isBranch && categoryCount > 0
+          ? formatDict(treeStatCategories, { count: categoryCount })
+          : null;
+      const categoryStatShort =
+        stats && treeStatCategoriesShort && isBranch && categoryCount > 0
+          ? formatDict(treeStatCategoriesShort, { count: categoryCount })
+          : null;
+      const materialCount = stats
+        ? isBranch
+          ? stats.descendantMaterialCount
+          : stats.directMaterialCount
+        : 0;
+      const materialStat =
+        showMaterialStats && treeStatMaterials
+          ? formatDict(treeStatMaterials, { count: materialCount })
+          : null;
 
       return (
         <Fragment key={`cat-${node.id}`}>
@@ -173,6 +206,31 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
                 </span>
               ) : null}
             </div>
+            {(categoryStatLong || categoryStatShort || materialStat) && (
+              <div className="ml-auto flex shrink-0 items-center gap-2 px-1 text-[11px] tabular-nums leading-tight text-zinc-500 sm:gap-3 sm:text-xs">
+                {categoryStatShort ? (
+                  <span className="sm:hidden" title={categoryStatLong ?? categoryStatShort}>
+                    {categoryStatShort}
+                  </span>
+                ) : null}
+                {categoryStatLong ? (
+                  <span className="hidden max-w-[9rem] truncate sm:inline" title={categoryStatLong}>
+                    {categoryStatLong}
+                  </span>
+                ) : null}
+                {materialStat ? (
+                  <span
+                    className={
+                      materialCount > 0
+                        ? "font-medium text-amber-800/90 dark:text-amber-300/90"
+                        : "text-zinc-400 dark:text-zinc-500"
+                    }
+                  >
+                    {materialStat}
+                  </span>
+                ) : null}
+              </div>
+            )}
             {canMutate ? (
               <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
                 <button

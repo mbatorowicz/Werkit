@@ -100,6 +100,9 @@ export const en: AppDictionary = {
         sortOrderLabel: "Sort order",
         colorLabel: "Color",
         colorHint: "On map and lists",
+        treeStatCategories: "{count} categories in branch",
+        treeStatCategoriesShort: "{count} cat.",
+        treeStatMaterials: "{count} materials",
       },
       workOrders: {
         panelTitle: "Order & resource categories",

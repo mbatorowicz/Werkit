@@ -60,6 +60,8 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
         addCategoryLabel={labels.add}
         emptyLabel={labels.empty}
         groupBadge={labels.badgeGroup}
+        treeStatCategories={labels.treeStatCategories}
+        treeStatCategoriesShort={labels.treeStatCategoriesShort}
         stationaryBadge={stationaryBadge}
         categories={items}
         isLoading={isLoading}

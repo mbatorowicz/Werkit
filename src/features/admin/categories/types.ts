@@ -25,4 +25,7 @@ export type CategoryAdminLabels = {
   namePlaceholder: string;
   save: string;
   badgeGroup: string;
+  treeStatCategories: string;
+  treeStatCategoriesShort: string;
+  treeStatMaterials: string;
 };

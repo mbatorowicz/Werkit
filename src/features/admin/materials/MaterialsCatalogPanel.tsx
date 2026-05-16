@@ -119,6 +119,9 @@ export function MaterialsCatalogPanel({
         addMaterialLabel={dict.addMaterial}
         emptyLabel={labels.empty}
         groupBadge={labels.badgeGroup}
+        treeStatCategories={labels.treeStatCategories}
+        treeStatCategoriesShort={labels.treeStatCategoriesShort}
+        treeStatMaterials={labels.treeStatMaterials}
         materialBadge={dict.materialBadge}
         uncategorizedTitle={dict.uncategorizedTitle}
         categories={categories}

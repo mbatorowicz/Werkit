@@ -44,6 +44,47 @@ export function buildMaterialCategoryTree<T extends CategoryHierarchyRow>(catego
   return buildCategoryTree(categories);
 }
 
+export type CategoryBranchStats = {
+  /** Wszystkie węzły kategorii/grup poniżej (bez bieżącego). */
+  descendantCategoryCount: number;
+  /** Unikalne materiały przypisane do kategorii-liści w całej gałęzi. */
+  descendantMaterialCount: number;
+  /** Materiały bezpośrednio na liściu (tylko dla kategorii, nie grupy). */
+  directMaterialCount: number;
+};
+
+export function computeCategoryBranchStats<T extends CategoryHierarchyRow>(
+  roots: CategoryTreeNode<T>[],
+  materialsByCategory: Map<number, CatalogMaterialRow[]>,
+): Map<number, CategoryBranchStats> {
+  const stats = new Map<number, CategoryBranchStats>();
+
+  const walk = (node: CategoryTreeNode<T>): { categoryCount: number; materialIds: Set<number> } => {
+    const materialIds = new Set<number>();
+    if (!node.isGroup) {
+      for (const m of materialsByCategory.get(node.id) ?? []) materialIds.add(m.id);
+    }
+
+    let categoryCount = 0;
+    for (const child of node.children) {
+      const sub = walk(child);
+      categoryCount += 1 + sub.categoryCount;
+      for (const id of sub.materialIds) materialIds.add(id);
+    }
+
+    stats.set(node.id, {
+      descendantCategoryCount: categoryCount,
+      descendantMaterialCount: materialIds.size,
+      directMaterialCount: node.isGroup ? 0 : (materialsByCategory.get(node.id)?.length ?? 0),
+    });
+
+    return { categoryCount, materialIds };
+  };
+
+  for (const root of roots) walk(root);
+  return stats;
+}
+
 export function collectExpandableCategoryIds<T extends CategoryHierarchyRow>(
   roots: CategoryTreeNode<T>[],
   materialsByCategory: Map<number, CatalogMaterialRow[]>,
