@@ -7,6 +7,10 @@ import {
   resolveLocalAndroidApkPath,
   resolveRemoteAndroidApkUrl,
 } from '@/lib/androidAppDownload';
+import {
+  fetchGithubReleaseApkBytes,
+  resolveGithubReleaseApkConfig,
+} from '@/lib/githubReleaseApk';
 import { isSuperadminRole } from '@/lib/tenantContext';
 
 export const runtime = 'nodejs';
@@ -14,7 +18,20 @@ export const dynamic = 'force-dynamic';
 
 const DOWNLOAD_ROLES = new Set(['admin', 'viewer', 'worker']);
 
-/** Pobranie APK — nagłówki pod instalację na Androidzie (Chrome / WebView). */
+function apkResponse(bytes: Uint8Array, fileName: string): NextResponse {
+  return new NextResponse(Buffer.from(bytes), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/vnd.android.package-archive',
+      'Content-Disposition': `attachment; filename="${fileName}"`,
+      'Content-Length': String(bytes.byteLength),
+      'Cache-Control': 'private, max-age=300',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+
+/** Pobranie APK — jeden build z GitHub Actions, wspólny dla wszystkich firm. */
 export async function GET() {
   const session = await getAuthSession();
   if (!session) {
@@ -30,21 +47,20 @@ export async function GET() {
   }
 
   const localPath = resolveLocalAndroidApkPath();
-  if (!localPath) {
-    return jsonError('apk_unavailable', 404);
+  if (localPath) {
+    const bytes = await readFile(localPath);
+    return apkResponse(new Uint8Array(bytes), getAndroidApkFileName());
   }
 
-  const bytes = await readFile(localPath);
-  const fileName = getAndroidApkFileName();
+  const github = resolveGithubReleaseApkConfig();
+  if (github) {
+    try {
+      const { bytes } = await fetchGithubReleaseApkBytes(github);
+      return apkResponse(bytes, getAndroidApkFileName());
+    } catch {
+      return jsonError('apk_unavailable', 404);
+    }
+  }
 
-  return new NextResponse(bytes, {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/vnd.android.package-archive',
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Length': String(bytes.byteLength),
-      'Cache-Control': 'private, max-age=300',
-      'X-Content-Type-Options': 'nosniff',
-    },
-  });
+  return jsonError('apk_unavailable', 404);
 }

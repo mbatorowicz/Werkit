@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import pkg from '../../package.json';
+import { resolveGithubReleaseApkConfig } from '@/lib/githubReleaseApk';
 
 /** Ścieżka względem katalogu projektu (opcjonalny plik na deploy). */
 export const LOCAL_ANDROID_APK_RELATIVE = 'public/downloads/werkit.apk';
@@ -11,11 +12,13 @@ export function getAndroidApkFileName(): string {
   return `werkit-${pkg.version}.apk`;
 }
 
+export type AndroidAppDownloadSource = 'remote' | 'local' | 'github' | null;
+
 export type AndroidAppDownloadInfo = {
   available: boolean;
   href: string;
   fileName: string;
-  source: 'remote' | 'local' | null;
+  source: AndroidAppDownloadSource;
 };
 
 function trimEnv(value: string | undefined): string | undefined {
@@ -32,18 +35,20 @@ export function resolveLocalAndroidApkPath(): string | undefined {
   return existsSync(absolute) ? absolute : undefined;
 }
 
-/** Informacja dla UI (server). */
-export function getAndroidAppDownloadInfo(): AndroidAppDownloadInfo {
-  const remote = resolveRemoteAndroidApkUrl();
-  const local = resolveLocalAndroidApkPath();
-  const fileName = getAndroidApkFileName();
-  const href = ANDROID_APK_DOWNLOAD_ROUTE;
+export function resolveAndroidApkDownloadSource(): AndroidAppDownloadSource {
+  if (resolveRemoteAndroidApkUrl()) return 'remote';
+  if (resolveLocalAndroidApkPath()) return 'local';
+  if (resolveGithubReleaseApkConfig()) return 'github';
+  return null;
+}
 
-  if (remote) {
-    return { available: true, href, fileName, source: 'remote' };
-  }
-  if (local) {
-    return { available: true, href, fileName, source: 'local' };
-  }
-  return { available: false, href, fileName, source: null };
+/** Informacja dla UI (server). Jeden build APK — wspólny dla wszystkich organizacji. */
+export function getAndroidAppDownloadInfo(): AndroidAppDownloadInfo {
+  const source = resolveAndroidApkDownloadSource();
+  return {
+    available: source !== null,
+    href: ANDROID_APK_DOWNLOAD_ROUTE,
+    fileName: getAndroidApkFileName(),
+    source,
+  };
 }

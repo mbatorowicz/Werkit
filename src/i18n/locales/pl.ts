@@ -543,11 +543,11 @@ export const pl = {
       pageSubtitle: "Globalne parametry wyświetlania dla aplikacji logistycznej Werkit.",
       appDownloadTitle: "Aplikacja mobilna (Android)",
       appDownloadDesc:
-        "Pobierz plik APK i zainstaluj na telefonach pracowników. Na Androidzie po pobraniu zatwierdź instalację z tego źródła (Ustawienia → Bezpieczeństwo).",
+        "Jeden wspólny instalator dla całej platformy (nie osobny build na firmę). Pobierz APK i zainstaluj na telefonach pracowników — firma jest wybierana przy logowaniu.",
       appDownloadButton: "Pobierz APK",
       appDownloadVersion: "Wersja: {version}",
       appDownloadUnavailable:
-        "Plik instalacyjny nie jest jeszcze dostępny na serwerze. Administrator platformy musi opublikować APK (zmienna WERKIT_ANDROID_APK_URL lub plik w public/downloads/).",
+        "Brak opublikowanego APK. Uruchom workflow „Build Android App” na GitHubie (tworzy release android-latest) lub ustaw WERKIT_ANDROID_APK_URL na Vercel.",
       appDownloadHint:
         "Otwórz ten przycisk na telefonie z Androidem — przeglądarka pobierze plik, a po zakończeniu pobierania wybierz instalację. Wymagane logowanie do panelu admina.",
       companyData: "Dane firmy",
