@@ -1,6 +1,7 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
+import { MapContainer, Marker, useMapEvents, useMap } from "react-leaflet";
+import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
@@ -44,10 +45,7 @@ export default function SettingsMapInner({ lat, lng, onLocationChange }: Setting
       style={{ width: "100%", height: "100%", zIndex: 0 }}
       zoomControl={false}
     >
-      <TileLayer
-        url="https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap &copy; CartoDB"
-      />
+      <WerkitTileLayer />
       <MapInvalidateOnResize />
       <MapUpdater center={[lat, lng]} />
       <MapEvents onLocationSelect={onLocationChange} />

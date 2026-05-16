@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
+import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
@@ -160,10 +161,7 @@ export default function CustomerMapPicker({ lat, lng, address, defaultCenter, on
 
       <div className="w-full h-[280px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0">
         <MapContainer center={center} zoom={initialZoom} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution="&copy; OpenStreetMap contributors"
-          />
+          <WerkitTileLayer />
           <FlyToCoordinates latSig={flySig} />
           <MapPinLayer lat={lat} lng={lng} onPick={onPick} />
         </MapContainer>

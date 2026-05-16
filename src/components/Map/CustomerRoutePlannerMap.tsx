@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -114,10 +115,7 @@ export function CustomerRoutePlannerMap({
         className={`w-full ${heightClass} rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0`}
       >
         <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            attribution="&copy; OpenStreetMap contributors"
-          />
+          <WerkitTileLayer />
           <MapFlyTo center={center} key={centerSig} />
           <MapClickLayer
             editable={canEditDestination}

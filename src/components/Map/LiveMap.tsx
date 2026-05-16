@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, Popup, Polyline, useMapEvents } from "react-leaflet";
+import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
@@ -132,7 +133,7 @@ export default function LiveMap({
   const showResumeFollow = !cameraFollowGps && (navPivotMode || followPanMode);
 
   return (
-    <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-800 relative">
+    <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative">
       {headingKnown ? (
         <button
           type="button"
@@ -164,10 +165,7 @@ export default function LiveMap({
         touchZoom
         boxZoom={false}
       >
-        <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+        <WerkitTileLayer />
 
         <MapInvalidateOnResize />
         <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
