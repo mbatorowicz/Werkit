@@ -11,10 +11,12 @@ import {
   WorkOrderScheduleFields,
 } from "@/components/work-orders/WorkOrderScheduleFields";
 import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
-import { CustomerSearchField } from "@/features/admin/orders/CustomerSearchField";
+import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
+import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
+import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 import {
   OrderFormState,
   BaseWorker,
@@ -78,11 +80,10 @@ export default function OrderFormModal({
 
   const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
 
-  const availableMachines = machines.filter((m) => {
-    if (!selectedCategory) return false;
-    if (selectedCategory.isGlobal) return true;
-    return m.categoryIds?.includes(selectedCategory.id) ?? false;
-  });
+  const availableMachines = useMemo(
+    () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: false }),
+    [machines, selectedCategory],
+  );
 
   const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
 
@@ -125,10 +126,7 @@ export default function OrderFormModal({
     [materials],
   );
 
-  const comboboxCommon = {
-    noResultsLabel: dict.searchNoResults,
-    clearAriaLabel: dict.searchClear,
-  };
+  const comboboxCommon = comboboxFeedbackProps(dict);
 
   const modalTitle =
     editingOrderId != null

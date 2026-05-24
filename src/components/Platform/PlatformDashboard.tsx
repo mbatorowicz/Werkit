@@ -5,6 +5,7 @@ import { Building2, Pencil } from 'lucide-react';
 import type { CompanyUsageRow } from '@/services/PlatformAnalyticsService';
 import type { AppDictionary } from '@/i18n/types';
 import { getDictionary, formatDict } from '@/i18n';
+import { INLINE_SCROLL_X_PANEL_CLASS } from '@/components/scrollPanelStyles';
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -203,7 +204,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
           <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{dict.registryTitle}</h2>
           <p className="text-sm text-zinc-500 mt-0.5">{dict.usageTitle}</p>
         </div>
-        <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+        <div className={`${INLINE_SCROLL_X_PANEL_CLASS} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm`}>
           <table className="min-w-full text-sm">
             <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-left text-xs uppercase tracking-wide text-zinc-500">
               <tr>

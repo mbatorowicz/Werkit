@@ -8,6 +8,7 @@ import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
 import { sortUnifiedDispatchTableRows } from "@/features/admin/orders/dispatchTableUi";
 import { OrdersDispatchItemCard } from "@/components/Admin/Orders/OrdersDispatchItemCard";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
@@ -110,7 +111,7 @@ export function OrdersDispatchTable({
     const start = Math.max(0, (Math.max(1, page) - 1) * Math.max(1, tableLimit));
     const pageItems = sortedItems.slice(start, start + Math.max(1, tableLimit));
     return (
-      <div className="overflow-x-auto">
+      <div className={INLINE_SCROLL_X_PANEL_CLASS}>
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">

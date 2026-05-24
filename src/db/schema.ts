@@ -31,6 +31,8 @@ export const users = pgTable('users', {
   biometricLoginEnabled: boolean('biometric_login_enabled').notNull().default(false),
   /** Czy pracownik może edytować zaplanowaną trasę dojazdu (punkty pośrednie) w terenie. */
   canEditRoute: boolean('can_edit_route').notNull().default(false),
+  /** Czy pracownik może dodawać kontrahentów (np. w kreatorze zlecenia własnego). */
+  canCreateCustomers: boolean('can_create_customers').notNull().default(false),
 });
 
 export const resourceCategories = pgTable('resource_categories', {

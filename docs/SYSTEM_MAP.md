@@ -47,7 +47,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
-| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
+| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
 | `resource_categories` | `name` | **`parent_id`**, **`is_group`**, **`sort_order`**, `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (formularz zlecenia), **`show_resource_name`**, **`show_resource_description`**, **`show_registration_number`** (formularz zasobu w rejestrze), `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | self-FK `parent_id → resource_categories.id` (SET NULL) |
 | `resources` (= zasoby w rejestrze) | display `name` (składana z widocznych pól + opcjonalnie `description`) | `brand`, `model`, `registration_number`, **`description`**, `image_url`; przypisanie do kategorii **wyłącznie** N↔M przez `resource_to_categories` | — |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
@@ -312,13 +312,16 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
-- `Customers/CustomerInlineCreateForm.tsx` — inline tworzenie kontrahenta (POST `/api/customers` → `{ customerId }`); **bez zagnieżdżonego `<form>`** (bezpieczne w `OrderFormModal`); reuse w `CustomerSearchField` i `CustomersClient`,
+- `Customers/CustomerInlineCreateForm.tsx` — re-export; SSOT: `src/components/customers/CustomerInlineCreateForm.tsx` (inline tworzenie kontrahenta POST `/api/customers` → `{ customerId }`; **bez zagnieżdżonego `<form>`**; reuse w `CustomerSearchField` i `CustomersClient`),
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
 - `Reports/ReportsDashboard.tsx`, `Reports/ReportStatCard.tsx`.
 
 `src/components/` (współdzielone admin + worker):
+- `customers/CustomerSearchField.tsx` — combobox klienta (admin `OrderFormModal`, worker wizard krok 3): filtrowanie + opcjonalne dodawanie (`canCreate` / `canCreateCustomers`) → `CustomerInlineCreateForm` + auto-wybór nowego klienta,
+- `customers/CustomerInlineCreateForm.tsx` — formularz inline kontrahenta (mapa, POST `/api/customers`),
+- `scrollPanelStyles.ts` — `INLINE_SCROLL_PANEL_CLASS` (pion), `INLINE_SCROLL_X_PANEL_CLASS` (poziom, tabele admin/Gantt),
 - `AppDialogProvider.tsx` + `useAppDialog()` — globalne alert/confirm (root `src/app/layout.tsx`); **`appDialogApiMessage`**. Zakaz natywnych `window.alert` / `confirm`.
 - `FormModalFooter.tsx` — stopka Anuluj/Zapisz w modalach CRUD.
 
@@ -337,9 +340,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 `src/lib/customerSearch.ts` — wyszukiwanie klientów (imię, nazwisko, adres, lokalizacje).
 
-`src/lib/userSearch.ts` — wyszukiwanie użytkowników (imię, e-mail, rola).
+`src/lib/filterResourcesForCategory.ts` — filtrowanie zasobów po kategorii zlecenia (`whenNoCategory`: wizard true, admin form false).
 
-`src/features/admin/orders/CustomerSearchField.tsx` — combobox klienta w `OrderFormModal`: filtrowanie listy + przycisk „Dodaj klienta” przy braku wyników → `CustomerInlineCreateForm` + auto-wybór nowego klienta.
+`src/lib/userSearch.ts` — wyszukiwanie użytkowników (imię, e-mail, rola).
 
 ---
 

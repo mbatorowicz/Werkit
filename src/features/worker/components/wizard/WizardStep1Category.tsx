@@ -14,6 +14,7 @@ import {
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
+import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -110,8 +111,7 @@ export function WizardStep1Category({
           onChange={setCategoryId}
           placeholder={dict.searchPlaceholder}
           required
-          noResultsLabel={dict.searchNoResults}
-          clearAriaLabel={dict.searchClear}
+          {...comboboxFeedbackProps(dict)}
           aria-label={dict.wizardTitle}
         />
         {selectedCategory ? (

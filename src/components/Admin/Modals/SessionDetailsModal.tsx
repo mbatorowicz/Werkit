@@ -23,6 +23,7 @@ import { AdminPasswordConfirmModal } from "@/components/Admin/AdminPasswordConfi
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
 const SessionDetailsLocaleContext = createContext<Locale>("pl");
@@ -446,7 +447,7 @@ export default function SessionDetailsModal({
             ) : null}
           </div>
 
-          <div className="z-10 flex h-24 items-center justify-center gap-2 overflow-x-auto bg-black/50 p-4 custom-scrollbar">
+          <div className={`z-10 flex h-24 items-center justify-center gap-2 bg-black/50 p-4 ${INLINE_SCROLL_X_PANEL_CLASS}`}>
             {allPhotos.map((url, idx) => (
               <Image
                 key={url}

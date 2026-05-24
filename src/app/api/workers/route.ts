@@ -2,6 +2,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { hashPassword } from '@/lib/passwordCrypto';
 import { guardAdminMutation } from '@/lib/requireAdminMutation';
 import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { normalizeAppRole, workerPermissionsFromBody } from '@/lib/workerUserPermissions';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,14 +30,13 @@ export const POST = withApiErrorHandling(
     const usernameEmail = typeof body.usernameEmail === "string" ? body.usernameEmail : "";
     const password = typeof body.password === "string" ? body.password : "";
     const role = body.role;
-    const canCreateOwnOrders = body.canCreateOwnOrders;
-    const canEditRoute = body.canEditRoute;
+    const permissions = workerPermissionsFromBody(normalizeAppRole(role), body);
 
     if (!fullName || !usernameEmail || !password) {
       return jsonError("missing_fields", 400);
     }
 
-    const normalizedRole = role === "admin" ? "admin" : role === "viewer" ? "viewer" : "worker";
+    const normalizedRole = normalizeAppRole(role);
 
     const { AdminUserService } = await import("@/services/AdminUserService");
     const hashedPassword = await hashPassword(password, 10);
@@ -46,8 +46,7 @@ export const POST = withApiErrorHandling(
       usernameEmail,
       passwordHash: hashedPassword,
       role: normalizedRole,
-      canCreateOwnOrders: normalizedRole === "worker" ? !!canCreateOwnOrders : false,
-      canEditRoute: normalizedRole === "worker" ? !!canEditRoute : false,
+      ...permissions,
     });
 
     return jsonOk({ success: true });

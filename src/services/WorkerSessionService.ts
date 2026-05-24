@@ -5,6 +5,7 @@ import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 import { CustomerLocationService } from '@/services/CustomerLocationService';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
+import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -45,12 +46,7 @@ export class WorkerSessionService {
     const companySettingsData = settingsRows[0] || null;
 
     const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    const userData = userRows[0] ? {
-      id: userRows[0].id,
-      canCreateOwnOrders: userRows[0].canCreateOwnOrders,
-      notificationsEnabled: userRows[0].notificationsEnabled,
-      canEditRoute: userRows[0].canEditRoute,
-    } : null;
+    const userData = userRows[0] ? pickWorkerUserFlags(userRows[0]) : null;
 
     if (activeSessions.length === 0) {
       return { session: null, settings: companySettingsData, user: userData, events: [], notes: [] };

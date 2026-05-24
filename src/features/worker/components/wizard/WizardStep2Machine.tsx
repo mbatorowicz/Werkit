@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
+import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -64,8 +65,7 @@ export function WizardStep2Machine({
             onChange={setResourceId}
             placeholder={dict.searchPlaceholder}
             required
-            noResultsLabel={dict.searchNoResults}
-            clearAriaLabel={dict.searchClear}
+            {...comboboxFeedbackProps(dict)}
             aria-label={dict.wizardStep2Title}
           />
           <button

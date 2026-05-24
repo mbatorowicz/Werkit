@@ -75,6 +75,7 @@ export type UserData = {
   canCreateOwnOrders?: boolean;
   notificationsEnabled?: boolean;
   canEditRoute?: boolean;
+  canCreateCustomers?: boolean;
 };
 
 export type TimelineItem = {

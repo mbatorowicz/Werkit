@@ -16,6 +16,9 @@ import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
+import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
 
 export default function UsersClient() {
   const { canMutate } = useAdminAbility();
@@ -34,8 +37,7 @@ export default function UsersClient() {
     usernameEmail: "",
     password: "",
     role: "worker",
-    canCreateOwnOrders: true,
-    canEditRoute: false,
+    ...WORKER_PERMISSION_DEFAULTS,
   });
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
@@ -118,6 +120,7 @@ export default function UsersClient() {
       password: "",
       canCreateOwnOrders: u.canCreateOwnOrders ?? true,
       canEditRoute: u.canEditRoute ?? false,
+      canCreateCustomers: u.canCreateCustomers ?? false,
     });
     setIsModalOpen(true);
   };
@@ -125,7 +128,7 @@ export default function UsersClient() {
   const openNewModal = () => {
     setEditId(null);
     setShowPassword(false);
-    setForm({ fullName: "", usernameEmail: "", password: "", role: "worker", canCreateOwnOrders: true, canEditRoute: false });
+    setForm({ fullName: "", usernameEmail: "", password: "", role: "worker", ...WORKER_PERMISSION_DEFAULTS });
     setIsModalOpen(true);
   };
 
@@ -188,7 +191,7 @@ export default function UsersClient() {
       />
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
@@ -324,6 +327,7 @@ export default function UsersClient() {
                       role: e.target.value,
                       canCreateOwnOrders: e.target.value === "worker" ? form.canCreateOwnOrders : false,
                       canEditRoute: e.target.value === "worker" ? form.canEditRoute : false,
+                      canCreateCustomers: e.target.value === "worker" ? form.canCreateCustomers : false,
                     })
                   }
                   className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none"
@@ -371,34 +375,30 @@ export default function UsersClient() {
                 </div>
               </div>
 
-              {form.role === "worker" && (
-                <div className="space-y-3 pt-2">
-                  <div className="flex items-center gap-3">
-                    <label className="relative flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={form.canCreateOwnOrders}
-                        onChange={(e) => setForm({ ...form, canCreateOwnOrders: e.target.checked })}
-                      />
-                      <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
-                    </label>
-                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canCreateOwnOrdersLabel}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <label className="relative flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={form.canEditRoute}
-                        onChange={(e) => setForm({ ...form, canEditRoute: e.target.checked })}
-                      />
-                      <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500" />
-                    </label>
-                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{dict.canEditRouteLabel}</span>
-                  </div>
-                </div>
-              )}
+              {form.role === "worker" ? (
+                <WorkerPermissionToggles
+                  toggles={[
+                    {
+                      id: "canCreateOwnOrders",
+                      checked: form.canCreateOwnOrders,
+                      onChange: (checked) => setForm({ ...form, canCreateOwnOrders: checked }),
+                      label: dict.canCreateOwnOrdersLabel,
+                    },
+                    {
+                      id: "canEditRoute",
+                      checked: form.canEditRoute,
+                      onChange: (checked) => setForm({ ...form, canEditRoute: checked }),
+                      label: dict.canEditRouteLabel,
+                    },
+                    {
+                      id: "canCreateCustomers",
+                      checked: form.canCreateCustomers,
+                      onChange: (checked) => setForm({ ...form, canCreateCustomers: checked }),
+                      label: dict.canCreateCustomersLabel,
+                    },
+                  ]}
+                />
+              ) : null}
 
             </form>
       </AdminModalShell>
@@ -425,6 +425,10 @@ export default function UsersClient() {
                 <AdminPreviewField
                   label={dict.canEditRouteLabel}
                   value={previewUser.canEditRoute ? dict.previewYes : dict.previewNo}
+                />
+                <AdminPreviewField
+                  label={dict.canCreateCustomersLabel}
+                  value={previewUser.canCreateCustomers ? dict.previewYes : dict.previewNo}
                 />
               </>
             ) : null}

@@ -32,6 +32,7 @@ async function main() {
       'notifications_enabled',
       'biometric_login_enabled',
       'can_edit_route',
+      'can_create_customers',
     ]),
     resource_categories: new Set([
       'id',

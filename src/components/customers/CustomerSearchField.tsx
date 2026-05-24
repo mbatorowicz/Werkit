@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
-import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
+import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
 import {
   buildCustomerSearchText,
   formatCustomerDisplayAddress,
@@ -11,7 +11,13 @@ import {
   matchesCustomerSearch,
 } from "@/lib/customerSearch";
 import type { BaseCustomer } from "@/types/admin";
-import type { AppDictionary } from "@/i18n/types";
+
+export type CustomerSearchFieldDict = {
+  searchPlaceholder: string;
+  searchNoResults: string;
+  searchClear: string;
+  addCustomerInline: string;
+};
 
 type CustomerSearchFieldProps = {
   label: string;
@@ -21,7 +27,11 @@ type CustomerSearchFieldProps = {
   onCustomerCreated?: (customer: BaseCustomer) => void;
   required?: boolean;
   disabled?: boolean;
-  dict: AppDictionary["admin"]["orders"];
+  /** Gdy false — tylko wybór z listy (bez formularza dodawania). */
+  canCreate?: boolean;
+  dict: CustomerSearchFieldDict;
+  /** Kategoria logów urządzenia przy POST /api/customers. */
+  telemetryCategory?: "admin" | "lifecycle";
 };
 
 export function CustomerSearchField({
@@ -32,7 +42,9 @@ export function CustomerSearchField({
   onCustomerCreated,
   required = false,
   disabled = false,
+  canCreate = true,
   dict,
+  telemetryCategory = "admin",
 }: CustomerSearchFieldProps) {
   const [showCreate, setShowCreate] = useState(false);
   const [pendingQuery, setPendingQuery] = useState("");
@@ -54,7 +66,8 @@ export function CustomerSearchField({
 
   const trimmedQuery = pendingQuery.trim();
   const hasMatches = trimmedQuery.length > 0 && customers.some((c) => matchesCustomerSearch(c, pendingQuery));
-  const showAddButton = !disabled && !showCreate && trimmedQuery.length > 0 && !hasMatches;
+  const createEnabled = canCreate && !disabled;
+  const showAddButton = createEnabled && !showCreate && trimmedQuery.length > 0 && !hasMatches;
 
   return (
     <div className="space-y-1.5">
@@ -73,7 +86,7 @@ export function CustomerSearchField({
         clearAriaLabel={dict.searchClear}
         aria-label={label}
         emptyAction={
-          !disabled && !showCreate
+          createEnabled && !showCreate
             ? {
                 label: dict.addCustomerInline,
                 onClick: openCreateForm,
@@ -91,10 +104,11 @@ export function CustomerSearchField({
           {dict.addCustomerInline}
         </button>
       ) : null}
-      {showCreate ? (
+      {createEnabled && showCreate ? (
         <CustomerInlineCreateForm
           initialLastName={trimmedQuery}
           onCancel={() => setShowCreate(false)}
+          telemetryCategory={telemetryCategory}
           onCreated={(customer) => {
             onCustomerCreated?.(customer);
             onChange(String(customer.id));

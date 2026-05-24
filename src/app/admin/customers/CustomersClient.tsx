@@ -16,6 +16,7 @@ import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { ListSearchBar } from "@/components/ListSearchBar";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 
@@ -154,7 +155,7 @@ export default function CustomersClient() {
       />
 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
           <table className="w-full text-left border-collapse min-w-[600px]">
              <thead>
                <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">

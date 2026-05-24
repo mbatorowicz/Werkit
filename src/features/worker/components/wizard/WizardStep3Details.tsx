@@ -5,11 +5,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
-import {
-  buildCustomerSearchText,
-  formatCustomerDisplayAddress,
-  formatCustomerLabel,
-} from "@/lib/customerSearch";
+import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
+import { workerCustomerSearchFieldDict } from "@/components/customers/customerSearchFieldDict";
+import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -29,6 +27,8 @@ type Props = {
   taskDescription: string;
   setTaskDescription: (v: string) => void;
   setStep: (s: number) => void;
+  canCreateCustomers: boolean;
+  onCustomerCreated: (customer: WizardCustomer) => void;
 };
 
 export function WizardStep3Details({
@@ -47,27 +47,16 @@ export function WizardStep3Details({
   taskDescription,
   setTaskDescription,
   setStep,
+  canCreateCustomers,
+  onCustomerCreated,
 }: Props) {
   const materialOptions = useMemo(
     () => materials.map((m) => ({ id: String(m.id), label: m.name })),
     [materials],
   );
 
-  const customerOptions = useMemo(
-    () =>
-      customers.map((c) => ({
-        id: String(c.id),
-        label: formatCustomerLabel(c),
-        sublabel: formatCustomerDisplayAddress(c),
-        searchText: buildCustomerSearchText(c),
-      })),
-    [customers],
-  );
-
-  const comboboxCommon = {
-    noResultsLabel: dict.searchNoResults,
-    clearAriaLabel: dict.searchClear,
-  };
+  const comboboxCommon = comboboxFeedbackProps(dict);
+  const customerSearchDict = workerCustomerSearchFieldDict(dict);
 
   const nextDisabled =
     (selectedCategory?.reqMaterial && !materialId) ||
@@ -117,18 +106,17 @@ export function WizardStep3Details({
         ) : null}
 
         {selectedCategory?.showCustomer ? (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.wizardCustomerLabel}</label>
-            <AdminSearchCombobox
-              options={customerOptions}
-              value={customerId}
-              onChange={setCustomerId}
-              placeholder={dict.wizardCustomerPlaceholder}
-              required={selectedCategory.reqCustomer}
-              aria-label={dict.wizardCustomerLabel}
-              {...comboboxCommon}
-            />
-          </div>
+          <CustomerSearchField
+            label={dict.wizardCustomerLabel}
+            customers={customers}
+            value={customerId}
+            onChange={setCustomerId}
+            onCustomerCreated={onCustomerCreated}
+            required={selectedCategory.reqCustomer}
+            canCreate={canCreateCustomers}
+            dict={customerSearchDict}
+            telemetryCategory="lifecycle"
+          />
         ) : null}
 
         {selectedCategory?.showQuantity ? (
@@ -172,7 +160,7 @@ export function WizardStep3Details({
           onClick={() => setStep(4)}
           className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
         >
-          {dict.wizardNext} <ChevronRight className="w-5 h-5" />
+          {dict.wizardNext} <ChevronRight className="h-5 w-5" />
         </button>
       </div>
     </div>

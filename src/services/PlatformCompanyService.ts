@@ -87,6 +87,7 @@ export class PlatformCompanyService {
           isActive: true,
           canCreateOwnOrders: false,
           canEditRoute: false,
+          canCreateCustomers: false,
         });
       }
 
@@ -144,6 +145,7 @@ export class PlatformCompanyService {
       isActive: true,
       canCreateOwnOrders: false,
       canEditRoute: false,
+      canCreateCustomers: false,
     });
   }
 

@@ -16,6 +16,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { ReportStatCard } from "./ReportStatCard";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 type AdminSlice = AppDictionary["admin"];
 
@@ -134,7 +135,7 @@ export function ReportsDashboard({
               <h2 className="font-semibold text-zinc-900 dark:text-white">{r.activeEquipmentTitle}</h2>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className={INLINE_SCROLL_X_PANEL_CLASS}>
               <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-[#0a0a0b]/80">

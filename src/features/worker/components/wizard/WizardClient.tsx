@@ -8,8 +8,14 @@ import { WizardStep3Details } from "./WizardStep3Details";
 import { WizardStep4Schedule } from "./WizardStep4Schedule";
 import { WizardStep4Summary } from "./WizardStep4Summary";
 
-export default function WizardClient({ userId }: { userId?: number }) {
-  const flow = useWizardFlow(userId);
+export default function WizardClient({
+  userId,
+  canCreateCustomers: initialCanCreateCustomers = false,
+}: {
+  userId?: number;
+  canCreateCustomers?: boolean;
+}) {
+  const flow = useWizardFlow(userId, initialCanCreateCustomers);
 
   return (
     <div className="flex flex-col min-h-[80vh] py-6">
@@ -54,6 +60,8 @@ export default function WizardClient({ userId }: { userId?: number }) {
             taskDescription={flow.taskDescription}
             setTaskDescription={flow.setTaskDescription}
             setStep={flow.setStep}
+            canCreateCustomers={flow.canCreateCustomers}
+            onCustomerCreated={flow.handleCustomerCreated}
           />
         )}
         {flow.step === 4 && (

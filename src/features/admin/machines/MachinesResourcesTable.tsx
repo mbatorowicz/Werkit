@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Edit2, Plus, Trash2, Truck } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
@@ -79,7 +80,7 @@ export function MachinesResourcesTable({
       />
 
       <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className="overflow-x-auto">
+        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
           <table className="w-full min-w-[600px] border-collapse text-left">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700/50 dark:bg-[#0a0a0b]/80">

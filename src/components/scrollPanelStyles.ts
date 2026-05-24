@@ -4,6 +4,10 @@ import type { CSSProperties } from "react";
 export const INLINE_SCROLL_PANEL_CLASS =
   "overflow-y-auto overscroll-contain touch-pan-y custom-scrollbar";
 
+/** Poziome przewijanie tabel i szerokich paneli (admin, Gantt). */
+export const INLINE_SCROLL_X_PANEL_CLASS =
+  "overflow-x-auto overscroll-x-contain touch-pan-x custom-scrollbar";
+
 /** Panel listy combobox renderowany przez portal nad resztą UI. */
 export const FLOATING_LISTBOX_PANEL_CLASS = [
   "fixed z-[200]",
@@ -12,8 +16,5 @@ export const FLOATING_LISTBOX_PANEL_CLASS = [
 ].join(" ");
 
 export function touchScrollStyle(maxHeight?: number): CSSProperties {
-  return {
-    ...(maxHeight != null ? { maxHeight } : {}),
-    WebkitOverflowScrolling: "touch",
-  };
+  return maxHeight != null ? { maxHeight } : {};
 }

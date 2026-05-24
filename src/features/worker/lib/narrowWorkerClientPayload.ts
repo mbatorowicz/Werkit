@@ -78,6 +78,7 @@ export function narrowUserData(v: unknown): UserData | null {
   if (typeof v.canCreateOwnOrders === "boolean") u.canCreateOwnOrders = v.canCreateOwnOrders;
   if (typeof v.notificationsEnabled === "boolean") u.notificationsEnabled = v.notificationsEnabled;
   if (typeof v.canEditRoute === "boolean") u.canEditRoute = v.canEditRoute;
+  if (typeof v.canCreateCustomers === "boolean") u.canCreateCustomers = v.canCreateCustomers;
   return u;
 }
 

@@ -19,5 +19,5 @@ export default async function WizardPage() {
     redirect("/worker");
   }
 
-  return <WizardClient userId={userId} />;
+  return <WizardClient userId={userId} canCreateCustomers={details.user?.canCreateCustomers === true} />;
 }

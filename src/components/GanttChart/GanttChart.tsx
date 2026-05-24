@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 type GanttProps = {
   workers: BaseWorker[];
@@ -189,7 +190,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
         </div>
       </div>
 
-      <div className="flex relative overflow-x-auto custom-scrollbar">
+      <div className={`flex relative ${INLINE_SCROLL_X_PANEL_CLASS}`}>
         <div className="w-full min-w-[800px] lg:min-w-full">
           {/* Header row with hours */}
           <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-30">

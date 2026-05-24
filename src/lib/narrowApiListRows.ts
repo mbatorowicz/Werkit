@@ -254,6 +254,7 @@ export type AdminUserListRow = {
   isActive: boolean;
   canCreateOwnOrders: boolean;
   canEditRoute: boolean;
+  canCreateCustomers: boolean;
 };
 
 export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
@@ -276,6 +277,7 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
       isActive: typeof r.isActive === "boolean" ? r.isActive : true,
       canCreateOwnOrders: typeof r.canCreateOwnOrders === "boolean" ? r.canCreateOwnOrders : true,
       canEditRoute: typeof r.canEditRoute === "boolean" ? r.canEditRoute : false,
+      canCreateCustomers: typeof r.canCreateCustomers === "boolean" ? r.canCreateCustomers : false,
     });
   }
   return out;

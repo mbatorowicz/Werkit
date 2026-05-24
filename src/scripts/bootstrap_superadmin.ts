@@ -48,6 +48,7 @@ async function main() {
       isActive: true,
       canCreateOwnOrders: false,
       canEditRoute: false,
+      canCreateCustomers: false,
     })
     .returning({ id: users.id });
 

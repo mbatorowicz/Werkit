@@ -17,8 +17,9 @@ import {
   narrowWizardMaterials,
   narrowWorkOrders,
 } from "@/lib/narrowApiListRows";
+import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 
-export function useWizardFlow(initialUserId?: number) {
+export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers = false) {
   const router = useRouter();
   const { alert: appAlert } = useAppDialog();
   const dict = getDictionary().worker.client;
@@ -43,6 +44,7 @@ export function useWizardFlow(initialUserId?: number) {
   const [taskDescription, setTaskDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [expectedDurationHours, setExpectedDurationHours] = useState("");
+  const [canCreateCustomers, setCanCreateCustomers] = useState(initialCanCreateCustomers);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,10 +76,13 @@ export function useWizardFlow(initialUserId?: number) {
         setMaterials(narrowWizardMaterials(mat));
         setCustomers(narrowWizardCustomers(cus));
         setOrders(narrowWorkOrders(ord));
-        if (initialUserId == null && sess && typeof sess === "object" && !Array.isArray(sess)) {
-          const user = (sess as { user?: { id?: number } }).user;
-          if (typeof user?.id === "number") {
+        if (sess && typeof sess === "object" && !Array.isArray(sess)) {
+          const user = (sess as { user?: { id?: number; canCreateCustomers?: boolean } }).user;
+          if (initialUserId == null && typeof user?.id === "number") {
             setUserId(String(user.id));
+          }
+          if (typeof user?.canCreateCustomers === "boolean") {
+            setCanCreateCustomers(user.canCreateCustomers);
           }
         }
       } catch {
@@ -94,13 +99,10 @@ export function useWizardFlow(initialUserId?: number) {
     [categories, categoryId],
   );
 
-  const availableMachines = useMemo(() => {
-    return machines.filter((m) => {
-      if (!selectedCategory) return true;
-      if (selectedCategory.isGlobal) return true;
-      return m.categoryIds?.includes(selectedCategory.id) ?? false;
-    });
-  }, [machines, selectedCategory]);
+  const availableMachines = useMemo(
+    () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: true }),
+    [machines, selectedCategory],
+  );
 
   const handleStart = useCallback(async () => {
     if (hasScheduleConflicts) return;
@@ -219,6 +221,10 @@ export function useWizardFlow(initialUserId?: number) {
     [appAlert, dict.errAcceptOrder, dict.errNetwork, router],
   );
 
+  const handleCustomerCreated = useCallback((customer: WizardCustomer) => {
+    setCustomers((prev) => [...prev.filter((c) => c.id !== customer.id), customer]);
+  }, []);
+
   return {
     step,
     setStep,
@@ -252,5 +258,7 @@ export function useWizardFlow(initialUserId?: number) {
     availableMachines,
     handleStart,
     handleAcceptOrder,
+    canCreateCustomers,
+    handleCustomerCreated,
   };
 }
