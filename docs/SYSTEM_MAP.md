@@ -151,7 +151,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
 - **`/api/platform/*`** — wymaga roli **`superadmin`** (`requireSuperadminSession` w `src/lib/apiPlatform.ts`).
-- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`** — `SHARED_API_PREFIXES`. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): tylko `admin` (egzekwowane też przez `guardAdminMutation()` w handlerach).
+- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`** — `SHARED_API_PREFIXES`. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
 - **Wszystko inne pod `/api/`** — domyślnie traktowane jako `admin API` (deny-by-default), wymaga roli `admin|viewer` na GET, `admin` na mutacjach.
 
 ### 5.1. Auth
@@ -435,7 +435,7 @@ Klasyfikacja → autoryzacja → role:
 - **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji.
 - **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: tylko `admin`.
 - **`WORKER_APP_ROLES = ['worker', 'admin']`** — `/worker` i `/api/worker`.
-- **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: tylko `admin`.
+- **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
 - Nowy publiczny shard API → **dopisz prefix do `SHARED_API_PREFIXES`**, inaczej deny-by-default zakwalifikuje go jako admin API.
 
 Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Niepoprawny token → wyczyszczenie cookie + redirect/`401`.

@@ -13,6 +13,11 @@ const WORKER_APP_ROLES = ['worker', 'admin'];
 const SHARED_READ_ROLES = ['worker', 'admin', 'viewer'];
 const PLATFORM_ROLES = ['superadmin'];
 
+/** Worker z `can_create_customers` tworzy kontrahenta przez POST /api/customers (guard w route handler). */
+function isWorkerSharedCustomerCreate(pathname: string, method: string, role: string): boolean {
+  return role === 'worker' && method === 'POST' && pathname === '/api/customers';
+}
+
 function loginRedirectForRole(role: string): string {
   if (isSuperadminRole(role)) return '/platform';
   if (role === 'worker') return '/worker';
@@ -151,12 +156,12 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    // API współdzielone (GET: worker/admin/viewer; mutacje: wyłącznie admin — dodatkowo chronione w route handlers)
+    // API współdzielone (GET: worker/admin/viewer; mutacje: admin + wyjątek POST /api/customers dla workera)
     if (isSharedApi) {
       if (!SHARED_READ_ROLES.includes(role)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
-      if (isMutation && role !== 'admin') {
+      if (isMutation && role !== 'admin' && !isWorkerSharedCustomerCreate(pathname, request.method, role)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     }
