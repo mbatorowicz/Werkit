@@ -10,3 +10,6 @@ const gitHash = process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
   : '';
 
 export const APP_VERSION = `${baseVersion}${gitHash}`;
+
+/** Wersja semver z package.json (bez hash deployu) — porównanie z APK. */
+export const WEB_PACKAGE_VERSION = baseVersion;

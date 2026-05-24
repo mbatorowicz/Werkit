@@ -479,6 +479,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 12. **`GET /api/geocode`** — `q` min. 3 znaki, **maks. 280** (anty-nadużycie wobec Nominatim); błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
 13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem (stabilność + rozmiar wiersza w `device_logs`).
+14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI nie startuje przy każdym deployu web — po zmianach mobilnych bez `android/**` uruchom ręcznie workflow **Build Android App**.
 
 ---
 
@@ -499,6 +500,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 | Element | Lokalizacja |
 |---|---|
 | CI (lint, TypeScript, build Next) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `main`, PR do `main` |
-| Build Android (Capacitor) | [`.github/workflows/android-build.yml`](../.github/workflows/android-build.yml) |
+| Build Android (Capacitor) | [`.github/workflows/android-build.yml`](../.github/workflows/android-build.yml) — release `android-latest`: `werkit.apk` (debug) + `werkit-apk-meta.json` |
+| APK — pobranie / metadane | `GET /api/app/android`, `GET /api/app/android/info` — [`androidAppDownload.ts`](../src/lib/androidAppDownload.ts), [`githubReleaseApk.ts`](../src/lib/githubReleaseApk.ts) |
 | Licencja (zastrzeżone prawa) | [`LICENSE`](../LICENSE); pole `license` w `package.json`: `UNLICENSED` |
 | Raportowanie podatności | [`SECURITY.md`](../SECURITY.md) |
