@@ -38,7 +38,7 @@ Architektura **warstwowa z serwisami** (od **v1.6.6**, utrwalona m.in. w **v1.9*
 
 **Worker UI:** komponenty głównie z **`src/features/worker/components/`**, hooki z **`src/features/worker/hooks/`**.
 
-**Współdzielenie worker ↔ admin (prezentacja zlecenia):** **`src/components/work-orders/`** (`WorkOrderPriorityRibbon`, `WorkOrderSummaryLines`).
+**Współdzielenie worker ↔ admin (prezentacja zlecenia):** **`src/components/work-orders/`** (`WorkOrderPriorityRibbon`, `OrderLabelCard`, harmonogram).
 
 ---
 
@@ -137,7 +137,7 @@ Usunięcie zakończonej sesji z ewidencji:
 Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samych** znaczników priorytetu i opisu bez forkowania klas CSS.
 
 - `WorkOrderPriorityRibbon` — prop `labels` (typowo wycinek `getDictionary().worker.client` dla dosłownych tłumaczeń priorytetu).
-- `WorkOrderSummaryLines` — blok maszyna / materiał / klient / opis / czas / zlecający (worker).
+- `OrderLabelCard` — spójna karta/etykieta zlecenia (worker, admin, wizard).
 
 ---
 

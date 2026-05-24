@@ -8,14 +8,22 @@ export function useDismissOnOutsidePointer(
   onDismiss: () => void,
 ): void {
   const refsRef = useRef(refs);
-  refsRef.current = refs;
+  const onDismissRef = useRef(onDismiss);
+
+  useEffect(() => {
+    refsRef.current = refs;
+  });
+
+  useEffect(() => {
+    onDismissRef.current = onDismiss;
+  });
 
   useEffect(() => {
     if (!active) return;
     const onOutsidePointer = (e: MouseEvent | TouchEvent) => {
       const target = e.target as Node;
       if (refsRef.current.some((ref) => ref.current?.contains(target))) return;
-      onDismiss();
+      onDismissRef.current();
     };
     document.addEventListener("mousedown", onOutsidePointer);
     document.addEventListener("touchstart", onOutsidePointer);
@@ -23,5 +31,5 @@ export function useDismissOnOutsidePointer(
       document.removeEventListener("mousedown", onOutsidePointer);
       document.removeEventListener("touchstart", onOutsidePointer);
     };
-  }, [active, onDismiss]);
+  }, [active]);
 }

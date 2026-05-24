@@ -45,7 +45,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | | |
 |---|---|
 | **Było** | `session_type` na `work_orders` / `work_sessions`, `resources.category_id` obok N↔M. |
-| **Jest** | Migracja **`0014_drop_legacy_session_type_resource_category.sql`**; `schema.ts` + **`verify_schema_alignment`** zsynchronizowane; `migrate_categories.ts` → noop z komentarzem historycznym. |
+| **Jest** | Migracja **`0014_drop_legacy_session_type_resource_category.sql`**; `schema.ts` + **`verify_schema_alignment`** zsynchronizowane. |
 
 ### Faza D — semantyka statusu zlecenia ✅ zamknięta
 
@@ -83,7 +83,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 
 - [x] **Faza A** — `schedule.ts` w serwisie (`AdminOrderService.checkScheduleConflict`, plik `src/lib/schedule.ts` usunięty)
 - [x] **Faza B** — `db:napraw-wszystko-i-zweryfikuj` + SYSTEM_MAP §3.3 / §15 + **`db:migrate:pg`**
-- [x] **Faza C** — migracja **0014**; schema + `verify_schema_alignment`; `migrate_categories.ts` noop
+- [x] **Faza C** — migracja **0014**; schema + `verify_schema_alignment`
 - [x] **Faza D** — statusy zleceń + migracja **0013**
 - [x] **Faza E** — `passwordCrypto` + `bcryptjs` + `WERKIT_USE_BCRYPTJS`
 - [x] **Faza F** — SYSTEM_MAP §4 (komponenty / opisy tras)

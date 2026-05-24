@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import WizardClient from "@/features/worker/components/WizardClient";
+import WizardClient from "@/features/worker/components/wizard/WizardClient";
 import { getUserId } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 

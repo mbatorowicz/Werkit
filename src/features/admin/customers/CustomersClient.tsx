@@ -13,7 +13,7 @@ import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvide
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
-import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
+import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";

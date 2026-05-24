@@ -317,7 +317,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 |---|---|
 | `components/shell/*` | Orkiestracja dashboardu workera (`WorkerActiveSessionSection`, `WorkerPendingOrdersSection`, modale, footer). |
 | `components/profile/*` | Ustawienia profilu: powiadomienia, dźwięki alarmów, biometria. |
-| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków). |
+| `components/wizard/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków). |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących. |
 | `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji. |
 | `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx`, `WorkerAlarmModal.tsx` | Modale. |
@@ -355,7 +355,6 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
-- `Customers/CustomerInlineCreateForm.tsx` — re-export; SSOT: `src/components/customers/CustomerInlineCreateForm.tsx` (inline tworzenie kontrahenta POST `/api/customers` → `{ customerId }`; **bez zagnieżdżonego `<form>`**; reuse w `CustomerSearchField` i `CustomersClient`),
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
@@ -394,7 +393,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | Komponent | Prop kluczowy | Co |
 |---|---|---|
 | `WorkOrderPriorityRibbon` | `labels: WorkOrderPriorityLabels` (wycinek `worker.client`) | URGENT (red, pulse), HIGH (orange), NORMAL (zinc), LOW (emerald). Tryb `accentOnly` rysuje tylko URGENT/HIGH. |
-| `WorkOrderSummaryLines` | `dict` (wycinek), `taskItalic?`, `showDurationCreator?` | Maszyna / materiał (+t) / klient / opis / czas / zlecający. |
+| `OrderLabelCard` | props zlecenia + `dict` | SSOT etykiety zlecenia (maszyna, klient, termin) — worker, admin, wizard. |
 | `ScheduleConflictPanel` | `mode: admin \| worker`, `conflicts`, etykiety i18n | Panel inline pod datą/czasem; admin: „Utwórz mimo konfliktu”; worker: ukryty Start w liście oczekujących. |
 | `WorkOrderScheduleFields` | `scope: admin \| worker`, hook `useScheduleConflictPreview` | Pola czasu + termin + panel konfliktów (debounce 350 ms). |
 | `WorkOrderPendingCard` | `mode: start \| preview` | Karta oczekującego zlecenia + panel konfliktów (lista PENDING, kolejka w sesji). |
@@ -496,8 +495,6 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 **Wszystkie skrypty** używają `loadEnvConfig(cwd)` + `ensurePostgresUrlForVercelDriver()` z `src/lib/resolveNeonPostgresUrl.ts`. Brak `DATABASE_URL`/`POSTGRES_URL` → komunikat instruujący wklejenie connection stringa do `.env.local`.
 
 `docs/archive/legacy-root-scripts/` — historyczne skrypty SQL/Python z katalogu głównego repo (przed ujednoliceniem Drizzle); **nie uruchamiać** na produkcji.
-
-`src/scripts/migrate_categories.ts` — **noop** po migracji **0014** (komunikat informacyjny); historyczny proces opisany w komentarzu w pliku.
 
 ---
 
