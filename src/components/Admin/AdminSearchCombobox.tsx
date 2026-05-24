@@ -8,6 +8,8 @@ export type AdminSearchComboboxOption = {
   id: string;
   label: string;
   sublabel?: string;
+  /** Tekst używany wyłącznie do filtrowania (np. pełny adres klienta). */
+  searchText?: string;
 };
 
 const INPUT_CLASS =
@@ -25,6 +27,10 @@ type Props = {
   clearAriaLabel?: string;
   inputId?: string;
   "aria-label"?: string;
+  emptyAction?: {
+    label: string;
+    onClick: () => void;
+  };
 };
 
 export function AdminSearchCombobox({
@@ -39,6 +45,7 @@ export function AdminSearchCombobox({
   clearAriaLabel = "Wyczyść",
   inputId,
   "aria-label": ariaLabel,
+  emptyAction,
 }: Props) {
   const autoId = useId();
   const id = inputId ?? autoId;
@@ -58,10 +65,15 @@ export function AdminSearchCombobox({
 
   const filtered = useMemo(
     () =>
-      filterComboboxOptions(options, query, (o) => `${o.label} ${o.sublabel ?? ""}`).map((o) => ({
+      filterComboboxOptions(
+        options,
+        query,
+        (o) => o.searchText ?? `${o.label} ${o.sublabel ?? ""}`,
+      ).map((o) => ({
         id: o.id,
         label: o.label,
         sublabel: o.sublabel,
+        searchText: o.searchText,
       })),
     [options, query],
   );
@@ -94,8 +106,6 @@ export function AdminSearchCombobox({
     const onDocMouseDown = (e: MouseEvent) => {
       if (!rootRef.current?.contains(e.target as Node)) {
         setOpen(false);
-        setQuery("");
-        onQueryChange?.("");
       }
     };
     document.addEventListener("mousedown", onDocMouseDown);
@@ -103,22 +113,24 @@ export function AdminSearchCombobox({
   }, [open]);
 
   useEffect(() => {
+    onQueryChange?.(query);
+  }, [query, onQueryChange]);
+
+  useEffect(() => {
     setHighlightIndex(0);
   }, [query, open]);
 
-  const displayValue = open ? query : selected?.label ?? "";
+  const displayValue = open ? query : (selected?.label ?? query);
 
   const pickOption = (optionId: string) => {
     onChange(optionId);
     setOpen(false);
     setQuery("");
-    onQueryChange?.("");
   };
 
   const clearSelection = () => {
     onChange("");
     setQuery("");
-    onQueryChange?.("");
     setOpen(true);
   };
 
@@ -140,8 +152,6 @@ export function AdminSearchCombobox({
       }
     } else if (e.key === "Escape") {
       setOpen(false);
-      setQuery("");
-      onQueryChange?.("");
     }
   };
 
@@ -169,14 +179,13 @@ export function AdminSearchCombobox({
           onChange={(e) => {
             const next = e.target.value;
             setQuery(next);
-            onQueryChange?.(next);
             if (!open) setOpen(true);
             if (value) onChange("");
           }}
           onFocus={() => {
             if (disabled) return;
             setOpen(true);
-            if (selected && !query) setQuery("");
+            if (selected && !query) setQuery(selected.label);
           }}
           onKeyDown={onKeyDown}
           className={`${INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
@@ -209,7 +218,22 @@ export function AdminSearchCombobox({
           }}
         >
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">{noResultsLabel}</li>
+            <li className="px-3 py-2">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">{noResultsLabel}</p>
+              {emptyAction && query.trim() ? (
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    setOpen(false);
+                    emptyAction.onClick();
+                  }}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-400 bg-emerald-50/80 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
+                >
+                  {emptyAction.label}
+                </button>
+              ) : null}
+            </li>
           ) : (
             filtered.map((option, index) => (
               <li key={option.id} role="option" aria-selected={value === option.id}>

@@ -24,4 +24,10 @@ export type WizardMachine = { id: number; name: string; categoryIds: number[]; d
 
 export type WizardMaterial = { id: number; name: string; categoryIds?: number[] };
 
-export type WizardCustomer = { id: number; firstName: string | null; lastName: string };
+export type WizardCustomer = {
+  id: number;
+  firstName: string | null;
+  lastName: string;
+  defaultAddress?: string | null;
+  locationAddresses?: string[];
+};

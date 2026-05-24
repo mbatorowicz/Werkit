@@ -3,6 +3,7 @@ import { isMissingResourceCategoriesVisibilityColumns } from '@/lib/postgresMigr
 import {
   resourceCategories,
   customers,
+  customerLocations,
   materials,
   materialCategories,
   materialToCategories,
@@ -75,11 +76,44 @@ export class DictionaryService {
   }
 
   static async getCustomers(companyId: number) {
-    return await db
+    const rows = await db
       .select()
       .from(customers)
       .where(eq(customers.companyId, companyId))
       .orderBy(desc(customers.id));
+
+    if (rows.length === 0) return [];
+
+    const customerIds = rows.map((r) => r.id);
+    const locationRows = await db
+      .select({
+        customerId: customerLocations.customerId,
+        label: customerLocations.label,
+        address: customerLocations.address,
+      })
+      .from(customerLocations)
+      .where(inArray(customerLocations.customerId, customerIds));
+
+    const locationsByCustomer = new Map<number, string[]>();
+    for (const loc of locationRows) {
+      const parts: string[] = [];
+      if (typeof loc.label === "string" && loc.label.trim() && loc.label.trim() !== "Główna") {
+        parts.push(loc.label.trim());
+      }
+      if (typeof loc.address === "string" && loc.address.trim()) {
+        parts.push(loc.address.trim());
+      }
+      if (parts.length === 0) continue;
+      const text = parts.join(" — ");
+      const arr = locationsByCustomer.get(loc.customerId) ?? [];
+      if (!arr.includes(text)) arr.push(text);
+      locationsByCustomer.set(loc.customerId, arr);
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      locationAddresses: locationsByCustomer.get(row.id) ?? [],
+    }));
   }
 
   static async getMaterials(companyId: number) {

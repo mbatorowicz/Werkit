@@ -72,9 +72,23 @@ export function narrowBaseCustomers(rows: unknown[]): BaseCustomer[] {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.lastName !== "string") continue;
     const firstName = r.firstName === null || typeof r.firstName === "string" ? (r.firstName as string | null) : null;
-    out.push({ id: r.id, firstName, lastName: r.lastName });
+    const defaultAddress =
+      r.defaultAddress === null || typeof r.defaultAddress === "string" ? (r.defaultAddress as string | null) : null;
+    const locationAddresses = narrowStringArray(r.locationAddresses);
+    out.push({
+      id: r.id,
+      firstName,
+      lastName: r.lastName,
+      defaultAddress,
+      ...(locationAddresses.length > 0 ? { locationAddresses } : {}),
+    });
   }
   return out;
+}
+
+function narrowStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === "string" && v.trim().length > 0);
 }
 
 function readBool(r: Record<string, unknown>, k: string, fallback: boolean): boolean {
@@ -226,6 +240,8 @@ export function narrowWizardCustomers(rows: unknown[]): WizardCustomer[] {
     id: c.id,
     firstName: c.firstName,
     lastName: c.lastName,
+    defaultAddress: c.defaultAddress,
+    locationAddresses: c.locationAddresses,
   }));
 }
 

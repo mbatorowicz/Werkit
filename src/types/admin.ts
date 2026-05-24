@@ -73,6 +73,8 @@ export type BaseCustomer = {
   id: number;
   firstName: string | null;
   lastName: string;
+  defaultAddress?: string | null;
+  locationAddresses?: string[];
 };
 
 export type BaseCategory = {

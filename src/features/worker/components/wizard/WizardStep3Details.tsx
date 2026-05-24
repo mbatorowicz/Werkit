@@ -5,12 +5,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
+import {
+  buildCustomerSearchText,
+  formatCustomerDisplayAddress,
+  formatCustomerLabel,
+} from "@/lib/customerSearch";
 
 type Dict = AppDictionary["worker"]["client"];
-
-function formatCustomerLabel(c: WizardCustomer): string {
-  return [c.lastName, c.firstName].filter(Boolean).join(" ").trim();
-}
 
 type Props = {
   dict: Dict;
@@ -57,6 +58,8 @@ export function WizardStep3Details({
       customers.map((c) => ({
         id: String(c.id),
         label: formatCustomerLabel(c),
+        sublabel: formatCustomerDisplayAddress(c),
+        searchText: buildCustomerSearchText(c),
       })),
     [customers],
   );

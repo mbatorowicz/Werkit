@@ -1,16 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
-import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
+import {
+  buildCustomerSearchText,
+  formatCustomerDisplayAddress,
+  formatCustomerLabel,
+  matchesCustomerSearch,
+} from "@/lib/customerSearch";
 import type { BaseCustomer } from "@/types/admin";
 import type { AppDictionary } from "@/i18n/types";
-
-function formatCustomerLabel(c: BaseCustomer): string {
-  return [c.lastName, c.firstName].filter(Boolean).join(" ").trim();
-}
 
 type CustomerSearchFieldProps = {
   label: string;
@@ -41,15 +42,19 @@ export function CustomerSearchField({
       customers.map((c) => ({
         id: String(c.id),
         label: formatCustomerLabel(c),
+        sublabel: formatCustomerDisplayAddress(c),
+        searchText: buildCustomerSearchText(c),
       })),
     [customers],
   );
 
-  const showAddButton =
-    !disabled &&
-    !showCreate &&
-    pendingQuery.trim().length > 0 &&
-    !customers.some((c) => matchesSearchQuery(formatCustomerLabel(c), pendingQuery));
+  const openCreateForm = useCallback(() => {
+    setShowCreate(true);
+  }, []);
+
+  const trimmedQuery = pendingQuery.trim();
+  const hasMatches = trimmedQuery.length > 0 && customers.some((c) => matchesCustomerSearch(c, pendingQuery));
+  const showAddButton = !disabled && !showCreate && trimmedQuery.length > 0 && !hasMatches;
 
   return (
     <div className="space-y-1.5">
@@ -67,11 +72,19 @@ export function CustomerSearchField({
         noResultsLabel={dict.searchNoResults}
         clearAriaLabel={dict.searchClear}
         aria-label={label}
+        emptyAction={
+          !disabled && !showCreate
+            ? {
+                label: dict.addCustomerInline,
+                onClick: openCreateForm,
+              }
+            : undefined
+        }
       />
       {showAddButton ? (
         <button
           type="button"
-          onClick={() => setShowCreate(true)}
+          onClick={openCreateForm}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-400 bg-emerald-50/80 px-3 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
         >
           <Plus className="h-4 w-4" />
@@ -80,7 +93,7 @@ export function CustomerSearchField({
       ) : null}
       {showCreate ? (
         <CustomerInlineCreateForm
-          initialLastName={pendingQuery.trim()}
+          initialLastName={trimmedQuery}
           onCancel={() => setShowCreate(false)}
           onCreated={(customer) => {
             onCustomerCreated?.(customer);
