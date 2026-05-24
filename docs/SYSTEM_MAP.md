@@ -117,7 +117,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/settings` | RSC | `SettingsForm` | Singleton ustawień firmy (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR `DEVICE_LOGS_PAGE_LIMIT` + eksport → `/api/admin/logs/export`) | admin |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
-| `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; `POST work-orders` + `accept` | worker |
+| `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
 | `/worker/history/[id]` | RSC | `MapWrapper`, `TimelineGalleryClient` | Szczegóły sesji (mapa GPS, galeria); reszta JSX w `page.tsx` | worker |
 | `/worker/profile` | RSC | `ProfileSettings` | Profil: notyfikacje + biometria (`worker/profile/ProfileSettings.tsx`) | worker |
@@ -195,7 +195,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 ### 5.4. Słowniki (SHARED — admin pisze, wszyscy zalogowani czytają)
 
-Każda trasa w `categories|customers|materials|machines|material-categories` ma ten sam wzorzec: `GET (DictionaryService.get*) `, `POST (DictionaryService.add*)`, `PUT/DELETE` przez `[id]/route.ts`. Mutacje za `guardAdminMutation()`. Dodatkowo handlery wykrywają **brakujące migracje** (`isMissingResourcesVehicleColumns`, `isMissingMaterialCategoriesTables`, `isMissingResourceCategoriesStationaryColumn`) → 503 z czytelnym kluczem (`migration_required`, `migration_material_categories`).
+Każda trasa w `categories|customers|materials|machines|material-categories` ma ten sam wzorzec: `GET (DictionaryService.get*) `, `POST (DictionaryService.add*)`, `PUT/DELETE` przez `[id]/route.ts`. Mutacje za `guardAdminMutation()`. **`POST /api/customers`** zwraca `{ customerId }` (inline tworzenie w modalu zlecenia). Dodatkowo handlery wykrywają **brakujące migracje** (`isMissingResourcesVehicleColumns`, `isMissingMaterialCategoriesTables`, `isMissingResourceCategoriesStationaryColumn`) → 503 z czytelnym kluczem (`migration_required`, `migration_material_categories`).
 
 **Materiały:** `POST/PUT /api/materials` — ciało `{ name, categoryIds }`; **co najmniej jedna** kategoria (`categoryIds.length ≥ 1`), inaczej **400** `missing_material_category`. Kolumna `materials.type` usunięta migracją **0009** (`DictionaryService.addMaterial(name, categoryIds)`).
 
@@ -284,7 +284,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### Komponenty
 | Plik | Rola |
 |---|---|
-| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków, krok 4: `WorkOrderScheduleFields` + `ScheduleConflictPanel`) — `POST /api/worker/work-orders` + `accept`; guard na `/worker/wizard` gdy brak `canCreateOwnOrders`. |
+| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków; kroki 1–3: wyszukiwalne comboboxy jak w adminie; krok 4: `WorkOrderScheduleFields` + `ScheduleConflictPanel`) — `POST /api/worker/work-orders` + `accept`; guard na `/worker/wizard` gdy brak `canCreateOwnOrders`. |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących (sortowanie/klasyfikacja w `lib/workOrderPresentation.ts`). |
 | `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji: nad `OrderLabelCard` — **`QueuedPendingOrdersDuringSession`** (rozwijana kolejka `PENDING` z `/api/worker/work-orders`); zegar, GPS, akcje. |
 | `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx` | Modale. |
@@ -311,6 +311,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 `src/components/Admin/**`:
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
+- `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
+- `Customers/CustomerInlineCreateForm.tsx` — inline tworzenie kontrahenta (POST `/api/customers` → `{ customerId }`); reuse w `OrderFormModal` (`CustomerSearchField`) i `CustomersClient` (modal „Nowy klient”),
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
@@ -328,6 +330,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 `src/features/admin/orders/dispatchPlanning.ts`:
 - `formatDueDatetimeLocal(dateString)` — bezpieczny ISO bez TZ pod input `datetime-local`.
 - `buildUnifiedDispatchItems(orders, sessions, search)` — scala dwa źródła w `UnifiedGanttItem[]` z grupowaniem statusu i sortowaniem.
+
+`src/features/admin/orders/CustomerSearchField.tsx` — combobox klienta w `OrderFormModal`: filtrowanie listy + przycisk „Dodaj klienta” przy braku wyników → `CustomerInlineCreateForm` + auto-wybór nowego klienta.
+
+`src/lib/searchComboboxFilter.ts` — normalizacja PL i filtrowanie opcji comboboxa (limit 12 wyników).
 
 ---
 

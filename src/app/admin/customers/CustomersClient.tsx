@@ -12,24 +12,10 @@ import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvide
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
+import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
-import dynamic from "next/dynamic";
-
-function CustomerMapPickerLoading() {
-  return (
-    <div className="w-full h-[250px] bg-zinc-100 dark:bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-500">
-      {getDictionary().admin.customers.mapLoading}
-    </div>
-  );
-}
-
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
-
-const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
-  ssr: false,
-  loading: CustomerMapPickerLoading,
-});
 
 type Customer = AdminCustomerListRow;
 
@@ -42,6 +28,7 @@ export default function CustomersClient() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
+  const [createFormKey, setCreateFormKey] = useState(0);
   const [form, setForm] = useState({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
@@ -75,14 +62,14 @@ export default function CustomersClient() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editId) return;
     setIsSubmitting(true);
-    const url = editId ? `/api/customers/${editId}` : "/api/customers";
-    const method = editId ? "PUT" : "POST";
+    const url = `/api/customers/${editId}`;
     try {
       const res = await fetchWithDeviceTelemetry(
-        editId ? `Admin customers: save PUT ${editId}` : "Admin customers: save POST",
+        `Admin customers: save PUT ${editId}`,
         url,
-        { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) },
+        { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) },
         { category: "admin" },
       );
       if (res.ok) {
@@ -117,7 +104,7 @@ export default function CustomersClient() {
 
   const openNewModal = () => {
     setEditId(null);
-    setForm({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
+    setCreateFormKey((k) => k + 1);
     setIsModalOpen(true);
   };
 
@@ -219,14 +206,28 @@ export default function CustomersClient() {
         scrollableBody
         closeOnBackdropClick={false}
         footer={
-          <FormModalFooter
-            formId={customerFormId}
-            onCancel={() => setIsModalOpen(false)}
-            submitLabel={isSubmitting ? ordersDict.saving : editId ? dict.save : dict.create}
-            isSubmitting={isSubmitting}
-          />
+          editId ? (
+            <FormModalFooter
+              formId={customerFormId}
+              onCancel={() => setIsModalOpen(false)}
+              submitLabel={isSubmitting ? ordersDict.saving : dict.save}
+              isSubmitting={isSubmitting}
+            />
+          ) : undefined
         }
       >
+        {!editId ? (
+          <div className="p-6">
+            <CustomerInlineCreateForm
+              key={createFormKey}
+              onCreated={() => {
+                setIsModalOpen(false);
+                void fetchData();
+              }}
+              onCancel={() => setIsModalOpen(false)}
+            />
+          </div>
+        ) : (
               <form id={customerFormId} onSubmit={handleSave} className="p-6 space-y-5">
                  <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
@@ -238,31 +239,6 @@ export default function CustomersClient() {
                      <input required type="text" placeholder={dict.lastNamePlaceholder} value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
                    </div>
                  </div>
-                 {!editId ? (
-                 <>
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">{dict.addressLabel}</label>
-                   <input type="text" placeholder={dict.addressPlaceholder} value={form.defaultAddress} onChange={e => setForm({...form, defaultAddress: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
-                 </div>
-                 <div className="space-y-2">
-                   <label className="text-sm font-medium text-zinc-400">{dict.gpsOnMapLabel}</label>
-                   <CustomerMapPicker
-                     lat={form.latitude}
-                     lng={form.longitude}
-                     address={form.defaultAddress}
-                     onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
-                   />
-                   {(form.latitude && form.longitude) && (
-                     <div className="text-[10px] text-emerald-500">
-                       {formatDict(dict.pinSaved, {
-                         lat: parseFloat(form.latitude).toFixed(5),
-                         lng: parseFloat(form.longitude).toFixed(5),
-                       })}
-                     </div>
-                   )}
-                 </div>
-                 </>
-                 ) : (
                    <>
                      {(form.defaultAddress || (form.latitude && form.longitude)) ? (
                        <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
@@ -287,10 +263,10 @@ export default function CustomersClient() {
                      ) : null}
                      <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
                    </>
-                 )}
 
                  {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
               </form>
+        )}
       </AdminModalShell>
 
       <AdminPreviewModal

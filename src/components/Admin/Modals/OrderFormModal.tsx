@@ -1,17 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import {
   WorkOrderScheduleFields,
 } from "@/components/work-orders/WorkOrderScheduleFields";
 import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
+import { CustomerSearchField } from "@/features/admin/orders/CustomerSearchField";
 import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
+import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 import {
   OrderFormState,
   BaseWorker,
@@ -61,6 +64,7 @@ export default function OrderFormModal({
   const [form, setForm] = useState<OrderFormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasConflicts, setHasConflicts] = useState(false);
+  const [extraCustomers, setExtraCustomers] = useState<BaseCustomer[]>([]);
   const { confirm: appConfirm } = useAppDialog();
 
   useEffect(() => {
@@ -68,6 +72,7 @@ export default function OrderFormModal({
     queueMicrotask(() => {
       setForm(initialForm);
       setHasConflicts(false);
+      setExtraCustomers([]);
     });
   }, [isOpen, initialForm]);
 
@@ -80,6 +85,50 @@ export default function OrderFormModal({
   });
 
   const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
+
+  const allCustomers = useMemo(() => {
+    const byId = new Map(customers.map((c) => [c.id, c]));
+    for (const c of extraCustomers) byId.set(c.id, c);
+    return [...byId.values()];
+  }, [customers, extraCustomers]);
+
+  const categoryOptions: AdminSearchComboboxOption[] = useMemo(
+    () => categories.map((c) => ({ id: String(c.id), label: c.name })),
+    [categories],
+  );
+
+  const workerOptions: AdminSearchComboboxOption[] = useMemo(
+    () => workers.map((w) => ({ id: String(w.id), label: w.fullName })),
+    [workers],
+  );
+
+  const machineOptions: AdminSearchComboboxOption[] = useMemo(
+    () =>
+      availableMachines.map((m) => {
+        const canonical = buildResourceCanonicalName(
+          m.brand ?? "",
+          m.model ?? "",
+          m.registrationNumber ?? "",
+          m.description,
+        );
+        return {
+          id: String(m.id),
+          label: m.name,
+          sublabel: canonical && canonical !== m.name ? canonical : undefined,
+        };
+      }),
+    [availableMachines],
+  );
+
+  const materialOptions: AdminSearchComboboxOption[] = useMemo(
+    () => materials.map((m) => ({ id: String(m.id), label: m.name })),
+    [materials],
+  );
+
+  const comboboxCommon = {
+    noResultsLabel: dict.searchNoResults,
+    clearAriaLabel: dict.searchClear,
+  };
 
   const modalTitle =
     editingOrderId != null
@@ -158,21 +207,15 @@ export default function OrderFormModal({
         {/* 1. Typ pracy */}
         <div className={FIELD}>
           <label className={LABEL}>{dict.jobType}</label>
-          <select
-            required
+          <AdminSearchCombobox
+            options={categoryOptions}
             value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value, resourceId: "" })}
-            className={CONTROL}
-          >
-            <option value="" disabled>
-              {dict.chooseJobTypePlaceholder}
-            </option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            onChange={(id) => setForm({ ...form, categoryId: id, resourceId: "" })}
+            placeholder={dict.chooseJobTypePlaceholder}
+            required
+            aria-label={dict.jobType}
+            {...comboboxCommon}
+          />
           {!selectedCategory ? (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.pickCategoryFirstHint}</p>
           ) : null}
@@ -181,43 +224,31 @@ export default function OrderFormModal({
         {/* 2. Pracownik */}
         <div className={FIELD}>
           <label className={LABEL}>{dict.chooseWorker}</label>
-          <select
-            required
-            disabled={!selectedCategory}
+          <AdminSearchCombobox
+            options={workerOptions}
             value={form.userId}
-            onChange={(e) => setForm({ ...form, userId: e.target.value })}
-            className={`${CONTROL} disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            <option value="" disabled>
-              {dict.chooseFromList}
-            </option>
-            {workers.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.fullName}
-              </option>
-            ))}
-          </select>
+            onChange={(id) => setForm({ ...form, userId: id })}
+            placeholder={dict.chooseFromList}
+            disabled={!selectedCategory}
+            required
+            aria-label={dict.chooseWorker}
+            {...comboboxCommon}
+          />
         </div>
 
         {/* 3. Maszyna */}
         <div className={FIELD}>
           <label className={LABEL}>{dict.chooseMachine}</label>
-          <select
-            required={Boolean(selectedCategory) && !noMachinesForCategory}
-            disabled={!selectedCategory || noMachinesForCategory}
+          <AdminSearchCombobox
+            options={machineOptions}
             value={form.resourceId}
-            onChange={(e) => setForm({ ...form, resourceId: e.target.value })}
-            className={`${CONTROL} disabled:cursor-not-allowed disabled:opacity-50`}
-          >
-            <option value="" disabled>
-              {dict.chooseMachinePlaceholder}
-            </option>
-            {availableMachines.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+            onChange={(id) => setForm({ ...form, resourceId: id })}
+            placeholder={dict.chooseMachinePlaceholder}
+            disabled={!selectedCategory || noMachinesForCategory}
+            required={Boolean(selectedCategory) && !noMachinesForCategory}
+            aria-label={dict.chooseMachine}
+            {...comboboxCommon}
+          />
           {noMachinesForCategory ? (
             <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
               {dict.noMachinesForCategory}
@@ -229,43 +260,30 @@ export default function OrderFormModal({
         {selectedCategory?.showMaterial ? (
           <div className={FIELD}>
             <label className={LABEL}>{materialLabel}</label>
-            <select
-              required={selectedCategory.reqMaterial}
+            <AdminSearchCombobox
+              options={materialOptions}
               value={form.materialId}
-              onChange={(e) => setForm({ ...form, materialId: e.target.value })}
-              className={CONTROL}
-            >
-              <option value="" disabled>
-                {materialLabel}
-              </option>
-              {materials.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+              onChange={(id) => setForm({ ...form, materialId: id })}
+              placeholder={materialLabel}
+              required={selectedCategory.reqMaterial}
+              aria-label={materialLabel}
+              {...comboboxCommon}
+            />
           </div>
         ) : null}
 
         {selectedCategory?.showCustomer ? (
-          <div className={FIELD}>
-            <label className={LABEL}>{customerLabel}</label>
-            <select
-              required={selectedCategory.reqCustomer}
-              value={form.customerId}
-              onChange={(e) => setForm({ ...form, customerId: e.target.value })}
-              className={CONTROL}
-            >
-              <option value="" disabled>
-                {customerLabel}
-              </option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.lastName} {c.firstName}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomerSearchField
+            label={customerLabel}
+            customers={allCustomers}
+            value={form.customerId}
+            onChange={(id) => setForm({ ...form, customerId: id })}
+            onCustomerCreated={(customer) =>
+              setExtraCustomers((prev) => [...prev.filter((c) => c.id !== customer.id), customer])
+            }
+            required={selectedCategory.reqCustomer}
+            dict={dict}
+          />
         ) : null}
 
         {selectedCategory?.showQuantity ? (

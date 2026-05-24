@@ -1,10 +1,16 @@
 "use client";
 
+import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
+import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 
 type Dict = AppDictionary["worker"]["client"];
+
+function formatCustomerLabel(c: WizardCustomer): string {
+  return [c.lastName, c.firstName].filter(Boolean).join(" ").trim();
+}
 
 type Props = {
   dict: Dict;
@@ -41,6 +47,25 @@ export function WizardStep3Details({
   setTaskDescription,
   setStep,
 }: Props) {
+  const materialOptions = useMemo(
+    () => materials.map((m) => ({ id: String(m.id), label: m.name })),
+    [materials],
+  );
+
+  const customerOptions = useMemo(
+    () =>
+      customers.map((c) => ({
+        id: String(c.id),
+        label: formatCustomerLabel(c),
+      })),
+    [customers],
+  );
+
+  const comboboxCommon = {
+    noResultsLabel: dict.searchNoResults,
+    clearAriaLabel: dict.searchClear,
+  };
+
   const nextDisabled =
     (selectedCategory?.reqMaterial && !materialId) ||
     (selectedCategory?.reqCustomer && !customerId) ||
@@ -73,48 +98,37 @@ export function WizardStep3Details({
       </div>
 
       <div className="space-y-5">
-        {selectedCategory?.showMaterial && (
+        {selectedCategory?.showMaterial ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
-            <select
+            <AdminSearchCombobox
+              options={materialOptions}
               value={materialId}
-              onChange={(e) => setMaterialId(e.target.value)}
-              className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
-            >
-              <option value="" disabled>
-                {dict.wizardMaterialPlaceholder}
-              </option>
-              {materials.map((mat) => (
-                <option key={mat.id} value={mat.id}>
-                  {mat.name}
-                </option>
-              ))}
-            </select>
+              onChange={setMaterialId}
+              placeholder={dict.wizardMaterialPlaceholder}
+              required={selectedCategory.reqMaterial}
+              aria-label={dict.wizardMaterialLabel}
+              {...comboboxCommon}
+            />
           </div>
-        )}
+        ) : null}
 
-        {selectedCategory?.showCustomer && (
+        {selectedCategory?.showCustomer ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardCustomerLabel}</label>
-            <select
+            <AdminSearchCombobox
+              options={customerOptions}
               value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none appearance-none"
-            >
-              <option value="" disabled>
-                {dict.wizardCustomerPlaceholder}
-              </option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.firstName ? `${c.firstName} ` : ""}
-                  {c.lastName}
-                </option>
-              ))}
-            </select>
+              onChange={setCustomerId}
+              placeholder={dict.wizardCustomerPlaceholder}
+              required={selectedCategory.reqCustomer}
+              aria-label={dict.wizardCustomerLabel}
+              {...comboboxCommon}
+            />
           </div>
-        )}
+        ) : null}
 
-        {selectedCategory?.showQuantity && (
+        {selectedCategory?.showQuantity ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
             <input
@@ -126,9 +140,9 @@ export function WizardStep3Details({
               className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none"
             />
           </div>
-        )}
+        ) : null}
 
-        {(!selectedCategory || selectedCategory?.showTaskDescription) && (
+        {(!selectedCategory || selectedCategory?.showTaskDescription) ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
             <textarea
@@ -138,7 +152,7 @@ export function WizardStep3Details({
               className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
             />
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-8 flex items-center justify-between">

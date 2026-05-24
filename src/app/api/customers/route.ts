@@ -34,6 +34,16 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   }
 
   const { DictionaryService } = await import("@/services/DictionaryService");
-  await DictionaryService.addCustomer(companyId, firstName, lastName, defaultAddress, latitude, longitude);
-  return jsonOk({ success: true });
+  const customerId = await DictionaryService.addCustomer(
+    companyId,
+    firstName,
+    lastName,
+    defaultAddress,
+    latitude,
+    longitude,
+  );
+  if (customerId == null) {
+    return jsonError("save_error", 500);
+  }
+  return jsonOk({ customerId });
 }, { defaultErrorCode: "save_error" });

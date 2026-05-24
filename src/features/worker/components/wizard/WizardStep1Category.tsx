@@ -1,6 +1,7 @@
 "use client";
 
-import { Truck, Tractor, Wrench } from "lucide-react";
+import { useMemo } from "react";
+import { ChevronRight, Truck, Tractor, Wrench } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory } from "@/types/wizard";
@@ -12,6 +13,7 @@ import {
 } from "@/features/worker/lib/workOrderPresentation";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -34,6 +36,19 @@ export function WizardStep1Category({
   setStep,
   onAcceptOrder,
 }: Props) {
+  const categoryOptions = useMemo(
+    () => categories.map((c) => ({ id: String(c.id), label: c.name })),
+    [categories],
+  );
+
+  const selectedCategory = categories.find((c) => String(c.id) === categoryId);
+  const SelectedIcon =
+    selectedCategory?.icon === "Truck"
+      ? Truck
+      : selectedCategory?.icon === "Tractor"
+        ? Tractor
+        : Wrench;
+
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
       {orders.length > 0 && (
@@ -88,33 +103,36 @@ export function WizardStep1Category({
       </h2>
       <p className="text-zinc-500 text-sm mb-6">{dict.wizardSubtitle}</p>
 
-      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-        {categories.map((c) => {
-          const Icon = c.icon === "Truck" ? Truck : c.icon === "Tractor" ? Tractor : Wrench;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => {
-                setCategoryId(c.id.toString());
-                setStep(2);
-              }}
-              className={`w-full p-5 rounded-lg border transition-all flex items-center gap-4 ${
-                categoryId === String(c.id)
-                  ? "bg-emerald-500/10 border-emerald-500 text-emerald-400"
-                  : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-zinc-700"
-              }`}
-            >
-              <div className="w-12 h-12 bg-[#f2fbfa] dark:bg-zinc-900 rounded-lg flex items-center justify-center shrink-0 text-emerald-500">
-                <Icon className="w-6 h-6" />
-              </div>
-              <div className="text-left w-full">
-                <div className="font-bold text-lg">{c.name}</div>
-                <div className="text-xs opacity-70 mt-0.5">{dict.wizardClassType}</div>
-              </div>
-            </button>
-          );
-        })}
+      <div className="space-y-4">
+        <AdminSearchCombobox
+          options={categoryOptions}
+          value={categoryId}
+          onChange={setCategoryId}
+          placeholder={dict.searchPlaceholder}
+          required
+          noResultsLabel={dict.searchNoResults}
+          clearAriaLabel={dict.searchClear}
+          aria-label={dict.wizardTitle}
+        />
+        {selectedCategory ? (
+          <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f2fbfa] text-emerald-500 dark:bg-zinc-900">
+              <SelectedIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="font-semibold text-zinc-900 dark:text-white">{selectedCategory.name}</div>
+              <div className="text-xs text-zinc-500">{dict.wizardClassType}</div>
+            </div>
+          </div>
+        ) : null}
+        <button
+          type="button"
+          disabled={!categoryId}
+          onClick={() => setStep(2)}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
+        >
+          {dict.wizardNext} <ChevronRight className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );
