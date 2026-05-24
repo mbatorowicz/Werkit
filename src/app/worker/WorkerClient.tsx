@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import type { InitialWorkerData } from "@/types/worker";
 
+import { useWorkerAlarmSound } from "@/features/worker/hooks/useWorkerAlarmSound";
 import { useWorkerNotifications } from "@/features/worker/hooks/useWorkerNotifications";
 import { useWorkerNotificationActions } from "@/features/worker/hooks/useWorkerNotificationActions";
 import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
@@ -102,6 +103,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     onStartOrder: (orderId) => requestAcceptOrder(orderId),
     onAlarmDismissed: () => refreshAlarmUi(),
   });
+
+  useWorkerAlarmSound(activeAlarm);
 
   if (shell.isLoading) {
     return <WorkerClientLoading message={dict.loadingWorkerDashboard} />;

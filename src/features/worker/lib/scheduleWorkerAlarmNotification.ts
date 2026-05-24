@@ -45,7 +45,7 @@ export async function scheduleWorkerAlarmNotification(
         id: alarm.notificationId,
         title: alarm.title,
         body: alarm.body,
-        channelId: getWorkerAlertChannelId(),
+        channelId: getWorkerAlertChannelId(alarm.kind),
         actionTypeId,
         schedule: { at: new Date(Date.now() + 500) },
         extra: {
