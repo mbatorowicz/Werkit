@@ -10,6 +10,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
+import { adminRoutes } from "@/lib/appRoutes";
 
 export type AdminNavLinkItem =
   | { kind: "section"; label: string }
@@ -18,16 +19,16 @@ export type AdminNavLinkItem =
 /** Jedna definicja kolejności i etykiet — sidebar desktop i drawer mobilny. */
 export function buildAdminNavLinks(dict: AppDictionary["admin"]): AdminNavLinkItem[] {
   return [
-    { kind: "route", href: "/admin", icon: LayoutDashboard, label: dict.sidebar.dispatch },
-    { kind: "route", href: "/admin/reports", icon: BarChart3, label: dict.sidebar.reports },
+    { kind: "route", href: adminRoutes.dispatch, icon: LayoutDashboard, label: dict.sidebar.dispatch },
+    { kind: "route", href: adminRoutes.reports, icon: BarChart3, label: dict.sidebar.reports },
     { kind: "section", label: dict.sidebar.fleetAndPeople },
-    { kind: "route", href: "/admin/users", icon: Users, label: dict.sidebar.users },
+    { kind: "route", href: adminRoutes.users, icon: Users, label: dict.sidebar.users },
     { kind: "section", label: dict.sidebar.logistics },
-    { kind: "route", href: "/admin/machines", icon: Wrench, label: dict.sidebar.resources },
-    { kind: "route", href: "/admin/materials", icon: HardHat, label: dict.sidebar.materials },
-    { kind: "route", href: "/admin/customers", icon: Package, label: dict.sidebar.customers },
+    { kind: "route", href: adminRoutes.machines, icon: Wrench, label: dict.sidebar.resources },
+    { kind: "route", href: adminRoutes.materials, icon: HardHat, label: dict.sidebar.materials },
+    { kind: "route", href: adminRoutes.customers, icon: Package, label: dict.sidebar.customers },
     { kind: "section", label: dict.sidebar.system },
-    { kind: "route", href: "/admin/settings", icon: Settings, label: dict.sidebar.companySettings },
-    { kind: "route", href: "/admin/logs", icon: TerminalSquare, label: dict.sidebar.deviceLogs },
+    { kind: "route", href: adminRoutes.settings, icon: Settings, label: dict.sidebar.companySettings },
+    { kind: "route", href: adminRoutes.logs, icon: TerminalSquare, label: dict.sidebar.deviceLogs },
   ];
 }

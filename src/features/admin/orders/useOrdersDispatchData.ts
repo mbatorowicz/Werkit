@@ -10,6 +10,7 @@ import type {
   UnifiedGanttItem,
 } from "@/types/admin";
 import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
+import { adminApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import {
@@ -36,7 +37,7 @@ export function useOrdersDispatchData() {
     try {
       /** `allSettled` — przy padnięciu sieci jeden endpoint nie przerywa reszty; UI dostaje część danych. */
       const settled = await Promise.allSettled([
-        fetchWithDeviceTelemetry("Admin dispatch: workers", "/api/workers", { cache: "no-store" }, {
+        fetchWithDeviceTelemetry("Admin dispatch: users", adminApi.users, { cache: "no-store" }, {
           category: "admin",
         }).then(parseJsonArray),
         fetchWithDeviceTelemetry("Admin dispatch: machines", "/api/machines", { cache: "no-store" }, {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, User, Truck, Clock } from "lucide-react";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { adminDispatchOpenUrl } from "@/lib/appRoutes";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
@@ -287,7 +288,9 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
                             if (onItemClick) {
                               onItemClick(item);
                             } else {
-                              window.location.assign(`/admin/orders?open=${item.workOrderId || item.id}`);
+                              window.location.assign(
+                                adminDispatchOpenUrl(item.workOrderId || item.id),
+                              );
                             }
                           }}
                           className="block cursor-pointer"

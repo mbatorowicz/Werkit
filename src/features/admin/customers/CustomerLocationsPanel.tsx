@@ -6,6 +6,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { adminApi } from "@/lib/appRoutes";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
@@ -69,7 +70,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
           { cache: "no-store" },
           { category: "admin" },
         ),
-        fetchWithDeviceTelemetry("Admin: settings for route origin", "/api/settings", { cache: "no-store" }, {
+        fetchWithDeviceTelemetry("Admin: settings for route origin", adminApi.settings, { cache: "no-store" }, {
           category: "admin",
         }),
       ]);

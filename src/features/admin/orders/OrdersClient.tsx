@@ -16,6 +16,7 @@ import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchT
 import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
 import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { adminApi } from "@/lib/appRoutes";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { isRecord } from "@/lib/narrowApiListRows";
 
@@ -172,7 +173,7 @@ export default function OrdersClient() {
             onClick={async () => {
               setIsSettingsOpen(true);
               try {
-                const res = await fetchWithDeviceTelemetry("Admin dispatch: settings GET", "/api/settings", undefined, {
+                const res = await fetchWithDeviceTelemetry("Admin dispatch: settings GET", adminApi.settings, undefined, {
                   category: "admin",
                 });
                 if (res.ok) {

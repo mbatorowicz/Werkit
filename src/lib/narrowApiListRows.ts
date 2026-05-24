@@ -245,7 +245,7 @@ export function narrowWizardCustomers(rows: unknown[]): WizardCustomer[] {
   }));
 }
 
-/** Wiersz listy użytkowników (`/api/workers`) w panelu admin. */
+/** Wiersz listy użytkowników (`/api/admin/users`) w panelu admin. */
 export type AdminUserListRow = {
   id: number;
   fullName: string;

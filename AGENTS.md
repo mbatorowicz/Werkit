@@ -102,6 +102,7 @@ Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
 | Ekran / orkiestracja workera | `src/features/worker/` (`components/shell/` = dashboard sesji) |
 | Shell admina (sidebar, modale wspólne, combobox) | `src/components/Admin/` |
 | Prezentacja zlecenia worker ↔ admin | `src/components/work-orders/` |
+| Kanoniczne ścieżki admin UI + admin API | `src/lib/appRoutes.ts` (`adminRoutes`, `adminApi`, `adminDispatchOpenUrl`) |
 | Panel superadmin (multi-tenant) | `src/app/platform/` + `src/components/Platform/` + `src/services/Platform*.ts` |
 
 - **`src/features/worker/`** — ekrany i logika stanu **tylko modułu pracownika**.

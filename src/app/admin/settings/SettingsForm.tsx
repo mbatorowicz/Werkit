@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { adminApi } from "@/lib/appRoutes";
 import { formatCompanyAddressQuery, resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog } from "@/components/AppDialogProvider";
@@ -99,7 +100,7 @@ export default function SettingsForm({
     try {
       const res = await fetchWithDeviceTelemetry(
         "Admin settings: save POST",
-        "/api/settings",
+        adminApi.settings,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Trash2, Shield, Plus, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { adminApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -54,7 +55,7 @@ export default function UsersClient() {
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Admin users: list", "/api/workers", { cache: "no-store" }, {
+      const res = await fetchWithDeviceTelemetry("Admin users: list", adminApi.users, { cache: "no-store" }, {
         category: "admin",
       });
       const data = await parseJsonArray(res);
@@ -90,7 +91,7 @@ export default function UsersClient() {
   const handleDelete = async (id: number, name: string) => {
     if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" }))) return;
     try {
-      const res = await fetchWithDeviceTelemetry(`Admin users: delete ${id}`, `/api/workers/${id}`, { method: "DELETE" }, {
+      const res = await fetchWithDeviceTelemetry(`Admin users: delete ${id}`, adminApi.user(id), { method: "DELETE" }, {
         category: "admin",
       });
       if (res.ok) {
@@ -136,7 +137,7 @@ export default function UsersClient() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const url = editId ? `/api/workers/${editId}` : "/api/workers";
+      const url = editId ? adminApi.user(editId) : adminApi.users;
       const method = editId ? "PUT" : "POST";
 
       const res = await fetchWithDeviceTelemetry(

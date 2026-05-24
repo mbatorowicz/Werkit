@@ -112,8 +112,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/login` | Client (`use client`) | treść w `login/page.tsx` | Login + biometryczny przycisk; POST `/api/auth/login` | root |
 | `/privacy-policy` | static | treść w `privacy-policy/page.tsx` | Polityka prywatności | root |
 | `/admin` | RSC | `OrdersClient` | Dyspozycja (Gantt, mapa, zlecenia); `features/admin/orders/OrdersClient.tsx` | `admin/layout.tsx` |
-| `/admin/orders` | RSC | `OrdersClient` | Alias jak `/admin` (`admin/orders/page.tsx`) pod linki `?open=` z Gantta | jw. |
-| `/admin/workers` | RSC | — | `redirect('/admin/users')` — zachowany URL „workers” | admin |
+| `/admin/orders` | RSC | — | Legacy redirect → `/admin` (zachowuje query, np. `?open=` z Gantta) | admin |
 | `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi uprawnień (`features/admin/users/UsersClient.tsx`) | admin |
 | `/admin/machines` | RSC | `MachinesClient` | Rejestr zasobów + kategorie zleceń (`features/admin/machines/MachinesClient.tsx`) | admin |
 | `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + lokalizacje + geocode (`features/admin/customers/`) | admin |
@@ -207,12 +206,12 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
 | `/api/admin/work-sessions/[id]` | DELETE | Body JSON `{ password }` → `AdminUserService.verifyPasswordForUserId` (zalogowany admin); potem `deleteArchivedSession`. 400 `admin_password_required`, 401 `invalid_credentials`, 409 `session_still_active` |
 | `/api/admin/work-sessions/[id]/force-complete` | POST | `forceCompleteSession` — ratunek dla zawieszonej `IN_PROGRESS` |
-| `/api/workers` | GET | `AdminUserService.getAllUsers` |
-| `/api/workers` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; `23505 → user_exists` |
-| `/api/workers/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła) |
-| `/api/workers/[id]` | DELETE | Usunięcie konta |
-| `/api/settings` | GET | `DictionaryService.getSettings()` |
-| `/api/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
+| `/api/admin/users` | GET | `AdminUserService.getAllUsers` |
+| `/api/admin/users` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; `23505 → user_exists` |
+| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła) |
+| `/api/admin/users/[id]` | DELETE | Usunięcie konta |
+| `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
+| `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
 | `/api/geocode?q=...` | GET | Proxy do Nominatim (OSM) — `User-Agent: WerkitERP/1.9` |
 
 ### 5.5. Słowniki (SHARED — admin pisze, wszyscy zalogowani czytają)
@@ -352,7 +351,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 **Orkiestracja stron (`*Client.tsx`)** — `src/features/admin/{orders|users|customers|machines|materials|logs}/` (np. `CustomerMapPicker`, `CustomerLocationsPanel` w `features/admin/customers/`).
 
 **Shell i współdzielone widgety** — `src/components/Admin/**`:
-- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
+- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu; href z `src/lib/appRoutes.ts`), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ legacy `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
@@ -409,7 +408,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | Plik | Co |
 |---|---|
 | `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Fallback `super-secret-fallback`** jeśli brak `JWT_SECRET` — `console.warn`. **Na produkcji ustaw `JWT_SECRET`!** |
-| `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/workers`, biometria w `AdminUserService`). |
+| `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/admin/users`, biometria w `AdminUserService`). |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
 | `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za `proxy`. |
 | `coordsFromRequestBody.ts` | `coordsFromRequestBody(body) → {lat,lng}\|null` (walidacja zakresu), `coordPairToNumericStrings({lat,lng})` (toFixed(8) pod numeric Postgres). |
