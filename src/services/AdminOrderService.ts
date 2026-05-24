@@ -26,8 +26,37 @@ export class AdminOrderService {
   }
 
   /**
-   * Sprawdza nakładanie się terminów (zlecenia + aktywne sesje) dla pracownika lub zasobu.
-   * Zwraca komunikat PL dla UI albo `null`, gdy brak konfliktu.
+   * Kod błędu API przy zapisie zlecenia (409) albo `null`, gdy brak blokady.
+   */
+  static async getScheduleSaveBlockCode(
+    companyId: number,
+    userId: number,
+    resourceId: number,
+    dueDate: Date | null,
+    durationHours: number | null,
+    excludeOrderId?: number,
+  ): Promise<"schedule_conflict" | "resource_busy" | null> {
+    if (dueDate && durationHours != null && durationHours > 0) {
+      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
+        userId,
+        resourceId,
+        dueDate,
+        durationHours,
+        excludeOrderId,
+      });
+      return conflicts.length > 0 ? "schedule_conflict" : null;
+    }
+
+    const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
+      companyId,
+      resourceId,
+      userId,
+    );
+    return resourceBusy ? "resource_busy" : null;
+  }
+
+  /**
+   * @deprecated Użyj {@link getScheduleSaveBlockCode} — zwraca kanoniczny kod błędu zamiast komunikatu PL.
    */
   static async checkScheduleConflict(
     companyId: number,

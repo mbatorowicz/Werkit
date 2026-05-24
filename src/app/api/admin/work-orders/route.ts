@@ -70,7 +70,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
     const prio = coerceWorkOrderPriority(priority);
 
     if (!forceSave) {
-      const conflict = await AdminOrderService.checkScheduleConflict(
+      const blockCode = await AdminOrderService.getScheduleSaveBlockCode(
         companyId,
         uidNum,
         resIdNum,
@@ -79,8 +79,8 @@ export const POST = withApiErrorHandling(async (request: Request) => {
           ? parseFloat(String(expectedDurationHours))
           : null,
       );
-      if (conflict) {
-        return jsonError(conflict, 409);
+      if (blockCode) {
+        return jsonError(blockCode, 409);
       }
     }
 

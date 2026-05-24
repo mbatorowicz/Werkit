@@ -19,7 +19,6 @@ interface ActiveSessionDashboardProps {
   /** Zlecenia PENDING przypisane do pracownika (kolejka po zakończeniu bieżącej sesji). */
   queuedPendingOrders: WorkOrder[];
   dict: AppDictionary["worker"]["client"];
-  adminDict: AppDictionary["admin"]["orders"];
   isTimeOverrun: boolean;
   gpsStatus: "waiting" | "active" | "error";
   traveledKm: number;
@@ -52,7 +51,6 @@ export default function ActiveSessionDashboard({
   isStationarySession = false,
   queuedPendingOrders,
   dict,
-  adminDict,
   isTimeOverrun,
   gpsStatus,
   traveledKm,
@@ -79,18 +77,20 @@ export default function ActiveSessionDashboard({
   canEditRoute,
   onRouteWaypointsChange,
 }: ActiveSessionDashboardProps) {
+  const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+
   return (
     <div className="w-full flex flex-col items-center gap-4">
       {/* SZCZEGÓŁY ZLECENIA */}
       <div className="w-full bg-white dark:bg-zinc-800/80 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 shadow-sm">
-        <QueuedPendingOrdersDuringSession orders={queuedPendingOrders} dict={dict} adminDict={adminDict} />
+        <QueuedPendingOrdersDuringSession orders={queuedPendingOrders} dict={dict} />
         <OrderLabelCard
           tone="active"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
           mode={session.categoryName || dict.noCategoryName}
           machine={session.resourceName || "—"}
           material={session.materialName}
-          quantity={session.quantityTons ? `${session.quantityTons}${adminDict.tons}` : null}
+          quantity={session.quantityTons ? `${session.quantityTons}${tonsSuffix}` : null}
           customer={
             `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim() ||
             (session.customerAddress ? session.customerAddress : null)

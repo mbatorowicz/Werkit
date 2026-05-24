@@ -176,7 +176,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/admin/work-orders` | GET | `AdminOrderService.getActiveWorkOrders` — tylko **`PENDING`** (kolejka dyspozycji) |
-| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii + `ScheduleConflictService` przez `AdminOrderService.checkScheduleConflict` (chyba że `forceSave`). 409 jeśli konflikt. UI: panel inline w `OrderFormModal`. |
+| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii + `AdminOrderService.getScheduleSaveBlockCode` (chyba że `forceSave`). 409: `schedule_conflict` / `resource_busy`. UI: panel inline w `OrderFormModal`. |
 | `/api/admin/work-orders/schedule-conflicts` | GET | Podgląd konfliktów (admin); bez terminu → konflikty `resource_busy` |
 | `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — konflikt harmonogramu (+ `forceSave`); `guardAdminMutation` |
 | `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
@@ -235,7 +235,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getCompletedSessions(userId, limit=20)`, `getSessionHistoryFull(sessionId, userId)` (GPS + notatki + zdjęcia).
 
 ### `AdminOrderService`
-- `checkScheduleConflict(...)` — delegacja do `ScheduleConflictService.checkScheduleConflictLegacyMessage`.
+- `getScheduleSaveBlockCode(...)` → `'schedule_conflict' | 'resource_busy' | null` — ten sam kontrakt co worker API.
+- `checkScheduleConflict(...)` — legacy (komunikat PL); preferuj `getScheduleSaveBlockCode`.
 - `resolveLockedUntil(dueDate, durationHours)` — `locked_until` przy zapisie zlecenia.
 - `getActiveWorkOrders()` — wyłącznie **`PENDING`** z JOIN-ami pod kolejkę dyspozycji.
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
@@ -338,7 +339,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `WorkOrderSummaryLines` | `dict` (wycinek), `taskItalic?`, `showDurationCreator?` | Maszyna / materiał (+t) / klient / opis / czas / zlecający. |
 | `ScheduleConflictPanel` | `mode: admin \| worker`, `conflicts`, etykiety i18n | Panel inline pod datą/czasem; admin: „Utwórz mimo konfliktu”; worker: ukryty Start w liście oczekujących. |
 | `WorkOrderScheduleFields` | `scope: admin \| worker`, hook `useScheduleConflictPreview` | Pola czasu + termin + panel konfliktów (debounce 350 ms). |
-| `formatScheduleConflictLine` | `ScheduleConflictLabels`, konflikt z API | Jedna linia opisu konfliktu (zlecenie vs sesja). |
+| `WorkOrderPendingCard` | `mode: start \| preview` | Karta oczekującego zlecenia + panel konfliktów (lista PENDING, kolejka w sesji). |
+| `useScheduleConflictPreview` | `scope: admin \| worker` | Debounced GET podglądu konfliktów. |
+| `scheduleConflictI18n.ts` | `buildWorkOrderScheduleFieldLabels` | SSOT etykiet z `workOrdersSchedule` (i18n). |
 
 `src/lib/scheduleConflict.ts` — czysta logika: `findScheduleConflicts`, `computeLockedUntil`, deduplikacja sesji vs zlecenia.
 
@@ -394,6 +397,7 @@ Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | Slot | Co tam jest |
 |---|---|
 | `apiErrors` | Mapa `kod → komunikat`. **Kluczowe** dla `/login` i wszystkich JSON-owych odpowiedzi z błędem (`error: 'xxx'`). |
+| `workOrdersSchedule` | **SSOT** pól terminu/czasu i tekstów konfliktów harmonogramu (admin + worker); helper: `scheduleConflictI18n.ts`. |
 | `login` | `submit`, `biometricLogin`, `biometricDivider` |
 | `admin.sidebar` | Etykiety nawigacji admin |
 | `admin.dashboard`, `admin.reports`, `admin.archive`, `admin.orders`, `admin.users`, `admin.workers`, `admin.machines`, `admin.materials`, `admin.customers`, `admin.settings`, `admin.logs`, `admin.modals` | Każdy ekran admina ma swój sub-słownik |

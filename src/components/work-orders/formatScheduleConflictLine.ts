@@ -1,5 +1,5 @@
 import { formatDict, formatUiTimeHm } from "@/i18n/format";
-import type { ScheduleConflictPreview } from "@/features/admin/orders/useScheduleConflictPreview";
+import type { ScheduleConflictPreview } from "@/components/work-orders/useScheduleConflictPreview";
 
 export type ScheduleConflictLabels = {
   scheduleConflictWorker: string;

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
 import type { ScheduleConflictLabels } from "@/components/work-orders/formatScheduleConflictLine";
-import { useScheduleConflictPreview } from "@/features/admin/orders/useScheduleConflictPreview";
+import { useScheduleConflictPreview } from "@/components/work-orders/useScheduleConflictPreview";
 
 const FIELD = "space-y-1.5";
 const LABEL =

@@ -52,6 +52,28 @@ export const en: AppDictionary = {
     parent_must_be_group: "Parent must be an entry marked as a group.",
     invalid_parent: "Invalid parent (cycle or missing entry).",
   },
+  workOrdersSchedule: {
+    expectedDurationLabel: "Estimated work time (hours)",
+    expectedDurationPlaceholder: "e.g. 4.5",
+    dueDateOptionalLabel: "Due date (optional)",
+    tons: "t",
+    conflict: {
+      title: "Schedule conflicts detected",
+      checking: "Checking availability…",
+      worker: "{workerName} is busy at {timeRange} (order #{orderId}: {task})",
+      resource: "{resourceName} is reserved at {timeRange} (order #{orderId}: {task})",
+      sessionWorker: "{workerName} has active session #{sessionId} at {start}–{end} ({task})",
+      sessionResource: "{resourceName} is in use by session #{sessionId} at {start}–{end} ({task})",
+      machineHint:
+        "Multiple orders can share one resource — use «Create despite conflict» if intentional.",
+      workerBlockedHint:
+        "You cannot start this order — wait for the conflict to clear or contact dispatch.",
+      unknownWorker: "Worker",
+      unknownResource: "Resource",
+      noTask: "no description",
+      createDespite: "Create despite conflict",
+    },
+  },
   routeLoading: {
     title: "Loading…",
     preparingApp: "Preparing the app",
@@ -227,30 +249,11 @@ export const en: AppDictionary = {
       chooseMachinePlaceholder: "— Select vehicle —",
       quantityTonsLabel: "Material quantity (tons)",
       quantityTonsPlaceholder: "e.g. 20.5",
-      expectedDurationLabel: "Estimated work time (hours)",
-      expectedDurationPlaceholder: "e.g. 4.5",
-      dueDateOptionalLabel: "Due date (optional)",
       priorityLabel: "Priority",
       priorityLow: "Low",
       priorityNormal: "Normal",
       priorityHigh: "High",
       priorityUrgent: "Urgent",
-      scheduleConflictTitle: "Schedule conflicts detected",
-      scheduleConflictChecking: "Checking availability…",
-      scheduleConflictWorker:
-        "{workerName} is busy {timeRange} (order #{orderId}: {task})",
-      scheduleConflictResource:
-        "{resourceName} is reserved {timeRange} (order #{orderId}: {task})",
-      scheduleConflictSessionWorker:
-        "{workerName} has active session #{sessionId} at {start}–{end} ({task})",
-      scheduleConflictSessionResource:
-        "{resourceName} is in use by session #{sessionId} at {start}–{end} ({task})",
-      scheduleConflictMachineHint:
-        "Multiple orders can share one machine — use «Create despite conflict» if intentional.",
-      scheduleConflictUnknownWorker: "Worker",
-      scheduleConflictUnknownResource: "Resource",
-      scheduleConflictNoTask: "no description",
-      createDespiteConflict: "Create despite conflict",
       noMachinesForCategory: "No resources in this category. Add a registry entry or mark the category as global.",
       modalEditOrderTitle: "Edit order {id}",
       optionalSuffix: "(optional)",
@@ -745,8 +748,6 @@ export const en: AppDictionary = {
       wizardStep4ScheduleSubtitle: "Set planned duration and due time — we'll check availability.",
       wizardStep5Title: "All ready",
       wizardStep5Subtitle: "New order summary. Check if everything is correct.",
-      wizardStep4Title: "All ready",
-      wizardStep4Subtitle: "New session summary. Check if everything is correct.",
       wizardNoMachines: "No resources in the registry. Report the problem to the dispatcher.",
       wizardMaterialLabel: "Which material?",
       wizardMaterialPlaceholder: "Select from list...",
@@ -761,24 +762,6 @@ export const en: AppDictionary = {
       wizardSummaryAggregate: "Material:",
       wizardSummaryCustomer: "Customer:",
       wizardSummarySchedule: "Schedule:",
-      scheduleConflictTitle: "Schedule conflicts detected",
-      scheduleConflictChecking: "Checking availability…",
-      scheduleConflictWorker:
-        "{workerName} is busy at {timeRange} (order #{orderId}: {task})",
-      scheduleConflictResource:
-        "{resourceName} is reserved at {timeRange} (order #{orderId}: {task})",
-      scheduleConflictSessionWorker:
-        "{workerName} has active session #{sessionId} at {start}–{end} ({task})",
-      scheduleConflictSessionResource:
-        "{resourceName} is in use by session #{sessionId} at {start}–{end} ({task})",
-      scheduleConflictWorkerBlockedHint:
-        "You cannot start this order — wait for the conflict to clear or contact dispatch.",
-      scheduleConflictUnknownWorker: "Worker",
-      scheduleConflictUnknownResource: "Resource",
-      scheduleConflictNoTask: "no description",
-      expectedDurationLabel: "Estimated work time (hours)",
-      expectedDurationPlaceholder: "e.g. 4.5",
-      dueDateOptionalLabel: "Due date (optional)",
       wizardClassType: "Class assigned in system",
       wizardChangeLink: "Change",
       wizardSelectedType: "Order type:",

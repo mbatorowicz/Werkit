@@ -2,24 +2,18 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
+import { WorkOrderPendingCard } from "@/components/work-orders/WorkOrderPendingCard";
 import type { AppDictionary } from "@/i18n/types";
-import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
-import {
-  workOrderCategoryHeadingClass,
-  workOrderPendingListCardClass,
-} from "@/features/worker/lib/workOrderPresentation";
-import { WorkOrderPriorityRibbon } from "@/components/work-orders";
-import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { formatDict } from "@/i18n";
 import type { WorkOrder } from "@/types/worker";
 
 type Props = {
   orders: WorkOrder[];
   dict: AppDictionary["worker"]["client"];
-  adminDict: AppDictionary["admin"]["orders"];
 };
 
-/** Podgląd kolejki PENDING podczas aktywnej sesji (bez przycisku start — tylko informacja dla planowania). */
-export function QueuedPendingOrdersDuringSession({ orders, dict, adminDict }: Props) {
+/** Podgląd kolejki PENDING podczas aktywnej sesji (bez przycisku start — tylko informacja + konflikty). */
+export function QueuedPendingOrdersDuringSession({ orders, dict }: Props) {
   const [open, setOpen] = useState(false);
 
   if (!Array.isArray(orders) || orders.length === 0) {
@@ -55,48 +49,14 @@ export function QueuedPendingOrdersDuringSession({ orders, dict, adminDict }: Pr
       {open && (
         <div className="mt-3 flex flex-col gap-3 max-h-[min(52vh,420px)] overflow-y-auto pr-0.5 custom-scrollbar">
           {orders.map((order, index) => (
-            <div key={order.id} className={workOrderPendingListCardClass(order.priority)}>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                  {formatDict(dict.queuedOrdersPosition, { n: index + 1 })}
-                </span>
-                <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-              </div>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-bold text-amber-900 dark:text-amber-500 flex flex-wrap items-center gap-2 min-w-0">
-                    <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30 shrink-0 font-mono">
-                      #{order.id}
-                    </span>
-                    <span className={`font-semibold min-w-0 break-words ${workOrderCategoryHeadingClass(order.priority)}`}>
-                      {order.categoryName || dict.noCategoryName}
-                    </span>
-                  </span>
-                </div>
-                <OrderLabelCard
-                  tone="planned"
-                  density="compact"
-                  orderNo={`#${order.id}`}
-                  mode={order.categoryName || dict.noCategoryName}
-                  machine={order.resourceName || "—"}
-                  material={order.materialName}
-                  quantity={order.quantityTons ? `${order.quantityTons}${adminDict.tons}` : null}
-                  customer={order.customerName}
-                  description={order.taskDescription}
-                  orderedBy={order.creatorName ?? null}
-                  orderedByLabel={dict.orderedBy}
-                  dateLabel={
-                    order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
-                  }
-                  timeLabel={
-                    order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
-                  }
-                  className="bg-white/60 dark:bg-zinc-950/30"
-                  attachmentPhotos={Boolean(order.hasPhotos)}
-                  attachmentNotes={Boolean(order.hasNotes)}
-                />
-              </div>
-            </div>
+            <WorkOrderPendingCard
+              key={order.id}
+              order={order}
+              dict={dict}
+              mode="preview"
+              density="compact"
+              positionLabel={formatDict(dict.queuedOrdersPosition, { n: index + 1 })}
+            />
           ))}
         </div>
       )}

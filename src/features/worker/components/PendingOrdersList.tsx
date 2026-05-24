@@ -2,16 +2,8 @@
 
 import { Play, Clock } from "lucide-react";
 import Link from "next/link";
-import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
-import type { ScheduleConflictLabels } from "@/components/work-orders/formatScheduleConflictLine";
-import { useScheduleConflictPreview } from "@/features/admin/orders/useScheduleConflictPreview";
-import {
-  workOrderCategoryHeadingClass,
-  workOrderPendingListCardClass,
-} from "@/features/worker/lib/workOrderPresentation";
-import { WorkOrderPriorityRibbon } from "@/components/work-orders";
-import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { WorkOrderPendingCard } from "@/components/work-orders/WorkOrderPendingCard";
+import { formatDict, formatUiTimeHm } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder, UserData } from "@/types/worker";
 
@@ -24,120 +16,6 @@ interface PendingOrdersListProps {
   requestAcceptOrder: (orderId: number) => void;
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => void;
   acceptErrors?: Record<number, string>;
-}
-
-function toDatetimeLocalValue(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function scheduleLabelsFromWorkerDict(dict: AppDictionary["worker"]["client"]): ScheduleConflictLabels {
-  return {
-    scheduleConflictWorker: dict.scheduleConflictWorker,
-    scheduleConflictResource: dict.scheduleConflictResource,
-    scheduleConflictSessionWorker: dict.scheduleConflictSessionWorker,
-    scheduleConflictSessionResource: dict.scheduleConflictSessionResource,
-    scheduleConflictUnknownWorker: dict.scheduleConflictUnknownWorker,
-    scheduleConflictUnknownResource: dict.scheduleConflictUnknownResource,
-    scheduleConflictNoTask: dict.scheduleConflictNoTask,
-  };
-}
-
-function PendingOrderCard({
-  order,
-  dict,
-  requestAcceptOrder,
-  acceptError,
-}: {
-  order: WorkOrder;
-  dict: AppDictionary["worker"]["client"];
-  requestAcceptOrder: (orderId: number) => void;
-  acceptError?: string | null;
-}) {
-  const userId = order.userId != null ? String(order.userId) : "";
-  const resourceId = order.resourceId != null ? String(order.resourceId) : "";
-  const dueDate = toDatetimeLocalValue(order.dueDate);
-  const expectedDurationHours =
-    order.expectedDurationHours != null && order.expectedDurationHours > 0
-      ? String(order.expectedDurationHours)
-      : "";
-
-  const { status, conflicts, hasConflicts } = useScheduleConflictPreview({
-    scope: "worker",
-    enabled: Boolean(userId && resourceId),
-    userId,
-    resourceId,
-    dueDate,
-    expectedDurationHours,
-    excludeOrderId: order.id,
-  });
-
-  const blocked = hasConflicts || Boolean(acceptError);
-
-  return (
-    <div className={workOrderPendingListCardClass(order.priority)}>
-      <div className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex flex-wrap items-center gap-2 min-w-0">
-            <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30 shrink-0">
-              #{order.id}
-            </span>
-            <div className={`font-bold text-lg min-w-0 break-words ${workOrderCategoryHeadingClass(order.priority)}`}>
-              {order.categoryName || dict.noCategoryName}
-            </div>
-          </span>
-          <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-        </div>
-        <div className="mt-2">
-          <OrderLabelCard
-            tone="planned"
-            orderNo={`#${order.id}`}
-            mode={order.categoryName || dict.noCategoryName}
-            machine={order.resourceName || "—"}
-            material={order.materialName}
-            quantity={order.quantityTons ? `${order.quantityTons}t` : null}
-            customer={order.customerName}
-            description={order.taskDescription}
-            orderedBy={order.creatorName ?? null}
-            orderedByLabel={dict.orderedBy}
-            dateLabel={order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)}
-            timeLabel={order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)}
-            className="bg-white/60 dark:bg-zinc-950/30"
-            attachmentPhotos={Boolean(order.hasPhotos)}
-            attachmentNotes={Boolean(order.hasNotes)}
-          />
-        </div>
-      </div>
-
-      <ScheduleConflictPanel
-        mode="worker"
-        status={status}
-        conflicts={conflicts}
-        labels={scheduleLabelsFromWorkerDict(dict)}
-        title={dict.scheduleConflictTitle}
-        checkingLabel={dict.scheduleConflictChecking}
-        workerBlockedHint={dict.scheduleConflictWorkerBlockedHint}
-      />
-
-      {acceptError ? (
-        <p className="text-xs font-medium text-red-700 dark:text-red-400">{acceptError}</p>
-      ) : null}
-
-      {!blocked ? (
-        <button
-          type="button"
-          onClick={() => requestAcceptOrder(order.id)}
-          className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full"
-        >
-          <Play className="w-4 h-4 fill-current" />
-          <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>
-        </button>
-      ) : null}
-    </div>
-  );
 }
 
 export default function PendingOrdersList({
@@ -200,11 +78,12 @@ export default function PendingOrdersList({
           )}
 
           {workOrders.map((order) => (
-            <PendingOrderCard
+            <WorkOrderPendingCard
               key={order.id}
               order={order}
               dict={dict}
-              requestAcceptOrder={requestAcceptOrder}
+              mode="start"
+              onStart={requestAcceptOrder}
               acceptError={acceptErrors[order.id]}
             />
           ))}

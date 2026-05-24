@@ -20,7 +20,6 @@ import { WorkerPendingOrdersSection } from "@/features/worker/components/worker/
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dict = getDictionary().worker.client;
   const alarmsDict = getDictionary().worker.alarms;
-  const adminDict = getDictionary().admin.orders;
 
   const shell = useWorkerShellState(initialData);
 
@@ -127,7 +126,6 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           isStationarySession={Boolean(shell.session.categoryIsStationary)}
           queuedPendingOrders={shell.workOrders}
           dict={dict}
-          adminDict={adminDict}
           isTimeOverrun={isTimeOverrun}
           gpsStatus={shell.gpsStatus}
           traveledKm={shell.traveledKm}

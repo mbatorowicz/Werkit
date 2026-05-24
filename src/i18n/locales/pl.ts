@@ -50,6 +50,28 @@ export const pl = {
     parent_must_be_group: "Rodzicem może być tylko wpis oznaczony jako grupa.",
     invalid_parent: "Nieprawidłowy rodzic (cykl lub nieistniejący wpis).",
   },
+  workOrdersSchedule: {
+    expectedDurationLabel: "Szacowany czas pracy (godz.)",
+    expectedDurationPlaceholder: "np. 4,5",
+    dueDateOptionalLabel: "Termin wykonania (opcjonalnie)",
+    tons: "t",
+    conflict: {
+      title: "Wykryto konflikty harmonogramu",
+      checking: "Sprawdzanie dostępności…",
+      worker: "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      resource: "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      sessionWorker: "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
+      sessionResource: "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
+      machineHint:
+        "Do jednej maszyny można przypisać więcej niż jedno zlecenie — użyj «Utwórz mimo konfliktu», jeśli to zamierzone.",
+      workerBlockedHint:
+        "Nie możesz rozpocząć zlecenia — poczekaj na zakończenie konfliktu lub skontaktuj się z dyspozytorem.",
+      unknownWorker: "Pracownik",
+      unknownResource: "Zasób",
+      noTask: "bez opisu",
+      createDespite: "Utwórz mimo konfliktu",
+    },
+  },
   routeLoading: {
     title: "Ładowanie…",
     preparingApp: "Przygotowuję aplikację",
@@ -225,30 +247,11 @@ export const pl = {
       chooseMachinePlaceholder: "— Wybierz zasób —",
       quantityTonsLabel: "Ilość materiału (tony)",
       quantityTonsPlaceholder: "np. 20,5",
-      expectedDurationLabel: "Szacowany czas pracy (godz.)",
-      expectedDurationPlaceholder: "np. 4,5",
-      dueDateOptionalLabel: "Termin wykonania (opcjonalnie)",
       priorityLabel: "Priorytet",
       priorityLow: "Niski",
       priorityNormal: "Normalny",
       priorityHigh: "Ważny",
       priorityUrgent: "Pilne",
-      scheduleConflictTitle: "Wykryto konflikty harmonogramu",
-      scheduleConflictChecking: "Sprawdzanie dostępności…",
-      scheduleConflictWorker:
-        "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
-      scheduleConflictResource:
-        "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
-      scheduleConflictSessionWorker:
-        "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
-      scheduleConflictSessionResource:
-        "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
-      scheduleConflictMachineHint:
-        "Do jednej maszyny można przypisać więcej niż jedno zlecenie — użyj «Utwórz mimo konfliktu», jeśli to zamierzone.",
-      scheduleConflictUnknownWorker: "Pracownik",
-      scheduleConflictUnknownResource: "Zasób",
-      scheduleConflictNoTask: "bez opisu",
-      createDespiteConflict: "Utwórz mimo konfliktu",
       noMachinesForCategory:
         "Brak zasobów w tej kategorii. Dodaj wpis w rejestrze zasobów lub oznacz kategorię jako globalną.",
       modalEditOrderTitle: "Edytuj zlecenie nr {id}",
@@ -743,8 +746,6 @@ export const pl = {
       wizardStep4ScheduleSubtitle: "Ustaw planowany czas i termin — sprawdzimy dostępność.",
       wizardStep5Title: "Wszystko gotowe",
       wizardStep5Subtitle: "Podsumowanie nowego zlecenia. Sprawdź, czy wszystko się zgadza.",
-      wizardStep4Title: "Wszystko gotowe",
-      wizardStep4Subtitle: "Podsumowanie nowej sesji. Sprawdź czy wszystko się zgadza.",
       wizardNoMachines: "Brak zasobów w rejestrze. Zgłoś problem dyspozytorowi.",
       wizardMaterialLabel: "Jaki materiał?",
       wizardMaterialPlaceholder: "Wybierz z listy...",
@@ -759,24 +760,6 @@ export const pl = {
       wizardSummaryAggregate: "Materiał:",
       wizardSummaryCustomer: "Klient:",
       wizardSummarySchedule: "Termin:",
-      scheduleConflictTitle: "Wykryto konflikty harmonogramu",
-      scheduleConflictChecking: "Sprawdzanie dostępności…",
-      scheduleConflictWorker:
-        "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
-      scheduleConflictResource:
-        "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
-      scheduleConflictSessionWorker:
-        "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
-      scheduleConflictSessionResource:
-        "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
-      scheduleConflictWorkerBlockedHint:
-        "Nie możesz rozpocząć zlecenia — poczekaj na zakończenie konfliktu lub skontaktuj się z dyspozytorem.",
-      scheduleConflictUnknownWorker: "Pracownik",
-      scheduleConflictUnknownResource: "Zasób",
-      scheduleConflictNoTask: "bez opisu",
-      expectedDurationLabel: "Szacowany czas pracy (godz.)",
-      expectedDurationPlaceholder: "np. 4,5",
-      dueDateOptionalLabel: "Termin wykonania (opcjonalnie)",
       wizardClassType: "Klasa przypisana w systemie",
       wizardChangeLink: "Zmień",
       wizardSelectedType: "Typ zlecenia:",

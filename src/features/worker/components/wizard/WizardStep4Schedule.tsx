@@ -1,32 +1,13 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  WorkOrderScheduleFields,
-  type WorkOrderScheduleFieldLabels,
-} from "@/components/work-orders/WorkOrderScheduleFields";
+import { WorkOrderScheduleFields } from "@/components/work-orders/WorkOrderScheduleFields";
+import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
+import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
 
 type Dict = AppDictionary["worker"]["client"];
-
-function scheduleLabelsFromDict(dict: Dict): WorkOrderScheduleFieldLabels {
-  return {
-    expectedDurationLabel: dict.expectedDurationLabel,
-    expectedDurationPlaceholder: dict.expectedDurationPlaceholder,
-    dueDateOptionalLabel: dict.dueDateOptionalLabel,
-    scheduleConflictTitle: dict.scheduleConflictTitle,
-    scheduleConflictChecking: dict.scheduleConflictChecking,
-    scheduleConflictWorker: dict.scheduleConflictWorker,
-    scheduleConflictResource: dict.scheduleConflictResource,
-    scheduleConflictSessionWorker: dict.scheduleConflictSessionWorker,
-    scheduleConflictSessionResource: dict.scheduleConflictSessionResource,
-    scheduleConflictUnknownWorker: dict.scheduleConflictUnknownWorker,
-    scheduleConflictUnknownResource: dict.scheduleConflictUnknownResource,
-    scheduleConflictNoTask: dict.scheduleConflictNoTask,
-    scheduleConflictWorkerBlockedHint: dict.scheduleConflictWorkerBlockedHint,
-  };
-}
 
 type Props = {
   dict: Dict;
@@ -57,7 +38,9 @@ export function WizardStep4Schedule({
   setHasConflicts,
   setStep,
 }: Props) {
-  const nextDisabled = hasConflicts;
+  const scheduleLabels = buildWorkOrderScheduleFieldLabels(getDictionary().workOrdersSchedule, {
+    mode: "worker",
+  });
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
@@ -93,7 +76,7 @@ export function WizardStep4Schedule({
         expectedDurationHours={expectedDurationHours}
         onDueDateChange={setDueDate}
         onExpectedDurationHoursChange={setExpectedDurationHours}
-        labels={scheduleLabelsFromDict(dict)}
+        labels={scheduleLabels}
         onPreviewChange={({ hasConflicts: next }) => setHasConflicts(next)}
       />
 
@@ -107,7 +90,7 @@ export function WizardStep4Schedule({
         </button>
         <button
           type="button"
-          disabled={nextDisabled}
+          disabled={hasConflicts}
           onClick={() => setStep(5)}
           className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
         >

@@ -5,7 +5,7 @@ import {
   formatScheduleConflictLine,
   type ScheduleConflictLabels,
 } from "@/components/work-orders/formatScheduleConflictLine";
-import type { ScheduleConflictPreview } from "@/features/admin/orders/useScheduleConflictPreview";
+import type { ScheduleConflictPreview } from "@/components/work-orders/useScheduleConflictPreview";
 
 type PreviewStatus = "idle" | "loading" | "clear" | "conflicts" | "error";
 

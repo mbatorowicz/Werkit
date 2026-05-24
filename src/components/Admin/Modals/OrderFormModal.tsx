@@ -8,8 +8,9 @@ import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import {
   WorkOrderScheduleFields,
-  type WorkOrderScheduleFieldLabels,
 } from "@/components/work-orders/WorkOrderScheduleFields";
+import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
+import { getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import {
   OrderFormState,
@@ -28,25 +29,6 @@ const CONTROL =
 const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 export type AdminOrdersDict = AppDictionary["admin"]["orders"];
-
-function scheduleLabelsFromDict(dict: AdminOrdersDict): WorkOrderScheduleFieldLabels {
-  return {
-    expectedDurationLabel: dict.expectedDurationLabel,
-    expectedDurationPlaceholder: dict.expectedDurationPlaceholder,
-    dueDateOptionalLabel: dict.dueDateOptionalLabel,
-    scheduleConflictTitle: dict.scheduleConflictTitle,
-    scheduleConflictChecking: dict.scheduleConflictChecking,
-    scheduleConflictWorker: dict.scheduleConflictWorker,
-    scheduleConflictResource: dict.scheduleConflictResource,
-    scheduleConflictSessionWorker: dict.scheduleConflictSessionWorker,
-    scheduleConflictSessionResource: dict.scheduleConflictSessionResource,
-    scheduleConflictMachineHint: dict.scheduleConflictMachineHint,
-    scheduleConflictUnknownWorker: dict.scheduleConflictUnknownWorker,
-    scheduleConflictUnknownResource: dict.scheduleConflictUnknownResource,
-    scheduleConflictNoTask: dict.scheduleConflictNoTask,
-    createDespiteConflict: dict.createDespiteConflict,
-  };
-}
 
 export default function OrderFormModal({
   isOpen,
@@ -124,6 +106,10 @@ export default function OrderFormModal({
 
   const materialLabel = selectedCategory?.reqMaterial ? dict.chooseMaterialRequired : dict.chooseMaterial;
   const customerLabel = selectedCategory?.reqCustomer ? dict.chooseCustomerRequired : dict.chooseCustomer;
+
+  const scheduleLabels = buildWorkOrderScheduleFieldLabels(getDictionary().workOrdersSchedule, {
+    mode: "admin",
+  });
 
   return (
     <AdminModalShell
@@ -332,7 +318,7 @@ export default function OrderFormModal({
           onExpectedDurationHoursChange={(value) => setForm({ ...form, expectedDurationHours: value })}
           excludeOrderId={editingOrderId}
           previewEnabled={isOpen}
-          labels={scheduleLabelsFromDict(dict)}
+          labels={scheduleLabels}
           onForceSave={() => void submitForm(true)}
           isSubmitting={isSubmitting}
           onPreviewChange={({ hasConflicts: next }) => setHasConflicts(next)}
