@@ -3,6 +3,7 @@
 import { Camera, ChevronDown, ChevronUp, Clock, FileText } from "lucide-react";
 import Image from "next/image";
 import { formatUiTimeHm } from "@/i18n";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import type { TimelineItem } from "@/types/worker";
 
 type Props = {
@@ -44,7 +45,7 @@ export function ActiveSessionTimelinePanel({
       </button>
 
       {isTimelineOpen && (
-        <div className="mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] overflow-y-auto flex flex-col gap-4 shadow-inner relative scroll-smooth">
+        <div className={`mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] flex flex-col gap-4 shadow-inner relative scroll-smooth ${INLINE_SCROLL_PANEL_CLASS}`}>
           {timelineEvents.map((item, index) => (
             <div
               key={item.id}

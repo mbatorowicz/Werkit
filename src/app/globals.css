@@ -26,3 +26,22 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
 }
+
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgb(161 161 170 / 0.45);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(82 82 91 / 0.65);
+}

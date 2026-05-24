@@ -10,6 +10,7 @@ import { jwtVerify } from "jose";
 
 import { JWT_SECRET } from '@/lib/auth';
 import { AdminAbilityProvider } from '@/components/Admin/AdminAbilityProvider';
+import { INLINE_SCROLL_PANEL_CLASS } from '@/components/scrollPanelStyles';
 import { requireServerCompanyId } from '@/lib/serverTenant';
 
 export const dynamic = 'force-dynamic';
@@ -70,7 +71,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 overflow-y-auto">
+      <main className={`flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 ${INLINE_SCROLL_PANEL_CLASS}`}>
         <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 md:hidden sticky top-0 z-50">
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">

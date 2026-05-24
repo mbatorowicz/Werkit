@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 /**
  * Standardowy modal admin (tło + panel + nagłówek z zamknięciem).
@@ -51,7 +52,7 @@ export function AdminModalShell({
     scrollableBody || footer != null ? (
       <div className="flex min-h-0 flex-1 flex-col">
         {scrollableBody ? (
-          <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto">{children}</div>
+          <div className={`min-h-0 flex-1 ${INLINE_SCROLL_PANEL_CLASS}`}>{children}</div>
         ) : (
           children
         )}

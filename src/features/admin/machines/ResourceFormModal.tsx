@@ -6,6 +6,7 @@ import { Camera } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import type { MachineFormState, MachinesCategory } from "./types";
 import type { ResourceFieldVisibility } from "./resourceVisibility";
 
@@ -134,7 +135,7 @@ export function ResourceFormModal({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{dict.machCatLabel}</label>
-          <div className="custom-scrollbar grid max-h-48 grid-cols-2 gap-2 overflow-y-auto pr-1">
+          <div className={`grid max-h-48 grid-cols-2 gap-2 pr-1 ${INLINE_SCROLL_PANEL_CLASS}`}>
             {categories.map((c) => (
               <label
                 key={c.id}

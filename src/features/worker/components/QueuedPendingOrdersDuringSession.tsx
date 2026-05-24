@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, ListOrdered } from "lucide-react";
 import { WorkOrderPendingCard } from "@/components/work-orders/WorkOrderPendingCard";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import type { AppDictionary } from "@/i18n/types";
 import { formatDict } from "@/i18n";
 import type { WorkOrder } from "@/types/worker";
@@ -47,7 +48,7 @@ export function QueuedPendingOrdersDuringSession({ orders, dict }: Props) {
       </button>
 
       {open && (
-        <div className="mt-3 flex flex-col gap-3 max-h-[min(52vh,420px)] overflow-y-auto pr-0.5 custom-scrollbar">
+        <div className={`mt-3 flex flex-col gap-3 max-h-[min(52vh,420px)] pr-0.5 ${INLINE_SCROLL_PANEL_CLASS}`}>
           {orders.map((order, index) => (
             <WorkOrderPendingCard
               key={order.id}

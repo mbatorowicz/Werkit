@@ -1,9 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
 import { filterComboboxOptions } from "@/lib/searchComboboxFilter";
 import { SEARCH_COMBOBOX_INPUT_CLASS } from "@/components/searchFieldStyles";
+import {
+  FLOATING_LISTBOX_PANEL_CLASS,
+  touchScrollStyle,
+} from "@/components/scrollPanelStyles";
+import { useDismissOnOutsidePointer } from "@/hooks/useDismissOnOutsidePointer";
+import { useFloatingPanelPosition } from "@/hooks/useFloatingPanelPosition";
 
 export type AdminSearchComboboxOption = {
   id: string;
@@ -54,9 +61,10 @@ export function AdminSearchCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [highlightIndex, setHighlightIndex] = useState(0);
-  const [dropdownStyle, setDropdownStyle] = useState<{ top: number; left: number; width: number } | null>(
-    null,
-  );
+  const dropdownStyle = useFloatingPanelPosition(rootRef, open);
+  const dismissDropdown = useCallback(() => setOpen(false), []);
+
+  useDismissOnOutsidePointer([rootRef, listRef], open, dismissDropdown);
 
   const selected = useMemo(
     () => options.find((o) => o.id === value) ?? null,
@@ -77,40 +85,6 @@ export function AdminSearchCombobox({
       })),
     [options, query],
   );
-
-  const updateDropdownPosition = useCallback(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setDropdownStyle({
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: rect.width,
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    updateDropdownPosition();
-    const onScrollOrResize = () => updateDropdownPosition();
-    window.addEventListener("scroll", onScrollOrResize, true);
-    window.addEventListener("resize", onScrollOrResize);
-    return () => {
-      window.removeEventListener("scroll", onScrollOrResize, true);
-      window.removeEventListener("resize", onScrollOrResize);
-    };
-  }, [open, updateDropdownPosition]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDocMouseDown = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
-  }, [open]);
 
   useEffect(() => {
     onQueryChange?.(query);
@@ -161,6 +135,64 @@ export function AdminSearchCombobox({
     item?.scrollIntoView({ block: "nearest" });
   }, [highlightIndex, open]);
 
+  const closeEmptyAction = useCallback(() => {
+    setOpen(false);
+    emptyAction?.onClick();
+  }, [emptyAction]);
+
+  const dropdownList =
+    open && !disabled && dropdownStyle ? (
+      <ul
+        id={`${id}-listbox`}
+        ref={listRef}
+        role="listbox"
+        className={FLOATING_LISTBOX_PANEL_CLASS}
+        style={{
+          top: dropdownStyle.top,
+          bottom: dropdownStyle.bottom,
+          left: dropdownStyle.left,
+          width: dropdownStyle.width,
+          ...touchScrollStyle(dropdownStyle.maxHeight),
+        }}
+      >
+        {filtered.length === 0 ? (
+          <li className="px-3 py-2">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{noResultsLabel}</p>
+            {emptyAction && query.trim() ? (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={closeEmptyAction}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-400 bg-emerald-50/80 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
+              >
+                {emptyAction.label}
+              </button>
+            ) : null}
+          </li>
+        ) : (
+          filtered.map((option, index) => (
+            <li key={option.id} role="option" aria-selected={value === option.id}>
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pickOption(option.id)}
+                className={`w-full px-3 py-2 text-left text-sm transition ${
+                  index === highlightIndex
+                    ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100"
+                    : "text-zinc-900 hover:bg-zinc-50 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                }`}
+              >
+                <div className="font-medium">{option.label}</div>
+                {option.sublabel ? (
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">{option.sublabel}</div>
+                ) : null}
+              </button>
+            </li>
+          ))
+        )}
+      </ul>
+    ) : null;
+
   return (
     <div ref={rootRef} className="relative">
       {required ? <input type="hidden" value={value} required tabIndex={-1} aria-hidden /> : null}
@@ -205,58 +237,7 @@ export function AdminSearchCombobox({
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
       </div>
 
-      {open && !disabled && dropdownStyle ? (
-        <ul
-          id={`${id}-listbox`}
-          ref={listRef}
-          role="listbox"
-          className="fixed z-[200] max-h-56 overflow-y-auto rounded-lg border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-900"
-          style={{
-            top: dropdownStyle.top,
-            left: dropdownStyle.left,
-            width: dropdownStyle.width,
-          }}
-        >
-          {filtered.length === 0 ? (
-            <li className="px-3 py-2">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{noResultsLabel}</p>
-              {emptyAction && query.trim() ? (
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    setOpen(false);
-                    emptyAction.onClick();
-                  }}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-400 bg-emerald-50/80 px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200 dark:hover:bg-emerald-500/20"
-                >
-                  {emptyAction.label}
-                </button>
-              ) : null}
-            </li>
-          ) : (
-            filtered.map((option, index) => (
-              <li key={option.id} role="option" aria-selected={value === option.id}>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => pickOption(option.id)}
-                  className={`w-full px-3 py-2 text-left text-sm transition ${
-                    index === highlightIndex
-                      ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100"
-                      : "text-zinc-900 hover:bg-zinc-50 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  <div className="font-medium">{option.label}</div>
-                  {option.sublabel ? (
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">{option.sublabel}</div>
-                  ) : null}
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
-      ) : null}
+      {dropdownList && typeof document !== "undefined" ? createPortal(dropdownList, document.body) : null}
     </div>
   );
 }

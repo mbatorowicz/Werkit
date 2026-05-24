@@ -4,6 +4,7 @@ import { TimelineItem } from "@/types/worker";
 import { formatUiTimeHm } from "@/i18n";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 const FORM_ID = "worker-note-form";
 
@@ -75,7 +76,7 @@ export default function NotesModal({
         </div>
 
         {timelineEvents.some((e) => e.type === "note") ? (
-          <div className="flex max-h-48 flex-col gap-2 overflow-y-auto border-t border-zinc-200 pt-4 dark:border-zinc-800">
+          <div className={`flex max-h-48 flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800 ${INLINE_SCROLL_PANEL_CLASS}`}>
             <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {dict.yourNotes}
             </label>

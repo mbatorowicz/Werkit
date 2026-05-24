@@ -2,6 +2,7 @@
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import type { AppDictionary } from "@/i18n/types";
 import { filterCategoryLeaves } from "@/lib/categoryTree";
 import type { MaterialCategory, MaterialItemFormState } from "@/features/admin/materials/types";
@@ -66,7 +67,7 @@ export function MaterialsMaterialFormModal({
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-amber-500/80">{dict.matCatLabel}</label>
-          <div className="custom-scrollbar grid max-h-48 grid-cols-2 gap-2 overflow-y-auto pr-1">
+          <div className={`grid max-h-48 grid-cols-2 gap-2 pr-1 ${INLINE_SCROLL_PANEL_CLASS}`}>
             {leafCategories.map((c) => (
               <label
                 key={c.id}

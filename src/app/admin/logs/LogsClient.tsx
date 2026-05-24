@@ -8,6 +8,7 @@ import type { AppDictionary } from "@/i18n/types";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 const LOG_CATEGORIES: WerkitLogCategory[] = [
   "http",
@@ -239,7 +240,7 @@ export default function LogsClient({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 bg-zinc-950 font-mono text-xs sm:text-sm custom-scrollbar relative">
+      <div className={`flex-1 p-4 bg-zinc-950 font-mono text-xs sm:text-sm relative ${INLINE_SCROLL_PANEL_CLASS}`}>
         {filteredLogs.length === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-600">
             <TerminalSquare className="w-12 h-12 mb-3 opacity-20" />

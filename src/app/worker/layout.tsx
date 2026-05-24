@@ -11,6 +11,7 @@ import { requireServerCompanyId } from '@/lib/serverTenant';
 export const dynamic = 'force-dynamic';
 
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
   const { DictionaryService } = await import('@/services/DictionaryService');
@@ -54,7 +55,7 @@ export default async function WorkerLayout({ children }: { children: React.React
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-md mx-auto p-4 overflow-y-auto">
+      <main className={`flex-1 w-full max-w-md mx-auto p-4 ${INLINE_SCROLL_PANEL_CLASS}`}>
         {children}
       </main>
 

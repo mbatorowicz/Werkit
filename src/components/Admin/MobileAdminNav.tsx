@@ -4,6 +4,7 @@ import { Menu, X, Users } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
+import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 import { usePathname } from "next/navigation";
 
@@ -61,7 +62,7 @@ export function MobileAdminNav({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1.5 custom-scrollbar">
+            <div className={`flex-1 py-4 px-2 space-y-1.5 ${INLINE_SCROLL_PANEL_CLASS}`}>
               {links.map((link, idx) => {
                 if (link.kind === "section") {
                   return (
