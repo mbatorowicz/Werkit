@@ -18,7 +18,7 @@ import {
   narrowWorkOrders,
 } from "@/lib/narrowApiListRows";
 
-export function useWizardFlow() {
+export function useWizardFlow(initialUserId?: number) {
   const router = useRouter();
   const { alert: appAlert } = useAppDialog();
   const dict = getDictionary().worker.client;
@@ -26,6 +26,8 @@ export function useWizardFlow() {
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasScheduleConflicts, setHasScheduleConflicts] = useState(false);
+  const [userId, setUserId] = useState(initialUserId != null ? String(initialUserId) : "");
 
   const [categories, setCategories] = useState<WizardCategory[]>([]);
   const [machines, setMachines] = useState<WizardMachine[]>([]);
@@ -39,12 +41,14 @@ export function useWizardFlow() {
   const [customerId, setCustomerId] = useState("");
   const [quantityTons, setQuantityTons] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [expectedDurationHours, setExpectedDurationHours] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       try {
-        const [cat, mac, mat, cus, ord] = await Promise.all([
+        const [cat, mac, mat, cus, ord, sess] = await Promise.all([
           fetchWithDeviceTelemetry("Worker wizard: categories", "/api/categories?leavesOnly=1", { cache: "no-store" }, {
             category: "lifecycle",
           }).then(parseJsonArray),
@@ -60,6 +64,9 @@ export function useWizardFlow() {
           fetchWithDeviceTelemetry("Worker wizard: work-orders", "/api/worker/work-orders", { cache: "no-store" }, {
             category: "orders",
           }).then(parseJsonArray),
+          fetchWithDeviceTelemetry("Worker wizard: session user", "/api/worker/session", { cache: "no-store" }, {
+            category: "session",
+          }).then(parseJsonUnknown),
         ]);
         if (cancelled) return;
         setCategories(narrowWizardCategories(cat));
@@ -67,6 +74,12 @@ export function useWizardFlow() {
         setMaterials(narrowWizardMaterials(mat));
         setCustomers(narrowWizardCustomers(cus));
         setOrders(narrowWorkOrders(ord));
+        if (initialUserId == null && sess && typeof sess === "object" && !Array.isArray(sess)) {
+          const user = (sess as { user?: { id?: number } }).user;
+          if (typeof user?.id === "number") {
+            setUserId(String(user.id));
+          }
+        }
       } catch {
         /* sieć — zostaw puste listy */
       }
@@ -74,7 +87,7 @@ export function useWizardFlow() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialUserId]);
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id.toString() === categoryId),
@@ -90,27 +103,69 @@ export function useWizardFlow() {
   }, [machines, selectedCategory]);
 
   const handleStart = useCallback(async () => {
+    if (hasScheduleConflicts) return;
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Worker wizard: start session POST", "/api/worker/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categoryId,
-          resourceId,
-          materialId: selectedCategory?.showMaterial ? (materialId || null) : null,
-          customerId: selectedCategory?.showCustomer ? (customerId || null) : null,
-          quantityTons: selectedCategory?.showQuantity ? (quantityTons || null) : null,
-          taskDescription: selectedCategory?.showTaskDescription ? (taskDescription || null) : null,
-        }),
-      }, { category: "session" });
+      const createPayload: Record<string, unknown> = {
+        categoryId,
+        resourceId,
+        materialId: selectedCategory?.showMaterial ? materialId || null : null,
+        customerId: selectedCategory?.showCustomer ? customerId || null : null,
+        quantityTons: selectedCategory?.showQuantity ? quantityTons || null : null,
+        taskDescription: selectedCategory?.showTaskDescription ? taskDescription || null : null,
+        expectedDurationHours: expectedDurationHours.trim() || null,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      };
 
-      if (res.ok) {
-        router.push("/worker");
-      } else {
-        const body = await parseJsonUnknown(res);
+      const createRes = await fetchWithDeviceTelemetry(
+        "Worker wizard: create own order POST",
+        "/api/worker/work-orders",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(createPayload),
+        },
+        { category: "orders" },
+      );
+
+      if (!createRes.ok) {
+        const body = await parseJsonUnknown(createRes);
         const code = readApiErrorString(body);
         await appAlert({ message: appDialogApiMessage(apiErrors, code, apiErrors.save_error) });
+        setIsLoading(false);
+        return;
+      }
+
+      const createBody = await parseJsonUnknown(createRes);
+      const orderId =
+        createBody && typeof createBody === "object" && typeof (createBody as { orderId?: unknown }).orderId === "number"
+          ? (createBody as { orderId: number }).orderId
+          : null;
+
+      if (orderId == null) {
+        await appAlert({ message: apiErrors.save_error });
+        setIsLoading(false);
+        return;
+      }
+
+      const loc = await getCurrentPositionOnce();
+      const acceptRes = await fetchWithDeviceTelemetry(
+        `Worker wizard: accept order POST ${orderId}`,
+        `/api/worker/work-orders/${orderId}/accept`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
+        },
+        { category: "orders" },
+      );
+
+      if (acceptRes.ok) {
+        router.push("/worker");
+      } else {
+        const body = await parseJsonUnknown(acceptRes);
+        const code = readApiErrorString(body);
+        await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.errAcceptOrder) });
         setIsLoading(false);
       }
     } catch {
@@ -122,7 +177,11 @@ export function useWizardFlow() {
     appAlert,
     categoryId,
     customerId,
+    dict.errAcceptOrder,
     dict.errNetwork,
+    dueDate,
+    expectedDurationHours,
+    hasScheduleConflicts,
     materialId,
     quantityTons,
     resourceId,
@@ -182,6 +241,13 @@ export function useWizardFlow() {
     setQuantityTons,
     taskDescription,
     setTaskDescription,
+    dueDate,
+    setDueDate,
+    expectedDurationHours,
+    setExpectedDurationHours,
+    hasScheduleConflicts,
+    setHasScheduleConflicts,
+    userId,
     selectedCategory,
     availableMachines,
     handleStart,

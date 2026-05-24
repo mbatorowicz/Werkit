@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import {
+  WorkOrderScheduleFields,
+  type WorkOrderScheduleFieldLabels,
+} from "@/components/work-orders/WorkOrderScheduleFields";
 import type { AppDictionary } from "@/i18n/types";
 import {
   OrderFormState,
@@ -25,6 +29,25 @@ const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 export type AdminOrdersDict = AppDictionary["admin"]["orders"];
 
+function scheduleLabelsFromDict(dict: AdminOrdersDict): WorkOrderScheduleFieldLabels {
+  return {
+    expectedDurationLabel: dict.expectedDurationLabel,
+    expectedDurationPlaceholder: dict.expectedDurationPlaceholder,
+    dueDateOptionalLabel: dict.dueDateOptionalLabel,
+    scheduleConflictTitle: dict.scheduleConflictTitle,
+    scheduleConflictChecking: dict.scheduleConflictChecking,
+    scheduleConflictWorker: dict.scheduleConflictWorker,
+    scheduleConflictResource: dict.scheduleConflictResource,
+    scheduleConflictSessionWorker: dict.scheduleConflictSessionWorker,
+    scheduleConflictSessionResource: dict.scheduleConflictSessionResource,
+    scheduleConflictMachineHint: dict.scheduleConflictMachineHint,
+    scheduleConflictUnknownWorker: dict.scheduleConflictUnknownWorker,
+    scheduleConflictUnknownResource: dict.scheduleConflictUnknownResource,
+    scheduleConflictNoTask: dict.scheduleConflictNoTask,
+    createDespiteConflict: dict.createDespiteConflict,
+  };
+}
+
 export default function OrderFormModal({
   isOpen,
   onClose,
@@ -41,7 +64,7 @@ export default function OrderFormModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (form: OrderFormState) => Promise<void>;
+  onSave: (form: OrderFormState, options?: { forceSave?: boolean }) => Promise<void>;
   /** Usuwa oczekujące zlecenie (tylko edycja). */
   onDeletePending?: () => Promise<void>;
   editingOrderId: number | null;
@@ -55,11 +78,15 @@ export default function OrderFormModal({
 }) {
   const [form, setForm] = useState<OrderFormState>(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasConflicts, setHasConflicts] = useState(false);
   const { confirm: appConfirm } = useAppDialog();
 
   useEffect(() => {
     if (!isOpen) return;
-    queueMicrotask(() => setForm(initialForm));
+    queueMicrotask(() => {
+      setForm(initialForm);
+      setHasConflicts(false);
+    });
   }, [isOpen, initialForm]);
 
   const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
@@ -77,15 +104,22 @@ export default function OrderFormModal({
       ? dict.modalEditOrderTitle.replace(/\{id\}/g, String(editingOrderId))
       : dict.issueOrder;
 
+  const submitForm = useCallback(
+    async (forceSave: boolean) => {
+      if (!selectedCategory || noMachinesForCategory) return;
+      setIsSubmitting(true);
+      try {
+        await onSave({ ...form, forceSave }, { forceSave });
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [form, noMachinesForCategory, onSave, selectedCategory],
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCategory || noMachinesForCategory) return;
-    setIsSubmitting(true);
-    try {
-      await onSave(form);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitForm(false);
   };
 
   const materialLabel = selectedCategory?.reqMaterial ? dict.chooseMaterialRequired : dict.chooseMaterial;
@@ -106,7 +140,8 @@ export default function OrderFormModal({
           onCancel={onClose}
           submitLabel={isSubmitting ? dict.saving : dict.save}
           isSubmitting={isSubmitting}
-          submitDisabled={!selectedCategory || noMachinesForCategory}
+          submitDisabled={!selectedCategory || noMachinesForCategory || hasConflicts}
+          hideSubmit={hasConflicts}
           submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
           leading={
             editingOrderId && onDeletePending ? (
@@ -285,30 +320,23 @@ export default function OrderFormModal({
           </div>
         ) : null}
 
-        {/* 6. Czas i termin */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className={FIELD}>
-            <label className={LABEL}>{dict.expectedDurationLabel}</label>
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              placeholder={dict.expectedDurationPlaceholder}
-              value={form.expectedDurationHours}
-              onChange={(e) => setForm({ ...form, expectedDurationHours: e.target.value })}
-              className={CONTROL}
-            />
-          </div>
-          <div className={FIELD}>
-            <label className={LABEL}>{dict.dueDateOptionalLabel}</label>
-            <input
-              type="datetime-local"
-              value={form.dueDate}
-              onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-              className={CONTROL}
-            />
-          </div>
-        </div>
+        {/* 6. Czas i termin + panel konfliktów */}
+        <WorkOrderScheduleFields
+          mode="admin"
+          scope="admin"
+          userId={form.userId}
+          resourceId={form.resourceId}
+          dueDate={form.dueDate}
+          expectedDurationHours={form.expectedDurationHours}
+          onDueDateChange={(value) => setForm({ ...form, dueDate: value })}
+          onExpectedDurationHoursChange={(value) => setForm({ ...form, expectedDurationHours: value })}
+          excludeOrderId={editingOrderId}
+          previewEnabled={isOpen}
+          labels={scheduleLabelsFromDict(dict)}
+          onForceSave={() => void submitForm(true)}
+          isSubmitting={isSubmitting}
+          onPreviewChange={({ hasConflicts: next }) => setHasConflicts(next)}
+        />
 
         {/* 7. Priorytet */}
         <div className={FIELD}>
@@ -324,24 +352,6 @@ export default function OrderFormModal({
             <option value="URGENT">{dict.priorityUrgent}</option>
           </select>
         </div>
-
-        {/* 8. Wymuś zapis */}
-        <div className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-3 dark:border-emerald-500/25 dark:bg-emerald-500/10">
-          <input
-            type="checkbox"
-            id="forceSave"
-            checked={form.forceSave}
-            onChange={(e) => setForm({ ...form, forceSave: e.target.checked })}
-            className="mt-0.5 h-4 w-4 cursor-pointer rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-600 dark:bg-zinc-800"
-          />
-          <label
-            htmlFor="forceSave"
-            className="cursor-pointer select-none text-sm font-medium text-emerald-900 dark:text-emerald-300"
-          >
-            {dict.forceSaveScheduleLabel}
-          </label>
-        </div>
-
       </form>
     </AdminModalShell>
   );

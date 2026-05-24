@@ -44,6 +44,9 @@ export const en: AppDictionary = {
     missing_quantity: "This order type requires a positive quantity (tons).",
     missing_task_description: "This order type requires a short description.",
     session_still_active: "Session is still active — finish it manually first or from the worker app.",
+    schedule_conflict: "This time slot conflicts with another order or active session.",
+    resource_busy: "This resource is currently in use by another active session.",
+    order_not_found: "Order not found.",
     not_in_progress: "This session is no longer in progress.",
     group_has_children: "Cannot delete a group that has child categories. Remove or move children first.",
     parent_must_be_group: "Parent must be an entry marked as a group.",
@@ -232,7 +235,22 @@ export const en: AppDictionary = {
       priorityNormal: "Normal",
       priorityHigh: "High",
       priorityUrgent: "Urgent",
-      forceSaveScheduleLabel: "Ignore schedule conflicts and force save",
+      scheduleConflictTitle: "Schedule conflicts detected",
+      scheduleConflictChecking: "Checking availability…",
+      scheduleConflictWorker:
+        "{workerName} is busy {timeRange} (order #{orderId}: {task})",
+      scheduleConflictResource:
+        "{resourceName} is reserved {timeRange} (order #{orderId}: {task})",
+      scheduleConflictSessionWorker:
+        "{workerName} has active session #{sessionId} at {start}–{end} ({task})",
+      scheduleConflictSessionResource:
+        "{resourceName} is in use by session #{sessionId} at {start}–{end} ({task})",
+      scheduleConflictMachineHint:
+        "Multiple orders can share one machine — use «Create despite conflict» if intentional.",
+      scheduleConflictUnknownWorker: "Worker",
+      scheduleConflictUnknownResource: "Resource",
+      scheduleConflictNoTask: "no description",
+      createDespiteConflict: "Create despite conflict",
       noMachinesForCategory: "No resources in this category. Add a registry entry or mark the category as global.",
       modalEditOrderTitle: "Edit order {id}",
       optionalSuffix: "(optional)",
@@ -723,6 +741,10 @@ export const en: AppDictionary = {
       orderAttachmentNotesTitle: "Notes were added during execution",
       wizardStep3Title: "Order details",
       wizardStep3Subtitle: "Fill in the required information before starting work.",
+      wizardStep4ScheduleTitle: "Work schedule",
+      wizardStep4ScheduleSubtitle: "Set planned duration and due time — we'll check availability.",
+      wizardStep5Title: "All ready",
+      wizardStep5Subtitle: "New order summary. Check if everything is correct.",
       wizardStep4Title: "All ready",
       wizardStep4Subtitle: "New session summary. Check if everything is correct.",
       wizardNoMachines: "No resources in the registry. Report the problem to the dispatcher.",
@@ -738,6 +760,25 @@ export const en: AppDictionary = {
       wizardSummaryMachine: "Resource:",
       wizardSummaryAggregate: "Material:",
       wizardSummaryCustomer: "Customer:",
+      wizardSummarySchedule: "Schedule:",
+      scheduleConflictTitle: "Schedule conflicts detected",
+      scheduleConflictChecking: "Checking availability…",
+      scheduleConflictWorker:
+        "{workerName} is busy at {timeRange} (order #{orderId}: {task})",
+      scheduleConflictResource:
+        "{resourceName} is reserved at {timeRange} (order #{orderId}: {task})",
+      scheduleConflictSessionWorker:
+        "{workerName} has active session #{sessionId} at {start}–{end} ({task})",
+      scheduleConflictSessionResource:
+        "{resourceName} is in use by session #{sessionId} at {start}–{end} ({task})",
+      scheduleConflictWorkerBlockedHint:
+        "You cannot start this order — wait for the conflict to clear or contact dispatch.",
+      scheduleConflictUnknownWorker: "Worker",
+      scheduleConflictUnknownResource: "Resource",
+      scheduleConflictNoTask: "no description",
+      expectedDurationLabel: "Estimated work time (hours)",
+      expectedDurationPlaceholder: "e.g. 4.5",
+      dueDateOptionalLabel: "Due date (optional)",
       wizardClassType: "Class assigned in system",
       wizardChangeLink: "Change",
       wizardSelectedType: "Order type:",

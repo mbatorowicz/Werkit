@@ -52,7 +52,7 @@ src/
 │   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications, useWorkerSessionSync
 │   └── lib/                # workOrderPresentation, workOrderPriority, workerSessionTimeline
 ├── components/
-│   ├── work-orders/        # UI **współdzielony** worker ↔ admin (WorkOrderPriorityRibbon, WorkOrderSummaryLines)
+│   ├── work-orders/        # UI **współdzielony** worker ↔ admin (WorkOrderPriorityRibbon, WorkOrderSummaryLines, ScheduleConflictPanel, WorkOrderScheduleFields)
 │   ├── Admin/, Map/, GanttChart/, …
 ├── services/               # Warstwa domenowa + Drizzle — preferowane miejsce na zapytania DB
 ├── db/                     # Klient DB + schema Drizzle

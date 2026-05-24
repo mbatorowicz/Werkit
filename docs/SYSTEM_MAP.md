@@ -39,7 +39,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
                               Neon Postgres
 ```
 
-**Reguła**: kod w `src/app/**` **nie importuje** `@/db` ani `@/db/schema` — wszystkie zapytania w **`src/services/*`** (w tym wykrywanie konfliktów harmonogramu zleceń: `AdminOrderService.checkScheduleConflict`).
+**Reguła**: kod w `src/app/**` **nie importuje** `@/db` ani `@/db/schema` — wszystkie zapytania w **`src/services/*`** (w tym wykrywanie konfliktów harmonogramu: **`ScheduleConflictService`** + delegacja z `AdminOrderService.checkScheduleConflict`).
 
 ---
 
@@ -117,7 +117,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/settings` | RSC | `SettingsForm` | Singleton ustawień firmy (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR `DEVICE_LOGS_PAGE_LIMIT` + eksport → `/api/admin/logs/export`) | admin |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
-| `/worker/wizard` | RSC | `WizardClient` | Kreator sesji: `@/features/worker/components/WizardClient` | worker |
+| `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; `POST work-orders` + `accept` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
 | `/worker/history/[id]` | RSC | `MapWrapper`, `TimelineGalleryClient` | Szczegóły sesji (mapa GPS, galeria); reszta JSX w `page.tsx` | worker |
 | `/worker/profile` | RSC | `ProfileSettings` | Profil: notyfikacje + biometria (`worker/profile/ProfileSettings.tsx`) | worker |
@@ -156,9 +156,11 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/worker/work-orders` | GET | `WorkerOrderService.getPendingOrders(userId)` — sortowanie po `dueDate`, potem `createdAt` |
-| `/api/worker/work-orders/[id]/accept` | POST `{latitude?,longitude?}` | `WorkerOrderService.acceptOrder` — `work_orders.status='IN_PROGRESS'`, INSERT `work_sessions` (`work_order_id`, bookend GPS opcjonalnie) |
+| `/api/worker/work-orders` | POST | `WorkerOrderService.createOwnOrder` — tylko gdy `users.can_create_own_orders`; `userId` z sesji (ignoruje body); bez `forceSave`; 409 `schedule_conflict` / `resource_busy` |
+| `/api/worker/work-orders/schedule-conflicts` | GET `?userId&resourceId&dueDate?&expectedDurationHours?&excludeOrderId?` | Podgląd konfliktów (worker scope — `userId` musi = zalogowany); bez terminu → tylko `resource_busy` (aktywna sesja na zasobie) |
+| `/api/worker/work-orders/[id]/accept` | POST `{latitude?,longitude?}` | `WorkerOrderService.acceptOrder` — walidacja `session_active`, `schedule_conflict`, `resource_busy`; `work_orders.status='IN_PROGRESS'`, INSERT `work_sessions` |
 | `/api/worker/session` | GET | `WorkerSessionService.getActiveSessionWithDetails(userId)` — sesja + ustawienia + user (z `notificationsEnabled`/`canCreateOwnOrders`) |
-| `/api/worker/session` | POST `{resourceId, categoryId, materialId?, customerId?, quantityTons?, taskDescription?, latitude?, longitude?}` | Wizard — `createWizardSession` (rzuca `session_active` jeśli już trwa) |
+| `/api/worker/session` | POST `{resourceId, categoryId, …}` | Wizard legacy — `createWizardSession` (nadal dostępne; **nowy wizard** tworzy `POST work-orders` + `accept`) |
 | `/api/worker/session` | PUT `{latitude?, longitude?}` | `endActiveSession` — ustawia `COMPLETED` + `end_time` + bookend GPS |
 | `/api/worker/session/cancel` | POST | `cancelActiveSession` — przywraca powiązane `workOrder.status='PENDING'`, kasuje sesję |
 | `/api/worker/session/notes` | POST `{note, location?:{lat,lng}}` | `addNote` |
@@ -174,8 +176,9 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/admin/work-orders` | GET | `AdminOrderService.getActiveWorkOrders` — tylko **`PENDING`** (kolejka dyspozycji) |
-| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii (`validateWorkOrderFieldsAgainstCategory`) + `coerceWorkOrderPriority` + `AdminOrderService.checkScheduleConflict` (chyba że `forceSave`). 409 jeśli konflikt. |
-| `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — `AdminOrderService.checkScheduleConflict` (+ `forceSave`); `guardAdminMutation` |
+| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii + `ScheduleConflictService` przez `AdminOrderService.checkScheduleConflict` (chyba że `forceSave`). 409 jeśli konflikt. UI: panel inline w `OrderFormModal`. |
+| `/api/admin/work-orders/schedule-conflicts` | GET | Podgląd konfliktów (admin); bez terminu → konflikty `resource_busy` |
+| `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — konflikt harmonogramu (+ `forceSave`); `guardAdminMutation` |
 | `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
@@ -214,7 +217,14 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `WorkerOrderService`
 - `getPendingOrders(userId)` — JOIN: resources, materials, customers, creator (alias users), resource_categories. Sort: dueDate asc → createdAt asc. Mapuje `priority` przez `normalizeWorkOrderPriority`.
-- `acceptOrder(userId, orderId, startCoord?)` — UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS` (`work_order_id` ustawione) z bookend GPS. Po **`WorkerSessionService.endActiveSession`** / **`AdminSessionService.forceCompleteSession`** zlecenie przechodzi na **`COMPLETED`**. Zwraca `sessionId`.
+- `createOwnOrder(userId, payload)` — wymaga `canCreateOwnOrders`; INSERT `work_orders` PENDING dla siebie; bez override konfliktów; zwraca `orderId`.
+- `acceptOrder(userId, orderId, startCoord?)` — walidacja harmonogramu (`schedule_conflict`, `resource_busy`, `session_active`); UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS`. Zwraca `sessionId`.
+
+### `ScheduleConflictService`
+- `loadCandidates`, `findConflictsForRequest`, `findConflictsForRequestSerialized` — nakładające się zlecenia PENDING/IN_PROGRESS i aktywne sesje dla pracownika/zasobu.
+- `findResourceBusyConflicts` — aktywna sesja IN_PROGRESS na zasobie (bez terminu zlecenia).
+- `hasActiveWorkerSession`, `hasActiveResourceSession`.
+- `checkScheduleConflictLegacyMessage` — komunikat PL pod 409 admin API.
 
 ### `WorkerSessionService`
 - `getActiveSessionWithDetails(userId)` — sesja IN_PROGRESS + JOIN klient/maszyna/kategoria (z `categoryIsStationary`)/materiał + ustawienia + user (`notificationsEnabled`, `canCreateOwnOrders`) + zdjęcia + notatki.
@@ -225,7 +235,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getCompletedSessions(userId, limit=20)`, `getSessionHistoryFull(sessionId, userId)` (GPS + notatki + zdjęcia).
 
 ### `AdminOrderService`
-- `checkScheduleConflict(userId, resourceId, dueDate, durationHours, excludeOrderId?)` — nakładające się zlecenia **`PENDING`** lub **`IN_PROGRESS`** dla tego pracownika lub zasobu; zwraca komunikat PL albo `null`.
+- `checkScheduleConflict(...)` — delegacja do `ScheduleConflictService.checkScheduleConflictLegacyMessage`.
+- `resolveLockedUntil(dueDate, durationHours)` — `locked_until` przy zapisie zlecenia.
 - `getActiveWorkOrders()` — wyłącznie **`PENDING`** z JOIN-ami pod kolejkę dyspozycji.
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
 - `createOrder(orderData)`.
@@ -272,7 +283,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### Komponenty
 | Plik | Rola |
 |---|---|
-| `components/WizardClient.tsx` | Kreator własnej sesji (kategoria → maszyna → materiał? → klient? → start) — używa `@/components/work-orders/*`, `@/types/wizard`. |
+| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków, krok 4: `WorkOrderScheduleFields` + `ScheduleConflictPanel`) — `POST /api/worker/work-orders` + `accept`; guard na `/worker/wizard` gdy brak `canCreateOwnOrders`. |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących (sortowanie/klasyfikacja w `lib/workOrderPresentation.ts`). |
 | `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji: nad `OrderLabelCard` — **`QueuedPendingOrdersDuringSession`** (rozwijana kolejka `PENDING` z `/api/worker/work-orders`); zegar, GPS, akcje. |
 | `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx` | Modale. |
@@ -325,6 +336,11 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 |---|---|---|
 | `WorkOrderPriorityRibbon` | `labels: WorkOrderPriorityLabels` (wycinek `worker.client`) | URGENT (red, pulse), HIGH (orange), NORMAL (zinc), LOW (emerald). Tryb `accentOnly` rysuje tylko URGENT/HIGH. |
 | `WorkOrderSummaryLines` | `dict` (wycinek), `taskItalic?`, `showDurationCreator?` | Maszyna / materiał (+t) / klient / opis / czas / zlecający. |
+| `ScheduleConflictPanel` | `mode: admin \| worker`, `conflicts`, etykiety i18n | Panel inline pod datą/czasem; admin: „Utwórz mimo konfliktu”; worker: ukryty Start w liście oczekujących. |
+| `WorkOrderScheduleFields` | `scope: admin \| worker`, hook `useScheduleConflictPreview` | Pola czasu + termin + panel konfliktów (debounce 350 ms). |
+| `formatScheduleConflictLine` | `ScheduleConflictLabels`, konflikt z API | Jedna linia opisu konfliktu (zlecenie vs sesja). |
+
+`src/lib/scheduleConflict.ts` — czysta logika: `findScheduleConflicts`, `computeLockedUntil`, deduplikacja sesji vs zlecenia.
 
 ---
 
@@ -438,7 +454,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 2. **`Array.isArray` przed `.map`/`.filter` na odpowiedzi API** — error handler może zwrócić `{error}` zamiast tablicy → crash mobilki.
 3. **`params` w `[id]/route.ts` jest `Promise`** w Next 16 — `const { id } = await context.params;`.
 4. **Duplikaty pod `src/components/Worker/**`** — w repo już ich nie ma; UI pracownika tylko w `@/features/worker/...`.
-5. **Konflikty harmonogramu zleceń** — logika w `AdminOrderService.checkScheduleConflict`; nie dodawaj ponownie zapytań Drizzle do `src/lib/` dla tego case’u.
+5. **Konflikty harmonogramu zleceń** — logika w **`ScheduleConflictService`** + **`src/lib/scheduleConflict.ts`**; UI współdzielone w `components/work-orders/`; nie dodawaj ponownie zapytań Drizzle do `src/lib/` dla tego case’u.
 6. **JWT_SECRET fallback** — `'super-secret-fallback'`. Jeśli kiedykolwiek `console.warn` pojawi się na produkcji, traktuj jako incydent bezpieczeństwa.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient zawsze wysyła tablicę (zob. `GPSManager.flushQueue`), ale serwer toleruje też pojedynczy.

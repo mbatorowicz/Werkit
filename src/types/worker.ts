@@ -33,6 +33,8 @@ export type WorkOrder = {
   categoryName: string | null;
   taskDescription: string | null;
   resourceName: string | null;
+  resourceId?: number | null;
+  userId?: number | null;
   materialName: string | null;
   customerName: string | null;
   priority: WorkOrderPriority | null;

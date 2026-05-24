@@ -16,6 +16,9 @@ type Props = {
   customerId: string;
   quantityTons: string;
   resourceId: string;
+  dueDate: string;
+  expectedDurationHours: string;
+  hasScheduleConflicts: boolean;
   isLoading: boolean;
   onStart: () => void;
   setStep: (s: number) => void;
@@ -31,6 +34,9 @@ export function WizardStep4Summary({
   customerId,
   quantityTons,
   resourceId,
+  dueDate,
+  expectedDurationHours,
+  hasScheduleConflicts,
   isLoading,
   onStart,
   setStep,
@@ -40,8 +46,8 @@ export function WizardStep4Summary({
       <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
         <CheckCircle2 className="w-10 h-10 text-emerald-500" />
       </div>
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{dict.wizardStep4Title}</h2>
-      <p className="text-zinc-500 text-sm mb-8 text-center">{dict.wizardStep4Subtitle}</p>
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{dict.wizardStep5Title}</h2>
+      <p className="text-zinc-500 text-sm mb-8 text-center">{dict.wizardStep5Subtitle}</p>
 
       <div className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 space-y-3 mb-10">
         <div className="flex justify-between">
@@ -71,11 +77,20 @@ export function WizardStep4Summary({
             </span>
           </div>
         )}
+        {(dueDate || expectedDurationHours) && (
+          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
+            <span className="text-zinc-500 text-sm">{dict.wizardSummarySchedule}</span>
+            <span className="text-zinc-900 dark:text-white font-medium text-right text-sm">
+              {expectedDurationHours ? `${expectedDurationHours}h` : "—"}
+              {dueDate ? ` · ${dueDate.replace("T", " ")}` : ""}
+            </span>
+          </div>
+        )}
       </div>
 
       <button
         type="button"
-        disabled={isLoading}
+        disabled={isLoading || hasScheduleConflicts}
         onClick={onStart}
         className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-lg font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
       >
@@ -84,7 +99,7 @@ export function WizardStep4Summary({
 
       <button
         type="button"
-        onClick={() => setStep(3)}
+        onClick={() => setStep(4)}
         className="mt-6 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
       >
         <ChevronLeft className="w-4 h-4" /> {dict.wizardFixData}

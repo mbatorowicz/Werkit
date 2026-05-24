@@ -6,7 +6,6 @@ import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
-import type { OrderFormState } from "@/types/admin";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { buildUnifiedDispatchItems } from "@/features/admin/orders/dispatchPlanning";
@@ -266,10 +265,10 @@ export default function OrdersClient() {
                 }
               : undefined
           }
-          onSave={async (formData: OrderFormState) => {
+          onSave={async (formData, options) => {
             const url = editingOrderId ? `/api/admin/work-orders/${editingOrderId}` : "/api/admin/work-orders";
             const method = editingOrderId ? "PUT" : "POST";
-            const payload = { ...formData };
+            const payload = { ...formData, forceSave: Boolean(options?.forceSave) };
             if (payload.dueDate) {
               payload.dueDate = new Date(payload.dueDate).toISOString();
             }
@@ -287,6 +286,8 @@ export default function OrdersClient() {
               await appAlert({ message: dict.success });
               closeOrderModal();
               fetchData(true);
+            } else if (res.status === 409) {
+              /* Konflikt harmonogramu — panel inline w modalu; bez dodatkowego alertu. */
             } else {
               const body = await parseJsonUnknown(res);
               const code = readApiErrorString(body);

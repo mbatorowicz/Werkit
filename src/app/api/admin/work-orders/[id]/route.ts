@@ -76,6 +76,12 @@ export const PUT = withApiErrorHandling(
       }
     }
 
+    const parsedDueDate = dueDate ? new Date(dueDate) : null;
+    const parsedDuration =
+      expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+        ? parseFloat(String(expectedDurationHours))
+        : null;
+
     try {
       await AdminOrderService.updateOrder(companyId, orderId, {
         userId: uidNum,
@@ -88,7 +94,8 @@ export const PUT = withApiErrorHandling(
         expectedDurationHours:
           expectedDurationHours != null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
         priority: prio,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: parsedDueDate,
+        lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";

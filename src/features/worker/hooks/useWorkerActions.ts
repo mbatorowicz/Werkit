@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useAppDialog } from '@/components/AppDialogProvider';
-import { formatDict } from '@/i18n';
+import { useAppDialog, appDialogApiMessage } from '@/components/AppDialogProvider';
+import { formatDict, getDictionary } from '@/i18n';
 import type { AppDictionary } from '@/i18n/types';
 import { fetchWithDeviceTelemetry } from '@/lib/fetchWithDeviceTelemetry';
+import { parseJsonUnknown, readApiErrorString } from '@/lib/parseApiJson';
 import { GPSManager } from '@/lib/gpsManager';
 import { sendRemoteLog } from '@/lib/remoteLogger';
 import { Coord, TimelineItem, AppSettings } from '@/types/worker';
@@ -28,6 +29,8 @@ export function useWorkerActions({
   categoryIsStationary = false,
 }: UseWorkerActionsProps) {
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
+  const apiErrors = getDictionary().apiErrors as Record<string, string>;
+  const [acceptErrors, setAcceptErrors] = useState<Record<number, string>>({});
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
@@ -70,6 +73,11 @@ export function useWorkerActions({
 
   const handleAcceptOrder = async (orderId: number, startLocation: Coord | null) => {
     setIsLoading(true);
+    setAcceptErrors((prev) => {
+      const next = { ...prev };
+      delete next[orderId];
+      return next;
+    });
     try {
       const res = await fetchWithDeviceTelemetry(
         `Worker: accept order POST ${orderId}`,
@@ -90,7 +98,16 @@ export function useWorkerActions({
         await fetchSessionAndPath(false, false);
       } else {
         sendRemoteLog('ERROR', 'Nie udało się zaakceptować zlecenia API Error', { orderId, status: res.status }, { category: 'orders' });
-        await appAlert({ message: dict.errAcceptOrder });
+        const body = await parseJsonUnknown(res);
+        const code = readApiErrorString(body);
+        if (res.status === 409 && (code === 'schedule_conflict' || code === 'resource_busy')) {
+          setAcceptErrors((prev) => ({
+            ...prev,
+            [orderId]: appDialogApiMessage(apiErrors, code, dict.errAcceptOrder),
+          }));
+        } else {
+          await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.errAcceptOrder) });
+        }
       }
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd sieci podczas akceptacji zlecenia', { error: e instanceof Error ? e.message : String(e) }, { category: 'orders' });
@@ -245,6 +262,7 @@ export function useWorkerActions({
     handleCancelSession,
     handleCheckpoint,
     handleSaveNote,
-    handlePhotoUpload
+    handlePhotoUpload,
+    acceptErrors,
   };
 }

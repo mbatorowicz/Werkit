@@ -84,6 +84,12 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       }
     }
 
+    const parsedDueDate = dueDate ? new Date(dueDate) : null;
+    const parsedDuration =
+      expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+        ? parseFloat(String(expectedDurationHours))
+        : null;
+
     await AdminOrderService.createOrder({
       companyId,
       userId: uidNum,
@@ -97,7 +103,8 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       expectedDurationHours:
         expectedDurationHours != null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
       priority: prio,
-      dueDate: dueDate ? new Date(dueDate) : null,
+      dueDate: parsedDueDate,
+      lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
       createdById: verified.payload.userId as number
     });
 

@@ -8,17 +8,25 @@ import {
   customers,
   resourceCategories,
 } from '@/db/schema';
-import { eq, desc, aliasedTable, or, and, inArray } from 'drizzle-orm';
+import { eq, desc, aliasedTable, and } from 'drizzle-orm';
 import {
   applyWorkOrderListJoins,
   newWorkOrderCreatorUserAlias,
   workOrderListSharedSelectFields,
 } from '@/services/workOrders/workOrderListQueryParts';
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
+import { computeLockedUntil } from '@/lib/scheduleConflict';
+import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 
 export class AdminOrderService {
+  /** Koniec rezerwacji harmonogramu — `null` gdy brak terminu lub czasu trwania. */
+  static resolveLockedUntil(dueDate: Date | null, durationHours: number | null): Date | null {
+    if (!dueDate || durationHours == null || durationHours <= 0) return null;
+    return computeLockedUntil(dueDate, durationHours);
+  }
+
   /**
-   * Sprawdza nakładanie się terminów z innymi zleceniami `PENDING` dla tego samego pracownika lub zasobu.
+   * Sprawdza nakładanie się terminów (zlecenia + aktywne sesje) dla pracownika lub zasobu.
    * Zwraca komunikat PL dla UI albo `null`, gdy brak konfliktu.
    */
   static async checkScheduleConflict(
@@ -29,38 +37,13 @@ export class AdminOrderService {
     durationHours: number | null,
     excludeOrderId?: number,
   ): Promise<string | null> {
-    if (!dueDate || !durationHours) return null;
-
-    const startT = dueDate.getTime();
-    const endT = startT + durationHours * 3600000;
-
-    const activeOrders = await db
-      .select()
-      .from(workOrders)
-      .where(
-        and(
-          eq(workOrders.companyId, companyId),
-          or(eq(workOrders.userId, userId), eq(workOrders.resourceId, resourceId)),
-          inArray(workOrders.status, ['PENDING', 'IN_PROGRESS']),
-        ),
-      );
-
-    for (const order of activeOrders) {
-      if (excludeOrderId && order.id === excludeOrderId) continue;
-      if (!order.dueDate || !order.expectedDurationHours) continue;
-
-      const oStart = order.dueDate.getTime();
-      const oEnd = oStart + parseFloat(order.expectedDurationHours as string) * 3600000;
-
-      if (startT < oEnd && endT > oStart) {
-        if (order.userId === userId)
-          return `Pracownik ma już w tym czasie przypisane zlecenie #${order.id}.`;
-        if (order.resourceId === resourceId)
-          return `Maszyna/Pojazd jest już w tym czasie zarezerwowana w zleceniu #${order.id}.`;
-      }
-    }
-
-    return null;
+    return ScheduleConflictService.checkScheduleConflictLegacyMessage(companyId, {
+      userId,
+      resourceId,
+      dueDate,
+      durationHours,
+      excludeOrderId,
+    });
   }
 
   /**

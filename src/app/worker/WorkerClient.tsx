@@ -38,6 +38,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     handleCheckpoint,
     handleSaveNote,
     handlePhotoUpload,
+    acceptErrors,
   } = useWorkerActions({
     dict,
     fetchSessionAndPath: shell.fetchSessionAndPath,
@@ -118,6 +119,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           dict={dict}
           requestAcceptOrder={requestAcceptOrder}
           fetchSessionAndPath={shell.fetchSessionAndPath}
+          acceptErrors={acceptErrors}
         />
       ) : (
         <WorkerActiveSessionSection

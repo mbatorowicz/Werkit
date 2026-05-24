@@ -5,10 +5,11 @@ import { WizardProgressBar } from "./WizardProgressBar";
 import { WizardStep1Category } from "./WizardStep1Category";
 import { WizardStep2Machine } from "./WizardStep2Machine";
 import { WizardStep3Details } from "./WizardStep3Details";
+import { WizardStep4Schedule } from "./WizardStep4Schedule";
 import { WizardStep4Summary } from "./WizardStep4Summary";
 
-export default function WizardClient() {
-  const flow = useWizardFlow();
+export default function WizardClient({ userId }: { userId?: number }) {
+  const flow = useWizardFlow(userId);
 
   return (
     <div className="flex flex-col min-h-[80vh] py-6">
@@ -56,6 +57,22 @@ export default function WizardClient() {
           />
         )}
         {flow.step === 4 && (
+          <WizardStep4Schedule
+            dict={flow.dict}
+            selectedCategory={flow.selectedCategory}
+            machines={flow.machines}
+            resourceId={flow.resourceId}
+            userId={flow.userId}
+            dueDate={flow.dueDate}
+            setDueDate={flow.setDueDate}
+            expectedDurationHours={flow.expectedDurationHours}
+            setExpectedDurationHours={flow.setExpectedDurationHours}
+            hasConflicts={flow.hasScheduleConflicts}
+            setHasConflicts={flow.setHasScheduleConflicts}
+            setStep={flow.setStep}
+          />
+        )}
+        {flow.step === 5 && (
           <WizardStep4Summary
             dict={flow.dict}
             selectedCategory={flow.selectedCategory}
@@ -66,6 +83,9 @@ export default function WizardClient() {
             customerId={flow.customerId}
             quantityTons={flow.quantityTons}
             resourceId={flow.resourceId}
+            dueDate={flow.dueDate}
+            expectedDurationHours={flow.expectedDurationHours}
+            hasScheduleConflicts={flow.hasScheduleConflicts}
             isLoading={flow.isLoading}
             onStart={flow.handleStart}
             setStep={flow.setStep}

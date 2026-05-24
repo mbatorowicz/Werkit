@@ -15,6 +15,8 @@ export function FormModalFooter({
   submitClassName = "w-full sm:w-auto px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-500 transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]",
   cancelClassName = "w-full sm:w-auto px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition",
   leading,
+  secondarySubmit,
+  hideSubmit = false,
 }: {
   formId?: string;
   onCancel: () => void;
@@ -25,6 +27,13 @@ export function FormModalFooter({
   submitClassName?: string;
   cancelClassName?: string;
   leading?: ReactNode;
+  hideSubmit?: boolean;
+  secondarySubmit?: {
+    label: ReactNode;
+    onClick: () => void;
+    disabled?: boolean;
+    className?: string;
+  };
 }) {
   const cancel = cancelLabel ?? getDictionary().admin.ui.modalCancel;
 
@@ -35,14 +44,29 @@ export function FormModalFooter({
         <button type="button" onClick={onCancel} className={cancelClassName}>
           {cancel}
         </button>
-        <button
-          type="submit"
-          form={formId}
-          disabled={isSubmitting || submitDisabled}
-          className={submitClassName}
-        >
-          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : submitLabel}
-        </button>
+        {secondarySubmit ? (
+          <button
+            type="button"
+            onClick={secondarySubmit.onClick}
+            disabled={isSubmitting || secondarySubmit.disabled}
+            className={
+              secondarySubmit.className ??
+              "w-full sm:w-auto px-6 py-2.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-950 text-sm font-bold hover:bg-amber-100 transition disabled:cursor-not-allowed disabled:opacity-50 flex items-center justify-center min-w-[7rem] dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-200 dark:hover:bg-amber-500/25"
+            }
+          >
+            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : secondarySubmit.label}
+          </button>
+        ) : null}
+        {!hideSubmit ? (
+          <button
+            type="submit"
+            form={formId}
+            disabled={isSubmitting || submitDisabled}
+            className={submitClassName}
+          >
+            {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : submitLabel}
+          </button>
+        ) : null}
       </div>
     </div>
   );

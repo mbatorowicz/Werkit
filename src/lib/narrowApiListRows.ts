@@ -127,6 +127,8 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
     const taskDescription =
       r.taskDescription === null || typeof r.taskDescription === "string" ? r.taskDescription : null;
     const resourceName = r.resourceName === null || typeof r.resourceName === "string" ? r.resourceName : null;
+    const resourceId = typeof r.resourceId === "number" ? r.resourceId : null;
+    const userId = typeof r.userId === "number" ? r.userId : null;
     const materialName = r.materialName === null || typeof r.materialName === "string" ? r.materialName : null;
     const customerName = r.customerName === null || typeof r.customerName === "string" ? r.customerName : null;
     const dueDate = r.dueDate === null || typeof r.dueDate === "string" ? r.dueDate : null;
@@ -136,6 +138,8 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       categoryName,
       taskDescription,
       resourceName,
+      resourceId,
+      userId,
       materialName,
       customerName,
       priority: narrowPriority(r.priority),

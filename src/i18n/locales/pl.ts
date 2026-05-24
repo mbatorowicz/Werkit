@@ -42,6 +42,9 @@ export const pl = {
     missing_quantity: "Ten typ zlecenia wymaga podania dodatniej ilości (tony).",
     missing_task_description: "Ten typ zlecenia wymaga krótkiego opisu.",
     session_still_active: "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
+    schedule_conflict: "Termin koliduje z innym zleceniem lub aktywną sesją w tym samym czasie.",
+    resource_busy: "Ten zasób jest obecnie zajęty przez inną aktywną sesję.",
+    order_not_found: "Nie znaleziono zlecenia.",
     not_in_progress: "Ta sesja nie jest już w stanie „w toku”.",
     group_has_children: "Nie można usunąć grupy, która ma podkategorie. Najpierw usuń lub przenieś elementy podrzędne.",
     parent_must_be_group: "Rodzicem może być tylko wpis oznaczony jako grupa.",
@@ -230,7 +233,22 @@ export const pl = {
       priorityNormal: "Normalny",
       priorityHigh: "Ważny",
       priorityUrgent: "Pilne",
-      forceSaveScheduleLabel: "Zignoruj konflikty harmonogramu i wymuś zapis",
+      scheduleConflictTitle: "Wykryto konflikty harmonogramu",
+      scheduleConflictChecking: "Sprawdzanie dostępności…",
+      scheduleConflictWorker:
+        "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      scheduleConflictResource:
+        "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      scheduleConflictSessionWorker:
+        "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
+      scheduleConflictSessionResource:
+        "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
+      scheduleConflictMachineHint:
+        "Do jednej maszyny można przypisać więcej niż jedno zlecenie — użyj «Utwórz mimo konfliktu», jeśli to zamierzone.",
+      scheduleConflictUnknownWorker: "Pracownik",
+      scheduleConflictUnknownResource: "Zasób",
+      scheduleConflictNoTask: "bez opisu",
+      createDespiteConflict: "Utwórz mimo konfliktu",
       noMachinesForCategory:
         "Brak zasobów w tej kategorii. Dodaj wpis w rejestrze zasobów lub oznacz kategorię jako globalną.",
       modalEditOrderTitle: "Edytuj zlecenie nr {id}",
@@ -721,6 +739,10 @@ export const pl = {
       orderAttachmentNotesTitle: "W realizacji były notatki",
       wizardStep3Title: "Szczegóły zlecenia",
       wizardStep3Subtitle: "Wypełnij wymagane informacje przed rozpoczęciem pracy.",
+      wizardStep4ScheduleTitle: "Termin pracy",
+      wizardStep4ScheduleSubtitle: "Ustaw planowany czas i termin — sprawdzimy dostępność.",
+      wizardStep5Title: "Wszystko gotowe",
+      wizardStep5Subtitle: "Podsumowanie nowego zlecenia. Sprawdź, czy wszystko się zgadza.",
       wizardStep4Title: "Wszystko gotowe",
       wizardStep4Subtitle: "Podsumowanie nowej sesji. Sprawdź czy wszystko się zgadza.",
       wizardNoMachines: "Brak zasobów w rejestrze. Zgłoś problem dyspozytorowi.",
@@ -736,6 +758,25 @@ export const pl = {
       wizardSummaryMachine: "Zasób:",
       wizardSummaryAggregate: "Materiał:",
       wizardSummaryCustomer: "Klient:",
+      wizardSummarySchedule: "Termin:",
+      scheduleConflictTitle: "Wykryto konflikty harmonogramu",
+      scheduleConflictChecking: "Sprawdzanie dostępności…",
+      scheduleConflictWorker:
+        "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      scheduleConflictResource:
+        "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      scheduleConflictSessionWorker:
+        "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
+      scheduleConflictSessionResource:
+        "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
+      scheduleConflictWorkerBlockedHint:
+        "Nie możesz rozpocząć zlecenia — poczekaj na zakończenie konfliktu lub skontaktuj się z dyspozytorem.",
+      scheduleConflictUnknownWorker: "Pracownik",
+      scheduleConflictUnknownResource: "Zasób",
+      scheduleConflictNoTask: "bez opisu",
+      expectedDurationLabel: "Szacowany czas pracy (godz.)",
+      expectedDurationPlaceholder: "np. 4,5",
+      dueDateOptionalLabel: "Termin wykonania (opcjonalnie)",
       wizardClassType: "Klasa przypisana w systemie",
       wizardChangeLink: "Zmień",
       wizardSelectedType: "Typ zlecenia:",

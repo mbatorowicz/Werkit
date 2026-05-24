@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { workOrders, customers, workSessions } from '@/db/schema';
+import { workOrders, customers, workSessions, users } from '@/db/schema';
 import { eq, and, asc } from 'drizzle-orm';
 import {
   applyWorkOrderListJoins,
@@ -8,6 +8,9 @@ import {
 } from '@/services/workOrders/workOrderListQueryParts';
 import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
+import { computeLockedUntil, parseDurationHours } from '@/lib/scheduleConflict';
+import { ScheduleConflictService } from '@/services/ScheduleConflictService';
+import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 
 export class WorkerOrderService {
   /**
@@ -61,6 +64,33 @@ export class WorkerOrderService {
       );
     if (!order) throw new Error('order_not_found');
 
+    if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
+      throw new Error('session_active');
+    }
+
+    const durationHours = parseDurationHours(order.expectedDurationHours);
+    if (order.dueDate && durationHours != null) {
+      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
+        userId,
+        resourceId: order.resourceId,
+        dueDate: order.dueDate,
+        durationHours,
+        excludeOrderId: order.id,
+      });
+      if (conflicts.length > 0) {
+        throw new Error('schedule_conflict');
+      }
+    } else if (order.resourceId) {
+      const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
+        companyId,
+        order.resourceId,
+        userId,
+      );
+      if (resourceBusy) {
+        throw new Error('resource_busy');
+      }
+    }
+
     let customerLocationId = order.customerLocationId;
     if (!customerLocationId && order.customerId) {
       const { CustomerLocationService } = await import("@/services/CustomerLocationService");
@@ -73,6 +103,9 @@ export class WorkerOrderService {
       .set({
         status: 'IN_PROGRESS',
         ...(customerLocationId && !order.customerLocationId ? { customerLocationId } : {}),
+        ...(order.dueDate && durationHours != null && !order.lockedUntil
+          ? { lockedUntil: computeLockedUntil(order.dueDate, durationHours) }
+          : {}),
       })
       .where(eq(workOrders.id, order.id));
 
@@ -100,5 +133,106 @@ export class WorkerOrderService {
     }).returning();
 
     return newSession.id;
+  }
+
+  static async createOwnOrder(
+    userId: number,
+    companyId: number,
+    payload: {
+      categoryId: number;
+      resourceId: number;
+      materialId?: number | null;
+      customerId?: number | null;
+      quantityTons?: string | null;
+      taskDescription?: string | null;
+      expectedDurationHours?: string | null;
+      dueDate?: Date | null;
+      priority?: string | null;
+    },
+  ): Promise<number> {
+    const [userRow] = await db
+      .select({ canCreateOwnOrders: users.canCreateOwnOrders })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
+      .limit(1);
+
+    if (!userRow?.canCreateOwnOrders) {
+      throw new Error('forbidden');
+    }
+
+    if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
+      throw new Error('session_active');
+    }
+
+    const { DictionaryService } = await import('@/services/DictionaryService');
+    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, payload.categoryId);
+    if (!categoryRow || categoryRow.isGroup) {
+      throw new Error('invalid_category');
+    }
+
+    const catCheck = validateWorkOrderFieldsAgainstCategory(categoryRow, {
+      customerId: payload.customerId,
+      materialId: payload.materialId,
+      quantityTons: payload.quantityTons,
+      taskDescription: payload.taskDescription,
+    });
+    if (catCheck !== 'ok') {
+      throw new Error(catCheck);
+    }
+
+    const durationHours = parseDurationHours(payload.expectedDurationHours);
+    if (payload.dueDate && durationHours != null) {
+      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
+        userId,
+        resourceId: payload.resourceId,
+        dueDate: payload.dueDate,
+        durationHours,
+      });
+      if (conflicts.length > 0) {
+        throw new Error('schedule_conflict');
+      }
+    } else {
+      const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
+        companyId,
+        payload.resourceId,
+        userId,
+      );
+      if (resourceBusy) {
+        throw new Error('resource_busy');
+      }
+    }
+
+    const prio = coerceWorkOrderPriority(payload.priority);
+
+    const [inserted] = await db
+      .insert(workOrders)
+      .values({
+        companyId,
+        userId,
+        resourceId: payload.resourceId,
+        categoryId: payload.categoryId,
+        materialId: payload.materialId ?? null,
+        customerId: payload.customerId ?? null,
+        taskDescription: payload.taskDescription ?? null,
+        quantityTons:
+          payload.quantityTons != null && String(payload.quantityTons).trim() !== ""
+            ? String(payload.quantityTons)
+            : null,
+        expectedDurationHours:
+          payload.expectedDurationHours != null && String(payload.expectedDurationHours).trim() !== ""
+            ? String(payload.expectedDurationHours)
+            : null,
+        dueDate: payload.dueDate ?? null,
+        lockedUntil:
+          payload.dueDate && durationHours != null
+            ? computeLockedUntil(payload.dueDate, durationHours)
+            : null,
+        status: 'PENDING',
+        priority: prio,
+        createdById: userId,
+      })
+      .returning({ id: workOrders.id });
+
+    return inserted.id;
   }
 }

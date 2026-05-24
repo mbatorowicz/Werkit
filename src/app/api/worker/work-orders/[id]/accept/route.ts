@@ -27,7 +27,13 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true, sessionId });
   },
   {
-    mapUnknownError: (err) => (err instanceof Error && err.message === "order_not_found" ? jsonError("order_not_found", 404) : null),
+    mapUnknownError: (err) => {
+      if (err instanceof Error && err.message === "order_not_found") return jsonError("order_not_found", 404);
+      if (err instanceof Error && err.message === "session_active") return jsonError("session_active", 400);
+      if (err instanceof Error && err.message === "schedule_conflict") return jsonError("schedule_conflict", 409);
+      if (err instanceof Error && err.message === "resource_busy") return jsonError("resource_busy", 409);
+      return null;
+    },
     defaultErrorCode: "save_error",
   },
 );

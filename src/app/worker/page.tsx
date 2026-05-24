@@ -22,6 +22,8 @@ export default async function WorkerPage() {
 
   const orders = ordersRaw.map(o => ({
     ...o,
+    userId: Number(o.userId),
+    resourceId: o.resourceId != null ? Number(o.resourceId) : null,
     dueDate: o.dueDate ? o.dueDate.toISOString() : null,
     createdAt: o.createdAt ? new Date(o.createdAt).toISOString() : new Date().toISOString(),
     expectedDurationHours: o.expectedDurationHours ? parseFloat(o.expectedDurationHours as string) : null,

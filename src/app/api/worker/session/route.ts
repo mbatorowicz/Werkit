@@ -57,6 +57,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
 }, {
   mapUnknownError: (err) => {
     if (err instanceof Error && err.message === "session_active") return jsonError("session_active", 400);
+    if (err instanceof Error && err.message === "resource_busy") return jsonError("resource_busy", 409);
     return null;
   },
   defaultErrorCode: "save_error",
