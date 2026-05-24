@@ -563,6 +563,12 @@ export const en: AppDictionary = {
       appDownloadTitle: "Mobile app (Android)",
       appDownloadButton: "Download APK",
       appDownloadVersion: "Version: {version}",
+      appDownloadWebVersion: "Web version: {version}",
+      appDownloadApkVersion: "APK version: {version}",
+      appDownloadBuiltAt: "Built: {date}",
+      appDownloadDebugBadge: "Debug build",
+      appDownloadVersionMismatch:
+        "APK ({apkVersion}) does not match the web version ({webVersion}). Run the Android CI build or wait for an update.",
       appDownloadUnavailable: "APK unavailable.",
       companyData: "Company Data",
       orderSettings: "Order Settings",

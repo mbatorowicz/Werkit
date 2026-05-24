@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAuthSession } from '@/lib/auth';
 import { jsonError } from '@/lib/apiRoute';
 import {
-  getAndroidApkFileName,
+  getAndroidAppDownloadInfoAsync,
   resolveLocalAndroidApkPath,
   resolveRemoteAndroidApkUrl,
 } from '@/lib/androidAppDownload';
@@ -49,14 +49,18 @@ export async function GET() {
   const localPath = resolveLocalAndroidApkPath();
   if (localPath) {
     const bytes = await readFile(localPath);
-    return apkResponse(new Uint8Array(bytes), getAndroidApkFileName());
+    const info = await getAndroidAppDownloadInfoAsync();
+    return apkResponse(new Uint8Array(bytes), info.fileName);
   }
 
   const github = resolveGithubReleaseApkConfig();
   if (github) {
     try {
-      const { bytes } = await fetchGithubReleaseApkBytes(github);
-      return apkResponse(bytes, getAndroidApkFileName());
+      const [{ bytes }, info] = await Promise.all([
+        fetchGithubReleaseApkBytes(github),
+        getAndroidAppDownloadInfoAsync(),
+      ]);
+      return apkResponse(bytes, info.fileName);
     } catch {
       return jsonError('apk_unavailable', 404);
     }

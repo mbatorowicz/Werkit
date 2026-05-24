@@ -561,6 +561,12 @@ export const pl = {
       appDownloadTitle: "Aplikacja mobilna (Android)",
       appDownloadButton: "Pobierz APK",
       appDownloadVersion: "Wersja: {version}",
+      appDownloadWebVersion: "Wersja panelu: {version}",
+      appDownloadApkVersion: "Wersja APK: {version}",
+      appDownloadBuiltAt: "Zbudowano: {date}",
+      appDownloadDebugBadge: "Build debug",
+      appDownloadVersionMismatch:
+        "APK ({apkVersion}) nie odpowiada wersji panelu ({webVersion}). Uruchom build Android w CI lub poczekaj na aktualizację.",
       appDownloadUnavailable: "APK niedostępne.",
       companyData: "Dane firmy",
       orderSettings: "Ustawienia Zleceń",

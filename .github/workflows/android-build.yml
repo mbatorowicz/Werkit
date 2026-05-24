@@ -64,6 +64,20 @@ jobs:
       - name: Prepare APK for GitHub Release
         run: cp android/app/build/outputs/apk/debug/app-debug.apk werkit.apk
 
+      - name: Write APK metadata (werkit-apk-meta.json)
+        run: |
+          node -e "
+          const fs = require('fs');
+          const pkg = require('./package.json');
+          fs.writeFileSync('werkit-apk-meta.json', JSON.stringify({
+            version: pkg.version,
+            packageVersion: pkg.version,
+            buildType: 'debug',
+            commitSha: process.env.GITHUB_SHA,
+            builtAt: new Date().toISOString(),
+          }, null, 2));
+          "
+
       - name: Remove previous android-latest release
         run: |
           gh release delete android-latest -y 2>/dev/null || true
@@ -80,7 +94,9 @@ jobs:
             Automatyczny build z gałęzi `main`.
             **Jeden plik APK dla wszystkich organizacji** — logowanie wybiera firmę w aplikacji.
             Wersja z package.json: ${{ steps.pkg.outputs.version }}
-          files: werkit.apk
+          files: |
+            werkit.apk
+            werkit-apk-meta.json
           make_latest: false
 
       - name: Upload Release Bundle (AAB)
