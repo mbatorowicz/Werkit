@@ -1,4 +1,4 @@
-import LogsClient from "./LogsClient";
+import LogsClient from "@/features/admin/logs/LogsClient";
 import { getDictionary } from "@/i18n";
 import { DEVICE_LOGS_EXPORT_MAX, DEVICE_LOGS_PAGE_LIMIT } from "@/lib/deviceLogLimits";
 import { requireServerCompanyId } from '@/lib/serverTenant';

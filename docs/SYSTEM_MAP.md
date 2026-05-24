@@ -47,20 +47,22 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
-| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | — |
-| `resource_categories` | `name` | **`parent_id`**, **`is_group`**, **`sort_order`**, `icon`, **`show_customer`**, **`show_material`**, **`show_quantity`**, **`show_task_description`** (formularz zlecenia), **`show_resource_name`**, **`show_resource_description`**, **`show_registration_number`** (formularz zasobu w rejestrze), `req_customer`, `req_material`, `req_quantity`, `req_task_description`, `is_global`, `is_stationary`, `color` | self-FK `parent_id → resource_categories.id` (SET NULL) |
-| `resources` (= zasoby w rejestrze) | display `name` (składana z widocznych pól + opcjonalnie `description`) | `brand`, `model`, `registration_number`, **`description`**, `image_url`; przypisanie do kategorii **wyłącznie** N↔M przez `resource_to_categories` | — |
+| `companies` | `slug` (unique) | `id`, `name`, `is_active`, `created_at` | — (multi-tenant; patrz **0017**) |
+| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | `company_id → companies.id` (restrict) |
+| `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
+| `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
-| `materials` | `id` | `name` (klasyfikacja przez `material_to_categories`) | — |
-| `material_categories` | `id` | `name`, **`parent_id`**, **`is_group`**, **`sort_order`**, `color` | self-FK `parent_id → material_categories.id` (SET NULL) |
+| `materials` | `id` | **`company_id`**, `name` | `company_id → companies.id` (cascade) |
+| `material_categories` | `id` | **`company_id`**, `name`, **`parent_id`**, … | `company_id → companies.id` (cascade) |
 | `material_to_categories` | PK `(material_id, category_id)` | linki N↔M | cascade z `materials` i `material_categories` |
-| `customers` | `id` | `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | — |
-| `work_orders` | `id` | `user_id` (przypisany pracownik), `resource_id`, `category_id`, `material_id?`, `customer_id?`, `task_description?`, `status` ∈ **`PENDING`** (kolejka dyspozycji) **\|`IN_PROGRESS`** (worker zaakceptował; żywa sesja `work_sessions`) **\|`COMPLETED`** **\|`CANCELLED`**, `quantity_tons?`, `expected_duration_hours?`, **`priority` ∈ `URGENT\|HIGH\|NORMAL\|LOW`** (CHECK `work_orders_priority_chk`), `due_date?`, `locked_until?`, `created_by_id?`, `created_at` | `user_id`/`created_by_id → users.id` (cascade/set null), `resource_id → resources.id` (set null), `category_id → resource_categories.id` (set null) |
-| `work_sessions` | `id` | `work_order_id?` (powiązanie z dyspozycją), `user_id`, `resource_id`, `category_id?`, `material_id?`, `customer_id?`, `status` ∈ `IN_PROGRESS\|COMPLETED`, `start_time`, `end_time?`, `quantity_tons?`, `task_description?`, `machine_hours_photo_url?`, `signature_url?`, `client_absent?`, `expected_duration_hours?`, `due_date?`, **GPS bookend** `start_latitude?`, `start_longitude?`, `end_latitude?`, `end_longitude?` | `work_order_id → work_orders.id` (set null), `user_id → users.id` (cascade), `resource_id → resources.id` (set null), `material_id`/`customer_id`/`category_id → set null` |
+| `customers` | `id` | `company_id`, `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | `company_id → companies.id` (cascade) |
+| `customer_locations` | `id` | `customer_id`, `label`, `address?`, `latitude`, `longitude`, `is_default`, `sort_order`, `route_waypoints` (jsonb) | `customer_id → customers.id` (cascade); migracja **0015** |
+| `work_orders` | `id` | `company_id`, `user_id` (przypisany pracownik), `resource_id`, `category_id`, `material_id?`, `customer_id?`, `customer_location_id?`, `task_description?`, `status` ∈ **`PENDING`** (kolejka dyspozycji) **\|`IN_PROGRESS`** (worker zaakceptował; żywa sesja `work_sessions`) **\|`COMPLETED`** **\|`CANCELLED`**, `quantity_tons?`, `expected_duration_hours?`, **`priority` ∈ `URGENT\|HIGH\|NORMAL\|LOW`** (CHECK `work_orders_priority_chk`), `due_date?`, `locked_until?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `user_id`/`created_by_id → users.id` (cascade/set null), `resource_id → resources.id` (set null), `category_id → resource_categories.id` (set null), `customer_location_id → customer_locations.id` (set null) |
+| `work_sessions` | `id` | **`company_id`**, `work_order_id?`, `user_id`, … (status, GPS bookend, itd.) | `company_id → companies.id` (cascade); `work_order_id → work_orders.id` (set null), … |
 | `session_photos` | `id` | `work_session_id`, `photo_url` (data URL JPEG, kompresja 800px/0.7 po stronie klienta), `photo_type` ∈ `START\|END\|AD_HOC`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
 | `gps_logs` | `id` | `work_session_id`, `latitude`, `longitude`, `timestamp` | cascade z `work_sessions` |
 | `session_notes` | `id` | `work_session_id`, `note`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
-| `company_settings` | singleton (id=1) | `company_name`, `company_address?`, `zip_code?`, `city?`, `phone?`, `email?`, `base_latitude?`, `base_longitude?`, `cancel_window_minutes`(5), `require_photo_to_finish`(false), `geofence_radius_meters`(500), `time_overrun_reminder`(true), `upcoming_order_reminder_minutes`(120) | — |
+| `company_settings` | per `company_id` (unique) | **`company_id`**, `company_name`, `cancel_window_minutes`, geofence, przypomnienia, … | `company_id → companies.id` (cascade) |
 | `device_logs` | `id` | `user_id?`, `level` ∈ `INFO\|WARN\|ERROR\|DEBUG`, `message`, `metadata: jsonb`, `created_at` | `user_id → users.id` (cascade) |
 
 ### 3.1. Drizzle relations
@@ -87,6 +89,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0013 | `0013_work_orders_in_progress_status.sql` | Backfill: `work_orders.status = 'IN_PROGRESS'` tam, gdzie jest powiązana sesja `work_sessions.status = 'IN_PROGRESS'` (naprawa stanów po zmianie semantyki vs stary marker `COMPLETED`). |
 | 0014 | `0014_drop_legacy_session_type_resource_category.sql` | `DROP COLUMN session_type` z `work_sessions` i `work_orders`; `DROP COLUMN category_id` z `resources` (N↔M tylko przez `resource_to_categories`). **Kolejność wdrożenia:** uruchom **0014** na Postgres **przed lub razem z** deployem wersji aplikacji bez tych pól — stara baza z `NOT NULL session_type` zrzuci INSERT sesji/zlecenia. |
 | 0016 | `0016_category_hierarchy.sql` | `parent_id`, `is_group`, `sort_order` na `resource_categories` i `material_categories` (grupy tylko w adminie; przypisania i zlecenia — liście). |
+| 0015 | `0015_customer_locations_planned_route.sql` | Tabela `customer_locations`; `users.can_edit_route`; `work_orders.customer_location_id`; backfill lokalizacji z `customers`. |
+| 0017 | `0017_multi_company.sql` | Tabela `companies`; `company_id` na encjach operacyjnych (users, słowniki, zlecenia, sesje, ustawienia firmy); backfill `company_id = 1`. |
+| 0018 | `0018_users_can_create_customers.sql` | `users.can_create_customers boolean NOT NULL DEFAULT false`. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -106,21 +111,22 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/` | RSC | — | `redirect('/login')` | root |
 | `/login` | Client (`use client`) | treść w `login/page.tsx` | Login + biometryczny przycisk; POST `/api/auth/login` | root |
 | `/privacy-policy` | static | treść w `privacy-policy/page.tsx` | Polityka prywatności | root |
-| `/admin` | RSC | `OrdersClient` | Dyspozycja (Gantt, mapa, zlecenia); `admin/page.tsx` importuje `./orders/OrdersClient` | `admin/layout.tsx` |
+| `/admin` | RSC | `OrdersClient` | Dyspozycja (Gantt, mapa, zlecenia); `features/admin/orders/OrdersClient.tsx` | `admin/layout.tsx` |
 | `/admin/orders` | RSC | `OrdersClient` | Alias jak `/admin` (`admin/orders/page.tsx`) pod linki `?open=` z Gantta | jw. |
 | `/admin/workers` | RSC | — | `redirect('/admin/users')` — zachowany URL „workers” | admin |
-| `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi biometrii (`admin/users/UsersClient.tsx`) | admin |
-| `/admin/machines` | RSC | `MachinesClient` | Rejestr zasobów + kategorie zleceń (`admin/machines/MachinesClient.tsx`) | admin |
-| `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + geocode | admin |
-| `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów | admin |
+| `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi uprawnień (`features/admin/users/UsersClient.tsx`) | admin |
+| `/admin/machines` | RSC | `MachinesClient` | Rejestr zasobów + kategorie zleceń (`features/admin/machines/MachinesClient.tsx`) | admin |
+| `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + lokalizacje + geocode (`features/admin/customers/`) | admin |
+| `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów (`features/admin/materials/MaterialsClient.tsx`) | admin |
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
-| `/admin/settings` | RSC | `SettingsForm` | Singleton ustawień firmy (`admin/settings/SettingsForm.tsx`) | admin |
-| `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`device_logs`; SSR `DEVICE_LOGS_PAGE_LIMIT` + eksport → `/api/admin/logs/export`) | admin |
+| `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
+| `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
+| `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia (`components/Platform/PlatformDashboard.tsx`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
 | `/worker/history/[id]` | RSC | `MapWrapper`, `TimelineGalleryClient` | Szczegóły sesji (mapa GPS, galeria); reszta JSX w `page.tsx` | worker |
-| `/worker/profile` | RSC | `ProfileSettings` | Profil: notyfikacje + biometria (`worker/profile/ProfileSettings.tsx`) | worker |
+| `/worker/profile` | RSC | `ProfileSettings` | Profil: notyfikacje, dźwięki alarmów, biometria (`features/worker/components/profile/ProfileSettings.tsx`) | worker |
 | `/worker/help` | RSC | `HelpAccordion` | Akordeon pomocy (`components/HelpAccordion.tsx`) | worker |
 
 ### 4.1. Layout `admin`
@@ -133,6 +139,10 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 - Hardware back (Android): patrz root `app/layout.tsx` — **`CapacitorBackButton`** (cała aplikacja mobilna).
 - Bottom nav: `Sesja / Historia / Profil / Pomoc` z `pb-safe`.
 
+### 4.3. Layout `platform`
+- `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
+- Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*`.
+
 ---
 
 ## 5. Routing — API (`src/app/api/**/route.ts`)
@@ -141,6 +151,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
+- **`/api/platform/*`** — wymaga roli **`superadmin`** (`requireSuperadminSession` w `src/lib/apiPlatform.ts`).
 - **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`** — `SHARED_API_PREFIXES`. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): tylko `admin` (egzekwowane też przez `guardAdminMutation()` w handlerach).
 - **Wszystko inne pod `/api/`** — domyślnie traktowane jako `admin API` (deny-by-default), wymaga roli `admin|viewer` na GET, `admin` na mutacjach.
 
@@ -170,8 +181,19 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/worker/gps` | POST `Coord \| Coord[]` | `GpsService.saveGpsLogs` — przyjmuje pojedynczy punkt **lub tablicę** (offline sync z `GPSManager.flushQueue`) |
 | `/api/worker/profile` | POST `{notificationsEnabled?:bool, biometricLoginEnabled?:bool, password?:string}` | Notyfikacje + włączenie biometrii (wymaga roli `worker` + weryfikacji hasła `bcrypt.compare`) |
 | `/api/worker/logs` | POST `{level, message, metadata?}` | `SystemLogService.insertLog` — używane przez `sendRemoteLog` (z `keepalive:true`) |
+| `/api/worker/customer-locations/[id]/route` | PUT `{waypoints}` | `CustomerLocationService.setRouteWaypoints` — wymaga `AdminUserService.userCanEditRoute` |
 
-### 5.3. Admin (deny-by-default → tylko admin/viewer)
+### 5.3. Platform (superadmin)
+
+| Endpoint | Metoda | Funkcja |
+|---|---|---|
+| `/api/platform/companies` | GET | `PlatformCompanyService.listCompanies` |
+| `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy) |
+| `/api/platform/companies/[id]` | PUT | `PlatformCompanyService.updateCompany` |
+| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` |
+| `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
+
+### 5.4. Admin (deny-by-default → tylko admin/viewer)
 
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
@@ -193,7 +215,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
 | `/api/geocode?q=...` | GET | Proxy do Nominatim (OSM) — `User-Agent: WerkitERP/1.9` |
 
-### 5.4. Słowniki (SHARED — admin pisze, wszyscy zalogowani czytają)
+### 5.5. Słowniki (SHARED — admin pisze, wszyscy zalogowani czytają)
 
 Każda trasa w `categories|customers|materials|machines|material-categories` ma ten sam wzorzec: `GET (DictionaryService.get*) `, `POST (DictionaryService.add*)`, `PUT/DELETE` przez `[id]/route.ts`. Mutacje za `guardAdminMutation()`. **`POST /api/customers`** zwraca `{ customerId }` (inline tworzenie w modalu zlecenia). Dodatkowo handlery wykrywają **brakujące migracje** (`isMissingResourcesVehicleColumns`, `isMissingMaterialCategoriesTables`, `isMissingResourceCategoriesStationaryColumn`) → 503 z czytelnym kluczem (`migration_required`, `migration_material_categories`).
 
@@ -206,12 +228,12 @@ Każda trasa w `categories|customers|materials|machines|material-categories` ma 
 Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwis żyje od `import { db } from '@/db'`.
 
 ### `AdminUserService`
-- `getAllUsers()` — projekcja kolumn (bez hasła, bez `biometric_login_enabled`).
-- `getUserById(userId)`, `getUserByUsername(usernameEmail)` — case-insensitive (`lower(...)`), zwraca pełny rekord.
-- `getWorkers()` — pracownicy do dispatchera.
-- `createUser({fullName, usernameEmail, passwordHash, role?, canCreateOwnOrders?})`.
-- `updateUser(userId, updates: UserUpdatePayload)`.
-- `verifyPasswordForUserId(userId, plainPassword) → boolean` (bcrypt, używane przez `/api/worker/profile` przy włączaniu biometrii).
+- `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
+- `getUserById(userId)`, `getUserByUsername(usernameEmail)` — case-insensitive (`lower(...)`).
+- `getWorkers(companyId)` — pracownicy do dispatchera.
+- `userCanEditRoute(userId) → boolean` — flaga `can_edit_route` (worker edycja trasy).
+- `createUser(companyId, payload)`, `updateUser(companyId, userId, updates)`.
+- `verifyPasswordForUserId(userId, plainPassword) → boolean` (bcrypt/bcryptjs).
 - `deleteUser(userId)`.
 - Eksport: `type UserUpdatePayload = Partial<typeof users.$inferInsert>`.
 
@@ -262,8 +284,16 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `saveGpsLogs(userId, points)` — odrzuca punkty bez liczbowych `lat/lng`. Rzuca `no_active_session`.
 
 ### `SystemLogService`
-- `getRecentLogs(limit=500)` z LEFT JOIN users (`workerName`). Mapuje `createdAt` na ISO string.
+- `getRecentLogs(companyId, limit=500)` z JOIN users (`workerName`). Mapuje `createdAt` na ISO string.
 - `insertLog(userId, level, message, metadata)`.
+
+### `CustomerLocationService`
+- CRUD lokalizacji klienta (`customer_locations`), `route_waypoints` (jsonb), `setRouteWaypoints`.
+- `resolveForWorkOrder(workOrderId, customerId)` — domyślna lokalizacja dla mapy/trasy.
+
+### `PlatformCompanyService` / `PlatformAnalyticsService`
+- Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
+- Analityka użycia per firma na `/platform`.
 
 ---
 
@@ -274,6 +304,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `worker.ts` | `WorkOrderPriority`, `Session`, `WorkOrder`, `Coord`, `Note`, `AppSettings`, `UserData`, `TimelineItem`, `InitialWorkerData` (kontrakt SSR → `WorkerClient`) |
 | `admin.ts` | `UnifiedGanttItem` (zmergowany order/session pod Gantt), `OrderFormState` (formularz dyspozycji), `BaseWorker/Machine/Material/Customer/Category`, `ReportActiveSessionRow`, `ReportsDashboardSnapshot` |
 | `wizard.ts` | `WizardCategory` (z `isStationary?`), `WizardMachine`, `WizardMaterial`, `WizardCustomer` |
+| `deviceTelemetry.ts` | `WerkitLogCategory`, typy metadanych logów urządzenia |
 
 **Konwencja**: **daty w propsach client → string ISO** (zob. `InitialWorkerData`, `UnifiedGanttItem`). Daty w serwisach na granicy DB → `Date`/`string` z Drizzle.
 
@@ -284,23 +315,33 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### Komponenty
 | Plik | Rola |
 |---|---|
-| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków; kroki 1–3: wyszukiwalne comboboxy jak w adminie; krok 4: `WorkOrderScheduleFields` + `ScheduleConflictPanel`) — `POST /api/worker/work-orders` + `accept`; guard na `/worker/wizard` gdy brak `canCreateOwnOrders`. |
-| `components/PendingOrdersList.tsx` | Karty zleceń oczekujących (sortowanie/klasyfikacja w `lib/workOrderPresentation.ts`). |
-| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji: nad `OrderLabelCard` — **`QueuedPendingOrdersDuringSession`** (rozwijana kolejka `PENDING` z `/api/worker/work-orders`); zegar, GPS, akcje. |
-| `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx` | Modale. |
+| `components/shell/*` | Orkiestracja dashboardu workera (`WorkerActiveSessionSection`, `WorkerPendingOrdersSection`, modale, footer). |
+| `components/profile/*` | Ustawienia profilu: powiadomienia, dźwięki alarmów, biometria. |
+| `components/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków). |
+| `components/PendingOrdersList.tsx` | Karty zleceń oczekujących. |
+| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji. |
+| `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx`, `WorkerAlarmModal.tsx` | Modale. |
 
 ### Hooki
 | Hook | Co robi |
 |---|---|
-| `useWorkerActions` | `handleEndSession` (PUT), `handleAcceptOrder` (POST), `handleCancelSession`, `handleCheckpoint` (notatka „dotarłem” + geofence-confirm dla niestacjonarnych), `handleSaveNote` (POST/PUT), `handlePhotoUpload` (kompresja `<canvas>` 800px JPEG 0.7 → POST `/api/worker/session/photos`). Każda akcja → `sendRemoteLog`. |
-| `useWorkerGPS` | Web: `navigator.geolocation.watchPosition`. Native: `BackgroundGeolocation.addWatcher` (`distanceFilter: 10`, `requestPermissions: true`, `stale: true`). Filtruje punkty z `accuracy > 40m`. Co 30s `GPSManager.flushQueue` (drugi safety-net poza on-loc flush). Dla `categoryIsStationary` — wyłącza watcher, status `active`. |
-| `useWorkerNotifications` | Liczy `isTimeOverrun` (przekroczony `expectedDurationHours`), `overdueOrder`, `upcomingOrder` (okno `upcoming_order_reminder_minutes` z ustawień). Schedule przez `LocalNotifications` na natywce; `localStorage 'werkit_notified_orders'` zapobiega duplikatom. |
+| `useWorkerActions` | Akcje sesji (koniec, akceptacja, notatki, zdjęcia, checkpoint). |
+| `useWorkerGPS` | Web + natywny GPS, flush kolejki. |
+| `useWorkerNotifications` | Alarmy czasu/zleceń + natywne `LocalNotifications`. |
+| `useWorkerAlarmSound` | Odtwarzanie dźwięku alarmu w aplikacji (PWA / foreground). |
+| `useWorkerShellState` | Stan SSR shell workera (sesja, zlecenia, trasa). |
+| `useWorkerSessionSync` | Synchronizacja sesji z API. |
+| `useWorkerNotificationActions` | Akcje z powiadomień systemowych (start, dismiss). |
 
-### Lib
+### Lib (alarmy / dźwięk)
 | Plik | Eksport |
 |---|---|
-| `lib/workOrderPriority.ts` | `normalizeWorkOrderPriority(value)` — mapuje nieznane na `'NORMAL'`, puste na `null`. |
-| `lib/workOrderPresentation.ts` | `WORK_ORDER_PRIORITY_WEIGHT`, `sortWorkOrdersByPriorityThenCreated`, `workOrderInteractiveSurfaceClass`, `workOrderPendingListCardClass`, `workOrderCategoryHeadingClass` (Tailwind dla URGENT/HIGH/inne). |
+| `lib/workerNotificationPrefs.ts` | Ustawienia dźwięku (localStorage): głośność, preset per typ alarmu. |
+| `lib/workerAlarmSoundPlayer.ts` | Odtwarzanie / podgląd dźwięków (Web Audio + pliki `/sounds/`). |
+| `lib/workerNotificationChannel.ts` | Kanały Android Local Notifications (preset → plik WAV). |
+| `lib/workerNotificationSoundPresets.ts` | Mapowanie preset → plik natywny / public URL. |
+| `lib/workOrderPriority.ts` | `normalizeWorkOrderPriority(value)`. |
+| `lib/workOrderPresentation.ts` | Sortowanie/kolorystyka listy zleceń oczekujących. |
 
 ---
 
@@ -308,7 +349,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### Lokalizacja komponentów
 
-`src/components/Admin/**`:
+**Orkiestracja stron (`*Client.tsx`)** — `src/features/admin/{orders|users|customers|machines|materials|logs}/` (np. `CustomerMapPicker`, `CustomerLocationsPanel` w `features/admin/customers/`).
+
+**Shell i współdzielone widgety** — `src/components/Admin/**`:
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
@@ -448,8 +491,11 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 | `npm run db:migrate` | `drizzle-kit migrate` (WebSocket `@vercel/postgres` — na części środowisk Windows/CLI bywa niestabilne) | — |
 | `npm run db:migrate:pg` | **`tsx src/scripts/run_drizzle_migrate_pg.ts`** — ten sam katalog `drizzle/` przez TCP (`pg`), preferuje **`DATABASE_URL_UNPOOLED`**. Gdy baza powstała ze skryptów `apply_*` bez historii Drizzle: **baseline** dla migracji &lt; 0013 przy błędzie „already exists”, potem wykonuje **0013** i **0014** jak w journal. |
 | `npm run db:verify-schema` | Porównanie kolumn Postgres ↔ `schema.ts` (`verify_schema_alignment.ts`) | — |
+| `npm run sounds:generate` | Generuje pliki WAV powiadomień do `public/sounds/` i `android/.../res/raw/` | `generate_notification_sounds.ts` |
 
 **Wszystkie skrypty** używają `loadEnvConfig(cwd)` + `ensurePostgresUrlForVercelDriver()` z `src/lib/resolveNeonPostgresUrl.ts`. Brak `DATABASE_URL`/`POSTGRES_URL` → komunikat instruujący wklejenie connection stringa do `.env.local`.
+
+`docs/archive/legacy-root-scripts/` — historyczne skrypty SQL/Python z katalogu głównego repo (przed ujednoliceniem Drizzle); **nie uruchamiać** na produkcji.
 
 `src/scripts/migrate_categories.ts` — **noop** po migracji **0014** (komunikat informacyjny); historyczny proces opisany w komentarzu w pliku.
 

@@ -1,4 +1,4 @@
-import MachinesClient from "./MachinesClient";
+import MachinesClient from "@/features/admin/machines/MachinesClient";
 
 export default function MachinesPage() {
   return (

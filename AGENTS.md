@@ -45,24 +45,28 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 
 ```
 src/
-├── app/                    # Trasy Next (pages, layouts), Route Handlers api/**/route.ts
-├── features/worker/        # Moduł aplikacji pracownika (komponenty, hooki, lib prezentacji zleceń)
-│   ├── components/         # m.in. WizardClient, PendingOrdersList, ActiveSessionDashboard, Modals
-│   ├── gps/                # stałe + singleton BackgroundGeolocation + mapowanie odczytu natywnego
-│   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications, useWorkerSessionSync
-│   └── lib/                # workOrderPresentation, workOrderPriority, workerSessionTimeline
-├── components/
-│   ├── work-orders/        # UI **współdzielony** worker ↔ admin (WorkOrderPriorityRibbon, WorkOrderSummaryLines, ScheduleConflictPanel, WorkOrderScheduleFields)
-│   ├── Admin/, Map/, GanttChart/, …
-├── services/               # Warstwa domenowa + Drizzle — preferowane miejsce na zapytania DB
-├── db/                     # Klient DB + schema Drizzle
-├── types/                  # Kontrakty TS dla worker / admin / wizard
-├── i18n/                   # locales/pl.ts, locales/en.ts, types.ts, format.ts, constants.ts (DEFAULT_UI_LOCALE)
-├── lib/                    # auth, gpsManager, remoteLogger, helpers bez UI
-└── proxy.ts                # Strażnik JWT i ról na Edge (konwencja Next.js 16 „proxy”)
+├── app/                    # Trasy Next: page.tsx, layout.tsx, cienkie wrappery; **bez** logiki UI > ~300 linii
+│   ├── admin/              # import *Client z features/admin lub lokalnie (docelowo tylko features)
+│   ├── platform/           # superadmin (multi-tenant)
+│   └── worker/             # routing; WorkerClient importuje z features/worker
+├── features/worker/        # Moduł aplikacji pracownika
+│   ├── components/         # wizard/, profile/, shell/ (dashboard sesji), Modals, …
+│   ├── gps/
+│   ├── hooks/              # useWorkerActions, useWorkerGPS, useWorkerNotifications, useWorkerAlarmSound, …
+│   └── lib/                # alarmy, dźwięki (workerNotificationPrefs, workerAlarmSoundPlayer), prezentacja zleceń
+├── features/admin/         # Panele i formularze admina (machines, materials, categories, orders)
+├── components/             # UI współdzielony (Admin shell, work-orders, customers, Map, …)
+├── hooks/                  # generyczne hooki UI (floating panel, dismiss outside) — używane przez comboboxy
+├── services/               # Drizzle + logika domenowa (SSOT zapytań DB)
+├── db/
+├── types/
+├── i18n/
+├── lib/
+├── scripts/                # migracje tsx, verify_schema, generate_notification_sounds
+└── proxy.ts                # JWT + role (admin, worker, platform/superadmin)
 ```
 
-Routing worker nadal w **`src/app/worker/**`** — komponenty biznesowe są **importowane** z `@/features/worker/...`.
+**Gdzie nowy kod:** `app/**` = routing; logika worker → `features/worker/`; logika admin → `features/admin/` + `components/Admin/`; współdzielone zlecenia → `components/work-orders/`. Multi-tenant i `/platform` → [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md).
 
 ---
 
@@ -82,14 +86,23 @@ Routing worker nadal w **`src/app/worker/**`** — komponenty biznesowe są **im
 
 Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
 
-Przykłady klas (aktualna lista w repo):  
-`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`.
+Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):  
+`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`.
 
 **Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
 
 ---
 
 ## 6. UI — podział odpowiedzialności
+
+| Co dodajesz | Gdzie |
+|---|---|
+| Trasa URL (`page.tsx`, `layout.tsx`) | `src/app/**` — **cienki** import komponentu feature |
+| Ekran / orkiestracja admina (`*Client.tsx`, panele CRUD) | `src/features/admin/{moduł}/` |
+| Ekran / orkiestracja workera | `src/features/worker/` (`components/shell/` = dashboard sesji) |
+| Shell admina (sidebar, modale wspólne, combobox) | `src/components/Admin/` |
+| Prezentacja zlecenia worker ↔ admin | `src/components/work-orders/` |
+| Panel superadmin (multi-tenant) | `src/app/platform/` + `src/components/Platform/` + `src/services/Platform*.ts` |
 
 - **`src/features/worker/`** — ekrany i logika stanu **tylko modułu pracownika**.
 - **`src/components/work-orders/`** — prezentacja **zlecenia** współdzielona z panelem **admin** (spójne badge priorytetu itd.).
@@ -133,6 +146,7 @@ Tytuły i etykiety przycisków dialogów: `admin.ui.dialogAlertTitle`, `dialogCo
 - **UI:** [`AppDownloadCard`](./src/components/Admin/AppDownloadCard.tsx) na `/admin/settings` — pokazuje wersję web i APK, badge **debug**, ostrzeżenie gdy `inSync === false`.
 - **Pobieranie:** `GET /api/app/android`; metadane: `GET /api/app/android/info` — logika w [`src/lib/androidAppDownload.ts`](./src/lib/androidAppDownload.ts) (źródła: `WERKIT_ANDROID_APK_URL` → `public/downloads/werkit.apk` + opcjonalny meta → GitHub release).
 - **CI Android** uruchamia się przy pushu do `main` tylko gdy zmienią się `android/**`, `capacitor.config.ts`, `package.json` lub sam workflow. Po większych zmianach w workerze / Capacitor bez tych plików — **ręcznie** `workflow_dispatch` na GitHub Actions, żeby APK nadal pasowało do wersji web.
+- **Dźwięki alarmów:** pliki WAV w `public/sounds/` i `android/app/src/main/res/raw/` — regeneracja: **`npm run sounds:generate`** (`src/scripts/generate_notification_sounds.ts`).
 
 ---
 

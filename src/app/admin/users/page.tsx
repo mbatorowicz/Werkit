@@ -1,4 +1,4 @@
-import UsersClient from "./UsersClient";
+import UsersClient from "@/features/admin/users/UsersClient";
 
 export default function UsersPage() {
   return (

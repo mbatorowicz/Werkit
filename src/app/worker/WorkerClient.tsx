@@ -12,11 +12,11 @@ import { useWorkerNotificationActions } from "@/features/worker/hooks/useWorkerN
 import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
-import { WorkerActiveSessionSection } from "@/features/worker/components/worker/WorkerActiveSessionSection";
-import { WorkerClientFooter } from "@/features/worker/components/worker/WorkerClientFooter";
-import { WorkerClientLoading } from "@/features/worker/components/worker/WorkerClientLoading";
-import { WorkerClientModals } from "@/features/worker/components/worker/WorkerClientModals";
-import { WorkerPendingOrdersSection } from "@/features/worker/components/worker/WorkerPendingOrdersSection";
+import { WorkerActiveSessionSection } from "@/features/worker/components/shell/WorkerActiveSessionSection";
+import { WorkerClientFooter } from "@/features/worker/components/shell/WorkerClientFooter";
+import { WorkerClientLoading } from "@/features/worker/components/shell/WorkerClientLoading";
+import { WorkerClientModals } from "@/features/worker/components/shell/WorkerClientModals";
+import { WorkerPendingOrdersSection } from "@/features/worker/components/shell/WorkerPendingOrdersSection";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dict = getDictionary().worker.client;

@@ -99,6 +99,15 @@ export class AdminUserService {
       .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
   }
 
+  static async userCanEditRoute(userId: number): Promise<boolean> {
+    const [row] = await db
+      .select({ canEditRoute: users.canEditRoute })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return !!row?.canEditRoute;
+  }
+
   /** Weryfikacja hasła bez zwracania pełnego rekordu użytkownika (np. włączenie biometrii). */
   static async verifyPasswordForUserId(userId: number, plainPassword: string): Promise<boolean> {
     const row = await db

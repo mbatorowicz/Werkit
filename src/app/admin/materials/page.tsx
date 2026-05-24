@@ -1,4 +1,4 @@
-import MaterialsClient from "./MaterialsClient";
+import MaterialsClient from "@/features/admin/materials/MaterialsClient";
 
 export default function MaterialsPage() {
   return (

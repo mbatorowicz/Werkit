@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import OrdersClient from './orders/OrdersClient';
+import OrdersClient from '@/features/admin/orders/OrdersClient';
 
 export const dynamic = 'force-dynamic';
 

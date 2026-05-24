@@ -26,7 +26,8 @@
     "db:apply-resources-identity": "tsx src/scripts/apply_resources_vehicle_identity.ts",
     "db:bootstrap-superadmin": "tsx src/scripts/bootstrap_superadmin.ts",
     "logs:device": "tsx src/scripts/view_device_logs.ts",
-    "logs:system": "tsx src/scripts/view_device_logs.ts"
+    "logs:system": "tsx src/scripts/view_device_logs.ts",
+    "sounds:generate": "tsx src/scripts/generate_notification_sounds.ts"
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "^1.2.26",

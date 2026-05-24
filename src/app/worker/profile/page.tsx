@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";
 import Link from "next/link";
-import { ProfileSettings } from "./ProfileSettings";
+import { ProfileSettings } from "@/features/worker/components/profile/ProfileSettings";
 
 import { JWT_SECRET } from '@/lib/auth';
 async function getUserId() {

@@ -1,4 +1,4 @@
-import CustomersClient from "./CustomersClient";
+import CustomersClient from "@/features/admin/customers/CustomersClient";
 
 export default function CustomersPage() {
   return (

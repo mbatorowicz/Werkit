@@ -9,7 +9,7 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import type { BaseCustomer } from "@/types/admin";
 
-const CustomerMapPicker = dynamic(() => import("@/app/admin/customers/CustomerMapPicker"), {
+const CustomerMapPicker = dynamic(() => import("@/features/admin/customers/CustomerMapPicker"), {
   ssr: false,
   loading: () => (
     <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
