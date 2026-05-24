@@ -11,7 +11,7 @@
 
 | Element | Wartość |
 |---|---|
-| Wersja aplikacji | `package.json#version` (obecnie **1.9.3**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). Android: `versionName` w `android/app/build.gradle`. |
+| Wersja aplikacji | `package.json#version` (obecnie **1.9.4**) — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). Android: `versionName` w `android/app/build.gradle`. |
 | Framework | **Next.js 16.2.4**, React 19.2.4, App Router. |
 | Runtime API | Domyślne Vercel Node.js (hasło: **`passwordCrypto`** — domyślnie natywny `bcrypt`, opcjonalnie `bcryptjs` przez `WERKIT_USE_BCRYPTJS`). Tras **edge** brak. |
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
