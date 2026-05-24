@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
 import { formatDict, getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminCustomerRows, type AdminCustomerListRow } from "@/lib/narrowApiListRows";
+import { matchesCustomerSearch } from "@/lib/customerSearch";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
@@ -14,6 +15,7 @@ import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CustomerInlineCreateForm } from "@/components/Admin/Customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { ListSearchBar } from "@/components/ListSearchBar";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 
@@ -23,6 +25,7 @@ export default function CustomersClient() {
   const { canMutate } = useAdminAbility();
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,6 +62,12 @@ export default function CustomersClient() {
       void fetchData();
     });
   }, [fetchData]);
+
+  const filteredCustomers = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return customers;
+    return customers.filter((c) => matchesCustomerSearch(c, q));
+  }, [customers, searchQuery]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +147,12 @@ export default function CustomersClient() {
         )}
       </div>
 
+      <ListSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={dict.listSearchPlaceholder}
+      />
+
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
@@ -153,7 +168,7 @@ export default function CustomersClient() {
              <tbody className="divide-y divide-zinc-800/50">
                {isLoading ? (
                  <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-               ) : customers.map(customer => (
+               ) : filteredCustomers.map(customer => (
                  <tr
                    key={customer.id}
                    onClick={() => openPreview(customer)}
@@ -191,6 +206,9 @@ export default function CustomersClient() {
                ))}
                {!isLoading && customers.length === 0 && (
                  <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noCustomers}</td></tr>
+               )}
+               {!isLoading && customers.length > 0 && filteredCustomers.length === 0 && (
+                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.listSearchNoResults}</td></tr>
                )}
              </tbody>
           </table>

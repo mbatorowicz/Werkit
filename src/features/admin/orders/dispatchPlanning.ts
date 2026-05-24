@@ -1,4 +1,5 @@
 import type { UnifiedGanttItem } from "@/types/admin";
+import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 
 export function formatDueDatetimeLocal(dateString: string | null): string {
   if (!dateString) return "";
@@ -13,7 +14,7 @@ export function buildUnifiedDispatchItems(
   sessions: UnifiedGanttItem[],
   searchQuery: string,
 ): UnifiedGanttItem[] {
-  const q = searchQuery.toLowerCase();
+  const q = searchQuery.trim();
   return [
     ...orders.map((o) => ({
       ...o,
@@ -28,11 +29,13 @@ export function buildUnifiedDispatchItems(
       _statusGroup: s.status === "IN_PROGRESS" ? 1 : 2,
     })),
   ]
-    .filter(
-      (item) =>
-        ((item.workerName as string)?.toLowerCase() || "").includes(q) ||
-        ((item.resourceName as string)?.toLowerCase() || "").includes(q),
-    )
+    .filter((item) => {
+      if (!q) return true;
+      return (
+        matchesSearchQuery((item.workerName as string) ?? "", q) ||
+        matchesSearchQuery((item.resourceName as string) ?? "", q)
+      );
+    })
     .sort((a, b) => {
       const groupDiff = (a._statusGroup as number) - (b._statusGroup as number);
       if (groupDiff !== 0) return groupDiff;

@@ -1,24 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Trash2, Shield, Plus, Lock, Edit2, Loader2, Users, Eye, EyeOff } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { narrowAdminUserRows, type AdminUserListRow } from "@/lib/narrowApiListRows";
+import { matchesUserSearch } from "@/lib/userSearch";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { ListSearchBar } from "@/components/ListSearchBar";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 
 export default function UsersClient() {
   const { canMutate } = useAdminAbility();
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [users, setUsers] = useState<AdminUserListRow[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewUser, setPreviewUser] = useState<AdminUserListRow | null>(null);
@@ -65,6 +68,22 @@ export default function UsersClient() {
       void fetchUsers();
     });
   }, [fetchUsers]);
+
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return users;
+    return users.filter((user) =>
+      matchesUserSearch(
+        {
+          fullName: user.fullName,
+          usernameEmail: user.usernameEmail,
+          role: user.role,
+          roleLabel: roleSubtitle(user.role),
+        },
+        q,
+      ),
+    );
+  }, [users, searchQuery]);
 
   const handleDelete = async (id: number, name: string) => {
     if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" }))) return;
@@ -162,6 +181,12 @@ export default function UsersClient() {
         )}
       </div>
 
+      <ListSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={dict.listSearchPlaceholder}
+      />
+
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
@@ -180,7 +205,7 @@ export default function UsersClient() {
                   </td>
                 </tr>
               ) : (
-                users.map((user) => (
+                filteredUsers.map((user) => (
                   <tr
                     key={user.id}
                     onClick={() => openPreview(user)}
@@ -243,6 +268,13 @@ export default function UsersClient() {
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
                     {dict.noUsers}
+                  </td>
+                </tr>
+              )}
+              {!isLoading && users.length > 0 && filteredUsers.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                    {dict.listSearchNoResults}
                   </td>
                 </tr>
               )}

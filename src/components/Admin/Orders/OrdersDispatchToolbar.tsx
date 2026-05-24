@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ListSearchBar } from "@/components/ListSearchBar";
 import type { AppDictionary } from "@/i18n/types";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
@@ -33,14 +34,12 @@ export function OrdersDispatchToolbar({
 
   return (
     <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex flex-wrap items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
-      <div className="relative flex-1 max-w-sm min-w-[200px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-        <input
-          type="text"
+      <div className="flex-1 max-w-sm min-w-[200px]">
+        <ListSearchBar
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={onSearchChange}
           placeholder={dict.tableSearchPlaceholder}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600 transition outline-none"
+          className="mb-0"
         />
       </div>
       <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden shadow-sm">

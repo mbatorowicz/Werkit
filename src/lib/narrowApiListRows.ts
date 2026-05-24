@@ -289,6 +289,7 @@ export type AdminCustomerListRow = {
   defaultAddress: string | null;
   latitude: string | null;
   longitude: string | null;
+  locationAddresses?: string[];
 };
 
 export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[] {
@@ -301,6 +302,7 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
       r.defaultAddress === null || typeof r.defaultAddress === "string" ? (r.defaultAddress as string | null) : null;
     const latitude = r.latitude === null || typeof r.latitude === "string" ? (r.latitude as string | null) : null;
     const longitude = r.longitude === null || typeof r.longitude === "string" ? (r.longitude as string | null) : null;
+    const locationAddresses = narrowStringArray(r.locationAddresses);
     out.push({
       id: r.id,
       firstName,
@@ -308,6 +310,7 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
       defaultAddress,
       latitude,
       longitude,
+      ...(locationAddresses.length > 0 ? { locationAddresses } : {}),
     });
   }
   return out;

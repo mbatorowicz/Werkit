@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import { Edit2, Plus, Search, Trash2, Truck } from "lucide-react";
-import { normalizeCatalogSearchQuery } from "@/lib/filterCatalogTree";
+import { Edit2, Plus, Trash2, Truck } from "lucide-react";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { getDictionary } from "@/i18n";
@@ -39,14 +40,14 @@ export function MachinesResourcesTable({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredMachines = useMemo(() => {
-    const q = normalizeCatalogSearchQuery(searchQuery);
+    const q = searchQuery.trim();
     if (!q) return machines;
     return machines.filter((machine) => {
-      if (machine.name.toLocaleLowerCase("pl").includes(q)) return true;
-      if (machine.registrationNumber?.toLocaleLowerCase("pl").includes(q)) return true;
-      if (machine.description?.toLocaleLowerCase("pl").includes(q)) return true;
+      if (matchesSearchQuery(machine.name, q)) return true;
+      if (machine.registrationNumber && matchesSearchQuery(machine.registrationNumber, q)) return true;
+      if (machine.description && matchesSearchQuery(machine.description, q)) return true;
       const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
-      return mCats.some((c) => c.name.toLocaleLowerCase("pl").includes(q));
+      return mCats.some((c) => matchesSearchQuery(c.name, q));
     });
   }, [machines, categories, searchQuery]);
 
@@ -71,17 +72,11 @@ export function MachinesResourcesTable({
         ) : null}
       </div>
 
-      <div className="relative mb-4">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={dict.resourceSearchPlaceholder}
-          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] py-2.5 pl-10 pr-4 text-sm text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
-          aria-label={dict.resourceSearchPlaceholder}
-        />
-      </div>
+      <ListSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={dict.resourceSearchPlaceholder}
+      />
 
       <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div className="overflow-x-auto">

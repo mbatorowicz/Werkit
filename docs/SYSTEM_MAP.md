@@ -312,7 +312,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
-- `Customers/CustomerInlineCreateForm.tsx` — inline tworzenie kontrahenta (POST `/api/customers` → `{ customerId }`); reuse w `OrderFormModal` (`CustomerSearchField`) i `CustomersClient` (modal „Nowy klient”),
+- `Customers/CustomerInlineCreateForm.tsx` — inline tworzenie kontrahenta (POST `/api/customers` → `{ customerId }`); **bez zagnieżdżonego `<form>`** (bezpieczne w `OrderFormModal`); reuse w `CustomerSearchField` i `CustomersClient`,
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
 - `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
@@ -331,9 +331,15 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `formatDueDatetimeLocal(dateString)` — bezpieczny ISO bez TZ pod input `datetime-local`.
 - `buildUnifiedDispatchItems(orders, sessions, search)` — scala dwa źródła w `UnifiedGanttItem[]` z grupowaniem statusu i sortowaniem.
 
-`src/features/admin/orders/CustomerSearchField.tsx` — combobox klienta w `OrderFormModal`: filtrowanie listy + przycisk „Dodaj klienta” przy braku wyników → `CustomerInlineCreateForm` + auto-wybór nowego klienta.
+`src/components/ListSearchBar.tsx` + `src/components/searchFieldStyles.ts` — wspólny pasek wyszukiwania nad listami admin (klienci, użytkownicy, zasoby, dyspozycja, drzewo materiałów); ten sam styl co `AdminSearchCombobox`.
 
-`src/lib/searchComboboxFilter.ts` — normalizacja PL i filtrowanie opcji comboboxa (limit 12 wyników).
+`src/lib/searchComboboxFilter.ts` — SSOT normalizacji PL (`normalizeSearchText`, `matchesSearchQuery`); używane też w `filterCatalogTree`, `dispatchPlanning`, listach.
+
+`src/lib/customerSearch.ts` — wyszukiwanie klientów (imię, nazwisko, adres, lokalizacje).
+
+`src/lib/userSearch.ts` — wyszukiwanie użytkowników (imię, e-mail, rola).
+
+`src/features/admin/orders/CustomerSearchField.tsx` — combobox klienta w `OrderFormModal`: filtrowanie listy + przycisk „Dodaj klienta” przy braku wyników → `CustomerInlineCreateForm` + auto-wybór nowego klienta.
 
 ---
 

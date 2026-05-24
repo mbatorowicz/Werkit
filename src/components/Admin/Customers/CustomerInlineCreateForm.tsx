@@ -48,8 +48,7 @@ export function CustomerInlineCreateForm({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     if (!form.lastName.trim()) return;
     setIsSubmitting(true);
     try {
@@ -77,10 +76,12 @@ export function CustomerInlineCreateForm({
         await appAlert({ message: ordersDict.error });
         return;
       }
+      const defaultAddress = form.defaultAddress.trim() || null;
       onCreated({
         id: customerId,
         firstName: form.firstName.trim() || null,
         lastName: form.lastName.trim(),
+        defaultAddress,
       });
     } catch {
       await appAlert({ message: ordersDict.networkError });
@@ -93,7 +94,18 @@ export function CustomerInlineCreateForm({
     "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 space-y-4 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-500/30 dark:bg-emerald-500/5">
+    <div
+      role="group"
+      aria-label={dict.modalCreateTitle}
+      className="mt-3 space-y-4 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-500/30 dark:bg-emerald-500/5"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
+          e.preventDefault();
+          e.stopPropagation();
+          void submit();
+        }
+      }}
+    >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.firstNameLabel}</label>
@@ -154,14 +166,15 @@ export function CustomerInlineCreateForm({
           {cancelLabel ?? dictionary.admin.ui.modalCancel}
         </button>
         <button
-          type="submit"
+          type="button"
           disabled={isSubmitting}
+          onClick={() => void submit()}
           className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
         >
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {submitLabel ?? dict.create}
         </button>
       </div>
-    </form>
+    </div>
   );
 }
