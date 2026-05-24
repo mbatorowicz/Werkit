@@ -158,3 +158,31 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 ---
 
 *Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+
+---
+
+## Cursor Cloud specific instructions
+
+### Środowisko i serwisy
+
+- **Jedyny serwis:** monolityczna aplikacja Next.js 16 (`npm run dev` → `http://localhost:3000`).
+- **Jedyna zależność zewnętrzna:** PostgreSQL (connection string w `.env.local` jako `DATABASE_URL` lub `POSTGRES_URL`). Bez bazy: dev server startuje, ale strony wymagające danych zwracają błędy runtime.
+- **JWT_SECRET:** wymagany w `.env.local` — bez niego auth middleware nie działa. W Cloud VM generuj losowy: `openssl rand -base64 32`.
+- **WERKIT_USE_BCRYPTJS=1** w `.env.local` — wymusza pure-JS bcrypt (brak problemów z natywnym `bcrypt` na niestandardowych środowiskach).
+
+### Komendy CI (odwzorowują pipeline GitHub Actions)
+
+| Krok | Komenda | Uwagi |
+|------|---------|-------|
+| Lint | `npm run lint` | 0 errors wymagane, warnings OK |
+| TypeScript | `npx tsc --noEmit` | strict mode, musi przejść bez błędów |
+| Testy | `npm test` | Vitest, nie wymaga bazy danych |
+| Build | `npm run build` | wymaga `JWT_SECRET` w env |
+| Dev server | `npm run dev` | Turbopack, start < 1s |
+
+### Gotchas
+
+- Dev server Next.js 16 używa Turbopack — pierwszy request po starcie kompiluje trasę (może trwać 1–2s).
+- Brak `.env.local` z `JWT_SECRET` powoduje crash proxy (Edge middleware) przy każdym route — upewnij się, że plik istnieje.
+- Testy Vitest (`npm test`) nie potrzebują bazy ani żadnych sekretów — można je uruchomić zawsze.
+- Natywny moduł `bcrypt` może nie skompilować się w niestandardowych kontenerach — `WERKIT_USE_BCRYPTJS=1` to bezpieczny fallback.
