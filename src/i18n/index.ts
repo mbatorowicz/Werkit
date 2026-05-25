@@ -13,7 +13,10 @@ export type { AppDictionary };
 export { formatDict, formatUiDateOnly, formatUiTimeHm, formatUiDateTimeShort } from "./format";
 export { DEFAULT_UI_LOCALE, DEFAULT_UI_TIMEZONE } from "./constants";
 
-/** Domyślnie PL; w przyszłości można pobierać locale z cookies lub nagłówka Accept-Language. */
+/**
+ * Zwraca słownik dla podanego locale.
+ * Domyślnie PL; locale można pobrać z cookies przez getServerLocale().
+ */
 export function getDictionary(locale: Locale = "pl"): AppDictionary {
   return dictionaries[locale];
 }

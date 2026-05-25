@@ -19,8 +19,13 @@ export class ApiRouteError extends Error {
     this.details = opts?.details;
     this.exposeDetails = Boolean(opts?.exposeDetails);
     if (opts?.cause) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS < 5.6 compatibility
-      (this as any).cause = opts.cause;
+      // TS < 5.6: Error.cause nie jest w standardowych typach
+      Object.defineProperty(this, 'cause', {
+        value: opts.cause,
+        writable: true,
+        enumerable: false,
+        configurable: true,
+      });
     }
   }
 }

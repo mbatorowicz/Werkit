@@ -1,60 +1,116 @@
 import type { Coord } from '@/types/worker';
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { sendRemoteLog } from "@/lib/remoteLogger";
 
 export type GPSQueueItem = Coord & { timestamp: string };
 
-const STORAGE_KEY = 'werkit_gps_queue';
+const DB_NAME = 'werkit_gps_db';
+const STORE_NAME = 'gps_queue';
+const DB_VERSION = 1;
 
+/**
+ * Zarządza kolejką GPS w IndexedDB zamiast localStorage.
+ * IndexedDB jest bardziej niezawodny na urządzeniach mobilnych:
+ * - większy limit pamięci (setki MB vs ~5MB localStorage)
+ * - nie jest czyszczony przez OS przy niskim stanie pamięci
+ * - wspiera współbieżny dostęp
+ */
 export class GPSManager {
   static isFlushing = false;
 
-  static getQueue(): GPSQueueItem[] {
+  private static dbPromise: Promise<IDBDatabase> | null = null;
+
+  private static async openDb(): Promise<IDBDatabase> {
+    if (this.dbPromise) return this.dbPromise;
+    this.dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'timestamp' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => {
+        this.dbPromise = null;
+        reject(req.error);
+      };
+    });
+    return this.dbPromise;
+  }
+
+  static async getQueue(): Promise<GPSQueueItem[]> {
     try {
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      if (!Array.isArray(data)) {
-        console.warn('GPS queue in localStorage is not an array. Resetting.');
-        return [];
-      }
-      return data;
+      const db = await this.openDb();
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const data = req.result;
+          if (!Array.isArray(data)) {
+            sendRemoteLog('WARN', 'GPSManager: queue in IndexedDB is not an array', { data }, { category: 'gps', dedupeWindowMs: 60_000 });
+            resolve([]);
+            return;
+          }
+          resolve(data);
+        };
+        req.onerror = () => resolve([]);
+      });
     } catch {
+      sendRemoteLog('WARN', 'GPSManager: failed to read queue from IndexedDB, falling back to empty', {}, { category: 'gps', dedupeWindowMs: 60_000 });
       return [];
     }
   }
 
-  static saveQueue(queue: GPSQueueItem[]) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+  private static async saveQueue(queue: GPSQueueItem[]): Promise<void> {
+    try {
+      const db = await this.openDb();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      store.clear();
+      for (const item of queue) {
+        store.add(item);
+      }
+      return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      sendRemoteLog('ERROR', 'GPSManager: failed to save queue to IndexedDB', {}, { category: 'gps', dedupeWindowMs: 60_000 });
+    }
   }
 
   /** Czyści kolejkę (np. po zakończonej sesji — punkty bez aktywnej sesji i tak nie zapiszą się na serwerze). */
-  static clearQueue(): void {
+  static async clearQueue(): Promise<void> {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      const db = await this.openDb();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).clear();
     } catch {
       /* ignore */
     }
   }
 
-  static enqueue(location: Coord): GPSQueueItem {
-    const payload = { ...location, timestamp: new Date().toISOString() };
-    const queue = this.getQueue();
-    queue.push(payload);
-    this.saveQueue(queue);
+  static async enqueue(location: Coord): Promise<GPSQueueItem> {
+    const payload: GPSQueueItem = { ...location, timestamp: new Date().toISOString() };
+    try {
+      const db = await this.openDb();
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).add(payload);
+    } catch {
+      sendRemoteLog('ERROR', 'GPSManager: failed to enqueue location', { lat: location.lat, lng: location.lng }, { category: 'gps', dedupeWindowMs: 60_000 });
+    }
     return payload;
   }
 
   static async flushQueue(onSuccess?: () => void): Promise<void> {
     if (!navigator.onLine || this.isFlushing) return;
     
-    const queue = this.getQueue();
+    const queue = await this.getQueue();
     if (queue.length === 0) return;
 
     this.isFlushing = true;
-    
-    // Safety check again even though getQueue guarantees an array
-    if (!Array.isArray(queue)) {
-      this.isFlushing = false;
-      return;
-    }
 
     const sentTimestamps = new Set(queue.map(q => q.timestamp));
 
@@ -72,9 +128,9 @@ export class GPSManager {
       );
 
       if (res.ok) {
-        const currentQueue = this.getQueue();
+        const currentQueue = await this.getQueue();
         const updatedQueue = currentQueue.filter(q => !sentTimestamps.has(q.timestamp));
-        this.saveQueue(updatedQueue);
+        await this.saveQueue(updatedQueue);
         if (onSuccess) onSuccess();
       } else if (res.status === 400) {
         let code: string | undefined;
@@ -85,17 +141,23 @@ export class GPSManager {
           /* nie-JSON */
         }
         if (code === "no_active_session") {
-          const currentQueue = this.getQueue();
+          const currentQueue = await this.getQueue();
           const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
-          this.saveQueue(updatedQueue);
+          await this.saveQueue(updatedQueue);
         }
       }
     } catch (error) {
-      console.error("GPS flush failed:", error);
+      sendRemoteLog(
+        'ERROR',
+        'GPSManager: flush failed',
+        { error: error instanceof Error ? { name: error.name, message: error.message } : { raw: String(error) } },
+        { category: 'gps', dedupeWindowMs: 60_000 },
+      );
     } finally {
       this.isFlushing = false;
       // Retry if queue still has items and we are online
-      if (this.getQueue().length > 0 && navigator.onLine) {
+      const remaining = await this.getQueue();
+      if (remaining.length > 0 && navigator.onLine) {
         setTimeout(() => this.flushQueue(onSuccess), 100);
       }
     }

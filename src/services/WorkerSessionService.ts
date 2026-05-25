@@ -1,11 +1,12 @@
 import { db } from '@/db';
 import { workSessions, resources, materials, customers, sessionPhotos, sessionNotes, companySettings, users, workOrders, gpsLogs, resourceCategories } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
+import { coordPairToNumericStrings, coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 import { CustomerLocationService } from '@/services/CustomerLocationService';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
+import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -86,19 +87,38 @@ export class WorkerSessionService {
 
   /**
    * Tworzy nową sesję pracy (tzw. "z palca" - Wizard).
+   * Przyjmuje surowy body (Record<string, unknown>) i samodzielnie parsuje/waliduje pola.
+   * Rzuca Error z kodem błędu (np. "missing_fields", "invalid_payload").
    */
   static async createWizardSession(
     userId: number,
     companyId: number,
-    payload: {
-    resourceId: number;
-    categoryId: number;
-    materialId?: number | null;
-    customerId?: number | null;
-    quantityTons?: string | null;
-    taskDescription?: string | null;
-    startCoord?: { lat: number; lng: number } | null;
-  }) {
+    body: Record<string, unknown>,
+  ) {
+    const resourceId = body.resourceId;
+    const categoryId = body.categoryId;
+    const materialId = body.materialId;
+    const customerId = body.customerId;
+    const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : undefined;
+    const quantityTons = typeof body.quantityTons === "string" ? body.quantityTons : null;
+
+    const resId = parsePositiveIntParam(resourceId);
+    const catId = parsePositiveIntParam(categoryId);
+    if (resId == null || catId == null) {
+      throw new Error('missing_fields');
+    }
+
+    const matId = materialId != null && materialId !== "" ? parsePositiveIntParam(materialId) : null;
+    const custId = customerId != null && customerId !== "" ? parsePositiveIntParam(customerId) : null;
+    if (materialId != null && materialId !== "" && matId == null) {
+      throw new Error('invalid_payload');
+    }
+    if (customerId != null && customerId !== "" && custId == null) {
+      throw new Error('invalid_payload');
+    }
+
+    const startCoord = coordsFromRequestBody(body);
+
     // Sprawdzenie czy już trwa sesja
     const existing = await db
       .select()
@@ -112,24 +132,24 @@ export class WorkerSessionService {
 
     const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
       companyId,
-      payload.resourceId,
+      resId,
       userId,
     );
     if (resourceBusy) {
       throw new Error('resource_busy');
     }
 
-    const startNums = payload.startCoord ? coordPairToNumericStrings(payload.startCoord) : null;
+    const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
     const newSession = await db.insert(workSessions).values({
       companyId,
       userId,
-      resourceId: payload.resourceId,
-      categoryId: payload.categoryId,
-      materialId: payload.materialId || null,
-      customerId: payload.customerId || null,
-      quantityTons: payload.quantityTons || null,
-      taskDescription: payload.taskDescription || null,
+      resourceId: resId,
+      categoryId: catId,
+      materialId: matId || null,
+      customerId: custId || null,
+      quantityTons: quantityTons || null,
+      taskDescription: taskDescription || null,
       status: 'IN_PROGRESS',
       ...(startNums
         ? {
@@ -163,23 +183,27 @@ export class WorkerSessionService {
     const row = existing[0];
     const sessionId = row.id;
     const endNums = endCoord ? coordPairToNumericStrings(endCoord) : null;
-    await db.update(workSessions).set({
-      status: 'COMPLETED',
-      endTime: new Date(),
-      ...(endNums
-        ? {
-            endLatitude: endNums.lat,
-            endLongitude: endNums.lng,
-          }
-        : {}),
-    }).where(eq(workSessions.id, sessionId));
 
-    if (row.workOrderId != null) {
-      await db
-        .update(workOrders)
-        .set({ status: 'COMPLETED' })
-        .where(eq(workOrders.id, row.workOrderId));
-    }
+    // Transakcja: UPDATE work_sessions + UPDATE work_orders atomowo
+    await db.transaction(async (tx) => {
+      await tx.update(workSessions).set({
+        status: 'COMPLETED',
+        endTime: new Date(),
+        ...(endNums
+          ? {
+              endLatitude: endNums.lat,
+              endLongitude: endNums.lng,
+            }
+          : {}),
+      }).where(eq(workSessions.id, sessionId));
+
+      if (row.workOrderId != null) {
+        await tx
+          .update(workOrders)
+          .set({ status: 'COMPLETED' })
+          .where(eq(workOrders.id, row.workOrderId));
+      }
+    });
 
     return true;
   }
@@ -251,10 +275,13 @@ export class WorkerSessionService {
       .limit(1);
     if (!session) throw new Error('no_active_session');
 
-    if (session.workOrderId != null) {
-      await db.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, session.workOrderId));
-    }
-    await db.delete(workSessions).where(eq(workSessions.id, session.id));
+    // Transakcja: UPDATE work_orders + DELETE work_sessions atomowo
+    await db.transaction(async (tx) => {
+      if (session.workOrderId != null) {
+        await tx.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, session.workOrderId));
+      }
+      await tx.delete(workSessions).where(eq(workSessions.id, session.id));
+    });
   }
 
   /**

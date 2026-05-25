@@ -1,429 +1,204 @@
-# Audyt aplikacji Werkit — raport końcowy
+# Audyt spójności — Werkit (2026-05)
 
-**Data:** 2026-05-25  
-**Wersja aplikacji:** 1.9.4  
-**Stack:** Next.js 16.2.4 + React 19.2.4 + Capacitor 8 + Drizzle ORM 0.45.2 + PostgreSQL (Neon)  
-**Środowisko docelowe:** PWA + Android (APK)
+## Zakres
 
----
-
-## Spis treści
-
-1. [Architektura i struktura projektu](#1-architektura-i-struktura-projektu)
-2. [Baza danych i migracje](#2-baza-danych-i-migracje)
-3. [Bezpieczeństwo](#3-bezpieczeństwo)
-4. [Jakość kodu — ESLint](#4-jakość-kodu--eslint)
-5. [Serwisy i warstwa dostępu do danych](#5-serwisy-i-warstwa-dostępu-do-danych)
-6. [Internacjonalizacja (i18n)](#6-internacjonalizacja-i18n)
-7. [Konfiguracja mobilna (Capacitor)](#7-konfiguracja-mobilna-capacitor)
-8. [Multi-tenant](#8-multi-tenant)
-9. [Testy](#9-testy)
-10. [Dług techniczny](#10-dług-techniczny)
-11. [Podsumowanie i rekomendacje](#11-podsumowanie-i-rekomendacje)
+Przegląd całego kodu pod kątem **spójności architektury, kodu i stylu** — zgodnie z regułami z [`AGENTS.md`](../AGENTS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`docs/SYSTEM_MAP.md`](../docs/SYSTEM_MAP.md).
 
 ---
 
-## 1. Architektura i struktura projektu
+## 1. Architektura — warstwy i granice modułów
 
-### Stack technologiczny
+### 1.1. `src/app/` nie importuje `@/db` ✅
 
-| Warstwa | Technologia | Uwagi |
-|---------|-------------|-------|
-| Framework | Next.js 16.2.4 (App Router) | Turbopack w dev |
-| Język | TypeScript (strict) | Zakaz `any` |
-| UI | Tailwind CSS 4 + lucide-react | Paleta zinc/emerald |
-| Baza danych | PostgreSQL (Neon) + Drizzle ORM 0.45.2 | 18 migracji |
-| Auth | JWT (jose) w cookie `auth_token` | HttpOnly/Secure/SameSite=None |
-| Mobile | Capacitor 8.3.1 | WebView ładuje zewnętrzny URL |
-| Mapy | Leaflet (react-leaflet) | Trasy OSRM |
-| CI/CD | GitHub Actions | Lint → TS → Test → Build → Android APK |
+**Reguła z ARCHITECTURE.md §4:** `src/app/` nie może importować `@/db` ani `@/db/schema`.
 
-### Struktura katalogów
+- **Wynik:** 0 importów `@/db` w `src/app/api/**/*.ts` — reguła w pełni respektowana.
+- Wszystkie zapytania DB przechodzą przez `src/services/`.
 
-```
-src/
-├── app/                    # Routing Next.js (page.tsx, layout.tsx)
-│   ├── admin/              # Panel administratora
-│   ├── platform/           # Superadmin (multi-tenant)
-│   ├── worker/             # Aplikacja pracownika
-│   ├── api/                # API Route Handlers
-│   └── login/              # Strona logowania
-├── features/
-│   ├── worker/             # Moduł pracownika (wizard, GPS, profile, shell)
-│   └── admin/              # Moduł admina (machines, materials, categories, orders)
-├── components/             # UI współdzielony
-│   └── work-orders/        # Prezentacja zleceń (admin + worker)
-├── services/               # Warstwa dostępu do DB (SSOT zapytań)
-├── db/                     # Schemat Drizzle + połączenie
-├── lib/                    # Utility, auth, telemetria, i18n
-├── types/                  # Typy domenowe (worker.ts, admin.ts, wizard.ts)
-├── i18n/                   # Internacjonalizacja
-├── hooks/                  # Hooki UI
-└── scripts/                # Skrypty narzędziowe (migracje, weryfikacja)
-```
+### 1.2. Serwisy — tylko `src/services/` ma dostęp do DB ✅
 
-### Ocena architektury: ⭐⭐⭐⭐✩ (4.5/5)
+- **20 plików** w `src/services/` (w tym `dictionary/` sub-moduł) importuje `@/db` — to jedyne miejsce w aplikacji.
+- Wzorzec **static class** (np. [`AdminOrderService`](../src/services/AdminOrderService.ts), [`WorkerOrderService`](../src/services/WorkerOrderService.ts), [`ScheduleConflictService`](../src/services/ScheduleConflictService.ts)) — spójny.
+- [`DictionaryService`](../src/services/DictionaryService.ts) to **barrel re-export** delegujący do `src/services/dictionary/` — poprawny wzorzec fasady.
 
-**Mocne strony:**
-- Czysta separacja warstw: `app/` (routing) → `services/` (DB) → `lib/` (utilities)
-- Serwisy jako SSOT zapytań DB — `app/` nie importuje `@/db/schema` bezpośrednio
-- Proxy Edge (`src/proxy.ts`) jako strażnik autoryzacji — rola, matcher, ochrona mutacji
-- Modułowa struktura `features/` dla logiki domenowej
+### 1.3. Routing (`src/app/`) — cienkie wrappery ✅
 
-**Słabe strony:**
-- Niektóre komponenty w `app/admin/*/` przekraczają ~300 linii (np. `OrdersClient.tsx`)
-- Mieszanka Server Components i Client Components — nie wszędzie konsekwentnie stosowana
-- Brak dedykowanego katalogu `src/lib/map/` (część funkcji mapowych jest w `services/`)
+- Wszystkie route handlery w `src/app/api/` są cienkie: walidacja JWT → delegacja do serwisu → odpowiedź.
+- Używają [`withApiErrorHandling`](../src/lib/apiRoute.ts:99) — spójny wzorzec obsługi błędów.
+- [`guardAdminMutation`](../src/lib/requireAdminMutation.ts:5) — druga warstwa auth dla mutacji admina.
+
+### 1.4. Katalog `src/app/api/settings/` — **pusty (orphan)** ⚠️
+
+- `src/app/api/settings/` istnieje ale **nie zawiera `route.ts`** — jest pusty.
+- Rzeczywisty settings API: [`src/app/api/admin/settings/route.ts`](../src/app/api/admin/settings/route.ts).
+- **Zalecenie:** usunąć pusty katalog, aby uniknąć 404 lub konfuzji.
 
 ---
 
-## 2. Baza danych i migracje
+## 2. Typy i `any`
 
-### Schemat (14 tabel)
+### 2.1. Użycie `any` — minimalne ✅
 
-| Tabela | Opis |
-|--------|------|
-| `companies` | Firmy (multi-tenant root) |
-| `users` | Użytkownicy (admin/worker/viewer/superadmin) |
-| `resource_categories` | Kategorie zasobów (z hierarchią parent_id) |
-| `resources` | Zasoby/maszyny |
-| `resource_to_categories` | Wiązanie M:N zasobów z kategoriami |
-| `materials` | Materiały |
-| `material_categories` | Kategorie materiałów (z hierarchią) |
-| `material_to_categories` | Wiązanie M:N materiałów z kategoriami |
-| `customers` | Klienci |
-| `customer_locations` | Lokalizacje klientów (z route waypoints) |
-| `work_orders` | Zlecenia |
-| `work_sessions` | Sesje robocze |
-| `session_photos` | Zdjęcia z sesji |
-| `session_notes` | Notatki z sesji |
-| `gps_logs` | Logi GPS |
-| `company_settings` | Ustawienia firmy |
-| `device_logs` | Logi zdalne z urządzeń |
+- **1 wystąpienie** `as any` w całym audytowanym kodzie:
+  - [`src/lib/apiRoute.ts:23`](../src/lib/apiRoute.ts:23) — `(this as any).cause = opts.cause` z adnotacją `// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TS < 5.6 compatibility`
+  - Jest to uzasadnione (TS < 5.6 nie wspiera `Error.cause` w klasie).
+- **Brak** luźnych `any` w serwisach, route handlerach, narrow modułach.
 
-### Migracje: 18 plików SQL (0000–0018)
+### 2.2. Type narrowing — wzorcowe ✅
 
-| # | Nazwa | Opis |
-|---|-------|------|
-| 0000 | `stormy_dakota_north` | Schemat początkowy |
-| 0001 | `whole_infant_terrible` | Rozszerzenie users |
-| 0002 | `violet_lord_tyger` | Rozszerzenie sesji |
-| 0003 | `work_orders_priority_chk` | Constraint CHECK priorytetu |
-| 0004 | `users_biometric_login` | Biometria |
-| 0005 | `material_categories` | Kategorie materiałów |
-| 0006 | `resources_vehicle_identity` | Tożsamość pojazdu |
-| 0007 | `resource_categories_stationary` | Typ stacjonarny |
-| 0008 | `work_sessions_bookend_coords` | Współrzędne bookend |
-| 0009 | `materials_drop_type` | Usunięcie kolumny type |
-| 0010 | `resource_categories_visibility` | Widoczność pól |
-| 0011 | `undo_stationary_auto_hide_fields` | Cofnięcie auto-hide |
-| 0012 | `resources_description_category_resource_fields` | Rozszerzenie zasobów |
-| 0013 | `work_orders_in_progress_status` | Status IN_PROGRESS |
-| 0014 | `drop_legacy_session_type_resource_category` | Legacy cleanup |
-| 0015 | `customer_locations_planned_route` | Trasy klientów |
-| 0016 | `category_hierarchy` | Hierarchia kategorii |
-| 0017 | `multi_company` | Multi-tenant |
-| 0018 | `users_can_create_customers` | Uprawnienie tworzenia klientów |
+- Moduł [`src/lib/narrow/`](../src/lib/narrow/index.ts) zawiera kompletne zawężacze typów dla odpowiedzi API:
+  - [`shared.ts`](../src/lib/narrow/shared.ts) — helpery (`isRecord`, `readBool`, `narrowPriority`)
+  - [`base.ts`](../src/lib/narrow/base.ts) — typy bazowe (worker, machine, material, customer, category)
+  - [`admin.ts`](../src/lib/narrow/admin.ts) — panel admina (użytkownicy, klienci, Gantt)
+  - [`worker.ts`](../src/lib/narrow/worker.ts) — moduł pracownika (zlecenia, wizard)
+  - [`machines.ts`](../src/lib/narrow/machines.ts) — maszyny i materiały
+- [`narrowApiListRows.ts`](../src/lib/narrowApiListRows.ts) — deprecated barrel re-export → poprawny wzorzec migracji.
 
-### Pipeline migracji
+### 2.3. `Array.isArray` przed `.map()`/`.filter()` ✅
 
-- **Główny:** `npm run db:migrate:pg` — Drizzle migrate przez TCP
-- **Idempotentne skrypty:** `npm run db:napraw-wszystko` (lub `db:napraw-*`)
-- **Weryfikacja:** `npm run db:verify-schema` — porównuje `schema.ts` z rzeczywistą bazą
-- **Fallback:** `DictionaryService.getCategoriesLegacyColumnsOnly()` dla baz przed migracją 0010
-
-### Ocena: ⭐⭐⭐⭐⭐ (5/5)
-
-- Kompletny schemat z relacjami Drizzle
-- Wszystkie migracje zdefiniowane w `drizzle/meta/_journal.json`
-- Idempotentne skrypty naprawcze
-- Weryfikacja schematu po zmianach
-- Multi-tenant przez `company_id` na wszystkich tabelach operacyjnych
+- Wszystkie narrow funkcje używają `for...of` z `isRecord(row)` guard — bezpieczne przed 500/obiektem.
+- Reguła z AGENTS.md §4.1 spełniona.
 
 ---
 
-## 3. Bezpieczeństwo
+## 3. i18n — internacjonalizacja
 
-### Autoryzacja (proxy.ts)
+### 3.1. Struktura słowników — zgodna PL ↔ EN ✅
 
-| Aspekt | Status |
-|--------|--------|
-| JWT w cookie `auth_token` | ✅ HttpOnly, Secure, SameSite=None |
-| Weryfikacja przez `jose` | ✅ |
-| Role: superadmin/admin/worker/viewer | ✅ |
-| Ochrona mutacji dla viewer | ✅ (blokada POST/PUT/PATCH/DELETE) |
-| Shared API prefixes | ✅ (`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`) |
-| Superadmin → /platform | ✅ (blokada dostępu do /admin, /worker) |
+- [`pl.ts`](../src/i18n/locales/pl.ts) (940 linii) i [`en.ts`](../src/i18n/locales/en.ts) (942 linie) mają **identyczną strukturę kluczy**:
+  - 34 top-level slotów: `apiErrors`, `workOrdersSchedule`, `routeLoading`, `login`, `admin` (18 sub-slotów), `worker` (6 sub-slotów), `platform`
+- `en.ts` jest typowany jako `AppDictionary = typeof pl` ([`types.ts`](../src/i18n/types.ts:3)) — PL jest SSOT struktury.
 
-### Hasła
+### 3.2. Wzorzec użycia — `getDictionary()` ✅
 
-- **bcrypt** (native) z fallbackiem do **bcryptjs** (pure JS) przez `WERKIT_USE_BCRYPTJS=1`
-- Lazy loading implementacji (singleton)
-- `comparePassword()` i `hashPassword()` — poprawne użycie
-
-### 🔴 Zagrożenia / uwagi
-
-1. **JWT_SECRET fallback** — [`src/lib/auth.ts:6-10`](src/lib/auth.ts:6)  
-   `const getJwtSecret = () => process.env.JWT_SECRET || 'super-secret-fallback'`  
-   W produkcji brak zmiennej `JWT_SECRET` powoduje użycie fallbacka (console.warn).  
-   **Ryzyko:** każdy, kto zna kod, może podpisać token JWT.
-
-2. **Brak rate limitera** — endpointy logowania i API nie mają ochrony przed brute-force.
-
-3. **Brak CSRF** — cookie `auth_token` jest podatne na CSRF, jeśli nie jest chronione przez `SameSite=Strict` lub osobny token CSRF.
-
-4. **`any` w API routes** — wiele handlerów API używa `as any` do rzutowania odpowiedzi, co omija TypeScript strict.
-
-### Ocena: ⭐⭐⭐✩✩ (3.5/5)
-
-Bezpieczeństwo jest solidne w warstwie autoryzacji, ale ma krytyczne luki (JWT_SECRET fallback, brak rate limitingu).
+- Wszystkie stringi UI przez [`getDictionary()`](../src/i18n/index.ts) / sloty `worker.*`, `admin.*`, `apiErrors`.
+- Placeholdery przez `formatDict`.
+- Domyślny locale: [`DEFAULT_UI_LOCALE`](../src/i18n/constants.ts).
 
 ---
 
-## 4. Jakość kodu — ESLint
+## 4. Serwisy — spójność wzorca
 
-### Konfiguracja (`eslint.config.mjs`)
+### 4.1. Static class pattern ✅
 
-- `@typescript-eslint/no-explicit-any`: **error**
-- `react/no-unescaped-entities`: **warn**
-- `react-hooks/set-state-in-effect`: **warn**
-- `no-console`: **warn** (z wyjątkiem `src/scripts/`)
-
-### 🔴 Znalezione problemy (z `lint_output.txt`)
-
-#### Krytyczne (błędy)
-
-| Plik | Problem | Linia |
-|------|---------|-------|
-| [`src/app/admin/orders/OrdersClient.tsx`](src/app/admin/orders/OrdersClient.tsx:211) | `Date.now()` podczas renderu (impure function) | 211 |
-| [`src/app/admin/orders/OrdersClient.tsx`](src/app/admin/orders/OrdersClient.tsx:10-14) | `any` type (5 wystąpień) | 10-14 |
-| [`src/app/admin/orders/SessionDetailsModal.tsx`](src/app/admin/orders/SessionDetailsModal.tsx:13-16) | `any` type (4 wystąpienia) | 13-16, 22 |
-| [`src/app/admin/orders/SessionDetailsModal.tsx`](src/app/admin/orders/SessionDetailsModal.tsx:111) | `<img>` zamiast `next/image` | 111 |
-| Wiele API route handlerów | `any` type w catch/err | ~30+ plików |
-
-#### Ostrzeżenia
-
-| Wzorzec | Wystąpienia | Pliki |
-|---------|-------------|-------|
-| `setState` w `useEffect` (brak zależności) | ~6 | `*Client.tsx` (Orders, Machines, Materials, Customers, Workers) |
-| Nieużywane importy (lucide-react) | ~10+ | `admin/layout.tsx`, `MachinesClient.tsx` |
-| Nieużywane parametry (`err`, `e`, `index`) | ~30+ | Większość API route handlerów |
-| Nieużywany `request` | ~2 | `auth/logout/route.ts`, `worker/session/route.ts` |
-
-### Ocena: ⭐⭐⭐✩✩ (3/5)
-
-Projekt ma skonfigurowany ESLint z ostrymi regułami, ale rzeczywista zgodność z nimi jest niska. Wiele plików zawiera `any`, nieużywane zmienne i importy.
-
----
-
-## 5. Serwisy i warstwa dostępu do danych
-
-### Lista serwisów (11 klas)
-
-| Serwis | Odpowiedzialność |
-|--------|-----------------|
-| `AdminOrderService` | CRUD zleceń, schedule conflict, archiwum |
-| `AdminSessionService` | Szczegóły sesji, force complete, usuwanie |
-| `AdminUserService` | CRUD użytkowników, weryfikacja hasła |
-| `AdminReportService` | Dashboard raportów (metryki, aktywne sesje) |
-| `DictionaryService` | Słowniki (kategorie, klienci, materiały, zasoby, ustawienia) |
-| `CustomerLocationService` | Lokalizacje klientów, waypoints, sync legacy |
-| `GpsService` | Zapis i odczyt logów GPS |
-| `ScheduleConflictService` | Wykrywanie konfliktów harmonogramu |
-| `PlatformCompanyService` | CRUD firm (superadmin) |
-| `PlatformAnalyticsService` | Usage overview (superadmin) |
-| `categoryHierarchyValidation` | Walidacja hierarchii kategorii |
-
-### Wzorce
-
-- **Statyczne metody** — wszystkie serwisy używają `static async`
-- **Brak DI** — serwisy importują `db` bezpośrednio
-- **Typy eksportowane** — `UserUpdatePayload`, `ResourceCategoryUpdateInput`, `MaterialCategoryUpdateInput`
-- **Fallback na legacy** — `DictionaryService.getCategoriesLegacyColumnsOnly()` dla baz przed migracją 0010
-
-### Ocena: ⭐⭐⭐⭐✩ (4/5)
-
-Serwisy są dobrze zorganizowane i stanowią SSOT zapytań DB. Brak DI to świadomy wybór (Next.js Edge), ale utrudnia testowanie jednostkowe.
-
----
-
-## 6. Internacjonalizacja (i18n)
-
-### Architektura
-
-- **Source of truth:** [`src/i18n/locales/pl.ts`](src/i18n/locales/pl.ts) (940 linii)
-- **Angielski:** [`src/i18n/locales/en.ts`](src/i18n/locales/en.ts) (942 linie) — mirror struktury PL
-- **Typ:** `AppDictionary = typeof pl` — PL definiuje kształt
-- **Funkcje:** `getDictionary(locale)`, `formatDict(template, vars)`, `formatUiDateOnly()`, `formatUiTimeHm()`, `formatUiDateTimeShort()`
-- **Locale domyślny:** `pl-PL`, strefa czasowa: `Europe/Warsaw`
-
-### Struktura słowników
-
-```
-apiErrors (~50 kodów błędów)
-workOrdersSchedule
-routeLoading
-login
-admin:
-  sidebar, categories, ui, dashboard, reports, archive, orders,
-  gantt, orderFields, map, workers, machines, materials, customers,
-  settings, logs
-worker:
-  client, alarms, profile, history, help
-platform:
-  organizations (CRUD)
-```
-
-### Ocena: ⭐⭐⭐⭐⭐ (5/5)
-
-- Pełne pokrycie PL i EN
-- PL jako source of truth — spójność typów
-- `formatDict()` z placeholderami `{key}`
-- Spójne formatowanie dat (pl-PL, Europe/Warsaw)
-
----
-
-## 7. Konfiguracja mobilna (Capacitor)
-
-### `capacitor.config.ts`
+Wszystkie serwisy używają spójnego wzorca:
 
 ```typescript
-server: { url: 'https://werkit.cncsolutions.dev/' }
+export class SomeService {
+  static async methodName(...) { ... }
+}
 ```
 
-- **App ID:** `com.werkit.app`
-- **WebDir:** `public`
-- **Tryb:** WebView ładuje zewnętrzny URL (Next.js wymaga serwera Node)
+Lista serwisów (20 plików):
+- `AdminOrderService`, `AdminReportService`, `AdminSessionService`, `AdminUserService`
+- `WorkerOrderService`, `WorkerSessionService`
+- `ScheduleConflictService`, `GpsService`, `SystemLogService`, `CustomerLocationService`
+- `PlatformAnalyticsService`, `PlatformCompanyService`
+- `DictionaryService` (fasada) → `CategoryService`, `MaterialService`, `MaterialCategoryService`, `CustomerService`, `ResourceService`, `SettingsService`
+- `categoryHierarchyValidation` (helper, nie klasa)
 
-### Funkcjonalności mobilne
+### 4.2. `DictionaryService` jako fasada ✅
 
-| Funkcja | Status |
-|---------|--------|
-| Logowanie biometryczne | ✅ (`@capgo/capacitor-native-biometric`) |
-| Background geolocation | ✅ (fetch z `keepalive: true`) |
-| Lokalne notyfikacje | ✅ (alarmy dźwiękowe) |
-| Hardware back button | ✅ (`CapacitorBackButton`) |
-| Sync wersji web ↔ APK | ✅ (`AppDownloadCard`, `werkit-apk-meta.json`) |
+- [`DictionaryService`](../src/services/DictionaryService.ts) re-eksportuje typy i deleguje do sub-serwisów w `src/services/dictionary/`.
+- [`src/services/dictionary/index.ts`](../src/services/dictionary/index.ts) — barrel re-export wszystkich serwisów słownikowych.
 
-### Ocena: ⭐⭐⭐⭐✩ (4/5)
+### 4.3. `console.warn` tylko w `CategoryService.ts` ✅
 
-Capacitor jest dobrze zintegrowany, ale WebView ładujący zewnętrzny URL oznacza, że aplikacja wymaga stałego połączenia z internetem. Brak offline-first.
-
----
-
-## 8. Multi-tenant
-
-### Implementacja
-
-- **Root:** tabela `companies`
-- **Scope:** `company_id` na wszystkich tabelach operacyjnych
-- **Context:** [`src/lib/tenantContext.ts`](src/lib/tenantContext.ts) — `getTenantCompanyId()`, `resolveTenantCompanyId()`
-- **Superadmin:** rola `superadmin` → panel `/platform`
-- **Legacy JWT:** fallback do DB dla tokenów bez `companyId`
-
-### Serwisy tenant
-
-- `PlatformCompanyService` — CRUD firm
-- `PlatformAnalyticsService` — usage overview
-- `requireCompanyScopedSession()` — guard dla API
-- `requireServerCompanyId()` — guard dla Server Components
-
-### Ocena: ⭐⭐⭐⭐✩ (4/5)
-
-Multi-tenant jest dobrze zaimplementowany, ale legacy JWT bez `companyId` wymagają dodatkowego zapytania do DB.
+- 1 wystąpienie: [`CategoryService.ts:44`](../src/services/dictionary/CategoryService.ts:44) — ostrzeżenie o legacy kolumnach przed migracją 0010. Akceptowalne.
 
 ---
 
-## 9. Testy
+## 5. Komponenty UI
 
-### Framework: Vitest v3.2.4
+### 5.1. Dialogi — tylko `useAppDialog()` ✅
 
-### Istniejące testy
+- **Brak** `window.alert` / `window.confirm` w `src/features/` i `src/components/`.
+- Wszystkie dialogi przez [`AppDialogProvider`](../src/components/AppDialogProvider.tsx) → `useAppDialog()`.
+- Wzorzec z AGENTS.md §6 w pełni respektowany.
 
-| Plik testu | Testowany plik |
-|------------|---------------|
-| `clientRateLimit.test.ts` | `clientRateLimit.ts` |
-| `filterResourcesForCategory.test.ts` | `filterResourcesForCategory.ts` |
-| `floatingPanelPosition.test.ts` | `floatingPanelPosition.ts` |
-| `narrowApiListRows.test.ts` | `narrowApiListRows.ts` |
-| `parseJsonArray.test.ts` | `parseJsonArray.ts` |
-| `resolveNeonPostgresUrl.test.ts` | `resolveNeonPostgresUrl.ts` |
-| `tenantContext.test.ts` | `tenantContext.ts` |
-| `workerUserPermissions.test.ts` | `workerUserPermissions.ts` |
-| `AdminUserService.test.ts` | `AdminUserService.ts` |
-| `PlatformCompanyService.test.ts` | `PlatformCompanyService.ts` |
+### 5.2. Modale — spójna obudowa ✅
 
-### Ocena: ⭐⭐✩✩✩ (2/5)
+- [`AdminModalShell`](../src/components/Admin/AdminModalShell.tsx) — obudowa modali edycji.
+- [`FormModalFooter`](../src/components/FormModalFooter.tsx) — stopka Anuluj + Zapisz.
+- [`AdminPasswordConfirmModal`](../src/components/Admin/AdminPasswordConfirmModal.tsx) — potwierdzenie hasłem przy usuwaniu sesji.
 
-- Testy pokrywają głównie utility `lib/` i 2 serwisy
-- Brak testów dla komponentów React, API route handlerów, komponentów worker
-- Brak testów integracyjnych z bazą danych
-- Tech debt D-02 (test expansion) oznaczony jako `in_progress`
+### 5.3. `console.log` — tylko w skryptach CLI ✅
+
+- **0** `console.log` w `src/app/api/`, `src/features/`, `src/components/`.
+- Wszystkie `console.log` w `src/scripts/` — skrypty CLI (migracje, weryfikacja, generowanie dźwięków). Akceptowalne.
 
 ---
 
-## 10. Dług techniczny
+## 6. Proxy (Edge Middleware)
 
-### Stan z [`docs/TECH_DEBT_ROADMAP.md`](docs/TECH_DEBT_ROADMAP.md)
+### 6.1. [`src/proxy.ts`](../src/proxy.ts) — spójna ochrona tras ✅
 
-| Faza | Opis | Status |
-|------|------|--------|
-| A | Harmonogram w serwisach | ✅ Zamknięta |
-| B | Pipeline migracji | ✅ Zamknięta |
-| C | Legacy kolumny DB | ✅ Zamknięta |
-| D | Semantyka statusu zlecenia | ✅ Zamknięta |
-| E | bcrypt / bcryptjs | ✅ Zamknięta |
-| F | Dokumentacja routingu admin | ✅ Zamknięta |
+- JWT weryfikacja przez `jose`.
+- Role: `admin`/`viewer` → panel admina, `worker`/`admin` → aplikacja worker.
+- `SHARED_API_PREFIXES` dla współdzielonych API (`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`).
+- Specjalny przypadek: worker z `can_create_customers` może POST `/api/customers`.
+- Matcher: `/admin/:path*`, `/worker/:path*`, `/platform/:path*`, `/login`, `/api/:path*`.
 
-### Aktualne pozycje
+### 6.2. Auth helpers ✅
 
-| ID | Opis | Status |
-|----|------|--------|
-| D-01 | Unifikacja date/time | ✅ Done |
-| D-02 | Rozszerzenie testów | 🔄 In progress |
-| D-03 | Okna czasowe telemetrii | ✅ Done |
-| D-04 | Abstrakcja providera tras mapy | ✅ Done |
-
-### Dodatkowy dług zidentyfikowany w audycie
-
-1. **JWT_SECRET fallback** — krytyczny
-2. **`any` type w ~30+ plikach** — średni
-3. **`setState` w `useEffect` bez zależności** — średni
-4. **`Date.now()` podczas renderu** — krytyczny (niestabilny output)
-5. **Nieużywane importy/zmienne** — niski
-6. **Brak testów komponentów** — średni
-7. **Brak rate limitingu** — średni
-8. **`<img>` zamiast `next/image`** — niski
+- [`getAuthSession()`](../src/lib/auth.ts:25) — odczyt JWT z cookie.
+- [`guardAdminMutation()`](../src/lib/requireAdminMutation.ts:5) — druga warstwa dla mutacji.
+- [`requireCompanyScopedSession()`](../src/lib/apiTenant.ts:30) — tenant-aware sesja.
 
 ---
 
-## 11. Podsumowanie i rekomendacje
+## 7. Baza danych i migracje
 
-### Ogólna ocena: ⭐⭐⭐⭐ (4/5)
+### 7.1. Schema vs verify_schema_alignment — zgodne ✅
 
-Werkit to dojrzała aplikacja logistyczna z dobrze zaprojektowaną architekturą, solidnym systemem autoryzacji i kompletnym pokryciem i18n. Projekt ma jednak kilka obszarów wymagających pilnej uwagi.
+- [`src/db/schema.ts`](../src/db/schema.ts) (298 linii) — 15 tabel z relacjami.
+- [`src/scripts/verify_schema_alignment.ts`](../src/scripts/verify_schema_alignment.ts) (245 linii) — zawiera kompletne EXPECTED column sets dla 17 tabel (w tym legacy).
+- Oba są utrzymywane równolegle zgodnie z AGENTS.md §1a.
 
-### 🔴 Pilne (do natychmiastowej naprawy)
+### 7.2. Priorytet zleceń — CHECK constraint ✅
 
-1. **JWT_SECRET fallback** — usunąć fallback `'super-secret-fallback'` i wymusić ustawienie zmiennej środowiskowej
-2. **`Date.now()` w renderze** — przenieść do `useEffect` w [`OrdersClient.tsx`](src/app/admin/orders/OrdersClient.tsx:211)
-3. **`any` type w API routes** — zastąpić konkretnymi typami lub type guards
+- `work_orders.priority` z CHECK: `URGENT | HIGH | NORMAL | LOW`.
+- Migracja [`0003_work_orders_priority_chk.sql`](../drizzle/0003_work_orders_priority_chk.sql).
+- Normalizacja przez [`normalizeWorkOrderPriority`] — spójna.
 
-### 🟡 Zalecane (w ciągu 2-4 tygodni)
+### 7.3. Hierarchia kategorii ✅
 
-4. **Rate limiting** — dodać na endpointy logowania i API
-5. **Testy komponentów** — rozszerzyć pokrycie testowe (D-02)
-6. **`setState` w `useEffect`** — dodać brakujące zależności w `*Client.tsx`
-7. **CSRF protection** — rozważyć `SameSite=Strict` lub osobny token
-8. **Nieużywane importy** — wyczyścić (głównie lucide-react)
-
-### 🟢 Opcjonalne (przy okazji)
-
-9. **`<img>` → `next/image`** — w [`SessionDetailsModal.tsx`](src/app/admin/orders/SessionDetailsModal.tsx:111)
-10. **Refaktoryzacja komponentów >300 linii** — podzielić na mniejsze
-11. **Offline-first** — rozważyć Service Workery dla PWA
-12. **Dodanie `src/lib/map/`** — wydzielenie funkcji mapowych z serwisów
+- `resource_categories` / `material_categories`: `parent_id`, `is_group`, `sort_order`.
+- API: `GET /api/categories?leavesOnly=1`.
+- Logika drzewa: [`src/lib/categoryTree.ts`](../src/lib/categoryTree.ts).
+- Walidacja: [`src/services/categoryHierarchyValidation.ts`](../src/services/categoryHierarchyValidation.ts).
 
 ---
 
-*Raport wygenerowany na podstawie audytu kodu źródłowego Werkit v1.9.4 w dniu 2026-05-25.*
+## 8. Znalezione problemy
+
+| # | Problem | Lokalizacja | Zalecenie |
+|---|---------|-------------|-----------|
+| 1 | **Pusty katalog API** | [`src/app/api/settings/`](../src/app/api/settings/) | Usunąć — nie zawiera `route.ts`, rzeczywisty endpoint w `src/app/api/admin/settings/` |
+| 2 | **`narrowApiListRows.ts`** — deprecated re-export | [`src/lib/narrowApiListRows.ts`](../src/lib/narrowApiListRows.ts) | Stan przejściowy OK, ale warto sprawdzić czy wszystkie call-site'y już używają `@/lib/narrow` |
+| 3 | **`ScheduleConflictService.checkScheduleConflict()`** — oznaczony jako deprecated | [`src/services/AdminOrderService.ts:61`](../src/services/AdminOrderService.ts:61) | Upewnić się że wszystkie call-site'y używają nowej ścieżki przez `ScheduleConflictService` |
+
+---
+
+## 9. Podsumowanie
+
+### ✅ Co jest spójne
+
+1. **Architektura warstwowa** — `app/` → `services/` → `db/`, brak przecieków.
+2. **Typowanie** — strict TypeScript, minimalne `any` (1 uzasadnione), type narrowing w osobnych modułach.
+3. **i18n** — PL jako SSOT, EN typowany, struktura kluczy identyczna.
+4. **Serwisy** — static class pattern, fasada DictionaryService, delegacja do sub-modułów.
+5. **Dialogi** — tylko `useAppDialog()`, brak `window.alert`/`confirm`.
+6. **Proxy** — JWT + role, tenant-aware, deny-by-default dla admin API.
+7. **Migracje** — schema.ts ↔ verify_schema_alignment.ts zgodne, CHECK constraint na priorytecie.
+8. **Brak `console.log`** w kodzie produkcyjnym — tylko skrypty CLI.
+
+### ⚠️ Drobne uwagi
+
+1. **Pusty katalog** `src/app/api/settings/` do usunięcia.
+2. **Deprecated re-export** `narrowApiListRows.ts` — do monitorowania przy okazji refactoringu.
+3. **Deprecated metoda** `AdminOrderService.checkScheduleConflict()` — do usunięcia po migracji wszystkich call-site'ów.
+
+### Ogólna ocena
+
+Kod jest **bardzo spójny** — architektura, typowanie, wzorce serwisów, i18n i UI są utrzymane w ryzach. Nie znaleziono naruszeń twardych reguł z AGENTS.md. Projekt utrzymuje wysoki standard inżynierii oprogramowania.

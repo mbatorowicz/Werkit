@@ -1,4 +1,15 @@
 {
+  "name": "Werkit ERP",
+  "short_name": "Werkit",
+  "description": "Zarządzanie operacjami i flotą",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "portrait",
+  "scope": "/",
+  "categories": ["business", "logistics", "productivity"],
+  "lang": "pl",
   "icons": [
     {
       "src": "../icons/icon-48.webp",

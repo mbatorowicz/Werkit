@@ -11,13 +11,21 @@ import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 import { computeLockedUntil, parseDurationHours } from '@/lib/scheduleConflict';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
+import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 
 export class WorkerOrderService {
   /**
    * Pobiera listę oczekujących zleceń dla danego pracownika.
+   * Wspiera paginację (offset/limit).
    */
-  static async getPendingOrders(userId: number, companyId: number) {
+  static async getPendingOrders(
+    userId: number,
+    companyId: number,
+    options?: { offset?: number; limit?: number },
+  ) {
     const creator = newWorkOrderCreatorUserAlias();
+    const offset = options?.offset ?? 0;
+    const limit = options?.limit ?? 50;
 
     const rows = await applyWorkOrderListJoins(
       db
@@ -36,7 +44,9 @@ export class WorkerOrderService {
           eq(workOrders.status, 'PENDING'),
         ),
       )
-      .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt));
+      .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt))
+      .limit(limit)
+      .offset(offset);
 
     return rows.map((row) => ({
       ...row,
@@ -98,58 +108,101 @@ export class WorkerOrderService {
       if (def) customerLocationId = def.id;
     }
 
-    await db
-      .update(workOrders)
-      .set({
-        status: 'IN_PROGRESS',
-        ...(customerLocationId && !order.customerLocationId ? { customerLocationId } : {}),
-        ...(order.dueDate && durationHours != null && !order.lockedUntil
-          ? { lockedUntil: computeLockedUntil(order.dueDate, durationHours) }
-          : {}),
-      })
-      .where(eq(workOrders.id, order.id));
-
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
-    const [newSession] = await db.insert(workSessions).values({
-      companyId,
-      workOrderId: order.id,
-      userId: userId,
-      categoryId: order.categoryId!,
-      resourceId: order.resourceId,
-      materialId: order.materialId,
-      customerId: order.customerId,
-      taskDescription: order.taskDescription,
-      quantityTons: order.quantityTons,
-      expectedDurationHours: order.expectedDurationHours,
-      dueDate: order.dueDate,
-      status: 'IN_PROGRESS',
-      ...(startNums
-        ? {
-            startLatitude: startNums.lat,
-            startLongitude: startNums.lng,
-          }
-        : {}),
-    }).returning();
+    // Transakcja: UPDATE work_orders + INSERT work_sessions atomowo
+    return await db.transaction(async (tx) => {
+      await tx
+        .update(workOrders)
+        .set({
+          status: 'IN_PROGRESS',
+          ...(customerLocationId && !order.customerLocationId ? { customerLocationId } : {}),
+          ...(order.dueDate && durationHours != null && !order.lockedUntil
+            ? { lockedUntil: computeLockedUntil(order.dueDate, durationHours) }
+            : {}),
+        })
+        .where(eq(workOrders.id, order.id));
 
-    return newSession.id;
+      const [newSession] = await tx.insert(workSessions).values({
+        companyId,
+        workOrderId: order.id,
+        userId: userId,
+        categoryId: order.categoryId!,
+        resourceId: order.resourceId,
+        materialId: order.materialId,
+        customerId: order.customerId,
+        taskDescription: order.taskDescription,
+        quantityTons: order.quantityTons,
+        expectedDurationHours: order.expectedDurationHours,
+        dueDate: order.dueDate,
+        status: 'IN_PROGRESS',
+        ...(startNums
+          ? {
+              startLatitude: startNums.lat,
+              startLongitude: startNums.lng,
+            }
+          : {}),
+      }).returning();
+
+      return newSession.id;
+    });
   }
 
+  /**
+   * Tworzy nowe zlecenie przez pracownika (tzw. "własne zlecenie").
+   * Przyjmuje surowy body (Record<string, unknown>) i samodzielnie parsuje/waliduje pola.
+   * Rzuca Error z kodem błędu (np. "missing_fields", "invalid_payload", "forbidden").
+   */
   static async createOwnOrder(
     userId: number,
     companyId: number,
-    payload: {
-      categoryId: number;
-      resourceId: number;
-      materialId?: number | null;
-      customerId?: number | null;
-      quantityTons?: string | null;
-      taskDescription?: string | null;
-      expectedDurationHours?: string | null;
-      dueDate?: Date | null;
-      priority?: string | null;
-    },
+    body: Record<string, unknown>,
   ): Promise<number> {
+    const categoryId = parsePositiveIntParam(body.categoryId);
+    const resourceId = parsePositiveIntParam(body.resourceId);
+    if (categoryId == null || resourceId == null) {
+      throw new Error('missing_fields');
+    }
+
+    const materialId =
+      body.materialId != null && body.materialId !== ""
+        ? parsePositiveIntParam(body.materialId)
+        : null;
+    const customerId =
+      body.customerId != null && body.customerId !== ""
+        ? parsePositiveIntParam(body.customerId)
+        : null;
+    if (body.materialId != null && body.materialId !== "" && materialId == null) {
+      throw new Error('invalid_payload');
+    }
+    if (body.customerId != null && body.customerId !== "" && customerId == null) {
+      throw new Error('invalid_payload');
+    }
+
+    const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
+    const quantityTons =
+      typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
+        ? String(body.quantityTons)
+        : null;
+    const expectedDurationHours =
+      typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
+        ? String(body.expectedDurationHours)
+        : null;
+    const dueDateRaw = typeof body.dueDate === "string" ? body.dueDate : null;
+    const parsedDueDate = dueDateRaw ? new Date(dueDateRaw) : null;
+    const priority = coerceWorkOrderPriority(body.priority);
+
+    const payload = {
+      categoryId,
+      resourceId,
+      materialId,
+      customerId,
+      quantityTons,
+      taskDescription,
+      expectedDurationHours,
+      dueDate: parsedDueDate,
+      priority,
+    };
     const [userRow] = await db
       .select({ canCreateOwnOrders: users.canCreateOwnOrders })
       .from(users)

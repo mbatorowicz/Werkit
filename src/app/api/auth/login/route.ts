@@ -3,6 +3,7 @@ import { SignJWT } from 'jose';
 
 import { JWT_SECRET } from '@/lib/auth';
 import { comparePassword } from '@/lib/passwordCrypto';
+import { isLoginRateLimited, clearLoginRateLimit, getLoginRateLimitRemaining } from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
@@ -20,11 +21,18 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   const isHttps = forwardedProto === "https" || url.protocol === "https:";
   const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
 
+  // Rate limiting: klucz = IP + username (jeśli podany)
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   const body = await parseJsonBody(req);
   const u = body.usernameEmail;
   const p = body.password;
   const usernameEmail = typeof u === "string" ? u.trim().toLowerCase() : "";
   const password = typeof p === "string" ? p : "";
+
+  const rateLimitKey = `${clientIp}:${usernameEmail || "anon"}`;
+  if (isLoginRateLimited(rateLimitKey)) {
+    return jsonError("too_many_attempts", 429);
+  }
 
   if (!usernameEmail || !password) {
     return jsonError("missing_credentials", 400);
@@ -51,6 +59,9 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   if (!isPasswordValid) {
     return jsonError("invalid_credentials", 401);
   }
+
+  // Udane logowanie — czyścimy licznik prób
+  clearLoginRateLimit(rateLimitKey);
 
   const jwt = await new SignJWT({
     userId: user.id,

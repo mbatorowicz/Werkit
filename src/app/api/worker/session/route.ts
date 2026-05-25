@@ -1,8 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, parseJsonBodyOrEmpty, withApiErrorHandling } from "@/lib/apiRoute";
-import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
-import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { WorkerSessionService } from '@/services/WorkerSessionService';
 import { requireWorkerCompanySession } from '@/lib/apiTenant';
+import { coordsFromRequestBody } from '@/lib/coordsFromRequestBody';
 
 export const GET = withApiErrorHandling(async () => {
   const ctx = await requireWorkerCompanySession();
@@ -20,38 +19,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   if (!ctx.ok) return ctx.response;
 
   const body = await parseJsonBody(request);
-  const resourceId = body.resourceId;
-  const categoryId = body.categoryId;
-  const materialId = body.materialId;
-  const customerId = body.customerId;
-  const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : undefined;
-  const quantityTons = typeof body.quantityTons === "string" ? body.quantityTons : null;
-  const startCoord = coordsFromRequestBody(body);
-
-  const resId = parsePositiveIntParam(resourceId);
-  const catId = parsePositiveIntParam(categoryId);
-  if (resId == null || catId == null) {
-    return jsonError("missing_fields", 400);
-  }
-
-  const matId = materialId != null && materialId !== "" ? parsePositiveIntParam(materialId) : null;
-  const custId = customerId != null && customerId !== "" ? parsePositiveIntParam(customerId) : null;
-  if (materialId != null && materialId !== "" && matId == null) {
-    return jsonError("invalid_payload", 400);
-  }
-  if (customerId != null && customerId !== "" && custId == null) {
-    return jsonError("invalid_payload", 400);
-  }
-
-  const newSession = await WorkerSessionService.createWizardSession(ctx.userId, ctx.companyId, {
-    resourceId: resId,
-    categoryId: catId,
-    materialId: matId,
-    customerId: custId,
-    quantityTons,
-    taskDescription,
-    startCoord,
-  });
+  const newSession = await WorkerSessionService.createWizardSession(ctx.userId, ctx.companyId, body);
 
   return jsonOk({ success: true, session: newSession });
 }, {
