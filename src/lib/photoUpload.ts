@@ -7,6 +7,10 @@
  *
  * Zastępuje starą metodę zapisu data URL w bazie danych.
  * Zdjęcia są przechowywane w Blob Storage, a w DB zapisujemy tylko URL.
+ *
+ * UWAGA: Store jest skonfigurowany jako prywatny — zdjęcia są dostępne przez Signed URL.
+ * Nie wymaga to zmian w kodzie klienckim, ponieważ Vercel Blob automatycznie
+ * generuje tymczasowy URL przy odczycie przez przeglądarkę.
  */
 
 import { put, del, list } from '@vercel/blob';
@@ -19,7 +23,7 @@ export type PhotoUploadResult = {
 
 /**
  * Przesyła zdjęcie (base64 data URL) do Vercel Blob Storage.
- * Zwraca publiczny URL zdjęcia.
+ * Zwraca URL zdjęcia (Signed URL dla store'a prywatnego).
  */
 export async function uploadPhotoBase64(
   base64DataUrl: string,
@@ -40,7 +44,7 @@ export async function uploadPhotoBase64(
 
   const blob = await put(filename, buffer, {
     contentType: mimeType,
-    access: 'public',
+    access: 'private',
     addRandomSuffix: true,
   });
 
@@ -63,7 +67,7 @@ export async function uploadPhotoFile(
 
   const blob = await put(filename, file, {
     contentType: file.type,
-    access: 'public',
+    access: 'private',
     addRandomSuffix: true,
   });
 

@@ -55,7 +55,10 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   try {
     const result = await uploadPhotoBase64(photoUrl, session.id, "AD_HOC");
     blobUrl = result.url;
-  } catch {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Loguj błąd do konsoli Vercel (Funkcje)
+    console.error("[photoUpload]", message, err instanceof Error ? err.stack : "");
     return jsonError("photo_upload_failed", 500);
   }
 
