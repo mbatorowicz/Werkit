@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import L from "leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
@@ -23,6 +24,8 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
+import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
+import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import { X, Navigation, ExternalLink } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -59,6 +62,31 @@ function openNavigation(
       break;
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sub-komponent: klik na mapę dodaje punkt pośredni (tylko w pełnoekranowym)
+// ---------------------------------------------------------------------------
+function RouteWaypointClickLayer({
+  editable,
+  onAdd,
+}: {
+  editable: boolean;
+  onAdd?: (lat: number, lng: number) => void;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!editable || !onAdd) return;
+    const handler = (e: L.LeafletMouseEvent) => {
+      if (isMapClickBlocked() || isLeafletUiClick(e)) return;
+      onAdd(e.latlng.lat, e.latlng.lng);
+    };
+    map.on("click", handler);
+    return () => {
+      map.off("click", handler);
+    };
+  }, [map, editable, onAdd]);
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -101,6 +129,10 @@ interface FullScreenMapModalProps {
   /** Zoom i centrum do zsynchronizowania z mini-mapą */
   center: [number, number];
   zoom: number;
+  /** Edycja trasy (dodawanie punktów pośrednich) — aktywna tylko w pełnoekranowym widoku. */
+  editableRoute?: boolean;
+  onAddRouteWaypoint?: (lat: number, lng: number) => void;
+  onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -117,6 +149,9 @@ export default function FullScreenMapModal({
   onEventClick,
   center,
   zoom,
+  editableRoute = false,
+  onAddRouteWaypoint,
+  onPlannedRouteWaypointsChange,
 }: FullScreenMapModalProps) {
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
@@ -231,12 +266,14 @@ export default function FullScreenMapModal({
           <MapInvalidateOnResize />
           <MapStateSync center={center} zoom={zoom} />
 
+          <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
+
           <TraveledPathLayers path={pathTraveled} />
 
           <RouteWaypointMarkers
             waypoints={plannedRouteWaypoints}
-            editable={false}
-            onWaypointsChange={() => {}}
+            editable={Boolean(editableRoute && onPlannedRouteWaypointsChange)}
+            onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
           />
 

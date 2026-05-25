@@ -97,6 +97,12 @@ interface LiveMapProps {
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
   /** Pełna edycja punktów pośrednich (przeciąganie, usuwanie dowolnego). */
   onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
+  /**
+   * Tryb miniaturki: brak przeciągania, brak zoomu scroll/touch, brak dodawania punktów.
+   * Mapa jest wyśrodkowana i nieruchoma — używane w widoku sesji (główna mapa),
+   * podczas gdy pełny ekran (modal) ma pełną interakcję.
+   */
+  thumbnail?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +120,7 @@ export default function LiveMap({
   editableRoute = false,
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
+  thumbnail = false,
 }: LiveMapProps) {
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
@@ -206,17 +213,19 @@ export default function LiveMap({
           zoom={14}
           style={{ height: "100%", width: "100%" }}
           zoomControl={false}
-          scrollWheelZoom
-          doubleClickZoom
-          dragging
-          touchZoom
+          scrollWheelZoom={!thumbnail}
+          doubleClickZoom={!thumbnail}
+          dragging={!thumbnail}
+          touchZoom={!thumbnail}
           boxZoom={false}
         >
           <WerkitTileLayer />
 
           <MapInvalidateOnResize />
           <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
-          <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
+          {!thumbnail && (
+            <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
+          )}
           <MapStateReporter onStateChange={handleMapStateChange} />
 
           <TraveledPathLayers path={pathTraveled} />
@@ -310,6 +319,9 @@ export default function LiveMap({
         onEventClick={onEventClick}
         center={mapCenter}
         zoom={mapZoom}
+        editableRoute={editableRoute}
+        onAddRouteWaypoint={onAddRouteWaypoint}
+        onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
       />
     </>
   );

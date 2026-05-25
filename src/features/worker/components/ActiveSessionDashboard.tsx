@@ -169,6 +169,7 @@ export default function ActiveSessionDashboard({
             destination={destination}
             plannedRouteWaypoints={plannedRouteWaypoints}
             preferPivotNavigation
+            thumbnail
             editableRoute={canEditRoute}
             onAddRouteWaypoint={(lat, lng) => {
               onRouteWaypointsChange([...plannedRouteWaypoints, { lat, lng }]);
