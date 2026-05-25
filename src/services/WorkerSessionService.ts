@@ -7,7 +7,7 @@ import { CustomerLocationService } from '@/services/CustomerLocationService';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
-import { getDownloadUrl } from '@vercel/blob';
+import { refreshBlobUrl } from '@/lib/photoUpload';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -59,10 +59,8 @@ export class WorkerSessionService {
     const photos = await Promise.all(
       rawPhotos.map(async (p) => ({
         ...p,
-        // Dla zdjęć z Vercel Blob (private store) generuj Signed URL
-        photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
-          ? await getDownloadUrl(p.photoUrl)
-          : p.photoUrl,
+        // Dla zdjęć z Vercel Blob (private store) generuj świeży Signed URL przez head()
+        photoUrl: await refreshBlobUrl(p.photoUrl),
       })),
     );
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
@@ -382,10 +380,8 @@ export class WorkerSessionService {
     const photos = await Promise.all(
       rawPhotos.map(async (p) => ({
         ...p,
-        // Dla zdjęć z Vercel Blob (private store) generuj Signed URL
-        photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
-          ? await getDownloadUrl(p.photoUrl)
-          : p.photoUrl,
+        // Dla zdjęć z Vercel Blob (private store) generuj świeży Signed URL przez head()
+        photoUrl: await refreshBlobUrl(p.photoUrl),
       })),
     );
 

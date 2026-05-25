@@ -9,14 +9,69 @@
  * Zdjęcia są przechowywane w Blob Storage, a w DB zapisujemy tylko URL.
  *
  * UWAGA: Store jest skonfigurowany jako prywatny — zdjęcia są dostępne przez Signed URL.
- * Do odczytu używamy getDownloadUrl() który generuje tymczasowy URL.
- * Signed URL są generowane w serwisach (WorkerSessionService, AdminSessionService)
- * przy każdym zapytaniu o dane sesji.
+ * Do odczytu używamy head() który zwraca świeży, ważny downloadUrl.
+ * Odświeżanie URL-i odbywa się przez refreshBlobUrl() — stosowane w serwisach
+ * (WorkerSessionService, AdminSessionService) przy każdym zapytaniu o dane sesji.
  */
 
-import { put, del, list } from '@vercel/blob';
+import { put, del, list, head } from '@vercel/blob';
 
 const BLOB_PREFIX = 'werkit-photos';
+
+/**
+ * Prywatny store Vercel Blob zwraca signed URL, które wygasają.
+ * Trzymamy prosty cache in-memory z TTL, żeby nie robić head() na każde żądanie.
+ * Cache jest resetowany przy restarcie serwera (Next.js dev/prod) — to bezpieczne.
+ */
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const CACHE_TTL_MS = 4 * 60 * 1000; // 4 minuty (signed URL żyją zazwyczaj 30-60 min)
+
+/**
+ * Zwraca świeży, ważny URL do zdjęcia z Vercel Blob (private store).
+ * Używa head() do pobrania aktualnego downloadUrl.
+ * Wynik jest cache'owany w pamięci przez CACHE_TTL_MS.
+ *
+ * @param photoUrl - URL zapisany w bazie (zwrócony przez put())
+ * @returns Ważny signed URL do wyświetlenia zdjęcia
+ */
+export async function refreshBlobUrl(photoUrl: string | null | undefined): Promise<string | null> {
+  if (!photoUrl) return null;
+
+  // Sprawdź cache
+  const cached = signedUrlCache.get(photoUrl);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.url;
+  }
+
+  // Dla URL-i spoza Vercel Blob private store zwracamy oryginał
+  if (!photoUrl.includes('.private.blob.vercel-storage.com')) {
+    return photoUrl;
+  }
+
+  try {
+    const meta = await head(photoUrl);
+    const freshUrl = meta.downloadUrl;
+
+    // Zapisz w cache
+    signedUrlCache.set(photoUrl, {
+      url: freshUrl,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    });
+
+    return freshUrl;
+  } catch {
+    // Jeśli head() się nie powiedzie (np. network error), zwróć oryginalny URL
+    // Może być nieaktualny, ale to lepsze niż nic
+    return photoUrl;
+  }
+}
+
+/**
+ * Odświeża tablicę URL-i zdjęć — batch processing z równoległymi wywołaniami.
+ */
+export async function refreshBlobUrls(urls: (string | null | undefined)[]): Promise<(string | null)[]> {
+  return Promise.all(urls.map((u) => refreshBlobUrl(u)));
+}
 
 export type PhotoUploadResult = {
   url: string;

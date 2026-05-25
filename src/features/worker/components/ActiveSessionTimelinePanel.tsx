@@ -17,7 +17,7 @@ type Props = {
 
 /**
  * Zwraca URL zdjęcia do wyświetlenia.
- * Dla zdjęć z Vercel Blob (private store) serwis zwraca już Signed URL (getDownloadUrl).
+ * Dla zdjęć z Vercel Blob (private store) serwis zwraca już świeży Signed URL (przez head()).
  * Dla starych data URL-i używamy bezpośredniego URL.
  */
 function getPhotoSrc(item: TimelineItem): string {
