@@ -65,6 +65,7 @@ vi.mock("@/services/ScheduleConflictService", () => ({
     hasActiveWorkerSession: vi.fn(),
     findConflictsForRequest: vi.fn(),
     hasActiveResourceSession: vi.fn(),
+    assertNoScheduleConflict: vi.fn(),
   },
 }));
 
@@ -93,6 +94,7 @@ vi.mock("@/lib/scheduleConflict", () => ({
 vi.mock("@/lib/workOrderCategoryValidation", () => ({
   coerceWorkOrderPriority: vi.fn((p: unknown) => p || "NORMAL"),
   validateWorkOrderFieldsAgainstCategory: vi.fn(() => "ok" as const),
+  validateCategoryForOrder: vi.fn(),
 }));
 
 vi.mock("@/services/CustomerLocationService", () => ({

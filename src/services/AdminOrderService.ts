@@ -17,11 +17,7 @@ import {
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 import { computeLockedUntil } from '@/lib/scheduleConflict';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
-import {
-  assertResourceBelongsToCompany,
-  assertCustomerBelongsToCompany,
-  assertMaterialBelongsToCompany,
-} from '@/lib/tenantContext';
+import { assertOrderEntitiesBelongToCompany } from '@/lib/tenantContext';
 
 export class AdminOrderService {
   /** Koniec rezerwacji harmonogramu — `null` gdy brak terminu lub czasu trwania. */
@@ -41,23 +37,20 @@ export class AdminOrderService {
     durationHours: number | null,
     excludeOrderId?: number,
   ): Promise<"schedule_conflict" | "resource_busy" | null> {
-    if (dueDate && durationHours != null && durationHours > 0) {
-      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
+    try {
+      await ScheduleConflictService.assertNoScheduleConflict(companyId, {
         userId,
         resourceId,
         dueDate,
         durationHours,
         excludeOrderId,
       });
-      return conflicts.length > 0 ? "schedule_conflict" : null;
+      return null;
+    } catch (e) {
+      if (e instanceof Error && e.message === 'schedule_conflict') return "schedule_conflict";
+      if (e instanceof Error && e.message === 'resource_busy') return "resource_busy";
+      throw e;
     }
-
-    const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
-      companyId,
-      resourceId,
-      userId,
-    );
-    return resourceBusy ? "resource_busy" : null;
   }
 
   /**
@@ -154,23 +147,7 @@ export class AdminOrderService {
     if (companyId == null) throw new Error('missing_company');
 
     // Cross-tenant validation: verify all referenced entities belong to the same company
-    if (orderData.userId != null) {
-      const [userRow] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(and(eq(users.id, orderData.userId), eq(users.companyId, companyId)))
-        .limit(1);
-      if (!userRow) throw new Error('invalid_user');
-    }
-    if (orderData.resourceId != null) {
-      await assertResourceBelongsToCompany(orderData.resourceId, companyId);
-    }
-    if (orderData.customerId != null) {
-      await assertCustomerBelongsToCompany(orderData.customerId, companyId);
-    }
-    if (orderData.materialId != null) {
-      await assertMaterialBelongsToCompany(orderData.materialId, companyId);
-    }
+    await assertOrderEntitiesBelongToCompany(orderData, companyId);
 
     await db.insert(workOrders).values(orderData);
   }

@@ -17,6 +17,7 @@ export function useOsrmRouteToDestination(
   onRouteDistance?: (distanceKm: number) => void,
   routeGeometryProvider: RouteGeometryProvider = projectOsrmPublicRouteGeometryProvider,
   waypoints: RouteLngLat[] = [],
+  throttleMs: number = 12_000,
 ): [number, number][] {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
   const wpKey = JSON.stringify(waypoints);
@@ -40,7 +41,7 @@ export function useOsrmRouteToDestination(
           "Map: OSRM driving route",
           url,
           undefined,
-          { category: "http", throttleKey: "osrm_driving_route", throttleMs: 12_000 },
+          { category: "http", throttleKey: "osrm_driving_route", throttleMs },
         );
         const data: unknown = await res.json();
         const routes = (data as { routes?: { geometry: { coordinates: [number, number][] }; distance: number }[] })

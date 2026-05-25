@@ -6,8 +6,8 @@ import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachme
 import { CustomerLocationService } from '@/services/CustomerLocationService';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
-import { parsePositiveIntParam } from '@/lib/parseRouteParams';
-import { refreshBlobUrl } from '@/lib/photoUpload';
+import { parseOrderBody } from '@/lib/parseRouteParams';
+import { refreshPhotoUrls } from '@/lib/photoUpload';
 import {
   assertResourceBelongsToCompany,
   assertCustomerBelongsToCompany,
@@ -61,13 +61,7 @@ export class WorkerSessionService {
 
     const data = activeSessions[0];
     const rawPhotos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
-    const photos = await Promise.all(
-      rawPhotos.map(async (p) => ({
-        ...p,
-        // Dla zdjęć z Vercel Blob (private store) generuj świeży Signed URL przez head()
-        photoUrl: await refreshBlobUrl(p.photoUrl),
-      })),
-    );
+    const photos = await refreshPhotoUrls(rawPhotos);
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
 
     const resolvedLocation = await CustomerLocationService.resolveForWorkOrder(
@@ -109,27 +103,13 @@ export class WorkerSessionService {
     companyId: number,
     body: Record<string, unknown>,
   ) {
-    const resourceId = body.resourceId;
-    const categoryId = body.categoryId;
-    const materialId = body.materialId;
-    const customerId = body.customerId;
-    const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : undefined;
-    const quantityTons = typeof body.quantityTons === "string" ? body.quantityTons : null;
-
-    const resId = parsePositiveIntParam(resourceId);
-    const catId = parsePositiveIntParam(categoryId);
-    if (resId == null || catId == null) {
-      throw new Error('missing_fields');
-    }
-
-    const matId = materialId != null && materialId !== "" ? parsePositiveIntParam(materialId) : null;
-    const custId = customerId != null && customerId !== "" ? parsePositiveIntParam(customerId) : null;
-    if (materialId != null && materialId !== "" && matId == null) {
-      throw new Error('invalid_payload');
-    }
-    if (customerId != null && customerId !== "" && custId == null) {
-      throw new Error('invalid_payload');
-    }
+    const parsed = parseOrderBody(body);
+    const resId = parsed.resourceId;
+    const catId = parsed.categoryId;
+    const matId = parsed.materialId;
+    const custId = parsed.customerId;
+    const taskDescription = parsed.taskDescription ?? undefined;
+    const quantityTons = parsed.quantityTons;
 
     const startCoord = coordsFromRequestBody(body);
 
@@ -392,13 +372,7 @@ export class WorkerSessionService {
       db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, sessionId)),
     ]);
 
-    const photos = await Promise.all(
-      rawPhotos.map(async (p) => ({
-        ...p,
-        // Dla zdjęć z Vercel Blob (private store) generuj świeży Signed URL przez head()
-        photoUrl: await refreshBlobUrl(p.photoUrl),
-      })),
-    );
+    const photos = await refreshPhotoUrls(rawPhotos);
 
     return { sessionData, logs, notes, photos };
   }

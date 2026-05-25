@@ -18,6 +18,16 @@ export function readBool(r: Record<string, unknown>, k: string, fallback: boolea
   return typeof r[k] === "boolean" ? r[k] : fallback;
 }
 
+export function narrowNullableNumber(v: unknown): number | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 export function narrowPriority(p: unknown): import("@/types/worker").WorkOrderPriority | null {
   if (p === "URGENT" || p === "HIGH" || p === "NORMAL" || p === "LOW") return p;
   return null;

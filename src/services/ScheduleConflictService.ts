@@ -34,6 +34,43 @@ function serializeConflict(c: ScheduleConflict) {
 }
 
 export class ScheduleConflictService {
+  static async assertNoScheduleConflict(
+    companyId: number,
+    params: {
+      userId: number;
+      resourceId: number | null;
+      dueDate: Date | null;
+      durationHours: number | null;
+      excludeOrderId?: number;
+    },
+  ): Promise<{ ok: true } | never> {
+    const { userId, resourceId, dueDate, durationHours, excludeOrderId } = params;
+
+    if (dueDate && durationHours != null && durationHours > 0) {
+      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
+        userId,
+        resourceId: resourceId!,
+        dueDate,
+        durationHours,
+        excludeOrderId,
+      });
+      if (conflicts.length > 0) {
+        throw new Error('schedule_conflict');
+      }
+    } else if (resourceId) {
+      const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
+        companyId,
+        resourceId,
+        userId,
+      );
+      if (resourceBusy) {
+        throw new Error('resource_busy');
+      }
+    }
+
+    return { ok: true };
+  }
+
   static async loadCandidates(
     companyId: number,
     userId: number,

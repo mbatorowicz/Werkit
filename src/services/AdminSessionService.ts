@@ -1,7 +1,7 @@
 import { db } from '@/db';
 import { workSessions, gpsLogs, sessionPhotos, sessionNotes, workOrders } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { refreshBlobUrl } from '@/lib/photoUpload';
+import { refreshPhotoUrls } from '@/lib/photoUpload';
 
 export class AdminSessionService {
   /**
@@ -34,12 +34,7 @@ export class AdminSessionService {
     ]);
 
     // Dla zdjęć z Vercel Blob (private store) generuj świeży Signed URL przez head()
-    const photosWithSignedUrls = await Promise.all(
-      photos.map(async (p) => ({
-        ...p,
-        photoUrl: await refreshBlobUrl(p.photoUrl),
-      })),
-    );
+    const photosWithSignedUrls = await refreshPhotoUrls(photos);
 
     return { logs, photos: photosWithSignedUrls, notes };
   }

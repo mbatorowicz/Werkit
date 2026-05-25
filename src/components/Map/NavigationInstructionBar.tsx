@@ -1,52 +1,8 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, ArrowUp, CornerDownLeft, CornerUpRight, MapPin, RotateCcw } from "lucide-react";
 import type { NavigationInstruction } from "./useOsrmNavigation";
-
-// ---------------------------------------------------------------------------
-// Maneuver icon mapping
-// ---------------------------------------------------------------------------
-
-function ManeuverIcon({ type, modifier, className = "h-5 w-5" }: { type: string; modifier?: string; className?: string }) {
-  // Determine icon based on maneuver type + modifier
-  if (type === "arrive") return <MapPin className={className} />;
-  if (type === "depart") return <ArrowUp className={className} />;
-
-  if (type === "roundabout" || type === "rotary" || type === "exit_roundabout") {
-    return <RotateCcw className={className} />;
-  }
-
-  if (type === "uturn" || modifier === "uturn") return <RotateCcw className={className} />;
-
-  if (modifier === "left" || modifier === "sharp_left") return <ArrowLeft className={className} />;
-  if (modifier === "right" || modifier === "sharp_right") return <ArrowRight className={className} />;
-  if (modifier === "slight_left") return <CornerDownLeft className={className} />;
-  if (modifier === "slight_right") return <CornerUpRight className={className} />;
-
-  // straight / continue
-  return <ArrowUp className={className} />;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Format distance in a human-readable way (meters or kilometers). */
-export function formatNavigationDistance(meters: number): string {
-  if (meters < 50) return "ok. 50 m";
-  if (meters < 1000) return `${Math.round(meters / 10) * 10} m`;
-  return `${(meters / 1000).toFixed(1)} km`;
-}
-
-/** Format duration in a human-readable way. */
-export function formatNavigationDuration(seconds: number): string {
-  if (seconds < 60) return "<1 min";
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
-}
+import { ManeuverIcon } from "./ManeuverIcon";
+import { formatNavigationDistance, formatNavigationDuration } from "./navigationFormat";
 
 // ---------------------------------------------------------------------------
 // Props

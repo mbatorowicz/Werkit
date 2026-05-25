@@ -174,3 +174,16 @@ export async function deleteSessionPhotos(sessionId: number): Promise<void> {
   }
 }
 
+/**
+ * Odświeża tablicę obiektów zdjęć — generuje świeże signed URL dla każdego `photoUrl`.
+ * Używane w AdminSessionService i WorkerSessionService przy pobieraniu szczegółów sesji.
+ */
+export async function refreshPhotoUrls<T extends { photoUrl: string }>(photos: T[]): Promise<T[]> {
+  return Promise.all(
+    photos.map(async (p) => ({
+      ...p,
+      photoUrl: (await refreshBlobUrl(p.photoUrl)) ?? p.photoUrl,
+    })),
+  );
+}
+

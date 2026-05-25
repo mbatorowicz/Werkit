@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { resources, materials, customers } from '@/db/schema';
+import { resources, materials, customers, users } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { JwtPayload } from '@/lib/auth';
 
@@ -88,6 +88,34 @@ export function assertMaterialBelongsToCompany(materialId: number, companyId: nu
 /** Sprawdza czy klient o podanym ID należy do firmy. */
 export function assertCustomerBelongsToCompany(customerId: number, companyId: number): Promise<void> {
   return assertEntityBelongsToCompany('customer', customerId, companyId);
+}
+
+export async function assertOrderEntitiesBelongToCompany(
+  orderData: {
+    userId?: number | null;
+    resourceId?: number | null;
+    customerId?: number | null;
+    materialId?: number | null;
+  },
+  companyId: number,
+): Promise<void> {
+  if (orderData.userId != null) {
+    const [userRow] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, orderData.userId), eq(users.companyId, companyId)))
+      .limit(1);
+    if (!userRow) throw new Error('invalid_user');
+  }
+  if (orderData.resourceId != null) {
+    await assertResourceBelongsToCompany(orderData.resourceId, companyId);
+  }
+  if (orderData.customerId != null) {
+    await assertCustomerBelongsToCompany(orderData.customerId, companyId);
+  }
+  if (orderData.materialId != null) {
+    await assertMaterialBelongsToCompany(orderData.materialId, companyId);
+  }
 }
 
 export class TenantContextError extends Error {

@@ -2,7 +2,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 
 export const dynamic = 'force-dynamic';
 
-import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
+import { coerceWorkOrderPriority, validateCategoryForOrder } from '@/lib/workOrderCategoryValidation';
 import { AdminOrderService } from '@/services/AdminOrderService';
 import { requireCompanyScopedSession } from '@/lib/apiTenant';
 
@@ -44,19 +44,10 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       return jsonError("missing_fields", 400);
     }
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, catIdNum);
-    if (!categoryRow || categoryRow.isGroup) {
-      return jsonError("invalid_category", 400);
-    }
-    const catCheck = validateWorkOrderFieldsAgainstCategory(categoryRow, {
-      customerId,
-      materialId,
-      quantityTons,
-      taskDescription,
-    });
-    if (catCheck !== 'ok') {
-      return jsonError(catCheck, 400);
+    try {
+      await validateCategoryForOrder(companyId, catIdNum, { customerId, materialId, quantityTons, taskDescription });
+    } catch (e) {
+      return jsonError(e instanceof Error ? e.message : "invalid_category", 400);
     }
 
     const prio = coerceWorkOrderPriority(priority);

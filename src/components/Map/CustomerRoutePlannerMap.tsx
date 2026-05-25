@@ -7,7 +7,7 @@ import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
-import { usePlannedDrivingRoute } from "@/components/Map/usePlannedDrivingRoute";
+import { useOsrmRouteToDestination } from "@/components/Map/useOsrmRouteToDestination";
 import { getDictionary } from "@/i18n";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
@@ -80,7 +80,7 @@ export function CustomerRoutePlannerMap({
   const dict = getDictionary().admin.customers;
   const hasDestination = destination !== null;
 
-  const routeLine = usePlannedDrivingRoute(routeOrigin, destination, waypoints);
+  const routeLine = useOsrmRouteToDestination(routeOrigin, destination, undefined, undefined, waypoints, 8_000);
 
   const center = useMemo((): [number, number] => {
     if (destination) return [destination.lat, destination.lng];

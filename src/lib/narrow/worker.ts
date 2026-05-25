@@ -2,8 +2,8 @@
 
 import type { WorkOrder } from "@/types/worker";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
-import { isRecord, narrowNumberArray, readBool, narrowPriority } from "./shared";
-import { narrowBaseMaterials, narrowBaseCustomers } from "./base";
+import { isRecord, narrowNumberArray, narrowPriority, narrowNullableNumber } from "./shared";
+import { narrowBaseCategories, narrowBaseMaterials, narrowBaseCustomers } from "./base";
 
 export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
   const out: WorkOrder[] = [];
@@ -32,26 +32,8 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       priority: narrowPriority(r.priority),
       dueDate,
       createdAt: r.createdAt,
-      expectedDurationHours: (() => {
-        if (r.expectedDurationHours === null) return null;
-        if (typeof r.expectedDurationHours === "number" && Number.isFinite(r.expectedDurationHours)) {
-          return r.expectedDurationHours;
-        }
-        if (typeof r.expectedDurationHours === "string") {
-          const n = Number(r.expectedDurationHours);
-          return Number.isFinite(n) ? n : null;
-        }
-        return null;
-      })(),
-      quantityTons: (() => {
-        if (r.quantityTons === null) return null;
-        if (typeof r.quantityTons === "number" && Number.isFinite(r.quantityTons)) return r.quantityTons;
-        if (typeof r.quantityTons === "string") {
-          const n = Number(r.quantityTons);
-          return Number.isFinite(n) ? n : null;
-        }
-        return null;
-      })(),
+      expectedDurationHours: narrowNullableNumber(r.expectedDurationHours),
+      quantityTons: narrowNullableNumber(r.quantityTons),
       creatorName:
         r.creatorName === null || typeof r.creatorName === "string" ? (r.creatorName as string | null) : null,
       hasPhotos: typeof r.hasPhotos === "boolean" ? r.hasPhotos : undefined,
@@ -62,30 +44,14 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
 }
 
 export function narrowWizardCategories(rows: unknown[]): WizardCategory[] {
-  const out: WizardCategory[] = [];
-  for (const raw of rows) {
-    if (!isRecord(raw)) continue;
-    if (typeof raw.id !== "number" || typeof raw.name !== "string") continue;
-    out.push({
-      id: raw.id,
-      name: raw.name,
+  const base = narrowBaseCategories(rows);
+  return rows
+    .filter((r): r is Record<string, unknown> => isRecord(r))
+    .map((raw, i) => ({
+      ...base[i],
       icon: typeof raw.icon === "string" ? raw.icon : undefined,
-      showCustomer: readBool(raw, "showCustomer", true),
-      showMaterial: readBool(raw, "showMaterial", true),
-      showQuantity: readBool(raw, "showQuantity", true),
-      showTaskDescription: readBool(raw, "showTaskDescription", true),
-      showResourceName: readBool(raw, "showResourceName", true),
-      showResourceDescription: readBool(raw, "showResourceDescription", false),
-      showRegistrationNumber: readBool(raw, "showRegistrationNumber", true),
-      reqCustomer: readBool(raw, "reqCustomer", false),
-      reqMaterial: readBool(raw, "reqMaterial", false),
-      reqQuantity: readBool(raw, "reqQuantity", false),
-      reqTaskDescription: readBool(raw, "reqTaskDescription", true),
-      isGlobal: readBool(raw, "isGlobal", false),
-      isStationary: readBool(raw, "isStationary", false),
-    });
-  }
-  return out;
+    }))
+    .filter((_, i) => i < base.length);
 }
 
 export function narrowWizardMachines(rows: unknown[]): WizardMachine[] {

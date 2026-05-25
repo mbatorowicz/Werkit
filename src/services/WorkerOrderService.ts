@@ -10,13 +10,9 @@ import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPrior
 import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
 import { computeLockedUntil, parseDurationHours } from '@/lib/scheduleConflict';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
-import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
-import { parsePositiveIntParam } from '@/lib/parseRouteParams';
-import {
-  assertResourceBelongsToCompany,
-  assertCustomerBelongsToCompany,
-  assertMaterialBelongsToCompany,
-} from '@/lib/tenantContext';
+import { coerceWorkOrderPriority, validateCategoryForOrder } from '@/lib/workOrderCategoryValidation';
+import { parseOrderBody } from '@/lib/parseRouteParams';
+import { assertOrderEntitiesBelongToCompany } from '@/lib/tenantContext';
 
 export class WorkerOrderService {
   /**
@@ -84,27 +80,13 @@ export class WorkerOrderService {
     }
 
     const durationHours = parseDurationHours(order.expectedDurationHours);
-    if (order.dueDate && durationHours != null) {
-      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
-        userId,
-        resourceId: order.resourceId,
-        dueDate: order.dueDate,
-        durationHours,
-        excludeOrderId: order.id,
-      });
-      if (conflicts.length > 0) {
-        throw new Error('schedule_conflict');
-      }
-    } else if (order.resourceId) {
-      const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
-        companyId,
-        order.resourceId,
-        userId,
-      );
-      if (resourceBusy) {
-        throw new Error('resource_busy');
-      }
-    }
+    await ScheduleConflictService.assertNoScheduleConflict(companyId, {
+      userId,
+      resourceId: order.resourceId,
+      dueDate: order.dueDate,
+      durationHours,
+      excludeOrderId: order.id,
+    });
 
     let customerLocationId = order.customerLocationId;
     if (!customerLocationId && order.customerId) {
@@ -163,50 +145,10 @@ export class WorkerOrderService {
     companyId: number,
     body: Record<string, unknown>,
   ): Promise<number> {
-    const categoryId = parsePositiveIntParam(body.categoryId);
-    const resourceId = parsePositiveIntParam(body.resourceId);
-    if (categoryId == null || resourceId == null) {
-      throw new Error('missing_fields');
-    }
-
-    const materialId =
-      body.materialId != null && body.materialId !== ""
-        ? parsePositiveIntParam(body.materialId)
-        : null;
-    const customerId =
-      body.customerId != null && body.customerId !== ""
-        ? parsePositiveIntParam(body.customerId)
-        : null;
-    if (body.materialId != null && body.materialId !== "" && materialId == null) {
-      throw new Error('invalid_payload');
-    }
-    if (body.customerId != null && body.customerId !== "" && customerId == null) {
-      throw new Error('invalid_payload');
-    }
-
-    const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
-    const quantityTons =
-      typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
-        ? String(body.quantityTons)
-        : null;
-    const expectedDurationHours =
-      typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
-        ? String(body.expectedDurationHours)
-        : null;
-    const dueDateRaw = typeof body.dueDate === "string" ? body.dueDate : null;
-    const parsedDueDate = dueDateRaw ? new Date(dueDateRaw) : null;
-    const priority = coerceWorkOrderPriority(body.priority);
-
+    const parsed = parseOrderBody(body);
     const payload = {
-      categoryId,
-      resourceId,
-      materialId,
-      customerId,
-      quantityTons,
-      taskDescription,
-      expectedDurationHours,
-      dueDate: parsedDueDate,
-      priority,
+      ...parsed,
+      priority: coerceWorkOrderPriority(parsed.priority),
     };
     const [userRow] = await db
       .select({ canCreateOwnOrders: users.canCreateOwnOrders })
@@ -223,53 +165,22 @@ export class WorkerOrderService {
     }
 
     // Cross-tenant validation: verify all referenced entities belong to the same company
-    if (payload.resourceId != null) {
-      await assertResourceBelongsToCompany(payload.resourceId, companyId);
-    }
-    if (payload.customerId != null) {
-      await assertCustomerBelongsToCompany(payload.customerId, companyId);
-    }
-    if (payload.materialId != null) {
-      await assertMaterialBelongsToCompany(payload.materialId, companyId);
-    }
+    await assertOrderEntitiesBelongToCompany(payload, companyId);
 
-    const { DictionaryService } = await import('@/services/DictionaryService');
-    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, payload.categoryId);
-    if (!categoryRow || categoryRow.isGroup) {
-      throw new Error('invalid_category');
-    }
-
-    const catCheck = validateWorkOrderFieldsAgainstCategory(categoryRow, {
+    await validateCategoryForOrder(companyId, payload.categoryId, {
       customerId: payload.customerId,
       materialId: payload.materialId,
       quantityTons: payload.quantityTons,
       taskDescription: payload.taskDescription,
     });
-    if (catCheck !== 'ok') {
-      throw new Error(catCheck);
-    }
 
     const durationHours = parseDurationHours(payload.expectedDurationHours);
-    if (payload.dueDate && durationHours != null) {
-      const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, {
-        userId,
-        resourceId: payload.resourceId,
-        dueDate: payload.dueDate,
-        durationHours,
-      });
-      if (conflicts.length > 0) {
-        throw new Error('schedule_conflict');
-      }
-    } else {
-      const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
-        companyId,
-        payload.resourceId,
-        userId,
-      );
-      if (resourceBusy) {
-        throw new Error('resource_busy');
-      }
-    }
+    await ScheduleConflictService.assertNoScheduleConflict(companyId, {
+      userId,
+      resourceId: payload.resourceId,
+      dueDate: payload.dueDate,
+      durationHours,
+    });
 
     const prio = coerceWorkOrderPriority(payload.priority);
 

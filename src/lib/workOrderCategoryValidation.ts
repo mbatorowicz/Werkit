@@ -1,3 +1,5 @@
+import { DictionaryService } from '@/services/DictionaryService';
+
 export type CategoryRequirementFlags = {
   reqCustomer: boolean;
   reqMaterial: boolean;
@@ -51,6 +53,27 @@ export function validateWorkOrderFieldsAgainstCategory(
   }
 
   return "ok";
+}
+
+export async function validateCategoryForOrder(
+  companyId: number,
+  categoryId: number,
+  fields: {
+    customerId?: unknown;
+    materialId?: unknown;
+    quantityTons?: unknown;
+    taskDescription?: unknown;
+  },
+): Promise<{ ok: true } | never> {
+  const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
+  if (!categoryRow || categoryRow.isGroup) {
+    throw new Error('invalid_category');
+  }
+  const check = validateWorkOrderFieldsAgainstCategory(categoryRow, fields);
+  if (check !== 'ok') {
+    throw new Error(check);
+  }
+  return { ok: true };
 }
 
 export function coerceWorkOrderPriority(value: unknown): "URGENT" | "HIGH" | "NORMAL" | "LOW" {
