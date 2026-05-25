@@ -378,6 +378,12 @@ export const en: AppDictionary = {
       speedLegendTitle: "Speed (GPS time)",
       speedLegendSlow: "slow",
       speedLegendFast: "fast",
+      fullscreen: "Full screen",
+      closeFullscreen: "Close",
+      navigateTo: "Navigate",
+      navigateGoogleMaps: "Google Maps",
+      navigateWaze: "Waze",
+      navigateAppleMaps: "Apple Maps",
     },
     workers: {
       title: "Users",

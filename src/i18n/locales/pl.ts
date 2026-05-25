@@ -377,6 +377,12 @@ export const pl = {
       speedLegendTitle: "Prędkość (czas GPS)",
       speedLegendSlow: "wolno",
       speedLegendFast: "szybko",
+      fullscreen: "Pełny ekran",
+      closeFullscreen: "Zamknij",
+      navigateTo: "Nawiguj",
+      navigateGoogleMaps: "Google Maps",
+      navigateWaze: "Waze",
+      navigateAppleMaps: "Apple Maps",
     },
     workers: {
       title: "Użytkownicy",
