@@ -46,6 +46,12 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 ```
 src/
 ├── app/                    # Trasy Next: page.tsx, layout.tsx, cienkie wrappery; **bez** logiki UI > ~300 linii
+│   ├── api/                # Route Handlery (42 endpointy)
+│   │   ├── admin/          #   API panelu admina (work-orders, users, sessions, settings, …)
+│   │   ├── worker/         #   API aplikacji pracownika (session, gps, logs, work-orders, …)
+│   │   ├── platform/       #   API superadmin (companies, analytics)
+│   │   ├── auth/           #   Login / logout
+│   │   └── …               #   API współdzielone (categories, customers, machines, materials, …)
 │   ├── admin/              # import *Client z features/admin lub lokalnie (docelowo tylko features)
 │   ├── platform/           # superadmin (multi-tenant)
 │   └── worker/             # routing; WorkerClient importuje z features/worker
@@ -58,10 +64,12 @@ src/
 ├── components/             # UI współdzielony (Admin shell, work-orders, customers, Map, …)
 ├── hooks/                  # generyczne hooki UI (floating panel, dismiss outside) — używane przez comboboxy
 ├── services/               # Drizzle + logika domenowa (SSOT zapytań DB)
+│   └── dictionary/         # Sub-moduł słowników (CategoryService, MaterialService, CustomerService, …)
 ├── db/
 ├── types/
 ├── i18n/
 ├── lib/
+│   └── narrow/             # Type narrowing — bezpieczne parsowanie odpowiedzi API (shared/, base/, admin/, worker/, machines/)
 ├── scripts/                # migracje tsx, verify_schema, generate_notification_sounds
 └── proxy.ts                # JWT + role (admin, worker, platform/superadmin)
 ```
@@ -74,11 +82,12 @@ src/
 
 1. **Tablice z API** — zanim wywołasz `.map()` / `.filter()` na odpowiedzi `fetch`, sprawdź **`Array.isArray(data)`** (albo bezpieczny fallback `[]`). Błąd 500 może zwrócić obiekt → crash na mobilce.
 2. **`any`** — nie dodawaj. Nieznane JSON → zwężanie przez **type guards** / jawne typy / walidację.
-3. **Priorytet zlecenia** — wartości domenowe: `URGENT` \| `HIGH` \| `NORMAL` \| `LOW`. Normalizacja po stronie serwera tam, gdzie już jest (`normalizeWorkOrderPriority`). W bazie egzekwuje to migracja **CHECK** `work_orders_priority_chk` (patrz `drizzle/`).
+3. **Priorytet zlecenia** — wartości domenowe: `URGENT` \| `HIGH` \| `NORMAL` \| `LOW`. W bazie egzekwuje to migracja **CHECK** `work_orders_priority_chk` (patrz `drizzle/`). Po stronie klienta walidacja przez **`narrowPriority`** z [`src/lib/narrow/shared.ts`](./src/lib/narrow/shared.ts).
 3a. **Hierarchia kategorii** (`resource_categories` / `material_categories`): `parent_id`, `is_group`, `sort_order`. Grupy — tylko organizacja w adminie; liście — zlecenia, wizard, przypisania. API: `GET /api/categories?leavesOnly=1` (materiały analogicznie). UI admin: `src/features/admin/categories/`, `src/lib/categoryTree.ts`, i18n `admin.categories`.
 4. **Nowy kod DB** — **wyłącznie `src/services/`** (Drizzle); **`src/app/`** nie importuje `@/db` / `@/db/schema`. Szczegóły: **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
 5. **Teksty UI** — stringi widoczne dla użytkownika przez **`getDictionary()`** / sloty `worker.client`, `admin.*`, `apiErrors`. Placeholdery `{klucz}` przez **`formatDict`**. Domyślny locale formatów dat: **`DEFAULT_UI_LOCALE`** (`src/i18n/constants.ts`), dopóki nie ma wyboru języka użytkownika.
 6. **Proxy (Edge)** — strażnik tras to **`src/proxy.ts`** z eksportem **`proxy`** (Next.js 16; dawniej `middleware.ts`). Ta sama rola: JWT, role, matcher — bez zmian logiki nie psuj ochrony `/admin`, `/worker`, `/api`.
+7. **Type narrowing** — odpowiedzi API (zwłaszcza listy) parsuj przez funkcje `narrow*` z [`src/lib/narrow/`](./src/lib/narrow/) (np. `narrowWorkOrders`, `narrowAdminUserRows`, `narrowBaseCustomers`). Nie ufaj surowym `unknown[]` — narrow functions zwracają bezpieczną, przefiltrowaną tablicę nawet gdy API zwróci obiekt (błąd 500).
 
 ---
 
