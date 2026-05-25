@@ -91,6 +91,7 @@ export function AdminSearchCombobox({
   }, [query, onQueryChange]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset highlight on query/open change
     setHighlightIndex(0);
   }, [query, open]);
 

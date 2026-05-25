@@ -6,7 +6,7 @@ export type CatalogMaterialRow = {
   categoryIds?: number[];
 };
 
-export type MaterialCatalogIndex<T extends CategoryHierarchyRow> = {
+export type MaterialCatalogIndex = {
   byCategoryId: Map<number, CatalogMaterialRow[]>;
   uncategorized: CatalogMaterialRow[];
 };
@@ -14,7 +14,7 @@ export type MaterialCatalogIndex<T extends CategoryHierarchyRow> = {
 export function indexMaterialsByCategory<T extends CategoryHierarchyRow>(
   categories: T[],
   materials: CatalogMaterialRow[],
-): MaterialCatalogIndex<T> {
+): MaterialCatalogIndex {
   const leafIds = new Set(categories.filter((c) => !c.isGroup).map((c) => c.id));
   const byCategoryId = new Map<number, CatalogMaterialRow[]>();
   const uncategorized: CatalogMaterialRow[] = [];

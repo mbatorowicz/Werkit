@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRecord, narrowBaseCategories, narrowBaseWorkers } from "@/lib/narrowApiListRows";
+import { isRecord, narrowBaseCategories, narrowBaseWorkers } from "@/lib/narrow";
 
 describe("isRecord", () => {
   it("odrzuca null i prymitywy", () => {

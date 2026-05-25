@@ -91,6 +91,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
 
   useEffect(() => {
     didAutoSelectRef.current = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch on mount
     void load();
   }, [load]);
 

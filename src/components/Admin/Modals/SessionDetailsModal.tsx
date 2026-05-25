@@ -1,52 +1,25 @@
 "use client";
 
 import type { TimelineItem } from "@/types/worker";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
-  X,
   Map as MapIcon,
-  Image as ImageIcon,
-  FileText,
   Loader2,
   CheckCircle2,
   Trash2,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import Image from "next/image";
 import { getDictionary, type Locale } from "@/i18n";
-import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
+import { formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPasswordConfirmModal } from "@/components/Admin/AdminPasswordConfirmModal";
 import { useAppDialog } from "@/components/AppDialogProvider";
-import { UnifiedGanttItem } from "@/types/admin";
+import type { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-
-const SessionDetailsLocaleContext = createContext<Locale>("pl");
-
-/** next/dynamic nie przekazuje propsów do `loading` — locale ze kontekstu jak w rodzicu. */
-function SessionMapLoader() {
-  const locale = useContext(SessionDetailsLocaleContext);
-  const ordersDict = getDictionary(locale).admin.orders;
-  return (
-    <div
-      role="status"
-      aria-label={ordersDict.sessionMapLoadingLabel}
-      className="flex h-full w-full animate-pulse items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800"
-    >
-      <MapIcon className="h-8 w-8 text-zinc-400" />
-    </div>
-  );
-}
-
-const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), {
-  ssr: false,
-  loading: SessionMapLoader,
-});
+import SessionMapSection, { SessionDetailsLocaleContext } from "./SessionMapSection";
+import SessionTimelinePanel from "./SessionTimelinePanel";
+import SessionPhotoLightbox from "./SessionPhotoLightbox";
 
 export default function SessionDetailsModal({
   item,
@@ -63,7 +36,6 @@ export default function SessionDetailsModal({
   canMutate?: boolean;
   onForceCompleteSession?: (sessionId: number) => Promise<void>;
   onDeleteArchivedSession?: (sessionId: number, adminPassword: string) => Promise<void>;
-  /** Domyślnie PL; w przyszłości z cookies / profilem (jak `getDictionary` w layoutach). */
   locale?: Locale;
 }) {
   const resolvedLocale = locale ?? "pl";
@@ -211,6 +183,11 @@ export default function SessionDetailsModal({
   const categoryLabel = ((item.categoryName as string) || "").trim() || dict.sessionDetailsNoCategory;
   const machineLabel = ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
 
+  const handlePhotoClick = (url: string) => {
+    const idx = allPhotos.indexOf(url);
+    if (idx >= 0) setLightboxIndex(idx);
+  };
+
   return (
     <SessionDetailsLocaleContext.Provider value={resolvedLocale}>
       <>
@@ -281,83 +258,21 @@ export default function SessionDetailsModal({
                 <div className="py-12 text-center text-zinc-500">{dict.loadingData}</div>
               ) : (
                 <>
-                  {!isStationary ? (
-                    <div className="h-[400px] overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
-                      {hasMapData ? (
-                        <LiveMap
-                          currentLocation={currentLocation}
-                          pathTraveled={pathTraveled}
-                          destination={null}
-                          events={events}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center bg-zinc-50 text-zinc-500 dark:bg-zinc-800/50">
-                          <MapIcon className="mb-2 h-8 w-8 opacity-50" />
-                          <p>{dict.noGpsData}</p>
-                        </div>
-                      )}
-                    </div>
-                  ) : null}
+                  <SessionMapSection
+                    hasMapData={hasMapData}
+                    isStationary={isStationary}
+                    currentLocation={currentLocation}
+                    pathTraveled={pathTraveled}
+                    events={events}
+                    dict={dict}
+                  />
 
-                  {timelineItems.length > 0 ? (
-                    <div className="mt-8">
-                      <h3 className="mb-6 flex items-center gap-2 text-lg font-semibold text-zinc-900 dark:text-white">
-                        <ImageIcon className="h-5 w-5 text-amber-500" /> {dict.timelineTitle}
-                      </h3>
-                      <div className="relative ml-4 space-y-8 border-l-2 border-zinc-200 dark:border-zinc-800">
-                        {timelineItems.map((entry) => {
-                          const isNote = entry.type === "note";
-                          const timeStr = formatUiTimeHm(entry.time);
-                          const dateStr = formatUiDateOnly(entry.time);
-
-                          return (
-                            <div key={`${entry.type}-${entry.id}`} className="relative flex w-full items-start">
-                              <div className="absolute -left-[9px] top-4 z-10 h-4 w-4 rounded-full border-4 border-zinc-50 bg-amber-500 dark:border-[#0a0a0b]" />
-
-                              <div className="w-full pl-6">
-                                <div className="max-w-2xl rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-                                  <div className="mb-2 flex items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                                    {isNote ? (
-                                      <FileText className="h-4 w-4 text-orange-500" />
-                                    ) : (
-                                      <ImageIcon className="h-4 w-4 text-purple-500" />
-                                    )}
-                                    {dateStr} {timeStr}
-                                  </div>
-                                  {isNote ? (
-                                    <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-200">{entry.note ?? ""}</p>
-                                  ) : (
-                                    <>
-                                      <Image
-                                        src={entry.photoUrl ?? ""}
-                                        alt={dict.photoRoute}
-                                        width={800}
-                                        height={600}
-                                        unoptimized
-                                        className="mb-2 h-auto w-full cursor-pointer rounded-md object-cover transition-opacity hover:opacity-90"
-                                        onClick={() => {
-                                          const url = entry.photoUrl;
-                                          if (!url) return;
-                                          setLightboxIndex(allPhotos.indexOf(url));
-                                        }}
-                                      />
-                                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-200">
-                                        {entry.photoType === "START"
-                                          ? dict.photoStart
-                                          : entry.photoType === "END"
-                                            ? dict.photoEnd
-                                            : dict.photoRoute}
-                                      </p>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
+                  <SessionTimelinePanel
+                    items={timelineItems}
+                    allPhotos={allPhotos}
+                    onPhotoClick={handlePhotoClick}
+                    dict={dict}
+                  />
                 </>
               )}
             </div>
@@ -393,78 +308,14 @@ export default function SessionDetailsModal({
         }}
       />
 
-      {lightboxIndex !== null ? (
-        <div className="fixed inset-0 z-[200] flex flex-col bg-black/95 backdrop-blur-md">
-          <div className="z-10 flex items-center justify-between p-4 text-white/50">
-            <div className="text-sm font-medium tracking-widest">
-              {formatDict(dict.lightboxCounter, { current: lightboxIndex + 1, total: allPhotos.length })}
-            </div>
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(null)}
-              className="rounded-full p-2 transition hover:bg-white/10 hover:text-white"
-              aria-label={adminUi.closeModal}
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          <div className="relative flex flex-1 items-center justify-center overflow-hidden px-12">
-            <Image
-              src={allPhotos[lightboxIndex] ?? ""}
-              alt={dict.enlargedPhoto}
-              width={1200}
-              height={900}
-              unoptimized
-              className="max-h-full max-w-full animate-in fade-in zoom-in-95 object-contain shadow-2xl duration-300"
-            />
-
-            {allPhotos.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxIndex((prev) => (prev! > 0 ? prev! - 1 : allPhotos.length - 1));
-                  }}
-                  className="absolute left-4 top-1/2 flex -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-md transition hover:bg-white/20"
-                  aria-label={dict.lightboxPrevPhoto}
-                >
-                  <ChevronLeft className="h-6 w-6" strokeWidth={2} />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLightboxIndex((prev) => (prev! < allPhotos.length - 1 ? prev! + 1 : 0));
-                  }}
-                  className="absolute right-4 top-1/2 flex -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-md transition hover:bg-white/20"
-                  aria-label={dict.lightboxNextPhoto}
-                >
-                  <ChevronRight className="h-6 w-6" strokeWidth={2} />
-                </button>
-              </>
-            ) : null}
-          </div>
-
-          <div className={`z-10 flex h-24 items-center justify-center gap-2 bg-black/50 p-4 ${INLINE_SCROLL_X_PANEL_CLASS}`}>
-            {allPhotos.map((url, idx) => (
-              <Image
-                key={url}
-                src={url}
-                alt={formatDict(dict.lightboxThumbnailAlt, { n: idx + 1 })}
-                width={64}
-                height={64}
-                unoptimized
-                className={`h-16 w-16 cursor-pointer rounded object-cover transition-all ${
-                  idx === lightboxIndex ? "scale-110 border-2 border-amber-500 opacity-100" : "opacity-40 hover:opacity-100"
-                }`}
-                onClick={() => setLightboxIndex(idx)}
-              />
-            ))}
-          </div>
-        </div>
-      ) : null}
+      <SessionPhotoLightbox
+        photos={allPhotos}
+        currentIndex={lightboxIndex!}
+        onClose={() => setLightboxIndex(null)}
+        onNavigate={setLightboxIndex}
+        dict={dict}
+        adminUi={adminUi}
+      />
     </>
     </SessionDetailsLocaleContext.Provider>
   );

@@ -1,12 +1,11 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
-import { ChevronRight, Edit2, Folder, Layers, Package, Plus, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Layers, Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { getDictionary } from "@/i18n";
 import { formatDict } from "@/i18n/format";
 import { filterCatalogTree } from "@/lib/filterCatalogTree";
-import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import {
   buildMaterialCategoryTree,
   computeCategoryBranchStats,
@@ -14,6 +13,8 @@ import {
   type CatalogMaterialRow,
 } from "@/lib/materialCatalogTree";
 import type { CategoryHierarchyRow, CategoryTreeNode } from "@/lib/categoryTree";
+import CatalogTreeNodeComponent from "./CatalogTreeNode";
+import CatalogMaterialRowComponent from "./CatalogMaterialRow";
 
 const EMPTY_CATALOG_MATERIALS: CatalogMaterialRow[] = [];
 
@@ -129,71 +130,9 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   const isNodeExpanded = (id: number) =>
     filtered.hasQuery ? filtered.expandIds.has(id) : expanded.has(id);
 
-  const renderMaterialRow = (material: CatalogMaterialRow, depth: number, categoryColor?: string | null) => (
-    <div
-      key={`mat-${material.id}-${depth}-${String(categoryColor)}`}
-      role={onPreviewMaterial ? "button" : undefined}
-      tabIndex={onPreviewMaterial ? 0 : undefined}
-      onClick={onPreviewMaterial ? () => onPreviewMaterial(material) : undefined}
-      onKeyDown={
-        onPreviewMaterial
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onPreviewMaterial(material);
-              }
-            }
-          : undefined
-      }
-      className={`group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900${onPreviewMaterial ? " cursor-pointer" : ""}`}
-      style={{ marginLeft: `${depth * 1.25}rem` }}
-    >
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="w-5 shrink-0" />
-        <div
-          className="flex h-4 w-4 shrink-0 items-center justify-center rounded shadow-sm"
-          style={{ backgroundColor: categoryColor || "#78716c" }}
-        >
-          <Package className="h-2.5 w-2.5 text-white/90" />
-        </div>
-        <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">{material.name}</span>
-        {materialBadge ? (
-          <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
-            {materialBadge}
-          </span>
-        ) : null}
-      </div>
-      {canMutate && onEditMaterial && onDeleteMaterial ? (
-        <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={(e) => {
-              stopRowActionClick(e);
-              onEditMaterial(material);
-            }}
-            className="rounded-md p-1.5 text-zinc-600 transition hover:text-amber-500 dark:text-zinc-400"
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              stopRowActionClick(e);
-              onDeleteMaterial(material.id);
-            }}
-            className="rounded-md p-1.5 text-zinc-600 transition hover:text-red-500 dark:text-zinc-400"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-
-  const renderCategoryNodes = (nodes: CategoryTreeNode<T>[]) =>
+  const renderCategoryNodes = (nodes: CategoryTreeNode<T>[]): React.ReactNode =>
     nodes.map((node) => {
       const childMaterials = displayMaterialIndex.get(node.id) ?? [];
-      const hasChildren = node.children.length > 0 || childMaterials.length > 0;
       const isExpanded = isNodeExpanded(node.id);
       const stats = branchStats.get(node.id);
       const isBranch = node.isGroup || (node.children?.length ?? 0) > 0;
@@ -217,121 +156,28 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
           : null;
 
       return (
-        <Fragment key={`cat-${node.id}`}>
-          <div
-            role={onPreviewCategory ? "button" : undefined}
-            tabIndex={onPreviewCategory ? 0 : undefined}
-            onClick={onPreviewCategory ? () => onPreviewCategory(node) : undefined}
-            onKeyDown={
-              onPreviewCategory
-                ? (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onPreviewCategory(node);
-                    }
-                  }
-                : undefined
-            }
-            className={`group flex items-center justify-between rounded-lg border border-zinc-200 bg-white px-3 py-2.5 shadow-sm transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900${onPreviewCategory ? " cursor-pointer" : ""}`}
-            style={{ marginLeft: `${node.depth * 1.25}rem` }}
-          >
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              {hasChildren ? (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    stopRowActionClick(e);
-                    toggleExpanded(node.id);
-                  }}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  aria-expanded={isExpanded}
-                >
-                  <ChevronRight
-                    className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                  />
-                </button>
-              ) : (
-                <span className="w-5 shrink-0" />
-              )}
-              {node.isGroup ? (
-                <Folder className="h-4 w-4 shrink-0 text-amber-500" />
-              ) : (
-                <div
-                  className="h-4 w-4 shrink-0 rounded shadow-sm"
-                  style={{ backgroundColor: node.color || "#3f3f46" }}
-                />
-              )}
-              <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">{node.name}</span>
-              {node.isGroup ? (
-                <span className="shrink-0 rounded bg-zinc-200/80 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                  {groupBadge}
-                </span>
-              ) : null}
-              {!node.isGroup && node.isStationary && stationaryBadge ? (
-                <span className="shrink-0 rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                  {stationaryBadge}
-                </span>
-              ) : null}
-            </div>
-            {(categoryStatLong || categoryStatShort || materialStat) && (
-              <div className="ml-auto flex shrink-0 items-center gap-2 px-1 text-[11px] tabular-nums leading-tight text-zinc-500 sm:gap-3 sm:text-xs">
-                {categoryStatShort ? (
-                  <span className="sm:hidden" title={categoryStatLong ?? categoryStatShort}>
-                    {categoryStatShort}
-                  </span>
-                ) : null}
-                {categoryStatLong ? (
-                  <span className="hidden max-w-[9rem] truncate sm:inline" title={categoryStatLong}>
-                    {categoryStatLong}
-                  </span>
-                ) : null}
-                {materialStat ? (
-                  <span
-                    className={
-                      materialCount > 0
-                        ? "font-medium text-amber-800/90 dark:text-amber-300/90"
-                        : "text-zinc-400 dark:text-zinc-500"
-                    }
-                  >
-                    {materialStat}
-                  </span>
-                ) : null}
-              </div>
-            )}
-            {canMutate ? (
-              <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    stopRowActionClick(e);
-                    onEditCategory(node);
-                  }}
-                  className="rounded-md p-1.5 text-zinc-600 transition hover:text-amber-500 dark:text-zinc-400"
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    stopRowActionClick(e);
-                    onDeleteCategory(node.id);
-                  }}
-                  className="rounded-md p-1.5 text-zinc-600 transition hover:text-red-500 dark:text-zinc-400"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : null}
-          </div>
-          {isExpanded ? (
-            <>
-              {renderCategoryNodes(node.children)}
-              {!node.isGroup
-                ? childMaterials.map((m) => renderMaterialRow(m, node.depth + 1, node.color))
-                : null}
-            </>
-          ) : null}
-        </Fragment>
+        <CatalogTreeNodeComponent
+          key={`cat-${node.id}`}
+          node={node}
+          childMaterials={childMaterials}
+          isExpanded={isExpanded}
+          categoryStatLong={categoryStatLong}
+          categoryStatShort={categoryStatShort}
+          materialStat={materialStat}
+          materialCount={materialCount}
+          groupBadge={groupBadge}
+          stationaryBadge={stationaryBadge}
+          materialBadge={materialBadge}
+          canMutate={canMutate}
+          onToggle={toggleExpanded}
+          onPreviewCategory={onPreviewCategory}
+          onEditCategory={onEditCategory}
+          onDeleteCategory={onDeleteCategory}
+          onPreviewMaterial={onPreviewMaterial}
+          onEditMaterial={onEditMaterial}
+          onDeleteMaterial={onDeleteMaterial}
+          renderChildren={() => renderCategoryNodes(node.children)}
+        />
       );
     });
 
@@ -384,7 +230,18 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
                 {uncategorizedTitle}
               </p>
             ) : null}
-            {displayUncategorized.map((m) => renderMaterialRow(m, 0))}
+            {displayUncategorized.map((m) => (
+              <CatalogMaterialRowComponent
+                key={`mat-${m.id}-0-`}
+                material={m}
+                depth={0}
+                materialBadge={materialBadge}
+                canMutate={canMutate}
+                onPreview={onPreviewMaterial}
+                onEdit={onEditMaterial}
+                onDelete={onDeleteMaterial}
+              />
+            ))}
           </>
         ) : null}
         {!isLoading && hasContent && filtered.hasQuery && !hasFilteredContent ? (
@@ -401,5 +258,3 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
     </>
   );
 }
-
-

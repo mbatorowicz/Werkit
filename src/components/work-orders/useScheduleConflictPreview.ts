@@ -74,6 +74,7 @@ export function useScheduleConflictPreview(params: {
     }
 
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial status before async fetch
     setStatus("loading");
 
     const timer = window.setTimeout(() => {

@@ -73,12 +73,10 @@ export function OrdersDispatchTable({
   void onDeleteArchivedSession;
 
   const dict = ordersDict;
-  const [liveClockMs, setLiveClockMs] = useState<number | null>(null);
+  const [liveClockMs, setLiveClockMs] = useState<number>(() => Date.now());
 
   useEffect(() => {
-    const tick = () => setLiveClockMs(Date.now());
-    tick();
-    const id = setInterval(tick, 30_000);
+    const id = setInterval(() => setLiveClockMs(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
 

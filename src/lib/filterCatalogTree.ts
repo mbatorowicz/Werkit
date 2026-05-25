@@ -55,7 +55,7 @@ export type CatalogTreeFilterResult<T extends CategoryHierarchyRow> = {
 
 export function filterCatalogTree<T extends CategoryHierarchyRow>(
   roots: CategoryTreeNode<T>[],
-  materialIndex: MaterialCatalogIndex<T>,
+  materialIndex: MaterialCatalogIndex,
   rawQuery: string,
 ): CatalogTreeFilterResult<T> {
   const q = normalizeCatalogSearchQuery(rawQuery);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { jsonError, withApiErrorHandling } from "@/lib/apiRoute";
+import { withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from '@/lib/apiTenant';
 import { DEVICE_LOGS_EXPORT_MAX } from "@/lib/deviceLogLimits";
 

@@ -4,9 +4,9 @@ import { jwtVerify } from 'jose';
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    console.warn("WARNING: JWT_SECRET is not defined in environment variables. Using fallback. This is a severe security risk in production.");
+    throw new Error('JWT_SECRET is not defined in environment variables');
   }
-  return new TextEncoder().encode(secret || 'super-secret-fallback');
+  return new TextEncoder().encode(secret);
 };
 
 export const JWT_SECRET = getJwtSecret();

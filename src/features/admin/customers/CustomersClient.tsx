@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Trash2, Package, Plus, Edit2, MapPin } from "lucide-react";
-import { formatDict, getDictionary } from "@/i18n";
+import { Package, Plus, MapPin } from "lucide-react";
+import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -15,10 +15,8 @@ import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
-import { ListSearchBar } from "@/components/ListSearchBar";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
-import { stopRowActionClick } from "@/lib/stopRowActionClick";
-import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
+import CustomersTable from "./CustomersTable";
+import CustomerFormFields, { emptyCustomerForm, type CustomerFormState } from "./CustomerFormFields";
 
 type Customer = AdminCustomerListRow;
 
@@ -33,7 +31,7 @@ export default function CustomersClient() {
   const [previewCustomer, setPreviewCustomer] = useState<Customer | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [createFormKey, setCreateFormKey] = useState(0);
-  const [form, setForm] = useState({ firstName: '', lastName: '', defaultAddress: '', latitude: '', longitude: '' });
+  const [form, setForm] = useState<CustomerFormState>(emptyCustomerForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dictionary = getDictionary();
   const dict = dictionary.admin.customers;
@@ -125,9 +123,9 @@ export default function CustomersClient() {
   const openEditModal = (customer: Customer) => {
     setPreviewCustomer(null);
     setEditId(customer.id);
-    setForm({ 
-      firstName: customer.firstName || '', 
-      lastName: customer.lastName, 
+    setForm({
+      firstName: customer.firstName || '',
+      lastName: customer.lastName,
       defaultAddress: customer.defaultAddress || '',
       latitude: customer.latitude || '',
       longitude: customer.longitude || ''
@@ -148,73 +146,19 @@ export default function CustomersClient() {
         )}
       </div>
 
-      <ListSearchBar
-        value={searchQuery}
-        onChange={setSearchQuery}
-        placeholder={dict.listSearchPlaceholder}
+      <CustomersTable
+        customers={customers}
+        filteredCustomers={filteredCustomers}
+        searchQuery={searchQuery}
+        isLoading={isLoading}
+        canMutate={canMutate}
+        onSearchChange={setSearchQuery}
+        onPreview={openPreview}
+        onEdit={openEditModal}
+        onDelete={handleDelete}
+        dict={dict}
+        machinesDict={machinesDict}
       />
-
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-          <table className="w-full text-left border-collapse min-w-[600px]">
-             <thead>
-               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.customerData}</th>
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.defaultAddress}</th>
-                 {canMutate && (
-                 <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{machinesDict.management}</th>
-                 )}
-               </tr>
-             </thead>
-             <tbody className="divide-y divide-zinc-800/50">
-               {isLoading ? (
-                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.fetching}</td></tr>
-               ) : filteredCustomers.map(customer => (
-                 <tr
-                   key={customer.id}
-                   onClick={() => openPreview(customer)}
-                   className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
-                 >
-                   <td className="px-6 py-4">
-                      <div className="font-semibold text-zinc-900 dark:text-zinc-200">
-                        {customer.firstName ? `${customer.firstName} ${customer.lastName}` : customer.lastName}
-                      </div>
-                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">ID: #{customer.id}</div>
-                   </td>
-                   <td className="px-6 py-4">
-                     {customer.defaultAddress ? (
-                       <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 text-sm">
-                         <MapPin className="w-3.5 h-3.5 text-zinc-500" />
-                         {customer.defaultAddress}
-                       </div>
-                     ) : (
-                       <span className="text-zinc-600 italic text-xs">{dict.noAddress}</span>
-                     )}
-                   </td>
-                   {canMutate && (
-                   <td className="px-6 py-4 text-right">
-                     <div className="flex justify-end gap-1">
-                        <button onClick={(e) => { stopRowActionClick(e); openEditModal(customer); }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition" title={machinesDict.editTitle}>
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button onClick={(e) => { stopRowActionClick(e); void handleDelete(customer.id); }} className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition" title={machinesDict.deleteTitle}>
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                     </div>
-                   </td>
-                   )}
-                 </tr>
-               ))}
-               {!isLoading && customers.length === 0 && (
-                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.noCustomers}</td></tr>
-               )}
-               {!isLoading && customers.length > 0 && filteredCustomers.length === 0 && (
-                 <tr><td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{dict.listSearchNoResults}</td></tr>
-               )}
-             </tbody>
-          </table>
-        </div>
-      </div>
 
       <AdminModalShell
         open={isModalOpen}
@@ -247,44 +191,14 @@ export default function CustomersClient() {
             />
           </div>
         ) : (
-              <form id={customerFormId} onSubmit={handleSave} className="p-6 space-y-5">
-                 <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.firstNameLabel}</label>
-                     <input type="text" placeholder={dict.firstNamePlaceholder} value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-sm font-medium text-zinc-400">{dict.lastNameLabel}</label>
-                     <input required type="text" placeholder={dict.lastNamePlaceholder} value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none" />
-                   </div>
-                 </div>
-                   <>
-                     {(form.defaultAddress || (form.latitude && form.longitude)) ? (
-                       <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-                         <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.defaultAddressSummary}</p>
-                         {form.defaultAddress ? (
-                           <div className="flex items-start gap-2 text-sm text-zinc-800 dark:text-zinc-200">
-                             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-                             <span>{form.defaultAddress}</span>
-                           </div>
-                         ) : (
-                           <p className="text-sm italic text-zinc-500">{dict.noAddress}</p>
-                         )}
-                         {form.latitude && form.longitude ? (
-                           <p className="text-[11px] text-zinc-500">
-                             {formatDict(dict.pinSaved, {
-                               lat: parseFloat(form.latitude).toFixed(5),
-                               lng: parseFloat(form.longitude).toFixed(5),
-                             })}
-                           </p>
-                         ) : null}
-                       </div>
-                     ) : null}
-                     <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
-                   </>
-
-                 {editId ? <CustomerLocationsPanel customerId={editId} /> : null}
-              </form>
+          <form id={customerFormId} onSubmit={handleSave}>
+            <CustomerFormFields
+              form={form}
+              editId={editId}
+              onFormChange={setForm}
+              dict={dict}
+            />
+          </form>
         )}
       </AdminModalShell>
 
@@ -330,12 +244,3 @@ export default function CustomersClient() {
     </>
   )
 }
-
-
-
-
-
-
-
-
-
