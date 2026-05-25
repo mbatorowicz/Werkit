@@ -26,6 +26,8 @@ interface NavigationBottomSheetProps {
 /**
  * A bottom sheet / drawer that shows the full list of turn-by-turn instructions.
  * Slides up from the bottom of the map, similar to Google Maps route overview.
+ *
+ * On mobile, uses `max-h-[70vh]` and `pb-safe` (via pb-6) to avoid system nav bar overlap.
  */
 export default function NavigationBottomSheet({
   instructions,
@@ -43,7 +45,7 @@ export default function NavigationBottomSheet({
   const hasMore = instructions.length > 5 && !expanded;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-[1000] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border-t border-zinc-200 dark:border-zinc-700 max-h-[60vh] flex flex-col">
+    <div className="absolute bottom-0 left-0 right-0 z-[1000] bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl border-t border-zinc-200 dark:border-zinc-700 max-h-[70vh] flex flex-col pb-6">
       {/* Handle bar */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 dark:border-zinc-700/50 shrink-0">
         <div className="flex items-center gap-2">

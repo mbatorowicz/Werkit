@@ -384,6 +384,7 @@ export const en: AppDictionary = {
       navigateGoogleMaps: "Google Maps",
       navigateWaze: "Waze",
       navigateAppleMaps: "Apple Maps",
+      navigateExternal: "External navigation",
       /** Car navigation (turn-by-turn) */
       navigationActive: "Navigation",
       navigationDestination: "Destination",

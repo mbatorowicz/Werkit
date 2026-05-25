@@ -37,6 +37,9 @@ interface NavigationInstructionBarProps {
  * A navigation instruction bar displayed at the top of the map during active navigation.
  * Shows the current maneuver, distance to next turn, and remaining trip info.
  * Styled like Google Maps driving navigation.
+ *
+ * On mobile, positioned lower (top-20) to avoid overlapping with floating close button.
+ * On desktop, positioned at top-4 for a cleaner look.
  */
 export default function NavigationInstructionBar({
   currentInstruction,
@@ -51,7 +54,7 @@ export default function NavigationInstructionBar({
 }: NavigationInstructionBarProps) {
   if (loading) {
     return (
-      <div className="absolute top-4 left-4 right-4 z-[1000] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 px-4 py-3 animate-pulse">
+      <div className="absolute top-20 sm:top-4 left-4 right-4 z-[1000] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 px-4 py-3 animate-pulse">
         <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4 mb-2" />
         <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2" />
       </div>
@@ -60,7 +63,7 @@ export default function NavigationInstructionBar({
 
   if (error) {
     return (
-      <div className="absolute top-4 left-4 right-4 z-[1000] bg-red-50 dark:bg-red-900/30 rounded-xl shadow-2xl border border-red-200 dark:border-red-700 px-4 py-3">
+      <div className="absolute top-20 sm:top-4 left-4 right-4 z-[1000] bg-red-50 dark:bg-red-900/30 rounded-xl shadow-2xl border border-red-200 dark:border-red-700 px-4 py-3">
         <p className="text-xs font-medium text-red-600 dark:text-red-400">{error}</p>
       </div>
     );
@@ -72,7 +75,7 @@ export default function NavigationInstructionBar({
 
   return (
     <div
-      className="absolute top-4 left-4 right-4 z-[1000] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden cursor-pointer transition active:scale-[0.98]"
+      className="absolute top-20 sm:top-4 left-4 right-4 z-[1000] bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden cursor-pointer transition active:scale-[0.98]"
       onClick={onExpand}
     >
       {/* Main instruction row */}
@@ -100,7 +103,7 @@ export default function NavigationInstructionBar({
           )}
         </div>
 
-        {/* Next street preview */}
+        {/* Next street preview — hidden on mobile, shown on sm+ */}
         {nextInstruction && !isArrive && (
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
             <span className="truncate max-w-[100px]">{nextInstruction.streetName || nextInstruction.text}</span>

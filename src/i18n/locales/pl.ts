@@ -383,6 +383,7 @@ export const pl = {
       navigateGoogleMaps: "Google Maps",
       navigateWaze: "Waze",
       navigateAppleMaps: "Apple Maps",
+      navigateExternal: "Nawigacja zewnętrzna",
       /** Nawigacja samochodowa (turn-by-turn) */
       navigationActive: "Nawigacja",
       navigationDestination: "Cel podróży",
