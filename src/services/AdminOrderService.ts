@@ -17,6 +17,11 @@ import {
 import { sqlSessionHasNotes, sqlSessionHasPhotos } from '@/services/sql/attachmentExistsSql';
 import { computeLockedUntil } from '@/lib/scheduleConflict';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
+import {
+  assertResourceBelongsToCompany,
+  assertCustomerBelongsToCompany,
+  assertMaterialBelongsToCompany,
+} from '@/lib/tenantContext';
 
 export class AdminOrderService {
   /** Koniec rezerwacji harmonogramu — `null` gdy brak terminu lub czasu trwania. */
@@ -145,6 +150,28 @@ export class AdminOrderService {
   }
 
   static async createOrder(orderData: typeof workOrders.$inferInsert) {
+    const companyId = orderData.companyId;
+    if (companyId == null) throw new Error('missing_company');
+
+    // Cross-tenant validation: verify all referenced entities belong to the same company
+    if (orderData.userId != null) {
+      const [userRow] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.id, orderData.userId), eq(users.companyId, companyId)))
+        .limit(1);
+      if (!userRow) throw new Error('invalid_user');
+    }
+    if (orderData.resourceId != null) {
+      await assertResourceBelongsToCompany(orderData.resourceId, companyId);
+    }
+    if (orderData.customerId != null) {
+      await assertCustomerBelongsToCompany(orderData.customerId, companyId);
+    }
+    if (orderData.materialId != null) {
+      await assertMaterialBelongsToCompany(orderData.materialId, companyId);
+    }
+
     await db.insert(workOrders).values(orderData);
   }
 

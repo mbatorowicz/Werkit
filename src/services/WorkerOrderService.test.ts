@@ -50,6 +50,8 @@ vi.mock("@/db/schema", () => ({
   workSessions: { id: "id", companyId: "companyId", workOrderId: "workOrderId", userId: "userId", categoryId: "categoryId", resourceId: "resourceId", materialId: "materialId", customerId: "customerId", taskDescription: "taskDescription", quantityTons: "quantityTons", expectedDurationHours: "expectedDurationHours", dueDate: "dueDate", status: "status", startLatitude: "startLatitude", startLongitude: "startLongitude" },
   customers: { id: "id", lastName: "lastName", firstName: "firstName", defaultAddress: "defaultAddress", latitude: "latitude", longitude: "longitude" },
   users: { id: "id", companyId: "companyId", canCreateOwnOrders: "canCreateOwnOrders" },
+  resources: { id: "id", name: "name", companyId: "companyId" },
+  materials: { id: "id", name: "name", companyId: "companyId" },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -261,7 +263,13 @@ describe("WorkerOrderService", () => {
         where: vi.fn(() => userChain),
         limit: vi.fn(() => resultArray([{ canCreateOwnOrders: true }])),
       };
-      selectMock.mockReturnValue(userChain);
+      // Drugie zapytanie: assertResourceBelongsToCompany — .select().from().where().limit()
+      const resourceChain = {
+        from: vi.fn(() => resourceChain),
+        where: vi.fn(() => resourceChain),
+        limit: vi.fn(() => resultArray([{ id: 1, companyId: 1 }])),
+      };
+      selectMock.mockReturnValueOnce(userChain).mockReturnValueOnce(resourceChain);
 
       const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
       vi.mocked(ScheduleConflictService.hasActiveWorkerSession).mockResolvedValue(false);

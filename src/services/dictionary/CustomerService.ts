@@ -60,6 +60,7 @@ export class CustomerService {
       const { CustomerLocationService } = await import('@/services/CustomerLocationService');
       await CustomerLocationService.createLocation({
         customerId: row.id,
+        companyId,
         label: 'Główna',
         address: defaultAddress ?? null,
         latitude,

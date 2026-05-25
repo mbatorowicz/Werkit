@@ -1,10 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { jwtVerify } from 'jose';
-import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-import { JWT_SECRET } from '@/lib/auth';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { AdminOrderService } from '@/services/AdminOrderService';
 import { requireCompanyScopedSession } from '@/lib/apiTenant';
@@ -17,15 +14,10 @@ export const GET = withApiErrorHandling(async () => {
 }, { defaultErrorCode: "fetch_error" });
 
 export const POST = withApiErrorHandling(async (request: Request) => {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return jsonError("Unauthorized", 401);
-  const verified = await jwtVerify(token, JWT_SECRET);
-  if (verified.payload.role !== "admin") return jsonError("Forbidden", 403);
-
-  const companyId = verified.payload.companyId;
-  if (companyId == null || typeof companyId !== 'number') {
-    return jsonError("Forbidden", 403);
-  }
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId, session } = scoped.data;
+  const adminUserId = session.userId as number;
 
   const body = await parseJsonBody(request);
 
@@ -105,7 +97,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       priority: prio,
       dueDate: parsedDueDate,
       lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
-      createdById: verified.payload.userId as number
+      createdById: adminUserId,
     });
 
   return jsonOk({ success: true });

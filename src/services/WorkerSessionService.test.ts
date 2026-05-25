@@ -518,13 +518,35 @@ describe("WorkerSessionService", () => {
         where: vi.fn(() => sessionCheckChain),
         limit: vi.fn(() => resultArray([])),
       };
-      selectMock.mockReturnValueOnce(sessionCheckChain);
+      // 2. assertResourceBelongsToCompany — .select().from().where().limit()
+      const resourceCheckChain = {
+        from: vi.fn(() => resourceCheckChain),
+        where: vi.fn(() => resourceCheckChain),
+        limit: vi.fn(() => resultArray([{ id: 1, companyId: 1 }])),
+      };
+      // 3. assertCustomerBelongsToCompany — .select().from().where().limit()
+      const customerCheckChain = {
+        from: vi.fn(() => customerCheckChain),
+        where: vi.fn(() => customerCheckChain),
+        limit: vi.fn(() => resultArray([{ id: 4, companyId: 1 }])),
+      };
+      // 4. assertMaterialBelongsToCompany — .select().from().where().limit()
+      const materialCheckChain = {
+        from: vi.fn(() => materialCheckChain),
+        where: vi.fn(() => materialCheckChain),
+        limit: vi.fn(() => resultArray([{ id: 3, companyId: 1 }])),
+      };
+      selectMock
+        .mockReturnValueOnce(sessionCheckChain)
+        .mockReturnValueOnce(resourceCheckChain)
+        .mockReturnValueOnce(customerCheckChain)
+        .mockReturnValueOnce(materialCheckChain);
 
-      // 2. hasActiveResourceSession — zwraca false
+      // 5. hasActiveResourceSession — zwraca false
       const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
       vi.mocked(ScheduleConflictService.hasActiveResourceSession).mockResolvedValue(false);
 
-      // 3. INSERT sesji z returning
+      // 6. INSERT sesji z returning
       const returningMock = vi.fn().mockResolvedValue([{ id: 1, status: "IN_PROGRESS" }]);
       insertMock.mockReturnValue({ values: vi.fn().mockReturnValue({ returning: returningMock }) });
 
@@ -545,12 +567,21 @@ describe("WorkerSessionService", () => {
     });
 
     it("rzuca błąd gdy zasób zajęty", async () => {
-      const chain = {
-        from: vi.fn(() => chain),
-        where: vi.fn(() => chain),
+      // 1. SELECT sprawdza czy istnieje aktywna sesja — brak
+      const sessionCheckChain = {
+        from: vi.fn(() => sessionCheckChain),
+        where: vi.fn(() => sessionCheckChain),
         limit: vi.fn(() => resultArray([])),
       };
-      selectMock.mockReturnValue(chain);
+      // 2. assertResourceBelongsToCompany — resource exists and belongs to company
+      const resourceCheckChain = {
+        from: vi.fn(() => resourceCheckChain),
+        where: vi.fn(() => resourceCheckChain),
+        limit: vi.fn(() => resultArray([{ id: 1, companyId: 1 }])),
+      };
+      selectMock
+        .mockReturnValueOnce(sessionCheckChain)
+        .mockReturnValueOnce(resourceCheckChain);
 
       const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
       vi.mocked(ScheduleConflictService.hasActiveResourceSession).mockResolvedValue(true);

@@ -12,6 +12,11 @@ import { computeLockedUntil, parseDurationHours } from '@/lib/scheduleConflict';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
+import {
+  assertResourceBelongsToCompany,
+  assertCustomerBelongsToCompany,
+  assertMaterialBelongsToCompany,
+} from '@/lib/tenantContext';
 
 export class WorkerOrderService {
   /**
@@ -104,7 +109,7 @@ export class WorkerOrderService {
     let customerLocationId = order.customerLocationId;
     if (!customerLocationId && order.customerId) {
       const { CustomerLocationService } = await import("@/services/CustomerLocationService");
-      const def = await CustomerLocationService.getDefaultForCustomer(order.customerId);
+      const def = await CustomerLocationService.getDefaultForCustomer(order.customerId, companyId);
       if (def) customerLocationId = def.id;
     }
 
@@ -215,6 +220,17 @@ export class WorkerOrderService {
 
     if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
       throw new Error('session_active');
+    }
+
+    // Cross-tenant validation: verify all referenced entities belong to the same company
+    if (payload.resourceId != null) {
+      await assertResourceBelongsToCompany(payload.resourceId, companyId);
+    }
+    if (payload.customerId != null) {
+      await assertCustomerBelongsToCompany(payload.customerId, companyId);
+    }
+    if (payload.materialId != null) {
+      await assertMaterialBelongsToCompany(payload.materialId, companyId);
     }
 
     const { DictionaryService } = await import('@/services/DictionaryService');

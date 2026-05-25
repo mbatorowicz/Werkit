@@ -1,20 +1,30 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { CustomerLocationService } from "@/services/CustomerLocationService";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 
 export const GET = withApiErrorHandling(async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const { id } = await ctx.params;
   const customerId = Number.parseInt(id, 10);
   if (!Number.isFinite(customerId) || customerId < 1) return jsonError("invalid_id", 400);
-  await CustomerLocationService.ensureDefaultFromLegacyCustomer(customerId);
-  const locations = await CustomerLocationService.listByCustomerId(customerId);
+  await CustomerLocationService.ensureDefaultFromLegacyCustomer(customerId, companyId);
+  const locations = await CustomerLocationService.listByCustomerId(customerId, companyId);
   return jsonOk(locations);
 }, { defaultErrorCode: "fetch_error" });
 
 export const POST = withApiErrorHandling(async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
   const denied = await guardAdminMutation();
   if (denied) return denied;
+
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  const { companyId } = scoped.data;
+
   const { id } = await ctx.params;
   const customerId = Number.parseInt(id, 10);
   if (!Number.isFinite(customerId) || customerId < 1) return jsonError("invalid_id", 400);
@@ -31,6 +41,7 @@ export const POST = withApiErrorHandling(async (req: Request, ctx: { params: Pro
     longitude,
     isDefault: body.isDefault === true,
     routeWaypoints: parseRouteWaypoints(body.routeWaypoints),
+    companyId,
   });
   return jsonOk(row);
 }, { defaultErrorCode: "save_error" });

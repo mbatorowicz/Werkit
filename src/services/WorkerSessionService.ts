@@ -8,6 +8,11 @@ import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
 import { refreshBlobUrl } from '@/lib/photoUpload';
+import {
+  assertResourceBelongsToCompany,
+  assertCustomerBelongsToCompany,
+  assertMaterialBelongsToCompany,
+} from '@/lib/tenantContext';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -68,6 +73,7 @@ export class WorkerSessionService {
     const resolvedLocation = await CustomerLocationService.resolveForWorkOrder(
       data.session.workOrderId,
       data.session.customerId,
+      companyId,
     );
 
     return {
@@ -136,6 +142,15 @@ export class WorkerSessionService {
 
     if (existing.length > 0) {
        throw new Error('session_active');
+    }
+
+    // Cross-tenant validation: verify all referenced entities belong to the same company
+    await assertResourceBelongsToCompany(resId, companyId);
+    if (custId != null) {
+      await assertCustomerBelongsToCompany(custId, companyId);
+    }
+    if (matId != null) {
+      await assertMaterialBelongsToCompany(matId, companyId);
     }
 
     const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(

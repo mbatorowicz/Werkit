@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { customerLocations, customers, workOrders } from "@/db/schema";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { parseRouteWaypoints, serializeRouteWaypoints, type RouteWaypoint } from "@/lib/map/routeWaypoints";
+import { assertCustomerBelongsToCompany } from "@/lib/tenantContext";
 
 export type CustomerLocationRow = {
   id: number;
@@ -30,7 +31,10 @@ function mapRow(row: typeof customerLocations.$inferSelect): CustomerLocationRow
 }
 
 export class CustomerLocationService {
-  static async listByCustomerId(customerId: number): Promise<CustomerLocationRow[]> {
+  static async listByCustomerId(customerId: number, companyId?: number): Promise<CustomerLocationRow[]> {
+    if (companyId != null) {
+      await assertCustomerBelongsToCompany(customerId, companyId);
+    }
     const rows = await db
       .select()
       .from(customerLocations)
@@ -44,7 +48,10 @@ export class CustomerLocationService {
     return row ? mapRow(row) : null;
   }
 
-  static async getDefaultForCustomer(customerId: number): Promise<CustomerLocationRow | null> {
+  static async getDefaultForCustomer(customerId: number, companyId?: number): Promise<CustomerLocationRow | null> {
+    if (companyId != null) {
+      await assertCustomerBelongsToCompany(customerId, companyId);
+    }
     const [row] = await db
       .select()
       .from(customerLocations)
@@ -60,7 +67,7 @@ export class CustomerLocationService {
     return fallback ? mapRow(fallback) : null;
   }
 
-  static async resolveForWorkOrder(workOrderId: number | null, customerId: number | null) {
+  static async resolveForWorkOrder(workOrderId: number | null, customerId: number | null, companyId?: number) {
     if (workOrderId) {
       const [wo] = await db
         .select({
@@ -75,12 +82,12 @@ export class CustomerLocationService {
         if (loc) return loc;
       }
       if (wo?.customerId) {
-        const def = await CustomerLocationService.getDefaultForCustomer(wo.customerId);
+        const def = await CustomerLocationService.getDefaultForCustomer(wo.customerId, companyId);
         if (def) return def;
       }
     }
     if (customerId) {
-      return CustomerLocationService.getDefaultForCustomer(customerId);
+      return CustomerLocationService.getDefaultForCustomer(customerId, companyId);
     }
     return null;
   }
@@ -93,7 +100,9 @@ export class CustomerLocationService {
     longitude: string;
     isDefault?: boolean;
     routeWaypoints?: RouteWaypoint[];
+    companyId: number;
   }): Promise<CustomerLocationRow> {
+    await assertCustomerBelongsToCompany(input.customerId, input.companyId);
     if (input.isDefault) {
       await db
         .update(customerLocations)
@@ -126,9 +135,11 @@ export class CustomerLocationService {
       isDefault: boolean;
       routeWaypoints: RouteWaypoint[];
     }>,
+    companyId: number,
   ): Promise<CustomerLocationRow | null> {
     const existing = await CustomerLocationService.getById(id);
     if (!existing) return null;
+    await assertCustomerBelongsToCompany(existing.customerId, companyId);
     if (input.isDefault) {
       await db
         .update(customerLocations)
@@ -149,17 +160,18 @@ export class CustomerLocationService {
     return row ? mapRow(row) : null;
   }
 
-  static async setRouteWaypoints(id: number, waypoints: RouteWaypoint[]): Promise<CustomerLocationRow | null> {
-    return CustomerLocationService.updateLocation(id, { routeWaypoints: waypoints });
+  static async setRouteWaypoints(id: number, waypoints: RouteWaypoint[], companyId: number): Promise<CustomerLocationRow | null> {
+    return CustomerLocationService.updateLocation(id, { routeWaypoints: waypoints }, companyId);
   }
 
-  static async deleteLocation(id: number): Promise<void> {
+  static async deleteLocation(id: number, companyId: number): Promise<void> {
     const existing = await CustomerLocationService.getById(id);
     if (!existing) return;
+    await assertCustomerBelongsToCompany(existing.customerId, companyId);
     await db.delete(customerLocations).where(eq(customerLocations.id, id));
     const remaining = await CustomerLocationService.listByCustomerId(existing.customerId);
     if (remaining.length > 0 && !remaining.some((l) => l.isDefault)) {
-      await CustomerLocationService.updateLocation(remaining[0].id, { isDefault: true });
+      await CustomerLocationService.updateLocation(remaining[0].id, { isDefault: true }, companyId);
     }
     await CustomerLocationService.syncCustomerLegacyCoords(existing.customerId);
   }
@@ -178,7 +190,8 @@ export class CustomerLocationService {
       .where(eq(customers.id, customerId));
   }
 
-  static async ensureDefaultFromLegacyCustomer(customerId: number): Promise<CustomerLocationRow | null> {
+  static async ensureDefaultFromLegacyCustomer(customerId: number, companyId: number): Promise<CustomerLocationRow | null> {
+    await assertCustomerBelongsToCompany(customerId, companyId);
     const existing = await CustomerLocationService.listByCustomerId(customerId);
     if (existing.length > 0) return existing[0];
     const [c] = await db.select().from(customers).where(eq(customers.id, customerId)).limit(1);
@@ -190,6 +203,7 @@ export class CustomerLocationService {
       latitude: String(c.latitude),
       longitude: String(c.longitude),
       isDefault: true,
+      companyId,
     });
   }
 }

@@ -1,7 +1,5 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import { JWT_SECRET } from "@/lib/auth";
+import { requireWorkerCompanySession } from '@/lib/apiTenant';
 import type { WerkitServerTelemetry } from "@/types/deviceTelemetry";
 
 function attachServerTelemetry(
@@ -30,17 +28,9 @@ function attachServerTelemetry(
 }
 
 export const POST = withApiErrorHandling(async (req: Request) => {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) {
-    return jsonError("Unauthorized", 401);
-  }
-
-  const verified = await jwtVerify(token, JWT_SECRET);
-  const userId = verified.payload.userId as number;
-  const companyId = verified.payload.companyId;
-  if (companyId == null || typeof companyId !== 'number') {
-    return jsonError('Forbidden', 403);
-  }
+  const ctx = await requireWorkerCompanySession();
+  if (!ctx.ok) return ctx.response;
+  const { userId, companyId } = ctx;
 
   const body = await parseJsonBody(req);
   const rawLevel = typeof body.level === "string" ? body.level.trim().toUpperCase() : "INFO";

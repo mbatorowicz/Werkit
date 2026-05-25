@@ -6,8 +6,18 @@ import { Coord } from '@/types/worker';
 export type GpsPoint = Coord & { timestamp?: string };
 
 export class GpsService {
-  static async getActiveSessionGpsLogs(userId: number) {
-    const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+  static async getActiveSessionGpsLogs(userId: number, companyId: number) {
+    const activeSessions = await db
+      .select()
+      .from(workSessions)
+      .where(
+        and(
+          eq(workSessions.userId, userId),
+          eq(workSessions.companyId, companyId),
+          eq(workSessions.status, 'IN_PROGRESS'),
+        ),
+      )
+      .limit(1);
     if (activeSessions.length === 0) return [];
 
     const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, activeSessions[0].id)).orderBy(asc(gpsLogs.timestamp));
@@ -18,10 +28,20 @@ export class GpsService {
     }));
   }
 
-  static async saveGpsLogs(userId: number, points: GpsPoint[]) {
+  static async saveGpsLogs(userId: number, companyId: number, points: GpsPoint[]) {
     if (points.length === 0) return 0;
 
-    const activeSessions = await db.select().from(workSessions).where(and(eq(workSessions.userId, userId), eq(workSessions.status, 'IN_PROGRESS'))).limit(1);
+    const activeSessions = await db
+      .select()
+      .from(workSessions)
+      .where(
+        and(
+          eq(workSessions.userId, userId),
+          eq(workSessions.companyId, companyId),
+          eq(workSessions.status, 'IN_PROGRESS'),
+        ),
+      )
+      .limit(1);
 
     if (activeSessions.length === 0) {
       throw new Error('no_active_session');

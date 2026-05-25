@@ -1,3 +1,6 @@
+import { db } from '@/db';
+import { resources, materials, customers } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 import type { JwtPayload } from '@/lib/auth';
 
 export type UserRole = 'superadmin' | 'admin' | 'worker' | 'viewer';
@@ -43,6 +46,48 @@ export async function resolveTenantCompanyId(session: JwtPayload): Promise<numbe
   }
 
   throw new TenantContextError('missing_company', 'Brak przypisania do firmy.');
+}
+
+// --- Generic entity-company assertion ---
+
+type EntityTable = { id: unknown; companyId: unknown };
+type EntityName = 'resource' | 'material' | 'customer';
+
+const entityConfig: Record<EntityName, { table: EntityTable; label: string }> = {
+  resource: { table: resources, label: 'Zasób' },
+  material: { table: materials, label: 'Materiał' },
+  customer: { table: customers, label: 'Klient' },
+};
+
+async function assertEntityBelongsToCompany(
+  entityName: EntityName,
+  entityId: number,
+  companyId: number,
+): Promise<void> {
+  const cfg = entityConfig[entityName];
+  const [row] = await db
+    .select({ id: (cfg.table as typeof resources).id })
+    .from(cfg.table as typeof resources)
+    .where(and(eq((cfg.table as typeof resources).id, entityId), eq((cfg.table as typeof resources).companyId, companyId)))
+    .limit(1);
+  if (!row) {
+    throw new TenantContextError('cross_tenant', `${cfg.label} nie należy do tej firmy.`);
+  }
+}
+
+/** Sprawdza czy zasób o podanym ID należy do firmy. */
+export function assertResourceBelongsToCompany(resourceId: number, companyId: number): Promise<void> {
+  return assertEntityBelongsToCompany('resource', resourceId, companyId);
+}
+
+/** Sprawdza czy materiał o podanym ID należy do firmy. */
+export function assertMaterialBelongsToCompany(materialId: number, companyId: number): Promise<void> {
+  return assertEntityBelongsToCompany('material', materialId, companyId);
+}
+
+/** Sprawdza czy klient o podanym ID należy do firmy. */
+export function assertCustomerBelongsToCompany(customerId: number, companyId: number): Promise<void> {
+  return assertEntityBelongsToCompany('customer', customerId, companyId);
 }
 
 export class TenantContextError extends Error {
