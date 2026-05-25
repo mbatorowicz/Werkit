@@ -34,12 +34,14 @@ export class AdminSessionService {
     ]);
 
     // Dla zdjęć z Vercel Blob (private store) generuj Signed URL
-    const photosWithSignedUrls = photos.map((p) => ({
-      ...p,
-      photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
-        ? getDownloadUrl(p.photoUrl)
-        : p.photoUrl,
-    }));
+    const photosWithSignedUrls = await Promise.all(
+      photos.map(async (p) => ({
+        ...p,
+        photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
+          ? await getDownloadUrl(p.photoUrl)
+          : p.photoUrl,
+      })),
+    );
 
     return { logs, photos: photosWithSignedUrls, notes };
   }

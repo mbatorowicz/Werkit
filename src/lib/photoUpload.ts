@@ -14,7 +14,7 @@
  * przy każdym zapytaniu o dane sesji.
  */
 
-import { put, del, list, getDownloadUrl } from '@vercel/blob';
+import { put, del, list } from '@vercel/blob';
 
 const BLOB_PREFIX = 'werkit-photos';
 
