@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
@@ -24,9 +24,12 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
+import { useOsrmNavigation } from "./useOsrmNavigation";
+import NavigationInstructionBar from "./NavigationInstructionBar";
+import NavigationBottomSheet from "./NavigationBottomSheet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
-import { X, Navigation, ExternalLink } from "lucide-react";
+import { X, Navigation, ExternalLink, List } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Helper: otwiera nawigację zewnętrzną (Google Maps / Waze / Apple Maps)
@@ -133,6 +136,10 @@ interface FullScreenMapModalProps {
   editableRoute?: boolean;
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
   onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
+  /** Włącz nawigację samochodową (turn-by-turn). */
+  enableNavigation?: boolean;
+  /** Nazwa celu. */
+  destinationName?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -152,15 +159,25 @@ export default function FullScreenMapModal({
   editableRoute = false,
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
+  enableNavigation = false,
+  destinationName,
 }: FullScreenMapModalProps) {
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
+  const [showNavigationList, setShowNavigationList] = useState(false);
 
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
     destination,
     undefined,
     undefined,
+    plannedRouteWaypoints,
+  );
+
+  // Turn-by-turn navigation in fullscreen
+  const navigation = useOsrmNavigation(
+    currentLocation,
+    destination && enableNavigation ? destination : null,
     plannedRouteWaypoints,
   );
 
@@ -190,6 +207,16 @@ export default function FullScreenMapModal({
       document.body.style.overflow = prev;
     };
   }, [open]);
+
+  // Current and next instruction for the navigation bar
+  const currentInstruction = navigation.instructions.length > 0 && navigation.currentInstructionIndex < navigation.instructions.length
+    ? navigation.instructions[navigation.currentInstructionIndex]
+    : null;
+  const nextInstruction = navigation.instructions.length > 0 && navigation.currentInstructionIndex + 1 < navigation.instructions.length
+    ? navigation.instructions[navigation.currentInstructionIndex + 1]
+    : null;
+
+  const showNavigationUI = Boolean(enableNavigation && destination && navigation.instructions.length > 0);
 
   if (!open) return null;
 
@@ -249,6 +276,33 @@ export default function FullScreenMapModal({
 
       {/* Mapa na pełnym ekranie */}
       <div className="flex-1 w-full relative">
+        {/* Navigation instruction bar — top of map in fullscreen */}
+        {showNavigationUI && (
+          <NavigationInstructionBar
+            currentInstruction={currentInstruction}
+            nextInstruction={nextInstruction}
+            remainingToNextInstruction={navigation.remainingToNextInstruction}
+            remainingDistance={navigation.remainingDistance}
+            remainingDuration={navigation.remainingDuration}
+            loading={navigation.loading}
+            error={navigation.error}
+            destinationName={destinationName}
+            onExpand={() => setShowNavigationList((prev) => !prev)}
+          />
+        )}
+
+        {/* Navigation list toggle */}
+        {showNavigationUI && !showNavigationList && (
+          <button
+            type="button"
+            onClick={() => setShowNavigationList(true)}
+            className="absolute bottom-6 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-medium border border-blue-500 transition active:scale-95 hover:bg-blue-500 flex items-center gap-1.5"
+          >
+            <List className="h-3.5 w-3.5" />
+            {dict.navigationShowList || "List"}
+          </button>
+        )}
+
         <MapContainer
           center={center}
           zoom={zoom}
@@ -283,7 +337,10 @@ export default function FullScreenMapModal({
             </Marker>
           ) : null}
 
-          {routeToDest.length > 0 ? (
+          {/* Navigation route polyline (solid blue for active nav, dashed red for preview) */}
+          {showNavigationUI && navigation.routeGeometry.length > 0 ? (
+            <Polyline positions={navigation.routeGeometry} color="#3b82f6" weight={5} opacity={0.9} />
+          ) : routeToDest.length > 0 ? (
             <Polyline positions={routeToDest} color="#ef4444" weight={4} dashArray="5, 10" opacity={0.8} />
           ) : null}
 
@@ -330,6 +387,18 @@ export default function FullScreenMapModal({
             followEnabled={false}
           />
         </MapContainer>
+
+        {/* Navigation bottom sheet (instruction list) */}
+        {showNavigationUI && showNavigationList && (
+          <NavigationBottomSheet
+            instructions={navigation.instructions}
+            currentInstructionIndex={navigation.currentInstructionIndex}
+            remainingDistance={navigation.remainingDistance}
+            remainingDuration={navigation.remainingDuration}
+            destinationName={destinationName}
+            onClose={() => setShowNavigationList(false)}
+          />
+        )}
       </div>
     </div>
   );

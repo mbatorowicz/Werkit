@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Clock, MapPin, Camera, FileText, X, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { AppDictionary } from "@/i18n/types";
@@ -78,6 +79,15 @@ export default function ActiveSessionDashboard({
   onRouteWaypointsChange,
 }: ActiveSessionDashboardProps) {
   const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+
+  // Derive destination name from session customer info
+  const destinationName = useMemo(() => {
+    if (!destination) return undefined;
+    const name = `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim();
+    if (name) return name;
+    if (session.customerAddress) return session.customerAddress;
+    return undefined;
+  }, [destination, session.customerLastName, session.customerFirstName, session.customerAddress]);
 
   return (
     <div className="w-full flex flex-col items-center gap-4">
@@ -184,6 +194,8 @@ export default function ActiveSessionDashboard({
                 document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }, 100);
             }}
+            enableNavigation
+            destinationName={destinationName}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
