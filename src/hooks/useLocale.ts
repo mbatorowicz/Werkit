@@ -7,6 +7,7 @@ import { LOCALE_COOKIE, TIMEZONE_COOKIE, SUPPORTED_LOCALES } from "@/lib/localeC
 const LOCALE_MAP: Record<Locale, string> = {
   pl: "Polski",
   en: "English",
+  de: "Deutsch",
 };
 
 function getCookie(name: string): string | undefined {

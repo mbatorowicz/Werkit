@@ -1,6 +1,9 @@
 import type { AppDictionary } from "../types";
 
 export const en: AppDictionary = {
+  localeSwitcher: {
+    label: "Change language",
+  },
   apiErrors: {
     fetch_error: "Error while fetching data from server.",
     migration_required:

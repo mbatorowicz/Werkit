@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale } from "@/hooks/useLocale";
+import { getDictionary } from "@/i18n";
 
 /**
  * Przełącznik języka i strefy czasowej.
@@ -9,6 +10,7 @@ import { useLocale } from "@/hooks/useLocale";
  */
 export function LocaleSwitcher() {
   const { locale, localeLabel, setLocale, supportedLocales } = useLocale();
+  const localeSwitcherLabel = getDictionary(locale).localeSwitcher.label;
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -19,7 +21,7 @@ export function LocaleSwitcher() {
         value={locale}
         onChange={(e) => setLocale(e.target.value as typeof locale)}
         className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-600 dark:bg-zinc-800"
-        aria-label="Zmień język"
+        aria-label={localeSwitcherLabel}
       >
         {supportedLocales.map((l) => (
           <option key={l.value} value={l.value}>

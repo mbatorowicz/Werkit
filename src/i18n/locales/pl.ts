@@ -1,4 +1,7 @@
 export const pl = {
+  localeSwitcher: {
+    label: "Zmień język",
+  },
   apiErrors: {
     fetch_error: "Błąd podczas pobierania danych z serwera.",
     migration_required:

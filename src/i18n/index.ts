@@ -1,10 +1,12 @@
 import type { AppDictionary } from "./types";
 import { pl } from "./locales/pl";
 import { en } from "./locales/en";
+import { de } from "./locales/de";
 
 const dictionaries = {
   pl,
   en,
+  de,
 } as const;
 
 export type Locale = keyof typeof dictionaries;

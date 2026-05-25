@@ -5,7 +5,7 @@ import { DEFAULT_UI_LOCALE, DEFAULT_UI_TIMEZONE } from "@/i18n/constants";
 export const LOCALE_COOKIE = "werkit_locale";
 export const TIMEZONE_COOKIE = "werkit_timezone";
 
-export const SUPPORTED_LOCALES: Locale[] = ["pl", "en"];
+export const SUPPORTED_LOCALES: Locale[] = ["pl", "en", "de"];
 
 /**
  * Zwraca locale z cookies lub domyślne.
