@@ -25,13 +25,10 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
-import { useOsrmNavigation } from "./useOsrmNavigation";
-import NavigationInstructionBar from "./NavigationInstructionBar";
-import NavigationBottomSheet from "./NavigationBottomSheet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import FullScreenMapModal from "./FullScreenMapModal";
-import { Maximize2, List } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Sub-komponent: śledzi bieżący stan mapy (center, zoom) dla pełnoekranowego modala
@@ -106,11 +103,6 @@ interface LiveMapProps {
    * podczas gdy pełny ekran (modal) ma pełną interakcję.
    */
   thumbnail?: boolean;
-  /**
-   * Włącz nawigację samochodową (turn-by-turn) z paskiem instrukcji.
-   * Działa tylko gdy `destination` jest ustawiony.
-   */
-  enableNavigation?: boolean;
   /** Nazwa celu (np. adres klienta) do wyświetlenia w nawigacji. */
   destinationName?: string;
 }
@@ -131,7 +123,6 @@ export default function LiveMap({
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
   thumbnail = false,
-  enableNavigation = false,
   destinationName,
 }: LiveMapProps) {
   const routeToDest = useOsrmRouteToDestination(
@@ -142,19 +133,11 @@ export default function LiveMap({
     plannedRouteWaypoints,
   );
 
-  // Turn-by-turn navigation
-  const navigation = useOsrmNavigation(
-    currentLocation,
-    destination && enableNavigation ? destination : null,
-    plannedRouteWaypoints,
-  );
-
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([currentLocation.lat, currentLocation.lng]);
   const [mapZoom, setMapZoom] = useState(14);
-  const [showNavigationList, setShowNavigationList] = useState(false);
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
   const canEditWaypoints = Boolean(editableRoute && onPlannedRouteWaypointsChange);
@@ -196,16 +179,6 @@ export default function LiveMap({
     setMapZoom(zoom);
   }, []);
 
-  // Current and next instruction for the navigation bar
-  const currentInstruction = navigation.instructions.length > 0 && navigation.currentInstructionIndex < navigation.instructions.length
-    ? navigation.instructions[navigation.currentInstructionIndex]
-    : null;
-  const nextInstruction = navigation.instructions.length > 0 && navigation.currentInstructionIndex + 1 < navigation.instructions.length
-    ? navigation.instructions[navigation.currentInstructionIndex + 1]
-    : null;
-
-  const showNavigationUI = Boolean(enableNavigation && destination && navigation.instructions.length > 0);
-
   return (
     <>
       <div className="w-full h-full rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative group">
@@ -218,33 +191,6 @@ export default function LiveMap({
           <Maximize2 className="h-3.5 w-3.5" />
           {dict.fullscreen}
         </button>
-
-        {/* Navigation instruction bar — top of map */}
-        {showNavigationUI && (
-          <NavigationInstructionBar
-            currentInstruction={currentInstruction}
-            nextInstruction={nextInstruction}
-            remainingToNextInstruction={navigation.remainingToNextInstruction}
-            remainingDistance={navigation.remainingDistance}
-            remainingDuration={navigation.remainingDuration}
-            loading={navigation.loading}
-            error={navigation.error}
-            destinationName={destinationName}
-            onExpand={() => setShowNavigationList((prev) => !prev)}
-          />
-        )}
-
-        {/* Navigation list toggle button (bottom-right) */}
-        {showNavigationUI && !showNavigationList && (
-          <button
-            type="button"
-            onClick={() => setShowNavigationList(true)}
-            className="absolute bottom-6 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-medium border border-blue-500 transition active:scale-95 hover:bg-blue-500 flex items-center gap-1.5"
-          >
-            <List className="h-3.5 w-3.5" />
-            {dict.navigationShowList || "List"}
-          </button>
-        )}
 
         {headingKnown ? (
           <button
@@ -301,10 +247,8 @@ export default function LiveMap({
             </Marker>
           ) : null}
 
-          {/* Navigation route polyline (solid blue for active nav, dashed red for preview) */}
-          {showNavigationUI && navigation.routeGeometry.length > 0 ? (
-            <Polyline positions={navigation.routeGeometry} color="#3b82f6" weight={5} opacity={0.9} />
-          ) : routeToDest.length > 0 ? (
+          {/* Trasa — zawsze jako przerywana czerwona linia (podgląd) na miniaturze */}
+          {routeToDest.length > 0 ? (
             <Polyline positions={routeToDest} color="#ef4444" weight={4} dashArray="5, 10" opacity={0.8} />
           ) : null}
 
@@ -367,18 +311,6 @@ export default function LiveMap({
             followEnabled={cameraFollowGps}
           />
         </MapContainer>
-
-        {/* Navigation bottom sheet (instruction list) */}
-        {showNavigationUI && showNavigationList && (
-          <NavigationBottomSheet
-            instructions={navigation.instructions}
-            currentInstructionIndex={navigation.currentInstructionIndex}
-            remainingDistance={navigation.remainingDistance}
-            remainingDuration={navigation.remainingDuration}
-            destinationName={destinationName}
-            onClose={() => setShowNavigationList(false)}
-          />
-        )}
       </div>
 
       <FullScreenMapModal
@@ -395,7 +327,6 @@ export default function LiveMap({
         editableRoute={editableRoute}
         onAddRouteWaypoint={onAddRouteWaypoint}
         onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
-        enableNavigation={enableNavigation}
         destinationName={destinationName}
       />
     </>

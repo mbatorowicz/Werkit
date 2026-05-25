@@ -29,7 +29,7 @@ import NavigationInstructionBar from "./NavigationInstructionBar";
 import NavigationBottomSheet from "./NavigationBottomSheet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
-import { X, Navigation, ExternalLink, List } from "lucide-react";
+import { X, Navigation, ExternalLink, List, Navigation as NavIcon } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Helper: otwiera nawigację zewnętrzną (Google Maps / Waze / Apple Maps)
@@ -136,8 +136,6 @@ interface FullScreenMapModalProps {
   editableRoute?: boolean;
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
   onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
-  /** Włącz nawigację samochodową (turn-by-turn). */
-  enableNavigation?: boolean;
   /** Nazwa celu. */
   destinationName?: string;
 }
@@ -159,12 +157,13 @@ export default function FullScreenMapModal({
   editableRoute = false,
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
-  enableNavigation = false,
   destinationName,
 }: FullScreenMapModalProps) {
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
   const [showNavigationList, setShowNavigationList] = useState(false);
+  // Nawigacja turn-by-turn aktywowana dopiero po kliknięciu "Nawiguj"
+  const [navigationActive, setNavigationActive] = useState(false);
 
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
@@ -174,10 +173,10 @@ export default function FullScreenMapModal({
     plannedRouteWaypoints,
   );
 
-  // Turn-by-turn navigation in fullscreen
+  // Turn-by-turn navigation — aktywna tylko gdy użytkownik kliknął "Nawiguj"
   const navigation = useOsrmNavigation(
     currentLocation,
-    destination && enableNavigation ? destination : null,
+    destination && navigationActive ? destination : null,
     plannedRouteWaypoints,
   );
 
@@ -208,6 +207,14 @@ export default function FullScreenMapModal({
     };
   }, [open]);
 
+  // Resetuj nawigację przy zamknięciu
+  useEffect(() => {
+    if (!open) {
+      setNavigationActive(false);
+      setShowNavigationList(false);
+    }
+  }, [open]);
+
   // Current and next instruction for the navigation bar
   const currentInstruction = navigation.instructions.length > 0 && navigation.currentInstructionIndex < navigation.instructions.length
     ? navigation.instructions[navigation.currentInstructionIndex]
@@ -216,7 +223,7 @@ export default function FullScreenMapModal({
     ? navigation.instructions[navigation.currentInstructionIndex + 1]
     : null;
 
-  const showNavigationUI = Boolean(enableNavigation && destination && navigation.instructions.length > 0);
+  const showNavigationUI = Boolean(navigationActive && destination && navigation.instructions.length > 0);
 
   if (!open) return null;
 
@@ -236,39 +243,54 @@ export default function FullScreenMapModal({
         <div className="flex items-center gap-2">
           {destination ? (
             <>
-              <span className="hidden sm:inline text-sm text-zinc-400 mr-1">
-                {dict.navigateTo}:
-              </span>
-              <button
-                type="button"
-                onClick={() => openNavigation("google", destination, currentLocation)}
-                className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
-                title={dict.navigateGoogleMaps}
-              >
-                <Navigation className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{dict.navigateGoogleMaps}</span>
-                <ExternalLink className="h-3 w-3 text-zinc-500" />
-              </button>
-              <button
-                type="button"
-                onClick={() => openNavigation("waze", destination, currentLocation)}
-                className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
-                title={dict.navigateWaze}
-              >
-                <span className="font-bold text-blue-400">W</span>
-                <span className="hidden sm:inline">{dict.navigateWaze}</span>
-                <ExternalLink className="h-3 w-3 text-zinc-500" />
-              </button>
-              <button
-                type="button"
-                onClick={() => openNavigation("apple", destination, currentLocation)}
-                className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
-                title={dict.navigateAppleMaps}
-              >
-                <span className="font-bold text-zinc-300"></span>
-                <span className="hidden sm:inline">{dict.navigateAppleMaps}</span>
-                <ExternalLink className="h-3 w-3 text-zinc-500" />
-              </button>
+              {/* Przycisk "Nawiguj" — aktywuje turn-by-turn nawigację na pełnym ekranie */}
+              {!navigationActive ? (
+                <button
+                  type="button"
+                  onClick={() => setNavigationActive(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-medium transition hover:bg-emerald-500 active:scale-95"
+                  title={dict.navigateTo}
+                >
+                  <NavIcon className="h-4 w-4" />
+                  <span>{dict.navigateTo}</span>
+                </button>
+              ) : null}
+
+              {/* Przyciski nawigacji zewnętrznej (Google / Waze / Apple) — tylko gdy nawigacja nieaktywna */}
+              {!navigationActive && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => openNavigation("google", destination, currentLocation)}
+                    className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
+                    title={dict.navigateGoogleMaps}
+                  >
+                    <Navigation className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{dict.navigateGoogleMaps}</span>
+                    <ExternalLink className="h-3 w-3 text-zinc-500" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openNavigation("waze", destination, currentLocation)}
+                    className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
+                    title={dict.navigateWaze}
+                  >
+                    <span className="font-bold text-blue-400">W</span>
+                    <span className="hidden sm:inline">{dict.navigateWaze}</span>
+                    <ExternalLink className="h-3 w-3 text-zinc-500" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openNavigation("apple", destination, currentLocation)}
+                    className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-2 text-xs font-medium transition hover:bg-zinc-700 active:scale-95"
+                    title={dict.navigateAppleMaps}
+                  >
+                    <span className="font-bold text-zinc-300"></span>
+                    <span className="hidden sm:inline">{dict.navigateAppleMaps}</span>
+                    <ExternalLink className="h-3 w-3 text-zinc-500" />
+                  </button>
+                </>
+              )}
             </>
           ) : null}
         </div>
@@ -276,7 +298,7 @@ export default function FullScreenMapModal({
 
       {/* Mapa na pełnym ekranie */}
       <div className="flex-1 w-full relative">
-        {/* Navigation instruction bar — top of map in fullscreen */}
+        {/* Navigation instruction bar — top of map in fullscreen (tylko gdy nawigacja aktywna) */}
         {showNavigationUI && (
           <NavigationInstructionBar
             currentInstruction={currentInstruction}

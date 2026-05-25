@@ -194,7 +194,6 @@ export default function ActiveSessionDashboard({
                 document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }, 100);
             }}
-            enableNavigation
             destinationName={destinationName}
           />
         ) : (
