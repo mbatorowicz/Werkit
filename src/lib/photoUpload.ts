@@ -8,13 +8,13 @@
  * Zastępuje starą metodę zapisu data URL w bazie danych.
  * Zdjęcia są przechowywane w Blob Storage, a w DB zapisujemy tylko URL.
  *
- * UWAGA: Store jest skonfigurowany jako prywatny — zdjęcia są dostępne przez Signed URL.
- * Do odczytu używamy head() który zwraca świeży, ważny downloadUrl.
+ * UWAGA: Store jest skonfigurowany jako prywatny — zdjęcia wymagają signed URL.
+ * Do odczytu w przeglądarce generujemy krótkotrwały presigned URL (issueSignedToken + presignUrl).
  * Odświeżanie URL-i odbywa się przez refreshBlobUrl() — stosowane w serwisach
  * (WorkerSessionService, AdminSessionService) przy każdym zapytaniu o dane sesji.
  */
 
-import { put, del, list, head } from '@vercel/blob';
+import { put, del, list, issueSignedToken, presignUrl } from '@vercel/blob';
 
 const BLOB_PREFIX = 'werkit-photos';
 
@@ -24,11 +24,11 @@ const BLOB_PREFIX = 'werkit-photos';
  * Cache jest resetowany przy restarcie serwera (Next.js dev/prod) — to bezpieczne.
  */
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
-const CACHE_TTL_MS = 4 * 60 * 1000; // 4 minuty (signed URL żyją zazwyczaj 30-60 min)
+const CACHE_TTL_MS = 4 * 60 * 1000; // 4 minuty (presigned URL ważny 30 min)
+const PRESIGNED_URL_TTL_MS = 30 * 60 * 1000;
 
 /**
- * Zwraca świeży, ważny URL do zdjęcia z Vercel Blob (private store).
- * Używa head() do pobrania aktualnego downloadUrl.
+ * Zwraca świeży, ważny presigned URL do zdjęcia z Vercel Blob (private store).
  * Wynik jest cache'owany w pamięci przez CACHE_TTL_MS.
  *
  * @param photoUrl - URL zapisany w bazie (zwrócony przez put())
@@ -49,19 +49,28 @@ export async function refreshBlobUrl(photoUrl: string | null | undefined): Promi
   }
 
   try {
-    const meta = await head(photoUrl);
-    const freshUrl = meta.downloadUrl;
+    const pathname = new URL(photoUrl).pathname.slice(1);
+    const validUntil = Date.now() + PRESIGNED_URL_TTL_MS;
+    const token = await issueSignedToken({
+      pathname,
+      validUntil,
+      operations: ['get'],
+    });
+    const { presignedUrl } = await presignUrl(token, {
+      operation: 'get',
+      pathname,
+      access: 'private',
+      validUntil,
+    });
 
-    // Zapisz w cache
     signedUrlCache.set(photoUrl, {
-      url: freshUrl,
+      url: presignedUrl,
       expiresAt: Date.now() + CACHE_TTL_MS,
     });
 
-    return freshUrl;
+    return presignedUrl;
   } catch {
-    // Jeśli head() się nie powiedzie (np. network error), zwróć oryginalny URL
-    // Może być nieaktualny, ale to lepsze niż nic
+    // Presign nie powiódł się — oryginalny URL i tak zwróci 403, ale unikamy crasha API
     return photoUrl;
   }
 }
