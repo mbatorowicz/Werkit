@@ -30,7 +30,7 @@ export async function uploadPhotoBase64(
   sessionId: number,
   photoType: string,
 ): Promise<PhotoUploadResult> {
-  // Konwersja data URL na Buffer/Blob
+  // Konwersja data URL na Blob (kompatybilne z Edge + Node.js)
   const matches = base64DataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
   if (!matches || !matches[2]) {
     throw new Error('invalid_photo_data');
@@ -38,18 +38,25 @@ export async function uploadPhotoBase64(
 
   const mimeType = matches[1];
   const ext = mimeType.split('/')[1] || 'jpg';
-  const buffer = Buffer.from(matches[2], 'base64');
+
+  // Dekoduj base64 do Blob — nie używa Buffer, działa w Edge Runtime
+  const binaryStr = atob(matches[2]);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) {
+    bytes[i] = binaryStr.charCodeAt(i);
+  }
+  const fileBlob = new Blob([bytes], { type: mimeType });
 
   const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
 
-  const blob = await put(filename, buffer, {
+  const result = await put(filename, fileBlob, {
     contentType: mimeType,
     access: 'private',
     addRandomSuffix: true,
   });
 
   return {
-    url: blob.url,
+    url: result.url,
   };
 }
 
