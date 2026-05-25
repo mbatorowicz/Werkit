@@ -9,11 +9,12 @@
  * Zdjęcia są przechowywane w Blob Storage, a w DB zapisujemy tylko URL.
  *
  * UWAGA: Store jest skonfigurowany jako prywatny — zdjęcia są dostępne przez Signed URL.
- * Nie wymaga to zmian w kodzie klienckim, ponieważ Vercel Blob automatycznie
- * generuje tymczasowy URL przy odczycie przez przeglądarkę.
+ * Do odczytu używamy getDownloadUrl() który generuje tymczasowy URL.
+ * Signed URL są generowane w serwisach (WorkerSessionService, AdminSessionService)
+ * przy każdym zapytaniu o dane sesji.
  */
 
-import { put, del, list } from '@vercel/blob';
+import { put, del, list, getDownloadUrl } from '@vercel/blob';
 
 const BLOB_PREFIX = 'werkit-photos';
 
@@ -108,3 +109,4 @@ export async function deleteSessionPhotos(sessionId: number): Promise<void> {
     // Ignoruj błędy
   }
 }
+

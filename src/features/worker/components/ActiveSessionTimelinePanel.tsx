@@ -15,6 +15,15 @@ type Props = {
   timelineToggleLabel: string;
 };
 
+/**
+ * Zwraca URL zdjęcia do wyświetlenia.
+ * Dla zdjęć z Vercel Blob (private store) serwis zwraca już Signed URL (getDownloadUrl).
+ * Dla starych data URL-i używamy bezpośredniego URL.
+ */
+function getPhotoSrc(item: TimelineItem): string {
+  return item.content;
+}
+
 export function ActiveSessionTimelinePanel({
   timelineEvents,
   isTimelineOpen,
@@ -71,7 +80,7 @@ export function ActiveSessionTimelinePanel({
                 {item.type === "photo" ? (
                   <div className="w-16 h-16 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
                     <Image
-                      src={item.content}
+                      src={getPhotoSrc(item)}
                       alt=""
                       width={64}
                       height={64}

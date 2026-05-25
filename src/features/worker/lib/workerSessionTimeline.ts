@@ -22,6 +22,7 @@ export function buildWorkerSessionTimeline(events: unknown, notes: unknown): Tim
         id: `photo_${id}`,
         type: "photo",
         content: String(e.photoUrl ?? ""),
+        photoId: id,
         lat: parseFloat(String(e.latitude ?? "0")),
         lng: parseFloat(String(e.longitude ?? "0")),
         createdAt: toIso(e.createdAt),

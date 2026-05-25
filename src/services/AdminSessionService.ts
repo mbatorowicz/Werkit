@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { workSessions, gpsLogs, sessionPhotos, sessionNotes, workOrders } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { getDownloadUrl } from '@vercel/blob';
 
 export class AdminSessionService {
   /**
@@ -32,7 +33,15 @@ export class AdminSessionService {
         .orderBy(desc(sessionNotes.createdAt)),
     ]);
 
-    return { logs, photos, notes };
+    // Dla zdjęć z Vercel Blob (private store) generuj Signed URL
+    const photosWithSignedUrls = photos.map((p) => ({
+      ...p,
+      photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
+        ? getDownloadUrl(p.photoUrl)
+        : p.photoUrl,
+    }));
+
+    return { logs, photos: photosWithSignedUrls, notes };
   }
 
   /** Kończy „wiszącą” sesję IN_PROGRESS — ustawia status COMPLETED i czas zakończenia (jak domknięcie z aplikacji). */

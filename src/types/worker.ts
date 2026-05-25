@@ -82,6 +82,8 @@ export type TimelineItem = {
   id: string;
   type: 'photo' | 'note';
   content: string;
+  /** ID rekordu zdjęcia w tabeli session_photos (tylko dla typu 'photo') — używane do generowania Signed URL */
+  photoId?: number;
   lat: number;
   lng: number;
   createdAt: string;

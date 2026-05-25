@@ -7,6 +7,7 @@ import { CustomerLocationService } from '@/services/CustomerLocationService';
 import { ScheduleConflictService } from '@/services/ScheduleConflictService';
 import { pickWorkerUserFlags } from '@/lib/workerUserPermissions';
 import { parsePositiveIntParam } from '@/lib/parseRouteParams';
+import { getDownloadUrl } from '@vercel/blob';
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -54,7 +55,13 @@ export class WorkerSessionService {
     }
 
     const data = activeSessions[0];
-    const photos = await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id));
+    const photos = (await db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id))).map((p) => ({
+      ...p,
+      // Dla zdjęć z Vercel Blob (private store) generuj Signed URL
+      photoUrl: p.photoUrl?.startsWith("https://") && p.photoUrl.includes(".private.blob.vercel-storage.com")
+        ? getDownloadUrl(p.photoUrl)
+        : p.photoUrl,
+    }));
     const notes = await db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id));
 
     const resolvedLocation = await CustomerLocationService.resolveForWorkOrder(
