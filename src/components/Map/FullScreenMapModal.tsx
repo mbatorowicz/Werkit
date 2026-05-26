@@ -334,9 +334,10 @@ export default function FullScreenMapModal({
         </button>
 
         {/* Floating navigation controls — prawy górny róg, z safe-area */}
+        {/* Umieszczone niżej niż close button, żeby nie kolidować z NavigationInstructionBar */}
         <div
           className="absolute right-4 z-[1001] flex items-center gap-2"
-          style={{ top: `calc(${SAFE_TOP} + 8px)` }}
+          style={{ top: `calc(${SAFE_TOP} + 56px)` }}
         >
           {destination && (
             <>
