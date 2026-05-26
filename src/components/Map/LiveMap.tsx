@@ -144,18 +144,20 @@ export default function LiveMap({
 
   const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
   const navPivotMode = Boolean(preferPivotNavigation);
-  const showNeedleOnMarker = Boolean(navPivotMode && showHeadingNeedle && headingKnown);
+  // W trybie thumbnail nie pokazujemy igły azymutu na znaczniku — mapa ma być czysta
+  const showNeedleOnMarker = Boolean(!thumbnail && navPivotMode && showHeadingNeedle && headingKnown);
 
-  const fitContentMode =
-    !navPivotMode &&
-    Boolean(
-      destination ||
-        pathTraveled.length > 0 ||
-        events.length > 0 ||
-        routeToDest.length > 0,
-    );
+  // W trybie thumbnail (miniatura) zawsze pokazujemy całą trasę — fitContent wymuszony.
+  // W trybie nawigacji (preferPivotNavigation) bez thumbnail śledzimy pozycję.
+  const hasRouteContent = Boolean(
+    destination ||
+      pathTraveled.length > 0 ||
+      events.length > 0 ||
+      routeToDest.length > 0,
+  );
+  const fitContentMode = thumbnail ? hasRouteContent : (!navPivotMode && hasRouteContent);
 
-  const followPanMode = !navPivotMode && !fitContentMode;
+  const followPanMode = !thumbnail && !navPivotMode && !fitContentMode;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -192,7 +194,8 @@ export default function LiveMap({
           {dict.fullscreen}
         </button>
 
-        {headingKnown ? (
+        {/* W trybie thumbnail ukrywamy przyciski kierunku i śledzenia — mapa ożywa dopiero na pełnym ekranie */}
+        {!thumbnail && headingKnown ? (
           <button
             type="button"
             onClick={() => setShowHeadingNeedle(!showHeadingNeedle)}
@@ -202,7 +205,7 @@ export default function LiveMap({
           </button>
         ) : null}
 
-        {showResumeFollow ? (
+        {!thumbnail && showResumeFollow ? (
           <button
             type="button"
             onClick={() => setCameraFollowGps(true)}

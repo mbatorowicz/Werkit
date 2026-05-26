@@ -204,12 +204,6 @@ export default function ActiveSessionDashboard({
       </div>
       )}
 
-      {canEditRoute && destination && location ? (
-        <p className="w-full mt-2 text-xs text-emerald-600 dark:text-emerald-400 text-center px-2">
-          {dict.routeEditHint}
-        </p>
-      ) : null}
-
       <ActiveSessionTimelinePanel
         timelineEvents={timelineEvents}
         isTimelineOpen={isTimelineOpen}

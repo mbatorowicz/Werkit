@@ -28,7 +28,23 @@ import NavigationInstructionBar from "./NavigationInstructionBar";
 import NavigationBottomSheet from "./NavigationBottomSheet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
-import { X, Navigation, ExternalLink, List, Navigation as NavIcon, ChevronDown } from "lucide-react";
+import {
+  X,
+  Navigation,
+  ExternalLink,
+  List,
+  Navigation as NavIcon,
+  ChevronDown,
+  Plus,
+  Minus,
+  LocateFixed,
+} from "lucide-react";
+
+// ---------------------------------------------------------------------------
+// Safe area top offset — works on mobile with notches / status bars
+// ---------------------------------------------------------------------------
+const SAFE_TOP = "max(env(safe-area-inset-top, 0px), 8px)";
+const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
 
 // ---------------------------------------------------------------------------
 // Helper: otwiera nawigację zewnętrzną (Google Maps / Waze / Apple Maps)
@@ -115,6 +131,82 @@ function MapStateSync({
   }, [center[0], center[1], zoom, map]);
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-komponent: niestandardowe kontrolki zoomu (zamiast Leaflet zoomControl)
+// ---------------------------------------------------------------------------
+function CustomZoomControls() {
+  const map = useMap();
+
+  const handleZoomIn = useCallback(() => {
+    map.zoomIn();
+  }, [map]);
+
+  const handleZoomOut = useCallback(() => {
+    map.zoomOut();
+  }, [map]);
+
+  return (
+    <div
+      className="absolute z-[1001] flex flex-col gap-0.5"
+      style={{
+        top: `calc(${SAFE_TOP} + 56px)`,
+        right: "12px",
+      }}
+    >
+      <button
+        type="button"
+        onClick={handleZoomIn}
+        className="flex items-center justify-center w-10 h-10 rounded-t-xl bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm"
+        aria-label="Zoom in"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={handleZoomOut}
+        className="flex items-center justify-center w-10 h-10 rounded-b-xl bg-white/90 dark:bg-zinc-800/90 text-zinc-700 dark:text-zinc-200 shadow-lg border border-zinc-200 dark:border-zinc-700 border-t-0 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm"
+        aria-label="Zoom out"
+      >
+        <Minus className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sub-komponent: przycisk "Moja lokalizacja" (centruje na bieżącej pozycji)
+// ---------------------------------------------------------------------------
+function LocateMeButton({
+  currentLocation,
+}: {
+  currentLocation: { lat: number; lng: number };
+}) {
+  const map = useMap();
+
+  const handleLocate = useCallback(() => {
+    map.flyTo([currentLocation.lat, currentLocation.lng], Math.max(map.getZoom(), 15), {
+      duration: 0.5,
+    });
+  }, [map, currentLocation.lat, currentLocation.lng]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleLocate}
+      className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm"
+      aria-label="Center on my location"
+      style={{
+        position: "absolute",
+        bottom: `calc(${SAFE_BOTTOM} + 100px)`,
+        right: "12px",
+        zIndex: 1001,
+      }}
+    >
+      <LocateFixed className="h-5 w-5" />
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -240,18 +332,22 @@ export default function FullScreenMapModal({
     <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
       {/* Mapa na pełnym ekranie — zajmuje całe dostępne miejsce */}
       <div className="flex-1 w-full relative">
-        {/* Floating close button — zawsze widoczny, nad mapą, nie blokowany przez toolbar */}
+        {/* Floating close button — zawsze widoczny, z safe-area na mobile */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 left-4 z-[1001] flex items-center gap-2 rounded-full bg-black/60 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-white shadow-lg border border-white/10 transition hover:bg-black/80 active:scale-95"
+          className="absolute left-4 z-[1001] flex items-center gap-2 rounded-full bg-black/70 backdrop-blur-md px-4 py-2.5 text-sm font-medium text-white shadow-lg border border-white/15 transition hover:bg-black/90 active:scale-95"
+          style={{ top: `calc(${SAFE_TOP} + 8px)` }}
         >
           <X className="h-4 w-4" />
-          <span className="hidden sm:inline">{dict.closeFullscreen}</span>
+          <span>{dict.closeFullscreen}</span>
         </button>
 
-        {/* Floating navigation controls — prawy górny róg */}
-        <div className="absolute top-4 right-4 z-[1001] flex items-center gap-2">
+        {/* Floating navigation controls — prawy górny róg, z safe-area */}
+        <div
+          className="absolute right-4 z-[1001] flex items-center gap-2"
+          style={{ top: `calc(${SAFE_TOP} + 8px)` }}
+        >
           {destination && !navigationActive && (
             <>
               {/* Przycisk "Nawiguj" — aktywuje turn-by-turn */}
@@ -270,7 +366,7 @@ export default function FullScreenMapModal({
                 <button
                   type="button"
                   onClick={() => setShowExternalNavMenu((prev) => !prev)}
-                  className="flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-sm px-3 py-2.5 text-xs font-medium text-white shadow-lg border border-white/10 transition hover:bg-black/80 active:scale-95"
+                  className="flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-md px-3 py-2.5 text-xs font-medium text-white shadow-lg border border-white/15 transition hover:bg-black/90 active:scale-95"
                   title={dict.navigateExternal}
                 >
                   <Navigation className="h-4 w-4" />
@@ -316,7 +412,25 @@ export default function FullScreenMapModal({
               </div>
             </>
           )}
+
+          {/* When navigation is active — show "Stop navigation" button */}
+          {navigationActive && (
+            <button
+              type="button"
+              onClick={() => setNavigationActive(false)}
+              className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-4 py-2.5 text-xs font-medium text-white shadow-lg transition hover:bg-red-500 active:scale-95 backdrop-blur-sm"
+            >
+              <X className="h-4 w-4" />
+              <span className="hidden sm:inline">{dict.closeFullscreen}</span>
+            </button>
+          )}
         </div>
+
+        {/* Custom zoom controls (right side, below top controls) */}
+        <CustomZoomControls />
+
+        {/* Locate me button */}
+        <LocateMeButton currentLocation={currentLocation} />
 
         {/* Navigation instruction bar — top of map in fullscreen (tylko gdy nawigacja aktywna) */}
         {showNavigationUI && (
@@ -339,6 +453,7 @@ export default function FullScreenMapModal({
             type="button"
             onClick={() => setShowNavigationList(true)}
             className="absolute bottom-6 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-medium border border-blue-500 transition active:scale-95 hover:bg-blue-500 flex items-center gap-1.5"
+            style={{ bottom: `calc(${SAFE_BOTTOM} + 24px)` }}
           >
             <List className="h-3.5 w-3.5" />
             {dict.navigationShowList || "List"}
@@ -349,7 +464,7 @@ export default function FullScreenMapModal({
           center={center}
           zoom={zoom}
           style={{ height: "100%", width: "100%" }}
-          zoomControl
+          zoomControl={false}
           scrollWheelZoom
           doubleClickZoom
           dragging
