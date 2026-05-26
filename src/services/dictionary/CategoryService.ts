@@ -5,7 +5,6 @@ import { eq, asc, desc, and, inArray } from 'drizzle-orm';
 import { filterCategoryLeaves } from '@/lib/categoryTree';
 import {
   CategoryHierarchyError,
-  assertResourceCategoryAssignable,
   countResourceCategoryChildren,
   validateHierarchyPatch,
 } from '@/services/categoryHierarchyValidation';

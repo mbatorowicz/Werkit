@@ -14,6 +14,7 @@ export function ServiceWorkerRegister() {
         navigator.serviceWorker
           .register('/sw.js')
           .then((reg) => {
+            // eslint-disable-next-line no-console -- Service Worker registration status is intentionally logged
             console.log('[SW] Registered:', reg.scope);
           })
           .catch((err) => {

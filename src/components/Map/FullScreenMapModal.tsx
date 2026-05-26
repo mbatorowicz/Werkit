@@ -111,6 +111,7 @@ function MapStateSync({
     } else {
       map.setView(center, zoom, { animate: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- center is a tuple [number, number]; center[0]/center[1] are the actual deps
   }, [center[0], center[1], zoom, map]);
 
   return null;
@@ -211,6 +212,7 @@ export default function FullScreenMapModal({
   // Resetuj nawigację przy zamknięciu
   useEffect(() => {
     if (!open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset stanu przy zamknięciu modala, konieczne przed odmontowaniem
       setNavigationActive(false);
       setShowNavigationList(false);
       setShowExternalNavMenu(false);

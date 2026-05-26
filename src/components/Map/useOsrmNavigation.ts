@@ -265,6 +265,7 @@ export function useOsrmNavigation(
   // Fetch route with steps
   useEffect(() => {
     if (!destination) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset stanu przy zmianie destynacji, konieczne przed fetch
       setInstructions([]);
       setRouteGeometry([]);
       setCurrentInstructionIndex(0);

@@ -27,7 +27,7 @@ interface SessionTimelinePanelProps {
 
 export default function SessionTimelinePanel({
   items,
-  allPhotos,
+  allPhotos: _allPhotos,
   onPhotoClick,
   dict,
 }: SessionTimelinePanelProps) {

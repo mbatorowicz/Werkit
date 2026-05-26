@@ -143,8 +143,9 @@ Komponenty nie są „pod workerem”, żeby **admin** mógł użyć **tych samy
 
 ## 9. Internacjonalizacja (`src/i18n/`)
 
-- **`locales/pl.ts`**, **`locales/en.ts`** — pełne drzewo stringów.
-- **`types.ts`** — `AppDictionary` (= `typeof pl`), angielski musi spełniać **`AppDictionary`** (TS wymusza zestaw kluczy).
+- **`locales/pl.ts`** — **źródło prawdy** (sterownik kluczy) i runtime fallback.
+- **`locales/en.ts`**, **`locales/de.ts`** — muszą spełnić `AppDictionary = typeof pl` (TS wymusza zestaw kluczy).
+- **`types.ts`** — `AppDictionary` (= `typeof pl`).
 - **`format.ts`** — `formatDict` dla `{placeholderów}`.
 - **`constants.ts`** — `DEFAULT_UI_LOCALE` (format dat/czasu do czasu wyboru języka użytkownika).
 - **`getDictionary(locale?)`** — domyślnie `'pl'`.

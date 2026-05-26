@@ -11,11 +11,11 @@
 
 | Element | Wartość |
 |---|---|
-| Wersja aplikacji | **SSOT: `package.json#version`** — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). Android: `versionName` czytane dynamicznie z `package.json` w `build.gradle`. Nie hardkoduj wersji poza `package.json`. |
+| Wersja aplikacji | **SSOT: `package.json#version`** — wstrzykiwana do UI jako `APP_VERSION` w `src/lib/version.ts` (z dopiskiem 7-znakowego SHA z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). Android: `versionName` czytane dynamicznie z `package.json` w `build.gradle`; `versionCode` wyliczane z semver (`major*10000 + minor*100 + patch`). Nie hardkoduj wersji poza `package.json`. |
 | Framework | **Next.js 16.2.4**, React 19.2.4, App Router. |
 | Runtime API | Domyślne Vercel Node.js (hasło: **`passwordCrypto`** — domyślnie natywny `bcrypt`, opcjonalnie `bcryptjs` przez `WERKIT_USE_BCRYPTJS`). Tras **edge** brak. |
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
-| Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. |
+| Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. APK: jeden uniwersalny build debug z GitHub Release `android-latest` (`werkit.apk` + `werkit-apk-meta.json`). |
 | Lokalny dev | `npm run dev` na porcie 3000. Baza: `DATABASE_URL` / `POSTGRES_URL` w `.env.local` (nie commituj). |
 | Domyślny język | `'pl'` (zob. `src/i18n/index.ts`); locale dat/czasu: `DEFAULT_UI_LOCALE = 'pl-PL'`, strefa UI (SSR + hydracja): `DEFAULT_UI_TIMEZONE = 'Europe/Warsaw'` (`src/i18n/constants.ts`; formaty w `src/i18n/format.ts`). |
 
@@ -92,6 +92,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0015 | `0015_customer_locations_planned_route.sql` | Tabela `customer_locations`; `users.can_edit_route`; `work_orders.customer_location_id`; backfill lokalizacji z `customers`. |
 | 0017 | `0017_multi_company.sql` | Tabela `companies`; `company_id` na encjach operacyjnych (users, słowniki, zlecenia, sesje, ustawienia firmy); backfill `company_id = 1`. |
 | 0018 | `0018_users_can_create_customers.sql` | `users.can_create_customers boolean NOT NULL DEFAULT false`. |
+| 0019 | `0019_performance_indexes.sql` | Indeksy wydajnościowe: `work_orders(company_id, status)`, `work_sessions(company_id, user_id, status)`, `gps_logs(work_session_id, timestamp)`, `device_logs(company_id, created_at)`, `session_photos(work_session_id)`, `session_notes(work_session_id)`. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -368,7 +369,44 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 `src/components/GanttChart/GanttChart.tsx` — wykres Gantta dla `UnifiedGanttItem[]`.
 
-`src/components/Map/LiveMap.tsx`, `SettingsMap.tsx`, `SettingsMapInner.tsx` — Leaflet + react-leaflet (mapy operacyjne i pickers).
+### Mapy (Leaflet + OSRM)
+
+| Komponent | Rola |
+|---|---|
+| `LiveMap.tsx` | Główna mapa operacyjna (sesja, ślad GPS, trasa, zdarzenia). Tryb `thumbnail` (statyczny, bez edycji) vs pełny. |
+| `FullScreenMapModal.tsx` | Modal pełnoekranowej mapy z edycją trasy, punktami pośrednimi i nawigacją turn-by-turn. |
+| `SettingsMap.tsx`, `SettingsMapInner.tsx` | Picker lokalizacji w ustawieniach firmy / klienta. |
+| `CustomerRoutePlannerMap.tsx` | Planowanie trasy klienta (punkty pośrednie, przeciąganie). |
+| `WerkitTileLayer.tsx` | Wspólna warstwa kafelków: jasna (CartoDB) / ciemna (CartoDB dark_all) z lepszym kontrastem. |
+| `RouteWaypointMarkers.tsx` | Markery punktów pośrednich trasy z przeciąganiem i usuwaniem. |
+| `TraveledPathLayers.tsx` | Warstwa przebytej trasy (kolor wg prędkości). |
+| `NavigationInstructionBar.tsx` | Pasek instrukcji nawigacji turn-by-turn (aktualny manewr, dystans, czas). |
+| `NavigationBottomSheet.tsx` | Rozwijany panel listy manewrów nawigacji. |
+| `ManeuverIcon.tsx` | Ikona manewru OSRM (skręt, rondo, itp.). |
+| `liveMapIcons.ts` | Ikony markerów (start, destination, waypoint, worker). |
+| `liveMapLeafletPlugins.tsx` | Wtyczki Leaflet (fit, follow pan). |
+| `mapLeafletTheme.css` | Style Leaflet (jasny/ciemny motyw). |
+| `LiveMap.module.css` | Style modułowe LiveMap. |
+
+**Hooki mapowe:**
+
+| Hook | Rola |
+|---|---|
+| `useOsrmNavigation.ts` | Stan nawigacji OSRM: fetch trasy, śledzenie pozycji, znajdowanie aktualnego indeksu instrukcji, obliczanie pozostałego dystansu. |
+| `useOsrmRouteToDestination.ts` | Fetch trasy OSRM dla punktów pośrednich. |
+
+**Lib mapowy (`src/lib/map/`):**
+
+| Plik | Rola |
+|---|---|
+| `blockMapClickBriefly.ts` | Blokada kliknięcia mapy na 300ms po interakcji z UI. |
+| `companyBaseLocation.ts` | Lokalizacja bazowa firmy z `company_settings`. |
+| `isLeafletUiClick.ts` | Detekcja kliknięcia w element UI Leaflet. |
+| `mapBasemap.ts` | Konfiguracja warstwy bazowej (jasny/ciemny). |
+| `routeGeometryProvider.ts` | Provider geometrii trasy OSRM (szkielet). |
+| `routeWaypoints.ts` | Logika punktów pośrednich (walidacja, serializacja). |
+
+**Nawigacja zewnętrzna:** `FullScreenMapModal.tsx` → `openNavigation(app, lat, lng)` — otwiera Google Maps / Waze / Apple Maps z podaną lokalizacją.
 
 ### Logika wspólna
 `src/features/admin/orders/dispatchPlanning.ts`:
@@ -407,7 +445,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 | Plik | Co |
 |---|---|
-| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Fallback `super-secret-fallback`** jeśli brak `JWT_SECRET` — `console.warn`. **Na produkcji ustaw `JWT_SECRET`!** |
+| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Brak `JWT_SECRET`** → rzuca `Error('JWT_SECRET is not set')`. **Na produkcji wymagane!** |
 | `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/admin/users`, biometria w `AdminUserService`). |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
 | `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za `proxy`. |
@@ -446,6 +484,7 @@ Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capaci
 
 - `locales/pl.ts` — **źródło prawdy** (sterownik kluczy) i runtime fallback.
 - `locales/en.ts` — musi spełnić `AppDictionary = typeof pl`.
+- `locales/de.ts` — musi spełnić `AppDictionary = typeof pl` (dodany 2026-05).
 - `index.ts` → `getDictionary(locale='pl')`. `formatDict(template, vars)` zamienia `{klucz}` placeholdery.
 - `constants.ts` → `DEFAULT_UI_LOCALE = 'pl-PL'` (do `Intl.DateTimeFormat`).
 
@@ -516,7 +555,7 @@ Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej 
 3. **`params` w `[id]/route.ts` jest `Promise`** w Next 16 — `const { id } = await context.params;`.
 4. **Duplikaty pod `src/components/Worker/**`** — w repo już ich nie ma; UI pracownika tylko w `@/features/worker/...`.
 5. **Konflikty harmonogramu zleceń** — logika w **`ScheduleConflictService`** + **`src/lib/scheduleConflict.ts`**; UI współdzielone w `components/work-orders/`; nie dodawaj ponownie zapytań Drizzle do `src/lib/` dla tego case’u.
-6. **JWT_SECRET fallback** — `'super-secret-fallback'`. Jeśli kiedykolwiek `console.warn` pojawi się na produkcji, traktuj jako incydent bezpieczeństwa.
+6. **JWT_SECRET** — brak zmiennej powoduje crash proxy (Edge middleware) przy każdym requeście. Upewnij się, że `.env.local` zawiera `JWT_SECRET`.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient zawsze wysyła tablicę (zob. `GPSManager.flushQueue`), ale serwer toleruje też pojedynczy.
 9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
@@ -536,7 +575,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-14. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-26. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
 
 ---
 

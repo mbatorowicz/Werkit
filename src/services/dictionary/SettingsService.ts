@@ -15,7 +15,6 @@ export class SettingsService {
     companyId: number,
     updates: Partial<typeof companySettings.$inferInsert>,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { companyId: _omit, id: _id, ...rest } = updates;
     await db
       .insert(companySettings)

@@ -92,7 +92,6 @@ export class AdminUserService {
     userId: number,
     updates: Partial<typeof users.$inferInsert>,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { companyId: _c, ...rest } = updates;
     await db
       .update(users)

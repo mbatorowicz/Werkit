@@ -1,4 +1,4 @@
-import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from '@/lib/apiTenant';
 import type { WerkitServerTelemetry } from "@/types/deviceTelemetry";
 

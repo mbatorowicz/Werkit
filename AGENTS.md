@@ -36,6 +36,7 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 | Baza | **Vercel Postgres** + **Drizzle ORM**. SSOT schematu: [`src/db/schema.ts`](./src/db/schema.ts). Migracje SQL: katalog [`drizzle/`](./drizzle/). |
 | Mobilka | **Capacitor** + PWA; tło i zgaszony ekran = throttle JS i GPS — patrz sekcja 8. |
 | UI | **Tailwind CSS**. Paleta bazowa: **zinc** + akcent **emerald**; spójne animacje (CSS / utility), bez „losowych” palet. |
+| ESLint | Flat config (`eslint.config.mjs`): `eslint-config-next` + `@typescript-eslint/no-explicit-any: error` + `varsIgnorePattern: "^_"` dla `no-unused-vars`. `no-console: warn` (dozwolone `warn`/`error`), wyłączone w `src/scripts/`. |
 | Typy | **Strict TypeScript**, zakaz luźnego **`any`**. Typy domenowe: [`src/types/worker.ts`](./src/types/worker.ts), [`src/types/admin.ts`](./src/types/admin.ts), [`src/types/wizard.ts`](./src/types/wizard.ts). |
 | Wersja aplikacji | Z [`package.json`](./package.json) (`version` — jedyna akceptowana wartość w tekście docs). |
 
@@ -69,7 +70,7 @@ src/
 ├── types/
 ├── i18n/
 ├── lib/
-│   └── narrow/             # Type narrowing — bezpieczne parsowanie odpowiedzi API (shared/, base/, admin/, worker/, machines/)
+│   └── narrow/             # Type narrowing — bezpieczne parsowanie odpowiedzi API (shared.ts, base.ts, admin.ts, worker.ts, machines.ts)
 ├── scripts/                # migracje tsx, verify_schema, generate_notification_sounds
 └── proxy.ts                # JWT + role (admin, worker, platform/superadmin)
 ```
@@ -189,7 +190,7 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/`, `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 

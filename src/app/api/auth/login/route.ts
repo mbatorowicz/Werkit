@@ -3,7 +3,7 @@ import { SignJWT } from 'jose';
 
 import { JWT_SECRET } from '@/lib/auth';
 import { comparePassword } from '@/lib/passwordCrypto';
-import { isLoginRateLimited, clearLoginRateLimit, getLoginRateLimitRemaining } from "@/lib/serverRateLimit";
+import { isLoginRateLimited, clearLoginRateLimit } from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);

@@ -19,6 +19,13 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "error",
       "react/no-unescaped-entities": "warn",
       "react-hooks/set-state-in-effect": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   {

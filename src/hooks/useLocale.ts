@@ -68,6 +68,7 @@ export function useLocale(): LocaleConfig & {
     const locale = (SUPPORTED_LOCALES as readonly string[]).includes(localeRaw)
       ? (localeRaw as Locale)
       : "pl";
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- inicjalizacja locale z cookies, konieczne przy mount
     setConfig({
       locale,
       localeLabel: LOCALE_MAP[locale],

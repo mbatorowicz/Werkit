@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
-import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
-import { adminDispatchOpenUrl } from "@/lib/appRoutes";
+import { getDictionary } from "@/i18n";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
