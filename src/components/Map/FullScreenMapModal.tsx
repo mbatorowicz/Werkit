@@ -149,8 +149,8 @@ function CustomZoomControls() {
     <div
       className="absolute z-[1001] flex flex-col gap-0.5"
       style={{
-        top: `calc(${SAFE_TOP} + 56px)`,
-        right: "12px",
+        top: `calc(${SAFE_TOP} + 64px)`,
+        left: "12px",
       }}
     >
       <button
@@ -426,13 +426,27 @@ export default function FullScreenMapModal({
           />
         )}
 
+        {/* Floating "Open in Google Maps" — always visible when destination is set, acts as primary external nav */}
+        {destination && (
+          <button
+            type="button"
+            onClick={() => { openNavigation("google", destination, currentLocation); }}
+            className="absolute left-4 z-[1001] flex items-center gap-2 rounded-full bg-blue-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-blue-500/30 transition hover:bg-blue-500 active:scale-95"
+            style={{ bottom: `calc(${SAFE_BOTTOM} + 24px)` }}
+          >
+            <Navigation className="h-4 w-4" />
+            <span>{dict.navigateGoogleMaps}</span>
+            <ExternalLink className="h-3.5 w-3.5 text-blue-200" />
+          </button>
+        )}
+
         {/* Navigation list toggle — floating button nad mapą */}
         {showNavigationUI && !showNavigationList && (
           <button
             type="button"
             onClick={() => setShowNavigationList(true)}
-            className="absolute bottom-6 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-medium border border-blue-500 transition active:scale-95 hover:bg-blue-500 flex items-center gap-1.5"
-            style={{ bottom: `calc(${SAFE_BOTTOM} + 24px)` }}
+            className="absolute z-[1001] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg text-xs font-medium border border-blue-500 transition active:scale-95 hover:bg-blue-500 flex items-center gap-1.5"
+            style={{ bottom: `calc(${SAFE_BOTTOM} + 24px)`, right: "12px" }}
           >
             <List className="h-3.5 w-3.5" />
             {dict.navigationShowList || "List"}
