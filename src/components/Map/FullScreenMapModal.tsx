@@ -426,12 +426,6 @@ export default function FullScreenMapModal({
           )}
         </div>
 
-        {/* Custom zoom controls (right side, below top controls) */}
-        <CustomZoomControls />
-
-        {/* Locate me button */}
-        <LocateMeButton currentLocation={currentLocation} />
-
         {/* Navigation instruction bar — top of map in fullscreen (tylko gdy nawigacja aktywna) */}
         {showNavigationUI && (
           <NavigationInstructionBar
@@ -528,6 +522,12 @@ export default function FullScreenMapModal({
           <Marker position={[currentLocation.lat, currentLocation.lng]} icon={currentMarkerIcon}>
             <Popup>{dict.currentLocation}</Popup>
           </Marker>
+
+          {/* Custom zoom controls (inside MapContainer for Leaflet context) */}
+          <CustomZoomControls />
+
+          {/* Locate me button (inside MapContainer for Leaflet context) */}
+          <LocateMeButton currentLocation={currentLocation} />
 
           <FitContentDebounced
             enabled={fitContentMode}
