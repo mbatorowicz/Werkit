@@ -300,6 +300,7 @@ export default function LiveMap({
             destination={destination}
             routeToDest={routeToDest}
             events={events}
+            animate={!thumbnail}
           />
           <FollowPivotCenter
             lat={currentLocation.lat}

@@ -9,8 +9,6 @@ import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import type { Coord, TimelineItem } from "@/types/worker";
 import {
-  FitContentDebounced,
-  FollowPan,
   MapInvalidateOnResize,
 } from "./liveMapLeafletPlugins";
 import {
@@ -254,8 +252,8 @@ export default function FullScreenMapModal({
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
   const [showNavigationList, setShowNavigationList] = useState(false);
-  // Nawigacja turn-by-turn aktywowana dopiero po kliknięciu "Nawiguj"
-  const [navigationActive, setNavigationActive] = useState(false);
+  // Nawigacja turn-by-turn aktywna od razu gdy jest destination (użytkownik sam steruje widokiem mapy)
+  const [navigationActive, setNavigationActive] = useState(true);
   // Menu nawigacji zewnętrznej (Google/Waze/Apple) — na mobile chowane pod przycisk
   const [showExternalNavMenu, setShowExternalNavMenu] = useState(false);
 
@@ -267,10 +265,10 @@ export default function FullScreenMapModal({
     plannedRouteWaypoints,
   );
 
-  // Turn-by-turn navigation — aktywna tylko gdy użytkownik kliknął "Nawiguj"
+  // Turn-by-turn navigation — aktywna od razu gdy destination istnieje
   const navigation = useOsrmNavigation(
     currentLocation,
-    destination && navigationActive ? destination : null,
+    destination,
     plannedRouteWaypoints,
   );
 
@@ -282,14 +280,6 @@ export default function FullScreenMapModal({
       }),
     [currentLocation.heading],
   );
-
-  const fitContentMode = Boolean(
-    destination ||
-      pathTraveled.length > 0 ||
-      events.length > 0 ||
-      routeToDest.length > 0,
-  );
-  const followPanMode = !fitContentMode;
 
   // Blokada scrolla body gdy modal otwarty
   useEffect(() => {
@@ -348,17 +338,23 @@ export default function FullScreenMapModal({
           className="absolute right-4 z-[1001] flex items-center gap-2"
           style={{ top: `calc(${SAFE_TOP} + 8px)` }}
         >
-          {destination && !navigationActive && (
+          {destination && (
             <>
-              {/* Przycisk "Nawiguj" — aktywuje turn-by-turn */}
+              {/* Przycisk przełączania nawigacji turn-by-turn */}
               <button
                 type="button"
-                onClick={() => setNavigationActive(true)}
-                className="flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2.5 text-xs font-medium text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
-                title={dict.navigateTo}
+                onClick={() => setNavigationActive((prev) => !prev)}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium shadow-lg transition active:scale-95 ${
+                  navigationActive
+                    ? "bg-red-600/90 text-white hover:bg-red-500"
+                    : "bg-emerald-600 text-white hover:bg-emerald-500"
+                }`}
+                title={navigationActive ? "Stop navigation" : dict.navigateTo}
               >
                 <NavIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">{dict.navigateTo}</span>
+                <span className="hidden sm:inline">
+                  {navigationActive ? "Stop" : dict.navigateTo}
+                </span>
               </button>
 
               {/* Przycisk menu nawigacji zewnętrznej */}
@@ -411,18 +407,6 @@ export default function FullScreenMapModal({
                 )}
               </div>
             </>
-          )}
-
-          {/* When navigation is active — show "Stop navigation" button */}
-          {navigationActive && (
-            <button
-              type="button"
-              onClick={() => setNavigationActive(false)}
-              className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-4 py-2.5 text-xs font-medium text-white shadow-lg transition hover:bg-red-500 active:scale-95 backdrop-blur-sm"
-            >
-              <X className="h-4 w-4" />
-              <span className="hidden sm:inline">{dict.closeFullscreen}</span>
-            </button>
           )}
         </div>
 
@@ -528,21 +512,6 @@ export default function FullScreenMapModal({
 
           {/* Locate me button (inside MapContainer for Leaflet context) */}
           <LocateMeButton currentLocation={currentLocation} />
-
-          <FitContentDebounced
-            enabled={fitContentMode}
-            currentLocation={currentLocation}
-            pathTraveled={pathTraveled}
-            destination={destination}
-            routeToDest={routeToDest}
-            events={events}
-          />
-          <FollowPan
-            lat={currentLocation.lat}
-            lng={currentLocation.lng}
-            active={followPanMode}
-            followEnabled={false}
-          />
         </MapContainer>
 
         {/* Navigation bottom sheet (instruction list) */}

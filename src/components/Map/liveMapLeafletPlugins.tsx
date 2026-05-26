@@ -25,7 +25,7 @@ export function FollowPan({
   return null;
 }
 
-/** Dopasowuje widok do trasy, śladu, celu i punktów na osi czasu (z lekkim opóźnieniem, żeby nie „skakało”). */
+/** Dopasowuje widok do trasy, śladu, celu i punktów na osi czasu (z lekkim opóźnieniem, żeby nie „skakało"). */
 export function FitContentDebounced({
   currentLocation,
   pathTraveled,
@@ -33,6 +33,7 @@ export function FitContentDebounced({
   routeToDest,
   events,
   enabled,
+  animate = true,
 }: {
   currentLocation: { lat: number; lng: number };
   pathTraveled: Coord[];
@@ -40,6 +41,8 @@ export function FitContentDebounced({
   routeToDest: [number, number][];
   events: TimelineItem[];
   enabled: boolean;
+  /** Gdy false — fitBounds bez animacji (używane w miniaturce do natychmiastowego pokazania całej trasy). */
+  animate?: boolean;
 }) {
   const map = useMap();
   const snapshotRef = useRef({
@@ -94,7 +97,7 @@ export function FitContentDebounced({
           map.flyTo(pts[0], 16, { duration: 0.55 });
           return;
         }
-        map.fitBounds(b, { padding: [52, 52], maxZoom: 17, animate: true });
+        map.fitBounds(b, { padding: [52, 52], maxZoom: 17, animate });
       } catch {
         map.flyTo([snap.currentLocation.lat, snap.currentLocation.lng], 15, { duration: 0.55 });
       }
