@@ -5,7 +5,7 @@ import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect } from "react";
-import { MapInvalidateOnResize } from "./liveMapLeafletPlugins";
+import { MapInvalidateOnResize } from "./mapSharedComponents";
 
 const customIcon = L.divIcon({
   className: "custom-div-icon",

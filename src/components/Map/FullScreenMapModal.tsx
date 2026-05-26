@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { MapContainer, Marker, Popup, Polyline, useMap } from "react-leaflet";
-import L from "leaflet";
+import { useEffect, useMemo } from "react";
+import { MapContainer, Marker, Popup, Polyline } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
@@ -10,7 +9,11 @@ import { getDictionary } from "@/i18n";
 import type { Coord, TimelineItem } from "@/types/worker";
 import {
   MapInvalidateOnResize,
-} from "./liveMapLeafletPlugins";
+  MapInitialView,
+  LocateMeButton,
+  openGoogleNavigation,
+  SAFE_TOP,
+} from "./mapSharedComponents";
 import {
   createCurrentLocationIcon,
   iconDest,
@@ -21,118 +24,63 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
-import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
-import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import {
   X,
   Navigation,
   ExternalLink,
-  LocateFixed,
+  Plus,
+  Minus,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Safe area top offset — works on mobile with notches / status bars
+// Sub-komponent: przyciski zarządzania punktami pośrednimi
 // ---------------------------------------------------------------------------
-const SAFE_TOP = "max(env(safe-area-inset-top, 0px), 8px)";
-const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
-
-// ---------------------------------------------------------------------------
-// Helper: otwiera Google Maps z trasą
-// ---------------------------------------------------------------------------
-function openGoogleNavigation(
-  dest: { lat: number; lng: number },
-  origin?: { lat: number; lng: number } | null,
-) {
-  const d = `${dest.lat},${dest.lng}`;
-  const o = origin ? `${origin.lat},${origin.lng}` : undefined;
-  const url = o
-    ? `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=driving`
-    : `https://www.google.com/maps/dir/?api=1&destination=${d}&travelmode=driving`;
-  window.open(url, "_blank", "noopener,noreferrer");
-}
-
-// ---------------------------------------------------------------------------
-// Sub-komponent: klik na mapę dodaje punkt pośredni (tylko w pełnoekranowym)
-// ---------------------------------------------------------------------------
-function RouteWaypointClickLayer({
-  editable,
-  onAdd,
-}: {
-  editable: boolean;
-  onAdd?: (lat: number, lng: number) => void;
-}) {
-  const map = useMap();
-  useEffect(() => {
-    if (!editable || !onAdd) return;
-    const handler = (e: L.LeafletMouseEvent) => {
-      if (isMapClickBlocked() || isLeafletUiClick(e)) return;
-      onAdd(e.latlng.lat, e.latlng.lng);
-    };
-    map.on("click", handler);
-    return () => {
-      map.off("click", handler);
-    };
-  }, [map, editable, onAdd]);
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Sub-komponent: synchronizuje zoom/center z małej mapy do pełnoekranowej
-// ---------------------------------------------------------------------------
-function MapStateSync({
-  center,
-  zoom,
-}: {
-  center: [number, number];
-  zoom: number;
-}) {
-  const map = useMap();
-  const initial = useRef(true);
-
-  useEffect(() => {
-    if (initial.current) {
-      initial.current = false;
-      map.setView(center, zoom, { animate: false });
-    } else {
-      map.setView(center, zoom, { animate: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- center is a tuple [number, number]; center[0]/center[1] are the actual deps
-  }, [center[0], center[1], zoom, map]);
-
-  return null;
-}
-
-// ---------------------------------------------------------------------------
-// Sub-komponent: przycisk "Wyśrodkuj" (centruje na bieżącej pozycji)
-// ---------------------------------------------------------------------------
-function LocateMeButton({
+function WaypointControls({
+  onAddRouteWaypoint,
+  plannedRouteWaypoints,
+  onPlannedRouteWaypointsChange,
   currentLocation,
 }: {
+  onAddRouteWaypoint?: (lat: number, lng: number) => void;
+  plannedRouteWaypoints: { lat: number; lng: number }[];
+  onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
   currentLocation: { lat: number; lng: number };
 }) {
-  const map = useMap();
-
-  const handleLocate = useCallback(() => {
-    map.flyTo([currentLocation.lat, currentLocation.lng], Math.max(map.getZoom(), 15), {
-      duration: 0.5,
-    });
-  }, [map, currentLocation.lat, currentLocation.lng]);
-
   return (
-    <button
-      type="button"
-      onClick={handleLocate}
-      className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm"
-      aria-label="Center on my location"
-      style={{
-        position: "absolute",
-        bottom: `calc(${SAFE_BOTTOM} + 100px)`,
-        right: "12px",
-        zIndex: 1001,
-      }}
+    <div
+      className="absolute left-4 z-[1001] flex items-center gap-2"
+      style={{ top: `calc(${SAFE_TOP} + 60px)` }}
     >
-      <LocateFixed className="h-5 w-5" />
-    </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAddRouteWaypoint?.(currentLocation.lat, currentLocation.lng);
+        }}
+        disabled={!onAddRouteWaypoint}
+        className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Dodaj punkt pośredni"
+        title="Dodaj punkt pośredni"
+      >
+        <Plus className="h-5 w-5" />
+      </button>
+
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (plannedRouteWaypoints.length > 0) {
+            onPlannedRouteWaypointsChange?.(plannedRouteWaypoints.slice(0, -1));
+          }
+        }}
+        disabled={plannedRouteWaypoints.length === 0 || !onPlannedRouteWaypointsChange}
+        className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        aria-label="Usuń ostatni punkt pośredni"
+        title="Usuń ostatni punkt pośredni"
+      >
+        <Minus className="h-5 w-5" />
+      </button>
+    </div>
   );
 }
 
@@ -148,9 +96,6 @@ interface FullScreenMapModalProps {
   plannedRouteWaypoints?: { lat: number; lng: number }[];
   events?: TimelineItem[];
   onEventClick?: (id: string) => void;
-  /** Zoom i centrum do zsynchronizowania z mini-mapą */
-  center: [number, number];
-  zoom: number;
   /** Edycja trasy (dodawanie punktów pośrednich) — aktywna tylko w pełnoekranowym widoku. */
   editableRoute?: boolean;
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
@@ -171,12 +116,9 @@ export default function FullScreenMapModal({
   plannedRouteWaypoints = [],
   events = [],
   onEventClick,
-  center,
-  zoom,
   editableRoute = false,
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
-  destinationName,
 }: FullScreenMapModalProps) {
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
@@ -231,7 +173,7 @@ export default function FullScreenMapModal({
             type="button"
             onClick={() => openGoogleNavigation(destination, currentLocation)}
             className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-emerald-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-emerald-500/30 transition hover:bg-emerald-500 active:scale-95"
-            style={{ top: `calc(${SAFE_TOP} + 8px)` }}
+            style={{ top: `calc(${SAFE_TOP} + 60px)` }}
           >
             <Navigation className="h-4 w-4" />
             <span>{dict.navigateTo}</span>
@@ -239,9 +181,17 @@ export default function FullScreenMapModal({
           </button>
         )}
 
+        {/* Przyciski zarządzania punktami pośrednimi */}
+        <WaypointControls
+          onAddRouteWaypoint={onAddRouteWaypoint}
+          plannedRouteWaypoints={plannedRouteWaypoints}
+          onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
+          currentLocation={currentLocation}
+        />
+
         <MapContainer
-          center={center}
-          zoom={zoom}
+          center={[currentLocation.lat, currentLocation.lng]}
+          zoom={14}
           style={{ height: "100%", width: "100%" }}
           zoomControl={false}
           scrollWheelZoom
@@ -254,9 +204,7 @@ export default function FullScreenMapModal({
           <WerkitTileLayer />
 
           <MapInvalidateOnResize />
-          <MapStateSync center={center} zoom={zoom} />
-
-          <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
+          <MapInitialView center={[currentLocation.lat, currentLocation.lng]} zoom={14} />
 
           <TraveledPathLayers path={pathTraveled} />
 

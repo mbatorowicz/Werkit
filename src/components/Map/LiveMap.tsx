@@ -1,20 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Popup, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MapContainer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
 import { getDictionary } from "@/i18n";
 import Image from "next/image";
 import type { Coord, TimelineItem } from "@/types/worker";
+import L from "leaflet";
 import {
-  FitContentDebounced,
-  FollowPan,
-  FollowPivotCenter,
   MapInvalidateOnResize,
+  RouteWaypointClickLayer,
   UserTakeoverOnMapGesture,
-} from "./liveMapLeafletPlugins";
+} from "./mapSharedComponents";
 import {
   createCurrentLocationIcon,
   iconDest,
@@ -25,53 +24,135 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
-import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
-import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import FullScreenMapModal from "./FullScreenMapModal";
 import { Maximize2 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
-// Sub-komponent: śledzi bieżący stan mapy (center, zoom) dla pełnoekranowego modala
+// Podążanie za pojazdem, gdy nie ma jeszcze trasy ani celu na mapie.
 // ---------------------------------------------------------------------------
-function MapStateReporter({
-  onStateChange,
+function FollowPan({
+  lat,
+  lng,
+  active,
+  followEnabled,
 }: {
-  onStateChange: (center: [number, number], zoom: number) => void;
+  lat: number;
+  lng: number;
+  active: boolean;
+  followEnabled: boolean;
 }) {
   const map = useMap();
-  const report = useCallback(() => {
-    const c = map.getCenter();
-    onStateChange([c.lat, c.lng], map.getZoom());
-  }, [map, onStateChange]);
-
   useEffect(() => {
-    // Initial report
-    report();
-    map.on("moveend zoomend", report);
-    return () => {
-      map.off("moveend zoomend", report);
-    };
-  }, [map, report]);
-
+    if (!active || !followEnabled) return;
+    map.panTo([lat, lng], { animate: true });
+  }, [lat, lng, map, active, followEnabled]);
   return null;
 }
 
 // ---------------------------------------------------------------------------
-// Sub-komponent: klik na mapę dodaje punkt pośredni
+// U pracownika w trasie: mapa śledzi bieżący punkt na środku widoku.
 // ---------------------------------------------------------------------------
-function RouteWaypointClickLayer({
-  editable,
-  onAdd,
+function FollowPivotCenter({
+  lat,
+  lng,
+  active,
+  followEnabled,
 }: {
-  editable: boolean;
-  onAdd?: (lat: number, lng: number) => void;
+  lat: number;
+  lng: number;
+  active: boolean;
+  followEnabled: boolean;
 }) {
-  useMapEvents({
-    click(e) {
-      if (!editable || !onAdd || isMapClickBlocked() || isLeafletUiClick(e)) return;
-      onAdd(e.latlng.lat, e.latlng.lng);
-    },
+  const map = useMap();
+  useEffect(() => {
+    if (!active || !followEnabled) return;
+    map.panTo([lat, lng], { animate: true, duration: 0.35 });
+  }, [lat, lng, map, active, followEnabled]);
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Dopasowuje widok do trasy, śladu, celu i punktów na osi czasu.
+// ---------------------------------------------------------------------------
+function FitContentDebounced({
+  currentLocation,
+  pathTraveled,
+  destination,
+  routeToDest,
+  events,
+  enabled,
+  animate = true,
+}: {
+  currentLocation: { lat: number; lng: number };
+  pathTraveled: Coord[];
+  destination: { lat: number; lng: number } | null;
+  routeToDest: [number, number][];
+  events: TimelineItem[];
+  enabled: boolean;
+  animate?: boolean;
+}) {
+  const map = useMap();
+  const snapshotRef = useRef({
+    currentLocation,
+    pathTraveled,
+    destination,
+    routeToDest,
+    events,
   });
+
+  useEffect(() => {
+    snapshotRef.current = { currentLocation, pathTraveled, destination, routeToDest, events };
+  }, [currentLocation, pathTraveled, destination, routeToDest, events]);
+
+  const trigger = useMemo(
+    () =>
+      JSON.stringify({
+        dest: destination ? [destination.lat, destination.lng] : null,
+        plen: pathTraveled.length,
+        rlen: routeToDest.length,
+        elen: events.length,
+        lastPath:
+          pathTraveled.length > 0
+            ? [pathTraveled[pathTraveled.length - 1].lat, pathTraveled[pathTraveled.length - 1].lng]
+            : null,
+        routeTail: routeToDest.length > 0 ? routeToDest[routeToDest.length - 1] : null,
+      }),
+    [destination, pathTraveled, routeToDest, events.length],
+  );
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const id = window.setTimeout(() => {
+      const snap = snapshotRef.current;
+      const pts: L.LatLngTuple[] = [[snap.currentLocation.lat, snap.currentLocation.lng]];
+      snap.pathTraveled.forEach((p) => pts.push([p.lat, p.lng]));
+      if (snap.destination) pts.push([snap.destination.lat, snap.destination.lng]);
+      snap.routeToDest.forEach((c) => pts.push(c));
+      snap.events.forEach((e) => pts.push([e.lat, e.lng]));
+
+      if (pts.length === 0) return;
+
+      if (pts.length === 1) {
+        map.flyTo(pts[0], 16, { duration: 0.55 });
+        return;
+      }
+
+      try {
+        const b = L.latLngBounds(pts);
+        if (!b.isValid()) {
+          map.flyTo(pts[0], 16, { duration: 0.55 });
+          return;
+        }
+        map.fitBounds(b, { padding: [52, 52], maxZoom: 17, animate });
+      } catch {
+        map.flyTo([snap.currentLocation.lat, snap.currentLocation.lng], 15, { duration: 0.55 });
+      }
+    }, 900);
+
+    return () => window.clearTimeout(id);
+  }, [enabled, trigger, animate, map]);
+
   return null;
 }
 
@@ -136,8 +217,6 @@ export default function LiveMap({
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([currentLocation.lat, currentLocation.lng]);
-  const [mapZoom, setMapZoom] = useState(14);
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
   const canEditWaypoints = Boolean(editableRoute && onPlannedRouteWaypointsChange);
@@ -175,11 +254,6 @@ export default function LiveMap({
   );
 
   const showResumeFollow = !cameraFollowGps && (navPivotMode || followPanMode);
-
-  const handleMapStateChange = useCallback((center: [number, number], zoom: number) => {
-    setMapCenter(center);
-    setMapZoom(zoom);
-  }, []);
 
   return (
     <>
@@ -233,7 +307,6 @@ export default function LiveMap({
           {!thumbnail && (
             <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
           )}
-          <MapStateReporter onStateChange={handleMapStateChange} />
 
           <TraveledPathLayers path={pathTraveled} />
 
@@ -326,8 +399,6 @@ export default function LiveMap({
         plannedRouteWaypoints={plannedRouteWaypoints}
         events={events}
         onEventClick={onEventClick}
-        center={mapCenter}
-        zoom={mapZoom}
         editableRoute={editableRoute}
         onAddRouteWaypoint={onAddRouteWaypoint}
         onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
