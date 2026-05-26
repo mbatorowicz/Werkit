@@ -688,6 +688,13 @@ export const pl = {
   worker: {
     client: {
       refresh: "Odśwież listę",
+      offlineBanner: "Brak połączenia z internetem",
+      offlinePendingCount: "{count} operacji oczekuje",
+      offlineQueuedEndSession: "Zakończenie sesji zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedCancel: "Cofnięcie zlecenia zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedCheckpoint: "Zapisano dotarcie na miejsce. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedNote: "Notatka została zapisana. Zostanie wysłana po przywróceniu połączenia.",
+      offlineQueuedPhoto: "Zdjęcie zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
       loadingWorkerDashboard: "Wczytywanie statusu…",
       readyToStart: "Gotowy do startu?",
       selectOrder: "Wybierz przygotowane zlecenie lub rozpocznij pracę ręcznie.",

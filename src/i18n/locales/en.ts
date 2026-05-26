@@ -690,6 +690,13 @@ export const en: AppDictionary = {
   worker: {
     client: {
       refresh: "Refresh list",
+      offlineBanner: "No internet connection",
+      offlinePendingCount: "{count} operations pending",
+      offlineQueuedEndSession: "Session end has been saved. It will be sent when connection is restored.",
+      offlineQueuedCancel: "Order cancellation has been saved. It will be sent when connection is restored.",
+      offlineQueuedCheckpoint: "Arrival saved. It will be sent when connection is restored.",
+      offlineQueuedNote: "Note has been saved. It will be sent when connection is restored.",
+      offlineQueuedPhoto: "Photo has been saved. It will be sent when connection is restored.",
       loadingWorkerDashboard: "Loading status…",
       readyToStart: "Ready to start?",
       selectOrder: "Select a prepared order or start work manually.",

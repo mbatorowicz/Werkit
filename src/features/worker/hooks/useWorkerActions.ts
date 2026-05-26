@@ -3,10 +3,11 @@ import { useAppDialog, appDialogApiMessage } from '@/components/AppDialogProvide
 import { formatDict, getDictionary } from '@/i18n';
 import type { AppDictionary } from '@/i18n/types';
 import { fetchWithDeviceTelemetry } from '@/lib/fetchWithDeviceTelemetry';
+import { offlineActionQueue } from '@/lib/offlineActionQueue';
 import { parseJsonUnknown, readApiErrorString } from '@/lib/parseApiJson';
 import { GPSManager } from '@/lib/gpsManager';
 import { sendRemoteLog } from '@/lib/remoteLogger';
-import { Coord, TimelineItem, AppSettings } from '@/types/worker';
+import type { Coord, TimelineItem, AppSettings } from '@/types/worker';
 
 interface UseWorkerActionsProps {
   dict: AppDictionary['worker']['client'];
@@ -47,22 +48,24 @@ export function useWorkerActions({
     if (!(await appConfirm({ message: dict.confirmEndSession, variant: "danger" }))) return;
     setIsLoading(true);
     try {
-      const endRes = await fetchWithDeviceTelemetry("Worker: end session PUT", "/api/worker/session", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          endLocation
-            ? { latitude: endLocation.lat, longitude: endLocation.lng }
-            : {},
-        ),
-      }, { category: "session" });
-      if (!endRes.ok) {
+      const body = endLocation
+        ? { latitude: endLocation.lat, longitude: endLocation.lng }
+        : {};
+
+      const result = await offlineActionQueue.enqueue("end_session", body);
+      if (result.queued) {
+        // Offline — zakolejkowano, wyślę po powrocie online
+        sendRemoteLog('INFO', 'Zakończenie sesji zakolejkowane offline', undefined, { category: 'session' });
+        GPSManager.clearQueue();
+        await appAlert({ message: dict.offlineQueuedEndSession });
+        await fetchSessionAndPath(false, false);
+      } else if (result.ok) {
+        GPSManager.clearQueue();
+        sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy', undefined, { category: 'session' });
+        await fetchSessionAndPath(false, false);
+      } else {
         await appAlert({ message: dict.errEndSession });
-        return;
       }
-      GPSManager.clearQueue();
-      sendRemoteLog('INFO', 'Użytkownik zakończył sesję pracy', undefined, { category: 'session' });
-      await fetchSessionAndPath(false, false);
     } catch (e: unknown) {
       sendRemoteLog('ERROR', 'Błąd podczas zakańczania sesji', { error: e instanceof Error ? e.message : String(e) }, { category: 'session' });
       await appAlert({ message: dict.errEndSession });
@@ -121,8 +124,13 @@ export function useWorkerActions({
     if (!(await appConfirm({ message: dict.confirmCancelSession, variant: "danger" }))) return;
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Worker: cancel session order POST", "/api/worker/session/cancel", { method: "POST" }, { category: "orders" });
-      if (res.ok) {
+      const result = await offlineActionQueue.enqueue("cancel_session", {});
+      if (result.queued) {
+        sendRemoteLog('WARN', 'Cofnięcie zlecenia zakolejkowane offline', { status: 'cancelled' }, { category: 'orders' });
+        GPSManager.clearQueue();
+        await appAlert({ message: dict.offlineQueuedCancel });
+        await fetchSessionAndPath(true, true);
+      } else if (result.ok) {
         sendRemoteLog('WARN', 'Cofnięto zlecenie', { status: 'cancelled' }, { category: 'orders' });
         GPSManager.clearQueue();
         await appAlert({ message: dict.cancelSuccess });
@@ -152,12 +160,15 @@ export function useWorkerActions({
     }
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Worker: checkpoint POST", "/api/worker/session/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: dict.checkpointNote, location })
-      }, { category: "session" });
-      if (res.ok) {
+      const result = await offlineActionQueue.enqueue("checkpoint", {
+        note: dict.checkpointNote,
+        location,
+      });
+      if (result.queued) {
+        sendRemoteLog('INFO', 'Checkpoint zakolejkowany offline', undefined, { category: 'session' });
+        await appAlert({ message: dict.offlineQueuedCheckpoint });
+        await fetchSessionAndPath(false, false);
+      } else if (result.ok) {
         sendRemoteLog('INFO', 'Zapisano checkpoint (dotarcie na miejsce)', undefined, { category: 'session' });
         await fetchSessionAndPath(false, false);
       } else {
@@ -177,23 +188,20 @@ export function useWorkerActions({
     setIsSubmittingNote(true);
     try {
       const isEditing = editingNoteId !== null;
-      const url = "/api/worker/session/notes";
-      const method = isEditing ? "PUT" : "POST";
+      const actionType = isEditing ? "edit_note" : "save_note";
       const body = isEditing
         ? { noteId: editingNoteId, note: noteText }
         : { note: noteText, location };
 
-      const res = await fetchWithDeviceTelemetry(
-        isEditing ? "Worker: edit note PUT" : "Worker: add note POST",
-        url,
-        {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-        { category: "session" },
-      );
-      if (res.ok) {
+      const result = await offlineActionQueue.enqueue(actionType, body);
+      if (result.queued) {
+        sendRemoteLog('INFO', isEditing ? 'Edycja notatki zakolejkowana offline' : 'Notatka zakolejkowana offline', undefined, { category: 'session' });
+        setIsNotesModalOpen(false);
+        setNoteText("");
+        setEditingNoteId(null);
+        await appAlert({ message: dict.offlineQueuedNote });
+        await fetchSessionAndPath(false, false);
+      } else if (result.ok) {
         sendRemoteLog('INFO', isEditing ? 'Zaktualizowano notatkę' : 'Dodano nową notatkę', undefined, { category: 'session' });
         setIsNotesModalOpen(false);
         setNoteText("");
@@ -231,12 +239,15 @@ export function useWorkerActions({
         ctx?.drawImage(img, 0, 0, width, height);
         const base64 = canvas.toDataURL('image/jpeg', 0.7);
 
-        const res = await fetchWithDeviceTelemetry("Worker: upload photo POST", "/api/worker/session/photos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoUrl: base64, location })
-        }, { category: "session" });
-        if (res.ok) {
+        const result = await offlineActionQueue.enqueue("upload_photo", {
+          photoUrl: base64,
+          location,
+        });
+        if (result.queued) {
+          sendRemoteLog('INFO', 'Zdjęcie zakolejkowane offline', undefined, { category: 'session' });
+          await appAlert({ message: dict.offlineQueuedPhoto });
+          await fetchSessionAndPath(false, false);
+        } else if (result.ok) {
           sendRemoteLog('INFO', 'Zrobiono i wysłano zdjęcie', undefined, { category: 'session' });
           await fetchSessionAndPath(false, false);
         } else {

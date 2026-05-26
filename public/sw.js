@@ -1,14 +1,17 @@
 /**
  * Service Worker dla Werkit PWA.
- * Zapewnia podstawowe wsparcie offline dla assetów statycznych.
+ * Zapewnia wsparcie offline dla assetów statycznych oraz danych API.
  *
- * Strategia: Cache-First dla assetów (JS, CSS, fonts, icons),
- * Network-First dla API i stron (z fallbackiem do cache).
+ * Strategie:
+ * - Cache-First dla assetów (JS, CSS, fonts, icons, sounds)
+ * - Stale-While-Revalidate dla API worker (szybkie ładowanie + offline fallback)
+ * - Network-First dla API admin i nawigacji
+ * - Background Sync dla operacji offline (jeśli SyncManager dostępny)
  *
  * Rejestracja: automatyczna w `src/components/ServiceWorkerRegister.tsx`
  */
 
-const CACHE_NAME = 'werkit-v1';
+const CACHE_NAME = 'werkit-v2';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -17,6 +20,13 @@ const STATIC_ASSETS = [
   '/sounds/werkit_sound_chime.wav',
   '/sounds/werkit_sound_soft.wav',
   '/sounds/werkit_sound_urgent.wav',
+];
+
+// Endpointy API worker które mogą być cache'owane (GET)
+const WORKER_API_CACHE_PATHS = [
+  '/api/worker/session',
+  '/api/worker/work-orders',
+  '/api/worker/settings',
 ];
 
 // Instalacja — pre-cache assetów statycznych
@@ -51,9 +61,15 @@ self.addEventListener('fetch', (event) => {
   // Tylko własny origin
   if (url.origin !== self.location.origin) return;
 
-  // API — Network First z fallbackiem do cache
+  // API worker (GET) — Stale-While-Revalidate
+  if (request.method === 'GET' && isWorkerApiPath(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // API (POST/PUT/DELETE) — Network only, nie cache'ujemy
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirstWithFallback(request));
+    // Dla zapytań innych niż GET — przepuszczamy bez cache
     return;
   }
 
@@ -71,14 +87,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strony (nawigacja) — Network First
+  // Strony (nawigacja) — Network First z fallbackiem do cache
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstWithFallback(request));
     return;
   }
 });
 
-async function cacheFirst(request: Request): Promise<Response> {
+function isWorkerApiPath(pathname) {
+  return WORKER_API_CACHE_PATHS.some((prefix) => pathname.startsWith(prefix));
+}
+
+async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
   try {
@@ -93,7 +113,38 @@ async function cacheFirst(request: Request): Promise<Response> {
   }
 }
 
-async function networkFirstWithFallback(request: Request): Promise<Response> {
+/**
+ * Stale-While-Revalidate: zwraca z cache natychmiast (jeśli istnieje),
+ * a w tle aktualizuje cache z sieci. Działa offline — pokazuje ostatnie dane.
+ */
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(request);
+
+  const fetchPromise = fetch(request)
+    .then((response) => {
+      if (response.ok) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => {
+      // Sieć niedostępna — zwróć cached response (może być null)
+      return cachedResponse;
+    });
+
+  // Jeśli mamy cache — zwróć go natychmiast, ale też czekaj na fetch
+  if (cachedResponse) {
+    // W tle aktualizuj cache
+    fetchPromise.catch(() => {});
+    return cachedResponse;
+  }
+
+  // Brak cache — czekaj na fetch
+  return fetchPromise;
+}
+
+async function networkFirstWithFallback(request) {
   try {
     const response = await fetch(request);
     if (response.ok) {
@@ -115,5 +166,23 @@ async function networkFirstWithFallback(request: Request): Promise<Response> {
       );
     }
     return new Response('Offline', { status: 503 });
+  }
+}
+
+// ─── Background Sync ─────────────────────────────────────────────────────────
+// Rejestrujemy sync event — jeśli przeglądarka wspiera SyncManager,
+// po powrocie online wywoła 'sync' event, który poinformuje klienta o flush.
+
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'werkit-flush-queue') {
+    event.waitUntil(flushOfflineQueue());
+  }
+});
+
+async function flushOfflineQueue() {
+  // Wyślij wiadomość do wszystkich klientów (okien) żeby wykonały flush
+  const clients = await self.clients.matchAll();
+  for (const client of clients) {
+    client.postMessage({ type: 'FLUSH_OFFLINE_QUEUE' });
   }
 }

@@ -17,6 +17,7 @@ import { WorkerClientFooter } from "@/features/worker/components/shell/WorkerCli
 import { WorkerClientLoading } from "@/features/worker/components/shell/WorkerClientLoading";
 import { WorkerClientModals } from "@/features/worker/components/shell/WorkerClientModals";
 import { WorkerPendingOrdersSection } from "@/features/worker/components/shell/WorkerPendingOrdersSection";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dict = getDictionary().worker.client;
@@ -112,6 +113,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-start space-y-6 py-4">
+      <OfflineBanner />
       {!shell.session ? (
         <WorkerPendingOrdersSection
           workOrders={shell.workOrders}

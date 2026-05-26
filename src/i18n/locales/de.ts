@@ -690,6 +690,13 @@ export const de: AppDictionary = {
   worker: {
     client: {
       refresh: "Liste aktualisieren",
+      offlineBanner: "Keine Internetverbindung",
+      offlinePendingCount: "{count} Operationen warten",
+      offlineQueuedEndSession: "Sitzungsende wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedCancel: "Auftragsstornierung wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedCheckpoint: "Ankunft gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedNote: "Notiz wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedPhoto: "Foto wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
       loadingWorkerDashboard: "Status wird geladen…",
       readyToStart: "Bereit zum Start?",
       selectOrder: "Wählen Sie einen vorbereiteten Auftrag oder starten Sie manuell.",
