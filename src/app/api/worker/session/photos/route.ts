@@ -1,9 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
-import { uploadPhotoBase64 } from "@/lib/photoUpload";
-import { db } from "@/db";
-import { sessionPhotos, workSessions } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { WorkerSessionService } from "@/services/WorkerSessionService";
 
 /**
  * POST /api/worker/session/photos
@@ -33,43 +30,20 @@ export const POST = withApiErrorHandling(async (req: Request) => {
     return jsonError("missing_photo", 400);
   }
 
-  // Znajdź aktywną sesję
-  const [session] = await db
-    .select({ id: workSessions.id })
-    .from(workSessions)
-    .where(
-      and(
-        eq(workSessions.userId, userId),
-        eq(workSessions.companyId, companyId),
-        eq(workSessions.status, "IN_PROGRESS"),
-      ),
-    )
-    .limit(1);
-
-  if (!session) {
-    return jsonError("no_active_session", 400);
-  }
-
-  // Prześlij do Vercel Blob Storage
-  let blobUrl: string;
   try {
-    const result = await uploadPhotoBase64(photoUrl, session.id, "AD_HOC");
-    blobUrl = result.url;
+    const result = await WorkerSessionService.uploadAndAddPhoto(
+      userId,
+      companyId,
+      photoUrl,
+      location,
+    );
+    return jsonOk({ success: true, url: result.url });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // Loguj błąd do konsoli Vercel (Funkcje)
+    if (message === "no_active_session") {
+      return jsonError("no_active_session", 400);
+    }
     console.error("[photoUpload]", message, err instanceof Error ? err.stack : "");
     return jsonError("photo_upload_failed", 500);
   }
-
-  // Zapisz URL w bazie (zamiast data URL)
-  await db.insert(sessionPhotos).values({
-    workSessionId: session.id,
-    photoUrl: blobUrl,
-    photoType: "AD_HOC",
-    latitude: location?.lat != null ? String(location.lat) : null,
-    longitude: location?.lng != null ? String(location.lng) : null,
-  });
-
-  return jsonOk({ success: true, url: blobUrl });
 });

@@ -403,7 +403,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `companyBaseLocation.ts` | Lokalizacja bazowa firmy z `company_settings`. |
 | `isLeafletUiClick.ts` | Detekcja kliknięcia w element UI Leaflet. |
 | `mapBasemap.ts` | Konfiguracja warstwy bazowej (jasny/ciemny). |
-| `routeGeometryProvider.ts` | Provider geometrii trasy OSRM (szkielet). |
+| `routeGeometryProvider.ts` | Provider geometrii trasy OSRM: budowanie URL + parsowanie odpowiedzi (`parseRouteResponse`). Typy OSRM (`OsrmStep`, `OsrmRoute`, `NavigationInstruction`) i domenowe (`ParsedRouteResponse`) zdefiniowane tutaj, a nie w hooku. |
 | `routeWaypoints.ts` | Logika punktów pośrednich (walidacja, serializacja). |
 
 **Nawigacja zewnętrzna:** `FullScreenMapModal.tsx` → `openNavigation(app, lat, lng)` — otwiera Google Maps / Waze / Apple Maps z podaną lokalizacją.

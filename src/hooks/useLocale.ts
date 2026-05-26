@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { Locale } from "@/i18n";
 import { LOCALE_COOKIE, TIMEZONE_COOKIE, SUPPORTED_LOCALES } from "@/lib/localeCookies";
 
@@ -27,26 +27,38 @@ export interface LocaleConfig {
   timezone: string;
 }
 
+/** Odczytuje locale z cookies (SSOT — jedna funkcja). */
+function readLocaleFromCookie(): Locale {
+  const raw = getCookie(LOCALE_COOKIE) || "pl";
+  return (SUPPORTED_LOCALES as readonly string[]).includes(raw) ? (raw as Locale) : "pl";
+}
+
+/** Odczytuje timezone z cookies lub z Intl API. */
+function readTimezoneFromCookie(): string {
+  return getCookie(TIMEZONE_COOKIE) || Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw";
+}
+
+/** Buduje pełny LocaleConfig z cookies. */
+function buildLocaleConfigFromCookies(): LocaleConfig {
+  const locale = readLocaleFromCookie();
+  return {
+    locale,
+    localeLabel: LOCALE_MAP[locale],
+    timezone: readTimezoneFromCookie(),
+  };
+}
+
 /**
  * Hook do odczytu i zmiany locale + timezone z cookies.
  * Używany w Client Components.
+ * Stan inicjalizowany leniwie z cookies — brak duplikacji logiki w useEffect.
  */
 export function useLocale(): LocaleConfig & {
   setLocale: (locale: Locale) => void;
   setTimezone: (tz: string) => void;
   supportedLocales: { value: Locale; label: string }[];
 } {
-  const [config, setConfig] = useState<LocaleConfig>(() => {
-    const localeRaw = getCookie(LOCALE_COOKIE) || "pl";
-    const locale = (SUPPORTED_LOCALES as readonly string[]).includes(localeRaw)
-      ? (localeRaw as Locale)
-      : "pl";
-    return {
-      locale,
-      localeLabel: LOCALE_MAP[locale],
-      timezone: getCookie(TIMEZONE_COOKIE) || Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw",
-    };
-  });
+  const [config, setConfig] = useState<LocaleConfig>(buildLocaleConfigFromCookies);
 
   const setLocale = useCallback((locale: Locale) => {
     setCookie(LOCALE_COOKIE, locale);
@@ -60,20 +72,6 @@ export function useLocale(): LocaleConfig & {
   const setTimezone = useCallback((tz: string) => {
     setCookie(TIMEZONE_COOKIE, tz);
     setConfig((prev) => ({ ...prev, timezone: tz }));
-  }, []);
-
-  // Sync przy mount — odczytuje aktualne cookies (np. zmienione w innej karcie)
-  useEffect(() => {
-    const localeRaw = getCookie(LOCALE_COOKIE) || "pl";
-    const locale = (SUPPORTED_LOCALES as readonly string[]).includes(localeRaw)
-      ? (localeRaw as Locale)
-      : "pl";
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- inicjalizacja locale z cookies, konieczne przy mount
-    setConfig({
-      locale,
-      localeLabel: LOCALE_MAP[locale],
-      timezone: getCookie(TIMEZONE_COOKIE) || Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw",
-    });
   }, []);
 
   return {

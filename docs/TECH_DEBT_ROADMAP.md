@@ -97,10 +97,39 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | ID | Temat | Status |
 |----|--------|--------|
 | D-01 | Ujednolicenie dat/czasu w panelu admin (`formatUi*` / strefa jak worker) | done |
-| D-02 | Rozszerzenie testów: krytyczne ścieżki (Vitest w CI; `lib` + serwisy mapowania błędów/tenant + route waypoints; dalej sesja/GPS) | in_progress |
+| D-02 | Rozszerzenie testów: krytyczne ścieżki (Vitest w CI; `lib` + serwisy mapowania błędów/tenant + route waypoints; dalej sesja/GPS) | done |
 | D-03 | Wspólny moduł okien czasowych dla telemetrii (dedupe + throttle fetch) | done |
-| D-04 | Abstrakcja providera trasy mapy (OSRM / ewentualna wymiana backendu) | done (szkielet: `RouteGeometryProvider` + domyślny publiczny OSRM; parsowanie nadal w hooku) |
+| D-04 | Abstrakcja providera trasy mapy (OSRM / ewentualna wymiana backendu) | done |
+| D-05 | Architektura: przeniesienie logiki DB z route handlera do serwisu (foto) | done |
+| D-06 | Rozszerzenie testów: AdminSessionService, GpsService, SystemLogService | done |
+
+### D-02 — co zrobiono
+
+- [`AdminUserService.test.ts`](../src/services/AdminUserService.test.ts): rozszerzono z 2 → 17 testów pokrywających wszystkie metody (`getAllUsers`, `getUserById`, `getUserByIdForCompany`, `getUserByUsername`, `getWorkers`, `createUser`, `updateUser`, `userCanEditRoute`, `verifyPasswordForUserId`, `deleteUser`).
+
+### D-04 — co zrobiono
+
+- [`RouteGeometryProvider`](../src/lib/map/routeGeometryProvider.ts): dodano interfejs `parseRouteResponse(data: unknown): ParsedRouteResponse` oraz domyślną implementację w `projectOsrmPublicRouteGeometryProvider`. Typy OSRM (`OsrmStep`, `OsrmRoute`, `NavigationInstruction`) przeniesione z hooka do providera.
+- [`useOsrmNavigation`](../src/components/Map/useOsrmNavigation.ts): usunięto inline parsowanie odpowiedzi OSRM — hook deleguje do `routeGeometryProvider.parseRouteResponse()`. Hook zawiera tylko logikę pozycjonowania (Haversine, `findCurrentInstructionIndex`, `calculateRemainingDistance`).
+- Re-eksport `NavigationInstruction` z hooka dla kompatybilności wstecznej.
+
+### D-05 — co zrobiono
+
+- [`WorkerSessionService`](../src/services/WorkerSessionService.ts): dodano metodę `uploadAndAddPhoto(userId, companyId, base64DataUrl, location?)`, która łączy upload do Vercel Blob Storage (`uploadPhotoBase64`) z zapisem URL-a w tabeli `sessionPhotos`.
+- [`photos/route.ts`](../src/app/api/worker/session/photos/route.ts): usunięto bezpośrednie importy `@/db` i `@/db/schema` — handler deleguje do `WorkerSessionService.uploadAndAddPhoto()`. Zgodność z regułą AGENTS.md §4: `src/app/**` nie importuje `@/db`.
+- Weryfikacja: TypeScript 0 errors, ESLint 0 errors.
+
+### D-06 — co zrobiono
+
+- [`AdminSessionService.test.ts`](../src/services/AdminSessionService.test.ts): 8 testów pokrywających 3 metody (`getSessionDetails`, `forceCompleteSession`, `deleteArchivedSession`) — w tym przypadki brzegowe (sesja nie istnieje, zły status, aktywna sesja przy usuwaniu).
+- [`GpsService.test.ts`](../src/services/GpsService.test.ts): 6 testów pokrywających 2 metody (`getActiveSessionGpsLogs`, `saveGpsLogs`) — w tym pusta tablica, brak aktywnej sesji, filtrowanie nieprawidłowych punktów.
+- [`SystemLogService.test.ts`](../src/services/SystemLogService.test.ts): 6 testów pokrywających 2 metody (`getRecentLogs`, `insertLog`) — w tym domyślne wartości, przycinanie długich stringów, pusty wynik.
+- Łączna liczba testów: **118** (wzrost z 98).
+
+### Inne naprawione
+
+- [`useLocale.ts`](../src/hooks/useLocale.ts): usunięto duplikację logiki między `useState` init a `useEffect` na mount. Stan inicjalizowany leniwie przez `buildLocaleConfigFromCookies()`. Usunięto zbędny `useEffect` i związany z nim `eslint-disable`.
 
 ---
 
-*Ostatnia aktualizacja roadmapu: 2026-05-24.*
+*Ostatnia aktualizacja roadmapu: 2026-05-26.*

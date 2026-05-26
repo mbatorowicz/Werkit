@@ -270,6 +270,40 @@ export class WorkerSessionService {
     });
   }
 
+  /**
+   * Przesyła zdjęcie (base64 data URL) do Vercel Blob Storage i zapisuje URL w bazie.
+   * Łączy logikę uploadPhotoBase64 + addPhoto w jednej metodzie serwisowej,
+   * aby route handler nie musiał importować @/db / @/db/schema.
+   *
+   * @returns Obiekt { url } — publiczny URL zdjęcia w Blob Storage.
+   */
+  static async uploadAndAddPhoto(
+    userId: number,
+    companyId: number,
+    base64DataUrl: string,
+    location?: { lat: number; lng: number } | null,
+  ): Promise<{ url: string }> {
+    const existing = await db
+      .select({ id: workSessions.id })
+      .from(workSessions)
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .limit(1);
+    if (existing.length === 0) throw new Error('no_active_session');
+
+    const { uploadPhotoBase64 } = await import('@/lib/photoUpload');
+    const result = await uploadPhotoBase64(base64DataUrl, existing[0].id, 'AD_HOC');
+
+    await db.insert(sessionPhotos).values({
+      workSessionId: existing[0].id,
+      photoUrl: result.url,
+      photoType: 'AD_HOC',
+      latitude: location?.lat != null ? String(location.lat) : null,
+      longitude: location?.lng != null ? String(location.lng) : null,
+    });
+
+    return { url: result.url };
+  }
+
   static async cancelActiveSession(userId: number, companyId: number) {
     const [session] = await db
       .select()

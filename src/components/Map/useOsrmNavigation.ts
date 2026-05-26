@@ -6,62 +6,15 @@ import {
   projectOsrmPublicRouteGeometryProvider,
   type RouteGeometryProvider,
   type RouteLngLat,
+  type NavigationInstruction,
 } from "@/lib/map/routeGeometryProvider";
 
+// Re-export dla komponentów importujących z tego modułu (NavigationBottomSheet, NavigationInstructionBar)
+export type { NavigationInstruction } from "@/lib/map/routeGeometryProvider";
+
 // ---------------------------------------------------------------------------
-// Types for OSRM turn-by-turn navigation
+// Types for navigation state (domenowe, niezależne od OSRM)
 // ---------------------------------------------------------------------------
-
-export interface OsrmStepManeuver {
-  type: string;
-  modifier?: string;
-  location: [number, number]; // [lng, lat]
-  bearing_before?: number;
-  bearing_after?: number;
-}
-
-export interface OsrmStep {
-  name: string;
-  ref?: string;
-  distance: number; // meters
-  duration: number; // seconds
-  maneuver: OsrmStepManeuver;
-  instruction: string;
-  driving_side?: string;
-}
-
-export interface OsrmLeg {
-  steps: OsrmStep[];
-  distance: number;
-  duration: number;
-  summary: string;
-}
-
-export interface OsrmRoute {
-  legs: OsrmLeg[];
-  geometry: { coordinates: [number, number][] };
-  distance: number; // total meters
-  duration: number; // total seconds
-}
-
-export interface NavigationInstruction {
-  /** Human-readable instruction text (from OSRM). */
-  text: string;
-  /** Maneuver type: 'turn', 'continue', 'straight', 'roundabout', 'arrive', 'depart', 'fork', 'merge', 'ramp', 'rotary', 'exit_roundabout', 'end_of_road', 'use_lane' */
-  type: string;
-  /** Modifier: 'left', 'right', 'sharp_left', 'sharp_right', 'slight_left', 'slight_right', 'straight', 'uturn' */
-  modifier?: string;
-  /** Distance to this instruction in meters. */
-  distanceMeters: number;
-  /** Duration to this instruction in seconds. */
-  durationSeconds: number;
-  /** Street name. */
-  streetName: string;
-  /** The coordinate [lat, lng] where this maneuver happens. */
-  location: { lat: number; lng: number };
-  /** Index of this instruction in the full list. */
-  index: number;
-}
 
 export interface NavigationState {
   /** All instructions for the entire route. */
@@ -80,24 +33,6 @@ export interface NavigationState {
   loading: boolean;
   /** Error message if route fetch failed. */
   error: string | null;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/** Convert OSRM steps into our NavigationInstruction format. */
-function stepsToInstructions(steps: OsrmStep[]): NavigationInstruction[] {
-  return steps.map((step, idx) => ({
-    text: step.instruction,
-    type: step.maneuver.type,
-    modifier: step.maneuver.modifier,
-    distanceMeters: step.distance,
-    durationSeconds: step.duration,
-    streetName: step.name || step.ref || "",
-    location: { lat: step.maneuver.location[1], lng: step.maneuver.location[0] },
-    index: idx,
-  }));
 }
 
 /** Find which instruction the user is currently heading towards based on position. */
@@ -298,51 +233,32 @@ export function useOsrmNavigation(
           { category: "http", throttleKey: "osrm_navigation_route", throttleMs: 15_000 },
         );
         const data: unknown = await res.json();
-        const routes = (data as { code?: string; routes?: OsrmRoute[] }).routes;
 
         if (cancelled) return;
 
-        if (!Array.isArray(routes) || routes.length === 0) {
-          setError("No route found");
-          setLoading(false);
-          return;
-        }
+        // Delegate parsing to the provider — OSRM-specific logic lives there
+        const parsed = routeGeometryProvider.parseRouteResponse(data);
 
-        const route = routes[0];
+        instructionsRef.current = parsed.instructions;
+        routeGeometryRef.current = parsed.geometry;
+        totalDurationRef.current = parsed.totalDuration;
 
-        // Collect all steps from all legs
-        const allSteps: OsrmStep[] = [];
-        for (const leg of route.legs) {
-          for (const step of leg.steps) {
-            allSteps.push(step);
-          }
-        }
-
-        const navInstructions = stepsToInstructions(allSteps);
-        const geometry = route.geometry.coordinates.map(
-          (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
-        );
-
-        instructionsRef.current = navInstructions;
-        routeGeometryRef.current = geometry;
-        totalDurationRef.current = route.duration;
-
-        setInstructions(navInstructions);
-        setRouteGeometry(geometry);
-        setRemainingDistance(route.distance);
-        setRemainingDuration(route.duration);
+        setInstructions(parsed.instructions);
+        setRouteGeometry(parsed.geometry);
+        setRemainingDistance(parsed.totalDistance);
+        setRemainingDuration(parsed.totalDuration);
 
         // Find initial instruction
-        const idx = findCurrentInstructionIndex(navInstructions, currentLocation, geometry);
+        const idx = findCurrentInstructionIndex(parsed.instructions, currentLocation, parsed.geometry);
         setCurrentInstructionIndex(idx);
 
         // Calculate remaining to next instruction
-        if (idx < navInstructions.length) {
+        if (idx < parsed.instructions.length) {
           const distToInst = haversineDistance(
             currentLocation.lat,
             currentLocation.lng,
-            navInstructions[idx].location.lat,
-            navInstructions[idx].location.lng,
+            parsed.instructions[idx].location.lat,
+            parsed.instructions[idx].location.lng,
           );
           setRemainingToNextInstruction(distToInst);
         }
