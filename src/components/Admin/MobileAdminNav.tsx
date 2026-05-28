@@ -16,11 +16,13 @@ export function MobileAdminNav({
   companyName,
   version,
   dict,
+  durDict,
   loggedInUser,
 }: {
   companyName: string;
   version: string;
   dict: AppDictionary["admin"];
+  durDict: AppDictionary["dur"];
   loggedInUser?: string | null;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +30,7 @@ export function MobileAdminNav({
   const pathname = usePathname();
   const closeMenu = () => setIsOpen(false);
 
-  const links = buildAdminNavLinks(dict);
+  const links = buildAdminNavLinks(dict, durDict);
 
   return (
     <>

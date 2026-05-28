@@ -64,6 +64,10 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `session_notes` | `id` | `work_session_id`, `note`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
 | `company_settings` | per `company_id` (unique) | **`company_id`**, `company_name`, `cancel_window_minutes`, geofence, przypomnienia, … | `company_id → companies.id` (cascade) |
 | `device_logs` | `id` | `user_id?`, `level` ∈ `INFO\|WARN\|ERROR\|DEBUG`, `message`, `metadata: jsonb`, `created_at` | `user_id → users.id` (cascade) |
+| `spare_part_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, `color` | `company_id → companies.id` (cascade) |
+| `spare_parts` | `id` | **`company_id`**, `name`, `catalog_number?`, `manufacturer?`, `unit`, `purchase_price?` (numeric), `description?`, `min_stock` (numeric, default 0), `location?`, `image_url?`, `is_active`, `created_at` | `company_id → companies.id` (cascade) |
+| `spare_part_to_categories` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie części | cascade z `spare_parts` i `spare_part_categories` |
+| `spare_part_machine_compatibility` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie maszyn (`resource_categories`); `notes?` | cascade z `spare_parts` i `resource_categories` |
 
 ### 3.1. Drizzle relations
 
@@ -93,6 +97,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0017 | `0017_multi_company.sql` | Tabela `companies`; `company_id` na encjach operacyjnych (users, słowniki, zlecenia, sesje, ustawienia firmy); backfill `company_id = 1`. |
 | 0018 | `0018_users_can_create_customers.sql` | `users.can_create_customers boolean NOT NULL DEFAULT false`. |
 | 0019 | `0019_performance_indexes.sql` | Indeksy wydajnościowe: `work_orders(company_id, status)`, `work_sessions(company_id, user_id, status)`, `gps_logs(work_session_id, timestamp)`, `device_logs(company_id, created_at)`, `session_photos(work_session_id)`, `session_notes(work_session_id)`. |
+| 0020 | `0020_dur_spare_parts.sql` | Moduł DUR: tabele `spare_part_categories`, `spare_parts`, `spare_part_to_categories`, `spare_part_machine_compatibility` + indeksy. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -121,6 +126,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
+| `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Magazyn części zamiennych DUR — lista, wyszukiwanie, CRUD (`features/admin/dur/SparePartsClient.tsx`) | admin |
+| `/admin/dur/spare-part-categories` | RSC | `SparePartCategoriesClient` | Kategorie części DUR — drzewo hierarchiczne (`features/admin/dur/SparePartCategoriesClient.tsx`) | admin |
+| `/admin/dur/compatibility` | RSC | `CompatibilityClient` | Kompatybilność części z kategoriami maszyn (`features/admin/dur/CompatibilityClient.tsx`) | admin |
 | `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia (`components/Platform/PlatformDashboard.tsx`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
@@ -132,6 +140,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
+- Sidebar zawiera sekcję **DUR** (części zamienne) z linkami do `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/compatibility`. Etykiety z `dur.sidebar.*` (i18n). `durDict` przekazywany jako osobny prop do `AdminSidebarNav` i `MobileAdminNav`.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -221,6 +230,25 @@ Każda trasa w `categories|customers|materials|machines|material-categories` ma 
 
 **Materiały:** `POST/PUT /api/materials` — ciało `{ name, categoryIds }`; **co najmniej jedna** kategoria (`categoryIds.length ≥ 1`), inaczej **400** `missing_material_category`. Kolumna `materials.type` usunięta migracją **0009** (`DictionaryService.addMaterial(name, categoryIds)`).
 
+### 5.6. DUR (części zamienne)
+
+Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Mutacje przez `guardAdminMutation()`.
+
+| Endpoint | Metoda | Funkcja |
+|---|---|---|
+| `/api/dur/spare-parts` | GET | `SparePartService.getParts(companyId)` — lista części z kategoriami i kompatybilnością |
+| `/api/dur/spare-parts` | POST | `SparePartService.addPart(companyId, body)` — tworzy część + linki kategorii i kompatybilności |
+| `/api/dur/spare-parts/[id]` | GET | `SparePartService.getPart(companyId, id)` — szczegóły części z linkami |
+| `/api/dur/spare-parts/[id]` | PUT | `SparePartService.updatePart(companyId, id, body)` — edycja + aktualizacja linków |
+| `/api/dur/spare-parts/[id]` | DELETE | `SparePartService.deletePart(companyId, id)` — usunięcie (kaskada) |
+| `/api/dur/spare-part-categories` | GET | `SparePartCategoryService.getCategories(companyId, {leavesOnly?})` — drzewo kategorii; `?leavesOnly=1` zwraca tylko liście |
+| `/api/dur/spare-part-categories` | POST | `SparePartCategoryService.addCategory(companyId, body)` — tworzy kategorię (grupę lub liść) |
+| `/api/dur/spare-part-categories/[id]` | PUT | `SparePartCategoryService.updateCategory(companyId, id, body)` — edycja + walidacja hierarchii (`validateHierarchyPatch`) |
+| `/api/dur/spare-part-categories/[id]` | DELETE | `SparePartCategoryService.deleteCategory(companyId, id)` — blokada gdy kategoria ma dzieci |
+| `/api/dur/spare-part-compatibility` | GET | `SparePartCompatibilityService.getForPart(partId, companyId)` lub `getForMachineCategory(categoryId, companyId)` — `?partId=X` lub `?machineCategoryId=X` |
+| `/api/dur/spare-part-compatibility` | POST | `SparePartCompatibilityService.add(companyId, body)` — dodaje wpis kompatybilności |
+| `/api/dur/spare-part-compatibility/[id]` | DELETE | `SparePartCompatibilityService.remove(partId, categoryId)` — usuwa wpis (`?partId=X&categoryId=Y`) |
+
 ---
 
 ## 6. Warstwa serwisów (`src/services/*`)
@@ -295,6 +323,30 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
 - Analityka użycia per firma na `/platform`.
 
+### `SparePartCategoryService` (`src/services/dur/SparePartCategoryService.ts`)
+- `getCategories(companyId, opts?)` — lista kategorii części; `leavesOnly` zwraca tylko liście (do przypisania części).
+- `addCategory(companyId, payload)` — tworzy kategorię (domyślnie `isGroup=false`, `sortOrder=0`).
+- `updateCategory(companyId, id, payload)` — edycja z walidacją hierarchii (`validateHierarchyPatch` z `categoryValidation.ts`).
+- `deleteCategory(companyId, id)` — blokada gdy kategoria ma dzieci (`countSparePartCategoryChildren > 0`).
+
+### `SparePartService` (`src/services/dur/SparePartService.ts`)
+- `getParts(companyId)` — lista części z rozwiązanymi linkami: `categoryIds` (z `spare_part_to_categories`) i `machineCategoryIds` (z `spare_part_machine_compatibility`).
+- `getPart(companyId, id)` — szczegóły pojedynczej części z linkami.
+- `addPart(companyId, payload)` — tworzy część + opcjonalne linki kategorii (`categoryIds`) i kompatybilności (`machineCategoryIds`).
+- `updatePart(companyId, id, payload)` — edycja pól + synchronizacja linków (DELETE + INSERT w transakcji).
+- `deletePart(companyId, id)` — usunięcie (kaskada przez FK).
+
+### `SparePartCompatibilityService` (`src/services/dur/SparePartCompatibilityService.ts`)
+- `getForPart(partId, companyId)` — kategorie maszyn kompatybilne z daną częścią (JOIN `resource_categories`).
+- `getForMachineCategory(categoryId, companyId)` — części kompatybilne z daną kategorią maszyn.
+- `add(companyId, payload)` — dodaje wpis `{partId, categoryId, notes?}`; waliduje istnienie części i kategorii maszyn.
+- `remove(partId, categoryId)` — usuwa wpis kompatybilności.
+
+### `categoryValidation.ts` (`src/services/dur/categoryValidation.ts`)
+- `validateHierarchyPatch<T>(current, patch)` — walidacja zmiany `parentId`/`isGroup`: zakaz self-parent, zakaz przypisania do liścia jako rodzica, zakaz zmiany grupy→liść gdy ma dzieci.
+- `countSparePartCategoryChildren(id)` — licznik dzieci kategorii części.
+- `assertSparePartCategoriesAssignable(companyId, categoryIds)` — rzuca `CategoryHierarchyError` gdy któreś ID nie istnieje lub jest grupą.
+
 ---
 
 ## 7. Typy domenowe (`src/types/`)
@@ -305,6 +357,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `admin.ts` | `UnifiedGanttItem` (zmergowany order/session pod Gantt), `OrderFormState` (formularz dyspozycji), `BaseWorker/Machine/Material/Customer/Category`, `ReportActiveSessionRow`, `ReportsDashboardSnapshot` |
 | `wizard.ts` | `WizardCategory` (z `isStationary?`), `WizardMachine`, `WizardMaterial`, `WizardCustomer` |
 | `deviceTelemetry.ts` | `WerkitLogCategory`, typy metadanych logów urządzenia |
+| `dur.ts` | `SparePartCategory`, `SparePart` (z `categoryIds`, `machineCategoryIds`), `SparePartMachineCompatibility`, `SparePartInput`, `SparePartCategoryInput`, `SparePartCompatibilityInput` |
 
 **Konwencja**: **daty w propsach client → string ISO** (zob. `InitialWorkerData`, `UnifiedGanttItem`). Daty w serwisach na granicy DB → `Date`/`string` z Drizzle.
 
@@ -459,6 +512,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload) → 'ok' \| 'invalid_category' \| 'missing_customer' \| 'missing_material' \| 'missing_quantity' \| 'missing_task_description'`; `coerceWorkOrderPriority(value) → URGENT\|HIGH\|NORMAL\|LOW`. |
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
+| `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
 | `resolveNeonPostgresUrl.ts` | `resolveNeonPostgresUrl()` + `ensurePostgresUrlForVercelDriver()` — dla skryptów `tsx`, kiedy w `.env.local` jest tylko `DATABASE_URL` (Neon). Patrz `src/db/env.ts`. |
 
 ---
@@ -497,6 +551,7 @@ Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | `admin.sidebar` | Etykiety nawigacji admin |
 | `admin.dashboard`, `admin.reports`, `admin.archive`, `admin.orders`, `admin.users`, `admin.workers`, `admin.machines`, `admin.materials`, `admin.customers`, `admin.settings`, `admin.logs`, `admin.modals` | Każdy ekran admina ma swój sub-słownik |
 | `worker.client`, `worker.wizard`, `worker.history`, `worker.profile`, `worker.help` | UI mobilki |
+| `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API |
 
 Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej UI pokaże surowy kod.
 
@@ -575,7 +630,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-26. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-05-28. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
 
 ---
 

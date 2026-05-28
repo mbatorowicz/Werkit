@@ -6,9 +6,9 @@ import type { AppDictionary } from "@/i18n/types";
 import { buildAdminNavLinks } from "./adminNavLinks";
 import { isAdminDispatchNavActive } from "./adminNavActive";
 
-export function AdminSidebarNav({ dict }: { dict: AppDictionary["admin"] }) {
+export function AdminSidebarNav({ dict, durDict }: { dict: AppDictionary["admin"]; durDict: AppDictionary["dur"] }) {
   const pathname = usePathname();
-  const links = buildAdminNavLinks(dict);
+  const links = buildAdminNavLinks(dict, durDict);
 
   return (
     <nav className="p-4 space-y-1.5">

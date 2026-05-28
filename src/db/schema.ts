@@ -295,3 +295,97 @@ export const workOrdersRelations = relations(workOrders, ({ one }) => ({
     references: [customerLocations.id],
   }),
 }));
+
+// ──────────────────────────────────────────────
+// DUR — Dział Utrzymania Ruchu (magazyn części)
+// ──────────────────────────────────────────────
+
+/** Kategorie części zamiennych (hierarchiczne, wzorowane na material_categories). */
+export const sparePartCategories = pgTable('spare_part_categories', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => sparePartCategories.id, { onDelete: 'set null' }),
+  isGroup: boolean('is_group').notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  color: varchar('color', { length: 50 }).default('#3f3f46'),
+});
+
+/** Części zamienne — magazyn DUR. */
+export const spareParts = pgTable('spare_parts', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  catalogNumber: varchar('catalog_number', { length: 255 }).notNull().default(''),
+  manufacturer: varchar('manufacturer', { length: 255 }).notNull().default(''),
+  unit: varchar('unit', { length: 50 }).notNull().default('szt'),
+  purchasePrice: numeric('purchase_price', { precision: 10, scale: 2 }),
+  description: text('description'),
+  minStock: numeric('min_stock', { precision: 10, scale: 2 }).notNull().default('0'),
+  location: varchar('location', { length: 255 }).notNull().default(''),
+  imageUrl: text('image_url'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+/** Przypisanie części do kategorii części (N:M). */
+export const sparePartToCategories = pgTable(
+  'spare_part_to_categories',
+  {
+    partId: integer('part_id')
+      .notNull()
+      .references(() => spareParts.id, { onDelete: 'cascade' }),
+    categoryId: integer('category_id')
+      .notNull()
+      .references(() => sparePartCategories.id, { onDelete: 'cascade' }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.partId, t.categoryId] }),
+  }),
+);
+
+/** Kompatybilność części z kategoriami maszyn (N:M). */
+export const sparePartMachineCompatibility = pgTable(
+  'spare_part_machine_compatibility',
+  {
+    partId: integer('part_id')
+      .notNull()
+      .references(() => spareParts.id, { onDelete: 'cascade' }),
+    categoryId: integer('category_id')
+      .notNull()
+      .references(() => resourceCategories.id, { onDelete: 'cascade' }),
+    notes: varchar('notes', { length: 255 }),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.partId, t.categoryId] }),
+  }),
+);
+
+// Relacje DUR
+export const sparePartCategoriesRelations = relations(sparePartCategories, ({ many }) => ({
+  parts: many(sparePartToCategories),
+}));
+
+export const sparePartsRelations = relations(spareParts, ({ many }) => ({
+  categories: many(sparePartToCategories),
+  machineCompatibility: many(sparePartMachineCompatibility),
+}));
+
+export const sparePartToCategoriesRelations = relations(sparePartToCategories, ({ one }) => ({
+  part: one(spareParts, { fields: [sparePartToCategories.partId], references: [spareParts.id] }),
+  category: one(sparePartCategories, {
+    fields: [sparePartToCategories.categoryId],
+    references: [sparePartCategories.id],
+  }),
+}));
+
+export const sparePartMachineCompatibilityRelations = relations(sparePartMachineCompatibility, ({ one }) => ({
+  part: one(spareParts, {
+    fields: [sparePartMachineCompatibility.partId],
+    references: [spareParts.id],
+  }),
+  category: one(resourceCategories, {
+    fields: [sparePartMachineCompatibility.categoryId],
+    references: [resourceCategories.id],
+  }),
+}));

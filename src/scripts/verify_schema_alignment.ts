@@ -170,6 +170,25 @@ async function main() {
       'locked_until',
     ]),
     device_logs: new Set(['id', 'company_id', 'user_id', 'level', 'message', 'metadata', 'created_at']),
+    // ── DUR (Dział Utrzymania Ruchu) ──
+    spare_part_categories: new Set(['id', 'company_id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
+    spare_parts: new Set([
+      'id',
+      'company_id',
+      'name',
+      'catalog_number',
+      'manufacturer',
+      'unit',
+      'purchase_price',
+      'description',
+      'min_stock',
+      'location',
+      'image_url',
+      'is_active',
+      'created_at',
+    ]),
+    spare_part_to_categories: new Set(['part_id', 'category_id']),
+    spare_part_machine_compatibility: new Set(['part_id', 'category_id', 'notes']),
   };
 
   const { sql } = await import('@vercel/postgres');

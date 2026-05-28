@@ -8,6 +8,7 @@ import {
   Settings,
   TerminalSquare,
   BarChart3,
+  Cog,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -17,18 +18,23 @@ export type AdminNavLinkItem =
   | { kind: "route"; href: string; icon: LucideIcon; label: string };
 
 /** Jedna definicja kolejności i etykiet — sidebar desktop i drawer mobilny. */
-export function buildAdminNavLinks(dict: AppDictionary["admin"]): AdminNavLinkItem[] {
+export function buildAdminNavLinks(
+  adminDict: AppDictionary["admin"],
+  durDict: AppDictionary["dur"],
+): AdminNavLinkItem[] {
   return [
-    { kind: "route", href: adminRoutes.dispatch, icon: LayoutDashboard, label: dict.sidebar.dispatch },
-    { kind: "route", href: adminRoutes.reports, icon: BarChart3, label: dict.sidebar.reports },
-    { kind: "section", label: dict.sidebar.fleetAndPeople },
-    { kind: "route", href: adminRoutes.users, icon: Users, label: dict.sidebar.users },
-    { kind: "section", label: dict.sidebar.logistics },
-    { kind: "route", href: adminRoutes.machines, icon: Wrench, label: dict.sidebar.resources },
-    { kind: "route", href: adminRoutes.materials, icon: HardHat, label: dict.sidebar.materials },
-    { kind: "route", href: adminRoutes.customers, icon: Package, label: dict.sidebar.customers },
-    { kind: "section", label: dict.sidebar.system },
-    { kind: "route", href: adminRoutes.settings, icon: Settings, label: dict.sidebar.companySettings },
-    { kind: "route", href: adminRoutes.logs, icon: TerminalSquare, label: dict.sidebar.deviceLogs },
+    { kind: "route", href: adminRoutes.dispatch, icon: LayoutDashboard, label: adminDict.sidebar.dispatch },
+    { kind: "route", href: adminRoutes.reports, icon: BarChart3, label: adminDict.sidebar.reports },
+    { kind: "section", label: adminDict.sidebar.fleetAndPeople },
+    { kind: "route", href: adminRoutes.users, icon: Users, label: adminDict.sidebar.users },
+    { kind: "section", label: adminDict.sidebar.logistics },
+    { kind: "route", href: adminRoutes.machines, icon: Wrench, label: adminDict.sidebar.resources },
+    { kind: "route", href: adminRoutes.materials, icon: HardHat, label: adminDict.sidebar.materials },
+    { kind: "route", href: adminRoutes.customers, icon: Package, label: adminDict.sidebar.customers },
+    { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
+    { kind: "route", href: adminRoutes.dur.spareParts, icon: Cog, label: durDict.sidebar.spareParts },
+    { kind: "section", label: adminDict.sidebar.system },
+    { kind: "route", href: adminRoutes.settings, icon: Settings, label: adminDict.sidebar.companySettings },
+    { kind: "route", href: adminRoutes.logs, icon: TerminalSquare, label: adminDict.sidebar.deviceLogs },
   ];
 }

@@ -18,6 +18,11 @@ export const adminRoutes = {
   reports: "/admin/reports",
   settings: "/admin/settings",
   logs: "/admin/logs",
+  dur: {
+    spareParts: "/admin/dur/spare-parts",
+    sparePartCategories: "/admin/dur/spare-part-categories",
+    compatibility: "/admin/dur/compatibility",
+  },
 } as const;
 
 export const adminApi = {

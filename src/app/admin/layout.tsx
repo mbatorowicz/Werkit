@@ -17,7 +17,9 @@ import { requireServerCompanyId } from '@/lib/serverTenant';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const dict = getDictionary().admin;
+  const fullDict = getDictionary();
+  const dict = fullDict.admin;
+  const durDict = fullDict.dur;
 
   const { DictionaryService } = await import('@/services/DictionaryService');
   const { AdminUserService } = await import('@/services/AdminUserService');
@@ -52,7 +54,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full" title={companyName}>{companyName} - {dict.sidebar.logisticsSystem}</p>
           </div>
-          <AdminSidebarNav dict={dict} />
+          <AdminSidebarNav dict={dict} durDict={durDict} />
         </div>
         <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
           {loggedInUser && (
@@ -91,7 +93,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate max-w-[100px]">{loggedInUser}</span>
               </div>
             )}
-            <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} loggedInUser={loggedInUser} />
+            <MobileAdminNav companyName={companyName} version={APP_VERSION} dict={dict} durDict={durDict} loggedInUser={loggedInUser} />
           </div>
         </header>
 
