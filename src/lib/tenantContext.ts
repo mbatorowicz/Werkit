@@ -5,7 +5,9 @@ import type { JwtPayload } from '@/lib/auth';
 
 // Re-eksport czystych funkcji roli (bez zależności DB) dla wygody.
 // Edge middleware (proxy.ts) importuje bezpośrednio z tenantRoles.ts.
-export { isSuperadminRole, isCompanyScopedRole, type UserRole } from '@/lib/tenantRoles';
+import { isSuperadminRole, isCompanyScopedRole } from '@/lib/tenantRoles';
+export type { UserRole } from '@/lib/tenantRoles';
+export { isSuperadminRole, isCompanyScopedRole };
 
 /** Wymaga kontekstu firmy (admin / worker / viewer z JWT). */
 export function getTenantCompanyId(session: JwtPayload): number {
