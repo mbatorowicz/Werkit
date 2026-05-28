@@ -1,5 +1,8 @@
 export type WorkOrderPriority = "URGENT" | "HIGH" | "NORMAL" | "LOW";
 
+/** Typ zlecenia: machine_work (praca na maszynie) lub machine_repair (naprawa maszyny). */
+export type OrderType = "machine_work" | "machine_repair";
+
 export type Session = {
   id: number;
   startTime: string;
@@ -25,6 +28,12 @@ export type Session = {
   /** Z załączników sesji (lista historii). */
   hasPhotos?: boolean;
   hasNotes?: boolean;
+  /** Typ zlecenia (machine_work | machine_repair) — propagowany z work_order lub kategorii. */
+  orderType?: OrderType | null;
+  /** Opis naprawy (dla machine_repair). */
+  repairDescription?: string | null;
+  /** Notatki naprawy (dla machine_repair). */
+  repairNotes?: string | null;
 };
 
 export type WorkOrder = {
@@ -46,6 +55,24 @@ export type WorkOrder = {
   /** Z realizacji powiązanej sesji (jeśli była). */
   hasPhotos?: boolean;
   hasNotes?: boolean;
+  /** Typ zlecenia. */
+  orderType?: OrderType | null;
+  /** Opis naprawy (dla machine_repair). */
+  repairDescription?: string | null;
+  /** Notatki naprawy (dla machine_repair). */
+  repairNotes?: string | null;
+};
+
+/** Część zamienna użyta w zleceniu naprawy (widok dla workera). */
+export type WorkOrderSparePart = {
+  id: number;
+  workOrderId: number;
+  partId: number;
+  partName: string | null;
+  partSku: string | null;
+  quantity: string;
+  unitPrice: string | null;
+  notes: string | null;
 };
 
 export type Coord = {
@@ -76,6 +103,8 @@ export type UserData = {
   notificationsEnabled?: boolean;
   canEditRoute?: boolean;
   canCreateCustomers?: boolean;
+  /** Czy pracownik DUR (może tworzyć zlecenia naprawy). */
+  isDurWorker?: boolean;
 };
 
 export type TimelineItem = {

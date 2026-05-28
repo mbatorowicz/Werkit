@@ -18,6 +18,7 @@ export const adminRoutes = {
   reports: "/admin/reports",
   settings: "/admin/settings",
   logs: "/admin/logs",
+  organization: "/admin/organization",
   dur: {
     spareParts: "/admin/dur/spare-parts",
     sparePartCategories: "/admin/dur/spare-part-categories",
@@ -30,7 +31,22 @@ export const adminApi = {
   user: (id: number) => `/api/admin/users/${id}`,
   settings: "/api/admin/settings",
   workOrders: "/api/admin/work-orders",
+  workOrder: (id: number) => `/api/admin/work-orders/${id}`,
   archive: "/api/admin/archive",
+  spareParts: (workOrderId: number) => `/api/admin/work-orders/${workOrderId}/spare-parts`,
+  sparePart: (workOrderId: number, partId: number) => `/api/admin/work-orders/${workOrderId}/spare-parts/${partId}`,
+  organization: {
+    departments: "/api/admin/organization/departments",
+    department: (id: number) => `/api/admin/organization/departments/${id}`,
+    teams: "/api/admin/organization/teams",
+    team: (id: number) => `/api/admin/organization/teams/${id}`,
+    teamMembers: "/api/admin/organization/team-members",
+    teamMember: (id: number) => `/api/admin/organization/team-members/${id}`,
+  },
+} as const;
+
+export const workerApi = {
+  spareParts: (workOrderId: number) => `/api/worker/work-orders/${workOrderId}/spare-parts`,
 } as const;
 
 export function adminDispatchOpenUrl(workOrderOrSessionId: number): string {

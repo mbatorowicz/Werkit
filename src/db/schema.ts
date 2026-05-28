@@ -33,6 +33,8 @@ export const users = pgTable('users', {
   canEditRoute: boolean('can_edit_route').notNull().default(false),
   /** Czy pracownik może dodawać kontrahentów (np. w kreatorze zlecenia własnego). */
   canCreateCustomers: boolean('can_create_customers').notNull().default(false),
+  /** Pracownik DUR (Dział Utrzymania Ruchu) — widzi zlecenia naprawcze i magazyn części. */
+  isDurWorker: boolean('is_dur_worker').notNull().default(false),
 });
 
 export const resourceCategories = pgTable('resource_categories', {
@@ -62,6 +64,8 @@ export const resourceCategories = pgTable('resource_categories', {
   /** Warsztat / załadunek na placu — bez śledzenia trasy GPS i bez geofencingu „dojazdu”. */
   isStationary: boolean('is_stationary').notNull().default(false),
   color: varchar('color', { length: 50 }).default('#3f3f46'),
+  /** Rodzaj zlecenia: machine_work (praca na maszynie, z materiałami) | machine_repair (naprawa, z częściami). */
+  orderType: varchar('order_type', { length: 50 }).notNull().default('machine_work'),
 });
 
 export const resourceToCategories = pgTable('resource_to_categories', {
@@ -163,6 +167,12 @@ export const workSessions = pgTable('work_sessions', {
   /** Snapshot GPS przy zakończeniu sesji. */
   endLatitude: numeric('end_latitude', { precision: 10, scale: 8 }),
   endLongitude: numeric('end_longitude', { precision: 11, scale: 8 }),
+  /** Rodzaj zlecenia: machine_work (praca na maszynie, z materiałami) | machine_repair (naprawa, z częściami). */
+  orderType: varchar('order_type', { length: 50 }).notNull().default('machine_work'),
+  /** Opis usterki — tylko dla order_type = 'machine_repair'. */
+  repairDescription: text('repair_description'),
+  /** Notatki serwisowe po naprawie — tylko dla order_type = 'machine_repair'. */
+  repairNotes: text('repair_notes'),
 });
 
 export const sessionPhotos = pgTable('session_photos', {
@@ -211,6 +221,12 @@ export const companySettings = pgTable('company_settings', {
   geofenceRadiusMeters: integer('geofence_radius_meters').notNull().default(500),
   timeOverrunReminder: boolean('time_overrun_reminder').notNull().default(true),
   upcomingOrderReminderMinutes: integer('upcoming_order_reminder_minutes').notNull().default(120),
+  /** Flagi funkcji — przełączane przez superadmina per organizacja. */
+  gpsTrackingEnabled: boolean('gps_tracking_enabled').notNull().default(true),
+  mapViewEnabled: boolean('map_view_enabled').notNull().default(true),
+  geofencingEnabled: boolean('geofencing_enabled').notNull().default(true),
+  routePlanningEnabled: boolean('route_planning_enabled').notNull().default(true),
+  navigationEnabled: boolean('navigation_enabled').notNull().default(true),
 });
 
 export const workOrders = pgTable('work_orders', {
@@ -232,6 +248,12 @@ export const workOrders = pgTable('work_orders', {
   priority: varchar('priority', { length: 50 }).notNull().default('NORMAL'),
   dueDate: timestamp('due_date'),
   lockedUntil: timestamp('locked_until'),
+  /** Rodzaj zlecenia: machine_work (praca na maszynie, z materiałami) | machine_repair (naprawa, z częściami). */
+  orderType: varchar('order_type', { length: 50 }).notNull().default('machine_work'),
+  /** Opis usterki — tylko dla order_type = 'machine_repair'. */
+  repairDescription: text('repair_description'),
+  /** Notatki serwisowe po naprawie — tylko dla order_type = 'machine_repair'. */
+  repairNotes: text('repair_notes'),
 });
 
 export const deviceLogs = pgTable('device_logs', {
@@ -388,4 +410,86 @@ export const sparePartMachineCompatibilityRelations = relations(sparePartMachine
     fields: [sparePartMachineCompatibility.categoryId],
     references: [resourceCategories.id],
   }),
+}));
+
+// ──────────────────────────────────────────────
+// Work Order Spare Parts — części użyte w zleceniu naprawczym
+// ──────────────────────────────────────────────
+
+/** Części zamienne użyte w zleceniu naprawczym (order_type = 'machine_repair'). */
+export const workOrderSpareParts = pgTable('work_order_spare_parts', {
+  id: serial('id').primaryKey(),
+  workOrderId: integer('work_order_id')
+    .notNull()
+    .references(() => workOrders.id, { onDelete: 'cascade' }),
+  partId: integer('part_id')
+    .notNull()
+    .references(() => spareParts.id, { onDelete: 'cascade' }),
+  quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull().default('1'),
+  unitPrice: numeric('unit_price', { precision: 10, scale: 2 }),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export const workOrderSparePartsRelations = relations(workOrderSpareParts, ({ one }) => ({
+  workOrder: one(workOrders, { fields: [workOrderSpareParts.workOrderId], references: [workOrders.id] }),
+  part: one(spareParts, { fields: [workOrderSpareParts.partId], references: [spareParts.id] }),
+}));
+
+// ──────────────────────────────────────────────
+// Organizacja — działy, zespoły, członkowie
+// ──────────────────────────────────────────────
+
+/** Działy / oddziały w strukturze organizacyjnej firmy (hierarchiczne). */
+export const departments = pgTable('departments', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  parentId: integer('parent_id').references((): AnyPgColumn => departments.id, { onDelete: 'set null' }),
+  managerId: integer('manager_id').references(() => users.id, { onDelete: 'set null' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+/** Zespoły w ramach działu. */
+export const teams = pgTable('teams', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  departmentId: integer('department_id').notNull().references(() => departments.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  leaderId: integer('leader_id').references(() => users.id, { onDelete: 'set null' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+/** Przypisanie pracownika do zespołu (N:N). */
+export const teamMembers = pgTable('team_members', {
+  id: serial('id').primaryKey(),
+  teamId: integer('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 50 }).notNull().default('member'), // leader | member
+  joinedAt: timestamp('joined_at').notNull().defaultNow(),
+});
+
+// Relacje organizacji
+export const departmentsRelations = relations(departments, ({ one, many }) => ({
+  company: one(companies, { fields: [departments.companyId], references: [companies.id] }),
+  parent: one(departments, { fields: [departments.parentId], references: [departments.id] }),
+  children: many(departments, { relationName: 'departmentChildren' }),
+  manager: one(users, { fields: [departments.managerId], references: [users.id] }),
+  teams: many(teams),
+}));
+
+export const teamsRelations = relations(teams, ({ one, many }) => ({
+  company: one(companies, { fields: [teams.companyId], references: [companies.id] }),
+  department: one(departments, { fields: [teams.departmentId], references: [departments.id] }),
+  leader: one(users, { fields: [teams.leaderId], references: [users.id] }),
+  members: many(teamMembers),
+}));
+
+export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+  team: one(teams, { fields: [teamMembers.teamId], references: [teams.id] }),
+  user: one(users, { fields: [teamMembers.userId], references: [users.id] }),
 }));

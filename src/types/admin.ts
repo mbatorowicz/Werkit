@@ -1,4 +1,4 @@
-import type { WorkOrderPriority } from "./worker";
+import type { OrderType, WorkOrderPriority } from "./worker";
 
 export type UnifiedGanttItem = {
   _type: 'ORDER' | 'SESSION';
@@ -96,6 +96,8 @@ export type BaseCategory = {
   showResourceName: boolean;
   showResourceDescription: boolean;
   showRegistrationNumber: boolean;
+  /** Typ zlecenia dla kategorii: machine_work | machine_repair. null = domyślny (machine_work). */
+  orderType?: OrderType | null;
 };
 
 /** Wiersz aktywnej sesji w module Raporty (serwer → RSC). */

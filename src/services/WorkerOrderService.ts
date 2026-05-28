@@ -123,6 +123,9 @@ export class WorkerOrderService {
         expectedDurationHours: order.expectedDurationHours,
         dueDate: order.dueDate,
         status: 'IN_PROGRESS',
+        orderType: order.orderType,
+        repairDescription: order.repairDescription,
+        repairNotes: order.repairNotes,
         ...(startNums
           ? {
               startLatitude: startNums.lat,
@@ -210,6 +213,9 @@ export class WorkerOrderService {
         status: 'PENDING',
         priority: prio,
         createdById: userId,
+        orderType: (payload.orderType ?? 'machine_work') as 'machine_work' | 'machine_repair',
+        repairDescription: payload.repairDescription ?? null,
+        repairNotes: payload.repairNotes ?? null,
       })
       .returning({ id: workOrders.id });
 

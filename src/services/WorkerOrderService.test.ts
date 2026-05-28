@@ -285,6 +285,7 @@ describe("WorkerOrderService", () => {
         showResourceName: false, showResourceDescription: false, showRegistrationNumber: false,
         reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: false,
         isGlobal: false, isStationary: false, color: null,
+        orderType: 'machine_work',
       });
 
       // Drugie zapytanie: INSERT ... VALUES ... RETURNING

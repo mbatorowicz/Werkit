@@ -30,7 +30,10 @@ export default async function WorkerPage() {
     quantityTons: o.quantityTons ? parseFloat(o.quantityTons as string) : null,
     customerName: o.customerName || null,
     categoryId: Number(o.categoryId),
-    categoryName: (o.categoryName as string) || null
+    categoryName: (o.categoryName as string) || null,
+    orderType: (o.orderType as 'machine_work' | 'machine_repair' | null) ?? null,
+    repairDescription: (o.repairDescription as string | null) ?? null,
+    repairNotes: (o.repairNotes as string | null) ?? null,
   }));
 
   const rawSession = sessionDetails.session;

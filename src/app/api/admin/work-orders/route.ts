@@ -73,6 +73,10 @@ export const POST = withApiErrorHandling(async (request: Request) => {
         ? parseFloat(String(expectedDurationHours))
         : null;
 
+    const orderType = typeof body.orderType === "string" ? body.orderType : 'machine_work';
+    const repairDescription = typeof body.repairDescription === "string" ? body.repairDescription : null;
+    const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
+
     await AdminOrderService.createOrder({
       companyId,
       userId: uidNum,
@@ -89,6 +93,9 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       dueDate: parsedDueDate,
       lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
       createdById: adminUserId,
+      orderType: orderType as 'machine_work' | 'machine_repair',
+      repairDescription,
+      repairNotes,
     });
 
   return jsonOk({ success: true });

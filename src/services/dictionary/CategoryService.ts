@@ -57,6 +57,7 @@ export class CategoryService {
         showResourceName: true,
         showResourceDescription: false,
         showRegistrationNumber: true,
+        orderType: 'machine_work' as const,
       }));
     }
     return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
