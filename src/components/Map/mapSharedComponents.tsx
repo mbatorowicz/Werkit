@@ -6,6 +6,7 @@ import L from "leaflet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import { LocateFixed, Plus, Minus, Navigation, ExternalLink } from "lucide-react";
+import { getDictionary } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Safe area offsets — works on mobile with notches / status bars
@@ -53,6 +54,7 @@ export function WaypointControls({
   /** Mniejsze przyciski (32px) dla CustomerRoutePlannerMap, domyślnie 40px. */
   compact?: boolean;
 }) {
+  const dict = getDictionary().admin.map;
   const isAddMode = waypointMode === "add";
   const isRemoveMode = waypointMode === "remove";
   const size = compact ? "w-8 h-8" : "w-10 h-10";
@@ -88,8 +90,8 @@ export function WaypointControls({
             ? "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500"
             : "bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700"
         }`}
-        aria-label="Dodaj punkt pośredni — kliknij na mapie"
-        title={isAddMode ? "Anuluj dodawanie" : "Dodaj punkt pośredni — kliknij na mapie"}
+        aria-label={dict.addWaypoint}
+        title={isAddMode ? dict.cancelAdd : dict.addWaypoint}
       >
         <Plus className={iconSize} />
       </button>
@@ -103,8 +105,8 @@ export function WaypointControls({
             ? "bg-red-600 text-white border-red-500 hover:bg-red-500"
             : "bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700"
         }`}
-        aria-label="Usuń punkt pośredni — kliknij marker"
-        title={isRemoveMode ? "Anuluj usuwanie" : "Usuń punkt pośredni — kliknij marker"}
+        aria-label={dict.removeWaypoint}
+        title={isRemoveMode ? dict.cancelRemove : dict.removeWaypoint}
       >
         <Minus className={iconSize} />
       </button>
@@ -117,8 +119,8 @@ export function WaypointControls({
             onNavigate();
           }}
           className={`flex items-center justify-center ${size} rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 bg-white/90 dark:bg-zinc-800/90 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-zinc-700 transition active:scale-95 backdrop-blur-sm`}
-          aria-label="Nawiguj"
-          title="Otwórz w Google Maps"
+          aria-label={dict.openGoogleMaps}
+          title={dict.openGoogleMaps}
         >
           <Navigation className={iconSize} />
           <ExternalLink className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-indigo-300`} />
@@ -159,6 +161,7 @@ export function LocateMeButton({
 }: {
   currentLocation: { lat: number; lng: number };
 }) {
+  const dict = getDictionary().admin.map;
   const map = useMap();
 
   const handleLocate = useCallback(
@@ -176,7 +179,7 @@ export function LocateMeButton({
       type="button"
       onClick={handleLocate}
       className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm"
-      aria-label="Center on my location"
+      aria-label={dict.centerOnLocation}
       style={{
         position: "absolute",
         bottom: `calc(${SAFE_BOTTOM} + 100px)`,

@@ -220,7 +220,7 @@ export default function FullScreenMapModal({
             >
               <Popup>
                 <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">{ev.type === "photo" ? "Zdjęcie" : "Notatka"}</p>
+                  <p className="font-semibold m-0">{ev.type === "photo" ? dict.eventPhoto : dict.eventNote}</p>
                   {ev.type === "note" ? <p className="text-sm italic m-0 break-words">{ev.content}</p> : null}
                 </div>
               </Popup>

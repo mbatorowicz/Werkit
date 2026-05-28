@@ -1,5 +1,7 @@
 "use client";
 
+import { getDictionary } from "@/i18n";
+
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
@@ -48,12 +50,15 @@ export function AdminSearchCombobox({
   placeholder,
   disabled = false,
   required = false,
-  noResultsLabel = "Brak wyników",
-  clearAriaLabel = "Wyczyść",
+  noResultsLabel,
+  clearAriaLabel,
   inputId,
   "aria-label": ariaLabel,
   emptyAction,
 }: Props) {
+  const dict = getDictionary().admin.ui;
+  const resolvedNoResults = noResultsLabel ?? dict.noResults;
+  const resolvedClear = clearAriaLabel ?? dict.clear;
   const autoId = useId();
   const id = inputId ?? autoId;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -158,7 +163,7 @@ export function AdminSearchCombobox({
       >
         {filtered.length === 0 ? (
           <li className="px-3 py-2">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">{noResultsLabel}</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{resolvedNoResults}</p>
             {emptyAction && query.trim() ? (
               <button
                 type="button"
@@ -230,7 +235,7 @@ export function AdminSearchCombobox({
             tabIndex={-1}
             onClick={clearSelection}
             className="absolute right-8 top-1/2 -translate-y-1/2 rounded p-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-            aria-label={clearAriaLabel}
+            aria-label={resolvedClear}
           >
             <X className="h-4 w-4" />
           </button>

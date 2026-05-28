@@ -87,6 +87,12 @@ export const pl = {
     submit: "Zaloguj",
     biometricLogin: "Zaloguj odciskiem lub twarzą",
     biometricDivider: "lub kontynuuj klasycznie",
+    systemLogin: "System Logowania",
+    subtitle: "Panel dowodzenia i logistyki",
+    usernameLabel: "Login administratora",
+    usernamePlaceholder: "login",
+    passwordLabel: "Hasło",
+    passwordPlaceholder: "••••••••",
   },
   admin: {
     sidebar: {
@@ -164,6 +170,9 @@ export const pl = {
       dialogOk: "OK",
       dialogConfirm: "Potwierdź",
       searchNoResults: "Brak wyników",
+      back: "Wstecz",
+      noResults: "Brak wyników",
+      clear: "Wyczyść",
     },
     dashboard: {
       title: "Główny Pulpit",
@@ -283,6 +292,8 @@ export const pl = {
       start: "Start",
       end: "Koniec",
       photo: "Zdjęcie",
+      previousPage: "Poprzednia strona",
+      nextPage: "Następna strona",
       note: "Notatka",
       photoRoute: "Zdjęcie z trasy",
       photoStart: "Rozpoczęcie",
@@ -403,6 +414,15 @@ export const pl = {
       navigationM: "m",
       navigationArriveDest: "Dotarłeś do celu",
       navigationThen: "następnie",
+      eventPhoto: "Zdjęcie",
+      eventNote: "Notatka",
+      eventAlt: "Zdarzenie",
+      addWaypoint: "Dodaj punkt pośredni — kliknij na mapie",
+      cancelAdd: "Anuluj dodawanie",
+      removeWaypoint: "Usuń punkt pośredni — kliknij marker",
+      cancelRemove: "Anuluj usuwanie",
+      openGoogleMaps: "Otwórz w Google Maps",
+      centerOnLocation: "Center on my location",
     },
     workers: {
       title: "Użytkownicy",
@@ -686,6 +706,12 @@ export const pl = {
     }
   },
   worker: {
+    nav: {
+      session: "Sesja",
+      history: "Historia",
+      profile: "Profil",
+      help: "Pomoc",
+    },
     client: {
       refresh: "Odśwież listę",
       offlineBanner: "Brak połączenia z internetem",
@@ -822,7 +848,8 @@ export const pl = {
       wizardNext: "Dalej",
       wizardStartWork: "Start Pracy",
       wizardFixData: "Popraw Dane",
-      wizardPendingOrders: "Oczekujące zlecenia"
+      wizardPendingOrders: "Oczekujące zlecenia",
+      requiresPhoto: "Wymaga min. 1 zdjęcia"
     },
     alarms: {
       timeOverrunTitle: "Przekroczony czas pracy!",
@@ -837,6 +864,14 @@ export const pl = {
       snoozeSection: "Drzemka",
     },
     profile: {
+      noAccess: "Brak dostępu",
+      backToSession: "Powrót do sesji",
+      title: "Twój Profil",
+      roleAdmin: "Administrator",
+      roleWorker: "Pracownik",
+      systemLogin: "Login Systemowy:",
+      goToAdminPanel: "Przejdź do Panelu Administratora",
+      logout: "Wyloguj z systemu",
       notificationsTitle: "Powiadomienia PUSH",
       notificationsDesc: "Zlecenia zbliżające się, opóźnione i przekroczony czas",
       notificationSoundTitle: "Dźwięk alarmów",
@@ -889,6 +924,7 @@ export const pl = {
       badgeNote: "N",
     },
     help: {
+      backToSession: "Powrót do sesji",
       title: "Instrukcja Obsługi",
       quickContact: "Szybki kontakt z bazą",
       contactDesc: "Masz problem z zasobem, ładunkiem lub aplikacją? Skontaktuj się bezpośrednio z biurem.",

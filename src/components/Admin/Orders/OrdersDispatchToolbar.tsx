@@ -73,7 +73,7 @@ export function OrdersDispatchToolbar({
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page <= 1}
             className="px-2.5 py-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition"
-            title="Poprzednia strona"
+            title={dict.previousPage}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -85,7 +85,7 @@ export function OrdersDispatchToolbar({
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
             className="px-2.5 py-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:hover:bg-transparent dark:disabled:hover:bg-transparent transition"
-            title="Następna strona"
+            title={dict.nextPage}
           >
             <ChevronRight className="w-4 h-4" />
           </button>

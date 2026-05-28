@@ -5,6 +5,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
+import { getDictionary } from "@/i18n";
 
 import { JWT_SECRET } from '@/lib/auth';
 import { requireServerCompanyId } from '@/lib/serverTenant';
@@ -14,6 +15,7 @@ import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
+  const dict = getDictionary().worker.nav;
   const { DictionaryService } = await import('@/services/DictionaryService');
   const { AdminUserService } = await import('@/services/AdminUserService');
 
@@ -62,19 +64,19 @@ export default async function WorkerLayout({ children }: { children: React.React
       <nav className="h-16 border-t border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 flex items-center justify-around sticky bottom-0 z-50 pb-safe">
         <Link href="/worker" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors flex-1 h-full gap-1">
           <Clock className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Sesja</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.session}</span>
         </Link>
         <Link href="/worker/history" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-amber-500 transition-colors flex-1 h-full gap-1">
           <Map className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Historia</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.history}</span>
         </Link>
         <Link href="/worker/profile" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1">
           <User className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Profil</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.profile}</span>
         </Link>
         <Link href="/worker/help" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1">
           <HelpCircle className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">Pomoc</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.help}</span>
         </Link>
       </nav>
     </div>

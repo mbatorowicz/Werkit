@@ -25,7 +25,7 @@ export default async function HelpPage() {
     <div className="py-6 pb-20">
       <Link href="/worker" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors">
         <ArrowLeft className="w-4 h-4" />
-        <span className="text-sm font-semibold">Powrót do sesji</span>
+        <span className="text-sm font-semibold">{dict.backToSession}</span>
       </Link>
 
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-8 flex items-center gap-2">

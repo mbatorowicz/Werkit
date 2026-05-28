@@ -251,7 +251,7 @@ export default function ActiveSessionDashboard({
             <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
           </div>
           {settings?.requirePhotoToFinish && (
-            <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">Wymaga min. 1 zdjęcia</span>
+            <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">{getDictionary().worker.client.requiresPhoto}</span>
           )}
         </button>
       </div>

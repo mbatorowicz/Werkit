@@ -351,12 +351,12 @@ export default function LiveMap({
             >
               <Popup>
                 <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">{ev.type === "photo" ? "Zdjęcie" : "Notatka"}</p>
+                  <p className="font-semibold m-0">{ev.type === "photo" ? dict.eventPhoto : dict.eventNote}</p>
                   {ev.type === "note" ? <p className="text-sm italic m-0 break-words">{ev.content}</p> : null}
                   {ev.type === "photo" ? (
                     <Image
                       src={ev.content}
-                      alt="Zdarzenie"
+                      alt={dict.eventAlt}
                       width={250}
                       height={150}
                       unoptimized

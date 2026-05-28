@@ -106,7 +106,7 @@ export function MobileAdminNav({
                 <LogoutButton
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm"
                   iconClass="w-4 h-4"
-                  text="Wyloguj"
+                  text={dict.sidebar.logoutSession}
                 />
                 <ThemeToggle />
               </div>

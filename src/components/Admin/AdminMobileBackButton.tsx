@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getDictionary } from "@/i18n";
 
 /**
  * Mobile back button for admin panel — uses `router.back()` to navigate
@@ -9,13 +10,14 @@ import { useRouter } from "next/navigation";
  */
 export function AdminMobileBackButton() {
   const router = useRouter();
+  const dict = getDictionary().admin.ui;
 
   return (
     <button
       type="button"
       onClick={() => router.back()}
       className="p-1.5 -ml-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-      aria-label="Wstecz"
+      aria-label={dict.back}
     >
       <ArrowLeft className="w-5 h-5" />
     </button>
