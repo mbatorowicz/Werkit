@@ -3,15 +3,9 @@ import { resources, materials, customers, users } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import type { JwtPayload } from '@/lib/auth';
 
-export type UserRole = 'superadmin' | 'admin' | 'worker' | 'viewer';
-
-export function isSuperadminRole(role: string): boolean {
-  return role === 'superadmin';
-}
-
-export function isCompanyScopedRole(role: string): boolean {
-  return role === 'admin' || role === 'worker' || role === 'viewer';
-}
+// Re-eksport czystych funkcji roli (bez zależności DB) dla wygody.
+// Edge middleware (proxy.ts) importuje bezpośrednio z tenantRoles.ts.
+export { isSuperadminRole, isCompanyScopedRole, type UserRole } from '@/lib/tenantRoles';
 
 /** Wymaga kontekstu firmy (admin / worker / viewer z JWT). */
 export function getTenantCompanyId(session: JwtPayload): number {

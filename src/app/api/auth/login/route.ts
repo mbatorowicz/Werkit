@@ -9,9 +9,7 @@ function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
   return (
     /POSTGRES|postgres|Neon|connection|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|database/i.test(msg) ||
-    /column .*does not exist|relation .*does not exist|failed query|socket|websocket|NeonDbError/i.test(
-      msg,
-    )
+    /relation .*does not exist|failed query|socket|websocket|NeonDbError/i.test(msg)
   );
 }
 
@@ -91,6 +89,12 @@ export const POST = withApiErrorHandling(async (req: Request) => {
 
   return response;
 }, {
-  mapUnknownError: (err) => (isLikelyDatabaseOrInfraError(err) ? jsonError("service_unavailable", 503) : null),
+  mapUnknownError: (err) => {
+    const e = err instanceof Error ? err : new Error(String(err));
+    // Drizzle może opakować błąd połączenia w cause
+    const cause = (e as any).cause;
+    const checkErr = cause instanceof Error ? cause : e;
+    return isLikelyDatabaseOrInfraError(checkErr) ? jsonError("service_unavailable", 503) : null;
+  },
   defaultErrorCode: "server_error",
 });

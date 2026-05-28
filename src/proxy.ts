@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '@/lib/auth';
-import { isCompanyScopedRole, isSuperadminRole } from '@/lib/tenantContext';
+import { isCompanyScopedRole, isSuperadminRole } from '@/lib/tenantRoles';
 
 // --- CONFIGURATION ---
 const SHARED_API_PREFIXES = ['/api/machines', '/api/materials', '/api/customers', '/api/categories'];
