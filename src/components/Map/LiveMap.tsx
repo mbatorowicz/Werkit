@@ -309,27 +309,31 @@ export default function LiveMap({
           dragging={!thumbnail}
           touchZoom={!thumbnail}
           boxZoom={false}
+          keyboard={!thumbnail}
         >
           <WerkitTileLayer />
 
           <MapInvalidateOnResize />
-          <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
+          {!thumbnail && (
+            <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
+          )}
           {!thumbnail && (
             <RouteWaypointClickLayer mode={waypointMode} onAdd={handleMapAddWaypoint} />
           )}
 
           <TraveledPathLayers path={pathTraveled} />
 
+          {/* W trybie thumbnail punkty pośrednie są statyczne — brak przeciągania i usuwania */}
           <RouteWaypointMarkers
             waypoints={plannedRouteWaypoints}
-            editable={canEditWaypoints}
+            editable={!thumbnail && canEditWaypoints}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
           />
 
           {pathTraveled.length > 0 ? (
             <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
-              <Popup>{dict.startPoint}</Popup>
+              {!thumbnail && <Popup>{dict.startPoint}</Popup>}
             </Marker>
           ) : null}
 
@@ -343,37 +347,43 @@ export default function LiveMap({
               key={ev.id || String(i)}
               position={[ev.lat, ev.lng]}
               icon={ev.type === "photo" ? iconPhoto : ev.type === "note" ? iconNote : iconEvent}
-              eventHandlers={{
-                click: () => onEventClick?.(ev.id),
-              }}
+              {...(!thumbnail
+                ? {
+                    eventHandlers: {
+                      click: () => onEventClick?.(ev.id),
+                    },
+                  }
+                : {})}
             >
-              <Popup>
-                <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">{ev.type === "photo" ? dict.eventPhoto : dict.eventNote}</p>
-                  {ev.type === "note" ? <p className="text-sm italic m-0 break-words">{ev.content}</p> : null}
-                  {ev.type === "photo" ? (
-                    <Image
-                      src={ev.content}
-                      alt={dict.eventAlt}
-                      width={250}
-                      height={150}
-                      unoptimized
-                      className="w-full rounded-md object-cover max-h-[150px]"
-                    />
-                  ) : null}
-                </div>
-              </Popup>
+              {!thumbnail ? (
+                <Popup>
+                  <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
+                    <p className="font-semibold m-0">{ev.type === "photo" ? dict.eventPhoto : dict.eventNote}</p>
+                    {ev.type === "note" ? <p className="text-sm italic m-0 break-words">{ev.content}</p> : null}
+                    {ev.type === "photo" ? (
+                      <Image
+                        src={ev.content}
+                        alt={dict.eventAlt}
+                        width={250}
+                        height={150}
+                        unoptimized
+                        className="w-full rounded-md object-cover max-h-[150px]"
+                      />
+                    ) : null}
+                  </div>
+                </Popup>
+              ) : null}
             </Marker>
           ))}
 
           {destination ? (
             <Marker position={[destination.lat, destination.lng]} icon={iconDest}>
-              <Popup>{dict.destination}</Popup>
+              {!thumbnail && <Popup>{dict.destination}</Popup>}
             </Marker>
           ) : null}
 
           <Marker position={[currentLocation.lat, currentLocation.lng]} icon={currentMarkerIcon}>
-            <Popup>{dict.currentLocation}</Popup>
+            {!thumbnail && <Popup>{dict.currentLocation}</Popup>}
           </Marker>
 
           <FitContentDebounced
