@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <AdminAbilityProvider canMutate={canMutate}>
-    <div className="flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
+    <div className="layout-admin flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
       <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
         <div>
           <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-200 dark:border-zinc-800">

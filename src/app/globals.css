@@ -5,6 +5,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* App bar heights — used by FullScreenMapModal to position between top/bottom bars.
+     Layouts apply these via CSS class on their wrapper; defaults are 0 (no bars). */
+  --app-top-bar-height: 0px;
+  --app-bottom-bar-height: 0px;
+}
+
+/* Worker layout: always has top (h-16) and bottom (h-16) bars */
+.layout-worker {
+  --app-top-bar-height: 64px;
+  --app-bottom-bar-height: 64px;
+}
+
+/* Admin layout: mobile has top bar (h-16), desktop has sidebar instead */
+.layout-admin {
+  --app-top-bar-height: 64px;
+  --app-bottom-bar-height: 0px;
+}
+
+@media (min-width: 768px) {
+  .layout-admin {
+    --app-top-bar-height: 0px;
+    --app-bottom-bar-height: 0px;
+  }
 }
 
 @theme inline {

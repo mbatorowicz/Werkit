@@ -119,7 +119,15 @@ export default function FullScreenMapModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col bg-black">
+    <div
+      className="fixed z-[9999] flex flex-col bg-black"
+      style={{
+        top: "var(--app-top-bar-height, 0px)",
+        bottom: "var(--app-bottom-bar-height, 0px)",
+        left: 0,
+        right: 0,
+      }}
+    >
       {/* Mapa na pełnym ekranie — zajmuje całe dostępne miejsce */}
       <div className="flex-1 w-full relative">
         {/* Floating close button — zawsze widoczny, z safe-area na mobile */}
