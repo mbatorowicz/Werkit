@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
-import { MapContainer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { MapContainer, Marker, Polyline, useMap } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import L from "leaflet";
@@ -9,8 +9,12 @@ import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
 import { useOsrmRouteToDestination } from "@/components/Map/useOsrmRouteToDestination";
 import { getDictionary } from "@/i18n";
-import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
-import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
+import {
+  RouteWaypointClickLayer,
+  WaypointControls,
+  openGoogleNavigation,
+  type WaypointMode,
+} from "./mapSharedComponents";
 
 const iconDest = L.icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
@@ -34,30 +38,9 @@ function MapFlyTo({ center }: { center: [number, number] }) {
   return null;
 }
 
-function MapClickLayer({
-  editable,
-  hasDestination,
-  onSetDestination,
-  onAddWaypoint,
-}: {
-  editable: boolean;
-  hasDestination: boolean;
-  onSetDestination: (lat: number, lng: number) => void;
-  onAddWaypoint: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      if (!editable || isMapClickBlocked() || isLeafletUiClick(e)) return;
-      if (!hasDestination) {
-        onSetDestination(e.latlng.lat, e.latlng.lng);
-      } else {
-        onAddWaypoint(e.latlng.lat, e.latlng.lng);
-      }
-    },
-  });
-  return null;
-}
-
+// ---------------------------------------------------------------------------
+// Główny komponent
+// ---------------------------------------------------------------------------
 export function CustomerRoutePlannerMap({
   routeOrigin,
   destination,
@@ -80,6 +63,8 @@ export function CustomerRoutePlannerMap({
   const dict = getDictionary().admin.customers;
   const hasDestination = destination !== null;
 
+  const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);
+
   const routeLine = useOsrmRouteToDestination(routeOrigin, destination, undefined, undefined, waypoints, 8_000);
 
   const center = useMemo((): [number, number] => {
@@ -89,7 +74,7 @@ export function CustomerRoutePlannerMap({
 
   const centerSig = `${center[0].toFixed(5)},${center[1].toFixed(5)}`;
 
-  const onSetDestination = useCallback(
+  const _onSetDestination = useCallback(
     (lat: number, lng: number) => {
       onDestinationChange?.(lat, lng);
     },
@@ -99,12 +84,18 @@ export function CustomerRoutePlannerMap({
   const onAddWaypoint = useCallback(
     (lat: number, lng: number) => {
       onWaypointsChange([...waypoints, { lat, lng }]);
+      setWaypointMode(null);
     },
     [onWaypointsChange, waypoints],
   );
 
   const canEditDestination = editable && Boolean(onDestinationChange);
   const canEditWaypoints = editable && hasDestination;
+
+  const handleNavigate = useCallback(() => {
+    if (!destination) return;
+    openGoogleNavigation(destination, routeOrigin, waypoints);
+  }, [destination, routeOrigin, waypoints]);
 
   return (
     <div className="space-y-2">
@@ -117,12 +108,20 @@ export function CustomerRoutePlannerMap({
         <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
           <WerkitTileLayer />
           <MapFlyTo center={center} key={centerSig} />
-          <MapClickLayer
-            editable={canEditDestination}
+
+          {/* Przyciski + / - / nawiguj */}
+          <WaypointControls
+            waypointMode={waypointMode}
+            onModeChange={setWaypointMode}
             hasDestination={hasDestination}
-            onSetDestination={onSetDestination}
-            onAddWaypoint={onAddWaypoint}
+            waypointCount={waypoints.length}
+            onNavigate={handleNavigate}
+            compact
           />
+
+          {/* Klik na mapę — tylko w trybie "add" dodaje punkt */}
+          <RouteWaypointClickLayer mode={waypointMode} onAdd={onAddWaypoint} />
+
           <Marker position={[routeOrigin.lat, routeOrigin.lng]} icon={iconStart} />
           {destination ? (
             <Marker
@@ -142,6 +141,8 @@ export function CustomerRoutePlannerMap({
             editable={canEditWaypoints}
             onWaypointsChange={onWaypointsChange}
             deleteLabel={dict.routeDeleteWaypoint}
+            waypointMode={waypointMode}
+            onModeChange={setWaypointMode}
           />
           {routeLine.length > 0 ? (
             <Polyline positions={routeLine} color="#ef4444" weight={4} opacity={0.85} />
@@ -151,5 +152,3 @@ export function CustomerRoutePlannerMap({
     </div>
   );
 }
-
-

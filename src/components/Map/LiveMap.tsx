@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
@@ -13,6 +13,7 @@ import {
   MapInvalidateOnResize,
   RouteWaypointClickLayer,
   UserTakeoverOnMapGesture,
+  type WaypointMode,
 } from "./mapSharedComponents";
 import {
   createCurrentLocationIcon,
@@ -217,9 +218,18 @@ export default function LiveMap({
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
   const canEditWaypoints = Boolean(editableRoute && onPlannedRouteWaypointsChange);
+
+  const handleMapAddWaypoint = useCallback(
+    (lat: number, lng: number) => {
+      onAddRouteWaypoint?.(lat, lng);
+      setWaypointMode(null);
+    },
+    [onAddRouteWaypoint],
+  );
 
   const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
   const navPivotMode = Boolean(preferPivotNavigation);
@@ -305,7 +315,7 @@ export default function LiveMap({
           <MapInvalidateOnResize />
           <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
           {!thumbnail && (
-            <RouteWaypointClickLayer editable={editableRoute} onAdd={onAddRouteWaypoint} />
+            <RouteWaypointClickLayer mode={waypointMode} onAdd={handleMapAddWaypoint} />
           )}
 
           <TraveledPathLayers path={pathTraveled} />
@@ -315,6 +325,8 @@ export default function LiveMap({
             editable={canEditWaypoints}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
+            waypointMode={waypointMode}
+            onModeChange={setWaypointMode}
           />
 
           {pathTraveled.length > 0 ? (

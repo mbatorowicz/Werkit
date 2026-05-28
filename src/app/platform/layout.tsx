@@ -1,3 +1,5 @@
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { LogoutButton } from '@/components/LogoutButton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getDictionary } from '@/i18n';
@@ -29,12 +31,21 @@ function PlatformHeaderBar({
 }) {
   return (
     <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-      <div>
-        <p className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-medium">
-          {badge}
-        </p>
-        <h1 className="text-lg font-semibold">{title}</h1>
-        <p className="text-xs text-zinc-500">v{version}</p>
+      <div className="flex items-center gap-4">
+        <Link
+          href="/login"
+          className="p-1.5 -ml-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+          aria-label="Wstecz"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <div>
+          <p className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-medium">
+            {badge}
+          </p>
+          <h1 className="text-lg font-semibold">{title}</h1>
+          <p className="text-xs text-zinc-500">v{version}</p>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <ThemeToggle />

@@ -2,6 +2,7 @@ import { User as UserIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MobileAdminNav } from "@/components/Admin/MobileAdminNav";
 import { AdminSidebarNav } from "@/components/Admin/AdminSidebarNav";
+import { AdminMobileBackButton } from "@/components/Admin/AdminMobileBackButton";
 import { LogoutButton } from "@/components/LogoutButton";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
@@ -73,12 +74,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       <main className={`flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 ${INLINE_SCROLL_PANEL_CLASS}`}>
         <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 md:hidden sticky top-0 z-50">
-          <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
-              <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+          <div className="flex items-center gap-3">
+            <AdminMobileBackButton />
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
+                <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
             </div>
-            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">{companyName}</p>
           </div>
           <div className="flex items-center gap-2">
             {loggedInUser && (
@@ -99,6 +103,3 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     </AdminAbilityProvider>
   );
 }
-
-
-

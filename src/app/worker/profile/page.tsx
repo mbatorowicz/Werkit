@@ -1,8 +1,8 @@
-import { User as UserIcon, Shield, Settings } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Shield, Settings } from "lucide-react";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";
-import Link from "next/link";
 import { ProfileSettings } from "@/features/worker/components/profile/ProfileSettings";
 
 import { JWT_SECRET } from '@/lib/auth';
@@ -26,6 +26,11 @@ export default async function ProfilePage() {
 
   return (
     <div className="py-6 pb-20">
+      <Link href="/worker" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors">
+        <ArrowLeft className="w-4 h-4" />
+        <span className="text-sm font-semibold">Powrót do sesji</span>
+      </Link>
+
       <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-8">Twój Profil</h1>
       
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 flex flex-col items-center mb-6 shadow-inner">

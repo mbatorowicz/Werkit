@@ -1,3 +1,5 @@
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import WizardClient from "@/features/worker/components/wizard/WizardClient";
 import { getUserId } from "@/lib/auth";
@@ -19,5 +21,13 @@ export default async function WizardPage() {
     redirect("/worker");
   }
 
-  return <WizardClient userId={userId} canCreateCustomers={details.user?.canCreateCustomers === true} />;
+  return (
+    <div className="py-6">
+      <Link href="/worker" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-4 transition-colors px-4">
+        <ArrowLeft className="w-4 h-4" />
+        <span className="text-sm font-semibold">Powrót do sesji</span>
+      </Link>
+      <WizardClient userId={userId} canCreateCustomers={details.user?.canCreateCustomers === true} />
+    </div>
+  );
 }

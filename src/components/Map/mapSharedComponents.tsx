@@ -5,7 +5,7 @@ import { useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
-import { LocateFixed } from "lucide-react";
+import { LocateFixed, Plus, Minus, Navigation, ExternalLink } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Safe area offsets — works on mobile with notches / status bars
@@ -14,22 +14,118 @@ export const SAFE_TOP = "max(env(safe-area-inset-top, 0px), 8px)";
 export const SAFE_BOTTOM = "env(safe-area-inset-bottom, 0px)";
 
 // ---------------------------------------------------------------------------
-// Klik na mapę dodaje punkt pośredni
+// Klik na mapę — tryb dodawania / usuwania punktów pośrednich
 // ---------------------------------------------------------------------------
+export type WaypointMode = "add" | "remove" | null;
+
 export function RouteWaypointClickLayer({
-  editable,
+  mode,
   onAdd,
 }: {
-  editable: boolean;
+  mode: WaypointMode;
   onAdd?: (lat: number, lng: number) => void;
 }) {
   useMapEvents({
     click(e) {
-      if (!editable || !onAdd || isMapClickBlocked() || isLeafletUiClick(e)) return;
+      if (mode !== "add" || !onAdd || isMapClickBlocked() || isLeafletUiClick(e)) return;
       onAdd(e.latlng.lat, e.latlng.lng);
     },
   });
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Wspólny komponent przycisków + / - / nawiguj dla punktów pośrednich
+// ---------------------------------------------------------------------------
+export function WaypointControls({
+  waypointMode,
+  onModeChange,
+  hasDestination,
+  waypointCount,
+  onNavigate,
+  compact = false,
+}: {
+  waypointMode: WaypointMode;
+  onModeChange: (mode: WaypointMode) => void;
+  hasDestination: boolean;
+  waypointCount: number;
+  onNavigate?: () => void;
+  /** Mniejsze przyciski (32px) dla CustomerRoutePlannerMap, domyślnie 40px. */
+  compact?: boolean;
+}) {
+  const isAddMode = waypointMode === "add";
+  const isRemoveMode = waypointMode === "remove";
+  const size = compact ? "w-8 h-8" : "w-10 h-10";
+  const iconSize = compact ? "h-4 w-4" : "h-5 w-5";
+
+  const handleAddClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onModeChange(isAddMode ? null : "add");
+    },
+    [isAddMode, onModeChange],
+  );
+
+  const handleRemoveClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onModeChange(isRemoveMode ? null : "remove");
+    },
+    [isRemoveMode, onModeChange],
+  );
+
+  return (
+    <div
+      className="absolute left-3 z-[1001] flex items-center gap-1.5"
+      style={{ top: `calc(${SAFE_TOP} + 8px)` }}
+    >
+      <button
+        type="button"
+        onClick={handleAddClick}
+        disabled={!hasDestination}
+        className={`flex items-center justify-center ${size} rounded-lg shadow-lg border transition active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+          isAddMode
+            ? "bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500"
+            : "bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700"
+        }`}
+        aria-label="Dodaj punkt pośredni — kliknij na mapie"
+        title={isAddMode ? "Anuluj dodawanie" : "Dodaj punkt pośredni — kliknij na mapie"}
+      >
+        <Plus className={iconSize} />
+      </button>
+
+      <button
+        type="button"
+        onClick={handleRemoveClick}
+        disabled={waypointCount === 0}
+        className={`flex items-center justify-center ${size} rounded-lg shadow-lg border transition active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+          isRemoveMode
+            ? "bg-red-600 text-white border-red-500 hover:bg-red-500"
+            : "bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700"
+        }`}
+        aria-label="Usuń punkt pośredni — kliknij marker"
+        title={isRemoveMode ? "Anuluj usuwanie" : "Usuń punkt pośredni — kliknij marker"}
+      >
+        <Minus className={iconSize} />
+      </button>
+
+      {onNavigate && hasDestination ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate();
+          }}
+          className={`flex items-center justify-center ${size} rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 bg-white/90 dark:bg-zinc-800/90 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-zinc-700 transition active:scale-95 backdrop-blur-sm`}
+          aria-label="Nawiguj"
+          title="Otwórz w Google Maps"
+        >
+          <Navigation className={iconSize} />
+          <ExternalLink className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-indigo-300`} />
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -94,17 +190,24 @@ export function LocateMeButton({
 }
 
 // ---------------------------------------------------------------------------
-// Otwiera Google Maps z trasą
+// Otwiera Google Maps z trasą (opcjonalnie z waypointami)
 // ---------------------------------------------------------------------------
 export function openGoogleNavigation(
   dest: { lat: number; lng: number },
   origin?: { lat: number; lng: number } | null,
+  waypoints?: { lat: number; lng: number }[],
 ) {
   const d = `${dest.lat},${dest.lng}`;
   const o = origin ? `${origin.lat},${origin.lng}` : undefined;
-  const url = o
-    ? `https://www.google.com/maps/dir/?api=1&origin=${o}&destination=${d}&travelmode=driving`
-    : `https://www.google.com/maps/dir/?api=1&destination=${d}&travelmode=driving`;
+  const wp = waypoints && waypoints.length > 0
+    ? waypoints.map((w) => `${w.lat},${w.lng}`).join("|")
+    : undefined;
+  const params = new URLSearchParams();
+  if (o) params.set("origin", o);
+  params.set("destination", d);
+  params.set("travelmode", "driving");
+  if (wp) params.set("waypoints", wp);
+  const url = `https://www.google.com/maps/dir/?api=1&${params.toString()}`;
   window.open(url, "_blank", "noopener,noreferrer");
 }
 

@@ -163,7 +163,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
       );
 
       if (acceptRes.ok) {
-        router.push("/worker");
+        router.replace("/worker");
       } else {
         const body = await parseJsonUnknown(acceptRes);
         const code = readApiErrorString(body);
@@ -208,7 +208,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
           { category: "orders" },
         );
         if (res.ok) {
-          router.push("/worker");
+          router.replace("/worker");
         } else {
           await appAlert({ message: dict.errAcceptOrder });
           setIsLoading(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapContainer, Marker, Popup, Polyline } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
@@ -12,7 +12,10 @@ import {
   MapInitialView,
   LocateMeButton,
   openGoogleNavigation,
+  RouteWaypointClickLayer,
   SAFE_TOP,
+  WaypointControls,
+  type WaypointMode,
 } from "./mapSharedComponents";
 import {
   createCurrentLocationIcon,
@@ -28,61 +31,7 @@ import {
   X,
   Navigation,
   ExternalLink,
-  Plus,
-  Minus,
 } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Sub-komponent: przyciski zarządzania punktami pośrednimi
-// ---------------------------------------------------------------------------
-function WaypointControls({
-  onAddRouteWaypoint,
-  plannedRouteWaypoints,
-  onPlannedRouteWaypointsChange,
-  currentLocation,
-}: {
-  onAddRouteWaypoint?: (lat: number, lng: number) => void;
-  plannedRouteWaypoints: { lat: number; lng: number }[];
-  onPlannedRouteWaypointsChange?: (next: { lat: number; lng: number }[]) => void;
-  currentLocation: { lat: number; lng: number };
-}) {
-  return (
-    <div
-      className="absolute left-4 z-[1001] flex items-center gap-2"
-      style={{ top: `calc(${SAFE_TOP} + 60px)` }}
-    >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onAddRouteWaypoint?.(currentLocation.lat, currentLocation.lng);
-        }}
-        disabled={!onAddRouteWaypoint}
-        className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed"
-        aria-label="Dodaj punkt pośredni"
-        title="Dodaj punkt pośredni"
-      >
-        <Plus className="h-5 w-5" />
-      </button>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (plannedRouteWaypoints.length > 0) {
-            onPlannedRouteWaypointsChange?.(plannedRouteWaypoints.slice(0, -1));
-          }
-        }}
-        disabled={plannedRouteWaypoints.length === 0 || !onPlannedRouteWaypointsChange}
-        className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 shadow-lg border border-zinc-200 dark:border-zinc-700 transition hover:bg-white dark:hover:bg-zinc-700 active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed"
-        aria-label="Usuń ostatni punkt pośredni"
-        title="Usuń ostatni punkt pośredni"
-      >
-        <Minus className="h-5 w-5" />
-      </button>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Props
@@ -123,6 +72,14 @@ export default function FullScreenMapModal({
   const dict = getDictionary().admin.map;
   const customersDict = getDictionary().admin.customers;
 
+  const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);
+
+  // Resetuj tryb przy zamknięciu modala
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- modal cleanup pattern
+    if (!open) setWaypointMode(null);
+  }, [open]);
+
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
     destination,
@@ -149,6 +106,15 @@ export default function FullScreenMapModal({
       document.body.style.overflow = prev;
     };
   }, [open]);
+
+  const handleMapAddWaypoint = useCallback(
+    (lat: number, lng: number) => {
+      onAddRouteWaypoint?.(lat, lng);
+      // Po dodaniu punktu wyjdź z trybu
+      setWaypointMode(null);
+    },
+    [onAddRouteWaypoint],
+  );
 
   if (!open) return null;
 
@@ -183,10 +149,15 @@ export default function FullScreenMapModal({
 
         {/* Przyciski zarządzania punktami pośrednimi */}
         <WaypointControls
-          onAddRouteWaypoint={onAddRouteWaypoint}
-          plannedRouteWaypoints={plannedRouteWaypoints}
-          onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
-          currentLocation={currentLocation}
+          waypointMode={waypointMode}
+          onModeChange={setWaypointMode}
+          hasDestination={Boolean(destination)}
+          waypointCount={plannedRouteWaypoints.length}
+          onNavigate={
+            destination
+              ? () => openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)
+              : undefined
+          }
         />
 
         <MapContainer
@@ -206,6 +177,8 @@ export default function FullScreenMapModal({
           <MapInvalidateOnResize />
           <MapInitialView center={[currentLocation.lat, currentLocation.lng]} zoom={14} />
 
+          <RouteWaypointClickLayer mode={waypointMode} onAdd={handleMapAddWaypoint} />
+
           <TraveledPathLayers path={pathTraveled} />
 
           <RouteWaypointMarkers
@@ -213,6 +186,8 @@ export default function FullScreenMapModal({
             editable={Boolean(editableRoute && onPlannedRouteWaypointsChange)}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
+            waypointMode={waypointMode}
+            onModeChange={setWaypointMode}
           />
 
           {pathTraveled.length > 0 ? (
