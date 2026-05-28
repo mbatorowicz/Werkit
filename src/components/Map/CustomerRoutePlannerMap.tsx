@@ -89,11 +89,6 @@ export function CustomerRoutePlannerMap({
     [onWaypointsChange, waypoints],
   );
 
-  const onRemoveLastWaypoint = useCallback(() => {
-    if (waypoints.length === 0) return;
-    onWaypointsChange(waypoints.slice(0, -1));
-  }, [waypoints, onWaypointsChange]);
-
   const canEditDestination = editable && Boolean(onDestinationChange);
   const canEditWaypoints = editable && hasDestination;
 
@@ -121,7 +116,6 @@ export function CustomerRoutePlannerMap({
             hasDestination={hasDestination}
             waypointCount={waypoints.length}
             onNavigate={handleNavigate}
-            onRemoveLastWaypoint={onRemoveLastWaypoint}
             compact
           />
 
@@ -147,6 +141,8 @@ export function CustomerRoutePlannerMap({
             editable={canEditWaypoints}
             onWaypointsChange={onWaypointsChange}
             deleteLabel={dict.routeDeleteWaypoint}
+            removeMode={waypointMode === "remove"}
+            onRemoveModeExit={() => setWaypointMode(null)}
           />
           {routeLine.length > 0 ? (
             <Polyline positions={routeLine} color="#ef4444" weight={4} opacity={0.85} />

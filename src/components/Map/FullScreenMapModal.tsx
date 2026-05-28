@@ -116,12 +116,6 @@ export default function FullScreenMapModal({
     [onAddRouteWaypoint],
   );
 
-  const handleRemoveLastWaypoint = useCallback(() => {
-    if (plannedRouteWaypoints.length === 0) return;
-    const next = plannedRouteWaypoints.slice(0, -1);
-    onPlannedRouteWaypointsChange?.(next);
-  }, [plannedRouteWaypoints, onPlannedRouteWaypointsChange]);
-
   if (!open) return null;
 
   return (
@@ -151,7 +145,7 @@ export default function FullScreenMapModal({
         {destination && (
           <button
             type="button"
-            onClick={() => openGoogleNavigation(destination, currentLocation)}
+            onClick={() => openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)}
             className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-emerald-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-emerald-500/30 transition hover:bg-emerald-500 active:scale-95"
             style={{ top: `calc(${SAFE_TOP} + 60px)` }}
           >
@@ -168,7 +162,6 @@ export default function FullScreenMapModal({
           onModeChange={setWaypointMode}
           hasDestination={Boolean(destination)}
           waypointCount={plannedRouteWaypoints.length}
-          onRemoveLastWaypoint={handleRemoveLastWaypoint}
         />
 
         <MapContainer
@@ -197,6 +190,8 @@ export default function FullScreenMapModal({
             editable={Boolean(editableRoute && onPlannedRouteWaypointsChange)}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
+            removeMode={waypointMode === "remove"}
+            onRemoveModeExit={() => setWaypointMode(null)}
           />
 
           {pathTraveled.length > 0 ? (
