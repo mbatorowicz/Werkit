@@ -155,17 +155,13 @@ export default function FullScreenMapModal({
           </button>
         )}
 
-        {/* Przyciski zarządzania punktami pośrednimi */}
+        {/* Przyciski zarządzania punktami pośrednimi (+ / -) — bez duplikatu nawigacji,
+            bo osobny zielony przycisk "Nawiguj" jest po prawej stronie */}
         <WaypointControls
           waypointMode={waypointMode}
           onModeChange={setWaypointMode}
           hasDestination={Boolean(destination)}
           waypointCount={plannedRouteWaypoints.length}
-          onNavigate={
-            destination
-              ? () => openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)
-              : undefined
-          }
         />
 
         <MapContainer
