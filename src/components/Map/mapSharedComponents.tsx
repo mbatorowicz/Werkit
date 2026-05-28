@@ -36,7 +36,7 @@ export function RouteWaypointClickLayer({
 }
 
 // ---------------------------------------------------------------------------
-// Wspólny komponent przycisków + / - / nawiguj dla punktów pośrednich
+// Wspólny komponent przycisków + / - dla punktów pośrednich
 // ---------------------------------------------------------------------------
 export function WaypointControls({
   waypointMode,
@@ -44,6 +44,7 @@ export function WaypointControls({
   hasDestination,
   waypointCount,
   onNavigate,
+  onRemoveLastWaypoint,
   compact = false,
 }: {
   waypointMode: WaypointMode;
@@ -51,12 +52,13 @@ export function WaypointControls({
   hasDestination: boolean;
   waypointCount: number;
   onNavigate?: () => void;
+  /** Bezpośrednie usunięcie ostatniego waypointa (kliknięcie "-" bez trybu). */
+  onRemoveLastWaypoint?: () => void;
   /** Mniejsze przyciski (32px) dla CustomerRoutePlannerMap, domyślnie 40px. */
   compact?: boolean;
 }) {
   const dict = getDictionary().admin.map;
   const isAddMode = waypointMode === "add";
-  const isRemoveMode = waypointMode === "remove";
   const size = compact ? "w-8 h-8" : "w-10 h-10";
   const iconSize = compact ? "h-4 w-4" : "h-5 w-5";
 
@@ -71,9 +73,9 @@ export function WaypointControls({
   const handleRemoveClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onModeChange(isRemoveMode ? null : "remove");
+      onRemoveLastWaypoint?.();
     },
-    [isRemoveMode, onModeChange],
+    [onRemoveLastWaypoint],
   );
 
   return (
@@ -100,13 +102,9 @@ export function WaypointControls({
         type="button"
         onClick={handleRemoveClick}
         disabled={waypointCount === 0}
-        className={`flex items-center justify-center ${size} rounded-lg shadow-lg border transition active:scale-95 backdrop-blur-sm disabled:opacity-40 disabled:cursor-not-allowed ${
-          isRemoveMode
-            ? "bg-red-600 text-white border-red-500 hover:bg-red-500"
-            : "bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700"
-        }`}
+        className={`flex items-center justify-center ${size} rounded-lg shadow-lg border transition active:scale-95 backdrop-blur-sm bg-white/90 dark:bg-zinc-800/90 text-red-500 dark:text-red-400 border-zinc-200 dark:border-zinc-700 hover:bg-white dark:hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed`}
         aria-label={dict.removeWaypoint}
-        title={isRemoveMode ? dict.cancelRemove : dict.removeWaypoint}
+        title={dict.removeWaypoint}
       >
         <Minus className={iconSize} />
       </button>

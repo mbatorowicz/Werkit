@@ -116,6 +116,12 @@ export default function FullScreenMapModal({
     [onAddRouteWaypoint],
   );
 
+  const handleRemoveLastWaypoint = useCallback(() => {
+    if (plannedRouteWaypoints.length === 0) return;
+    const next = plannedRouteWaypoints.slice(0, -1);
+    onPlannedRouteWaypointsChange?.(next);
+  }, [plannedRouteWaypoints, onPlannedRouteWaypointsChange]);
+
   if (!open) return null;
 
   return (
@@ -162,6 +168,7 @@ export default function FullScreenMapModal({
           onModeChange={setWaypointMode}
           hasDestination={Boolean(destination)}
           waypointCount={plannedRouteWaypoints.length}
+          onRemoveLastWaypoint={handleRemoveLastWaypoint}
         />
 
         <MapContainer
@@ -190,8 +197,6 @@ export default function FullScreenMapModal({
             editable={Boolean(editableRoute && onPlannedRouteWaypointsChange)}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
-            waypointMode={waypointMode}
-            onModeChange={setWaypointMode}
           />
 
           {pathTraveled.length > 0 ? (

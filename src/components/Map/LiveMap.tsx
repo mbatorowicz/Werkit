@@ -325,8 +325,6 @@ export default function LiveMap({
             editable={canEditWaypoints}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
-            waypointMode={waypointMode}
-            onModeChange={setWaypointMode}
           />
 
           {pathTraveled.length > 0 ? (
