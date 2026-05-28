@@ -130,11 +130,11 @@ export default function FullScreenMapModal({
     >
       {/* Mapa na pełnym ekranie — zajmuje całe dostępne miejsce */}
       <div className="flex-1 w-full relative">
-        {/* Floating close button — zawsze widoczny, z safe-area na mobile */}
+        {/* Floating close button — prawa strona, nie koliduje z WaypointControls po lewej */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute left-4 z-[1001] flex items-center gap-2 rounded-full bg-black/70 backdrop-blur-md px-4 py-2.5 text-sm font-medium text-white shadow-lg border border-white/15 transition hover:bg-black/90 active:scale-95"
+          className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-black/70 backdrop-blur-md px-4 py-2.5 text-sm font-medium text-white shadow-lg border border-white/15 transition hover:bg-black/90 active:scale-95"
           style={{ top: `calc(${SAFE_TOP} + 8px)` }}
         >
           <X className="h-4 w-4" />

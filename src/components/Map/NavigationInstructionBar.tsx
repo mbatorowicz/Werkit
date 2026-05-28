@@ -38,7 +38,7 @@ interface NavigationInstructionBarProps {
  * Shows the current maneuver, distance to next turn, and remaining trip info.
  * Styled like Google Maps driving navigation.
  *
- * On mobile, positioned lower (top-20) to avoid overlapping with floating close button.
+ * On mobile, positioned lower (top-20) to avoid overlapping with top buttons.
  * On desktop, positioned at top-4 for a cleaner look.
  */
 export default function NavigationInstructionBar({
