@@ -54,6 +54,7 @@ export const de: AppDictionary = {
     group_has_children: "Eine Gruppe mit Unterkategorien kann nicht gelöscht werden. Entfernen oder verschieben Sie zuerst die Unterelemente.",
     parent_must_be_group: "Übergeordnetes Element muss als Gruppe markiert sein.",
     invalid_parent: "Ungültiges übergeordnetes Element (Zyklus oder fehlender Eintrag).",
+    feature_disabled: "Diese Funktion ist für Ihre Organisation deaktiviert. Kontaktieren Sie Ihren Administrator.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Geschätzte Arbeitszeit (Std.)",
@@ -1092,6 +1093,8 @@ export const de: AppDictionary = {
       routePlanningEnabledHint: "OSRM und Besuchsreihenfolge.",
       navigationEnabled: "Schritt-für-Schritt-Navigation",
       navigationEnabledHint: "Turn-by-turn in der Arbeiter-App.",
+      durEnabled: "Ersatzteillager (DUR)",
+      durEnabledHint: "Instandhaltungsmodul — Ersatzteile, Lagerbestand, Ausgaben.",
       saveSuccess: "Funktionseinstellungen gespeichert.",
       saveError: "Funktionseinstellungen konnten nicht gespeichert werden.",
     },

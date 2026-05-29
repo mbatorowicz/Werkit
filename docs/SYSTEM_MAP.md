@@ -62,12 +62,16 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `session_photos` | `id` | `work_session_id`, `photo_url` (data URL JPEG, kompresja 800px/0.7 po stronie klienta), `photo_type` ∈ `START\|END\|AD_HOC`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
 | `gps_logs` | `id` | `work_session_id`, `latitude`, `longitude`, `timestamp` | cascade z `work_sessions` |
 | `session_notes` | `id` | `work_session_id`, `note`, `latitude?`, `longitude?`, `created_at` | cascade z `work_sessions` |
-| `company_settings` | per `company_id` (unique) | **`company_id`**, `company_name`, `cancel_window_minutes`, geofence, przypomnienia, … | `company_id → companies.id` (cascade) |
+| `company_settings` | per `company_id` (unique) | **`company_id`**, `company_name`, `cancel_window_minutes`, geofence, przypomnienia, **feature flags** (`gps_tracking_enabled`, `map_view_enabled`, `geofencing_enabled`, `route_planning_enabled`, `navigation_enabled`, `dur_enabled`), … | `company_id → companies.id` (cascade) |
 | `device_logs` | `id` | `user_id?`, `level` ∈ `INFO\|WARN\|ERROR\|DEBUG`, `message`, `metadata: jsonb`, `created_at` | `user_id → users.id` (cascade) |
 | `spare_part_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, `color` | `company_id → companies.id` (cascade) |
 | `spare_parts` | `id` | **`company_id`**, `name`, `catalog_number?`, `manufacturer?`, `unit`, `purchase_price?` (numeric), `description?`, `min_stock` (numeric, default 0), `location?`, `image_url?`, `is_active`, `created_at` | `company_id → companies.id` (cascade) |
 | `spare_part_to_categories` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie części | cascade z `spare_parts` i `spare_part_categories` |
 | `spare_part_machine_compatibility` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie maszyn (`resource_categories`); `notes?` | cascade z `spare_parts` i `resource_categories` |
+| `work_order_spare_parts` | `id` | **`work_order_id`**, **`part_id`**, `quantity` (numeric, default 1), `unit_price` (numeric), `notes?`, `created_at` | `work_order_id → work_orders.id` (cascade); `part_id → spare_parts.id` (cascade) |
+| `spare_part_inventory` | PK `(part_id, company_id)` | **`part_id`**, **`company_id`**, `quantity` (numeric, default 0), `updated_at` | `part_id → spare_parts.id` (cascade); `company_id → companies.id` (cascade) |
+| `stock_receipts` | `id` | **`company_id`**, **`part_id`**, `quantity` (numeric), `unit_price` (numeric), `invoice_number?`, `notes?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `part_id → spare_parts.id` (cascade); `created_by_id → users.id` (set null) |
+| `stock_issues` | `id` | **`company_id`**, **`part_id`**, `quantity` (numeric), **`work_order_id?`**, `notes?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `part_id → spare_parts.id` (cascade); `work_order_id → work_orders.id` (set null); `created_by_id → users.id` (set null) |
 
 ### 3.1. Drizzle relations
 
@@ -98,6 +102,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0018 | `0018_users_can_create_customers.sql` | `users.can_create_customers boolean NOT NULL DEFAULT false`. |
 | 0019 | `0019_performance_indexes.sql` | Indeksy wydajnościowe: `work_orders(company_id, status)`, `work_sessions(company_id, user_id, status)`, `gps_logs(work_session_id, timestamp)`, `device_logs(company_id, created_at)`, `session_photos(work_session_id)`, `session_notes(work_session_id)`. |
 | 0020 | `0020_dur_spare_parts.sql` | Moduł DUR: tabele `spare_part_categories`, `spare_parts`, `spare_part_to_categories`, `spare_part_machine_compatibility` + indeksy. |
+| 0021 | `0021_order_types_org_feature_flags.sql` | `resource_categories.order_type` (`machine_work` / `machine_repair`), `company_settings.enable_worker_wizard`, `company_settings.enable_worker_order_accept`. |
+| 0022 | `0022_dur_warehouse.sql` | Tabele `work_order_spare_parts`, `spare_part_inventory`, `stock_receipts`, `stock_issues` + indeksy. |
+| 0023 | `0023_feature_flags_dur.sql` | `company_settings.dur_enabled` — feature flag dla modułu DUR (domyślnie `false`). |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -129,7 +136,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Magazyn części zamiennych DUR — lista, wyszukiwanie, CRUD (`features/admin/dur/SparePartsClient.tsx`) | admin |
 | `/admin/dur/spare-part-categories` | RSC | `SparePartCategoriesClient` | Kategorie części DUR — drzewo hierarchiczne (`features/admin/dur/SparePartCategoriesClient.tsx`) | admin |
 | `/admin/dur/compatibility` | RSC | `CompatibilityClient` | Kompatybilność części z kategoriami maszyn (`features/admin/dur/CompatibilityClient.tsx`) | admin |
-| `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia (`components/Platform/PlatformDashboard.tsx`) | `platform/layout.tsx` |
+| `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
@@ -191,6 +198,9 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/worker/profile` | POST `{notificationsEnabled?:bool, biometricLoginEnabled?:bool, password?:string}` | Notyfikacje + włączenie biometrii (wymaga roli `worker` + weryfikacji hasła `bcrypt.compare`) |
 | `/api/worker/logs` | POST `{level, message, metadata?}` | `SystemLogService.insertLog` — używane przez `sendRemoteLog` (z `keepalive:true`) |
 | `/api/worker/customer-locations/[id]/route` | PUT `{waypoints}` | `CustomerLocationService.setRouteWaypoints` — wymaga `AdminUserService.userCanEditRoute` |
+| `/api/worker/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu (widok pracownika) |
+| `/api/worker/work-orders/[id]/spare-parts` | POST `{partId, quantity?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części (wydanie z magazynu przez pracownika w trakcie naprawy) |
+| `/api/worker/work-orders/[id]/spare-parts/[partId]` | DELETE | `WorkOrderSparePartService.removePartFromOrder` — usunięcie części ze zlecenia (pracownik) |
 
 ### 5.3. Platform (superadmin)
 
@@ -200,6 +210,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy) |
 | `/api/platform/companies/[id]` | PUT | `PlatformCompanyService.updateCompany` |
 | `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` |
+| `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` |
+| `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags` |
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
 
 ### 5.4. Admin (deny-by-default → tylko admin/viewer)
@@ -223,6 +235,10 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
 | `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
 | `/api/geocode?q=...` | GET | Proxy do Nominatim (OSM) — `User-Agent: WerkitERP/1.9` |
+| `/api/admin/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu naprawy |
+| `/api/admin/work-orders/[id]/spare-parts` | POST `{partId, quantity?, unitPrice?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części do zlecenia (admin) |
+| `/api/admin/work-orders/[id]/spare-parts/[partId]` | PATCH `{quantity?, unitPrice?, notes?}` | `WorkOrderSparePartService.updatePartInOrder` — aktualizacja ilości/ceny/notatek |
+| `/api/admin/work-orders/[id]/spare-parts/[partId]` | DELETE | `WorkOrderSparePartService.removePartFromOrder` — usunięcie części ze zlecenia |
 
 ### 5.5. Słowniki (SHARED — admin pisze, wszyscy zalogowani czytają)
 
@@ -323,6 +339,11 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
 - Analityka użycia per firma na `/platform`.
 
+### `PlatformFeatureFlagService` (`src/services/PlatformFeatureFlagService.ts`)
+- `getFlags(companyId)` — odczytuje feature flags (`gpsTrackingEnabled`, `mapViewEnabled`, `geofencingEnabled`, `routePlanningEnabled`, `navigationEnabled`, `durEnabled`) z `company_settings`. Zwraca domyślne wartości gdy wiersz nie istnieje.
+- `updateFlags(companyId, flags)` — UPSERT do `company_settings` z mapowaniem camelCase → snake_case. Przyjmuje `Partial<FeatureFlags>` — tylko podane klucze są zmieniane.
+- Używany przez endpointy `GET/PUT /api/platform/feature-flags/:companyId` oraz przez API worker/admin do blokowania modułów GPS i DUR (zwracają `feature_disabled` 403 gdy flaga wyłączona).
+
 ### `SparePartCategoryService` (`src/services/dur/SparePartCategoryService.ts`)
 - `getCategories(companyId, opts?)` — lista kategorii części; `leavesOnly` zwraca tylko liście (do przypisania części).
 - `addCategory(companyId, payload)` — tworzy kategorię (domyślnie `isGroup=false`, `sortOrder=0`).
@@ -347,6 +368,25 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `countSparePartCategoryChildren(id)` — licznik dzieci kategorii części.
 - `assertSparePartCategoriesAssignable(companyId, categoryIds)` — rzuca `CategoryHierarchyError` gdy któreś ID nie istnieje lub jest grupą.
 
+### `WorkOrderSparePartService` (`src/services/dur/WorkOrderSparePartService.ts`)
+- `getPartsForOrder(workOrderId)` — lista części przypisanych do zlecenia (JOIN `spare_parts` dla `partName`, `catalogNumber`).
+- `addPartToOrder(workOrderId, payload)` — dodaje część do zlecenia (`{partId, quantity, unitPrice?, notes?}`).
+- `updatePartInOrder(id, payload)` — aktualizacja ilości/ceny/notatek.
+- `removePartFromOrder(id)` — usuwa przypisanie części.
+- `assertPartBelongsToOrder(partId, workOrderId)` — weryfikacja przynależności (używana w DELETE/PATCH).
+
+### `InventoryService` (`src/services/dur/InventoryService.ts`)
+- `getInventory(companyId)` — stan magazynowy wszystkich części w firmie.
+- `getPartInventory(partId, companyId)` — stan pojedynczej części.
+- `upsertQuantity(partId, companyId, delta)` — zwiększa/zmniejsza stan (dodaje do istniejącej ilości).
+- `setQuantity(partId, companyId, quantity)` — ustawia bezwzględną ilość.
+
+### `StockMovementService` (`src/services/dur/StockMovementService.ts`)
+- `getReceipts(companyId)` — lista przyjęć magazynowych.
+- `addReceipt(companyId, payload)` — przyjęcie części (`{partId, quantity, unitPrice?, invoiceNumber?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
+- `getIssues(companyId)` — lista wydań magazynowych.
+- `addIssue(companyId, payload)` — wydanie części (`{partId, quantity, workOrderId?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
+
 ---
 
 ## 7. Typy domenowe (`src/types/`)
@@ -357,7 +397,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `admin.ts` | `UnifiedGanttItem` (zmergowany order/session pod Gantt), `OrderFormState` (formularz dyspozycji), `BaseWorker/Machine/Material/Customer/Category`, `ReportActiveSessionRow`, `ReportsDashboardSnapshot` |
 | `wizard.ts` | `WizardCategory` (z `isStationary?`), `WizardMachine`, `WizardMaterial`, `WizardCustomer` |
 | `deviceTelemetry.ts` | `WerkitLogCategory`, typy metadanych logów urządzenia |
-| `dur.ts` | `SparePartCategory`, `SparePart` (z `categoryIds`, `machineCategoryIds`), `SparePartMachineCompatibility`, `SparePartInput`, `SparePartCategoryInput`, `SparePartCompatibilityInput` |
+| `dur.ts` | `SparePartCategory`, `SparePart` (z `categoryIds`, `machineCategoryIds`), `SparePartMachineCompatibility`, `SparePartInput`, `SparePartCategoryInput`, `SparePartCompatibilityInput`, `SparePartInventory`, `StockReceipt`, `StockIssue`, `StockReceiptInput`, `StockIssueInput`, `InventoryAdjustmentInput` |
 
 **Konwencja**: **daty w propsach client → string ISO** (zob. `InitialWorkerData`, `UnifiedGanttItem`). Daty w serwisach na granicy DB → `Date`/`string` z Drizzle.
 
@@ -372,7 +412,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `components/profile/*` | Ustawienia profilu: powiadomienia, dźwięki alarmów, biometria. |
 | `components/wizard/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków). |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących. |
-| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji. |
+| `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji (zawiera `WorkerSparePartsPanel` dla napraw). |
+| `components/WorkerSparePartsPanel.tsx` | Panel części zamiennych w aktywnej sesji — przeglądanie, dodawanie i usuwanie części (wydanie z magazynu przez pracownika). Widoczny tylko dla `orderType === 'machine_repair'`. |
 | `components/Modals/NotesModal.tsx`, `Modals/GpsWarningModal.tsx`, `WorkerAlarmModal.tsx` | Modale. |
 
 ### Hooki
@@ -409,7 +450,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
-- `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`,
+- `Modals/OrderFormModal.tsx`, `Modals/SessionDetailsModal.tsx`, `Modals/WorkOrderSparePartsSection.tsx` (sekcja części zamiennych w formularzu zlecenia naprawy — widoczna tylko dla `orderType === 'machine_repair'`),
 - `Orders/OrdersDispatchTable.tsx`, `Orders/OrdersDispatchToolbar.tsx`, `Orders/OrdersSettingsQuickModal.tsx`,
 - `Reports/ReportsDashboard.tsx`, `Reports/ReportStatCard.tsx`.
 
@@ -512,7 +553,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload) → 'ok' \| 'invalid_category' \| 'missing_customer' \| 'missing_material' \| 'missing_quantity' \| 'missing_task_description'`; `coerceWorkOrderPriority(value) → URGENT\|HIGH\|NORMAL\|LOW`. |
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
-| `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
+| `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility`, `narrowInventory`, `narrowStockReceipts`, `narrowStockIssues` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
 | `resolveNeonPostgresUrl.ts` | `resolveNeonPostgresUrl()` + `ensurePostgresUrlForVercelDriver()` — dla skryptów `tsx`, kiedy w `.env.local` jest tylko `DATABASE_URL` (Neon). Patrz `src/db/env.ts`. |
 
 ---
@@ -545,13 +586,13 @@ Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capaci
 Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | Slot | Co tam jest |
 |---|---|
-| `apiErrors` | Mapa `kod → komunikat`. **Kluczowe** dla `/login` i wszystkich JSON-owych odpowiedzi z błędem (`error: 'xxx'`). |
+| `apiErrors` | Mapa `kod → komunikat`. **Kluczowe** dla `/login` i wszystkich JSON-owych odpowiedzi z błędem (`error: 'xxx'`). Zawiera m.in. `feature_disabled` (403 gdy moduł GPS/DUR wyłączony dla organizacji). |
 | `workOrdersSchedule` | **SSOT** pól terminu/czasu i tekstów konfliktów harmonogramu (admin + worker); helper: `scheduleConflictI18n.ts`. |
 | `login` | `submit`, `biometricLogin`, `biometricDivider` |
 | `admin.sidebar` | Etykiety nawigacji admin |
 | `admin.dashboard`, `admin.reports`, `admin.archive`, `admin.orders`, `admin.users`, `admin.workers`, `admin.machines`, `admin.materials`, `admin.customers`, `admin.settings`, `admin.logs`, `admin.modals` | Każdy ekran admina ma swój sub-słownik |
 | `worker.client`, `worker.wizard`, `worker.history`, `worker.profile`, `worker.help` | UI mobilki |
-| `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API |
+| `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors`, `dur.workOrderSpareParts` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API, części w zleceniu naprawy |
 
 Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej UI pokaże surowy kod.
 

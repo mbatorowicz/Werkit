@@ -54,6 +54,7 @@ export const en: AppDictionary = {
     group_has_children: "Cannot delete a group that has child categories. Remove or move children first.",
     parent_must_be_group: "Parent must be an entry marked as a group.",
     invalid_parent: "Invalid parent (cycle or missing entry).",
+    feature_disabled: "This feature is disabled for your organization. Contact your administrator.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Estimated work time (hours)",
@@ -1092,6 +1093,8 @@ export const en: AppDictionary = {
       routePlanningEnabledHint: "OSRM and visit order.",
       navigationEnabled: "Turn-by-turn navigation",
       navigationEnabledHint: "Step-by-step in the worker app.",
+      durEnabled: "Spare parts warehouse (DUR)",
+      durEnabledHint: "Maintenance Department module — spare parts, inventory, issues.",
       saveSuccess: "Feature settings saved.",
       saveError: "Could not save feature settings.",
     },

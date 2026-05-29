@@ -6,6 +6,7 @@ import type { AppDictionary } from '@/i18n/types';
 import { getDictionary, formatDict } from '@/i18n';
 import { PlatformCompanyForm } from '@/components/Platform/PlatformCompanyForm';
 import { PlatformCompanyTable } from '@/components/Platform/PlatformCompanyTable';
+import { FeatureFlagsSection } from '@/components/Platform/FeatureFlagsSection';
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -28,6 +29,9 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   const [editName, setEditName] = useState('');
   const [editSlug, setEditSlug] = useState('');
   const [editPending, setEditPending] = useState(false);
+
+  /** Która organizacja ma rozwinięty panel ustawień funkcji. */
+  const [settingsOpenId, setSettingsOpenId] = useState<number | null>(null);
 
   async function refreshOverview() {
     const res = await fetch('/api/platform/analytics', { credentials: 'include' });
@@ -127,6 +131,10 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     }
   }
 
+  function toggleSettings(companyId: number) {
+    setSettingsOpenId((prev) => (prev === companyId ? null : companyId));
+  }
+
   return (
     <div className="space-y-0">
       <header className="mb-8">
@@ -160,6 +168,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
         editName={editName}
         editSlug={editSlug}
         editPending={editPending}
+        settingsOpenId={settingsOpenId}
         onToggleActive={toggleActive}
         onStartEdit={startEdit}
         onCancelEdit={cancelEdit}
@@ -167,7 +176,16 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
         onSetEditName={setEditName}
         onSetEditSlug={setEditSlug}
         onRefresh={refreshOverview}
+        onToggleSettings={toggleSettings}
       />
+
+      {settingsOpenId != null && (
+        <FeatureFlagsSection
+          key={settingsOpenId}
+          companyId={settingsOpenId}
+          dict={dict.settings}
+        />
+      )}
     </div>
   );
 }

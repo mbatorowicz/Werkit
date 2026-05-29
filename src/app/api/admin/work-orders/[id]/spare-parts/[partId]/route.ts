@@ -5,6 +5,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { workOrders } from "@/db/schema";
@@ -16,6 +17,10 @@ export const PATCH = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string; partId: string }> }) => {
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
+
+    // Feature flag: DUR musi być włączony
+    const flags = await PlatformFeatureFlagService.getFlags(scoped.data.companyId);
+    if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
     const { id, partId } = await params;
     const workOrderId = parseInt(id, 10);
@@ -60,6 +65,10 @@ export const DELETE = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string; partId: string }> }) => {
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
+
+    // Feature flag: DUR musi być włączony
+    const flags = await PlatformFeatureFlagService.getFlags(scoped.data.companyId);
+    if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
     const { id, partId } = await params;
     const workOrderId = parseInt(id, 10);

@@ -60,7 +60,7 @@ Architektura **warstwowa z serwisami** (od **v1.6.6**, utrwalona m.in. w **v1.9*
 
 ## 4. Warstwa serwisów (`src/services/`)
 
-Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden punkt prawdy** dla logiki „lista zleceń”, „sesja”, „archiwum” itd.
+Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden punkt prawdy** dla logiki „lista zleceń", „sesja", „archiwum", „części zamienne", „magazyn" itd.
 
 | Serwis (klasa) | Typowe obowiązki |
 |----------------|------------------|
@@ -73,6 +73,17 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `AdminReportService` | Raporty |
 | `SystemLogService` | Agregacja `device_logs` |
 | `GpsService` | Logika ścieżek GPS |
+| `ScheduleConflictService` | Wykrywanie konfliktów harmonogramu (nakładające się zlecenia) |
+| `CustomerLocationService` | Lokalizacje klientów, waypointy trasy |
+| `OrganizationService` | Ustawienia organizacyjne (firma, feature flagi) |
+| `PlatformCompanyService` | Multi-tenant: zarządzanie firmami (superadmin) |
+| `PlatformAnalyticsService` | Analityka międzyfirmowa (superadmin) |
+| `SparePartService` | Katalog części zamiennych (CRUD, kategorie, kompatybilność) |
+| `SparePartCategoryService` | Kategorie części zamiennych (hierarchia, grupy) |
+| `SparePartCompatibilityService` | Kompatybilność części z kategoriami maszyn |
+| `WorkOrderSparePartService` | Przypisywanie części do zleceń naprawczych (`machine_repair`) |
+| `InventoryService` | Stany magazynowe części (`spare_part_inventory`) |
+| `StockMovementService` | Ruchy magazynowe (przychody `stock_receipts`, rozchody `stock_issues`) |
 
 **Uwaga:** Część klas ma wyłącznie metody **`static`** — to świadomy, prosty wzorzec w repozytorium (nie mylić z DI kontenerem).
 

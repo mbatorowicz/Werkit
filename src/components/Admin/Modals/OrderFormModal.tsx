@@ -155,6 +155,7 @@ export default function OrderFormModal({
           customers={customers}
           extraCustomers={extraCustomers}
           setExtraCustomers={setExtraCustomers}
+          editingOrderId={editingOrderId}
         />
 
         {/* Czas i termin + panel konfliktów */}

@@ -10,6 +10,7 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/QueuedPendingOrdersDuringSession";
 import { ActiveSessionSessionTimer } from "@/features/worker/components/ActiveSessionSessionTimer";
 import { ActiveSessionTimelinePanel } from "@/features/worker/components/ActiveSessionTimelinePanel";
+import WorkerSparePartsPanel from "@/features/worker/components/WorkerSparePartsPanel";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
 
@@ -112,6 +113,12 @@ export default function ActiveSessionDashboard({
           attachmentNotes={timelineEvents.some((e) => e.type === "note")}
         />
       </div>
+
+      {/* CZĘŚCI ZAMIENNE — tylko dla napraw */}
+      <WorkerSparePartsPanel
+        workOrderId={session.workOrderId ?? null}
+        orderType={session.orderType ?? null}
+      />
 
       {/* WIDGET STATUSU */}
       <div className="w-full flex items-center justify-between bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4">

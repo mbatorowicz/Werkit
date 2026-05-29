@@ -5,6 +5,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { workOrders } from "@/db/schema";
@@ -15,6 +16,10 @@ export const dynamic = 'force-dynamic';
 export const GET = withApiErrorHandling(async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireWorkerCompanySession();
   if (!ctx.ok) return ctx.response;
+
+  // Sprawdź, czy organizacja ma włączony moduł DUR
+  const flags = await PlatformFeatureFlagService.getFlags(ctx.companyId);
+  if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
   const { id } = await params;
   const workOrderId = parseInt(id, 10);
@@ -36,6 +41,10 @@ export const GET = withApiErrorHandling(async (_request: Request, { params }: { 
 export const POST = withApiErrorHandling(async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
   const ctx = await requireWorkerCompanySession();
   if (!ctx.ok) return ctx.response;
+
+  // Sprawdź, czy organizacja ma włączony moduł DUR
+  const flags = await PlatformFeatureFlagService.getFlags(ctx.companyId);
+  if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
   const { id } = await params;
   const workOrderId = parseInt(id, 10);

@@ -6,6 +6,7 @@ import { CustomerSearchField } from "@/components/customers/CustomerSearchField"
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
+import WorkOrderSparePartsSection from "@/components/Admin/Modals/WorkOrderSparePartsSection";
 import type {
   OrderFormState,
   BaseWorker,
@@ -32,6 +33,8 @@ type Props = {
   customers: BaseCustomer[];
   extraCustomers: BaseCustomer[];
   setExtraCustomers: (updater: (prev: BaseCustomer[]) => BaseCustomer[]) => void;
+  /** ID zlecenia — wymagane do operacji na częściach (po zapisaniu zlecenia). */
+  editingOrderId?: number | null;
 };
 
 export function OrderFormFields({
@@ -45,8 +48,10 @@ export function OrderFormFields({
   customers,
   extraCustomers,
   setExtraCustomers,
+  editingOrderId,
 }: Props) {
   const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
+  const orderType = selectedCategory?.orderType ?? null;
 
   const availableMachines = useMemo(
     () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: false }),
@@ -235,6 +240,12 @@ export function OrderFormFields({
           <option value="URGENT">{dict.priorityUrgent}</option>
         </select>
       </div>
+
+      {/* 7. Części zamienne — tylko dla napraw */}
+      <WorkOrderSparePartsSection
+        workOrderId={editingOrderId ?? null}
+        orderType={orderType}
+      />
     </>
   );
 }

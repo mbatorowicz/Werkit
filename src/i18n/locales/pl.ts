@@ -52,6 +52,7 @@ export const pl = {
     group_has_children: "Nie można usunąć grupy, która ma podkategorie. Najpierw usuń lub przenieś elementy podrzędne.",
     parent_must_be_group: "Rodzicem może być tylko wpis oznaczony jako grupa.",
     invalid_parent: "Nieprawidłowy rodzic (cykl lub nieistniejący wpis).",
+    feature_disabled: "Ta funkcja jest wyłączona dla Twojej organizacji. Skontaktuj się z administratorem.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Szacowany czas pracy (godz.)",
@@ -1090,6 +1091,8 @@ export const pl = {
       routePlanningEnabledHint: "OSRM i kolejność odwiedzin.",
       navigationEnabled: "Nawigacja krok po kroku",
       navigationEnabledHint: "Turn-by-turn w aplikacji pracownika.",
+      durEnabled: "Magazyn części (DUR)",
+      durEnabledHint: "Moduł Działu Utrzymania Ruchu — części zamienne, magazyn, wydania.",
       saveSuccess: "Zapisano ustawienia funkcji.",
       saveError: "Nie udało się zapisać ustawień.",
     },

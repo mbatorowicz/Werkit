@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { Pencil, Settings } from 'lucide-react';
 import type { CompanyUsageRow } from '@/services/PlatformAnalyticsService';
 import type { AppDictionary } from '@/i18n/types';
 import { getDictionary } from '@/i18n';
@@ -14,6 +14,7 @@ type Props = {
   editName: string;
   editSlug: string;
   editPending: boolean;
+  settingsOpenId: number | null;
   onToggleActive: (organizationId: number, isActive: boolean) => void;
   onStartEdit: (row: CompanyUsageRow) => void;
   onCancelEdit: () => void;
@@ -21,6 +22,7 @@ type Props = {
   onSetEditName: (v: string) => void;
   onSetEditSlug: (v: string) => void;
   onRefresh: () => Promise<void>;
+  onToggleSettings: (companyId: number) => void;
 };
 
 export function PlatformCompanyTable({
@@ -30,6 +32,7 @@ export function PlatformCompanyTable({
   editName,
   editSlug,
   editPending,
+  settingsOpenId,
   onToggleActive,
   onStartEdit,
   onCancelEdit,
@@ -37,6 +40,7 @@ export function PlatformCompanyTable({
   onSetEditName,
   onSetEditSlug,
   onRefresh,
+  onToggleSettings,
 }: Props) {
   return (
     <section className="mt-10">
@@ -114,34 +118,50 @@ export function PlatformCompanyTable({
                       </button>
                     </td>
                     <td className="px-4 py-3.5">
-                      {editingId === r.companyId ? (
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            disabled={editPending}
-                            onClick={() => onSaveEdit(r.companyId)}
-                            className="rounded-md bg-emerald-600 text-white px-2.5 py-1 text-xs font-medium disabled:opacity-60"
-                          >
-                            {dict.saveChanges}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={onCancelEdit}
-                            className="rounded-md border border-zinc-300 dark:border-zinc-600 px-2.5 py-1 text-xs"
-                          >
-                            {dict.cancelEdit}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => onStartEdit(r)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
-                        >
-                          <Pencil className="w-3.5 h-3.5" aria-hidden />
-                          {dict.editOrganization}
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {editingId === r.companyId ? (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              disabled={editPending}
+                              onClick={() => onSaveEdit(r.companyId)}
+                              className="rounded-md bg-emerald-600 text-white px-2.5 py-1 text-xs font-medium disabled:opacity-60"
+                            >
+                              {dict.saveChanges}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={onCancelEdit}
+                              className="rounded-md border border-zinc-300 dark:border-zinc-600 px-2.5 py-1 text-xs"
+                            >
+                              {dict.cancelEdit}
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => onStartEdit(r)}
+                              className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
+                            >
+                              <Pencil className="w-3.5 h-3.5" aria-hidden />
+                              {dict.editOrganization}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => onToggleSettings(r.companyId)}
+                              title={dict.settings.title}
+                              className={`inline-flex items-center gap-1 text-xs font-medium transition-colors ${
+                                settingsOpenId === r.companyId
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : 'text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400'
+                              }`}
+                            >
+                              <Settings className="w-3.5 h-3.5" aria-hidden />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {r.userCount === 0 && (

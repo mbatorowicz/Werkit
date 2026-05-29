@@ -162,6 +162,13 @@
       "when": 1748534400000,
       "tag": "0022_dur_warehouse",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1748563200000,
+      "tag": "0023_feature_flags_dur",
+      "breakpoints": true
     }
   ]
 }

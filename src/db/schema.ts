@@ -227,6 +227,8 @@ export const companySettings = pgTable('company_settings', {
   geofencingEnabled: boolean('geofencing_enabled').notNull().default(true),
   routePlanningEnabled: boolean('route_planning_enabled').notNull().default(true),
   navigationEnabled: boolean('navigation_enabled').notNull().default(true),
+  /** Moduł DUR (części zamienne, magazyn) — domyślnie wyłączony. */
+  durEnabled: boolean('dur_enabled').notNull().default(false),
 });
 
 export const workOrders = pgTable('work_orders', {

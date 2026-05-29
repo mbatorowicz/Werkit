@@ -18,6 +18,8 @@ export type FeatureFlags = {
   routePlanningEnabled: boolean;
   /** Nawigacja krok po kroku (turn-by-turn). */
   navigationEnabled: boolean;
+  /** Moduł DUR (części zamienne, magazyn) — domyślnie wyłączony. */
+  durEnabled: boolean;
 };
 
 /** Domyślne wartości flag (wszystkie włączone). */
@@ -27,6 +29,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   geofencingEnabled: true,
   routePlanningEnabled: true,
   navigationEnabled: true,
+  durEnabled: false,
 };
 
 /** Klucze flag do iteracji w UI. */
@@ -36,6 +39,7 @@ export const FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
   'geofencingEnabled',
   'routePlanningEnabled',
   'navigationEnabled',
+  'durEnabled',
 ];
 
 /** Etykiety i18n dla flag. */
@@ -45,4 +49,5 @@ export const FEATURE_FLAG_LABELS: Record<keyof FeatureFlags, string> = {
   geofencingEnabled: 'platform.settings.geofencingEnabled',
   routePlanningEnabled: 'platform.settings.routePlanningEnabled',
   navigationEnabled: 'platform.settings.navigationEnabled',
+  durEnabled: 'platform.settings.durEnabled',
 };

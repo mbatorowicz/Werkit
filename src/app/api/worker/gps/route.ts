@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJson, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from '@/lib/apiTenant';
 import { GpsService, GpsPoint } from '@/services/GpsService';
+import { PlatformFeatureFlagService } from '@/services/PlatformFeatureFlagService';
 
 export const GET = withApiErrorHandling(async () => {
   const ctx = await requireWorkerCompanySession();
@@ -14,6 +15,12 @@ export const POST = withApiErrorHandling(
   async (request: Request) => {
     const ctx = await requireWorkerCompanySession();
     if (!ctx.ok) return ctx.response;
+
+    // Sprawdź, czy organizacja ma włączone śledzenie GPS
+    const flags = await PlatformFeatureFlagService.getFlags(ctx.companyId);
+    if (!flags.gpsTrackingEnabled) {
+      return jsonError("feature_disabled", 403);
+    }
 
     const body = await parseJson(request);
     const points: GpsPoint[] = Array.isArray(body) ? (body as GpsPoint[]) : [body as GpsPoint];

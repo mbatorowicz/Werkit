@@ -65,17 +65,18 @@ src/
 ├── components/             # UI współdzielony (Admin shell, work-orders, customers, Map, …)
 ├── hooks/                  # generyczne hooki UI (floating panel, dismiss outside) — używane przez comboboxy
 ├── services/               # Drizzle + logika domenowa (SSOT zapytań DB)
-│   └── dictionary/         # Sub-moduł słowników (CategoryService, MaterialService, CustomerService, …)
+│   ├── dictionary/         # Sub-moduł słowników (CategoryService, MaterialService, CustomerService, …)
+│   └── dur/                # Sub-moduł DUR (SparePartService, WorkOrderSparePartService, InventoryService, StockMovementService, …)
 ├── db/
 ├── types/
 ├── i18n/
 ├── lib/
-│   └── narrow/             # Type narrowing — bezpieczne parsowanie odpowiedzi API (shared.ts, base.ts, admin.ts, worker.ts, machines.ts)
+│   └── narrow/             # Type narrowing — bezpieczne parsowanie odpowiedzi API (shared.ts, base.ts, admin.ts, worker.ts, machines.ts, dur.ts)
 ├── scripts/                # migracje tsx, verify_schema, generate_notification_sounds
 └── proxy.ts                # JWT + role (admin, worker, platform/superadmin)
 ```
 
-**Gdzie nowy kod:** `app/**` = routing; logika worker → `features/worker/`; logika admin → `features/admin/` + `components/Admin/`; współdzielone zlecenia → `components/work-orders/`. Multi-tenant i `/platform` → [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md).
+**Gdzie nowy kod:** `app/**` = routing; logika worker → `features/worker/`; logika admin → `features/admin/` + `components/Admin/`; współdzielone zlecenia → `components/work-orders/`. Multi-tenant i `/platform` → [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md). Moduł DUR (części zamienne, magazyn) → `services/dur/`, `components/Admin/Modals/`, `features/worker/components/`.
 
 ---
 
@@ -96,8 +97,8 @@ src/
 
 Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
 
-Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):  
-`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`.
+Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
+`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`.
 
 **Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
 
@@ -190,7 +191,7 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 
