@@ -73,3 +73,80 @@ export type SparePartCompatibilityInput = {
   categoryId: number;
   notes?: string;
 };
+
+// ── DUR — Faza 2: Gospodarka magazynowa ──
+
+/** Stan magazynowy części. */
+export type SparePartInventory = {
+  id: number;
+  companyId: number;
+  partId: number;
+  quantity: string;
+  updatedAt: string;
+  /** Rozszerzone: nazwa części (JOIN). */
+  partName?: string;
+  partCatalogNumber?: string;
+  partUnit?: string;
+};
+
+/** Przyjęcie towaru (PZ). */
+export type StockReceipt = {
+  id: number;
+  companyId: number;
+  partId: number;
+  quantity: string;
+  unitPrice: string | null;
+  invoiceNumber: string | null;
+  notes: string | null;
+  createdBy: number | null;
+  createdAt: string;
+  /** Rozszerzone: nazwa części (JOIN). */
+  partName?: string;
+  partCatalogNumber?: string;
+  creatorName?: string;
+};
+
+/** Wydanie towaru (WZ / rozchód wewnętrzny). */
+export type StockIssue = {
+  id: number;
+  companyId: number;
+  partId: number;
+  quantity: string;
+  workOrderId: number | null;
+  issuedTo: number | null;
+  notes: string | null;
+  createdBy: number | null;
+  createdAt: string;
+  /** Rozszerzone: nazwa części (JOIN). */
+  partName?: string;
+  partCatalogNumber?: string;
+  creatorName?: string;
+  workOrderLabel?: string;
+};
+
+// ── Inputy ──
+
+/** Payload przyjęcia towaru. */
+export type StockReceiptInput = {
+  partId: number;
+  quantity: string;
+  unitPrice?: string | null;
+  invoiceNumber?: string | null;
+  notes?: string | null;
+};
+
+/** Payload wydania towaru. */
+export type StockIssueInput = {
+  partId: number;
+  quantity: string;
+  workOrderId?: number | null;
+  issuedTo?: number | null;
+  notes?: string | null;
+};
+
+/** Payload korekty stanu magazynowego. */
+export type InventoryAdjustmentInput = {
+  partId: number;
+  quantity: string;
+  notes?: string | null;
+};

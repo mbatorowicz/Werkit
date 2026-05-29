@@ -23,7 +23,7 @@ export function useSparePartsAdminData(alertCtxRef: React.MutableRefObject<Spare
       const [partsRes, catRes, machineCatRes] = await Promise.all([
         fetch("/api/dur/spare-parts"),
         fetch("/api/dur/spare-part-categories?leavesOnly=1"),
-        fetch("/api/dur/spare-part-categories"),
+        fetch("/api/resource-categories"),
       ]);
 
       if (id !== fetchRef.current) return;

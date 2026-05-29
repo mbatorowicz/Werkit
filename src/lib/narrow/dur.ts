@@ -3,7 +3,7 @@
  * Zgodnie z AGENTS.md §4 pkt 7 — odpowiedzi API parsuj przez funkcje narrow*.
  */
 import { isRecord } from './shared';
-import type { SparePart, SparePartCategory } from '@/types/dur';
+import type { SparePart, SparePartCategory, SparePartInventory, StockReceipt, StockIssue } from '@/types/dur';
 
 function readString(r: Record<string, unknown>, k: string, fallback = ''): string {
   return typeof r[k] === 'string' ? r[k] : fallback;
@@ -23,6 +23,17 @@ function readNumber(r: Record<string, unknown>, k: string, fallback = 0): number
     return Number.isFinite(n) ? n : fallback;
   }
   return fallback;
+}
+
+function readNullableNumber(r: Record<string, unknown>, k: string): number | null {
+  const v = r[k];
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'number' && Number.isFinite(v)) return v;
+  if (typeof v === 'string') {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
 }
 
 function readBool(r: Record<string, unknown>, k: string, fallback = false): boolean {
@@ -117,4 +128,87 @@ export function narrowSparePartCompatibility(data: unknown): {
       };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
+}
+
+// ── DUR — Faza 2: Gospodarka magazynowa ──
+
+function narrowInventoryRaw(r: Record<string, unknown>): SparePartInventory | null {
+  if (!r.id || !r.partId) return null;
+  return {
+    id: readNumber(r, 'id'),
+    companyId: readNumber(r, 'companyId'),
+    partId: readNumber(r, 'partId'),
+    quantity: readString(r, 'quantity', '0'),
+    updatedAt: readString(r, 'updatedAt'),
+    partName: readString(r, 'partName', undefined),
+    partCatalogNumber: readString(r, 'partCatalogNumber', undefined),
+    partUnit: readString(r, 'partUnit', undefined),
+  };
+}
+
+/**
+ * Bezpieczne parsowanie odpowiedzi API z listą stanów magazynowych.
+ */
+export function narrowInventory(data: unknown): SparePartInventory[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => (isRecord(item) ? narrowInventoryRaw(item) : null))
+    .filter((x): x is SparePartInventory => x !== null);
+}
+
+function narrowStockReceiptRaw(r: Record<string, unknown>): StockReceipt | null {
+  if (!r.id || !r.partId) return null;
+  return {
+    id: readNumber(r, 'id'),
+    companyId: readNumber(r, 'companyId'),
+    partId: readNumber(r, 'partId'),
+    quantity: readString(r, 'quantity', '0'),
+    unitPrice: readNullableString(r, 'unitPrice'),
+    invoiceNumber: readNullableString(r, 'invoiceNumber'),
+    notes: readNullableString(r, 'notes'),
+    createdBy: readNullableNumber(r, 'createdBy'),
+    createdAt: readString(r, 'createdAt'),
+    partName: readString(r, 'partName', undefined),
+    partCatalogNumber: readString(r, 'partCatalogNumber', undefined),
+    creatorName: readString(r, 'creatorName', undefined),
+  };
+}
+
+/**
+ * Bezpieczne parsowanie odpowiedzi API z listą przyjęć.
+ */
+export function narrowStockReceipts(data: unknown): StockReceipt[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => (isRecord(item) ? narrowStockReceiptRaw(item) : null))
+    .filter((x): x is StockReceipt => x !== null);
+}
+
+function narrowStockIssueRaw(r: Record<string, unknown>): StockIssue | null {
+  if (!r.id || !r.partId) return null;
+  return {
+    id: readNumber(r, 'id'),
+    companyId: readNumber(r, 'companyId'),
+    partId: readNumber(r, 'partId'),
+    quantity: readString(r, 'quantity', '0'),
+    workOrderId: readNullableNumber(r, 'workOrderId'),
+    issuedTo: readNullableNumber(r, 'issuedTo'),
+    notes: readNullableString(r, 'notes'),
+    createdBy: readNullableNumber(r, 'createdBy'),
+    createdAt: readString(r, 'createdAt'),
+    partName: readString(r, 'partName', undefined),
+    partCatalogNumber: readString(r, 'partCatalogNumber', undefined),
+    creatorName: readString(r, 'creatorName', undefined),
+    workOrderLabel: readString(r, 'workOrderLabel', undefined),
+  };
+}
+
+/**
+ * Bezpieczne parsowanie odpowiedzi API z listą wydań.
+ */
+export function narrowStockIssues(data: unknown): StockIssue[] {
+  if (!Array.isArray(data)) return [];
+  return data
+    .map((item) => (isRecord(item) ? narrowStockIssueRaw(item) : null))
+    .filter((x): x is StockIssue => x !== null);
 }

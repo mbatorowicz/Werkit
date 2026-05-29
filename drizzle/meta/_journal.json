@@ -155,6 +155,13 @@
       "when": 1748472000000,
       "tag": "0021_order_types_org_feature_flags",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1748534400000,
+      "tag": "0022_dur_warehouse",
+      "breakpoints": true
     }
   ]
 }

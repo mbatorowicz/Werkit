@@ -33,6 +33,7 @@ export function buildAdminNavLinks(
     { kind: "route", href: adminRoutes.customers, icon: Package, label: adminDict.sidebar.customers },
     { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
     { kind: "route", href: adminRoutes.dur.spareParts, icon: Cog, label: durDict.sidebar.spareParts },
+    { kind: "route", href: adminRoutes.dur.warehouse, icon: Package, label: durDict.sidebar.warehouse },
     { kind: "section", label: adminDict.sidebar.system },
     { kind: "route", href: adminRoutes.settings, icon: Settings, label: adminDict.sidebar.companySettings },
     { kind: "route", href: adminRoutes.logs, icon: TerminalSquare, label: adminDict.sidebar.deviceLogs },

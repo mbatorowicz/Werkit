@@ -189,6 +189,30 @@ async function main() {
     ]),
     spare_part_to_categories: new Set(['part_id', 'category_id']),
     spare_part_machine_compatibility: new Set(['part_id', 'category_id', 'notes']),
+    // ── DUR — Faza 2: Gospodarka magazynowa ──
+    spare_part_inventory: new Set(['id', 'company_id', 'part_id', 'quantity', 'updated_at']),
+    stock_receipts: new Set([
+      'id',
+      'company_id',
+      'part_id',
+      'quantity',
+      'unit_price',
+      'invoice_number',
+      'notes',
+      'created_by',
+      'created_at',
+    ]),
+    stock_issues: new Set([
+      'id',
+      'company_id',
+      'part_id',
+      'quantity',
+      'work_order_id',
+      'issued_to',
+      'notes',
+      'created_by',
+      'created_at',
+    ]),
   };
 
   const { sql } = await import('@vercel/postgres');

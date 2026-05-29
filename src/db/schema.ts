@@ -437,6 +437,68 @@ export const workOrderSparePartsRelations = relations(workOrderSpareParts, ({ on
 }));
 
 // ──────────────────────────────────────────────
+// DUR — Faza 2: Gospodarka magazynowa
+// ──────────────────────────────────────────────
+
+/** Stan magazynowy części (1:1 z spare_parts). */
+export const sparePartInventory = pgTable('spare_part_inventory', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  partId: integer('part_id')
+    .notNull()
+    .references(() => spareParts.id, { onDelete: 'cascade' }),
+  quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull().default('0'),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+/** Przyjęcia magazynowe. */
+export const stockReceipts = pgTable('stock_receipts', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  partId: integer('part_id')
+    .notNull()
+    .references(() => spareParts.id, { onDelete: 'cascade' }),
+  quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull(),
+  unitPrice: numeric('unit_price', { precision: 10, scale: 2 }),
+  invoiceNumber: varchar('invoice_number', { length: 255 }),
+  notes: text('notes'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+/** Wydania magazynowe. */
+export const stockIssues = pgTable('stock_issues', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  partId: integer('part_id')
+    .notNull()
+    .references(() => spareParts.id, { onDelete: 'cascade' }),
+  quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull(),
+  workOrderId: integer('work_order_id').references(() => workOrders.id, { onDelete: 'set null' }),
+  issuedTo: integer('issued_to').references(() => users.id, { onDelete: 'set null' }),
+  notes: text('notes'),
+  createdBy: integer('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// Relacje DUR Faza 2
+export const sparePartInventoryRelations = relations(sparePartInventory, ({ one }) => ({
+  part: one(spareParts, { fields: [sparePartInventory.partId], references: [spareParts.id] }),
+}));
+
+export const stockReceiptsRelations = relations(stockReceipts, ({ one }) => ({
+  part: one(spareParts, { fields: [stockReceipts.partId], references: [spareParts.id] }),
+  creator: one(users, { fields: [stockReceipts.createdBy], references: [users.id] }),
+}));
+
+export const stockIssuesRelations = relations(stockIssues, ({ one }) => ({
+  part: one(spareParts, { fields: [stockIssues.partId], references: [spareParts.id] }),
+  workOrder: one(workOrders, { fields: [stockIssues.workOrderId], references: [workOrders.id] }),
+  issuer: one(users, { fields: [stockIssues.createdBy], references: [users.id] }),
+  recipient: one(users, { fields: [stockIssues.issuedTo], references: [users.id] }),
+}));
+
+// ──────────────────────────────────────────────
 // Organizacja — działy, zespoły, członkowie
 // ──────────────────────────────────────────────
 

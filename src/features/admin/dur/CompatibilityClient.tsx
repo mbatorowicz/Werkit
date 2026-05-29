@@ -46,7 +46,7 @@ export default function CompatibilityClient() {
     try {
       const [partsRes, catRes] = await Promise.all([
         fetch("/api/dur/spare-parts"),
-        fetch("/api/dur/spare-part-categories?leavesOnly=1"),
+        fetch("/api/resource-categories?leavesOnly=1"),
       ]);
 
       if (id !== fetchRef.current) return;
