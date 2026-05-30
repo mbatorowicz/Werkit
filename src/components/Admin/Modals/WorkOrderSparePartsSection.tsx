@@ -10,7 +10,6 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { isRecord } from "@/lib/narrowApiListRows";
 import { getDictionary } from "@/i18n";
-import type { AppDictionary } from "@/i18n/types";
 
 // ── Typy lokalne ──
 
@@ -137,8 +136,8 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
 
   useEffect(() => {
     if (isRepair && hasOrderId) {
-      fetchParts();
-      fetchCatalog();
+      void fetchParts();
+      void fetchCatalog();
     }
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog]);
 
@@ -189,7 +188,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
   // ── Usuwanie części ──
   const handleRemovePart = async (partId: number) => {
     if (!workOrderId) return;
-    const confirmed = await appAlert({ message: durDict.removeConfirm });
+    await appAlert({ message: durDict.removeConfirm });
     // useAppDialog confirm pattern
     try {
       const res = await fetchWithDeviceTelemetry(

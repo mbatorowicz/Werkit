@@ -9,6 +9,9 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     passWithNoTests: false,
+    // Wyłączamy izolację modułów, ponieważ testy używają vi.mock() z dynamicznym importem,
+    // co powoduje timeouty w trybie izolacji. Testy działają poprawnie bez izolacji.
+    isolate: false,
   },
   resolve: {
     alias: {

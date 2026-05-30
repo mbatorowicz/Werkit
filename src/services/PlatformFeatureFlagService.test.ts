@@ -4,8 +4,22 @@
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-const selectMock = vi.fn();
-const insertMock = vi.fn();
+/**
+ * Helper: tworzy thenable który jest też iterable (tablica).
+ * Drizzle Query Builder zwraca obiekt, który działa zarówno z `await` jak i destrukturyzacją.
+ */
+function resultArray<T>(items: T[]): T[] & Promise<T[]> {
+  const promise = Promise.resolve(items);
+  const arr = items.slice() as T[] & Promise<T[]>;
+  arr.then = promise.then.bind(promise);
+  arr.catch = promise.catch.bind(promise);
+  return arr;
+}
+
+const { selectMock, insertMock } = vi.hoisted(() => ({
+  selectMock: vi.fn(),
+  insertMock: vi.fn(),
+}));
 
 vi.mock("@/db", () => ({
   db: {
@@ -32,17 +46,17 @@ vi.mock("drizzle-orm", () => ({
 
 describe("PlatformFeatureFlagService", () => {
   beforeEach(() => {
+    vi.resetModules();
     selectMock.mockReset();
     insertMock.mockReset();
   });
 
   describe("getFlags", () => {
     it("zwraca domyślne flagi gdy brak wiersza company_settings", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({ limit: () => Promise.resolve([]) }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(resultArray([]));
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
       const flags = await PlatformFeatureFlagService.getFlags(1);
@@ -56,24 +70,22 @@ describe("PlatformFeatureFlagService", () => {
     });
 
     it("zwraca flagi z DB gdy wiersz istnieje", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([
-                {
-                  companyId: 1,
-                  gpsTrackingEnabled: true,
-                  mapViewEnabled: false,
-                  geofencingEnabled: true,
-                  routePlanningEnabled: false,
-                  navigationEnabled: true,
-                  durEnabled: true,
-                },
-              ]),
-          }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(
+        resultArray([
+          {
+            companyId: 1,
+            gpsTrackingEnabled: true,
+            mapViewEnabled: false,
+            geofencingEnabled: true,
+            routePlanningEnabled: false,
+            navigationEnabled: true,
+            durEnabled: true,
+          },
+        ])
+      );
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
       const flags = await PlatformFeatureFlagService.getFlags(1);
@@ -87,24 +99,22 @@ describe("PlatformFeatureFlagService", () => {
     });
 
     it("obsługuje null w DB — fallback do domyślnych", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([
-                {
-                  companyId: 1,
-                  gpsTrackingEnabled: null,
-                  mapViewEnabled: null,
-                  geofencingEnabled: null,
-                  routePlanningEnabled: null,
-                  navigationEnabled: null,
-                  durEnabled: null,
-                },
-              ]),
-          }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(
+        resultArray([
+          {
+            companyId: 1,
+            gpsTrackingEnabled: null,
+            mapViewEnabled: null,
+            geofencingEnabled: null,
+            routePlanningEnabled: null,
+            navigationEnabled: null,
+            durEnabled: null,
+          },
+        ])
+      );
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
       const flags = await PlatformFeatureFlagService.getFlags(1);
@@ -125,24 +135,22 @@ describe("PlatformFeatureFlagService", () => {
       });
 
       // getFlags po update — zwraca nowy stan
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([
-                {
-                  companyId: 1,
-                  gpsTrackingEnabled: true,
-                  mapViewEnabled: true,
-                  geofencingEnabled: true,
-                  routePlanningEnabled: true,
-                  navigationEnabled: true,
-                  durEnabled: true,
-                },
-              ]),
-          }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(
+        resultArray([
+          {
+            companyId: 1,
+            gpsTrackingEnabled: true,
+            mapViewEnabled: true,
+            geofencingEnabled: true,
+            routePlanningEnabled: true,
+            navigationEnabled: true,
+            durEnabled: true,
+          },
+        ])
+      );
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
       const flags = await PlatformFeatureFlagService.updateFlags(1, { durEnabled: true });
@@ -156,24 +164,22 @@ describe("PlatformFeatureFlagService", () => {
 
     it("pomija nie-boolean wartości w Partial", async () => {
       // getFlags — zwraca istniejący wiersz
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([
-                {
-                  companyId: 1,
-                  gpsTrackingEnabled: true,
-                  mapViewEnabled: true,
-                  geofencingEnabled: true,
-                  routePlanningEnabled: true,
-                  navigationEnabled: true,
-                  durEnabled: false,
-                },
-              ]),
-          }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(
+        resultArray([
+          {
+            companyId: 1,
+            gpsTrackingEnabled: true,
+            mapViewEnabled: true,
+            geofencingEnabled: true,
+            routePlanningEnabled: true,
+            navigationEnabled: true,
+            durEnabled: false,
+          },
+        ])
+      );
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       // insert nie powinien być wywołany, bo Partial jest puste
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
@@ -192,24 +198,22 @@ describe("PlatformFeatureFlagService", () => {
         }),
       });
 
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([
-                {
-                  companyId: 1,
-                  gpsTrackingEnabled: true,
-                  mapViewEnabled: false,
-                  geofencingEnabled: true,
-                  routePlanningEnabled: false,
-                  navigationEnabled: true,
-                  durEnabled: false,
-                },
-              ]),
-          }),
-        }),
-      });
+      const limit = vi.fn().mockReturnValue(
+        resultArray([
+          {
+            companyId: 1,
+            gpsTrackingEnabled: true,
+            mapViewEnabled: false,
+            geofencingEnabled: true,
+            routePlanningEnabled: false,
+            navigationEnabled: true,
+            durEnabled: false,
+          },
+        ])
+      );
+      const where = vi.fn().mockReturnValue({ limit });
+      const from = vi.fn().mockReturnValue({ where });
+      selectMock.mockReturnValue({ from });
 
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
       await PlatformFeatureFlagService.updateFlags(1, {

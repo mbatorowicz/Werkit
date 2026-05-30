@@ -36,6 +36,10 @@ import {
 } from "./categoryValidation";
 
 describe("validateHierarchyPatch", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
   const allRows = [
     { id: 1, name: "Grupa A", parentId: null, isGroup: true, sortOrder: 0 },
     { id: 2, name: "Grupa B", parentId: null, isGroup: true, sortOrder: 1 },

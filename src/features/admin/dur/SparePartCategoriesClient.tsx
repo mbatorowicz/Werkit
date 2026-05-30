@@ -17,7 +17,6 @@ export default function SparePartCategoriesClient() {
   const dictionary = getDictionary();
   const dict = dictionary.dur.categories;
   const shared = dictionary.dur.categories.shared;
-  const nav = dictionary.admin.sidebar;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
 
@@ -79,7 +78,8 @@ export default function SparePartCategoriesClient() {
     setEditingCat(null);
   }, []);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!formName.trim()) {
       await appAlert({ message: durApiErrors.missing_category_name });
       return;
@@ -241,13 +241,14 @@ export default function SparePartCategoriesClient() {
         scrollableBody
         footer={
           <FormModalFooter
+            formId="spare-part-category-form"
             onCancel={closeModal}
             submitLabel={shared.save}
             isSubmitting={isSubmitting}
           />
         }
       >
-        <div className="space-y-4 p-6">
+        <form id="spare-part-category-form" onSubmit={(e) => void handleSave(e)} className="space-y-4 p-6">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -325,7 +326,7 @@ export default function SparePartCategoriesClient() {
               <span className="text-xs text-zinc-500">{shared.colorHint}</span>
             </div>
           </div>
-        </div>
+        </form>
       </AdminModalShell>
     </>
   );

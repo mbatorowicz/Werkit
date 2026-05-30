@@ -33,7 +33,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
   }, [companyId]);
 
   useEffect(() => {
-    loadFlags();
+    void loadFlags();
   }, [loadFlags]);
 
   async function toggleFlag(key: keyof FeatureFlags) {

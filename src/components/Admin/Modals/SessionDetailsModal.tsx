@@ -2,24 +2,17 @@
 
 import type { TimelineItem } from "@/types/worker";
 import { useMemo, useState, useEffect } from "react";
-import {
-  Map as MapIcon,
-  Loader2,
-  CheckCircle2,
-  Trash2,
-} from "lucide-react";
 import { getDictionary, type Locale } from "@/i18n";
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
-import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPasswordConfirmModal } from "@/components/Admin/AdminPasswordConfirmModal";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import type { UnifiedGanttItem } from "@/types/admin";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import SessionMapSection, { SessionDetailsLocaleContext } from "./SessionMapSection";
-import SessionTimelinePanel from "./SessionTimelinePanel";
+import { SessionDetailsLocaleContext } from "./SessionMapSection";
 import SessionPhotoLightbox from "./SessionPhotoLightbox";
+import { SessionDetailsContent } from "./SessionDetailsContent";
+import { SessionDetailsFooter } from "./SessionDetailsFooter";
 
 export default function SessionDetailsModal({
   item,
@@ -140,48 +133,37 @@ export default function SessionDetailsModal({
     ((item.status === "IN_PROGRESS" && onForceCompleteSession) ||
       (item.status === "COMPLETED" && onDeleteArchivedSession));
 
-  const footerContent = showSessionFooter ? (
-    <>
-      {item.status === "IN_PROGRESS" && onForceCompleteSession ? (
-        <button
-          type="button"
-          disabled={actionBusy !== null}
-          onClick={async () => {
-            if (!dict.forceCompleteConfirm || !(await appConfirm({ message: dict.forceCompleteConfirm, variant: "danger" }))) return;
-            setActionBusy("complete");
-            try {
-              await onForceCompleteSession(item.id);
-            } catch {
-              /* alert po stronie rodzica */
-            } finally {
-              setActionBusy(null);
+  const footerContent = (
+    <SessionDetailsFooter
+      showSessionFooter={Boolean(showSessionFooter)}
+      status={item.status}
+      actionBusy={actionBusy}
+      onForceComplete={
+        item.status === "IN_PROGRESS" && onForceCompleteSession
+          ? async () => {
+              if (!dict.forceCompleteConfirm || !(await appConfirm({ message: dict.forceCompleteConfirm, variant: "danger" }))) return;
+              setActionBusy("complete");
+              try {
+                await onForceCompleteSession(item.id);
+              } catch {
+                /* alert po stronie rodzica */
+              } finally {
+                setActionBusy(null);
+              }
             }
-          }}
-          className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50"
-        >
-          {actionBusy === "complete" ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          {dict.forceCompleteLabel}
-        </button>
-      ) : null}
-      {item.status === "COMPLETED" && onDeleteArchivedSession ? (
-        <button
-          type="button"
-          disabled={actionBusy !== null}
-          onClick={() => {
-            setDeletePwdError(null);
-            setDeletePwdOpen(true);
-          }}
-          className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-500/15 disabled:opacity-50 dark:border-red-500/25 dark:text-red-400"
-        >
-          {actionBusy === "delete" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-          {dict.deleteArchivedLabel}
-        </button>
-      ) : null}
-    </>
-  ) : undefined;
-
-  const categoryLabel = ((item.categoryName as string) || "").trim() || dict.sessionDetailsNoCategory;
-  const machineLabel = ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
+          : undefined
+      }
+      onDeleteArchived={
+        item.status === "COMPLETED" && onDeleteArchivedSession
+          ? () => {
+              setDeletePwdError(null);
+              setDeletePwdOpen(true);
+            }
+          : undefined
+      }
+      dict={dict}
+    />
+  );
 
   const handlePhotoClick = (url: string) => {
     const idx = allPhotos.indexOf(url);
@@ -202,82 +184,20 @@ export default function SessionDetailsModal({
         footer={footerContent}
         footerClassName="flex flex-wrap justify-end gap-2"
       >
-        <div className="p-6">
-          <OrderLabelCard
-            tone={item.status === "IN_PROGRESS" ? "active" : item.status === "COMPLETED" ? "done" : "planned"}
-            orderNo={`#${item.workOrderId || item.id}`}
-            title={(item.workerName as string) || null}
-            orderedBy={(item.creatorName ?? item.workerName) ?? null}
-            orderedByLabel={dict.orderedBy}
-            mode={categoryLabel}
-            machine={machineLabel}
-            material={(item.materialName as string) || null}
-            quantity={item.quantityTons ? `${item.quantityTons as string}${dict.tons}` : null}
-            customer={
-              `${(item.customerLastName as string) || ""} ${(item.customerFirstName as string) || ""}`.trim() || null
-            }
-            description={(item.taskDescription as string) || null}
-            dateLabel={
-              item.startTime
-                ? formatUiDateOnly(item.startTime as string)
-                : item.dueDate
-                  ? formatUiDateOnly(item.dueDate as string)
-                  : null
-            }
-            timeLabel={
-              item.startTime
-                ? `${formatUiTimeHm(item.startTime as string)}${
-                    item.endTime ? ` – ${formatUiTimeHm(item.endTime as string)}` : ""
-                  }`
-                : item.dueDate
-                  ? formatUiTimeHm(item.dueDate as string)
-                  : null
-            }
-            className="mb-6"
-            attachmentPhotos={Boolean(item.hasPhotos) || photos.length > 0}
-            attachmentNotes={Boolean(item.hasNotes) || notes.length > 0}
-          />
-          {item._type === "ORDER" ? (
-            <div className="py-12 text-center">
-              <MapIcon className="mx-auto mb-4 h-12 w-12 text-zinc-300 dark:text-zinc-700" />
-              <h3 className="font-medium text-zinc-900 dark:text-zinc-300">{dict.notStartedTitle}</h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">{dict.notStartedDesc}</p>
-              {onEdit ? (
-                <button
-                  type="button"
-                  onClick={() => onEdit(item)}
-                  className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-6 py-2.5 font-semibold text-amber-700 transition hover:bg-amber-100 active:scale-95 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500 dark:hover:bg-amber-500/20"
-                >
-                  {dict.sessionDetailsEditOrder}
-                </button>
-              ) : null}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {isLoading ? (
-                <div className="py-12 text-center text-zinc-500">{dict.loadingData}</div>
-              ) : (
-                <>
-                  <SessionMapSection
-                    hasMapData={hasMapData}
-                    isStationary={isStationary}
-                    currentLocation={currentLocation}
-                    pathTraveled={pathTraveled}
-                    events={events}
-                    dict={dict}
-                  />
-
-                  <SessionTimelinePanel
-                    items={timelineItems}
-                    allPhotos={allPhotos}
-                    onPhotoClick={handlePhotoClick}
-                    dict={dict}
-                  />
-                </>
-              )}
-            </div>
-          )}
-        </div>
+        <SessionDetailsContent
+          item={item}
+          isLoading={isLoading}
+          hasMapData={hasMapData}
+          isStationary={isStationary}
+          currentLocation={currentLocation}
+          pathTraveled={pathTraveled}
+          events={events}
+          timelineItems={timelineItems}
+          allPhotos={allPhotos}
+          onPhotoClick={handlePhotoClick}
+          onEdit={onEdit}
+          dict={dict}
+        />
       </AdminModalShell>
 
       <AdminPasswordConfirmModal

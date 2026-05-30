@@ -96,7 +96,8 @@ export default function CompatibilityClient() {
     setShowModal(false);
   }, []);
 
-  const handleAdd = useCallback(async () => {
+  const handleAdd = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
     if (formPartId == null || formCategoryId == null) {
       await appAlert({ message: "Select both a part and a machine type." });
       return;
@@ -149,8 +150,7 @@ export default function CompatibilityClient() {
     }
   }, [appConfirm, appAlert, dict, apiErrors, fetchData]);
 
-  // Available parts and categories for the form (exclude already linked)
-  const partsWithoutPart = (partId: number) => parts.filter((p) => p.id !== partId);
+  // Available parts and categories for the form
   const availableParts = parts;
   const availableCategories = machineCategories;
 
@@ -243,13 +243,14 @@ export default function CompatibilityClient() {
         scrollableBody
         footer={
           <FormModalFooter
+            formId="compatibility-form"
             onCancel={closeModal}
             submitLabel={dict.add}
             isSubmitting={isSubmitting}
           />
         }
       >
-        <div className="space-y-4 p-6">
+        <form id="compatibility-form" onSubmit={(e) => void handleAdd(e)} className="space-y-4 p-6">
           {/* Part */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -301,7 +302,7 @@ export default function CompatibilityClient() {
               className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
           </div>
-        </div>
+        </form>
       </AdminModalShell>
     </>
   );

@@ -6,10 +6,6 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { AdminOrderService } from "@/services/AdminOrderService";
-import { eq, and } from "drizzle-orm";
-import { db } from "@/db";
-import { workOrders } from "@/db/schema";
 
 export const dynamic = 'force-dynamic';
 
@@ -27,12 +23,8 @@ export const GET = withApiErrorHandling(async (_request: Request, { params }: { 
   if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
 
   // Weryfikacja: zlecenie należy do firmy
-  const [order] = await db
-    .select({ id: workOrders.id })
-    .from(workOrders)
-    .where(and(eq(workOrders.id, workOrderId), eq(workOrders.companyId, scoped.data.companyId)))
-    .limit(1);
-  if (!order) return jsonError("not_found", 404);
+  const belongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(workOrderId, scoped.data.companyId);
+  if (!belongs) return jsonError("not_found", 404);
 
   const parts = await WorkOrderSparePartService.getPartsForOrder(workOrderId);
   return jsonOk(parts);
@@ -52,12 +44,8 @@ export const POST = withApiErrorHandling(async (request: Request, { params }: { 
   if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
 
   // Weryfikacja: zlecenie należy do firmy
-  const [order] = await db
-    .select({ id: workOrders.id })
-    .from(workOrders)
-    .where(and(eq(workOrders.id, workOrderId), eq(workOrders.companyId, scoped.data.companyId)))
-    .limit(1);
-  if (!order) return jsonError("not_found", 404);
+  const belongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(workOrderId, scoped.data.companyId);
+  if (!belongs) return jsonError("not_found", 404);
 
   const body = await parseJsonBody(request);
   const partId = parseInt(String(body.partId), 10);

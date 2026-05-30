@@ -3,10 +3,27 @@
 // ============================================================
 
 import { db } from '@/db';
-import { workOrderSpareParts, spareParts } from '@/db/schema';
+import { workOrderSpareParts, spareParts, workOrders } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 export class WorkOrderSparePartService {
+  /**
+   * Weryfikuje, czy zlecenie o podanym ID należy do firmy.
+   * Używane przez handlery API do walidacji dostępu do zlecenia.
+   */
+  static async verifyOrderBelongsToCompany(
+    workOrderId: number,
+    companyId: number,
+  ): Promise<boolean> {
+    const [row] = await db
+      .select({ id: workOrders.id })
+      .from(workOrders)
+      .where(and(eq(workOrders.id, workOrderId), eq(workOrders.companyId, companyId)))
+      .limit(1);
+
+    return !!row;
+  }
+
   /**
    * Pobiera wszystkie części przypisane do danego zlecenia.
    */

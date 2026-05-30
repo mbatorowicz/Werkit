@@ -6,9 +6,6 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { eq, and } from "drizzle-orm";
-import { db } from "@/db";
-import { workOrders } from "@/db/schema";
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +25,8 @@ export const PATCH = withApiErrorHandling(
     if (Number.isNaN(workOrderId) || Number.isNaN(sparePartId)) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
-    const [order] = await db
-      .select({ id: workOrders.id })
-      .from(workOrders)
-      .where(and(eq(workOrders.id, workOrderId), eq(workOrders.companyId, scoped.data.companyId)))
-      .limit(1);
-    if (!order) return jsonError("not_found", 404);
+    const orderBelongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(workOrderId, scoped.data.companyId);
+    if (!orderBelongs) return jsonError("not_found", 404);
 
     // Weryfikacja: część należy do zlecenia
     const belongs = await WorkOrderSparePartService.assertPartBelongsToOrder(sparePartId, workOrderId);
@@ -76,12 +69,8 @@ export const DELETE = withApiErrorHandling(
     if (Number.isNaN(workOrderId) || Number.isNaN(sparePartId)) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
-    const [order] = await db
-      .select({ id: workOrders.id })
-      .from(workOrders)
-      .where(and(eq(workOrders.id, workOrderId), eq(workOrders.companyId, scoped.data.companyId)))
-      .limit(1);
-    if (!order) return jsonError("not_found", 404);
+    const orderBelongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(workOrderId, scoped.data.companyId);
+    if (!orderBelongs) return jsonError("not_found", 404);
 
     // Weryfikacja: część należy do zlecenia
     const belongs = await WorkOrderSparePartService.assertPartBelongsToOrder(sparePartId, workOrderId);

@@ -461,11 +461,7 @@ describe("OrganizationService", () => {
         where: vi.fn(() => resultArray(mockRows)),
       };
       // Potrzebujemy dwóch innerJoin — mock zwraca chain za każdym razem
-      let joinCount = 0;
-      chain.innerJoin = vi.fn(() => {
-        joinCount++;
-        return chain;
-      });
+      chain.innerJoin = vi.fn(() => chain);
       selectMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");

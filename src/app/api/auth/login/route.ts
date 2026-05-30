@@ -92,7 +92,7 @@ export const POST = withApiErrorHandling(async (req: Request) => {
   mapUnknownError: (err) => {
     const e = err instanceof Error ? err : new Error(String(err));
     // Drizzle może opakować błąd połączenia w cause
-    const cause = (e as any).cause;
+    const cause = e instanceof Error && 'cause' in e ? (e as Error & { cause?: unknown }).cause : undefined;
     const checkErr = cause instanceof Error ? cause : e;
     return isLikelyDatabaseOrInfraError(checkErr) ? jsonError("service_unavailable", 503) : null;
   },

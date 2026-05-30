@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Map, Plus, RefreshCw, Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import GanttChart from "@/components/GanttChart/GanttChart";
@@ -16,9 +15,13 @@ import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchT
 import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
 import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { adminApi } from "@/lib/appRoutes";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
-import { isRecord } from "@/lib/narrowApiListRows";
+import { OrdersHeader } from "./OrdersHeader";
+import {
+  handleDeleteWorkOrder,
+  handleForceCompleteSession,
+  handleDeleteArchivedSession,
+} from "./OrdersMutations";
 
 export default function OrdersClient() {
   const { canMutate } = useAdminAbility();
@@ -87,62 +90,16 @@ export default function OrdersClient() {
     setPage(1);
   };
 
-  const readAdminError = async (res: Response): Promise<string | undefined> => {
-    const body = await parseJsonUnknown(res);
-    return readApiErrorString(body);
+  const onDeleteWorkOrder = async (orderId: number) => {
+    await handleDeleteWorkOrder(orderId, appAlert, apiErrors, dict, fetchData);
   };
 
-  const handleDeleteWorkOrder = async (orderId: number) => {
-    const res = await fetchWithDeviceTelemetry(
-      `Admin orders: delete work-order ${orderId}`,
-      `/api/admin/work-orders/${orderId}`,
-      { method: "DELETE" },
-      { category: "admin" },
-    );
-    if (!res.ok) {
-      const code = await readAdminError(res);
-      await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.error) });
-      throw new Error(code ?? "delete_failed");
-    }
-    await appAlert({ message: dict.mutationOk });
-    fetchData(true);
+  const onForceCompleteSession = async (sessionId: number) => {
+    await handleForceCompleteSession(sessionId, appAlert, apiErrors, dict, closeSessionDetails, fetchData);
   };
 
-  const handleForceCompleteSession = async (sessionId: number) => {
-    const res = await fetchWithDeviceTelemetry(
-      `Admin sessions: force-complete ${sessionId}`,
-      `/api/admin/work-sessions/${sessionId}/force-complete`,
-      { method: "POST" },
-      { category: "admin" },
-    );
-    if (!res.ok) {
-      const code = await readAdminError(res);
-      await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.error) });
-      throw new Error(code ?? "complete_failed");
-    }
-    await appAlert({ message: dict.mutationOk });
-    closeSessionDetails();
-    fetchData(true);
-  };
-
-  const handleDeleteArchivedSession = async (sessionId: number, adminPassword: string) => {
-    const res = await fetchWithDeviceTelemetry(
-      `Admin sessions: delete archived ${sessionId}`,
-      `/api/admin/work-sessions/${sessionId}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: adminPassword }),
-      },
-      { category: "admin" },
-    );
-    if (!res.ok) {
-      const code = await readAdminError(res);
-      throw new Error(code ?? "delete_failed");
-    }
-    await appAlert({ message: dict.mutationOk });
-    closeSessionDetails();
-    fetchData(true);
+  const onDeleteArchivedSession = async (sessionId: number, adminPassword: string) => {
+    await handleDeleteArchivedSession(sessionId, adminPassword, appAlert, apiErrors, dict, closeSessionDetails, fetchData);
   };
 
   const tableColSpan = canMutate ? 3 : 2;
@@ -161,53 +118,17 @@ export default function OrdersClient() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-            <Map className="h-6 w-6 text-emerald-500" /> {navTitle}
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={async () => {
-              setIsSettingsOpen(true);
-              try {
-                const res = await fetchWithDeviceTelemetry("Admin dispatch: settings GET", adminApi.settings, undefined, {
-                  category: "admin",
-                });
-                if (res.ok) {
-                  const raw = await parseJsonUnknown(res);
-                  if (isRecord(raw)) setSettingsData(raw);
-                }
-              } catch {
-                /* ignore */
-              }
-            }}
-            className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-            title={dict.tooltipSettings}
-          >
-            <Settings className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => fetchData(true)}
-            className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-            title={dict.tooltipRefresh}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </button>
-          {canMutate ? (
-            <button
-              type="button"
-              onClick={openNewOrderModal}
-              className="flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
-            >
-              <Plus className="h-4 w-4" /> {dict.newOrder}
-            </button>
-          ) : null}
-        </div>
-      </div>
+      <OrdersHeader
+        navTitle={navTitle}
+        dict={dict}
+        canMutate={canMutate}
+        onOpenSettings={(data) => {
+          setIsSettingsOpen(true);
+          setSettingsData(data);
+        }}
+        onRefresh={() => fetchData(true)}
+        onNewOrder={openNewOrderModal}
+      />
 
       <OrdersSettingsQuickModal
         isOpen={isSettingsOpen}
@@ -248,9 +169,9 @@ export default function OrdersClient() {
           viewMode={viewMode}
           page={safePage}
           onRowClick={onDispatchItemClick}
-          onDeleteWorkOrder={handleDeleteWorkOrder}
-          onForceCompleteSession={handleForceCompleteSession}
-          onDeleteArchivedSession={handleDeleteArchivedSession}
+          onDeleteWorkOrder={onDeleteWorkOrder}
+          onForceCompleteSession={onForceCompleteSession}
+          onDeleteArchivedSession={onDeleteArchivedSession}
         />
       </div>
 
@@ -261,7 +182,7 @@ export default function OrdersClient() {
           onDeletePending={
             canMutate && editingOrderId
               ? async () => {
-                  await handleDeleteWorkOrder(editingOrderId);
+                  await onDeleteWorkOrder(editingOrderId);
                   closeOrderModal();
                 }
               : undefined
@@ -312,8 +233,8 @@ export default function OrdersClient() {
           onClose={closeSessionDetails}
           onEdit={canMutate ? handleEditOrder : undefined}
           canMutate={canMutate}
-          onForceCompleteSession={canMutate ? handleForceCompleteSession : undefined}
-          onDeleteArchivedSession={canMutate ? handleDeleteArchivedSession : undefined}
+          onForceCompleteSession={canMutate ? onForceCompleteSession : undefined}
+          onDeleteArchivedSession={canMutate ? onDeleteArchivedSession : undefined}
         />
       ) : null}
     </>

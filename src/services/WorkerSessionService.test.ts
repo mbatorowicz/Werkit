@@ -39,11 +39,13 @@ function resultArray<T>(items: T[]): T[] & Promise<T[]> {
 }
 
 // --- Mocks ---
-const selectMock = vi.fn();
-const insertMock = vi.fn();
-const updateMock = vi.fn();
-const deleteMock = vi.fn();
-const transactionMock = vi.fn();
+const { selectMock, insertMock, updateMock, deleteMock, transactionMock } = vi.hoisted(() => ({
+  selectMock: vi.fn(),
+  insertMock: vi.fn(),
+  updateMock: vi.fn(),
+  deleteMock: vi.fn(),
+  transactionMock: vi.fn(),
+}));
 
 vi.mock("@/db", () => ({
   db: {
@@ -106,6 +108,7 @@ vi.mock("@/services/sql/attachmentExistsSql", () => ({
 
 describe("WorkerSessionService", () => {
   beforeEach(() => {
+    vi.resetModules();
     selectMock.mockReset();
     insertMock.mockReset();
     updateMock.mockReset();
