@@ -105,7 +105,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | D-07 | ESLint: reguły jakości kodu + naprawa `eqeqeq` (140 errors → 0) | done |
 | D-08 | Prettier: spójne formatowanie kodu | done |
 | D-09 | Refaktoryzacja `proxy.ts` (complexity 59 → ~10) | done |
-| D-10 | Refaktoryzacja `SettingsForm.tsx` (143 lines, complexity 33) | open |
+| D-10 | Refaktoryzacja `SettingsForm.tsx` (143 lines, complexity 33) | done |
 | D-11 | Refaktoryzacja `WorkerClient.tsx` (177 lines) | open |
 
 ### D-02 — co zrobiono
@@ -167,11 +167,18 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 - Complexity głównej funkcji `proxy()` spadło z **59 do ~10**
 - Poprawiono czytelność i testowalność logiki autoryzacji
 
-### D-10 — do zrobienia
+### D-10 — co zrobiono
 
-- [`SettingsForm.tsx`](../src/app/admin/settings/SettingsForm.tsx): 143 lines, complexity 33
-- Wymaga zrozumienia logiki biznesowej ustawień firmy i zamówień
-- Propozycja: wydzielić walidację i zapis do osobnych funkcji
+- [`SettingsForm.tsx`](../src/app/admin/settings/SettingsForm.tsx): skonsolidowano zarządzanie stanem
+- Zastąpiono 13 osobnych `useState` jednym obiektem `settings` (SettingsSnapshot)
+- Dodano funkcję `updateField` dla type-safe aktualizacji pól
+- Dodano walidację (`validateSettings`, `validateEmail`) przed zapisem
+- Naprawiono pusty catch block - teraz loguje błąd i pokazuje komunikat użytkownikowi
+- Zaktualizowano `SettingsCompanySection` i `SettingsOrdersSection` aby przyjmowały obiekt `settings` + `updateField`
+- Zredukowano prop drilling: 18 props → 4 props dla CompanySection, 11 props → 3 props dla OrdersSection
+- Wszystkie testy przeszły: 202 passed, 0 failed
+- TypeScript: 0 errors
+- ESLint: 0 errors, 136 warnings (ostrzeżenia complexity/lines pozostają)
 
 ### D-11 — do zrobienia
 
