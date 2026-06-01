@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -28,6 +28,24 @@ export type SettingsSnapshot = {
   upcomingOrderReminderMinutes?: number;
 };
 
+type SaveStatus = "IDLE" | "SAVING" | "SAVED";
+
+function validateEmail(email: string): boolean {
+  if (!email) return true; // email is optional
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+function validateSettings(data: SettingsSnapshot): string | null {
+  if (!data.companyName?.trim()) {
+    return "companyNameRequired";
+  }
+  if (data.email && !validateEmail(data.email)) {
+    return "invalidEmail";
+  }
+  return null;
+}
+
 export default function SettingsForm({
   initialData,
   mode = "all",
@@ -40,35 +58,42 @@ export default function SettingsForm({
   const { alert: appAlert } = useAppDialog();
   const dict = getDictionary().admin.settings;
   const initialBase = resolveCompanyBaseCoords(initialData);
-  const [name, setName] = useState(initialData?.companyName || "Werkit ERP");
-  const [address, setAddress] = useState(initialData?.companyAddress || "");
-  const [zipCode, setZipCode] = useState(initialData?.zipCode || "");
-  const [city, setCity] = useState(initialData?.city || "");
-  const [phone, setPhone] = useState(initialData?.phone || "");
-  const [email, setEmail] = useState(initialData?.email || "");
-  const [baseLat, setBaseLat] = useState(initialBase.lat);
-  const [baseLng, setBaseLng] = useState(initialBase.lng);
+
+  const [settings, setSettings] = useState<SettingsSnapshot>({
+    companyName: initialData?.companyName || "Werkit ERP",
+    companyAddress: initialData?.companyAddress || "",
+    zipCode: initialData?.zipCode || "",
+    city: initialData?.city || "",
+    phone: initialData?.phone || "",
+    email: initialData?.email || "",
+    baseLatitude: initialBase.lat.toString(),
+    baseLongitude: initialBase.lng.toString(),
+    cancelWindowMinutes: initialData?.cancelWindowMinutes ?? 5,
+    requirePhotoToFinish: initialData?.requirePhotoToFinish ?? false,
+    geofenceRadiusMeters: initialData?.geofenceRadiusMeters ?? 500,
+    timeOverrunReminder: initialData?.timeOverrunReminder ?? true,
+    upcomingOrderReminderMinutes: initialData?.upcomingOrderReminderMinutes ?? 120,
+  });
+
   const [geocodeBusy, setGeocodeBusy] = useState(false);
-  const [cancelWindowMinutes, setCancelWindowMinutes] = useState<number>(
-    initialData?.cancelWindowMinutes ?? 5
-  );
-  const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(
-    initialData?.requirePhotoToFinish ?? false
-  );
-  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(
-    initialData?.geofenceRadiusMeters ?? 500
-  );
-  const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(
-    initialData?.timeOverrunReminder ?? true
-  );
-  const [upcomingOrderReminderMinutes, setUpcomingOrderReminderMinutes] = useState<number>(
-    initialData?.upcomingOrderReminderMinutes ?? 120
-  );
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("IDLE");
 
-  const [saveStatus, setSaveStatus] = useState<"IDLE" | "SAVING" | "SAVED">("IDLE");
+  const updateField = useCallback(<K extends keyof SettingsSnapshot>(
+    field: K,
+    value: SettingsSnapshot[K]
+  ) => {
+    setSettings((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!canMutate) return;
+
+    const validationError = validateSettings(settings);
+    if (validationError) {
+      await appAlert({ message: dict[validationError as keyof typeof dict] || dict.saveError });
+      return;
+    }
+
     setSaveStatus("SAVING");
     try {
       const res = await fetchWithDeviceTelemetry(
@@ -78,19 +103,19 @@ export default function SettingsForm({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            companyName: name,
-            companyAddress: address,
-            zipCode,
-            city,
-            phone,
-            email,
-            baseLatitude: baseLat.toString(),
-            baseLongitude: baseLng.toString(),
-            cancelWindowMinutes,
-            requirePhotoToFinish,
-            geofenceRadiusMeters,
-            timeOverrunReminder,
-            upcomingOrderReminderMinutes,
+            companyName: settings.companyName,
+            companyAddress: settings.companyAddress,
+            zipCode: settings.zipCode,
+            city: settings.city,
+            phone: settings.phone,
+            email: settings.email,
+            baseLatitude: settings.baseLatitude,
+            baseLongitude: settings.baseLongitude,
+            cancelWindowMinutes: settings.cancelWindowMinutes,
+            requirePhotoToFinish: settings.requirePhotoToFinish,
+            geofenceRadiusMeters: settings.geofenceRadiusMeters,
+            timeOverrunReminder: settings.timeOverrunReminder,
+            upcomingOrderReminderMinutes: settings.upcomingOrderReminderMinutes,
           }),
         },
         { category: "admin" }
@@ -103,10 +128,12 @@ export default function SettingsForm({
         setSaveStatus("IDLE");
         await appAlert({ message: dict.saveError });
       }
-    } catch {
+    } catch (error) {
+      console.error("Settings save failed:", error);
       setSaveStatus("IDLE");
+      await appAlert({ message: dict.saveError });
     }
-  };
+  }, [canMutate, settings, appAlert, dict, router]);
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
@@ -121,22 +148,8 @@ export default function SettingsForm({
       >
         {(mode === "all" || mode === "company") && (
           <SettingsCompanySection
-            name={name}
-            setName={setName}
-            address={address}
-            setAddress={setAddress}
-            zipCode={zipCode}
-            setZipCode={setZipCode}
-            city={city}
-            setCity={setCity}
-            phone={phone}
-            setPhone={setPhone}
-            email={email}
-            setEmail={setEmail}
-            baseLat={baseLat}
-            baseLng={baseLng}
-            setBaseLat={setBaseLat}
-            setBaseLng={setBaseLng}
+            settings={settings}
+            updateField={updateField}
             geocodeBusy={geocodeBusy}
             setGeocodeBusy={setGeocodeBusy}
           />
@@ -144,16 +157,8 @@ export default function SettingsForm({
 
         {(mode === "all" || mode === "orders") && (
           <SettingsOrdersSection
-            cancelWindowMinutes={cancelWindowMinutes}
-            setCancelWindowMinutes={setCancelWindowMinutes}
-            geofenceRadiusMeters={geofenceRadiusMeters}
-            setGeofenceRadiusMeters={setGeofenceRadiusMeters}
-            upcomingOrderReminderMinutes={upcomingOrderReminderMinutes}
-            setUpcomingOrderReminderMinutes={setUpcomingOrderReminderMinutes}
-            requirePhotoToFinish={requirePhotoToFinish}
-            setRequirePhotoToFinish={setRequirePhotoToFinish}
-            timeOverrunReminder={timeOverrunReminder}
-            setTimeOverrunReminder={setTimeOverrunReminder}
+            settings={settings}
+            updateField={updateField}
             mode={mode}
           />
         )}

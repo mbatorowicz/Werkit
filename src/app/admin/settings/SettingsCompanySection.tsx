@@ -5,6 +5,7 @@ import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { formatCompanyAddressQuery } from "@/lib/map/companyBaseLocation";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import type { SettingsSnapshot } from "./SettingsForm";
 
 const SettingsMap = dynamic(() => import("@/components/Map/SettingsMap"), {
   ssr: false,
@@ -14,46 +15,31 @@ const SettingsMap = dynamic(() => import("@/components/Map/SettingsMap"), {
 });
 
 type Props = {
-  name: string;
-  setName: (v: string) => void;
-  address: string;
-  setAddress: (v: string) => void;
-  zipCode: string;
-  setZipCode: (v: string) => void;
-  city: string;
-  setCity: (v: string) => void;
-  phone: string;
-  setPhone: (v: string) => void;
-  email: string;
-  setEmail: (v: string) => void;
-  baseLat: number;
-  baseLng: number;
-  setBaseLat: (v: number) => void;
-  setBaseLng: (v: number) => void;
+  settings: SettingsSnapshot;
+  updateField: <K extends keyof SettingsSnapshot>(field: K, value: SettingsSnapshot[K]) => void;
   geocodeBusy: boolean;
   setGeocodeBusy: (v: boolean) => void;
 };
 
 export function SettingsCompanySection({
-  name,
-  setName,
-  address,
-  setAddress,
-  zipCode,
-  setZipCode,
-  city,
-  setCity,
-  phone,
-  setPhone,
-  email,
-  setEmail,
-  baseLat,
-  baseLng,
-  setBaseLat,
-  setBaseLng,
+  settings,
+  updateField,
   geocodeBusy,
   setGeocodeBusy,
 }: Props) {
+  const {
+    companyName: name,
+    companyAddress: address,
+    zipCode,
+    city,
+    phone,
+    email,
+    baseLatitude,
+    baseLongitude,
+  } = settings;
+
+  const baseLat = parseFloat(baseLatitude || "0");
+  const baseLng = parseFloat(baseLongitude || "0");
   const dict = getDictionary().admin.settings;
   const customersDict = getDictionary().admin.customers;
   const { alert: appAlert } = useAppDialog();
@@ -86,8 +72,8 @@ export function SettingsCompanySection({
         await appAlert({ message: customersDict.geocodeNoResults });
         return;
       }
-      setBaseLat(data.lat);
-      setBaseLng(data.lng);
+      updateField("baseLatitude", data.lat.toString());
+      updateField("baseLongitude", data.lng.toString());
     } catch {
       await appAlert({ message: customersDict.geocodeError });
     } finally {
@@ -107,8 +93,8 @@ export function SettingsCompanySection({
           <input
             type="text"
             placeholder={dict.legalNamePlaceholder}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={name ?? ""}
+            onChange={(e) => updateField("companyName", e.target.value)}
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
           />
         </div>
@@ -119,8 +105,8 @@ export function SettingsCompanySection({
             <input
               type="text"
               placeholder={dict.addressPlaceholder}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={address ?? ""}
+              onChange={(e) => updateField("companyAddress", e.target.value)}
               className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
             />
           </div>
@@ -130,8 +116,8 @@ export function SettingsCompanySection({
               <input
                 type="text"
                 placeholder={dict.zipCodePlaceholder}
-                value={zipCode}
-                onChange={(e) => setZipCode(e.target.value)}
+                value={zipCode ?? ""}
+                onChange={(e) => updateField("zipCode", e.target.value)}
                 className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
               />
             </div>
@@ -140,8 +126,8 @@ export function SettingsCompanySection({
               <input
                 type="text"
                 placeholder={dict.cityPlaceholder}
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                value={city ?? ""}
+                onChange={(e) => updateField("city", e.target.value)}
                 className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
               />
             </div>
@@ -188,8 +174,8 @@ export function SettingsCompanySection({
               lat={baseLat}
               lng={baseLng}
               onLocationChange={(lat, lng) => {
-                setBaseLat(lat);
-                setBaseLng(lng);
+                updateField("baseLatitude", lat.toString());
+                updateField("baseLongitude", lng.toString());
               }}
             />
           </div>
@@ -201,8 +187,8 @@ export function SettingsCompanySection({
             <input
               type="text"
               placeholder={dict.phonePlaceholder}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={phone ?? ""}
+              onChange={(e) => updateField("phone", e.target.value)}
               className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
             />
           </div>
@@ -211,8 +197,8 @@ export function SettingsCompanySection({
             <input
               type="text"
               placeholder={dict.emailPlaceholder}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={email ?? ""}
+              onChange={(e) => updateField("email", e.target.value)}
               className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
             />
           </div>

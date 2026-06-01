@@ -1,34 +1,22 @@
 "use client";
 
 import { getDictionary } from "@/i18n";
+import type { SettingsSnapshot } from "./SettingsForm";
 
 type Props = {
-  cancelWindowMinutes: number;
-  setCancelWindowMinutes: (v: number) => void;
-  geofenceRadiusMeters: number;
-  setGeofenceRadiusMeters: (v: number) => void;
-  upcomingOrderReminderMinutes: number;
-  setUpcomingOrderReminderMinutes: (v: number) => void;
-  requirePhotoToFinish: boolean;
-  setRequirePhotoToFinish: (v: boolean) => void;
-  timeOverrunReminder: boolean;
-  setTimeOverrunReminder: (v: boolean) => void;
+  settings: SettingsSnapshot;
+  updateField: <K extends keyof SettingsSnapshot>(field: K, value: SettingsSnapshot[K]) => void;
   mode: "all" | "company" | "orders";
 };
 
-export function SettingsOrdersSection({
-  cancelWindowMinutes,
-  setCancelWindowMinutes,
-  geofenceRadiusMeters,
-  setGeofenceRadiusMeters,
-  upcomingOrderReminderMinutes,
-  setUpcomingOrderReminderMinutes,
-  requirePhotoToFinish,
-  setRequirePhotoToFinish,
-  timeOverrunReminder,
-  setTimeOverrunReminder,
-  mode,
-}: Props) {
+export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
+  const {
+    cancelWindowMinutes,
+    geofenceRadiusMeters,
+    upcomingOrderReminderMinutes,
+    requirePhotoToFinish,
+    timeOverrunReminder,
+  } = settings;
   const dict = getDictionary().admin.settings;
 
   return (
@@ -48,7 +36,7 @@ export function SettingsOrdersSection({
             type="number"
             min="0"
             value={cancelWindowMinutes}
-            onChange={(e) => setCancelWindowMinutes(parseInt(e.target.value, 10))}
+            onChange={(e) => updateField("cancelWindowMinutes", parseInt(e.target.value, 10))}
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
           />
         </div>
@@ -59,7 +47,7 @@ export function SettingsOrdersSection({
             step="100"
             min="0"
             value={geofenceRadiusMeters}
-            onChange={(e) => setGeofenceRadiusMeters(parseInt(e.target.value, 10))}
+            onChange={(e) => updateField("geofenceRadiusMeters", parseInt(e.target.value, 10))}
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
           />
         </div>
@@ -70,7 +58,7 @@ export function SettingsOrdersSection({
             step="15"
             min="0"
             value={upcomingOrderReminderMinutes}
-            onChange={(e) => setUpcomingOrderReminderMinutes(parseInt(e.target.value, 10))}
+            onChange={(e) => updateField("upcomingOrderReminderMinutes", parseInt(e.target.value, 10))}
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
           />
         </div>
@@ -81,7 +69,7 @@ export function SettingsOrdersSection({
           <input
             type="checkbox"
             checked={requirePhotoToFinish}
-            onChange={(e) => setRequirePhotoToFinish(e.target.checked)}
+            onChange={(e) => updateField("requirePhotoToFinish", e.target.checked)}
             className="w-5 h-5 text-emerald-500"
           />
           <div className="flex flex-col">
@@ -96,7 +84,7 @@ export function SettingsOrdersSection({
           <input
             type="checkbox"
             checked={timeOverrunReminder}
-            onChange={(e) => setTimeOverrunReminder(e.target.checked)}
+            onChange={(e) => updateField("timeOverrunReminder", e.target.checked)}
             className="w-5 h-5 text-emerald-500"
           />
           <div className="flex flex-col">
