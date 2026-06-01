@@ -29,11 +29,22 @@ function loginRedirectForRole(role: string): string {
   return "/admin";
 }
 
-/** Strażnik Edge JWT/ról — konwencja Next.js 16: `proxy` zamiast `middleware`. */
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+interface RouteClassification {
+  isApi: boolean;
+  isAuthPage: boolean;
+  isApiAuth: boolean;
+  isPlatformPage: boolean;
+  isPlatformApi: boolean;
+  isWorkerPage: boolean;
+  isWorkerApi: boolean;
+  isAdminPage: boolean;
+  isSharedApi: boolean;
+  isAppDistributionApi: boolean;
+  isAdminApi: boolean;
+  requiresAuth: boolean;
+}
 
-  // 1. ROUTE CLASSIFICATION
+function classifyRoute(pathname: string): RouteClassification {
   const isApi = pathname.startsWith("/api");
   const isAuthPage = pathname === "/login" || pathname.startsWith("/login/");
   const isApiAuth = pathname.startsWith("/api/auth");
@@ -64,130 +75,219 @@ export async function proxy(request: NextRequest) {
     isPlatformApi ||
     isAppDistributionApi;
 
-  // 2. API logowania/wylogowania — zawsze bez straży tras
-  if (isApiAuth) {
-    return NextResponse.next();
+  return {
+    isApi,
+    isAuthPage,
+    isApiAuth,
+    isPlatformPage,
+    isPlatformApi,
+    isWorkerPage,
+    isWorkerApi,
+    isAdminPage,
+    isSharedApi,
+    isAppDistributionApi,
+    isAdminApi,
+    requiresAuth,
+  };
+}
+
+async function handleLoginPage(
+  request: NextRequest,
+  route: RouteClassification
+): Promise<NextResponse | null> {
+  if (!route.isAuthPage) return null;
+
+  const loginToken = request.cookies.get("auth_token")?.value;
+  const tenantRefresh = request.nextUrl.searchParams.get("reason") === "tenant";
+
+  if (!loginToken || tenantRefresh) {
+    const res = NextResponse.next();
+    if (tenantRefresh) res.cookies.delete("auth_token");
+    return res;
   }
 
-  // 3. /login: ważne przed `!requiresAuth` — inaczej zalogowany użytkownik (np. wstecz z WebView)
-  //    widziałby formularz mimo ważnego JWT; cookie zostaje, sesja jest aktywna.
-  if (isAuthPage) {
-    const loginToken = request.cookies.get("auth_token")?.value;
-    const tenantRefresh = request.nextUrl.searchParams.get("reason") === "tenant";
+  try {
+    const verified = await jwtVerify(loginToken, JWT_SECRET);
+    const role = verified.payload.role as string;
+    const rawCompanyId = verified.payload.companyId;
+    const hasCompanyInJwt = typeof rawCompanyId === "number" && rawCompanyId >= 1;
 
-    if (!loginToken || tenantRefresh) {
-      const res = NextResponse.next();
-      if (tenantRefresh) res.cookies.delete("auth_token");
-      return res;
+    // Stary JWT bez companyId — nie przekierowuj z powrotem na /admin (pętla ładowania).
+    // Layout/API i tak odczytają firmę z DB; po ponownym logowaniu token będzie kompletny.
+    if (isCompanyScopedRole(role) && !hasCompanyInJwt) {
+      return NextResponse.next();
     }
-    try {
-      const verified = await jwtVerify(loginToken, JWT_SECRET);
-      const role = verified.payload.role as string;
-      const rawCompanyId = verified.payload.companyId;
-      const hasCompanyInJwt = typeof rawCompanyId === "number" && rawCompanyId >= 1;
 
-      // Stary JWT bez companyId — nie przekierowuj z powrotem na /admin (pętla ładowania).
-      // Layout/API i tak odczytają firmę z DB; po ponownym logowaniu token będzie kompletny.
-      if (isCompanyScopedRole(role) && !hasCompanyInJwt) {
-        return NextResponse.next();
-      }
-
-      return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
-    } catch {
-      const res = NextResponse.next();
-      res.cookies.delete("auth_token");
-      return res;
-    }
+    return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
+  } catch {
+    const res = NextResponse.next();
+    res.cookies.delete("auth_token");
+    return res;
   }
+}
 
-  // 4. Pozostałe publiczne (poza /login — już obsłużone)
-  if (!requiresAuth) {
-    return NextResponse.next();
-  }
-
-  // 5. AUTHENTICATION (Token Extraction)
-  const token = request.cookies.get("auth_token")?.value;
-
-  const handleUnauthorized = () => {
+function createUnauthorizedHandler(isApi: boolean, request: NextRequest) {
+  return () => {
     if (isApi) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     return NextResponse.redirect(new URL("/login", request.url));
   };
+}
+
+function authorizePlatformAccess(
+  role: string,
+  route: RouteClassification,
+  request: NextRequest
+): NextResponse | null {
+  if (!route.isPlatformPage && !route.isPlatformApi) return null;
+
+  if (!PLATFORM_ROLES.includes(role)) {
+    if (route.isPlatformApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
+  }
+  return NextResponse.next();
+}
+
+function authorizeSuperadminRestrictions(
+  role: string,
+  route: RouteClassification,
+  isApi: boolean,
+  request: NextRequest
+): NextResponse | null {
+  const isSuperadmin = isSuperadminRole(role);
+  if (!isSuperadmin) return null;
+
+  const isCompanyScopedRoute =
+    route.isAdminPage ||
+    route.isWorkerPage ||
+    route.isAdminApi ||
+    route.isWorkerApi ||
+    route.isSharedApi ||
+    route.isAppDistributionApi;
+
+  if (isCompanyScopedRoute) {
+    if (isApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL("/platform", request.url));
+  }
+  return null;
+}
+
+function authorizeAdminAccess(
+  role: string,
+  route: RouteClassification,
+  isMutation: boolean,
+  request: NextRequest
+): NextResponse | null {
+  if (!route.isAdminPage && !route.isAdminApi) return null;
+
+  if (!ADMIN_PANEL_ROLES.includes(role)) {
+    if (route.isAdminApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL("/worker", request.url));
+  }
+  if (route.isAdminApi && isMutation && role !== "admin") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
+function authorizeWorkerAccess(
+  role: string,
+  route: RouteClassification,
+  request: NextRequest
+): NextResponse | null {
+  if (!route.isWorkerPage && !route.isWorkerApi) return null;
+
+  if (!WORKER_APP_ROLES.includes(role)) {
+    if (route.isWorkerApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+  return null;
+}
+
+function authorizeSharedApiAccess(
+  role: string,
+  pathname: string,
+  method: string,
+  route: RouteClassification,
+  isMutation: boolean
+): NextResponse | null {
+  if (!route.isSharedApi) return null;
+
+  if (!SHARED_READ_ROLES.includes(role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (isMutation && role !== "admin" && !isWorkerSharedCustomerCreate(pathname, method, role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
+function authorizeAppDistributionAccess(
+  role: string,
+  route: RouteClassification,
+  method: string
+): NextResponse | null {
+  if (!route.isAppDistributionApi) return null;
+
+  if (method !== "GET") {
+    return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
+  }
+  if (!SHARED_READ_ROLES.includes(role)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
+/** Strażnik Edge JWT/ról — konwencja Next.js 16: `proxy` zamiast `middleware`. */
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const route = classifyRoute(pathname);
+
+  // 1. API logowania/wylogowania — zawsze bez straży tras
+  if (route.isApiAuth) {
+    return NextResponse.next();
+  }
+
+  // 2. /login: ważne przed `!requiresAuth` — inaczej zalogowany użytkownik (np. wstecz z WebView)
+  //    widziałby formularz mimo ważnego JWT; cookie zostaje, sesja jest aktywna.
+  const loginResponse = await handleLoginPage(request, route);
+  if (loginResponse) return loginResponse;
+
+  // 3. Pozostałe publiczne (poza /login — już obsłużone)
+  if (!route.requiresAuth) {
+    return NextResponse.next();
+  }
+
+  // 4. AUTHENTICATION (Token Extraction)
+  const token = request.cookies.get("auth_token")?.value;
+  const handleUnauthorized = createUnauthorizedHandler(route.isApi, request);
 
   if (!token) return handleUnauthorized();
 
   const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
 
-  // 6. AUTHORIZATION (Role Verification)
+  // 5. AUTHORIZATION (Role Verification)
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     const role = verified.payload.role as string;
-    const isSuperadmin = isSuperadminRole(role);
 
-    // Panel platformy (superadmin)
-    if (isPlatformPage || isPlatformApi) {
-      if (!PLATFORM_ROLES.includes(role)) {
-        if (isPlatformApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
-      }
-      return NextResponse.next();
-    }
+    // Sprawdź autoryzację dla każdego typu routy
+    const platformAuth = authorizePlatformAccess(role, route, request);
+    if (platformAuth) return platformAuth;
 
-    // Superadmin nie wchodzi w panel firmy ani worker bez kontekstu firmy
-    if (
-      isSuperadmin &&
-      (isAdminPage ||
-        isWorkerPage ||
-        isAdminApi ||
-        isWorkerApi ||
-        isSharedApi ||
-        isAppDistributionApi)
-    ) {
-      if (isApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      return NextResponse.redirect(new URL("/platform", request.url));
-    }
+    const superadminAuth = authorizeSuperadminRestrictions(role, route, route.isApi, request);
+    if (superadminAuth) return superadminAuth;
 
-    // Panel administratora (admin + podgląd)
-    if (isAdminPage || isAdminApi) {
-      if (!ADMIN_PANEL_ROLES.includes(role)) {
-        if (isAdminApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        return NextResponse.redirect(new URL("/worker", request.url));
-      }
-      if (isAdminApi && isMutation && role !== "admin") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
+    const adminAuth = authorizeAdminAccess(role, route, isMutation, request);
+    if (adminAuth) return adminAuth;
 
-    // Aplikacja pracownika + API worker (bez konta podgląd)
-    if (isWorkerPage || isWorkerApi) {
-      if (!WORKER_APP_ROLES.includes(role)) {
-        if (isWorkerApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-    }
+    const workerAuth = authorizeWorkerAccess(role, route, request);
+    if (workerAuth) return workerAuth;
 
-    // API współdzielone (GET: worker/admin/viewer; mutacje: admin + wyjątek POST /api/customers dla workera)
-    if (isSharedApi) {
-      if (!SHARED_READ_ROLES.includes(role)) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-      if (
-        isMutation &&
-        role !== "admin" &&
-        !isWorkerSharedCustomerCreate(pathname, request.method, role)
-      ) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
+    const sharedApiAuth = authorizeSharedApiAccess(role, pathname, request.method, route, isMutation);
+    if (sharedApiAuth) return sharedApiAuth;
 
-    // Dystrybucja APK (GET: worker/admin/viewer)
-    if (isAppDistributionApi) {
-      if (request.method !== "GET") {
-        return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
-      }
-      if (!SHARED_READ_ROLES.includes(role)) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    }
+    const appDistributionAuth = authorizeAppDistributionAccess(role, route, request.method);
+    if (appDistributionAuth) return appDistributionAuth;
 
     return NextResponse.next();
   } catch {
