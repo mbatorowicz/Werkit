@@ -48,7 +48,7 @@ export const GET = withApiErrorHandling(async (request: Request) => {
       resourceId,
       dueDate,
       durationHours,
-      excludeOrderId: excludeOrderId != null && !Number.isNaN(excludeOrderId) ? excludeOrderId : undefined,
+      excludeOrderId: excludeOrderId !== null && !Number.isNaN(excludeOrderId) ? excludeOrderId : undefined,
     },
   );
 

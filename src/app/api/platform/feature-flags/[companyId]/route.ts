@@ -35,7 +35,7 @@ export const PUT = withApiErrorHandling(
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).companyId);
-    if (companyId == null) return jsonError('invalid_id', 400);
+    if (companyId === null) return jsonError('invalid_id', 400);
 
     const body = await parseJsonBody(request);
     const flags: Partial<FeatureFlags> = {};

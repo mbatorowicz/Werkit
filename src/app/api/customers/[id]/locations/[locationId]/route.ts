@@ -19,8 +19,8 @@ export const PUT = withApiErrorHandling(async (req: Request, ctx: { params: Prom
   const patch: Parameters<typeof CustomerLocationService.updateLocation>[1] = {};
   if (typeof body.label === "string") patch.label = body.label.trim();
   if (body.address !== undefined) patch.address = typeof body.address === "string" ? body.address : null;
-  if (body.latitude != null) patch.latitude = String(body.latitude);
-  if (body.longitude != null) patch.longitude = String(body.longitude);
+  if (body.latitude !== null && body.latitude !== undefined) patch.latitude = String(body.latitude);
+  if (body.longitude !== null && body.longitude !== undefined) patch.longitude = String(body.longitude);
   if (body.isDefault === true) patch.isDefault = true;
   if (body.routeWaypoints !== undefined) patch.routeWaypoints = parseRouteWaypoints(body.routeWaypoints);
   const row = await CustomerLocationService.updateLocation(locId, patch, companyId);

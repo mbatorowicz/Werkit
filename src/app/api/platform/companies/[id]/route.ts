@@ -11,7 +11,7 @@ export const PATCH = withApiErrorHandling(
     if (!auth.ok) return auth.response;
 
     const id = parsePositiveIntFromString((await context.params).id);
-    if (id == null) return jsonError('invalid_id', 400);
+    if (id === null) return jsonError('invalid_id', 400);
 
     const body = await parseJsonBody(request);
     const patch: { name?: string; slug?: string; isActive?: boolean } = {};

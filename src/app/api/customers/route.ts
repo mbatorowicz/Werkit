@@ -23,8 +23,8 @@ export const POST = withApiErrorHandling(async (request: Request) => {
   const firstName = typeof body.firstName === "string" ? body.firstName : null;
   const lastName = typeof body.lastName === "string" ? body.lastName : "";
   const defaultAddress = typeof body.defaultAddress === "string" ? body.defaultAddress : null;
-  const latitude = body.latitude != null && String(body.latitude).trim() !== "" ? String(body.latitude) : null;
-  const longitude = body.longitude != null && String(body.longitude).trim() !== "" ? String(body.longitude) : null;
+  const latitude = body.latitude !== null && body.latitude !== undefined && String(body.latitude).trim() !== "" ? String(body.latitude) : null;
+  const longitude = body.longitude !== null && body.longitude !== undefined && String(body.longitude).trim() !== "" ? String(body.longitude) : null;
 
   if (!lastName.trim()) {
     return jsonError("missing_name", 400);

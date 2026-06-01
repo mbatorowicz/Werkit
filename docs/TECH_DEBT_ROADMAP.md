@@ -102,6 +102,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | D-04 | Abstrakcja providera trasy mapy (OSRM / ewentualna wymiana backendu) | done |
 | D-05 | Architektura: przeniesienie logiki DB z route handlera do serwisu (foto) | done |
 | D-06 | Rozszerzenie testów: AdminSessionService, GpsService, SystemLogService | done |
+| D-07 | ESLint: reguły jakości kodu + naprawa `eqeqeq` (140 errors → 0) | done |
 
 ### D-02 — co zrobiono
 
@@ -126,10 +127,23 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 - [`SystemLogService.test.ts`](../src/services/SystemLogService.test.ts): 6 testów pokrywających 2 metody (`getRecentLogs`, `insertLog`) — w tym domyślne wartości, przycinanie długich stringów, pusty wynik.
 - Łączna liczba testów: **118** (wzrost z 98).
 
+### D-07 — co zrobiono
+
+- [`eslint.config.mjs`](../eslint.config.mjs): dodano reguły jakości kodu:
+  - `complexity: ["warn", 15]` — ograniczenie złożoności cyklomatycznej
+  - `max-lines-per-function: ["warn", { max: 100, skipBlankLines: true, skipComments: true }]` — wymusza dzielenie dużych funkcji
+  - `eqeqeq: ["error", "always", { null: "ignore" }]` — wymusza `===` / `!==` (z wyjątkiem `== null` / `!= null` dla nullish checks)
+  - `no-debugger: "error"` — zakaz debuggera
+  - `no-alert: "error"` — zakaz `alert()` (używaj `AppDialogProvider`)
+  - `no-var: "error"` — zakaz `var`
+  - `prefer-const: "warn"` — preferuj `const`
+- Naprawiono **140 błędów `eqeqeq`** w ~50 plikach (API routes, serwisy, komponenty) — wszystkie `==` / `!=` zamienione na `===` / `!==` (z wyjątkiem nullish checks).
+- Weryfikacja: `npm run lint` 0 errors, `npx tsc --noEmit` 0 errors, `npm test` 202 passed.
+
 ### Inne naprawione
 
 - [`useLocale.ts`](../src/hooks/useLocale.ts): usunięto duplikację logiki między `useState` init a `useEffect` na mount. Stan inicjalizowany leniwie przez `buildLocaleConfigFromCookies()`. Usunięto zbędny `useEffect` i związany z nim `eslint-disable`.
 
 ---
 
-*Ostatnia aktualizacja roadmapu: 2026-05-26.*
+*Ostatnia aktualizacja roadmapu: 2026-06-01.*

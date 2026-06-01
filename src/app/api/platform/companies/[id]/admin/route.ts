@@ -14,7 +14,7 @@ export const POST = withApiErrorHandling(
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).id);
-    if (companyId == null) return jsonError('invalid_id', 400);
+    if (companyId === null) return jsonError('invalid_id', 400);
 
     const company = await PlatformCompanyService.getCompanyById(companyId);
     if (!company) return jsonError('not_found', 404);

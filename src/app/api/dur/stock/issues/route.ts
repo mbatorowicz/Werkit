@@ -42,8 +42,8 @@ export const POST = withApiErrorHandling(
     const issue = await StockMovementService.addIssue(companyId, userId, {
       partId,
       quantity,
-      workOrderId: body.workOrderId != null ? parseInt(String(body.workOrderId), 10) : null,
-      issuedTo: body.issuedTo != null ? parseInt(String(body.issuedTo), 10) : null,
+      workOrderId: body.workOrderId !== null && body.workOrderId !== undefined ? parseInt(String(body.workOrderId), 10) : null,
+      issuedTo: body.issuedTo !== null && body.issuedTo !== undefined ? parseInt(String(body.issuedTo), 10) : null,
       notes: typeof body.notes === "string" ? body.notes : null,
     });
 

@@ -58,7 +58,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+        expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
           ? parseFloat(String(expectedDurationHours))
           : null,
       );
@@ -69,7 +69,7 @@ export const POST = withApiErrorHandling(async (request: Request) => {
 
     const parsedDueDate = dueDate ? new Date(dueDate) : null;
     const parsedDuration =
-      expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+      expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
         ? parseFloat(String(expectedDurationHours))
         : null;
 
@@ -86,9 +86,9 @@ export const POST = withApiErrorHandling(async (request: Request) => {
       customerId: customerId ? parseInt(String(customerId), 10) : null,
       taskDescription,
       status: 'PENDING',
-      quantityTons: quantityTons != null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+      quantityTons: quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
       expectedDurationHours:
-        expectedDurationHours != null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
+        expectedDurationHours !== null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
       priority: prio,
       dueDate: parsedDueDate,
       lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),

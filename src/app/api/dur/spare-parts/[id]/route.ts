@@ -45,7 +45,7 @@ export const PUT = withApiErrorHandling(
     if (body.catalogNumber !== undefined) updateData.catalogNumber = String(body.catalogNumber);
     if (body.manufacturer !== undefined) updateData.manufacturer = String(body.manufacturer);
     if (body.unit !== undefined) updateData.unit = String(body.unit);
-    if (body.purchasePrice !== undefined) updateData.purchasePrice = body.purchasePrice != null ? String(body.purchasePrice) : null;
+    if (body.purchasePrice !== undefined) updateData.purchasePrice = body.purchasePrice !== null && body.purchasePrice !== undefined ? String(body.purchasePrice) : null;
     if (body.description !== undefined) updateData.description = typeof body.description === "string" ? body.description : null;
     if (body.minStock !== undefined) updateData.minStock = String(body.minStock);
     if (body.location !== undefined) updateData.location = String(body.location);

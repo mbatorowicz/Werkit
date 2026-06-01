@@ -42,7 +42,7 @@ export const POST = withApiErrorHandling(
     const receipt = await StockMovementService.addReceipt(companyId, userId, {
       partId,
       quantity,
-      unitPrice: body.unitPrice != null ? String(body.unitPrice) : null,
+      unitPrice: body.unitPrice !== null && body.unitPrice !== undefined ? String(body.unitPrice) : null,
       invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
       notes: typeof body.notes === "string" ? body.notes : null,
     });

@@ -126,10 +126,10 @@ export class WorkerSessionService {
 
     // Cross-tenant validation: verify all referenced entities belong to the same company
     await assertResourceBelongsToCompany(resId, companyId);
-    if (custId != null) {
+    if (custId !== null) {
       await assertCustomerBelongsToCompany(custId, companyId);
     }
-    if (matId != null) {
+    if (matId !== null) {
       await assertMaterialBelongsToCompany(matId, companyId);
     }
 
@@ -200,7 +200,7 @@ export class WorkerSessionService {
           : {}),
       }).where(eq(workSessions.id, sessionId));
 
-      if (row.workOrderId != null) {
+      if (row.workOrderId !== null) {
         await tx
           .update(workOrders)
           .set({ status: 'COMPLETED' })
@@ -314,7 +314,7 @@ export class WorkerSessionService {
 
     // Transakcja: UPDATE work_orders + DELETE work_sessions atomowo
     await db.transaction(async (tx) => {
-      if (session.workOrderId != null) {
+      if (session.workOrderId !== null) {
         await tx.update(workOrders).set({ status: 'PENDING' }).where(eq(workOrders.id, session.workOrderId));
       }
       await tx.delete(workSessions).where(eq(workSessions.id, session.id));

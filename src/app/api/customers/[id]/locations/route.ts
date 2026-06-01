@@ -30,8 +30,8 @@ export const POST = withApiErrorHandling(async (req: Request, ctx: { params: Pro
   if (!Number.isFinite(customerId) || customerId < 1) return jsonError("invalid_id", 400);
   const body = await parseJsonBody(req);
   const label = typeof body.label === "string" ? body.label.trim() : "";
-  const latitude = body.latitude != null ? String(body.latitude) : "";
-  const longitude = body.longitude != null ? String(body.longitude) : "";
+  const latitude = body.latitude !== null && body.latitude !== undefined ? String(body.latitude) : "";
+  const longitude = body.longitude !== null && body.longitude !== undefined ? String(body.longitude) : "";
   if (!label || !latitude || !longitude) return jsonError("missing_fields", 400);
   const row = await CustomerLocationService.createLocation({
     customerId,

@@ -66,7 +66,7 @@ export const PUT = withApiErrorHandling(
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+        expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
           ? parseFloat(String(expectedDurationHours))
           : null,
         orderId,
@@ -78,7 +78,7 @@ export const PUT = withApiErrorHandling(
 
     const parsedDueDate = dueDate ? new Date(dueDate) : null;
     const parsedDuration =
-      expectedDurationHours != null && String(expectedDurationHours).trim() !== ""
+      expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
         ? parseFloat(String(expectedDurationHours))
         : null;
 
@@ -90,9 +90,9 @@ export const PUT = withApiErrorHandling(
         materialId: materialId ? parseInt(String(materialId), 10) : null,
         customerId: customerId ? parseInt(String(customerId), 10) : null,
         taskDescription,
-        quantityTons: quantityTons != null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+        quantityTons: quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
         expectedDurationHours:
-          expectedDurationHours != null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
+          expectedDurationHours !== null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
         priority: prio,
         dueDate: parsedDueDate,
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),

@@ -21,13 +21,13 @@ export const GET = withApiErrorHandling(async (request: Request) => {
 
   const dueDate = dueDateRaw ? new Date(dueDateRaw) : null;
   const durationHours =
-    durationRaw != null && durationRaw.trim() !== "" ? parseFloat(durationRaw) : null;
+    durationRaw !== null && durationRaw.trim() !== "" ? parseFloat(durationRaw) : null;
   const excludeOrderId =
-    excludeOrderIdRaw != null && excludeOrderIdRaw.trim() !== ""
+    excludeOrderIdRaw !== null && excludeOrderIdRaw.trim() !== ""
       ? parseInt(excludeOrderIdRaw, 10)
       : undefined;
 
-  if (!dueDate || durationHours == null || Number.isNaN(durationHours) || durationHours <= 0) {
+  if (!dueDate || durationHours === null || Number.isNaN(durationHours) || durationHours <= 0) {
     const resourceConflicts = await ScheduleConflictService.findResourceBusyConflictsSerialized(
       scoped.data.companyId,
       userId,
@@ -43,7 +43,7 @@ export const GET = withApiErrorHandling(async (request: Request) => {
       resourceId,
       dueDate,
       durationHours,
-      excludeOrderId: excludeOrderId != null && !Number.isNaN(excludeOrderId) ? excludeOrderId : undefined,
+      excludeOrderId: excludeOrderId !== null && !Number.isNaN(excludeOrderId) ? excludeOrderId : undefined,
     },
   );
 

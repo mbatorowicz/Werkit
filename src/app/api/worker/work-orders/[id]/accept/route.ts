@@ -11,7 +11,7 @@ export const POST = withApiErrorHandling(
 
     const { id } = await params;
     const orderId = parsePositiveIntFromString(id);
-    if (orderId == null) {
+    if (orderId === null) {
       return jsonError("invalid_id", 400);
     }
 

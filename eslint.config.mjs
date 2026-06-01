@@ -26,6 +26,17 @@ const eslintConfig = defineConfig([
           varsIgnorePattern: "^_",
         },
       ],
+      // Code quality guards
+      complexity: ["warn", 15],
+      "max-lines-per-function": [
+        "warn",
+        { max: 100, skipBlankLines: true, skipComments: true },
+      ],
+      "no-debugger": "error",
+      "no-alert": "error",
+      eqeqeq: ["error", "always", { null: "ignore" }],
+      "no-var": "error",
+      "prefer-const": "warn",
     },
   },
   {

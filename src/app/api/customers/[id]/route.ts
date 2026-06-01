@@ -23,8 +23,8 @@ export const PUT = withApiErrorHandling(async (request: Request, context: { para
     firstName: typeof body.firstName === "string" ? body.firstName : null,
     lastName,
     defaultAddress: typeof body.defaultAddress === "string" ? body.defaultAddress : null,
-    latitude: body.latitude != null && String(body.latitude).trim() !== "" ? String(body.latitude) : null,
-    longitude: body.longitude != null && String(body.longitude).trim() !== "" ? String(body.longitude) : null,
+    latitude: body.latitude !== null && body.latitude !== undefined && String(body.latitude).trim() !== "" ? String(body.latitude) : null,
+    longitude: body.longitude !== null && body.longitude !== undefined && String(body.longitude).trim() !== "" ? String(body.longitude) : null,
   });
   return jsonOk({ success: true });
 }, { defaultErrorCode: "save_error" });
