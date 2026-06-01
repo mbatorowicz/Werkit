@@ -106,7 +106,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | D-08 | Prettier: spójne formatowanie kodu | done |
 | D-09 | Refaktoryzacja `proxy.ts` (complexity 59 → ~10) | done |
 | D-10 | Refaktoryzacja `SettingsForm.tsx` (143 lines, complexity 33) | done |
-| D-11 | Refaktoryzacja `WorkerClient.tsx` (177 lines) | open |
+| D-11 | Refaktoryzacja `WorkerClient.tsx` (177 lines) | done |
 
 ### D-02 — co zrobiono
 
@@ -180,11 +180,17 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 136 warnings (ostrzeżenia complexity/lines pozostają)
 
-### D-11 — do zrobienia
+### D-11 — co zrobiono
 
-- [`WorkerClient.tsx`](../src/app/worker/WorkerClient.tsx): 177 lines
-- Wymaga zrozumienia logiki biznesowej aplikacji pracownika
-- Propozycja: wydzielić obsługę sesji i GPS do osobnych hooków
+- [`WorkerClient.tsx`](../src/app/worker/WorkerClient.tsx): wydzielono logikę GPS i okna anulowania
+- Utworzono hook `useWorkerGpsActions` - zarządza akcjami wymagającymi lokalizacji GPS (accept order, end session)
+- Utworzono hook `useCancelWindow` - zarządza logiką okna anulowania z zegarem 30s
+- Usunięto 3 duplikaty wywołań `getCurrentPositionOnce()` - teraz scentralizowane w `useWorkerGpsActions`
+- Usunięto inline async functions z JSX - zastąpione callbackami z hooków
+- Zredukowano WorkerClient.tsx z 177 do 149 linii
+- Wszystkie testy przeszły: 202 passed, 0 failed
+- TypeScript: 0 errors
+- ESLint: 0 errors, 136 warnings
 
 ### Inne naprawione
 
