@@ -103,6 +103,10 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | D-05 | Architektura: przeniesienie logiki DB z route handlera do serwisu (foto) | done |
 | D-06 | Rozszerzenie testów: AdminSessionService, GpsService, SystemLogService | done |
 | D-07 | ESLint: reguły jakości kodu + naprawa `eqeqeq` (140 errors → 0) | done |
+| D-08 | Prettier: spójne formatowanie kodu | done |
+| D-09 | Refaktoryzacja `proxy.ts` (complexity 59 → ~10) | done |
+| D-10 | Refaktoryzacja `SettingsForm.tsx` (143 lines, complexity 33) | open |
+| D-11 | Refaktoryzacja `WorkerClient.tsx` (177 lines) | open |
 
 ### D-02 — co zrobiono
 
@@ -139,6 +143,41 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
   - `prefer-const: "warn"` — preferuj `const`
 - Naprawiono **140 błędów `eqeqeq`** w ~50 plikach (API routes, serwisy, komponenty) — wszystkie `==` / `!=` zamienione na `===` / `!==` (z wyjątkiem nullish checks).
 - Weryfikacja: `npm run lint` 0 errors, `npx tsc --noEmit` 0 errors, `npm test` 202 passed.
+
+### D-08 — co zrobiono
+
+- Dodano **Prettier** do devDependencies
+- Skonfigurowano [`.prettierrc`](../.prettierrc) z konwencjami projektu (semi, double quotes, 100 print width)
+- Dodano [`.prettierignore`](../.prettierignore) dla build artifacts i generated files
+- Dodano skrypty `format` i `format:check` do `package.json`
+- Zintegrowano `eslint-config-prettier` aby uniknąć konfliktów ESLint/Prettier
+- Uruchomiono Prettier na wszystkich plikach źródłowych (368 files changed)
+
+### D-09 — co zrobiono
+
+- [`proxy.ts`](../src/proxy.ts): wydzielono logikę autoryzacji do mniejszych funkcji:
+  - `classifyRoute()` — klasyfikacja routy (API/page, admin/worker/platform/shared)
+  - `handleLoginPage()` — obsługa strony logowania
+  - `authorizePlatformAccess()` — autoryzacja dostępu do platformy (superadmin)
+  - `authorizeSuperadminRestrictions()` — ograniczenia dla superadmina
+  - `authorizeAdminAccess()` — autoryzacja dostępu do panelu admina
+  - `authorizeWorkerAccess()` — autoryzacja dostępu do aplikacji pracownika
+  - `authorizeSharedApiAccess()` — autoryzacja dostępu do API współdzielonego
+  - `authorizeAppDistributionAccess()` — autoryzacja dostępu do dystrybucji APK
+- Complexity głównej funkcji `proxy()` spadło z **59 do ~10**
+- Poprawiono czytelność i testowalność logiki autoryzacji
+
+### D-10 — do zrobienia
+
+- [`SettingsForm.tsx`](../src/app/admin/settings/SettingsForm.tsx): 143 lines, complexity 33
+- Wymaga zrozumienia logiki biznesowej ustawień firmy i zamówień
+- Propozycja: wydzielić walidację i zapis do osobnych funkcji
+
+### D-11 — do zrobienia
+
+- [`WorkerClient.tsx`](../src/app/worker/WorkerClient.tsx): 177 lines
+- Wymaga zrozumienia logiki biznesowej aplikacji pracownika
+- Propozycja: wydzielić obsługę sesji i GPS do osobnych hooków
 
 ### Inne naprawione
 
