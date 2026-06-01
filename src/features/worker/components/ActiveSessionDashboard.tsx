@@ -118,6 +118,7 @@ export default function ActiveSessionDashboard({
       <WorkerSparePartsPanel
         workOrderId={session.workOrderId ?? null}
         orderType={session.orderType ?? null}
+        machineCategoryId={session.categoryId ?? null}
       />
 
       {/* WIDGET STATUSU */}

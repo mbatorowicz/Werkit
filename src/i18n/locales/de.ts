@@ -118,7 +118,7 @@ export const de: AppDictionary = {
       fleetAndPeople: "Organisation",
       machinesAndWorkshop: "Betriebsmittel",
       logistics: "Ressourcen & Kontakte",
-      ordersAndDispatch: "Aufträge & Disposition",
+      ordersAndDispatch: "DUR",
       materialsBase: "Materialbasis",
       customersAndAddresses: "Kunden & Adressen",
       reportsAndWarehouse: "Berichte & Lager",

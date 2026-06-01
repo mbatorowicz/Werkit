@@ -115,7 +115,7 @@ export const pl = {
       fleetAndPeople: "Organizacja",
       machinesAndWorkshop: "Zasoby operacyjne",
       logistics: "Zasoby i kontrahenci",
-      ordersAndDispatch: "Zlecenia i Dyspozycja",
+      ordersAndDispatch: "DUR",
       materialsBase: "Baza materiałów",
       customersAndAddresses: "Klienci i Adresy",
       reportsAndWarehouse: "Raporty i Magazyn",

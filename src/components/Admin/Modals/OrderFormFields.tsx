@@ -253,7 +253,11 @@ export function OrderFormFields({
       </div>
 
       {/* 7. Części zamienne — tylko dla napraw */}
-      <WorkOrderSparePartsSection workOrderId={editingOrderId ?? null} orderType={orderType} />
+      <WorkOrderSparePartsSection
+        workOrderId={editingOrderId ?? null}
+        orderType={orderType}
+        machineCategoryId={form.categoryId ? parseInt(form.categoryId, 10) : null}
+      />
     </>
   );
 }

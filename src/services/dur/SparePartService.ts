@@ -4,7 +4,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { assertSparePartCategoriesAssignable } from "@/services/dur/categoryValidation";
 
 export class SparePartService {
-  static async getParts(companyId: number) {
+  static async getParts(companyId: number, opts?: { compatibleWithCategoryId?: number }) {
     const all = await db
       .select()
       .from(spareParts)
@@ -29,11 +29,19 @@ export class SparePartService {
       byPartIdMachine.set(l.partId, arr);
     }
 
-    return all.map((p) => ({
+    const mapped = all.map((p) => ({
       ...p,
       categoryIds: byPartId.get(p.id) ?? [],
       machineCategoryIds: byPartIdMachine.get(p.id) ?? [],
     }));
+
+    // Filtrowanie po kompatybilności z kategorią maszyny (opcjonalne)
+    if (opts?.compatibleWithCategoryId != null) {
+      const catId = opts.compatibleWithCategoryId;
+      return mapped.filter((p) => p.machineCategoryIds.includes(catId));
+    }
+
+    return mapped;
   }
 
   static async getPart(companyId: number, id: number) {

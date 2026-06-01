@@ -5,13 +5,25 @@ import { requireCompanyScopedSession } from "@/lib/apiTenant";
 export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
-  async () => {
+  async (request: Request) => {
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
     const { companyId } = scoped.data;
 
+    const url = new URL(request.url);
+    const compatibleWithCategoryIdRaw = url.searchParams.get("compatibleWithCategoryId");
+    const compatibleWithCategoryId =
+      compatibleWithCategoryIdRaw != null
+        ? parseInt(compatibleWithCategoryIdRaw, 10)
+        : undefined;
+
     const { SparePartService } = await import("@/services/dur/SparePartService");
-    const parts = await SparePartService.getParts(companyId);
+    const parts = await SparePartService.getParts(companyId, {
+      compatibleWithCategoryId:
+        compatibleWithCategoryId != null && !Number.isNaN(compatibleWithCategoryId)
+          ? compatibleWithCategoryId
+          : undefined,
+    });
     return jsonOk(parts);
   },
   { defaultErrorCode: "fetch_error" }
