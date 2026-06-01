@@ -11,7 +11,7 @@ const customIcon = L.divIcon({
   className: "custom-div-icon",
   html: `<div style="background-color: #f59e0b; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid white; box-shadow: 0 0 12px rgba(245, 158, 11, 0.9);"></div>`,
   iconSize: [20, 20],
-  iconAnchor: [10, 10]
+  iconAnchor: [10, 10],
 });
 
 function MapEvents({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
@@ -39,9 +39,9 @@ interface SettingsMapInnerProps {
 
 export default function SettingsMapInner({ lat, lng, onLocationChange }: SettingsMapInnerProps) {
   return (
-    <MapContainer 
-      center={[lat, lng]} 
-      zoom={14} 
+    <MapContainer
+      center={[lat, lng]}
+      zoom={14}
       style={{ width: "100%", height: "100%", zIndex: 0 }}
       zoomControl={false}
     >

@@ -38,13 +38,17 @@ export default function PendingOrdersList({
         >
           <Clock className="w-10 h-10 text-zinc-700 dark:text-zinc-300" />
         </button>
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">{dict.readyToStart}</h2>
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
+          {dict.readyToStart}
+        </h2>
         <p className="text-zinc-500 text-center mb-6 text-sm max-w-[250px]">{dict.selectOrder}</p>
       </div>
 
       {workOrders.length > 0 && (
         <div className="w-full max-w-sm flex flex-col gap-3 mb-6">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">{dict.pendingOrders}</h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-2">
+            {dict.pendingOrders}
+          </h3>
 
           {overdueOrder && (
             <div className="w-full bg-red-50 dark:bg-red-500/10 border-2 border-red-500 dark:border-red-600 rounded-xl p-3 mb-2 flex items-start gap-3 shadow-sm animate-pulse">
@@ -52,7 +56,9 @@ export default function PendingOrdersList({
                 <Clock className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-red-800 dark:text-red-300">{dict.orderOverdueTitle}</span>
+                <span className="text-sm font-bold text-red-800 dark:text-red-300">
+                  {dict.orderOverdueTitle}
+                </span>
                 <span className="text-xs text-red-700 dark:text-red-400/90 mt-0.5">
                   {formatDict(dict.orderOverdueBody, { id: overdueOrder.id })}
                 </span>
@@ -66,7 +72,9 @@ export default function PendingOrdersList({
                 <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-rose-800 dark:text-rose-300">{dict.upcomingTerm}</span>
+                <span className="text-sm font-bold text-rose-800 dark:text-rose-300">
+                  {dict.upcomingTerm}
+                </span>
                 <span className="text-xs text-rose-700 dark:text-rose-400/90 mt-0.5">
                   {formatDict(dict.orderFastReq, {
                     id: upcomingOrder.id,
@@ -92,7 +100,9 @@ export default function PendingOrdersList({
 
       {(!currentUser || currentUser.canCreateOwnOrders !== false) && (
         <div className="w-full max-w-sm flex flex-col items-center mt-4">
-          <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">{dict.or}</div>
+          <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">
+            {dict.or}
+          </div>
           <Link
             href="/worker/wizard"
             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"

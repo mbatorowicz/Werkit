@@ -1,4 +1,4 @@
-import { db } from '@/db';
+import { db } from "@/db";
 import {
   workSessions,
   users,
@@ -6,10 +6,10 @@ import {
   workOrders,
   companySettings,
   resourceCategories,
-} from '@/db/schema';
-import { eq, desc, and, gte, lt } from 'drizzle-orm';
-import type { ReportsDashboardSnapshot, ReportActiveSessionRow } from '@/types/admin';
-import { resolveCompanyBaseCoords } from '@/lib/map/companyBaseLocation';
+} from "@/db/schema";
+import { eq, desc, and, gte, lt } from "drizzle-orm";
+import type { ReportsDashboardSnapshot, ReportActiveSessionRow } from "@/types/admin";
+import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
 
 export class AdminReportService {
   /**
@@ -17,7 +17,7 @@ export class AdminReportService {
    */
   static async getDashboardSnapshot(
     companyId: number,
-    referenceDate = new Date(),
+    referenceDate = new Date()
   ): Promise<ReportsDashboardSnapshot> {
     const y = referenceDate.getFullYear();
     const m = referenceDate.getMonth();
@@ -27,11 +27,7 @@ export class AdminReportService {
 
     const [settingsRow, activeSessions, pendingRows, monthSessions, prevMonthSessions] =
       await Promise.all([
-        db
-          .select()
-          .from(companySettings)
-          .where(eq(companySettings.companyId, companyId))
-          .limit(1),
+        db.select().from(companySettings).where(eq(companySettings.companyId, companyId)).limit(1),
         AdminReportService.fetchActiveSessionsRows(companyId),
         AdminReportService.fetchPendingOrderUserIds(companyId),
         AdminReportService.fetchCompletedSessionsBetween(companyId, monthStart, monthEndExclusive),
@@ -98,7 +94,7 @@ export class AdminReportService {
   }
 
   private static async fetchActiveSessionsRows(
-    companyId: number,
+    companyId: number
   ): Promise<ReportActiveSessionRow[]> {
     const rows = await db
       .select({
@@ -115,9 +111,7 @@ export class AdminReportService {
       .leftJoin(users, eq(workSessions.userId, users.id))
       .leftJoin(resources, eq(workSessions.resourceId, resources.id))
       .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
-      .where(
-        and(eq(workSessions.companyId, companyId), eq(workSessions.status, 'IN_PROGRESS')),
-      )
+      .where(and(eq(workSessions.companyId, companyId), eq(workSessions.status, "IN_PROGRESS")))
       .orderBy(desc(workSessions.startTime));
 
     return rows.map((r) => ({
@@ -132,19 +126,17 @@ export class AdminReportService {
     }));
   }
 
-  private static async fetchPendingOrderUserIds(
-    companyId: number,
-  ): Promise<{ userId: number }[]> {
+  private static async fetchPendingOrderUserIds(companyId: number): Promise<{ userId: number }[]> {
     return db
       .select({ userId: workOrders.userId })
       .from(workOrders)
-      .where(and(eq(workOrders.companyId, companyId), eq(workOrders.status, 'PENDING')));
+      .where(and(eq(workOrders.companyId, companyId), eq(workOrders.status, "PENDING")));
   }
 
   private static async fetchCompletedSessionsBetween(
     companyId: number,
     start: Date,
-    endExclusive: Date,
+    endExclusive: Date
   ) {
     return db
       .select({
@@ -157,10 +149,10 @@ export class AdminReportService {
       .where(
         and(
           eq(workSessions.companyId, companyId),
-          eq(workSessions.status, 'COMPLETED'),
+          eq(workSessions.status, "COMPLETED"),
           gte(workSessions.startTime, start),
-          lt(workSessions.startTime, endExclusive),
-        ),
+          lt(workSessions.startTime, endExclusive)
+        )
       );
   }
 }

@@ -86,8 +86,26 @@ describe("WorkOrderSparePartService", () => {
 
     it("zwraca liste czesci dla zlecenia", async () => {
       const mockParts = [
-        { id: 1, workOrderId: 1, partId: 10, partName: "SKF 6205", partSku: "6205-2RS", quantity: "2", unitPrice: "45.50", notes: null },
-        { id: 2, workOrderId: 1, partId: 11, partName: "FAG 6305", partSku: "6305-C3", quantity: "1", unitPrice: "32.00", notes: "szybka dostawa" },
+        {
+          id: 1,
+          workOrderId: 1,
+          partId: 10,
+          partName: "SKF 6205",
+          partSku: "6205-2RS",
+          quantity: "2",
+          unitPrice: "45.50",
+          notes: null,
+        },
+        {
+          id: 2,
+          workOrderId: 1,
+          partId: 11,
+          partName: "FAG 6305",
+          partSku: "6305-C3",
+          quantity: "1",
+          unitPrice: "32.00",
+          notes: "szybka dostawa",
+        },
       ];
       const chain = {
         from: vi.fn(() => chain),
@@ -109,7 +127,14 @@ describe("WorkOrderSparePartService", () => {
 
   describe("addPartToOrder", () => {
     it("dodaje czesc do zlecenia z domyslna iloscia 1", async () => {
-      const inserted = { id: 1, workOrderId: 1, partId: 10, quantity: "1", unitPrice: null, notes: null };
+      const inserted = {
+        id: 1,
+        workOrderId: 1,
+        partId: 10,
+        quantity: "1",
+        unitPrice: null,
+        notes: null,
+      };
       const chain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
@@ -124,7 +149,14 @@ describe("WorkOrderSparePartService", () => {
     });
 
     it("dodaje czesc z podana iloscia i cena", async () => {
-      const inserted = { id: 2, workOrderId: 1, partId: 11, quantity: "3", unitPrice: "25.00", notes: "oryginal" };
+      const inserted = {
+        id: 2,
+        workOrderId: 1,
+        partId: 11,
+        quantity: "3",
+        unitPrice: "25.00",
+        notes: "oryginal",
+      };
       const chain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
@@ -146,7 +178,14 @@ describe("WorkOrderSparePartService", () => {
 
   describe("updatePartInOrder", () => {
     it("aktualizuje ilosc czesci w zleceniu", async () => {
-      const updated = { id: 1, workOrderId: 1, partId: 10, quantity: "5", unitPrice: null, notes: null };
+      const updated = {
+        id: 1,
+        workOrderId: 1,
+        partId: 10,
+        quantity: "5",
+        unitPrice: null,
+        notes: null,
+      };
       const chain = {
         set: vi.fn(() => chain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
@@ -160,7 +199,14 @@ describe("WorkOrderSparePartService", () => {
     });
 
     it("aktualizuje cene i notatki", async () => {
-      const updated = { id: 1, workOrderId: 1, partId: 10, quantity: "2", unitPrice: "50.00", notes: "zmiana ceny" };
+      const updated = {
+        id: 1,
+        workOrderId: 1,
+        partId: 10,
+        quantity: "2",
+        unitPrice: "50.00",
+        notes: "zmiana ceny",
+      };
       const chain = {
         set: vi.fn(() => chain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
@@ -180,7 +226,14 @@ describe("WorkOrderSparePartService", () => {
 
   describe("removePartFromOrder", () => {
     it("usuwa czesc ze zlecenia i zwraca ja", async () => {
-      const deleted = { id: 1, workOrderId: 1, partId: 10, quantity: "1", unitPrice: null, notes: null };
+      const deleted = {
+        id: 1,
+        workOrderId: 1,
+        partId: 10,
+        quantity: "1",
+        unitPrice: null,
+        notes: null,
+      };
       const chain = {
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([deleted])) })),
       };

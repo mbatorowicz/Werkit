@@ -13,25 +13,37 @@ export function narrowSession(v: unknown): Session | null {
   ) {
     return null;
   }
-  const categoryName = v.categoryName === null || typeof v.categoryName === "string" ? v.categoryName : null;
+  const categoryName =
+    v.categoryName === null || typeof v.categoryName === "string" ? v.categoryName : null;
   return {
     id: v.id,
     startTime: v.startTime,
     endTime: typeof v.endTime === "string" ? v.endTime : undefined,
     categoryId: v.categoryId,
     categoryName,
-    categoryIsStationary: typeof v.categoryIsStationary === "boolean" ? v.categoryIsStationary : undefined,
+    categoryIsStationary:
+      typeof v.categoryIsStationary === "boolean" ? v.categoryIsStationary : undefined,
     status: v.status,
     customerAddress:
-      v.customerAddress === null || typeof v.customerAddress === "string" ? (v.customerAddress as string | null) : undefined,
-    customerLat: v.customerLat === null || typeof v.customerLat === "string" ? (v.customerLat as string | null) : undefined,
-    customerLng: v.customerLng === null || typeof v.customerLng === "string" ? (v.customerLng as string | null) : undefined,
+      v.customerAddress === null || typeof v.customerAddress === "string"
+        ? (v.customerAddress as string | null)
+        : undefined,
+    customerLat:
+      v.customerLat === null || typeof v.customerLat === "string"
+        ? (v.customerLat as string | null)
+        : undefined,
+    customerLng:
+      v.customerLng === null || typeof v.customerLng === "string"
+        ? (v.customerLng as string | null)
+        : undefined,
     expectedDurationHours:
       v.expectedDurationHours === null || typeof v.expectedDurationHours === "string"
         ? (v.expectedDurationHours as string | null)
         : undefined,
     taskDescription:
-      v.taskDescription === null || typeof v.taskDescription === "string" ? (v.taskDescription as string | null) : undefined,
+      v.taskDescription === null || typeof v.taskDescription === "string"
+        ? (v.taskDescription as string | null)
+        : undefined,
     workOrderId:
       typeof v.workOrderId === "number" ? v.workOrderId : v.workOrderId === null ? null : undefined,
     customerFirstName:
@@ -42,14 +54,26 @@ export function narrowSession(v: unknown): Session | null {
       v.customerLastName === null || typeof v.customerLastName === "string"
         ? (v.customerLastName as string | null)
         : undefined,
-    resourceName: v.resourceName === null || typeof v.resourceName === "string" ? (v.resourceName as string | null) : undefined,
-    materialName: v.materialName === null || typeof v.materialName === "string" ? (v.materialName as string | null) : undefined,
+    resourceName:
+      v.resourceName === null || typeof v.resourceName === "string"
+        ? (v.resourceName as string | null)
+        : undefined,
+    materialName:
+      v.materialName === null || typeof v.materialName === "string"
+        ? (v.materialName as string | null)
+        : undefined,
     quantityTons:
-      v.quantityTons === null || typeof v.quantityTons === "number" ? (v.quantityTons as number | null) : undefined,
+      v.quantityTons === null || typeof v.quantityTons === "number"
+        ? (v.quantityTons as number | null)
+        : undefined,
     hasPhotos: typeof v.hasPhotos === "boolean" ? v.hasPhotos : undefined,
     hasNotes: typeof v.hasNotes === "boolean" ? v.hasNotes : undefined,
     customerLocationId:
-      typeof v.customerLocationId === "number" ? v.customerLocationId : v.customerLocationId === null ? null : undefined,
+      typeof v.customerLocationId === "number"
+        ? v.customerLocationId
+        : v.customerLocationId === null
+          ? null
+          : undefined,
     routeWaypoints: parseRouteWaypoints(v.routeWaypoints),
   };
 }
@@ -65,7 +89,10 @@ export function narrowAppSettings(v: unknown): AppSettings | null {
     s.cancelWindowMinutes = v.cancelWindowMinutes;
   }
   if (typeof v.timeOverrunReminder === "boolean") s.timeOverrunReminder = v.timeOverrunReminder;
-  if (typeof v.upcomingOrderReminderMinutes === "number" && Number.isFinite(v.upcomingOrderReminderMinutes)) {
+  if (
+    typeof v.upcomingOrderReminderMinutes === "number" &&
+    Number.isFinite(v.upcomingOrderReminderMinutes)
+  ) {
     s.upcomingOrderReminderMinutes = v.upcomingOrderReminderMinutes;
   }
   return s;

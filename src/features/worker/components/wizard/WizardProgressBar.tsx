@@ -13,7 +13,9 @@ export function WizardProgressBar({ step }: { step: number }) {
             {s}
           </div>
           {s < 5 && (
-            <div className={`w-8 md:w-12 h-1 mx-1 rounded-full ${step > s ? "bg-emerald-500" : "bg-zinc-800"}`} />
+            <div
+              className={`w-8 md:w-12 h-1 mx-1 rounded-full ${step > s ? "bg-emerald-500" : "bg-zinc-800"}`}
+            />
           )}
         </div>
       ))}

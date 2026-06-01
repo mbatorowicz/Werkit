@@ -35,7 +35,8 @@ export const adminApi = {
   workOrder: (id: number) => `/api/admin/work-orders/${id}`,
   archive: "/api/admin/archive",
   spareParts: (workOrderId: number) => `/api/admin/work-orders/${workOrderId}/spare-parts`,
-  sparePart: (workOrderId: number, partId: number) => `/api/admin/work-orders/${workOrderId}/spare-parts/${partId}`,
+  sparePart: (workOrderId: number, partId: number) =>
+    `/api/admin/work-orders/${workOrderId}/spare-parts/${partId}`,
   organization: {
     departments: "/api/admin/organization/departments",
     department: (id: number) => `/api/admin/organization/departments/${id}`,

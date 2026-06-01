@@ -1,6 +1,6 @@
-import { db } from '@/db';
-import { companySettings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { db } from "@/db";
+import { companySettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export class SettingsService {
   static async getSettings(companyId: number) {
@@ -13,7 +13,7 @@ export class SettingsService {
 
   static async updateSettings(
     companyId: number,
-    updates: Partial<typeof companySettings.$inferInsert>,
+    updates: Partial<typeof companySettings.$inferInsert>
   ) {
     const { companyId: _omit, id: _id, ...rest } = updates;
     await db

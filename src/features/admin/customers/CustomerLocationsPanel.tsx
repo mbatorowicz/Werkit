@@ -17,8 +17,10 @@ const CustomerRoutePlannerMap = dynamic(
   () => import("@/components/Map/CustomerRoutePlannerMap").then((m) => m.CustomerRoutePlannerMap),
   {
     ssr: false,
-    loading: () => <div className="h-[280px] bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />,
-  },
+    loading: () => (
+      <div className="h-[280px] bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
+    ),
+  }
 );
 
 type LocationForm = {
@@ -68,11 +70,16 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
           `Admin: customer ${customerId} locations`,
           `/api/customers/${customerId}/locations`,
           { cache: "no-store" },
-          { category: "admin" },
+          { category: "admin" }
         ),
-        fetchWithDeviceTelemetry("Admin: settings for route origin", adminApi.settings, { cache: "no-store" }, {
-          category: "admin",
-        }),
+        fetchWithDeviceTelemetry(
+          "Admin: settings for route origin",
+          adminApi.settings,
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ),
       ]);
       const locData = await parseJsonArray(locRes);
       const rows = locData.filter(isCustomerLocationRow);
@@ -151,10 +158,19 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         "Admin: geocode customer location",
         `/api/geocode?q=${encodeURIComponent(q)}`,
         { cache: "no-store" },
-        { category: "admin" },
+        { category: "admin" }
       );
-      const data = (await res.json()) as { lat?: number | null; lng?: number | null; error?: string };
-      if (!res.ok || data.error === "not_found" || typeof data.lat !== "number" || typeof data.lng !== "number") {
+      const data = (await res.json()) as {
+        lat?: number | null;
+        lng?: number | null;
+        error?: string;
+      };
+      if (
+        !res.ok ||
+        data.error === "not_found" ||
+        typeof data.lat !== "number" ||
+        typeof data.lng !== "number"
+      ) {
         await appAlert({ message: dict.geocodeNoResults });
         return;
       }
@@ -187,7 +203,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         "Admin: save customer location",
         url,
         { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
-        { category: "admin" },
+        { category: "admin" }
       );
       if (!res.ok) {
         const err = readApiErrorString(await parseJsonUnknown(res));
@@ -212,7 +228,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       `Admin: delete location ${id}`,
       `/api/customers/${customerId}/locations/${id}`,
       { method: "DELETE" },
-      { category: "admin" },
+      { category: "admin" }
     );
     if (res.ok) {
       if (selectedId === id) {
@@ -237,7 +253,9 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   return (
     <div className="space-y-4 border-t border-zinc-200 dark:border-zinc-700 pt-5 mt-2">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">{dict.locationsTitle}</h3>
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+          {dict.locationsTitle}
+        </h3>
         <button
           type="button"
           onClick={startNewLocation}
@@ -275,7 +293,9 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       ) : (
         <div className="space-y-3 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 bg-zinc-50/80 dark:bg-zinc-950/40">
           <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-            {isDraftOpen && selectedId === null ? dict.locationNewHeading : dict.locationEditHeading}
+            {isDraftOpen && selectedId === null
+              ? dict.locationNewHeading
+              : dict.locationEditHeading}
           </p>
           <input
             type="text"
@@ -344,5 +364,3 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     </div>
   );
 }
-
-

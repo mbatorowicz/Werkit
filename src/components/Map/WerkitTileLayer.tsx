@@ -1,21 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { TileLayer, useMap } from 'react-leaflet';
-import { useTheme } from 'next-themes';
-import {
-  getMapBasemapPreset,
-  MAP_TILE_MAX_ZOOM,
-  MAP_TILE_SUBDOMAINS,
-} from '@/lib/map/mapBasemap';
-import './mapLeafletTheme.css';
+import { useEffect, useState } from "react";
+import { TileLayer, useMap } from "react-leaflet";
+import { useTheme } from "next-themes";
+import { getMapBasemapPreset, MAP_TILE_MAX_ZOOM, MAP_TILE_SUBDOMAINS } from "@/lib/map/mapBasemap";
+import "./mapLeafletTheme.css";
 
 function MapThemeSync({ themeKey }: { themeKey: string }) {
   const map = useMap();
   useEffect(() => {
     map.invalidateSize({ animate: false });
     map.eachLayer((layer) => {
-      if ('redraw' in layer && typeof layer.redraw === 'function') {
+      if ("redraw" in layer && typeof layer.redraw === "function") {
         layer.redraw();
       }
     });
@@ -35,7 +31,7 @@ export function WerkitTileLayer() {
     queueMicrotask(() => setMounted(true));
   }, []);
 
-  const isDark = mounted && resolvedTheme === 'dark';
+  const isDark = mounted && resolvedTheme === "dark";
   const preset = getMapBasemapPreset(isDark);
   const themeKey = preset.id;
 
@@ -46,7 +42,7 @@ export function WerkitTileLayer() {
         <TileLayer
           key={`${themeKey}-${index}-${layer.url}`}
           url={layer.url}
-          attribution={layer.attribution ?? ''}
+          attribution={layer.attribution ?? ""}
           subdomains={MAP_TILE_SUBDOMAINS}
           maxZoom={MAP_TILE_MAX_ZOOM}
           zIndex={layer.zIndex ?? (index === 0 ? 0 : index)}

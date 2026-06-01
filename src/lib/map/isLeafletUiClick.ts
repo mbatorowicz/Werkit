@@ -6,8 +6,8 @@ export function isLeafletUiClick(e: LeafletMouseEvent): boolean {
   if (!(target instanceof Element)) return false;
   return Boolean(
     target.closest(".leaflet-popup") ||
-      target.closest(".leaflet-marker-icon") ||
-      target.closest(".leaflet-control") ||
-      target.closest(".werkit-route-waypoint-icon"),
+    target.closest(".leaflet-marker-icon") ||
+    target.closest(".leaflet-control") ||
+    target.closest(".werkit-route-waypoint-icon")
   );
 }

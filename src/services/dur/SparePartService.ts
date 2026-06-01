@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { spareParts, sparePartToCategories, sparePartMachineCompatibility } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { assertSparePartCategoriesAssignable } from '@/services/dur/categoryValidation';
+import { db } from "@/db";
+import { spareParts, sparePartToCategories, sparePartMachineCompatibility } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { assertSparePartCategoriesAssignable } from "@/services/dur/categoryValidation";
 
 export class SparePartService {
   static async getParts(companyId: number) {
@@ -77,7 +77,7 @@ export class SparePartService {
       isActive?: boolean;
       categoryIds?: number[];
       machineCategoryIds?: number[];
-    },
+    }
   ) {
     const catIds = data.categoryIds ?? [];
     const machIds = data.machineCategoryIds ?? [];
@@ -91,13 +91,13 @@ export class SparePartService {
       .values({
         companyId,
         name: data.name.trim(),
-        catalogNumber: data.catalogNumber ?? '',
-        manufacturer: data.manufacturer ?? '',
-        unit: data.unit ?? 'szt',
+        catalogNumber: data.catalogNumber ?? "",
+        manufacturer: data.manufacturer ?? "",
+        unit: data.unit ?? "szt",
         purchasePrice: data.purchasePrice ?? null,
         description: data.description ?? null,
-        minStock: data.minStock ?? '0',
-        location: data.location ?? '',
+        minStock: data.minStock ?? "0",
+        location: data.location ?? "",
         imageUrl: data.imageUrl ?? null,
         isActive: data.isActive ?? true,
       })
@@ -106,15 +106,15 @@ export class SparePartService {
     const partId = res[0].id;
 
     if (catIds.length > 0) {
-      await db.insert(sparePartToCategories).values(
-        catIds.map((cid) => ({ partId, categoryId: cid })),
-      );
+      await db
+        .insert(sparePartToCategories)
+        .values(catIds.map((cid) => ({ partId, categoryId: cid })));
     }
 
     if (machIds.length > 0) {
-      await db.insert(sparePartMachineCompatibility).values(
-        machIds.map((cid) => ({ partId, categoryId: cid })),
-      );
+      await db
+        .insert(sparePartMachineCompatibility)
+        .values(machIds.map((cid) => ({ partId, categoryId: cid })));
     }
 
     return partId;
@@ -136,7 +136,7 @@ export class SparePartService {
       isActive?: boolean;
       categoryIds?: number[];
       machineCategoryIds?: number[];
-    },
+    }
   ) {
     const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name.trim();
@@ -165,9 +165,9 @@ export class SparePartService {
       }
       await db.delete(sparePartToCategories).where(eq(sparePartToCategories.partId, id));
       if (catIds.length > 0) {
-        await db.insert(sparePartToCategories).values(
-          catIds.map((cid) => ({ partId: id, categoryId: cid })),
-        );
+        await db
+          .insert(sparePartToCategories)
+          .values(catIds.map((cid) => ({ partId: id, categoryId: cid })));
       }
     }
 
@@ -178,9 +178,9 @@ export class SparePartService {
         .delete(sparePartMachineCompatibility)
         .where(eq(sparePartMachineCompatibility.partId, id));
       if (machIds.length > 0) {
-        await db.insert(sparePartMachineCompatibility).values(
-          machIds.map((cid) => ({ partId: id, categoryId: cid })),
-        );
+        await db
+          .insert(sparePartMachineCompatibility)
+          .values(machIds.map((cid) => ({ partId: id, categoryId: cid })));
       }
     }
   }

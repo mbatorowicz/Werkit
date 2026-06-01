@@ -82,7 +82,6 @@ export default function StockMovementsClient() {
     setShowModal(false);
   }, []);
 
-
   const currentDict = tab === "receipts" ? wDict.receipts : wDict.issues;
   const currentData = tab === "receipts" ? receipts : issues;
 
@@ -131,7 +130,9 @@ export default function StockMovementsClient() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="text-center py-12 text-zinc-500">{dictionary.admin.ui.searchNoResults || "Ładowanie…"}</div>
+        <div className="text-center py-12 text-zinc-500">
+          {dictionary.admin.ui.searchNoResults || "Ładowanie…"}
+        </div>
       ) : currentData.length === 0 ? (
         <div className="text-center py-12 text-zinc-500">
           <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
@@ -139,12 +140,25 @@ export default function StockMovementsClient() {
         </div>
       ) : tab === "receipts" ? (
         <StockReceiptsTable
-          receipts={receipts as (StockReceipt & { partName?: string; partCatalogNumber?: string; creatorName?: string })[]}
+          receipts={
+            receipts as (StockReceipt & {
+              partName?: string;
+              partCatalogNumber?: string;
+              creatorName?: string;
+            })[]
+          }
           dict={wDict.receipts}
         />
       ) : (
         <StockIssuesTable
-          issues={issues as (StockIssue & { partName?: string; partCatalogNumber?: string; creatorName?: string; workOrderLabel?: string })[]}
+          issues={
+            issues as (StockIssue & {
+              partName?: string;
+              partCatalogNumber?: string;
+              creatorName?: string;
+              workOrderLabel?: string;
+            })[]
+          }
           dict={wDict.issues}
         />
       )}

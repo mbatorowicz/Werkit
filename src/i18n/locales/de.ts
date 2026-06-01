@@ -37,7 +37,8 @@ export const de: AppDictionary = {
     no_active_session: "Keine aktive Sitzung.",
     unauthorized: "Nicht autorisiert.",
     biometric_workers_only: "Biometrische Anmeldung ist nur für Arbeiterkonten verfügbar.",
-    biometric_password_required: "Geben Sie Ihr aktuelles Passwort ein, um Biometrie zu aktivieren.",
+    biometric_password_required:
+      "Geben Sie Ihr aktuelles Passwort ein, um Biometrie zu aktivieren.",
     invalid_payload: "Ungültige Formulardaten.",
     short_query: "Geocode-Abfrage ist zu kurz (min. 3 Zeichen).",
     query_too_long: "Geocode-Abfrage ist zu lang (max. 280 Zeichen).",
@@ -46,15 +47,19 @@ export const de: AppDictionary = {
     missing_material: "Dieser Auftragstyp erfordert die Auswahl eines Materials.",
     missing_quantity: "Dieser Auftragstyp erfordert eine positive Menge (Tonnen).",
     missing_task_description: "Dieser Auftragstyp erfordert eine kurze Beschreibung.",
-    session_still_active: "Sitzung ist noch aktiv — beenden Sie sie zuerst manuell oder in der Arbeiter-App.",
-    schedule_conflict: "Dieser Zeitraum kollidiert mit einem anderen Auftrag oder einer aktiven Sitzung.",
+    session_still_active:
+      "Sitzung ist noch aktiv — beenden Sie sie zuerst manuell oder in der Arbeiter-App.",
+    schedule_conflict:
+      "Dieser Zeitraum kollidiert mit einem anderen Auftrag oder einer aktiven Sitzung.",
     resource_busy: "Diese Ressource wird derzeit von einer anderen aktiven Sitzung genutzt.",
     order_not_found: "Auftrag nicht gefunden.",
     not_in_progress: "Diese Sitzung ist nicht mehr in Bearbeitung.",
-    group_has_children: "Eine Gruppe mit Unterkategorien kann nicht gelöscht werden. Entfernen oder verschieben Sie zuerst die Unterelemente.",
+    group_has_children:
+      "Eine Gruppe mit Unterkategorien kann nicht gelöscht werden. Entfernen oder verschieben Sie zuerst die Unterelemente.",
     parent_must_be_group: "Übergeordnetes Element muss als Gruppe markiert sein.",
     invalid_parent: "Ungültiges übergeordnetes Element (Zyklus oder fehlender Eintrag).",
-    feature_disabled: "Diese Funktion ist für Ihre Organisation deaktiviert. Kontaktieren Sie Ihren Administrator.",
+    feature_disabled:
+      "Diese Funktion ist für Ihre Organisation deaktiviert. Kontaktieren Sie Ihren Administrator.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Geschätzte Arbeitszeit (Std.)",
@@ -67,7 +72,8 @@ export const de: AppDictionary = {
       worker: "{workerName} ist beschäftigt um {timeRange} (Auftrag #{orderId}: {task})",
       resource: "{resourceName} ist reserviert um {timeRange} (Auftrag #{orderId}: {task})",
       sessionWorker: "{workerName} hat aktive Sitzung #{sessionId} um {start}–{end} ({task})",
-      sessionResource: "{resourceName} wird durch Sitzung #{sessionId} genutzt um {start}–{end} ({task})",
+      sessionResource:
+        "{resourceName} wird durch Sitzung #{sessionId} genutzt um {start}–{end} ({task})",
       machineHint:
         "Mehrere Aufträge können eine Ressource teilen — verwenden Sie «Trotz Konflikt erstellen», falls beabsichtigt.",
       workerBlockedHint:
@@ -120,7 +126,7 @@ export const de: AppDictionary = {
       system: "System",
       companySettings: "Firmeneinstellungen",
       organization: "Organisation",
-      logoutSession: "Sitzung abmelden"
+      logoutSession: "Sitzung abmelden",
     },
     organization: {
       title: "Organisationsstruktur",
@@ -188,15 +194,20 @@ export const de: AppDictionary = {
         panelTitle: "Auftrags- & Ressourcenkategorien",
         panelSubtitle:
           "Baum von Gruppen und Kategorien: Auftragstypen im Feld, Formularfelder und Klassifizierung von Ressourceneinträgen.",
-        empty: "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu (z.B. Transport, Hof), um Ressourcen zuzuweisen und Auftragsformulare zu konfigurieren.",
-        confirmDelete: "Diesen Eintrag löschen? Er kann dann keinen Ressourcen oder Aufträgen mehr zugewiesen werden.",
+        empty:
+          "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu (z.B. Transport, Hof), um Ressourcen zuzuweisen und Auftragsformulare zu konfigurieren.",
+        confirmDelete:
+          "Diesen Eintrag löschen? Er kann dann keinen Ressourcen oder Aufträgen mehr zugewiesen werden.",
         namePlaceholder: "z.B. Transport, Servicehof",
       },
       materials: {
         panelTitle: "Materialkategorien",
-        panelSubtitle: "Baum von Gruppen und Kategorien zur Klassifizierung von Materialien in der Datenbank.",
-        empty: "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu, um Materialien zu klassifizieren.",
-        confirmDelete: "Das Löschen dieser Kategorie trennt die Verbindung zu Materialien. Fortfahren?",
+        panelSubtitle:
+          "Baum von Gruppen und Kategorien zur Klassifizierung von Materialien in der Datenbank.",
+        empty:
+          "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu, um Materialien zu klassifizieren.",
+        confirmDelete:
+          "Das Löschen dieser Kategorie trennt die Verbindung zu Materialien. Fortfahren?",
         namePlaceholder: "z.B. Sand, Erde, Schotter",
       },
     },
@@ -233,12 +244,13 @@ export const de: AppDictionary = {
       completedTasks: "Abgeschlossene Aufträge",
       transportedMaterials: "Transportierte Materialien",
       machineUtilization: "Ressourcenauslastung",
-      noDataThisMonth: "Keine Daten für diesen Monat."
+      noDataThisMonth: "Keine Daten für diesen Monat.",
     },
     reports: {
       title: "Betriebsberichte",
       subtitle: "Leistungsübersicht und Arbeitsbelastung für",
-      periodHint: "„Dieser Monat“ bedeutet abgeschlossene Sitzungen, die ab dem 1. des aktuellen Kalendermonats bis jetzt begonnen wurden.",
+      periodHint:
+        "„Dieser Monat“ bedeutet abgeschlossene Sitzungen, die ab dem 1. des aktuellen Kalendermonats bis jetzt begonnen wurden.",
       workersWithAssignedOrders: "Arbeiter mit ausstehenden Aufträgen",
       workersCurrentlyWorking: "Arbeiter, die gerade einen Auftrag ausführen",
       pendingOrdersTotal: "Ausstehende Aufträge (Anzahl)",
@@ -265,13 +277,14 @@ export const de: AppDictionary = {
       status: "Status",
       fetching: "Register wird abgerufen...",
       noEntries: "Keine Einträge im Register",
-      noEntriesDesc: "Arbeiter haben noch keine Arbeit geleistet, die den angegebenen Kriterien entspricht.",
+      noEntriesDesc:
+        "Arbeiter haben noch keine Arbeit geleistet, die den angegebenen Kriterien entspricht.",
       transport: "Materialtransport",
       machineOp: "Ressourceneinsatz",
       workshop: "Werkstatt",
       inProgress: "In Bearbeitung",
       completed: "Abgeschlossen",
-      none: "Keine"
+      none: "Keine",
     },
     orders: {
       title: "Disposition",
@@ -280,7 +293,8 @@ export const de: AppDictionary = {
       workerDate: "Arbeiter / Datum",
       fetching: "Aufträge werden abgerufen...",
       proactiveManagement: "Vorausschauende Planung",
-      noOrders: "Keine erteilten Aufträge. Klicken Sie auf „Neue Disposition“, um einem Arbeiter einen Auftrag zuzuweisen.",
+      noOrders:
+        "Keine erteilten Aufträge. Klicken Sie auf „Neue Disposition“, um einem Arbeiter einen Auftrag zuzuweisen.",
       orderedBy: "Beauftragt von:",
       pending: "Ausstehend",
       success: "Auftrag erfolgreich an den Arbeiter gesendet!",
@@ -329,11 +343,14 @@ export const de: AppDictionary = {
       priorityNormal: "Normal",
       priorityHigh: "Hoch",
       priorityUrgent: "Dringend",
-      noMachinesForCategory: "Keine Ressourcen in dieser Kategorie. Fügen Sie einen Registereintrag hinzu oder markieren Sie die Kategorie als global.",
+      noMachinesForCategory:
+        "Keine Ressourcen in dieser Kategorie. Fügen Sie einen Registereintrag hinzu oder markieren Sie die Kategorie als global.",
       modalEditOrderTitle: "Auftrag {id} bearbeiten",
       optionalSuffix: "(optional)",
-      taskOptionalHint: "Sie können trotzdem Notizen für den Bediener hinterlassen — für diesen Auftragstyp nicht erforderlich.",
-      pickCategoryFirstHint: "Wählen Sie zuerst einen Auftragstyp, um die Ressource und Formularfelder festzulegen.",
+      taskOptionalHint:
+        "Sie können trotzdem Notizen für den Bediener hinterlassen — für diesen Auftragstyp nicht erforderlich.",
+      pickCategoryFirstHint:
+        "Wählen Sie zuerst einen Auftragstyp, um die Ressource und Formularfelder festzulegen.",
       taskDesc: "Kurze Auftragsbeschreibung / Hinweise für den Fahrer",
       taskDescPlaceholder: "z.B. Achten Sie auf matschiges Gelände am Eingang...",
       save: "Bestätigen und Auftrag senden",
@@ -344,7 +361,8 @@ export const de: AppDictionary = {
       workshop: "Werkstatt",
       noMachine: "Keine Ressource",
       notStartedTitle: "Auftrag noch nicht gestartet",
-      notStartedDesc: "Dieser Auftrag ist ausstehend. Karte und Fotos sind verfügbar, nachdem der Arbeiter die Arbeit aufgenommen hat.",
+      notStartedDesc:
+        "Dieser Auftrag ist ausstehend. Karte und Fotos sind verfügbar, nachdem der Arbeiter die Arbeit aufgenommen hat.",
       loadingData: "Routendaten werden geladen...",
       noGpsData: "Keine GPS-Daten für diesen Auftrag.",
       timelineTitle: "Zeitleiste: Fotos und Notizen",
@@ -485,7 +503,8 @@ export const de: AppDictionary = {
     },
     workers: {
       title: "Benutzer",
-      subtitle: "Anmeldekonten erstellen und bearbeiten: Administrator, Arbeiter oder schreibgeschützter Betrachter.",
+      subtitle:
+        "Anmeldekonten erstellen und bearbeiten: Administrator, Arbeiter oder schreibgeschützter Betrachter.",
       addWorker: "Benutzer hinzufügen",
       addUser: "Benutzer hinzufügen",
       nameRole: "Vollständiger Name / Rolle",
@@ -539,7 +558,8 @@ export const de: AppDictionary = {
       fleetTitle: "Betriebsmittel",
       pageSubtitle: "Auftrags- und Ressourcenkategoriebaum plus Betriebsregister.",
       sectionVehiclesTitle: "Ressourcenregister",
-      fleetSubtitle: "Registereinträge (Fahrzeuge, Maschinen, Standorte usw.) unter den obigen Kategorien.",
+      fleetSubtitle:
+        "Registereinträge (Fahrzeuge, Maschinen, Standorte usw.) unter den obigen Kategorien.",
       registerVehicle: "Ressource hinzufügen",
       addResource: "Ressource hinzufügen",
       resourceColTitle: "Ressource",
@@ -563,7 +583,8 @@ export const de: AppDictionary = {
       machNamePlaceholder: "z.B. Werkstatt, Scania R420",
       machRegLabel: "Kennzeichen",
       machRegPlaceholder: "z.B. ABC 12345",
-      machIdentityRequired: "Füllen Sie die für die ausgewählte Kategorie sichtbaren Felder aus (z.B. Name, Kennzeichen oder Beschreibung).",
+      machIdentityRequired:
+        "Füllen Sie die für die ausgewählte Kategorie sichtbaren Felder aus (z.B. Name, Kennzeichen oder Beschreibung).",
       machCatLabel: "Kategorie",
       machCatWarning: "Zuerst eine Kategorie oben hinzufügen.",
       saveFleet: "Speichern",
@@ -603,7 +624,8 @@ export const de: AppDictionary = {
       uncategorizedTitle: "Ohne zugewiesene Kategorie",
       sectionItemsTitle: "Materialien in der Datenbank",
       fleetTitle: "Materialien",
-      fleetSubtitle: "Materialien hinzufügen und jeweils mindestens einer Kategorie aus dem obigen Baum zuweisen.",
+      fleetSubtitle:
+        "Materialien hinzufügen und jeweils mindestens einer Kategorie aus dem obigen Baum zuweisen.",
       registerMaterial: "Material hinzufügen",
       materialReg: "Material / Name",
       addMaterial: "Material hinzufügen",
@@ -619,7 +641,7 @@ export const de: AppDictionary = {
       matCatRequired: "Wählen Sie mindestens eine Kategorie aus.",
       save: "Änderungen speichern",
       saveFleet: "Material speichern",
-      create: "Material hinzufügen"
+      create: "Material hinzufügen",
     },
     customers: {
       title: "Kunden",
@@ -646,7 +668,8 @@ export const de: AppDictionary = {
       geocodeBtn: "Adresse auf Karte anzeigen",
       geocodeLoading: "Suche…",
       geocodeNeedAddress: "Geben Sie zuerst eine Adresse ein.",
-      geocodeNoResults: "Adresse nicht gefunden. Überprüfen Sie die Schreibweise oder setzen Sie die Markierung manuell.",
+      geocodeNoResults:
+        "Adresse nicht gefunden. Überprüfen Sie die Schreibweise oder setzen Sie die Markierung manuell.",
       geocodeError: "Der Adresssuchdienst konnte nicht erreicht werden. Versuchen Sie es erneut.",
       mapHint:
         "Nach Eingabe der Adresse verwenden Sie die obige Schaltfläche. Sie können auch auf die Karte klicken oder die rote Markierung ziehen, um den Lieferort anzupassen.",
@@ -665,7 +688,8 @@ export const de: AppDictionary = {
       locationSaving: "Speichern…",
       locationDelete: "Standort löschen",
       locationConfirmDelete: "Diesen Standort und seine gespeicherte Route löschen?",
-      locationSelectPrompt: "Wählen Sie einen Standort aus der obigen Liste oder fügen Sie einen neuen hinzu.",
+      locationSelectPrompt:
+        "Wählen Sie einen Standort aus der obigen Liste oder fügen Sie einen neuen hinzu.",
       locationNewHeading: "Neuer Standort",
       locationEditHeading: "Standort bearbeiten",
       locationsEditHint: "Adressen und Routen im Abschnitt Standorte unten festlegen.",
@@ -699,7 +723,8 @@ export const de: AppDictionary = {
       cityLabel: "Stadt",
       cityPlaceholder: "Berlin",
       gpsLocation: "GPS-Standort der Hauptbasis",
-      gpsWarning: "Standort wird als Standardbasis für die Distanzberechnung von Werkstattmaschinen verwendet. Falls die automatische Geokodierung der angegebenen Adresse fehlschlägt, können die Koordinaten ungenau sein.",
+      gpsWarning:
+        "Standort wird als Standardbasis für die Distanzberechnung von Werkstattmaschinen verwendet. Falls die automatische Geokodierung der angegebenen Adresse fehlschlägt, können die Koordinaten ungenau sein.",
       calcGpsBtn: "GPS automatisch basierend auf Adresse berechnen",
       lat: "Breitengrad (LAT)",
       lng: "Längengrad (LNG)",
@@ -712,17 +737,20 @@ export const de: AppDictionary = {
       geofenceLabel: "Toleranzradius für „Angekommen“ (Meter)",
       reminderLabel: "Erinnerung vor Auftrag (Minuten)",
       requirePhoto: "Foto beim Schließen der Sitzung erforderlich",
-      requirePhotoDesc: "Der „Beenden“-Button ist blockiert, bis mindestens ein Foto hinzugefügt wurde.",
+      requirePhotoDesc:
+        "Der „Beenden“-Button ist blockiert, bis mindestens ein Foto hinzugefügt wurde.",
       timeOverrun: "Zeitüberschreitungswarnung",
-      timeOverrunDesc: "Zeigt eine Benachrichtigung an, die den Arbeiter daran erinnert, den Auftrag zu beenden, wenn die geschätzte Zeit überschritten wurde.",
+      timeOverrunDesc:
+        "Zeigt eine Benachrichtigung an, die den Arbeiter daran erinnert, den Auftrag zu beenden, wenn die geschätzte Zeit überschritten wurde.",
       savedSuccess: "Einstellungen gespeichert.",
       saving: "Speichern...",
       saveBtn: "Speichern",
-      saveError: "Fehler beim Speichern."
+      saveError: "Fehler beim Speichern.",
     },
     logs: {
       subtitle: "Ereignisse von Arbeiter-Geräten im Feld.",
-      scopeNote: "Liste: bis zu {page} neueste Zeilen (Filter gelten innerhalb dieses Bereichs). Dateiexport: bis zu {exportMax} Zeilen aus der Datenbank.",
+      scopeNote:
+        "Liste: bis zu {page} neueste Zeilen (Filter gelten innerhalb dieses Bereichs). Dateiexport: bis zu {exportMax} Zeilen aus der Datenbank.",
       filterAllWorkers: "Alle Arbeiter",
       filterAllLevels: "Alle Protokolle",
       filterAllCategories: "Alle Kategorien",
@@ -763,7 +791,7 @@ export const de: AppDictionary = {
         edge: "Region {region}",
         httpStatus: "HTTP {status}",
       },
-    }
+    },
   },
   worker: {
     nav: {
@@ -776,11 +804,16 @@ export const de: AppDictionary = {
       refresh: "Liste aktualisieren",
       offlineBanner: "Keine Internetverbindung",
       offlinePendingCount: "{count} Operationen warten",
-      offlineQueuedEndSession: "Sitzungsende wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
-      offlineQueuedCancel: "Auftragsstornierung wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
-      offlineQueuedCheckpoint: "Ankunft gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
-      offlineQueuedNote: "Notiz wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
-      offlineQueuedPhoto: "Foto wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedEndSession:
+        "Sitzungsende wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedCancel:
+        "Auftragsstornierung wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedCheckpoint:
+        "Ankunft gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedNote:
+        "Notiz wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
+      offlineQueuedPhoto:
+        "Foto wurde gespeichert. Wird gesendet, sobald die Verbindung wiederhergestellt ist.",
       loadingWorkerDashboard: "Status wird geladen…",
       readyToStart: "Bereit zum Start?",
       selectOrder: "Wählen Sie einen vorbereiteten Auftrag oder starten Sie manuell.",
@@ -813,7 +846,8 @@ export const de: AppDictionary = {
       connOk: "VERBINDUNG OK",
       searching: "SUCHE...",
       error: "FEHLER",
-      timeOverrunWarn: "Geschätzte Auftragszeit überschritten. Haben Sie vergessen, die Arbeit zu beenden?",
+      timeOverrunWarn:
+        "Geschätzte Auftragszeit überschritten. Haben Sie vergessen, die Arbeit zu beenden?",
       routeTraveled: "Zurückgelegte Route",
       sessionStationaryBadge: "Arbeitsmodus",
       sessionStationaryGpsNote: "Stationär — keine GPS-Routenverfolgung.",
@@ -837,11 +871,14 @@ export const de: AppDictionary = {
       edit: "Bearbeiten",
       photoSaved: "Foto gespeichert.",
       photoError: "Fehler beim Speichern des Fotos.",
-      photoReqFinish: "Es muss mindestens ein Foto hinzugefügt werden, bevor die Route beendet werden kann!",
+      photoReqFinish:
+        "Es muss mindestens ein Foto hinzugefügt werden, bevor die Route beendet werden kann!",
       locationError: "Fehler beim Teilen des Standorts.",
-      locationErrorDesc: "Stellen Sie sicher, dass Ihr Browser die erforderlichen Berechtigungen hat.",
+      locationErrorDesc:
+        "Stellen Sie sicher, dass Ihr Browser die erforderlichen Berechtigungen hat.",
       locationReq: "Standortfreigabe erforderlich",
-      locationReqDesc: "Die Logistikanwendung benötigt kontinuierlichen GPS-Zugriff. Schalten Sie GPS ein und erlauben Sie den Zugriff im Browser.",
+      locationReqDesc:
+        "Die Logistikanwendung benötigt kontinuierlichen GPS-Zugriff. Schalten Sie GPS ein und erlauben Sie den Zugriff im Browser.",
       errEndSession: "Fehler beim Beenden der Sitzung.",
       errAcceptOrder: "Fehler beim Annehmen des Auftrags.",
       errNetwork: "Netzwerkfehler.",
@@ -854,8 +891,10 @@ export const de: AppDictionary = {
       arrivedSuccess: "Ankunft erfolgreich aufgezeichnet!",
       errArrived: "Fehler beim Aufzeichnen der Ankunft.",
       confirmEndSession: "Sind Sie sicher, dass Sie die aktuelle Schicht/Arbeit beenden möchten?",
-      confirmCancelSession: "Sind Sie sicher, dass Sie den Start dieses Auftrags abbrechen möchten? Dies löscht die aktuelle Sitzung und setzt den Auftrag zurück auf ausstehend.",
-      geofenceConfirm: "Sie sind zu weit vom Ziel entfernt ({dist}m, erlaubt: {max}m). Sind Sie sicher, dass Sie die Ankunft melden möchten?",
+      confirmCancelSession:
+        "Sind Sie sicher, dass Sie den Start dieses Auftrags abbrechen möchten? Dies löscht die aktuelle Sitzung und setzt den Auftrag zurück auf ausstehend.",
+      geofenceConfirm:
+        "Sie sind zu weit vom Ziel entfernt ({dist}m, erlaubt: {max}m). Sind Sie sicher, dass Sie die Ankunft melden möchten?",
       checkpointNote: "Meldung: am Einsatzort angekommen.",
       orderedBy: "Beauftragt von:",
       durationLabel: "Geschätzte Zeit:",
@@ -882,9 +921,11 @@ export const de: AppDictionary = {
       wizardStep3Title: "Auftragsdetails",
       wizardStep3Subtitle: "Füllen Sie die erforderlichen Informationen vor Arbeitsbeginn aus.",
       wizardStep4ScheduleTitle: "Arbeitszeitplan",
-      wizardStep4ScheduleSubtitle: "Legen Sie die geplante Dauer und Frist fest — wir prüfen die Verfügbarkeit.",
+      wizardStep4ScheduleSubtitle:
+        "Legen Sie die geplante Dauer und Frist fest — wir prüfen die Verfügbarkeit.",
       wizardStep5Title: "Alles bereit",
-      wizardStep5Subtitle: "Zusammenfassung des neuen Auftrags. Überprüfen Sie, ob alles korrekt ist.",
+      wizardStep5Subtitle:
+        "Zusammenfassung des neuen Auftrags. Überprüfen Sie, ob alles korrekt ist.",
       wizardNoMachines: "Keine Ressourcen im Register. Melden Sie das Problem dem Disponenten.",
       wizardMaterialLabel: "Welches Material?",
       wizardMaterialPlaceholder: "Aus Liste auswählen...",
@@ -925,7 +966,7 @@ export const de: AppDictionary = {
       partNotes: "Hinweise",
       choosePart: "Teil auswählen",
       quantityPlaceholder: "z.B. 2",
-      sparePartNotesPlaceholder: "z.B. Seriennummer, Montagehinweise"
+      sparePartNotesPlaceholder: "z.B. Seriennummer, Montagehinweise",
     },
     alarms: {
       timeOverrunTitle: "Arbeitszeit überschritten!",
@@ -951,7 +992,8 @@ export const de: AppDictionary = {
       notificationsTitle: "Push-Benachrichtigungen",
       notificationsDesc: "Bevorstehende, überfällige Aufträge und Zeitüberschreitung",
       notificationSoundTitle: "Alarmton",
-      notificationSoundDesc: "Ton, wenn ein Alarm in der App und in Systembenachrichtigungen ausgelöst wird",
+      notificationSoundDesc:
+        "Ton, wenn ein Alarm in der App und in Systembenachrichtigungen ausgelöst wird",
       notificationSoundVolumeLabel: "Lautstärke",
       notificationSoundPerKindTitle: "Ton pro Alarmtyp",
       notificationSoundPreview: "Vorschau",
@@ -968,10 +1010,13 @@ export const de: AppDictionary = {
         order_upcoming: "Bevorstehender Auftrag",
       },
       biometricTitle: "Biometrische Anmeldung",
-      biometricDesc: "Auf diesem Gerät können Sie sich mit Fingerabdruck oder Gesicht anmelden (nur mobile App).",
-      biometricUnavailable: "Biometrie ist auf diesem Gerät nicht verfügbar oder nicht in den Systemeinstellungen eingerichtet.",
+      biometricDesc:
+        "Auf diesem Gerät können Sie sich mit Fingerabdruck oder Gesicht anmelden (nur mobile App).",
+      biometricUnavailable:
+        "Biometrie ist auf diesem Gerät nicht verfügbar oder nicht in den Systemeinstellungen eingerichtet.",
       biometricChecking: "Biometrie-Verfügbarkeit wird geprüft…",
-      biometricResyncHint: "Biometrie ist in Ihrem Konto aktiviert, aber dieses Telefon hat keinen gespeicherten Schlüssel — deaktivieren und erneut mit Ihrem Passwort aktivieren.",
+      biometricResyncHint:
+        "Biometrie ist in Ihrem Konto aktiviert, aber dieses Telefon hat keinen gespeicherten Schlüssel — deaktivieren und erneut mit Ihrem Passwort aktivieren.",
       biometricConfirmTitle: "Mit Passwort bestätigen",
       biometricConfirmHint:
         "Aus Sicherheitsgründen geben Sie Ihr aktuelles App-Passwort ein. Es wird im sicheren Gerätespeicher abgelegt und mit Biometrie entsperrt.",
@@ -979,7 +1024,8 @@ export const de: AppDictionary = {
       biometricCancel: "Abbrechen",
       biometricConfirmSave: "Speichern und aktivieren",
       biometricSaveError: "Einstellungen konnten nicht gespeichert werden.",
-      biometricVaultError: "Anmeldedaten konnten nicht im sicheren Speicher abgelegt werden. Bitte versuchen Sie es erneut.",
+      biometricVaultError:
+        "Anmeldedaten konnten nicht im sicheren Speicher abgelegt werden. Bitte versuchen Sie es erneut.",
     },
     history: {
       accessDenied: "Zugriff verweigert",
@@ -1003,12 +1049,14 @@ export const de: AppDictionary = {
       backToSession: "Zurück zur Sitzung",
       title: "Bedienungsanleitung",
       quickContact: "Schnellkontakt zur Basis",
-      contactDesc: "Haben Sie ein Problem mit der Maschine, der Ladung oder der App? Kontaktieren Sie direkt den Disponenten.",
+      contactDesc:
+        "Haben Sie ein Problem mit der Maschine, der Ladung oder der App? Kontaktieren Sie direkt den Disponenten.",
       callDispatcher: "Disponent anrufen",
       userManual: "Bedienungsanleitung",
       startWork: "1. Arbeit beginnen",
       startWorkDesc1: "Wenn Sie den Reiter ",
-      startWorkDesc2: " öffnen, sehen Sie eine Liste der für Sie vom Disponenten vorbereiteten Aufträge.",
+      startWorkDesc2:
+        " öffnen, sehen Sie eine Liste der für Sie vom Disponenten vorbereiteten Aufträge.",
       redColor: "Rote Farbe:",
       redColorDesc: "Überfälliger Auftrag. Dieser sollte zuerst erledigt werden!",
       pinkColor: "Pinke Farbe:",
@@ -1016,31 +1064,39 @@ export const de: AppDictionary = {
       priorities: "Prioritäten:",
       prioritiesDesc: "Einige Aufträge haben eine hohe Priorität — achten Sie darauf.",
       startWorkInstruction: "Klicken Sie auf den großen Button ",
-      startWorkInstruction2: ", um die Arbeit zu starten. Ab diesem Moment zeichnet die App Ihre Arbeitszeit und (falls erforderlich) Ihre GPS-Route auf.",
+      startWorkInstruction2:
+        ", um die Arbeit zu starten. Ab diesem Moment zeichnet die App Ihre Arbeitszeit und (falls erforderlich) Ihre GPS-Route auf.",
       notesAndPhotos: "2. Notizen und Fotos auf der Route",
       notesAndPhotosDesc: "Während des Auftrags erscheinen neue Buttons auf dem Hauptbildschirm:",
       addNote: "Notiz hinzufügen:",
-      addNoteDesc: "Ermöglicht das Speichern wichtiger Informationen von der Straße (z.B. „Stau“, „Kunde hat Lieferung verweigert“). Die Notiz wird Ihrer aktuellen GPS-Position zugeordnet.",
+      addNoteDesc:
+        "Ermöglicht das Speichern wichtiger Informationen von der Straße (z.B. „Stau“, „Kunde hat Lieferung verweigert“). Die Notiz wird Ihrer aktuellen GPS-Position zugeordnet.",
       takePhoto: "Foto aufnehmen:",
       takePhotoDesc:
         "Öffnet die integrierte Kamera. Dient zur Dokumentation der ausgeführten Arbeit (z.B. Entladung von Material, Maschinenausfall, Unterschriften auf Dokumenten).",
-      photoWarning: "Wichtig: Bei manchen Aufträgen muss mindestens ein Foto aufgenommen werden, bevor sie abgeschlossen werden können!",
+      photoWarning:
+        "Wichtig: Bei manchen Aufträgen muss mindestens ein Foto aufgenommen werden, bevor sie abgeschlossen werden können!",
       gpsTracking: "3. Verfolgung und GPS",
       gpsTrackingDesc: "Die Anwendung verwendet Satellitensignale, um Ihre Route zu verfolgen.",
       gpsWait: "Status: Warte auf GPS",
-      gpsWaitDesc: "(Gelb) - das Telefon sucht nach Satelliten. Stellen Sie sicher, dass Sie sich nicht in einer Tiefgarage befinden.",
+      gpsWaitDesc:
+        "(Gelb) - das Telefon sucht nach Satelliten. Stellen Sie sicher, dass Sie sich nicht in einer Tiefgarage befinden.",
       gpsActive: "Status: GPS Aktiv",
       gpsActiveDesc: "(Grün) - alles funktioniert einwandfrei.",
       gpsPrivacy: "GPS wird ",
       gpsPrivacy2: "nur und ausschließlich",
-      gpsPrivacy3: " während eines aktiven Auftrags eingeschaltet (nach Klick auf Start). Wenn Sie auf „Beenden“ klicken, stoppt die App vollständig die Erfassung Ihres Standorts, um Ihren Akku und Ihre Privatsphäre zu schützen.",
+      gpsPrivacy3:
+        " während eines aktiven Auftrags eingeschaltet (nach Klick auf Start). Wenn Sie auf „Beenden“ klicken, stoppt die App vollständig die Erfassung Ihres Standorts, um Ihren Akku und Ihre Privatsphäre zu schützen.",
       customOrders: "4. Eigene Aufträge",
-      customOrdersDesc1: "Wenn Sie vom Administrator die entsprechenden Berechtigungen haben, finden Sie unten auf dem Startbildschirm den Button ",
+      customOrdersDesc1:
+        "Wenn Sie vom Administrator die entsprechenden Berechtigungen haben, finden Sie unten auf dem Startbildschirm den Button ",
       customOrdersDesc2: "ODER EIGENEN DEFINIEREN",
-      customOrdersDesc3: ". Damit können Sie selbstständig einen Kunden, eine Ressource und ein Material auswählen und sofort mit der Arbeit beginnen, ohne auf einen Auftrag aus dem Büro zu warten.",
+      customOrdersDesc3:
+        ". Damit können Sie selbstständig einen Kunden, eine Ressource und ein Material auswählen und sofort mit der Arbeit beginnen, ohne auf einen Auftrag aus dem Büro zu warten.",
       emergency: "Notfallverfahren",
-      emergencyDesc: "Im Falle einer Kollision, eines Geräteausfalls oder einer anderen Gefahr stoppen Sie die Maschine sofort an einem sicheren Ort, sichern Sie die Ladung und verwenden Sie den Telefon-Button oben auf dieser Seite, um den Disponenten zu informieren. Machen Sie wenn möglich ein Foto der Situation mit der App."
-    }
+      emergencyDesc:
+        "Im Falle einer Kollision, eines Geräteausfalls oder einer anderen Gefahr stoppen Sie die Maschine sofort an einem sicheren Ort, sichern Sie die Ladung und verwenden Sie den Telefon-Button oben auf dieser Seite, um den Disponenten zu informieren. Machen Sie wenn möglich ein Foto der Situation mit der App.",
+    },
   },
   platform: {
     badge: "Werkit Plattform-Konsole",
@@ -1142,7 +1198,8 @@ export const de: AppDictionary = {
         categories: "Teilekategorien",
         categoriesPlaceholder: "Kategorien auswählen…",
         machineCategories: "Kompatible Maschinentypen",
-        machineCategoriesHint: "Das Teil steht bei der Reparatur dieser Maschinentypen zur Auswahl.",
+        machineCategoriesHint:
+          "Das Teil steht bei der Reparatur dieser Maschinentypen zur Auswahl.",
         machineCategoriesPlaceholder: "Maschinentypen auswählen…",
       },
       table: {
@@ -1163,7 +1220,8 @@ export const de: AppDictionary = {
     },
     categories: {
       title: "Ersatzteilkategorien",
-      subtitle: "Teile nach Verwendungszweck gruppieren (z.B. Lager, Filter, Dichtungen, Elektronik).",
+      subtitle:
+        "Teile nach Verwendungszweck gruppieren (z.B. Lager, Filter, Dichtungen, Elektronik).",
       empty: "Fügen Sie die erste Kategorie oder Gruppe hinzu, um Teile zu klassifizieren.",
       confirmDelete: "Das Löschen einer Kategorie trennt die Verbindung zu den Teilen. Fortfahren?",
       namePlaceholder: "z.B. Lager, Filter, Dichtungen",
@@ -1174,7 +1232,8 @@ export const de: AppDictionary = {
         modalCreate: "Neue Kategorie",
         badgeGroup: "Gruppe",
         isGroupLabel: "Gruppe (nur Organisation)",
-        isGroupHint: "Gruppen können bei der Teilezuweisung nicht ausgewählt werden — sie dienen nur der Baumstruktur.",
+        isGroupHint:
+          "Gruppen können bei der Teilezuweisung nicht ausgewählt werden — sie dienen nur der Baumstruktur.",
         parentLabel: "Übergeordnete Gruppe",
         parentNone: "— keine übergeordnete Gruppe —",
         sortOrderLabel: "Reihenfolge",
@@ -1192,7 +1251,8 @@ export const de: AppDictionary = {
       subtitle: "Weisen Sie Teile Maschinentypen zu, damit sie bei Reparaturen verfügbar sind.",
       add: "Verknüpfung hinzufügen",
       remove: "Entfernen",
-      removeConfirm: "Verknüpfung entfernen? Das Teil ist dann für diesen Maschinentyp nicht mehr verfügbar.",
+      removeConfirm:
+        "Verknüpfung entfernen? Das Teil ist dann für diesen Maschinentyp nicht mehr verfügbar.",
       empty: "Noch keine Verknüpfungen. Wählen Sie ein Teil und einen Maschinentyp aus.",
       fields: {
         part: "Teil",

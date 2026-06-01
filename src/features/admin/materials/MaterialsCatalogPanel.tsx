@@ -75,14 +75,16 @@ export function MaterialsCatalogPanel({
     const method = matEditId ? "PUT" : "POST";
     try {
       const res = await fetchWithDeviceTelemetry(
-        matEditId ? `Admin materials: save material PUT ${matEditId}` : "Admin materials: save material POST",
+        matEditId
+          ? `Admin materials: save material PUT ${matEditId}`
+          : "Admin materials: save material POST",
         url,
         {
           method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name: matForm.name, categoryIds: matForm.categoryIds }),
         },
-        { category: "admin" },
+        { category: "admin" }
       );
       if (res.ok) {
         setIsMatModalOpen(false);
@@ -102,7 +104,7 @@ export function MaterialsCatalogPanel({
       `Admin materials: delete material ${id}`,
       `/api/materials/${id}`,
       { method: "DELETE" },
-      { category: "admin" },
+      { category: "admin" }
     );
     if (res.ok) void fetchData();
     else {
@@ -200,7 +202,10 @@ export function MaterialsCatalogPanel({
             {!previewCategory.isGroup && previewCategory.color ? (
               <AdminPreviewField label={shared.colorLabel}>
                 <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-4 w-4 rounded shadow-sm" style={{ backgroundColor: previewCategory.color }} />
+                  <span
+                    className="inline-block h-4 w-4 rounded shadow-sm"
+                    style={{ backgroundColor: previewCategory.color }}
+                  />
                   {previewCategory.color}
                 </span>
               </AdminPreviewField>
@@ -220,7 +225,10 @@ export function MaterialsCatalogPanel({
             ? () => {
                 setPreviewMaterial(null);
                 setMatEditId(previewMaterial.id);
-                setMatForm({ name: previewMaterial.name, categoryIds: previewMaterial.categoryIds ?? [] });
+                setMatForm({
+                  name: previewMaterial.name,
+                  categoryIds: previewMaterial.categoryIds ?? [],
+                });
                 setIsMatModalOpen(true);
               }
             : undefined
@@ -259,5 +267,3 @@ export function MaterialsCatalogPanel({
     </>
   );
 }
-
-

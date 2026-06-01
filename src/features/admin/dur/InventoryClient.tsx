@@ -81,7 +81,9 @@ export default function InventoryClient() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        await appAlert({ message: (err as { error?: string }).error || apiErrors.save_error || "Błąd zapisu." });
+        await appAlert({
+          message: (err as { error?: string }).error || apiErrors.save_error || "Błąd zapisu.",
+        });
         return;
       }
       await fetchData();
@@ -91,7 +93,15 @@ export default function InventoryClient() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [adjustingPart, adjustQuantity, adjustNotes, appAlert, apiErrors, fetchData, closeAdjustModal]);
+  }, [
+    adjustingPart,
+    adjustQuantity,
+    adjustNotes,
+    appAlert,
+    apiErrors,
+    fetchData,
+    closeAdjustModal,
+  ]);
 
   const filtered = inventory.filter((item) => {
     if (!searchQuery) return true;
@@ -123,7 +133,9 @@ export default function InventoryClient() {
 
       {/* Table */}
       {isLoading ? (
-        <div className="text-center py-12 text-zinc-500">{dictionary.admin.ui.searchNoResults || "Ładowanie…"}</div>
+        <div className="text-center py-12 text-zinc-500">
+          {dictionary.admin.ui.searchNoResults || "Ładowanie…"}
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-zinc-500">
           <Package className="w-12 h-12 mx-auto mb-3 text-zinc-300 dark:text-zinc-600" />
@@ -134,12 +146,24 @@ export default function InventoryClient() {
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 dark:bg-zinc-800/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.part}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.catalogNumber}</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.quantity}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.unit}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.updatedAt}</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">Akcje</th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.part}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.catalogNumber}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.quantity}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.unit}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.updatedAt}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  Akcje
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
@@ -159,11 +183,17 @@ export default function InventoryClient() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.partCatalogNumber || "—"}</td>
-                    <td className={`px-4 py-3 text-right font-mono tabular-nums ${isLowStock ? "text-red-600 dark:text-red-400 font-semibold" : "text-zinc-900 dark:text-white"}`}>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                      {item.partCatalogNumber || "—"}
+                    </td>
+                    <td
+                      className={`px-4 py-3 text-right font-mono tabular-nums ${isLowStock ? "text-red-600 dark:text-red-400 font-semibold" : "text-zinc-900 dark:text-white"}`}
+                    >
                       {item.quantity}
                     </td>
-                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{item.partUnit || "—"}</td>
+                    <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                      {item.partUnit || "—"}
+                    </td>
                     <td className="px-4 py-3 text-zinc-500 text-xs">
                       {item.updatedAt ? new Date(item.updatedAt).toLocaleString() : "—"}
                     </td>
@@ -202,7 +232,10 @@ export default function InventoryClient() {
           }
         >
           <form
-            onSubmit={(e) => { e.preventDefault(); void handleAdjust(); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleAdjust();
+            }}
             id="adjustment-form"
             className="space-y-4"
           >

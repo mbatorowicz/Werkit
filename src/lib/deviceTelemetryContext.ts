@@ -22,7 +22,10 @@ function capacitorPlatform(): string {
   return "web";
 }
 
-function networkHints(): Pick<WerkitClientTelemetry, "saveData" | "connDownlinkMbps" | "connEffectiveType"> {
+function networkHints(): Pick<
+  WerkitClientTelemetry,
+  "saveData" | "connDownlinkMbps" | "connEffectiveType"
+> {
   if (typeof navigator === "undefined") return {};
   const nav = navigator as Navigator & {
     connection?: { saveData?: boolean; downlink?: number; effectiveType?: string };

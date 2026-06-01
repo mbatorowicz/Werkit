@@ -11,7 +11,7 @@ export class ApiRouteError extends Error {
   constructor(
     code: ApiErrorCode,
     status: number,
-    opts?: { details?: Record<string, unknown>; exposeDetails?: boolean; cause?: unknown },
+    opts?: { details?: Record<string, unknown>; exposeDetails?: boolean; cause?: unknown }
   ) {
     super(code);
     this.code = code;
@@ -20,7 +20,7 @@ export class ApiRouteError extends Error {
     this.exposeDetails = Boolean(opts?.exposeDetails);
     if (opts?.cause) {
       // TS < 5.6: Error.cause nie jest w standardowych typach
-      Object.defineProperty(this, 'cause', {
+      Object.defineProperty(this, "cause", {
         value: opts.cause,
         writable: true,
         enumerable: false,
@@ -37,7 +37,7 @@ export function jsonOk<T>(data: T, init?: { status?: number }) {
 export function jsonError(
   code: ApiErrorCode,
   status: number,
-  opts?: { details?: Record<string, unknown> },
+  opts?: { details?: Record<string, unknown> }
 ) {
   return NextResponse.json({ error: code, ...(opts?.details ?? {}) }, { status });
 }
@@ -54,12 +54,16 @@ export function jsonFileAttachment(filename: string, jsonBody: string) {
   });
 }
 
-export function throwApiError(code: ApiErrorCode, status: number, details?: Record<string, unknown>): never {
+export function throwApiError(
+  code: ApiErrorCode,
+  status: number,
+  details?: Record<string, unknown>
+): never {
   throw new ApiRouteError(code, status, { details, exposeDetails: Boolean(details) });
 }
 
 export async function parseJsonBody<T extends Record<string, unknown> = Record<string, unknown>>(
-  request: Request,
+  request: Request
 ): Promise<T> {
   const ct = request.headers.get("content-type") ?? "";
   if (!ct.includes("application/json")) {
@@ -89,9 +93,7 @@ export async function parseJson(request: Request): Promise<unknown> {
   }
 }
 
-export async function parseJsonBodyOrEmpty(
-  request: Request,
-): Promise<Record<string, unknown>> {
+export async function parseJsonBodyOrEmpty(request: Request): Promise<Record<string, unknown>> {
   try {
     return await parseJsonBody(request);
   } catch {
@@ -111,14 +113,15 @@ export function withApiErrorHandling<TCtx = unknown>(
     mapUnknownError?: (err: unknown) => Response | null;
     /** Domyślny kod błędu dla 500. */
     defaultErrorCode?: ApiErrorCode;
-  },
+  }
 ): RouteHandler<TCtx> {
   return async (request: Request, ctx: TCtx) => {
     try {
       return await handler(request, ctx);
     } catch (err: unknown) {
       if (err instanceof ApiRouteError) {
-        if (err.exposeDetails && err.details) return jsonError(err.code, err.status, { details: err.details });
+        if (err.exposeDetails && err.details)
+          return jsonError(err.code, err.status, { details: err.details });
         return jsonError(err.code, err.status);
       }
       const mapped = opts?.mapUnknownError?.(err);
@@ -127,4 +130,3 @@ export function withApiErrorHandling<TCtx = unknown>(
     }
   };
 }
-

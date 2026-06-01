@@ -11,7 +11,9 @@ const resources = [
 
 describe("filterResourcesForCategory", () => {
   it("returns all resources when category is missing and whenNoCategory is true", () => {
-    expect(filterResourcesForCategory(resources, undefined, { whenNoCategory: true })).toHaveLength(3);
+    expect(filterResourcesForCategory(resources, undefined, { whenNoCategory: true })).toHaveLength(
+      3
+    );
   });
 
   it("returns none when category is missing and whenNoCategory is false", () => {
@@ -19,9 +21,11 @@ describe("filterResourcesForCategory", () => {
   });
 
   it("matches category id or global category", () => {
-    expect(filterResourcesForCategory(resources, category, { whenNoCategory: false }).map((r) => r.id)).toEqual([
-      1, 3,
-    ]);
-    expect(filterResourcesForCategory(resources, globalCategory, { whenNoCategory: false })).toHaveLength(3);
+    expect(
+      filterResourcesForCategory(resources, category, { whenNoCategory: false }).map((r) => r.id)
+    ).toEqual([1, 3]);
+    expect(
+      filterResourcesForCategory(resources, globalCategory, { whenNoCategory: false })
+    ).toHaveLength(3);
   });
 });

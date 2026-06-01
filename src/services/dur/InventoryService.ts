@@ -13,7 +13,7 @@ export class InventoryService {
    */
   static async getInventory(
     companyId: number,
-    opts?: { partId?: number },
+    opts?: { partId?: number }
   ): Promise<SparePartInventory[]> {
     const conditions = [eq(sparePartInventory.companyId, companyId)];
     if (opts?.partId) {
@@ -47,7 +47,7 @@ export class InventoryService {
    */
   static async getPartInventory(
     companyId: number,
-    partId: number,
+    partId: number
   ): Promise<SparePartInventory | null> {
     const rows = await this.getInventory(companyId, { partId });
     return rows[0] ?? null;
@@ -58,11 +58,7 @@ export class InventoryService {
    * Jeśli wiersz nie istnieje — tworzy go.
    * Używane przez StockMovementService przy przyjęciach/wydaniach.
    */
-  static async upsertQuantity(
-    companyId: number,
-    partId: number,
-    delta: string,
-  ): Promise<void> {
+  static async upsertQuantity(companyId: number, partId: number, delta: string): Promise<void> {
     await db
       .insert(sparePartInventory)
       .values({
@@ -83,11 +79,7 @@ export class InventoryService {
   /**
    * Ustawia bezwzględną ilość (korekta ręczna).
    */
-  static async setQuantity(
-    companyId: number,
-    partId: number,
-    quantity: string,
-  ): Promise<void> {
+  static async setQuantity(companyId: number, partId: number, quantity: string): Promise<void> {
     await db
       .insert(sparePartInventory)
       .values({

@@ -1,11 +1,11 @@
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import { LogoutButton } from '@/components/LogoutButton';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { getDictionary } from '@/i18n';
-import { APP_VERSION } from '@/lib/version';
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { LogoutButton } from "@/components/LogoutButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { getDictionary } from "@/i18n";
+import { APP_VERSION } from "@/lib/version";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const dict = getDictionary().platform;

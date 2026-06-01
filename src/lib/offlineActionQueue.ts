@@ -108,7 +108,7 @@ export const offlineActionQueue = {
   async enqueue(
     type: OfflineActionType,
     payload: OfflineActionPayload,
-    options?: { maxRetries?: number },
+    options?: { maxRetries?: number }
   ): Promise<{ ok: boolean; queued?: boolean; error?: string }> {
     // Jeśli online — wykonaj od razu
     if (navigator.onLine) {
@@ -131,7 +131,7 @@ export const offlineActionQueue = {
   async enqueueOffline(
     type: OfflineActionType,
     payload: OfflineActionPayload,
-    options?: { maxRetries?: number },
+    options?: { maxRetries?: number }
   ): Promise<{ ok: boolean; queued: true }> {
     const action: OfflineAction = {
       id: generateId(),
@@ -150,15 +150,25 @@ export const offlineActionQueue = {
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
-      sendRemoteLog("INFO", `OfflineQueue: enqueued ${type}`, {
-        actionId: action.id,
-        type,
-      }, { category: "session", dedupeWindowMs: 10_000 });
+      sendRemoteLog(
+        "INFO",
+        `OfflineQueue: enqueued ${type}`,
+        {
+          actionId: action.id,
+          type,
+        },
+        { category: "session", dedupeWindowMs: 10_000 }
+      );
     } catch (err) {
-      sendRemoteLog("ERROR", "OfflineQueue: failed to enqueue", {
-        error: err instanceof Error ? err.message : String(err),
-        type,
-      }, { category: "session" });
+      sendRemoteLog(
+        "ERROR",
+        "OfflineQueue: failed to enqueue",
+        {
+          error: err instanceof Error ? err.message : String(err),
+          type,
+        },
+        { category: "session" }
+      );
     }
 
     return { ok: true, queued: true };
@@ -244,14 +254,10 @@ export const offlineActionQueue = {
    * Wykonuje pojedyńczą akcję (fetch).
    * Wyrzuca błąd przy problemach sieciowych.
    */
-  async executeAction(
-    type: OfflineActionType,
-    payload: OfflineActionPayload,
-  ): Promise<Response> {
+  async executeAction(type: OfflineActionType, payload: OfflineActionPayload): Promise<Response> {
     const route = ACTION_ROUTES[type];
-    const url = type === "accept_order"
-      ? `/api/worker/work-orders/${payload.orderId}/accept`
-      : route.url;
+    const url =
+      type === "accept_order" ? `/api/worker/work-orders/${payload.orderId}/accept` : route.url;
 
     const body: Record<string, unknown> = { ...payload };
     // Usuń meta-pola które nie są częścią body API
@@ -286,28 +292,43 @@ export const offlineActionQueue = {
         if (res.ok) {
           await this.remove(action.id);
           sent++;
-          sendRemoteLog("INFO", `OfflineQueue: flushed ${action.type}`, {
-            actionId: action.id,
-          }, { category: "session", dedupeWindowMs: 10_000 });
+          sendRemoteLog(
+            "INFO",
+            `OfflineQueue: flushed ${action.type}`,
+            {
+              actionId: action.id,
+            },
+            { category: "session", dedupeWindowMs: 10_000 }
+          );
         } else if (res.status === 400) {
           // Błąd walidacji — nie ma sensu retry
           await this.remove(action.id);
           failed++;
-          sendRemoteLog("WARN", `OfflineQueue: removed invalid action ${action.type}`, {
-            actionId: action.id,
-            status: res.status,
-          }, { category: "session" });
+          sendRemoteLog(
+            "WARN",
+            `OfflineQueue: removed invalid action ${action.type}`,
+            {
+              actionId: action.id,
+              status: res.status,
+            },
+            { category: "session" }
+          );
         } else {
           // Inny błąd HTTP — retry
           const newRetry = action.retryCount + 1;
           if (newRetry >= action.maxRetries) {
             await this.remove(action.id);
             failed++;
-            sendRemoteLog("ERROR", `OfflineQueue: max retries reached for ${action.type}`, {
-              actionId: action.id,
-              type: action.type,
-              retries: newRetry,
-            }, { category: "session" });
+            sendRemoteLog(
+              "ERROR",
+              `OfflineQueue: max retries reached for ${action.type}`,
+              {
+                actionId: action.id,
+                type: action.type,
+                retries: newRetry,
+              },
+              { category: "session" }
+            );
           } else {
             await this.updateRetry(action.id, newRetry);
             failed++;

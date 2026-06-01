@@ -21,15 +21,15 @@ type AlarmDict = AppDictionary["worker"]["alarms"];
 export function buildTimeOverrunAlarm(
   dict: AlarmDict,
   session: Session,
-  nowMs: number,
+  nowMs: number
 ): WorkerActiveAlarm {
   const remaining = session.expectedDurationHours
     ? Math.max(
         1,
         Math.ceil(
           parseFloat(String(session.expectedDurationHours)) * 60 -
-            (nowMs - new Date(session.startTime).getTime()) / 60_000,
-        ),
+            (nowMs - new Date(session.startTime).getTime()) / 60_000
+        )
       )
     : null;
   const snoozeOptions = getSnoozeOptions(remaining);
@@ -47,7 +47,7 @@ export function buildTimeOverrunAlarm(
 export function buildOverdueOrderAlarm(
   dict: AlarmDict,
   order: WorkOrder,
-  nowMs: number,
+  nowMs: number
 ): WorkerActiveAlarm {
   const remaining = minutesUntilDue(order.dueDate, nowMs);
   return {
@@ -67,7 +67,7 @@ export function buildOverdueOrderAlarm(
 export function buildUpcomingOrderAlarm(
   dict: AlarmDict,
   order: WorkOrder,
-  nowMs: number,
+  nowMs: number
 ): WorkerActiveAlarm {
   const remaining = minutesUntilDue(order.dueDate, nowMs);
   return {

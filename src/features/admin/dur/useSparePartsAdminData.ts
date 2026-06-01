@@ -9,7 +9,9 @@ export interface SparePartsAdminAlertContext {
   listFetchFallback: string;
 }
 
-export function useSparePartsAdminData(alertCtxRef: React.MutableRefObject<SparePartsAdminAlertContext>) {
+export function useSparePartsAdminData(
+  alertCtxRef: React.MutableRefObject<SparePartsAdminAlertContext>
+) {
   const [parts, setParts] = useState<SparePart[]>([]);
   const [categories, setCategories] = useState<SparePartCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);

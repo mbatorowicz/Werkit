@@ -31,8 +31,12 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         </h3>
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-0.5 pr-2">
-            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isStationaryLabel}</label>
-            <span className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">{dict.isStationaryDesc}</span>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              {dict.isStationaryLabel}
+            </label>
+            <span className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
+              {dict.isStationaryDesc}
+            </span>
           </div>
           <input
             type="checkbox"
@@ -47,7 +51,9 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           {dict.catResourceFormTitle}
         </h3>
-        <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">{dict.catResourceFormHint}</p>
+        <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
+          {dict.catResourceFormHint}
+        </p>
         <div className="space-y-2">
           <label className="flex items-center justify-between gap-2 text-sm text-zinc-700 dark:text-zinc-300">
             <span>{dict.fieldResourceName}</span>
@@ -147,7 +153,9 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
             className="h-4 w-4 rounded text-amber-500 disabled:opacity-40"
           />
 
-          <div className="text-sm text-zinc-700 dark:text-zinc-300">{dict.fieldTaskDescription}</div>
+          <div className="text-sm text-zinc-700 dark:text-zinc-300">
+            {dict.fieldTaskDescription}
+          </div>
           <input
             type="checkbox"
             checked={form.showTaskDescription}
@@ -171,8 +179,12 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         </div>
         <div className="flex items-center justify-between pt-2">
           <div className="flex flex-col gap-0.5">
-            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{dict.isGlobalLabel}</label>
-            <span className="text-[10px] text-zinc-500 dark:text-zinc-400">{dict.isGlobalDesc}</span>
+            <label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              {dict.isGlobalLabel}
+            </label>
+            <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
+              {dict.isGlobalDesc}
+            </span>
           </div>
           <input
             type="checkbox"

@@ -1,10 +1,9 @@
 import type { CategoryHierarchyRow } from "@/lib/categoryTree";
 import type { CategoryHierarchyFormFields } from "./types";
 
-export function hierarchyFieldsFromRow(row: CategoryHierarchyRow): Pick<
-  CategoryHierarchyFormFields,
-  "parentId" | "isGroup" | "sortOrder"
-> {
+export function hierarchyFieldsFromRow(
+  row: CategoryHierarchyRow
+): Pick<CategoryHierarchyFormFields, "parentId" | "isGroup" | "sortOrder"> {
   return {
     parentId: row.parentId,
     isGroup: row.isGroup,
@@ -12,7 +11,10 @@ export function hierarchyFieldsFromRow(row: CategoryHierarchyRow): Pick<
   };
 }
 
-export const EMPTY_HIERARCHY_FIELDS: Pick<CategoryHierarchyFormFields, "parentId" | "isGroup" | "sortOrder"> = {
+export const EMPTY_HIERARCHY_FIELDS: Pick<
+  CategoryHierarchyFormFields,
+  "parentId" | "isGroup" | "sortOrder"
+> = {
   parentId: null,
   isGroup: false,
   sortOrder: 0,

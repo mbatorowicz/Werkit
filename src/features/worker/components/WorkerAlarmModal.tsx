@@ -76,7 +76,9 @@ export function WorkerAlarmModal({
         <div className="mb-4 rounded-full bg-amber-100 p-3 dark:bg-amber-500/20">
           <Bell className="h-8 w-8 text-amber-600 dark:text-amber-400" />
         </div>
-        <p className="text-center text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{alarm.body}</p>
+        <p className="text-center text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {alarm.body}
+        </p>
       </div>
     </AdminModalShell>
   );

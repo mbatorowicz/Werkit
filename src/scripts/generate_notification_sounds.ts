@@ -17,7 +17,13 @@ const PUBLIC_SOUNDS = join(ROOT, "public/sounds");
 
 const SAMPLE_RATE = 22_050;
 
-type Tone = { freq: number; startSec: number; durationSec: number; gain?: number; type?: "sine" | "square" };
+type Tone = {
+  freq: number;
+  startSec: number;
+  durationSec: number;
+  gain?: number;
+  type?: "sine" | "square";
+};
 
 function presetTones(presetId: NotificationSoundPresetId): Tone[] {
   switch (presetId) {
@@ -57,7 +63,8 @@ function presetTones(presetId: NotificationSoundPresetId): Tone[] {
 }
 
 function renderPreset(presetId: NotificationSoundPresetId): Float32Array {
-  const durationSec = Math.max(...presetTones(presetId).map((t) => t.startSec + t.durationSec)) + 0.08;
+  const durationSec =
+    Math.max(...presetTones(presetId).map((t) => t.startSec + t.durationSec)) + 0.08;
   const length = Math.ceil(durationSec * SAMPLE_RATE);
   const buffer = new Float32Array(length);
 

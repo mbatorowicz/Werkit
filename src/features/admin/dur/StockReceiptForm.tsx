@@ -40,7 +40,9 @@ export function StockReceiptForm({
 }: StockReceiptFormProps) {
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); }}
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
       className="space-y-4"
       id="receipt-form"
     >

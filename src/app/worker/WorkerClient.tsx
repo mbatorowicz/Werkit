@@ -76,7 +76,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
         await submitAcceptOrder(orderId, startLoc);
       })();
     },
-    [shell.location, submitAcceptOrder],
+    [shell.location, submitAcceptOrder]
   );
 
   const isCancelWindowOpen =
@@ -93,12 +93,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     dismissActiveAlarm,
     snoozeActiveAlarm,
     refreshAlarmUi,
-  } = useWorkerNotifications(
-    shell.session,
-    shell.workOrders,
-    shell.settings,
-    shell.currentUser,
-  );
+  } = useWorkerNotifications(shell.session, shell.workOrders, shell.settings, shell.currentUser);
 
   useWorkerNotificationActions({
     onStartOrder: (orderId) => requestAcceptOrder(orderId),
@@ -146,7 +141,9 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           setNoteText={setNoteText}
           setEditingNoteId={setEditingNoteId}
           setIsNotesModalOpen={setIsNotesModalOpen}
-          handlePhotoUpload={(e: React.ChangeEvent<HTMLInputElement>) => handlePhotoUpload(e, shell.location)}
+          handlePhotoUpload={(e: React.ChangeEvent<HTMLInputElement>) =>
+            handlePhotoUpload(e, shell.location)
+          }
           handleCheckpoint={() => handleCheckpoint(shell.location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}

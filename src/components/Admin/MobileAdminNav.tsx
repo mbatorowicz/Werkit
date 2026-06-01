@@ -34,7 +34,11 @@ export function MobileAdminNav({
 
   return (
     <>
-      <button type="button" onClick={() => setIsOpen(true)} className="p-2 -mr-2 text-zinc-600 dark:text-zinc-400 focus:outline-none">
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="p-2 -mr-2 text-zinc-600 dark:text-zinc-400 focus:outline-none"
+      >
         <Menu className="w-6 h-6" />
       </button>
 
@@ -59,7 +63,11 @@ export function MobileAdminNav({
                   {companyName}
                 </p>
               </div>
-              <button type="button" onClick={closeMenu} className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+              <button
+                type="button"
+                onClick={closeMenu}
+                className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -69,7 +77,9 @@ export function MobileAdminNav({
                 if (link.kind === "section") {
                   return (
                     <div key={`section-${idx}`} className="pt-4 pb-2 px-3">
-                      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">{link.label}</p>
+                      <p className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+                        {link.label}
+                      </p>
                     </div>
                   );
                 }
@@ -90,7 +100,9 @@ export function MobileAdminNav({
                         : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
+                    <Icon
+                      className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`}
+                    />
                     <span>{link.label}</span>
                   </Link>
                 );

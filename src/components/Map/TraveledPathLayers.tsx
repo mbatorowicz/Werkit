@@ -20,10 +20,21 @@ export function TraveledPathLayers({ path }: { path: Coord[] }) {
     <>
       {showSpeedColors ? (
         speedSegments.map((s, idx) => (
-          <Polyline key={`traveled-spd-${idx}`} positions={s.positions} color={s.color} weight={5} opacity={0.85} />
+          <Polyline
+            key={`traveled-spd-${idx}`}
+            positions={s.positions}
+            color={s.color}
+            weight={5}
+            opacity={0.85}
+          />
         ))
       ) : (
-        <Polyline positions={path.map((p) => [p.lat, p.lng])} color="#3b82f6" weight={5} opacity={0.7} />
+        <Polyline
+          positions={path.map((p) => [p.lat, p.lng])}
+          color="#3b82f6"
+          weight={5}
+          opacity={0.7}
+        />
       )}
     </>
   );

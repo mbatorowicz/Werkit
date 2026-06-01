@@ -63,9 +63,7 @@ export function ReportsDashboard({
           <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-emerald-500" /> {nav.reports}
           </h1>
-          {companyLabel ? (
-            <p className="text-zinc-500 mt-1">{companyLabel}</p>
-          ) : null}
+          {companyLabel ? <p className="text-zinc-500 mt-1">{companyLabel}</p> : null}
         </div>
       </div>
 
@@ -132,7 +130,9 @@ export function ReportsDashboard({
         <div className="xl:col-span-2 space-y-6">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
             <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
-              <h2 className="font-semibold text-zinc-900 dark:text-white">{r.activeEquipmentTitle}</h2>
+              <h2 className="font-semibold text-zinc-900 dark:text-white">
+                {r.activeEquipmentTitle}
+              </h2>
             </div>
 
             <div className={INLINE_SCROLL_X_PANEL_CLASS}>
@@ -157,7 +157,9 @@ export function ReportsDashboard({
                       className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <div className="font-medium text-zinc-900 dark:text-zinc-200">{session.userName}</div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-200">
+                          {session.userName}
+                        </div>
                         <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                           {session.taskDescription || "—"}{" "}
                           {session.quantityTons ? `(${session.quantityTons} t)` : ""}
@@ -173,7 +175,10 @@ export function ReportsDashboard({
                   ))}
                   {snapshot.activeSessions.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                      <td
+                        colSpan={3}
+                        className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm"
+                      >
                         {d.noActiveSessions}
                       </td>
                     </tr>
@@ -191,7 +196,9 @@ export function ReportsDashboard({
                 <MapPin className="w-4 h-4 text-emerald-500" />
                 {(snapshot.companyCity || r.mapFallbackRegion) + " — " + d.liveRadars}
               </h2>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">{d.detectedProviders}</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">
+                {d.detectedProviders}
+              </p>
             </div>
             <div className="flex-1 w-full relative min-h-[450px]">
               <LiveMap
@@ -211,7 +218,9 @@ export function ReportsDashboard({
               <TrendingUp className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <h2 className="font-semibold text-zinc-900 dark:text-white">{d.efficiencyThisMonth}</h2>
+              <h2 className="font-semibold text-zinc-900 dark:text-white">
+                {d.efficiencyThisMonth}
+              </h2>
               <p className={`text-xs mt-1 flex items-center gap-1 ${trendClass}`}>
                 <TrendIcon className="w-3.5 h-3.5" />
                 {trendLabel}
@@ -246,7 +255,9 @@ export function ReportsDashboard({
               <Warehouse className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <h2 className="font-semibold text-zinc-900 dark:text-white">{d.machineUtilization}</h2>
+              <h2 className="font-semibold text-zinc-900 dark:text-white">
+                {d.machineUtilization}
+              </h2>
               <p className="text-xs text-zinc-500 mt-1">{r.topMachinesSubtitle}</p>
             </div>
           </div>
@@ -257,7 +268,10 @@ export function ReportsDashboard({
             ) : (
               snapshot.topMachinesThisMonth.map(({ name, sessionCount }) => (
                 <div key={name} className="flex items-center gap-4">
-                  <div className="w-36 truncate text-sm font-medium text-zinc-700 dark:text-zinc-300" title={name}>
+                  <div
+                    className="w-36 truncate text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                    title={name}
+                  >
                     {name}
                   </div>
                   <div className="flex-1 h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
@@ -266,7 +280,9 @@ export function ReportsDashboard({
                       style={{ width: `${(sessionCount / maxMach) * 100}%` }}
                     />
                   </div>
-                  <div className="w-8 text-right text-xs font-bold text-zinc-500 tabular-nums">{sessionCount}</div>
+                  <div className="w-8 text-right text-xs font-bold text-zinc-500 tabular-nums">
+                    {sessionCount}
+                  </div>
                 </div>
               ))
             )}

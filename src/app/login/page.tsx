@@ -41,15 +41,20 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      const res = await fetchWithDeviceTelemetry("Auth: login POST (biometric)", "/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          usernameEmail: creds.username,
-          password: creds.password,
-        }),
-      }, { category: "auth" });
+      const res = await fetchWithDeviceTelemetry(
+        "Auth: login POST (biometric)",
+        "/api/auth/login",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            usernameEmail: creds.username,
+            password: creds.password,
+          }),
+        },
+        { category: "auth" }
+      );
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
       if (res.ok) {
         router.refresh();
@@ -75,12 +80,17 @@ export default function LoginPage() {
     const password = formData.get("password");
 
     try {
-      const res = await fetchWithDeviceTelemetry("Auth: login POST (form)", "/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usernameEmail, password }),
-      }, { category: "auth" });
+      const res = await fetchWithDeviceTelemetry(
+        "Auth: login POST (form)",
+        "/api/auth/login",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usernameEmail, password }),
+        },
+        { category: "auth" }
+      );
 
       const data = (await res.json()) as { error?: string; user?: { role?: string } };
 
@@ -106,13 +116,17 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8">
         <div className="mb-8 text-center pt-2">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
-            <span className="text-[11px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-bold mt-1">v{APP_VERSION}</span>
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
+              WERKIT
+            </h1>
+            <span className="text-[11px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-bold mt-1">
+              v{APP_VERSION}
+            </span>
           </div>
-          <h2 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 tracking-tight">{dict.login.systemLogin}</h2>
-          <p className="text-zinc-500 mt-1 text-sm">
-            {dict.login.subtitle}
-          </p>
+          <h2 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 tracking-tight">
+            {dict.login.systemLogin}
+          </h2>
+          <p className="text-zinc-500 mt-1 text-sm">{dict.login.subtitle}</p>
         </div>
 
         {error && (
@@ -146,7 +160,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1" htmlFor="username">
+            <label
+              className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1"
+              htmlFor="username"
+            >
               {dict.login.usernameLabel}
             </label>
             <input
@@ -160,7 +177,10 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1" htmlFor="password">
+            <label
+              className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1"
+              htmlFor="password"
+            >
               {dict.login.passwordLabel}
             </label>
             <input
@@ -174,18 +194,17 @@ export default function LoginPage() {
             />
           </div>
 
-          <button type="submit" disabled={loading}
+          <button
+            type="submit"
+            disabled={loading}
             className="w-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-900 font-medium rounded-lg px-4 py-3.5 mt-2 transition-all flex justify-center items-center disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : dict.login.submit}
           </button>
         </form>
       </div>
-      
-      <p className="text-zinc-600 text-xs mt-10 font-medium">
-        &copy; {new Date().getFullYear()}
-      </p>
+
+      <p className="text-zinc-600 text-xs mt-10 font-medium">&copy; {new Date().getFullYear()}</p>
     </div>
   );
 }
-

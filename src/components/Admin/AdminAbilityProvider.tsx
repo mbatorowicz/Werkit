@@ -12,9 +12,7 @@ export function AdminAbilityProvider({
   children: React.ReactNode;
 }) {
   return (
-    <AdminAbilityContext.Provider value={{ canMutate }}>
-      {children}
-    </AdminAbilityContext.Provider>
+    <AdminAbilityContext.Provider value={{ canMutate }}>{children}</AdminAbilityContext.Provider>
   );
 }
 

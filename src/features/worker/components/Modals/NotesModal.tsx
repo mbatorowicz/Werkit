@@ -76,7 +76,9 @@ export default function NotesModal({
         </div>
 
         {timelineEvents.some((e) => e.type === "note") ? (
-          <div className={`flex max-h-48 flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800 ${INLINE_SCROLL_PANEL_CLASS}`}>
+          <div
+            className={`flex max-h-48 flex-col gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800 ${INLINE_SCROLL_PANEL_CLASS}`}
+          >
             <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {dict.yourNotes}
             </label>
@@ -88,7 +90,9 @@ export default function NotesModal({
                   className="flex items-start justify-between gap-2 rounded border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700/50 dark:bg-zinc-800/50"
                 >
                   <div className="flex flex-col">
-                    <span className="break-words text-xs text-zinc-800 dark:text-zinc-200">{n.content}</span>
+                    <span className="break-words text-xs text-zinc-800 dark:text-zinc-200">
+                      {n.content}
+                    </span>
                     <span className="text-[9px] text-zinc-400">{formatUiTimeHm(n.createdAt)}</span>
                   </div>
                   <button

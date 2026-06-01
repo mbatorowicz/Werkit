@@ -43,7 +43,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
 
     const resourceVis = useMemo(
       () => mergeResourceFieldVisibility(mForm.categoryIds, categories),
-      [mForm.categoryIds, categories],
+      [mForm.categoryIds, categories]
     );
 
     const handleMSave = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         vis.showResourceName ? mForm.resourceName : "",
         "",
         vis.showRegistrationNumber ? mForm.registrationNumber : "",
-        vis.showResourceDescription ? mForm.description : null,
+        vis.showResourceDescription ? mForm.description : null
       );
       if (!canonical.trim()) {
         await appAlert({ message: dict.machIdentityRequired });
@@ -71,14 +71,16 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
       };
       try {
         const res = await fetchWithDeviceTelemetry(
-          mEditId ? `Admin machines: save machine PUT ${mEditId}` : "Admin machines: save machine POST",
+          mEditId
+            ? `Admin machines: save machine PUT ${mEditId}`
+            : "Admin machines: save machine POST",
           url,
           {
             method,
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
           },
-          { category: "admin" },
+          { category: "admin" }
         );
         if (res.ok) {
           setIsMMOpen(false);
@@ -104,7 +106,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         }
         setMForm((prev) => ({ ...prev, imageUrl: dataUrl }));
       },
-      [appAlert, dict.apiError],
+      [appAlert, dict.apiError]
     );
 
     useImperativeHandle(ref, () => ({
@@ -140,5 +142,5 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         onPhotoPick={handleMachPhotoPick}
       />
     );
-  },
+  }
 );

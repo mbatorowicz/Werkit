@@ -50,7 +50,7 @@ export function useAppDialog(): AppDialogContextValue {
 export function appDialogApiMessage(
   apiErrors: Record<string, string>,
   code: string | null | undefined,
-  fallback: string,
+  fallback: string
 ): string {
   if (!code) return fallback;
   return apiErrors[code] ?? code ?? fallback;
@@ -128,7 +128,9 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
             </div>
           }
         >
-          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{confirmOpts.message}</p>
+          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            {confirmOpts.message}
+          </p>
         </AdminModalShell>
       ) : null}
 
@@ -151,7 +153,9 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
             </button>
           }
         >
-          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{alertOpts.message}</p>
+          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+            {alertOpts.message}
+          </p>
         </AdminModalShell>
       ) : null}
     </AppDialogContext.Provider>

@@ -17,19 +17,28 @@ type Props = {
 };
 
 export function SettingsOrdersSection({
-  cancelWindowMinutes, setCancelWindowMinutes,
-  geofenceRadiusMeters, setGeofenceRadiusMeters,
-  upcomingOrderReminderMinutes, setUpcomingOrderReminderMinutes,
-  requirePhotoToFinish, setRequirePhotoToFinish,
-  timeOverrunReminder, setTimeOverrunReminder,
+  cancelWindowMinutes,
+  setCancelWindowMinutes,
+  geofenceRadiusMeters,
+  setGeofenceRadiusMeters,
+  upcomingOrderReminderMinutes,
+  setUpcomingOrderReminderMinutes,
+  requirePhotoToFinish,
+  setRequirePhotoToFinish,
+  timeOverrunReminder,
+  setTimeOverrunReminder,
   mode,
 }: Props) {
   const dict = getDictionary().admin.settings;
 
   return (
-    <div className={`space-y-6 max-w-3xl ${mode === "all" ? "pt-8 border-t border-zinc-200 dark:border-zinc-800" : ""}`}>
+    <div
+      className={`space-y-6 max-w-3xl ${mode === "all" ? "pt-8 border-t border-zinc-200 dark:border-zinc-800" : ""}`}
+    >
       <div>
-        <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">{dict.orderSettingsUX}</h3>
+        <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">
+          {dict.orderSettingsUX}
+        </h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -76,7 +85,9 @@ export function SettingsOrdersSection({
             className="w-5 h-5 text-emerald-500"
           />
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-zinc-900 dark:text-white">{dict.requirePhoto}</span>
+            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+              {dict.requirePhoto}
+            </span>
             <span className="text-xs text-zinc-500">{dict.requirePhotoDesc}</span>
           </div>
         </label>
@@ -89,7 +100,9 @@ export function SettingsOrdersSection({
             className="w-5 h-5 text-emerald-500"
           />
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-zinc-900 dark:text-white">{dict.timeOverrun}</span>
+            <span className="text-sm font-medium text-zinc-900 dark:text-white">
+              {dict.timeOverrun}
+            </span>
             <span className="text-xs text-zinc-500">{dict.timeOverrunDesc}</span>
           </div>
         </label>

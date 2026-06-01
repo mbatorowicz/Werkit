@@ -76,9 +76,24 @@ describe("SparePartService", () => {
         .mockReturnValueOnce({
           from: () => ({
             where: () => ({
-              orderBy: () => Promise.resolve([
-                { id: 1, companyId, name: "Łożysko", catalogNumber: "SKF-6205", manufacturer: "SKF", unit: "szt", purchasePrice: "45.50", description: null, minStock: "10", location: "A-12", imageUrl: null, isActive: true, createdAt: "2026-05-01T00:00:00Z" },
-              ]),
+              orderBy: () =>
+                Promise.resolve([
+                  {
+                    id: 1,
+                    companyId,
+                    name: "Łożysko",
+                    catalogNumber: "SKF-6205",
+                    manufacturer: "SKF",
+                    unit: "szt",
+                    purchasePrice: "45.50",
+                    description: null,
+                    minStock: "10",
+                    location: "A-12",
+                    imageUrl: null,
+                    isActive: true,
+                    createdAt: "2026-05-01T00:00:00Z",
+                  },
+                ]),
             }),
           }),
         })
@@ -100,22 +115,36 @@ describe("SparePartService", () => {
         .mockReturnValueOnce({
           from: () => ({
             where: () => ({
-              orderBy: () => Promise.resolve([
-                { id: 1, companyId, name: "Łożysko", catalogNumber: "SKF-6205", manufacturer: "SKF", unit: "szt", purchasePrice: "45.50", description: null, minStock: "10", location: "A-12", imageUrl: null, isActive: true, createdAt: "2026-05-01T00:00:00Z" },
-              ]),
+              orderBy: () =>
+                Promise.resolve([
+                  {
+                    id: 1,
+                    companyId,
+                    name: "Łożysko",
+                    catalogNumber: "SKF-6205",
+                    manufacturer: "SKF",
+                    unit: "szt",
+                    purchasePrice: "45.50",
+                    description: null,
+                    minStock: "10",
+                    location: "A-12",
+                    imageUrl: null,
+                    isActive: true,
+                    createdAt: "2026-05-01T00:00:00Z",
+                  },
+                ]),
             }),
           }),
         })
         .mockReturnValueOnce({
-          from: () => Promise.resolve([
-            { partId: 1, categoryId: 10 },
-            { partId: 1, categoryId: 20 },
-          ]),
+          from: () =>
+            Promise.resolve([
+              { partId: 1, categoryId: 10 },
+              { partId: 1, categoryId: 20 },
+            ]),
         })
         .mockReturnValueOnce({
-          from: () => Promise.resolve([
-            { partId: 1, categoryId: 30 },
-          ]),
+          from: () => Promise.resolve([{ partId: 1, categoryId: 30 }]),
         });
 
       const result = await SparePartService.getParts(companyId);
@@ -145,7 +174,21 @@ describe("SparePartService", () => {
             where: () => ({
               limit: () =>
                 Promise.resolve([
-                  { id: 1, companyId, name: "Filtr", catalogNumber: "FL-100", manufacturer: "Mann", unit: "szt", purchasePrice: "25.00", description: null, minStock: "5", location: "B-01", imageUrl: null, isActive: true, createdAt: "2026-05-01T00:00:00Z" },
+                  {
+                    id: 1,
+                    companyId,
+                    name: "Filtr",
+                    catalogNumber: "FL-100",
+                    manufacturer: "Mann",
+                    unit: "szt",
+                    purchasePrice: "25.00",
+                    description: null,
+                    minStock: "5",
+                    location: "B-01",
+                    imageUrl: null,
+                    isActive: true,
+                    createdAt: "2026-05-01T00:00:00Z",
+                  },
                 ]),
             }),
           }),

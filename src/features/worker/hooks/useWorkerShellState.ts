@@ -8,7 +8,15 @@ import { sendRemoteLog } from "@/lib/remoteLogger";
 import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
 import { useWorkerGPS } from "@/features/worker/hooks/useWorkerGPS";
-import type { AppSettings, Coord, InitialWorkerData, Session, TimelineItem, UserData, WorkOrder } from "@/types/worker";
+import type {
+  AppSettings,
+  Coord,
+  InitialWorkerData,
+  Session,
+  TimelineItem,
+  UserData,
+  WorkOrder,
+} from "@/types/worker";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown } from "@/lib/parseApiJson";
 import { narrowWorkOrders } from "@/lib/narrowApiListRows";
@@ -22,7 +30,7 @@ import {
 
 export function useWorkerShellState(initialData: InitialWorkerData | null) {
   const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(() =>
-    initialData ? buildWorkerSessionTimeline(initialData.events, initialData.notes) : [],
+    initialData ? buildWorkerSessionTimeline(initialData.events, initialData.notes) : []
   );
   const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
@@ -53,12 +61,22 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
     if (showLoader) setIsLoading(true);
     try {
       const [resSess, resOrders] = await Promise.all([
-        fetchWithDeviceTelemetry("Worker: session GET", "/api/worker/session", { cache: "no-store" }, {
-          category: "session",
-        }),
-        fetchWithDeviceTelemetry("Worker: work-orders GET", "/api/worker/work-orders", { cache: "no-store" }, {
-          category: "orders",
-        }),
+        fetchWithDeviceTelemetry(
+          "Worker: session GET",
+          "/api/worker/session",
+          { cache: "no-store" },
+          {
+            category: "session",
+          }
+        ),
+        fetchWithDeviceTelemetry(
+          "Worker: work-orders GET",
+          "/api/worker/work-orders",
+          { cache: "no-store" },
+          {
+            category: "orders",
+          }
+        ),
       ]);
 
       if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
@@ -83,9 +101,14 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
       if (fetchGpsPath && sessionRowEarly && !stationary) {
         try {
-          const resPath = await fetchWithDeviceTelemetry("Worker: gps path GET", "/api/worker/gps", {
-            cache: "no-store",
-          }, { category: "gps" });
+          const resPath = await fetchWithDeviceTelemetry(
+            "Worker: gps path GET",
+            "/api/worker/gps",
+            {
+              cache: "no-store",
+            },
+            { category: "gps" }
+          );
           const pathBody = await parseJsonUnknown(resPath);
           const logs = narrowGpsPathLogs(pathBody);
           if (logs.length > 0) {
@@ -114,7 +137,9 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         if (!sessStationary) {
           const s = sessionRowEarly;
           setRouteWaypoints(Array.isArray(s.routeWaypoints) ? s.routeWaypoints : []);
-          setCustomerLocationId(typeof s.customerLocationId === "number" ? s.customerLocationId : null);
+          setCustomerLocationId(
+            typeof s.customerLocationId === "number" ? s.customerLocationId : null
+          );
           if (s.customerLat && s.customerLng) {
             setDestination({ lat: parseFloat(s.customerLat), lng: parseFloat(s.customerLng) });
           } else if (s.customerAddress && !destinationRef.current) {
@@ -123,7 +148,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
                 "Worker: Nominatim geocode",
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s.customerAddress)}`,
                 undefined,
-                { category: "http" },
+                { category: "http" }
               );
               const geoRows = await parseJsonArray(geo);
               const hits = narrowNominatimHits(geoRows);
@@ -149,7 +174,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         {
           error: e instanceof Error ? e.message : String(e),
         },
-        { category: "session" },
+        { category: "session" }
       );
     }
     if (showLoader) setIsLoading(false);
@@ -172,13 +197,13 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ waypoints: next }),
           },
-          { category: "orders" },
+          { category: "orders" }
         );
       } catch {
         /* zapis trasy opcjonalny */
       }
     },
-    [customerLocationId, currentUser?.canEditRoute],
+    [customerLocationId, currentUser?.canEditRoute]
   );
 
   return {

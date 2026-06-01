@@ -8,7 +8,7 @@ type Props = {
   hours: number[];
   currentTimeLeft: number | null;
   currentTime: Date | null;
-  groupBy: 'WORKER' | 'MACHINE';
+  groupBy: "WORKER" | "MACHINE";
   dict: Record<string, string>;
 };
 
@@ -29,9 +29,15 @@ export function GanttTimeline({
         </span>
       </div>
       <div className="flex-1 relative h-10">
-        {hours.map(h => (
-          <div key={h} className="absolute top-0 bottom-0 border-l border-zinc-100 dark:border-zinc-800/50" style={{ left: `${((h - startHour) / totalHours) * 100}%` }}>
-            <span className="text-[10px] text-zinc-400 absolute -left-2.5 top-2 bg-white dark:bg-zinc-900 px-1">{h.toString().padStart(2, '0')}:00</span>
+        {hours.map((h) => (
+          <div
+            key={h}
+            className="absolute top-0 bottom-0 border-l border-zinc-100 dark:border-zinc-800/50"
+            style={{ left: `${((h - startHour) / totalHours) * 100}%` }}
+          >
+            <span className="text-[10px] text-zinc-400 absolute -left-2.5 top-2 bg-white dark:bg-zinc-900 px-1">
+              {h.toString().padStart(2, "0")}:00
+            </span>
           </div>
         ))}
         {currentTimeLeft !== null && (

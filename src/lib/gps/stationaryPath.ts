@@ -15,7 +15,7 @@ export const GPS_PATH_STATIONARY_MERGE_MAX_METERS = 6;
 export function foldAppendGpsSample(
   prev: Coord[],
   newLoc: Coord,
-  radiusM: number = GPS_PATH_STATIONARY_MERGE_MAX_METERS,
+  radiusM: number = GPS_PATH_STATIONARY_MERGE_MAX_METERS
 ): { path: Coord[]; addedKm: number } {
   if (prev.length === 0) {
     return { path: [{ ...newLoc }], addedKm: 0 };
@@ -34,7 +34,7 @@ export function foldAppendGpsSample(
 /** Jednorazowe złożenie surowej listy z API / historii (ta sama logika co przy żywym GPS). */
 export function foldMicroJumpsInPath(
   points: Coord[],
-  radiusM: number = GPS_PATH_STATIONARY_MERGE_MAX_METERS,
+  radiusM: number = GPS_PATH_STATIONARY_MERGE_MAX_METERS
 ): Coord[] {
   let acc: Coord[] = [];
   for (const p of points) {

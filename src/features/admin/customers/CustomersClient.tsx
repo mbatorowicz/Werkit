@@ -16,7 +16,10 @@ import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import CustomersTable from "./CustomersTable";
-import CustomerFormFields, { emptyCustomerForm, type CustomerFormState } from "./CustomerFormFields";
+import CustomerFormFields, {
+  emptyCustomerForm,
+  type CustomerFormState,
+} from "./CustomerFormFields";
 
 type Customer = AdminCustomerListRow;
 
@@ -45,9 +48,14 @@ export default function CustomersClient() {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Admin customers: list", "/api/customers", { cache: "no-store" }, {
-        category: "admin",
-      });
+      const res = await fetchWithDeviceTelemetry(
+        "Admin customers: list",
+        "/api/customers",
+        { cache: "no-store" },
+        {
+          category: "admin",
+        }
+      );
       const data = await parseJsonArray(res);
       setCustomers(narrowAdminCustomerRows(data));
     } catch {
@@ -77,8 +85,12 @@ export default function CustomersClient() {
       const res = await fetchWithDeviceTelemetry(
         `Admin customers: save PUT ${editId}`,
         url,
-        { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) },
-        { category: "admin" },
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+        { category: "admin" }
       );
       if (res.ok) {
         setIsModalOpen(false);
@@ -95,19 +107,19 @@ export default function CustomersClient() {
   };
 
   const handleDelete = async (id: number) => {
-     if (!(await appConfirm({ message: dict.confirmDelete, variant: "danger" }))) return;
-     const res = await fetchWithDeviceTelemetry(
-       `Admin customers: delete ${id}`,
-       `/api/customers/${id}`,
-       { method: "DELETE" },
-       { category: "admin" },
-     );
-     if (res.ok) fetchData();
-     else {
-       const body = await parseJsonUnknown(res);
-       const err = readApiErrorString(body);
-       await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
-     }
+    if (!(await appConfirm({ message: dict.confirmDelete, variant: "danger" }))) return;
+    const res = await fetchWithDeviceTelemetry(
+      `Admin customers: delete ${id}`,
+      `/api/customers/${id}`,
+      { method: "DELETE" },
+      { category: "admin" }
+    );
+    if (res.ok) fetchData();
+    else {
+      const body = await parseJsonUnknown(res);
+      const err = readApiErrorString(body);
+      await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
+    }
   };
 
   const openNewModal = () => {
@@ -124,11 +136,11 @@ export default function CustomersClient() {
     setPreviewCustomer(null);
     setEditId(customer.id);
     setForm({
-      firstName: customer.firstName || '',
+      firstName: customer.firstName || "",
       lastName: customer.lastName,
-      defaultAddress: customer.defaultAddress || '',
-      latitude: customer.latitude || '',
-      longitude: customer.longitude || ''
+      defaultAddress: customer.defaultAddress || "",
+      latitude: customer.latitude || "",
+      longitude: customer.longitude || "",
     });
     setIsModalOpen(true);
   };
@@ -137,12 +149,17 @@ export default function CustomersClient() {
     <>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2"><Package className="w-6 h-6 text-emerald-500" /> {pageTitle}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Package className="w-6 h-6 text-emerald-500" /> {pageTitle}
+          </h1>
         </div>
         {canMutate && (
-        <button onClick={openNewModal} className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2">
-          <Plus className="w-4 h-4" /> {dict.addCustomer}
-        </button>
+          <button
+            onClick={openNewModal}
+            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> {dict.addCustomer}
+          </button>
         )}
       </div>
 
@@ -192,12 +209,7 @@ export default function CustomersClient() {
           </div>
         ) : (
           <form id={customerFormId} onSubmit={handleSave}>
-            <CustomerFormFields
-              form={form}
-              editId={editId}
-              onFormChange={setForm}
-              dict={dict}
-            />
+            <CustomerFormFields form={form} editId={editId} onFormChange={setForm} dict={dict} />
           </form>
         )}
       </AdminModalShell>
@@ -242,5 +254,5 @@ export default function CustomersClient() {
         ) : null}
       </AdminPreviewModal>
     </>
-  )
+  );
 }

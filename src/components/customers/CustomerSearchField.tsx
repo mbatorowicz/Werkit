@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
-import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
 import {
   buildCustomerSearchText,
@@ -57,7 +60,7 @@ export function CustomerSearchField({
         sublabel: formatCustomerDisplayAddress(c),
         searchText: buildCustomerSearchText(c),
       })),
-    [customers],
+    [customers]
   );
 
   const openCreateForm = useCallback(() => {
@@ -65,7 +68,8 @@ export function CustomerSearchField({
   }, []);
 
   const trimmedQuery = pendingQuery.trim();
-  const hasMatches = trimmedQuery.length > 0 && customers.some((c) => matchesCustomerSearch(c, pendingQuery));
+  const hasMatches =
+    trimmedQuery.length > 0 && customers.some((c) => matchesCustomerSearch(c, pendingQuery));
   const createEnabled = canCreate && !disabled;
   const showAddButton = createEnabled && !showCreate && trimmedQuery.length > 0 && !hasMatches;
 

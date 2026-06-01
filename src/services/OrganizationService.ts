@@ -2,10 +2,10 @@
 // Werkit — Serwis: hierarchia organizacyjna (departamenty / zespoły)
 // ============================================================
 
-import { db } from '@/db';
-import { departments, teams, teamMembers, users } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
-import type { DepartmentTreeNode, TeamWithMembers, TeamMemberWithUser } from '@/types/organization';
+import { db } from "@/db";
+import { departments, teams, teamMembers, users } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import type { DepartmentTreeNode, TeamWithMembers, TeamMemberWithUser } from "@/types/organization";
 
 export class OrganizationService {
   // ==================== DEPARTAMENTY ====================
@@ -84,7 +84,7 @@ export class OrganizationService {
       name: string;
       parentId?: number | null;
       managerId?: number | null;
-    },
+    }
   ) {
     const [inserted] = await db
       .insert(departments)
@@ -108,7 +108,7 @@ export class OrganizationService {
       name?: string;
       parentId?: number | null;
       managerId?: number | null;
-    },
+    }
   ) {
     const [updated] = await db
       .update(departments)
@@ -127,10 +127,7 @@ export class OrganizationService {
    * Usuwa departament (kaskadowo usuwa też zespoły i członków).
    */
   static async deleteDepartment(id: number) {
-    const [deleted] = await db
-      .delete(departments)
-      .where(eq(departments.id, id))
-      .returning();
+    const [deleted] = await db.delete(departments).where(eq(departments.id, id)).returning();
 
     return deleted;
   }
@@ -164,11 +161,7 @@ export class OrganizationService {
    * Pobiera zespół po ID.
    */
   static async getTeam(id: number) {
-    const [team] = await db
-      .select()
-      .from(teams)
-      .where(eq(teams.id, id))
-      .limit(1);
+    const [team] = await db.select().from(teams).where(eq(teams.id, id)).limit(1);
 
     return team ?? null;
   }
@@ -182,7 +175,7 @@ export class OrganizationService {
       departmentId: number;
       name: string;
       leaderId?: number | null;
-    },
+    }
   ) {
     const [inserted] = await db
       .insert(teams)
@@ -205,7 +198,7 @@ export class OrganizationService {
     data: {
       name?: string;
       leaderId?: number | null;
-    },
+    }
   ) {
     const [updated] = await db
       .update(teams)
@@ -223,10 +216,7 @@ export class OrganizationService {
    * Usuwa zespół (kaskadowo usuwa członków).
    */
   static async deleteTeam(id: number) {
-    const [deleted] = await db
-      .delete(teams)
-      .where(eq(teams.id, id))
-      .returning();
+    const [deleted] = await db.delete(teams).where(eq(teams.id, id)).returning();
 
     return deleted;
   }
@@ -271,17 +261,13 @@ export class OrganizationService {
   /**
    * Dodaje użytkownika do zespołu.
    */
-  static async addTeamMember(data: {
-    teamId: number;
-    userId: number;
-    role?: string;
-  }) {
+  static async addTeamMember(data: { teamId: number; userId: number; role?: string }) {
     const [inserted] = await db
       .insert(teamMembers)
       .values({
         teamId: data.teamId,
         userId: data.userId,
-        role: data.role ?? 'member',
+        role: data.role ?? "member",
       })
       .returning();
 
@@ -291,10 +277,7 @@ export class OrganizationService {
   /**
    * Aktualizuje rolę członka zespołu.
    */
-  static async updateTeamMember(
-    id: number,
-    data: { role?: string },
-  ) {
+  static async updateTeamMember(id: number, data: { role?: string }) {
     const [updated] = await db
       .update(teamMembers)
       .set({
@@ -310,10 +293,7 @@ export class OrganizationService {
    * Usuwa członka z zespołu.
    */
   static async removeTeamMember(id: number) {
-    const [deleted] = await db
-      .delete(teamMembers)
-      .where(eq(teamMembers.id, id))
-      .returning();
+    const [deleted] = await db.delete(teamMembers).where(eq(teamMembers.id, id)).returning();
 
     return deleted;
   }

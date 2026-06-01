@@ -56,7 +56,13 @@ export default function MachinesClient() {
         onEditResource={(m) => machineFormRef.current?.openEdit(m)}
       />
 
-      <MachinesClientMachineFormPanel ref={machineFormRef} dict={dict} apiErrors={apiErrors} categories={categories} fetchData={fetchData} />
+      <MachinesClientMachineFormPanel
+        ref={machineFormRef}
+        dict={dict}
+        apiErrors={apiErrors}
+        categories={categories}
+        fetchData={fetchData}
+      />
     </>
   );
 }

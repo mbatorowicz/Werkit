@@ -1,7 +1,7 @@
-import { Download, Smartphone } from 'lucide-react';
-import type { AndroidAppDownloadInfo } from '@/lib/androidAppDownload';
-import { APP_VERSION } from '@/lib/version';
-import { getDictionary, formatDict, formatUiDateTimeShort } from '@/i18n';
+import { Download, Smartphone } from "lucide-react";
+import type { AndroidAppDownloadInfo } from "@/lib/androidAppDownload";
+import { APP_VERSION } from "@/lib/version";
+import { getDictionary, formatDict, formatUiDateTimeShort } from "@/i18n";
 
 type Props = {
   download: AndroidAppDownloadInfo;
@@ -18,7 +18,7 @@ export function AppDownloadCard({ download }: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-semibold text-zinc-900 dark:text-white">{dict.appDownloadTitle}</h2>
-          {download.available && download.buildType === 'debug' ? (
+          {download.available && download.buildType === "debug" ? (
             <span className="inline-flex items-center rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 text-xs font-medium">
               {dict.appDownloadDebugBadge}
             </span>
@@ -55,7 +55,7 @@ export function AppDownloadCard({ download }: Props) {
               <p className="text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-lg px-4 py-3">
                 {formatDict(dict.appDownloadVersionMismatch, {
                   webVersion: download.webPackageVersion,
-                  apkVersion: download.apkVersion ?? '—',
+                  apkVersion: download.apkVersion ?? "—",
                 })}
               </p>
             ) : null}

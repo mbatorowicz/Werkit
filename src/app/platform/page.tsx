@@ -1,8 +1,8 @@
-import { PlatformDashboard } from '@/components/Platform/PlatformDashboard';
-import { getDictionary } from '@/i18n';
-import { PlatformAnalyticsService } from '@/services/PlatformAnalyticsService';
+import { PlatformDashboard } from "@/components/Platform/PlatformDashboard";
+import { getDictionary } from "@/i18n";
+import { PlatformAnalyticsService } from "@/services/PlatformAnalyticsService";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function PlatformPage() {
   const dict = getDictionary();

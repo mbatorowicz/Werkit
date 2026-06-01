@@ -17,7 +17,7 @@ function formatTimeRange(start: string, end: string): string {
 
 export function formatScheduleConflictLine(
   labels: ScheduleConflictLabels,
-  conflict: ScheduleConflictPreview,
+  conflict: ScheduleConflictPreview
 ): string {
   const timeRange = formatTimeRange(conflict.start, conflict.end);
   const task = conflict.taskLabel?.trim() || labels.scheduleConflictNoTask;

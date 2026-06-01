@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { workSessions, gpsLogs, sessionPhotos, sessionNotes, workOrders } from '@/db/schema';
-import { eq, desc, and } from 'drizzle-orm';
-import { refreshPhotoUrls } from '@/lib/photoUpload';
+import { db } from "@/db";
+import { workSessions, gpsLogs, sessionPhotos, sessionNotes, workOrders } from "@/db/schema";
+import { eq, desc, and } from "drizzle-orm";
+import { refreshPhotoUrls } from "@/lib/photoUpload";
 
 export class AdminSessionService {
   /**
@@ -13,7 +13,7 @@ export class AdminSessionService {
       .from(workSessions)
       .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
       .limit(1);
-    if (!sessionRow[0]) throw new Error('not_found');
+    if (!sessionRow[0]) throw new Error("not_found");
 
     const [logs, photos, notes] = await Promise.all([
       db
@@ -46,19 +46,19 @@ export class AdminSessionService {
       .from(workSessions)
       .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
       .limit(1);
-    if (rows.length === 0) throw new Error('not_found');
-    if (rows[0].status !== 'IN_PROGRESS') throw new Error('not_in_progress');
+    if (rows.length === 0) throw new Error("not_found");
+    if (rows[0].status !== "IN_PROGRESS") throw new Error("not_in_progress");
 
     await db
       .update(workSessions)
-      .set({ status: 'COMPLETED', endTime: new Date() })
+      .set({ status: "COMPLETED", endTime: new Date() })
       .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)));
 
     const wid = rows[0].workOrderId;
     if (wid != null) {
       await db
         .update(workOrders)
-        .set({ status: 'COMPLETED' })
+        .set({ status: "COMPLETED" })
         .where(and(eq(workOrders.id, wid), eq(workOrders.companyId, companyId)));
     }
   }
@@ -73,9 +73,9 @@ export class AdminSessionService {
       .from(workSessions)
       .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
       .limit(1);
-    if (rows.length === 0) throw new Error('not_found');
+    if (rows.length === 0) throw new Error("not_found");
     const session = rows[0];
-    if (session.status === 'IN_PROGRESS') throw new Error('session_still_active');
+    if (session.status === "IN_PROGRESS") throw new Error("session_still_active");
 
     await db.transaction(async (tx) => {
       const wid = session.workOrderId;

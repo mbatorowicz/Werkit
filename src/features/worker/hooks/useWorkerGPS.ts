@@ -19,7 +19,7 @@ export function useWorkerGPS(
   session: Session | null,
   setLocation: (loc: Coord) => void,
   dispatchRoute: Dispatch<WorkerRouteAction>,
-  setGpsStatus: (status: "waiting" | "active" | "error") => void,
+  setGpsStatus: (status: "waiting" | "active" | "error") => void
 ) {
   const watchIdRef = useRef<string | number | null>(null);
 
@@ -84,9 +84,14 @@ export function useWorkerGPS(
           (location, error) => {
             if (error) {
               if (isMounted) setGpsStatus("error");
-              sendRemoteLog("ERROR", "Błąd w BackgroundGeolocation.addWatcher", error as unknown as Record<string, unknown>, {
-                category: "gps",
-              });
+              sendRemoteLog(
+                "ERROR",
+                "Błąd w BackgroundGeolocation.addWatcher",
+                error as unknown as Record<string, unknown>,
+                {
+                  category: "gps",
+                }
+              );
               return;
             }
             if (!location) return;
@@ -94,16 +99,21 @@ export function useWorkerGPS(
             const coord = coordFromNativeBackgroundReading(location);
             if (!coord) {
               if (typeof location.accuracy === "number") {
-                sendRemoteLog("INFO", "Filtrowanie GPS: Odrzucono szpilkę", {
-                  accuracy: location.accuracy,
-                  lat: location.latitude,
-                  lng: location.longitude,
-                }, { category: "gps" });
+                sendRemoteLog(
+                  "INFO",
+                  "Filtrowanie GPS: Odrzucono szpilkę",
+                  {
+                    accuracy: location.accuracy,
+                    lat: location.latitude,
+                    lng: location.longitude,
+                  },
+                  { category: "gps" }
+                );
               }
               return;
             }
             handleNewLoc(coord);
-          },
+          }
         );
 
         if (!isMounted) {
@@ -111,14 +121,19 @@ export function useWorkerGPS(
         } else {
           watchIdRef.current = watcherId;
           setGpsStatus("active");
-          sendRemoteLog("INFO", "Uruchomiono BackgroundGeolocation.addWatcher", { id: watcherId }, { category: "gps" });
+          sendRemoteLog(
+            "INFO",
+            "Uruchomiono BackgroundGeolocation.addWatcher",
+            { id: watcherId },
+            { category: "gps" }
+          );
         }
       } catch (err) {
         sendRemoteLog(
           "ERROR",
           "Nie udało się uruchomić BackgroundGeolocation",
           err instanceof Error ? { error: err.message } : undefined,
-          { category: "gps" },
+          { category: "gps" }
         );
         if (isMounted) setGpsStatus("error");
       }
@@ -137,7 +152,7 @@ export function useWorkerGPS(
           () => {
             if (isMounted) setGpsStatus("error");
           },
-          WORKER_WEB_GEO_WATCH_OPTIONS,
+          WORKER_WEB_GEO_WATCH_OPTIONS
         );
       } else if (isMounted) {
         setGpsStatus("error");

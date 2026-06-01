@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/dur/spare-part-compatibility?partId=X
@@ -18,7 +18,8 @@ export const GET = withApiErrorHandling(
     const partIdParam = url.searchParams.get("partId");
     const machineCategoryIdParam = url.searchParams.get("machineCategoryId");
 
-    const { SparePartCompatibilityService } = await import("@/services/dur/SparePartCompatibilityService");
+    const { SparePartCompatibilityService } =
+      await import("@/services/dur/SparePartCompatibilityService");
 
     if (partIdParam) {
       const partId = parseInt(partIdParam, 10);
@@ -36,7 +37,7 @@ export const GET = withApiErrorHandling(
 
     return jsonError("missing_params", 400);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 /**
@@ -62,10 +63,11 @@ export const POST = withApiErrorHandling(
 
     const notes = typeof body.notes === "string" ? body.notes : undefined;
 
-    const { SparePartCompatibilityService } = await import("@/services/dur/SparePartCompatibilityService");
+    const { SparePartCompatibilityService } =
+      await import("@/services/dur/SparePartCompatibilityService");
     await SparePartCompatibilityService.add(partId, categoryId, companyId, notes);
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );

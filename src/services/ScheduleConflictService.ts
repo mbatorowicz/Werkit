@@ -42,7 +42,7 @@ export class ScheduleConflictService {
       dueDate: Date | null;
       durationHours: number | null;
       excludeOrderId?: number;
-    },
+    }
   ): Promise<{ ok: true } | never> {
     const { userId, resourceId, dueDate, durationHours, excludeOrderId } = params;
 
@@ -55,16 +55,16 @@ export class ScheduleConflictService {
         excludeOrderId,
       });
       if (conflicts.length > 0) {
-        throw new Error('schedule_conflict');
+        throw new Error("schedule_conflict");
       }
     } else if (resourceId) {
       const resourceBusy = await ScheduleConflictService.hasActiveResourceSession(
         companyId,
         resourceId,
-        userId,
+        userId
       );
       if (resourceBusy) {
-        throw new Error('resource_busy');
+        throw new Error("resource_busy");
       }
     }
 
@@ -74,18 +74,18 @@ export class ScheduleConflictService {
   static async loadCandidates(
     companyId: number,
     userId: number,
-    resourceId: number,
+    resourceId: number
   ): Promise<ScheduleCandidate[]> {
     const orderFilter = and(
       eq(workOrders.companyId, companyId),
       or(eq(workOrders.userId, userId), eq(workOrders.resourceId, resourceId)),
-      inArray(workOrders.status, ["PENDING", "IN_PROGRESS"]),
+      inArray(workOrders.status, ["PENDING", "IN_PROGRESS"])
     );
 
     const sessionFilter = and(
       eq(workSessions.companyId, companyId),
       eq(workSessions.status, "IN_PROGRESS"),
-      or(eq(workSessions.userId, userId), eq(workSessions.resourceId, resourceId)),
+      or(eq(workSessions.userId, userId), eq(workSessions.resourceId, resourceId))
     );
 
     const [orderRows, sessionRows] = await Promise.all([
@@ -144,9 +144,10 @@ export class ScheduleConflictService {
 
   static async findConflictsForRequest(
     companyId: number,
-    request: ScheduleConflictRequest,
+    request: ScheduleConflictRequest
   ): Promise<ScheduleConflict[]> {
-    const { userId, resourceId, dueDate, durationHours, excludeOrderId, excludeSessionId } = request;
+    const { userId, resourceId, dueDate, durationHours, excludeOrderId, excludeSessionId } =
+      request;
     if (!dueDate || durationHours == null || durationHours <= 0) return [];
 
     const candidates = await ScheduleConflictService.loadCandidates(companyId, userId, resourceId);
@@ -162,13 +163,16 @@ export class ScheduleConflictService {
 
   static async checkScheduleConflictLegacyMessage(
     companyId: number,
-    request: ScheduleConflictRequest,
+    request: ScheduleConflictRequest
   ): Promise<string | null> {
     const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, request);
     return scheduleConflictToLegacyMessage(conflicts);
   }
 
-  static async findConflictsForRequestSerialized(companyId: number, request: ScheduleConflictRequest) {
+  static async findConflictsForRequestSerialized(
+    companyId: number,
+    request: ScheduleConflictRequest
+  ) {
     const conflicts = await ScheduleConflictService.findConflictsForRequest(companyId, request);
     return conflicts.map(serializeConflict);
   }
@@ -177,7 +181,7 @@ export class ScheduleConflictService {
   static async hasActiveResourceSession(
     companyId: number,
     resourceId: number,
-    excludeUserId?: number,
+    excludeUserId?: number
   ): Promise<boolean> {
     const rows = await db
       .select({ id: workSessions.id, userId: workSessions.userId })
@@ -186,8 +190,8 @@ export class ScheduleConflictService {
         and(
           eq(workSessions.companyId, companyId),
           eq(workSessions.resourceId, resourceId),
-          eq(workSessions.status, "IN_PROGRESS"),
-        ),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
       )
       .limit(5);
 
@@ -203,8 +207,8 @@ export class ScheduleConflictService {
         and(
           eq(workSessions.companyId, companyId),
           eq(workSessions.userId, userId),
-          eq(workSessions.status, "IN_PROGRESS"),
-        ),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
       )
       .limit(1);
     return rows.length > 0;
@@ -214,7 +218,7 @@ export class ScheduleConflictService {
   static async findResourceBusyConflicts(
     companyId: number,
     userId: number,
-    resourceId: number,
+    resourceId: number
   ): Promise<ScheduleConflict[]> {
     const rows = await db
       .select({
@@ -239,8 +243,8 @@ export class ScheduleConflictService {
         and(
           eq(workSessions.companyId, companyId),
           eq(workSessions.resourceId, resourceId),
-          eq(workSessions.status, "IN_PROGRESS"),
-        ),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
       )
       .limit(5);
 
@@ -267,12 +271,12 @@ export class ScheduleConflictService {
   static async findResourceBusyConflictsSerialized(
     companyId: number,
     userId: number,
-    resourceId: number,
+    resourceId: number
   ) {
     const conflicts = await ScheduleConflictService.findResourceBusyConflicts(
       companyId,
       userId,
-      resourceId,
+      resourceId
     );
     return conflicts.map(serializeConflict);
   }

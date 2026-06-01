@@ -1,7 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { parsePositiveIntParam } from '@/lib/parseRouteParams';
-import { WorkerSessionService } from '@/services/WorkerSessionService';
-import { requireWorkerCompanySession } from '@/lib/apiTenant';
+import { parsePositiveIntParam } from "@/lib/parseRouteParams";
+import { WorkerSessionService } from "@/services/WorkerSessionService";
+import { requireWorkerCompanySession } from "@/lib/apiTenant";
 
 export const POST = withApiErrorHandling(
   async (request: Request) => {
@@ -18,15 +18,18 @@ export const POST = withApiErrorHandling(
       ctx.companyId,
       note,
       location?.lat != null ? String(location.lat) : null,
-      location?.lng != null ? String(location.lng) : null,
+      location?.lng != null ? String(location.lng) : null
     );
 
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) => (err instanceof Error && err.message === "no_active_session" ? jsonError("no_active_session", 400) : null),
+    mapUnknownError: (err) =>
+      err instanceof Error && err.message === "no_active_session"
+        ? jsonError("no_active_session", 400)
+        : null,
     defaultErrorCode: "save_error",
-  },
+  }
 );
 
 export const PUT = withApiErrorHandling(
@@ -49,10 +52,12 @@ export const PUT = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
-      if (err instanceof Error && err.message === "no_active_session") return jsonError("no_active_session", 400);
-      if (err instanceof Error && err.message === "unauthorized_note") return jsonError("unauthorized_note", 404);
+      if (err instanceof Error && err.message === "no_active_session")
+        return jsonError("no_active_session", 400);
+      if (err instanceof Error && err.message === "unauthorized_note")
+        return jsonError("unauthorized_note", 404);
       return null;
     },
     defaultErrorCode: "save_error",
-  },
+  }
 );

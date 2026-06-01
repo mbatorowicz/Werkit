@@ -7,10 +7,7 @@ import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
 import { filterComboboxOptions } from "@/lib/searchComboboxFilter";
 import { SEARCH_COMBOBOX_INPUT_CLASS } from "@/components/searchFieldStyles";
-import {
-  FLOATING_LISTBOX_PANEL_CLASS,
-  touchScrollStyle,
-} from "@/components/scrollPanelStyles";
+import { FLOATING_LISTBOX_PANEL_CLASS, touchScrollStyle } from "@/components/scrollPanelStyles";
 import { useDismissOnOutsidePointer } from "@/hooks/useDismissOnOutsidePointer";
 import { useFloatingPanelPosition } from "@/hooks/useFloatingPanelPosition";
 
@@ -71,24 +68,21 @@ export function AdminSearchCombobox({
 
   useDismissOnOutsidePointer([rootRef, listRef], open, dismissDropdown);
 
-  const selected = useMemo(
-    () => options.find((o) => o.id === value) ?? null,
-    [options, value],
-  );
+  const selected = useMemo(() => options.find((o) => o.id === value) ?? null, [options, value]);
 
   const filtered = useMemo(
     () =>
       filterComboboxOptions(
         options,
         query,
-        (o) => o.searchText ?? `${o.label} ${o.sublabel ?? ""}`,
+        (o) => o.searchText ?? `${o.label} ${o.sublabel ?? ""}`
       ).map((o) => ({
         id: o.id,
         label: o.label,
         sublabel: o.sublabel,
         searchText: o.searchText,
       })),
-    [options, query],
+    [options, query]
   );
 
   useEffect(() => {
@@ -243,7 +237,9 @@ export function AdminSearchCombobox({
         <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
       </div>
 
-      {dropdownList && typeof document !== "undefined" ? createPortal(dropdownList, document.body) : null}
+      {dropdownList && typeof document !== "undefined"
+        ? createPortal(dropdownList, document.body)
+        : null}
     </div>
   );
 }

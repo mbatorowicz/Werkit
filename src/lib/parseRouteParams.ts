@@ -8,7 +8,7 @@ export function parsePositiveIntFromString(raw: string): number | null {
 
 export function parsePositiveIntParam(value: unknown): number | null {
   if (value === null || value === undefined) return null;
-  const n = typeof value === 'number' ? value : Number.parseInt(String(value), 10);
+  const n = typeof value === "number" ? value : Number.parseInt(String(value), 10);
   if (!Number.isFinite(n) || n < 1 || !Number.isInteger(n)) return null;
   return n;
 }
@@ -16,7 +16,7 @@ export function parsePositiveIntParam(value: unknown): number | null {
 function parseOptionalPositiveInt(v: unknown): number | null {
   if (v == null || v === "") return null;
   const n = parsePositiveIntParam(v);
-  if (n == null) throw new Error('invalid_payload');
+  if (n == null) throw new Error("invalid_payload");
   return n;
 }
 
@@ -39,23 +39,28 @@ export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
   const categoryId = parsePositiveIntParam(body.categoryId);
   const resourceId = parsePositiveIntParam(body.resourceId);
   if (categoryId == null || resourceId == null) {
-    throw new Error('missing_fields');
+    throw new Error("missing_fields");
   }
 
   const materialId = parseOptionalPositiveInt(body.materialId);
   const customerId = parseOptionalPositiveInt(body.customerId);
 
   const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
-  const quantityTons = typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
-    ? String(body.quantityTons) : null;
-  const expectedDurationHours = typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
-    ? String(body.expectedDurationHours) : null;
+  const quantityTons =
+    typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
+      ? String(body.quantityTons)
+      : null;
+  const expectedDurationHours =
+    typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
+      ? String(body.expectedDurationHours)
+      : null;
   const dueDateRaw = typeof body.dueDate === "string" ? body.dueDate : null;
   const parsedDueDate = dueDateRaw ? new Date(dueDateRaw) : null;
   const priority = typeof body.priority === "string" ? body.priority : null;
 
   const orderType = typeof body.orderType === "string" ? body.orderType : null;
-  const repairDescription = typeof body.repairDescription === "string" ? body.repairDescription : null;
+  const repairDescription =
+    typeof body.repairDescription === "string" ? body.repairDescription : null;
   const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
 
   return {

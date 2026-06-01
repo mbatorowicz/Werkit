@@ -37,27 +37,62 @@ export function useOrdersDispatchData() {
     try {
       /** `allSettled` — przy padnięciu sieci jeden endpoint nie przerywa reszty; UI dostaje część danych. */
       const settled = await Promise.allSettled([
-        fetchWithDeviceTelemetry("Admin dispatch: users", adminApi.users, { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: machines", "/api/machines", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: materials", "/api/materials", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: customers", "/api/customers", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: categories", "/api/categories?leavesOnly=1", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: work-orders", "/api/admin/work-orders", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
-        fetchWithDeviceTelemetry("Admin dispatch: archive", "/api/admin/archive", { cache: "no-store" }, {
-          category: "admin",
-        }).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: users",
+          adminApi.users,
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: machines",
+          "/api/machines",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: materials",
+          "/api/materials",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: customers",
+          "/api/customers",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: categories",
+          "/api/categories?leavesOnly=1",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: work-orders",
+          "/api/admin/work-orders",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: archive",
+          "/api/admin/archive",
+          { cache: "no-store" },
+          {
+            category: "admin",
+          }
+        ).then(parseJsonArray),
       ]);
       const pick = (i: number): unknown[] => {
         const r = settled[i];

@@ -55,14 +55,16 @@ export function CustomerInlineCreateForm({
     setIsSubmitting(true);
     try {
       const res = await fetchWithDeviceTelemetry(
-        telemetryCategory === "lifecycle" ? "Worker wizard: inline customer POST" : "Admin orders: inline customer POST",
+        telemetryCategory === "lifecycle"
+          ? "Worker wizard: inline customer POST"
+          : "Admin orders: inline customer POST",
         "/api/customers",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         },
-        { category: telemetryCategory },
+        { category: telemetryCategory }
       );
       const body = await parseJsonUnknown(res);
       if (!res.ok) {
@@ -71,7 +73,9 @@ export function CustomerInlineCreateForm({
         return;
       }
       const customerId =
-        body && typeof body === "object" && typeof (body as { customerId?: unknown }).customerId === "number"
+        body &&
+        typeof body === "object" &&
+        typeof (body as { customerId?: unknown }).customerId === "number"
           ? (body as { customerId: number }).customerId
           : null;
       if (customerId == null) {
@@ -110,7 +114,9 @@ export function CustomerInlineCreateForm({
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.firstNameLabel}</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            {dict.firstNameLabel}
+          </label>
           <input
             type="text"
             placeholder={dict.firstNamePlaceholder}
@@ -120,7 +126,9 @@ export function CustomerInlineCreateForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.lastNameLabel}</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            {dict.lastNameLabel}
+          </label>
           <input
             required
             type="text"
@@ -132,7 +140,9 @@ export function CustomerInlineCreateForm({
         </div>
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.addressLabel}</label>
+        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {dict.addressLabel}
+        </label>
         <input
           type="text"
           placeholder={dict.addressPlaceholder}
@@ -142,7 +152,9 @@ export function CustomerInlineCreateForm({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{dict.gpsOnMapLabel}</label>
+        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {dict.gpsOnMapLabel}
+        </label>
         <CustomerMapPicker
           lat={form.latitude}
           lng={form.longitude}

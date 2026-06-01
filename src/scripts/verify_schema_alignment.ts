@@ -7,215 +7,239 @@
  * Kod wyjścia: 0 = brak braków wymaganych kolumn, 1 = niedopasowanie lub brak połączenia.
  */
 async function main() {
-  const { loadEnvConfig } = await import('@next/env');
+  const { loadEnvConfig } = await import("@next/env");
   loadEnvConfig(process.cwd());
 
-  const { ensurePostgresUrlForVercelDriver } = await import('@/lib/resolveNeonPostgresUrl');
+  const { ensurePostgresUrlForVercelDriver } = await import("@/lib/resolveNeonPostgresUrl");
   if (!ensurePostgresUrlForVercelDriver()) {
-    console.error('Brak DATABASE_URL / POSTGRES_URL — sprawdź .env.local');
+    console.error("Brak DATABASE_URL / POSTGRES_URL — sprawdź .env.local");
     process.exit(1);
   }
 
   /** Nazwy kolumn w PG muszą odpowiadać definicjom w schema.ts (Drizzle snake_case). */
   const EXPECTED: Record<string, ReadonlySet<string>> = {
-    companies: new Set(['id', 'name', 'slug', 'is_active', 'created_at']),
+    companies: new Set(["id", "name", "slug", "is_active", "created_at"]),
     users: new Set([
-      'id',
-      'company_id',
-      'full_name',
-      'username_email',
-      'password_hash',
-      'role',
-      'device_unique_id',
-      'is_active',
-      'can_create_own_orders',
-      'notifications_enabled',
-      'biometric_login_enabled',
-      'can_edit_route',
-      'can_create_customers',
+      "id",
+      "company_id",
+      "full_name",
+      "username_email",
+      "password_hash",
+      "role",
+      "device_unique_id",
+      "is_active",
+      "can_create_own_orders",
+      "notifications_enabled",
+      "biometric_login_enabled",
+      "can_edit_route",
+      "can_create_customers",
     ]),
     resource_categories: new Set([
-      'id',
-      'company_id',
-      'name',
-      'parent_id',
-      'is_group',
-      'sort_order',
-      'icon',
-      'show_customer',
-      'show_material',
-      'show_quantity',
-      'show_task_description',
-      'show_resource_name',
-      'show_resource_description',
-      'show_registration_number',
-      'req_customer',
-      'req_material',
-      'req_quantity',
-      'req_task_description',
-      'is_global',
-      'is_stationary',
-      'color',
+      "id",
+      "company_id",
+      "name",
+      "parent_id",
+      "is_group",
+      "sort_order",
+      "icon",
+      "show_customer",
+      "show_material",
+      "show_quantity",
+      "show_task_description",
+      "show_resource_name",
+      "show_resource_description",
+      "show_registration_number",
+      "req_customer",
+      "req_material",
+      "req_quantity",
+      "req_task_description",
+      "is_global",
+      "is_stationary",
+      "color",
     ]),
-    resource_to_categories: new Set(['resource_id', 'category_id']),
+    resource_to_categories: new Set(["resource_id", "category_id"]),
     resources: new Set([
-      'id',
-      'company_id',
-      'name',
-      'brand',
-      'model',
-      'registration_number',
-      'description',
-      'image_url',
+      "id",
+      "company_id",
+      "name",
+      "brand",
+      "model",
+      "registration_number",
+      "description",
+      "image_url",
     ]),
-    materials: new Set(['id', 'company_id', 'name']),
-    material_categories: new Set(['id', 'company_id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
-    material_to_categories: new Set(['material_id', 'category_id']),
+    materials: new Set(["id", "company_id", "name"]),
+    material_categories: new Set([
+      "id",
+      "company_id",
+      "name",
+      "parent_id",
+      "is_group",
+      "sort_order",
+      "color",
+    ]),
+    material_to_categories: new Set(["material_id", "category_id"]),
     customers: new Set([
-      'id',
-      'company_id',
-      'first_name',
-      'last_name',
-      'default_address',
-      'latitude',
-      'longitude',
+      "id",
+      "company_id",
+      "first_name",
+      "last_name",
+      "default_address",
+      "latitude",
+      "longitude",
     ]),
     customer_locations: new Set([
-      'id',
-      'customer_id',
-      'label',
-      'address',
-      'latitude',
-      'longitude',
-      'is_default',
-      'sort_order',
-      'route_waypoints',
+      "id",
+      "customer_id",
+      "label",
+      "address",
+      "latitude",
+      "longitude",
+      "is_default",
+      "sort_order",
+      "route_waypoints",
     ]),
     work_sessions: new Set([
-      'id',
-      'company_id',
-      'work_order_id',
-      'user_id',
-      'resource_id',
-      'category_id',
-      'status',
-      'start_time',
-      'end_time',
-      'quantity_tons',
-      'material_id',
-      'customer_id',
-      'task_description',
-      'machine_hours_photo_url',
-      'signature_url',
-      'client_absent',
-      'expected_duration_hours',
-      'due_date',
-      'start_latitude',
-      'start_longitude',
-      'end_latitude',
-      'end_longitude',
+      "id",
+      "company_id",
+      "work_order_id",
+      "user_id",
+      "resource_id",
+      "category_id",
+      "status",
+      "start_time",
+      "end_time",
+      "quantity_tons",
+      "material_id",
+      "customer_id",
+      "task_description",
+      "machine_hours_photo_url",
+      "signature_url",
+      "client_absent",
+      "expected_duration_hours",
+      "due_date",
+      "start_latitude",
+      "start_longitude",
+      "end_latitude",
+      "end_longitude",
     ]),
     session_photos: new Set([
-      'id',
-      'work_session_id',
-      'photo_url',
-      'photo_type',
-      'latitude',
-      'longitude',
-      'created_at',
+      "id",
+      "work_session_id",
+      "photo_url",
+      "photo_type",
+      "latitude",
+      "longitude",
+      "created_at",
     ]),
-    gps_logs: new Set(['id', 'work_session_id', 'latitude', 'longitude', 'timestamp']),
+    gps_logs: new Set(["id", "work_session_id", "latitude", "longitude", "timestamp"]),
     session_notes: new Set([
-      'id',
-      'work_session_id',
-      'note',
-      'latitude',
-      'longitude',
-      'created_at',
+      "id",
+      "work_session_id",
+      "note",
+      "latitude",
+      "longitude",
+      "created_at",
     ]),
     company_settings: new Set([
-      'id',
-      'company_id',
-      'company_name',
-      'company_address',
-      'zip_code',
-      'city',
-      'phone',
-      'email',
-      'base_latitude',
-      'base_longitude',
-      'cancel_window_minutes',
-      'require_photo_to_finish',
-      'geofence_radius_meters',
-      'time_overrun_reminder',
-      'upcoming_order_reminder_minutes',
+      "id",
+      "company_id",
+      "company_name",
+      "company_address",
+      "zip_code",
+      "city",
+      "phone",
+      "email",
+      "base_latitude",
+      "base_longitude",
+      "cancel_window_minutes",
+      "require_photo_to_finish",
+      "geofence_radius_meters",
+      "time_overrun_reminder",
+      "upcoming_order_reminder_minutes",
     ]),
     work_orders: new Set([
-      'id',
-      'company_id',
-      'user_id',
-      'resource_id',
-      'category_id',
-      'material_id',
-      'customer_id',
-      'customer_location_id',
-      'task_description',
-      'status',
-      'created_at',
-      'created_by_id',
-      'quantity_tons',
-      'expected_duration_hours',
-      'priority',
-      'due_date',
-      'locked_until',
+      "id",
+      "company_id",
+      "user_id",
+      "resource_id",
+      "category_id",
+      "material_id",
+      "customer_id",
+      "customer_location_id",
+      "task_description",
+      "status",
+      "created_at",
+      "created_by_id",
+      "quantity_tons",
+      "expected_duration_hours",
+      "priority",
+      "due_date",
+      "locked_until",
     ]),
-    device_logs: new Set(['id', 'company_id', 'user_id', 'level', 'message', 'metadata', 'created_at']),
+    device_logs: new Set([
+      "id",
+      "company_id",
+      "user_id",
+      "level",
+      "message",
+      "metadata",
+      "created_at",
+    ]),
     // ── DUR (Dział Utrzymania Ruchu) ──
-    spare_part_categories: new Set(['id', 'company_id', 'name', 'parent_id', 'is_group', 'sort_order', 'color']),
-    spare_parts: new Set([
-      'id',
-      'company_id',
-      'name',
-      'catalog_number',
-      'manufacturer',
-      'unit',
-      'purchase_price',
-      'description',
-      'min_stock',
-      'location',
-      'image_url',
-      'is_active',
-      'created_at',
+    spare_part_categories: new Set([
+      "id",
+      "company_id",
+      "name",
+      "parent_id",
+      "is_group",
+      "sort_order",
+      "color",
     ]),
-    spare_part_to_categories: new Set(['part_id', 'category_id']),
-    spare_part_machine_compatibility: new Set(['part_id', 'category_id', 'notes']),
+    spare_parts: new Set([
+      "id",
+      "company_id",
+      "name",
+      "catalog_number",
+      "manufacturer",
+      "unit",
+      "purchase_price",
+      "description",
+      "min_stock",
+      "location",
+      "image_url",
+      "is_active",
+      "created_at",
+    ]),
+    spare_part_to_categories: new Set(["part_id", "category_id"]),
+    spare_part_machine_compatibility: new Set(["part_id", "category_id", "notes"]),
     // ── DUR — Faza 2: Gospodarka magazynowa ──
-    spare_part_inventory: new Set(['id', 'company_id', 'part_id', 'quantity', 'updated_at']),
+    spare_part_inventory: new Set(["id", "company_id", "part_id", "quantity", "updated_at"]),
     stock_receipts: new Set([
-      'id',
-      'company_id',
-      'part_id',
-      'quantity',
-      'unit_price',
-      'invoice_number',
-      'notes',
-      'created_by',
-      'created_at',
+      "id",
+      "company_id",
+      "part_id",
+      "quantity",
+      "unit_price",
+      "invoice_number",
+      "notes",
+      "created_by",
+      "created_at",
     ]),
     stock_issues: new Set([
-      'id',
-      'company_id',
-      'part_id',
-      'quantity',
-      'work_order_id',
-      'issued_to',
-      'notes',
-      'created_by',
-      'created_at',
+      "id",
+      "company_id",
+      "part_id",
+      "quantity",
+      "work_order_id",
+      "issued_to",
+      "notes",
+      "created_by",
+      "created_at",
     ]),
   };
 
-  const { sql } = await import('@vercel/postgres');
+  const { sql } = await import("@vercel/postgres");
 
   const { rows } = await sql<{ table_name: string; column_name: string }>`
     SELECT table_name, column_name
@@ -235,7 +259,7 @@ async function main() {
   let failed = false;
   const expectedTables = Object.keys(EXPECTED).sort();
 
-  console.log('── Werkit: weryfikacja pokrycia kolumn DB ↔ schema.ts ──\n');
+  console.log("── Werkit: weryfikacja pokrycia kolumn DB ↔ schema.ts ──\n");
 
   for (const table of expectedTables) {
     const expectedCols = EXPECTED[table]!;
@@ -248,11 +272,11 @@ async function main() {
     const missing = [...expectedCols].filter((c) => !actualCols.has(c));
     const extra = [...actualCols].filter((c) => !expectedCols.has(c));
     if (missing.length > 0) {
-      console.error(`[${table}] Brak kolumn względem schema.ts: ${missing.join(', ')}`);
+      console.error(`[${table}] Brak kolumn względem schema.ts: ${missing.join(", ")}`);
       failed = true;
     }
     if (extra.length > 0) {
-      console.warn(`[${table}] Dodatkowe kolumny w DB (poza kanonem skryptu): ${extra.join(', ')}`);
+      console.warn(`[${table}] Dodatkowe kolumny w DB (poza kanonem skryptu): ${extra.join(", ")}`);
     }
     if (missing.length === 0 && extra.length === 0) {
       console.log(`[OK] ${table}`);
@@ -262,21 +286,21 @@ async function main() {
     }
   }
 
-  const unknownTablesWithCols = [...actualByTable.keys()]
-    .filter((t) => !EXPECTED[t])
-    .sort();
+  const unknownTablesWithCols = [...actualByTable.keys()].filter((t) => !EXPECTED[t]).sort();
   if (unknownTablesWithCols.length > 0) {
     console.warn(
-      `\n[WYKAZ] Tabele w public bez wpisu w kanonie skryptu (sprawdź ręcznie): ${unknownTablesWithCols.join(', ')}`,
+      `\n[WYKAZ] Tabele w public bez wpisu w kanonie skryptu (sprawdź ręcznie): ${unknownTablesWithCols.join(", ")}`
     );
   }
 
   if (failed) {
-    console.error('\nWynik: BŁĄD — uruchom npm run db:napraw-wszystko lub odpowiedni db:napraw-* .\n');
+    console.error(
+      "\nWynik: BŁĄD — uruchom npm run db:napraw-wszystko lub odpowiedni db:napraw-* .\n"
+    );
     process.exit(1);
   }
 
-  console.log('\nWynik: OK — wymagane kolumny zgodne z src/db/schema.ts .\n');
+  console.log("\nWynik: OK — wymagane kolumny zgodne z src/db/schema.ts .\n");
 }
 
 void main().catch((err: unknown) => {

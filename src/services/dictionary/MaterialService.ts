@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { materials, materialToCategories } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { assertMaterialCategoriesAssignable } from '@/services/categoryHierarchyValidation';
+import { db } from "@/db";
+import { materials, materialToCategories } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { assertMaterialCategoriesAssignable } from "@/services/categoryHierarchyValidation";
 
 export class MaterialService {
   static async getMaterials(companyId: number) {
@@ -29,9 +29,9 @@ export class MaterialService {
     const res = await db.insert(materials).values({ name, companyId }).returning();
     const mid = res[0].id;
     if (categoryIds.length > 0) {
-      await db.insert(materialToCategories).values(
-        categoryIds.map((cid) => ({ materialId: mid, categoryId: cid })),
-      );
+      await db
+        .insert(materialToCategories)
+        .values(categoryIds.map((cid) => ({ materialId: mid, categoryId: cid })));
     }
   }
 
@@ -39,7 +39,7 @@ export class MaterialService {
     companyId: number,
     id: number,
     data: Partial<typeof materials.$inferInsert>,
-    categoryIds?: number[],
+    categoryIds?: number[]
   ) {
     await db
       .update(materials)
@@ -49,16 +49,14 @@ export class MaterialService {
       await assertMaterialCategoriesAssignable(categoryIds, companyId);
       await db.delete(materialToCategories).where(eq(materialToCategories.materialId, id));
       if (categoryIds.length > 0) {
-        await db.insert(materialToCategories).values(
-          categoryIds.map((cid) => ({ materialId: id, categoryId: cid })),
-        );
+        await db
+          .insert(materialToCategories)
+          .values(categoryIds.map((cid) => ({ materialId: id, categoryId: cid })));
       }
     }
   }
 
   static async deleteMaterial(companyId: number, id: number) {
-    await db
-      .delete(materials)
-      .where(and(eq(materials.id, id), eq(materials.companyId, companyId)));
+    await db.delete(materials).where(and(eq(materials.id, id), eq(materials.companyId, companyId)));
   }
 }

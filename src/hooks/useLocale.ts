@@ -35,7 +35,11 @@ function readLocaleFromCookie(): Locale {
 
 /** Odczytuje timezone z cookies lub z Intl API. */
 function readTimezoneFromCookie(): string {
-  return getCookie(TIMEZONE_COOKIE) || Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw";
+  return (
+    getCookie(TIMEZONE_COOKIE) ||
+    Intl.DateTimeFormat().resolvedOptions().timeZone ||
+    "Europe/Warsaw"
+  );
 }
 
 /** Buduje pełny LocaleConfig z cookies. */

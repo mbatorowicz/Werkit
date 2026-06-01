@@ -5,7 +5,10 @@ export type WorkerRouteState = { path: Coord[]; km: number };
 
 export type WorkerRouteAction = { type: "reset"; path: Coord[] } | { type: "gps"; loc: Coord };
 
-export function workerRouteReducer(state: WorkerRouteState, action: WorkerRouteAction): WorkerRouteState {
+export function workerRouteReducer(
+  state: WorkerRouteState,
+  action: WorkerRouteAction
+): WorkerRouteState {
   if (action.type === "reset") {
     return { path: action.path, km: sumPathLengthKm(action.path) };
   }

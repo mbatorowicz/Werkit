@@ -103,25 +103,29 @@ export default function NavigationBottomSheet({
               />
 
               {/* Icon */}
-              <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 ${
-                isArrive
-                  ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
-                  : isCurrent
-                    ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 ring-2 ring-blue-300 dark:ring-blue-700"
-                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
-              }`}>
+              <div
+                className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-0.5 ${
+                  isArrive
+                    ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
+                    : isCurrent
+                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 ring-2 ring-blue-300 dark:ring-blue-700"
+                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
+                }`}
+              >
                 <ManeuverIcon type={inst.type} modifier={inst.modifier} className="h-4 w-4" />
               </div>
 
               {/* Content */}
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium truncate ${
-                  isCurrent
-                    ? "text-blue-700 dark:text-blue-300"
-                    : isPast
-                      ? "text-zinc-400 dark:text-zinc-500"
-                      : "text-zinc-800 dark:text-zinc-200"
-                }`}>
+                <p
+                  className={`text-sm font-medium truncate ${
+                    isCurrent
+                      ? "text-blue-700 dark:text-blue-300"
+                      : isPast
+                        ? "text-zinc-400 dark:text-zinc-500"
+                        : "text-zinc-800 dark:text-zinc-200"
+                  }`}
+                >
                   {inst.text}
                 </p>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">

@@ -30,7 +30,7 @@ export function TimelineGalleryClient({
 
   const photoEntries = useMemo(
     () => entries.filter((e) => e.type === "photo" && e.content.trim() !== ""),
-    [entries],
+    [entries]
   );
 
   const close = useCallback(() => setLightboxIndex(null), []);
@@ -62,7 +62,9 @@ export function TimelineGalleryClient({
 
   return (
     <>
-      <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-8">{labels.timelineTitle}</h3>
+      <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-8">
+        {labels.timelineTitle}
+      </h3>
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 flex flex-col gap-4 shadow-sm">
         {entries.map((item, index) => {
           const timeLabel = formatUiDateTimeShort(item.createdAt);
@@ -174,7 +176,7 @@ export function TimelineGalleryClient({
                 ) : null}
               </div>
             </div>,
-            document.body,
+            document.body
           )
         : null}
     </>

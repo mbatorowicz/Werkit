@@ -1,25 +1,28 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { getUserId } from '@/lib/auth';
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { AdminSessionService } from '@/services/AdminSessionService';
-import { AdminUserService } from '@/services/AdminUserService';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { getUserId } from "@/lib/auth";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { AdminSessionService } from "@/services/AdminSessionService";
+import { AdminUserService } from "@/services/AdminUserService";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export const GET = withApiErrorHandling(async (_request: Request, context: { params: Promise<{ id: string }> }) => {
-  const scoped = await requireCompanyScopedSession();
-  if (!scoped.ok) return scoped.response;
+export const GET = withApiErrorHandling(
+  async (_request: Request, context: { params: Promise<{ id: string }> }) => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
 
-  const sessionId = parseInt((await context.params).id, 10);
-  if (Number.isNaN(sessionId)) return jsonError("invalid_id", 400);
+    const sessionId = parseInt((await context.params).id, 10);
+    if (Number.isNaN(sessionId)) return jsonError("invalid_id", 400);
 
-  const { logs, photos, notes } = await AdminSessionService.getSessionDetails(
-    scoped.data.companyId,
-    sessionId,
-  );
-  return jsonOk({ logs, photos, notes });
-}, { defaultErrorCode: "fetch_error" });
+    const { logs, photos, notes } = await AdminSessionService.getSessionDetails(
+      scoped.data.companyId,
+      sessionId
+    );
+    return jsonOk({ logs, photos, notes });
+  },
+  { defaultErrorCode: "fetch_error" }
+);
 
 export const DELETE = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
@@ -54,5 +57,5 @@ export const DELETE = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "delete_error",
-  },
+  }
 );

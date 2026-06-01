@@ -96,59 +96,72 @@ export default function CompatibilityClient() {
     setShowModal(false);
   }, []);
 
-  const handleAdd = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formPartId == null || formCategoryId == null) {
-      await appAlert({ message: "Select both a part and a machine type." });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/dur/spare-part-compatibility", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          partId: formPartId,
-          categoryId: formCategoryId,
-          notes: formNotes.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.save_error });
+  const handleAdd = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (formPartId == null || formCategoryId == null) {
+        await appAlert({ message: "Select both a part and a machine type." });
         return;
       }
 
-      await appAlert({ message: dict.saveSuccess });
-      closeModal();
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.save_error });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formPartId, formCategoryId, formNotes, appAlert, apiErrors, dict, closeModal, fetchData]);
+      setIsSubmitting(true);
+      try {
+        const res = await fetch("/api/dur/spare-part-compatibility", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            partId: formPartId,
+            categoryId: formCategoryId,
+            notes: formNotes.trim() || undefined,
+          }),
+        });
 
-  const handleRemove = useCallback(async (partId: number, categoryId: number) => {
-    const confirmed = await appConfirm({ message: dict.removeConfirm, variant: "danger" });
-    if (!confirmed) return;
-    try {
-      const res = await fetch(`/api/dur/spare-part-compatibility/${partId}?categoryId=${categoryId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.delete_error });
-        return;
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.save_error,
+          });
+          return;
+        }
+
+        await appAlert({ message: dict.saveSuccess });
+        closeModal();
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.save_error });
+      } finally {
+        setIsSubmitting(false);
       }
-      await appAlert({ message: dict.removeSuccess });
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.delete_error });
-    }
-  }, [appConfirm, appAlert, dict, apiErrors, fetchData]);
+    },
+    [formPartId, formCategoryId, formNotes, appAlert, apiErrors, dict, closeModal, fetchData]
+  );
+
+  const handleRemove = useCallback(
+    async (partId: number, categoryId: number) => {
+      const confirmed = await appConfirm({ message: dict.removeConfirm, variant: "danger" });
+      if (!confirmed) return;
+      try {
+        const res = await fetch(
+          `/api/dur/spare-part-compatibility/${partId}?categoryId=${categoryId}`,
+          {
+            method: "DELETE",
+          }
+        );
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.delete_error,
+          });
+          return;
+        }
+        await appAlert({ message: dict.removeSuccess });
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.delete_error });
+      }
+    },
+    [appConfirm, appAlert, dict, apiErrors, fetchData]
+  );
 
   // Available parts and categories for the form
   const availableParts = parts;
@@ -173,9 +186,7 @@ export default function CompatibilityClient() {
         )}
       </div>
 
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-        {dict.subtitle}
-      </p>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{dict.subtitle}</p>
 
       {/* Loading */}
       {isLoading && (
@@ -198,21 +209,30 @@ export default function CompatibilityClient() {
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 dark:bg-zinc-800/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.part}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.machineCategory}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.notes}</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.table.actions}</th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.part}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.machineCategory}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.notes}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
               {rows.map((row, idx) => (
-                <tr key={`${row.partId}-${row.categoryId}-${idx}`} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+                <tr
+                  key={`${row.partId}-${row.categoryId}-${idx}`}
+                  className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+                >
                   <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">
                     {row.partName}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {row.categoryName}
-                  </td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{row.categoryName}</td>
                   <td className="px-4 py-3 text-zinc-500 dark:text-zinc-500 text-xs italic">
                     {row.notes ?? "—"}
                   </td>
@@ -264,7 +284,8 @@ export default function CompatibilityClient() {
               <option value="">{dict.fields.partPlaceholder}</option>
               {availableParts.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name}{p.catalogNumber ? ` (${p.catalogNumber})` : ""}
+                  {p.name}
+                  {p.catalogNumber ? ` (${p.catalogNumber})` : ""}
                 </option>
               ))}
             </select>

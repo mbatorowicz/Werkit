@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -20,7 +20,7 @@ export const GET = withApiErrorHandling(
 
     return jsonOk(part);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 export const PUT = withApiErrorHandling(
@@ -45,11 +45,17 @@ export const PUT = withApiErrorHandling(
     if (body.catalogNumber !== undefined) updateData.catalogNumber = String(body.catalogNumber);
     if (body.manufacturer !== undefined) updateData.manufacturer = String(body.manufacturer);
     if (body.unit !== undefined) updateData.unit = String(body.unit);
-    if (body.purchasePrice !== undefined) updateData.purchasePrice = body.purchasePrice !== null && body.purchasePrice !== undefined ? String(body.purchasePrice) : null;
-    if (body.description !== undefined) updateData.description = typeof body.description === "string" ? body.description : null;
+    if (body.purchasePrice !== undefined)
+      updateData.purchasePrice =
+        body.purchasePrice !== null && body.purchasePrice !== undefined
+          ? String(body.purchasePrice)
+          : null;
+    if (body.description !== undefined)
+      updateData.description = typeof body.description === "string" ? body.description : null;
     if (body.minStock !== undefined) updateData.minStock = String(body.minStock);
     if (body.location !== undefined) updateData.location = String(body.location);
-    if (body.imageUrl !== undefined) updateData.imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
+    if (body.imageUrl !== undefined)
+      updateData.imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
     if (body.isActive !== undefined) updateData.isActive = body.isActive === true;
 
     const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
@@ -72,7 +78,7 @@ export const PUT = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );
 
 export const DELETE = withApiErrorHandling(
@@ -93,5 +99,5 @@ export const DELETE = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "delete_error" },
+  { defaultErrorCode: "delete_error" }
 );

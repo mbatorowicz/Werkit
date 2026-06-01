@@ -27,11 +27,7 @@ import {
 } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
-import {
-  X,
-  Navigation,
-  ExternalLink,
-} from "lucide-react";
+import { X, Navigation, ExternalLink } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -85,7 +81,7 @@ export default function FullScreenMapModal({
     destination,
     undefined,
     undefined,
-    plannedRouteWaypoints,
+    plannedRouteWaypoints
   );
 
   const currentMarkerIcon = useMemo(
@@ -94,7 +90,7 @@ export default function FullScreenMapModal({
         showHeadingNeedle: false,
         heading: currentLocation.heading,
       }),
-    [currentLocation.heading],
+    [currentLocation.heading]
   );
 
   // Blokada scrolla body gdy modal otwarty
@@ -113,7 +109,7 @@ export default function FullScreenMapModal({
       // Po dodaniu punktu wyjdź z trybu
       setWaypointMode(null);
     },
-    [onAddRouteWaypoint],
+    [onAddRouteWaypoint]
   );
 
   if (!open) return null;
@@ -145,7 +141,9 @@ export default function FullScreenMapModal({
         {destination && (
           <button
             type="button"
-            onClick={() => openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)}
+            onClick={() =>
+              openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)
+            }
             className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-emerald-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-emerald-500/30 transition hover:bg-emerald-500 active:scale-95"
             style={{ top: `calc(${SAFE_TOP} + 60px)` }}
           >
@@ -202,7 +200,13 @@ export default function FullScreenMapModal({
 
           {/* Trasa — przerywana czerwona linia (podgląd) */}
           {routeToDest.length > 0 ? (
-            <Polyline positions={routeToDest} color="#ef4444" weight={4} dashArray="5, 10" opacity={0.8} />
+            <Polyline
+              positions={routeToDest}
+              color="#ef4444"
+              weight={4}
+              dashArray="5, 10"
+              opacity={0.8}
+            />
           ) : null}
 
           {events.map((ev, i) => (
@@ -216,8 +220,12 @@ export default function FullScreenMapModal({
             >
               <Popup>
                 <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">{ev.type === "photo" ? dict.eventPhoto : dict.eventNote}</p>
-                  {ev.type === "note" ? <p className="text-sm italic m-0 break-words">{ev.content}</p> : null}
+                  <p className="font-semibold m-0">
+                    {ev.type === "photo" ? dict.eventPhoto : dict.eventNote}
+                  </p>
+                  {ev.type === "note" ? (
+                    <p className="text-sm italic m-0 break-words">{ev.content}</p>
+                  ) : null}
                 </div>
               </Popup>
             </Marker>

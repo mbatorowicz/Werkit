@@ -2,7 +2,7 @@
 export function buildResourceDisplayName(
   brand: string,
   model: string,
-  registrationNumber: string,
+  registrationNumber: string
 ): string {
   const b = brand.trim();
   const m = model.trim();
@@ -18,7 +18,7 @@ export function buildResourceDisplayName(
 export function isVehicleIdentityEmpty(
   brand: string,
   model: string,
-  registrationNumber: string,
+  registrationNumber: string
 ): boolean {
   return buildResourceDisplayName(brand, model, registrationNumber) === "";
 }
@@ -28,7 +28,7 @@ export function buildResourceCanonicalName(
   brand: string,
   model: string,
   registrationNumber: string,
-  description?: string | null,
+  description?: string | null
 ): string {
   const base = buildResourceDisplayName(brand, model, registrationNumber);
   if (base) return base.slice(0, 255);

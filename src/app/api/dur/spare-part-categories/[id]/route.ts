@@ -1,9 +1,9 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
-import { CategoryHierarchyError } from '@/services/dur/categoryValidation';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -42,7 +42,7 @@ export const PUT = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "save_error",
-  },
+  }
 );
 
 export const DELETE = withApiErrorHandling(
@@ -69,5 +69,5 @@ export const DELETE = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "delete_error",
-  },
+  }
 );

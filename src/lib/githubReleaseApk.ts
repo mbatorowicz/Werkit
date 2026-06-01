@@ -1,4 +1,4 @@
-import { APK_META_ASSET_NAME, parseAndroidApkMeta, type AndroidApkMeta } from '@/lib/apkMeta';
+import { APK_META_ASSET_NAME, parseAndroidApkMeta, type AndroidApkMeta } from "@/lib/apkMeta";
 
 export type GithubReleaseApkConfig = {
   owner: string;
@@ -26,23 +26,23 @@ function trimEnv(value: string | undefined): string | undefined {
 
 function githubApiHeaders(token?: string): HeadersInit {
   return {
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
 /** Domyślnie: release `android-latest` z workflow CI (jeden APK dla całej platformy). */
 export function resolveGithubReleaseApkConfig(): GithubReleaseApkConfig | undefined {
-  const repoSlug = trimEnv(process.env.WERKIT_GITHUB_REPO) ?? 'mbatorowicz/Werkit';
-  const parts = repoSlug.split('/').filter(Boolean);
+  const repoSlug = trimEnv(process.env.WERKIT_GITHUB_REPO) ?? "mbatorowicz/Werkit";
+  const parts = repoSlug.split("/").filter(Boolean);
   if (parts.length !== 2) return undefined;
 
   return {
     owner: parts[0],
     repo: parts[1],
-    tag: trimEnv(process.env.WERKIT_ANDROID_RELEASE_TAG) ?? 'android-latest',
-    assetName: trimEnv(process.env.WERKIT_ANDROID_APK_ASSET) ?? 'werkit.apk',
+    tag: trimEnv(process.env.WERKIT_ANDROID_RELEASE_TAG) ?? "android-latest",
+    assetName: trimEnv(process.env.WERKIT_ANDROID_APK_ASSET) ?? "werkit.apk",
     metaAssetName: trimEnv(process.env.WERKIT_ANDROID_APK_META_ASSET) ?? APK_META_ASSET_NAME,
     token: trimEnv(process.env.WERKIT_GITHUB_RELEASE_TOKEN) ?? trimEnv(process.env.GITHUB_TOKEN),
   };
@@ -52,7 +52,7 @@ async function fetchGithubRelease(config: GithubReleaseApkConfig): Promise<Githu
   const releaseUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/releases/tags/${encodeURIComponent(config.tag)}`;
   const releaseRes = await fetch(releaseUrl, {
     headers: githubApiHeaders(config.token),
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   if (!releaseRes.ok) {
@@ -62,13 +62,16 @@ async function fetchGithubRelease(config: GithubReleaseApkConfig): Promise<Githu
   return (await releaseRes.json()) as GithubReleaseResponse;
 }
 
-async function fetchGithubAssetText(config: GithubReleaseApkConfig, asset: GithubReleaseAsset): Promise<string> {
+async function fetchGithubAssetText(
+  config: GithubReleaseApkConfig,
+  asset: GithubReleaseAsset
+): Promise<string> {
   const assetRes = await fetch(asset.url, {
     headers: {
       ...githubApiHeaders(config.token),
-      Accept: 'application/vnd.github+json',
+      Accept: "application/vnd.github+json",
     },
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   if (!assetRes.ok) {
@@ -77,15 +80,15 @@ async function fetchGithubAssetText(config: GithubReleaseApkConfig, asset: Githu
 
   const download = (await assetRes.json()) as { url?: string };
   if (!download.url) {
-    throw new Error('github_asset_url_missing');
+    throw new Error("github_asset_url_missing");
   }
 
   const bytesRes = await fetch(download.url, {
     headers: {
       ...githubApiHeaders(config.token),
-      Accept: 'application/octet-stream',
+      Accept: "application/octet-stream",
     },
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   if (!bytesRes.ok) {
@@ -95,7 +98,9 @@ async function fetchGithubAssetText(config: GithubReleaseApkConfig, asset: Githu
   return bytesRes.text();
 }
 
-export async function fetchGithubReleaseApkMeta(config: GithubReleaseApkConfig): Promise<AndroidApkMeta | null> {
+export async function fetchGithubReleaseApkMeta(
+  config: GithubReleaseApkConfig
+): Promise<AndroidApkMeta | null> {
   const release = await fetchGithubRelease(config);
   const metaAsset = release.assets.find((a) => a.name === config.metaAssetName);
   if (!metaAsset) return null;
@@ -108,7 +113,9 @@ export async function fetchGithubReleaseApkMeta(config: GithubReleaseApkConfig):
   }
 }
 
-export async function isGithubReleaseApkAvailable(config: GithubReleaseApkConfig): Promise<boolean> {
+export async function isGithubReleaseApkAvailable(
+  config: GithubReleaseApkConfig
+): Promise<boolean> {
   try {
     const release = await fetchGithubRelease(config);
     return release.assets.some((a) => a.name === config.assetName);
@@ -118,20 +125,20 @@ export async function isGithubReleaseApkAvailable(config: GithubReleaseApkConfig
 }
 
 export async function fetchGithubReleaseApkBytes(
-  config: GithubReleaseApkConfig,
+  config: GithubReleaseApkConfig
 ): Promise<{ bytes: Uint8Array; assetName: string }> {
   const release = await fetchGithubRelease(config);
   const asset = release.assets.find((a) => a.name === config.assetName);
   if (!asset) {
-    throw new Error('github_asset_missing');
+    throw new Error("github_asset_missing");
   }
 
   const assetRes = await fetch(asset.url, {
     headers: {
       ...githubApiHeaders(config.token),
-      Accept: 'application/octet-stream',
+      Accept: "application/octet-stream",
     },
-    cache: 'no-store',
+    cache: "no-store",
   });
 
   if (!assetRes.ok) {

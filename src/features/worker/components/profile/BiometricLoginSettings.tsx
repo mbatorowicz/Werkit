@@ -83,11 +83,16 @@ export function BiometricLoginSettings({
     setError("");
     try {
       await clearBiometricCredentials();
-      const res = await fetchWithDeviceTelemetry("Worker profile: biometric off", "/api/worker/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ biometricLoginEnabled: false }),
-      }, { category: "profile" });
+      const res = await fetchWithDeviceTelemetry(
+        "Worker profile: biometric off",
+        "/api/worker/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ biometricLoginEnabled: false }),
+        },
+        { category: "profile" }
+      );
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
         const data = (await res.json()) as { error?: string };
@@ -105,14 +110,19 @@ export function BiometricLoginSettings({
     setBusy(true);
     setError("");
     try {
-      const res = await fetchWithDeviceTelemetry("Worker profile: biometric on", "/api/worker/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          biometricLoginEnabled: true,
-          password: pwd,
-        }),
-      }, { category: "profile" });
+      const res = await fetchWithDeviceTelemetry(
+        "Worker profile: biometric on",
+        "/api/worker/profile",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            biometricLoginEnabled: true,
+            password: pwd,
+          }),
+        },
+        { category: "profile" }
+      );
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
@@ -130,7 +140,7 @@ export function BiometricLoginSettings({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ biometricLoginEnabled: false }),
           },
-          { category: "profile" },
+          { category: "profile" }
         );
         setError(dict.biometricVaultError);
         setPwd("");
@@ -168,7 +178,9 @@ export function BiometricLoginSettings({
             <div className="text-zinc-900 dark:text-white font-medium">{dict.biometricTitle}</div>
             <div className="text-xs text-zinc-500">{dict.biometricDesc}</div>
             {enabled && !credentialsSaved && (
-              <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">{dict.biometricResyncHint}</div>
+              <div className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                {dict.biometricResyncHint}
+              </div>
             )}
           </div>
         </div>
@@ -183,9 +195,7 @@ export function BiometricLoginSettings({
           <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 peer-disabled:opacity-50" />
         </label>
       </div>
-      {error && (
-        <div className="mt-2 text-sm text-red-500 px-1">{error}</div>
-      )}
+      {error && <div className="mt-2 text-sm text-red-500 px-1">{error}</div>}
 
       <AdminModalShell
         open={pwdOpen}
@@ -226,12 +236,12 @@ export function BiometricLoginSettings({
         >
           <p className="text-xs text-zinc-500">{dict.biometricConfirmHint}</p>
           <input
-              type="password"
-              autoComplete="current-password"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
-              placeholder={dict.biometricPasswordPlaceholder}
-              className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            type="password"
+            autoComplete="current-password"
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            placeholder={dict.biometricPasswordPlaceholder}
+            className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
           />
         </form>
       </AdminModalShell>

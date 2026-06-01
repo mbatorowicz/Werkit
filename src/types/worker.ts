@@ -109,7 +109,7 @@ export type UserData = {
 
 export type TimelineItem = {
   id: string;
-  type: 'photo' | 'note';
+  type: "photo" | "note";
   content: string;
   /** ID rekordu zdjęcia w tabeli session_photos (tylko dla typu 'photo') — używane do generowania Signed URL */
   photoId?: number;
@@ -120,8 +120,20 @@ export type TimelineItem = {
 
 export type InitialWorkerData = {
   session: Session | null;
-  events: { id: number; photoUrl: string | null; latitude: string | null; longitude: string | null; createdAt: Date }[];
-  notes: { id: number; note: string; latitude: string | null; longitude: string | null; createdAt: Date }[];
+  events: {
+    id: number;
+    photoUrl: string | null;
+    latitude: string | null;
+    longitude: string | null;
+    createdAt: Date;
+  }[];
+  notes: {
+    id: number;
+    note: string;
+    latitude: string | null;
+    longitude: string | null;
+    createdAt: Date;
+  }[];
   settings: AppSettings | null;
   user: UserData | null;
   workOrders: WorkOrder[];

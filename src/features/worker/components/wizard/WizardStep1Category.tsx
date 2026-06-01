@@ -39,7 +39,7 @@ export function WizardStep1Category({
 }: Props) {
   const categoryOptions = useMemo(
     () => categories.map((c) => ({ id: String(c.id), label: c.name })),
-    [categories],
+    [categories]
   );
 
   const selectedCategory = categories.find((c) => String(c.id) === categoryId);
@@ -64,7 +64,9 @@ export function WizardStep1Category({
                 className={`w-full border text-left p-4 rounded-lg transition-all ${workOrderInteractiveSurfaceClass(order.priority)}`}
               >
                 <div className="flex justify-between items-start mb-1 gap-2">
-                  <div className={`font-bold text-lg ${workOrderCategoryHeadingClass(order.priority)}`}>
+                  <div
+                    className={`font-bold text-lg ${workOrderCategoryHeadingClass(order.priority)}`}
+                  >
                     {order.categoryName || dict.noCategoryName}
                   </div>
                   <WorkOrderPriorityRibbon priority={order.priority} labels={dict} accentOnly />
@@ -82,17 +84,23 @@ export function WizardStep1Category({
                     orderedBy={order.creatorName ?? null}
                     orderedByLabel={dict.orderedBy}
                     dateLabel={
-                      order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
+                      order.dueDate
+                        ? formatUiDateOnly(order.dueDate)
+                        : formatUiDateOnly(order.createdAt)
                     }
                     timeLabel={
-                      order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
+                      order.dueDate
+                        ? formatUiTimeHm(order.dueDate)
+                        : formatUiTimeHm(order.createdAt)
                     }
                     className="bg-white/60 dark:bg-zinc-950/30"
                     attachmentPhotos={Boolean(order.hasPhotos)}
                     attachmentNotes={Boolean(order.hasNotes)}
                   />
                 </div>
-                <div className="mt-3 text-amber-500 font-semibold text-sm">{dict.startTask} &rarr;</div>
+                <div className="mt-3 text-amber-500 font-semibold text-sm">
+                  {dict.startTask} &rarr;
+                </div>
               </button>
             ))}
           </div>
@@ -120,7 +128,9 @@ export function WizardStep1Category({
               <SelectedIcon className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-semibold text-zinc-900 dark:text-white">{selectedCategory.name}</div>
+              <div className="font-semibold text-zinc-900 dark:text-white">
+                {selectedCategory.name}
+              </div>
               <div className="text-xs text-zinc-500">{dict.wizardClassType}</div>
             </div>
           </div>

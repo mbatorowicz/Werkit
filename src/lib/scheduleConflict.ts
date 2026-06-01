@@ -47,7 +47,12 @@ export type ScheduleConflictQuery = {
   excludeSessionId?: number;
 };
 
-export function intervalsOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
+export function intervalsOverlap(
+  aStart: number,
+  aEnd: number,
+  bStart: number,
+  bEnd: number
+): boolean {
   return aStart < bEnd && aEnd > bStart;
 }
 
@@ -62,7 +67,9 @@ export function computeLockedUntil(dueDate: Date, durationHours: number): Date {
   return new Date(dueDate.getTime() + durationHours * 3600000);
 }
 
-export function computeScheduleWindow(input: ScheduleWindowInput): { start: Date; end: Date } | null {
+export function computeScheduleWindow(
+  input: ScheduleWindowInput
+): { start: Date; end: Date } | null {
   const dueDate = input.dueDate ?? null;
   const duration = parseDurationHours(input.expectedDurationHours ?? null);
   const lockedUntil = input.lockedUntil ?? null;
@@ -85,7 +92,10 @@ export function computeScheduleWindow(input: ScheduleWindowInput): { start: Date
   return null;
 }
 
-function buildTaskLabel(taskDescription?: string | null, categoryName?: string | null): string | null {
+function buildTaskLabel(
+  taskDescription?: string | null,
+  categoryName?: string | null
+): string | null {
   const desc = taskDescription?.trim();
   if (desc) return desc;
   const cat = categoryName?.trim();
@@ -166,7 +176,9 @@ export function sessionRowToCandidate(row: {
 /** Sesja powiązana ze zleceniem nie duplikuje okna tego zlecenia. */
 export function dedupeScheduleCandidates(candidates: ScheduleCandidate[]): ScheduleCandidate[] {
   const orderWorkOrderIds = new Set(
-    candidates.filter((c) => c.source === "order" && c.workOrderId != null).map((c) => c.workOrderId),
+    candidates
+      .filter((c) => c.source === "order" && c.workOrderId != null)
+      .map((c) => c.workOrderId)
   );
 
   return candidates.filter((c) => {
@@ -177,7 +189,7 @@ export function dedupeScheduleCandidates(candidates: ScheduleCandidate[]): Sched
 
 export function findScheduleConflicts(
   candidates: ScheduleCandidate[],
-  query: ScheduleConflictQuery,
+  query: ScheduleConflictQuery
 ): ScheduleConflict[] {
   const startT = query.dueDate.getTime();
   const endT = startT + query.durationHours * 3600000;
@@ -185,10 +197,18 @@ export function findScheduleConflicts(
   const conflicts: ScheduleConflict[] = [];
 
   for (const candidate of deduped) {
-    if (query.excludeOrderId != null && candidate.source === "order" && candidate.id === query.excludeOrderId) {
+    if (
+      query.excludeOrderId != null &&
+      candidate.source === "order" &&
+      candidate.id === query.excludeOrderId
+    ) {
       continue;
     }
-    if (query.excludeSessionId != null && candidate.source === "session" && candidate.id === query.excludeSessionId) {
+    if (
+      query.excludeSessionId != null &&
+      candidate.source === "session" &&
+      candidate.id === query.excludeSessionId
+    ) {
       continue;
     }
 
@@ -199,7 +219,8 @@ export function findScheduleConflicts(
     const base = {
       source: candidate.source,
       conflictingId: candidate.id,
-      conflictingOrderId: candidate.workOrderId ?? (candidate.source === "order" ? candidate.id : null),
+      conflictingOrderId:
+        candidate.workOrderId ?? (candidate.source === "order" ? candidate.id : null),
       start: candidate.start,
       end: candidate.end,
       workerName: candidate.workerName,

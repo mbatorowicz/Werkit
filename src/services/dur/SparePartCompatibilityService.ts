@@ -1,6 +1,6 @@
-import { db } from '@/db';
-import { sparePartMachineCompatibility, spareParts, resourceCategories } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { db } from "@/db";
+import { sparePartMachineCompatibility, spareParts, resourceCategories } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export class SparePartCompatibilityService {
   /**
@@ -25,7 +25,7 @@ export class SparePartCompatibilityService {
       .from(sparePartMachineCompatibility)
       .innerJoin(
         resourceCategories,
-        eq(sparePartMachineCompatibility.categoryId, resourceCategories.id),
+        eq(sparePartMachineCompatibility.categoryId, resourceCategories.id)
       )
       .where(eq(sparePartMachineCompatibility.partId, partId));
 
@@ -49,8 +49,8 @@ export class SparePartCompatibilityService {
         and(
           eq(sparePartMachineCompatibility.categoryId, categoryId),
           eq(spareParts.companyId, companyId),
-          eq(spareParts.isActive, true),
-        ),
+          eq(spareParts.isActive, true)
+        )
       );
 
     return rows;
@@ -59,12 +59,7 @@ export class SparePartCompatibilityService {
   /**
    * Dodaje kompatybilność (część → kategoria maszyny).
    */
-  static async add(
-    partId: number,
-    categoryId: number,
-    companyId: number,
-    notes?: string,
-  ) {
+  static async add(partId: number, categoryId: number, companyId: number, notes?: string) {
     // Sprawdź, czy część należy do firmy
     const [part] = await db
       .select({ id: spareParts.id })
@@ -72,18 +67,18 @@ export class SparePartCompatibilityService {
       .where(and(eq(spareParts.id, partId), eq(spareParts.companyId, companyId)))
       .limit(1);
 
-    if (!part) throw new Error('Part not found');
+    if (!part) throw new Error("Part not found");
 
     // Sprawdź, czy kategoria maszyny istnieje
     const [cat] = await db
       .select({ id: resourceCategories.id })
       .from(resourceCategories)
       .where(
-        and(eq(resourceCategories.id, categoryId), eq(resourceCategories.companyId, companyId)),
+        and(eq(resourceCategories.id, categoryId), eq(resourceCategories.companyId, companyId))
       )
       .limit(1);
 
-    if (!cat) throw new Error('Machine category not found');
+    if (!cat) throw new Error("Machine category not found");
 
     await db
       .insert(sparePartMachineCompatibility)
@@ -102,8 +97,8 @@ export class SparePartCompatibilityService {
       .where(
         and(
           eq(sparePartMachineCompatibility.partId, partId),
-          eq(sparePartMachineCompatibility.categoryId, categoryId),
-        ),
+          eq(sparePartMachineCompatibility.categoryId, categoryId)
+        )
       );
   }
 }

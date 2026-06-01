@@ -183,7 +183,9 @@ describe("PlatformFeatureFlagService", () => {
 
       // insert nie powinien być wywołany, bo Partial jest puste
       const { PlatformFeatureFlagService } = await import("./PlatformFeatureFlagService");
-      const flags = await PlatformFeatureFlagService.updateFlags(1, { durEnabled: undefined as unknown as boolean });
+      const flags = await PlatformFeatureFlagService.updateFlags(1, {
+        durEnabled: undefined as unknown as boolean,
+      });
 
       // insert nie został wywołany — tylko getFlags
       expect(insertMock).not.toHaveBeenCalled();

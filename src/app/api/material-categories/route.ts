@@ -1,10 +1,10 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
-import { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { isMissingMaterialCategoriesTables } from "@/lib/postgresMigrationHints";
+import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
@@ -18,9 +18,12 @@ export const GET = withApiErrorHandling(
     return jsonOk(rows);
   },
   {
-    mapUnknownError: (err) => (isMissingMaterialCategoriesTables(err) ? jsonError("migration_material_categories", 503) : null),
+    mapUnknownError: (err) =>
+      isMissingMaterialCategoriesTables(err)
+        ? jsonError("migration_material_categories", 503)
+        : null,
     defaultErrorCode: "fetch_error",
-  },
+  }
 );
 
 export const POST = withApiErrorHandling(
@@ -53,9 +56,10 @@ export const POST = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
-      if (isMissingMaterialCategoriesTables(err)) return jsonError("migration_material_categories", 503);
+      if (isMissingMaterialCategoriesTables(err))
+        return jsonError("migration_material_categories", 503);
       return null;
     },
     defaultErrorCode: "save_error",
-  },
+  }
 );

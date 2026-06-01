@@ -1,8 +1,5 @@
 import { Capacitor } from "@capacitor/core";
-import {
-  NativeBiometric,
-  AccessControl,
-} from "@capgo/capacitor-native-biometric";
+import { NativeBiometric, AccessControl } from "@capgo/capacitor-native-biometric";
 
 /** Klucz „serwera” w Keystore/Keychain — powiązanie z domeną aplikacji. */
 export const WERKIT_BIOMETRIC_SERVER = "com.werkit.app.auth";
@@ -33,10 +30,7 @@ export async function hasSavedBiometricCredentials(): Promise<boolean> {
   }
 }
 
-export async function saveBiometricCredentials(
-  username: string,
-  password: string,
-): Promise<void> {
+export async function saveBiometricCredentials(username: string, password: string): Promise<void> {
   await NativeBiometric.setCredentials({
     username,
     password,

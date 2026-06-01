@@ -46,7 +46,9 @@ function LabelItem({
 }) {
   return (
     <div className={`min-w-0 ${className}`}>
-      <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">{k}</div>
+      <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">
+        {k}
+      </div>
       <div
         className={
           multiline
@@ -134,7 +136,9 @@ export function OrderLabelCard({
 
         <div className={`flex-1 ${isCompact ? "p-2.5" : "p-3"}`}>
           {/* Nr zlecenia — jedyny element w kolorze statusu */}
-          <div className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}>
+          <div
+            className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}
+          >
             <div className="min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
@@ -148,10 +152,7 @@ export function OrderLabelCard({
                 <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 mr-1">
                   {attachmentPhotos ? (
                     <span title={attachDict.orderAttachmentPhotosTitle}>
-                      <Camera
-                        className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
-                        aria-hidden
-                      />
+                      <Camera className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`} aria-hidden />
                     </span>
                   ) : null}
                   {attachmentNotes ? (
@@ -172,7 +173,9 @@ export function OrderLabelCard({
 
           <div
             className={`grid ${
-              isCompact ? "grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-1.5" : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
+              isCompact
+                ? "grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-1.5"
+                : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
             }`}
           >
             <LabelItem k={labels.mode} v={mode || "—"} />
@@ -186,14 +189,19 @@ export function OrderLabelCard({
               multiline
               className="md:col-span-2"
             />
-            {showDateTime ? <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} /> : null}
-            {showDateTime ? <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} /> : null}
+            {showDateTime ? (
+              <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
+            ) : null}
+            {showDateTime ? (
+              <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} />
+            ) : null}
           </div>
 
           {orderedBy?.trim() ? (
             <div className={isCompact ? "mt-2" : "mt-3"}>
               <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                {orderedByText} <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
+                {orderedByText}{" "}
+                <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
               </div>
             </div>
           ) : null}
@@ -204,4 +212,3 @@ export function OrderLabelCard({
     </div>
   );
 }
-

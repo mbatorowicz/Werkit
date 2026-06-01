@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { workSessions, gpsLogs } from '@/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
-import { Coord } from '@/types/worker';
+import { db } from "@/db";
+import { workSessions, gpsLogs } from "@/db/schema";
+import { eq, and, asc } from "drizzle-orm";
+import { Coord } from "@/types/worker";
 
 export type GpsPoint = Coord & { timestamp?: string };
 
@@ -14,13 +14,17 @@ export class GpsService {
         and(
           eq(workSessions.userId, userId),
           eq(workSessions.companyId, companyId),
-          eq(workSessions.status, 'IN_PROGRESS'),
-        ),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
       )
       .limit(1);
     if (activeSessions.length === 0) return [];
 
-    const logs = await db.select().from(gpsLogs).where(eq(gpsLogs.workSessionId, activeSessions[0].id)).orderBy(asc(gpsLogs.timestamp));
+    const logs = await db
+      .select()
+      .from(gpsLogs)
+      .where(eq(gpsLogs.workSessionId, activeSessions[0].id))
+      .orderBy(asc(gpsLogs.timestamp));
     return logs.map((l) => ({
       lat: parseFloat(l.latitude),
       lng: parseFloat(l.longitude),
@@ -38,18 +42,18 @@ export class GpsService {
         and(
           eq(workSessions.userId, userId),
           eq(workSessions.companyId, companyId),
-          eq(workSessions.status, 'IN_PROGRESS'),
-        ),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
       )
       .limit(1);
 
     if (activeSessions.length === 0) {
-      throw new Error('no_active_session');
+      throw new Error("no_active_session");
     }
 
     const valuesToInsert = points
-      .filter(p => typeof p.lat === 'number' && typeof p.lng === 'number')
-      .map(p => ({
+      .filter((p) => typeof p.lat === "number" && typeof p.lng === "number")
+      .map((p) => ({
         workSessionId: activeSessions[0].id,
         latitude: p.lat.toString(),
         longitude: p.lng.toString(),

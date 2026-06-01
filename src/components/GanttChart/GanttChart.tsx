@@ -19,7 +19,7 @@ type GanttProps = {
 };
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
-  const [groupBy, setGroupBy] = useState<'WORKER' | 'MACHINE'>('WORKER');
+  const [groupBy, setGroupBy] = useState<"WORKER" | "MACHINE">("WORKER");
   const dict = getDictionary().admin.gantt;
   const fields = getDictionary().admin.orderFields;
 
@@ -29,7 +29,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
       date?: string;
       time?: string;
       footer: string;
-    },
+    }
   ) => {
     const customerName = `${item.customerLastName || ""} ${item.customerFirstName || ""}`.trim();
     return [
@@ -50,7 +50,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0];
   });
 
   const [startHour, setStartHour] = useState(6);
@@ -67,22 +67,22 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   const isToday = () => {
     const today = new Date();
     today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-    return selectedDateStr === today.toISOString().split('T')[0];
+    return selectedDateStr === today.toISOString().split("T")[0];
   };
 
   const handlePrevDay = () => {
     const d = new Date(selectedDateStr);
     d.setDate(d.getDate() - 1);
-    setSelectedDateStr(d.toISOString().split('T')[0]);
+    setSelectedDateStr(d.toISOString().split("T")[0]);
   };
 
   const handleNextDay = () => {
     const d = new Date(selectedDateStr);
     d.setDate(d.getDate() + 1);
-    setSelectedDateStr(d.toISOString().split('T')[0]);
+    setSelectedDateStr(d.toISOString().split("T")[0]);
   };
 
-  const rows = groupBy === 'WORKER' ? workers : machines;
+  const rows = groupBy === "WORKER" ? workers : machines;
 
   const dStart = new Date(selectedDateStr);
   dStart.setHours(startHour, 0, 0, 0);
@@ -120,12 +120,13 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
     if (visibleDurationHours <= 0) return null;
 
     const visibleStart = new Date(itemStartMs);
-    const startMinsFromStartHour = (visibleStart.getHours() - startHour) * 60 + visibleStart.getMinutes();
+    const startMinsFromStartHour =
+      (visibleStart.getHours() - startHour) * 60 + visibleStart.getMinutes();
 
     const totalMins = totalHours * 60;
 
     const left = (startMinsFromStartHour / totalMins) * 100;
-    const width = (visibleDurationHours * 60 / totalMins) * 100;
+    const width = ((visibleDurationHours * 60) / totalMins) * 100;
 
     return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
   };
@@ -162,18 +163,22 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
 
           <div className="flex flex-col relative pb-4">
             <div className="absolute inset-0 left-40 md:left-48 pointer-events-none flex">
-              {hours.map(h => (
-                <div key={h} className="h-full border-l border-zinc-100 dark:border-zinc-800/30" style={{ left: `${((h - startHour) / totalHours) * 100}%`, position: 'absolute' }}></div>
+              {hours.map((h) => (
+                <div
+                  key={h}
+                  className="h-full border-l border-zinc-100 dark:border-zinc-800/30"
+                  style={{ left: `${((h - startHour) / totalHours) * 100}%`, position: "absolute" }}
+                ></div>
               ))}
               {currentTimeLeft !== null && (
                 <div
                   className="h-full border-l border-red-400/40 z-30 pointer-events-none"
-                  style={{ left: `${currentTimeLeft}%`, position: 'absolute' }}
+                  style={{ left: `${currentTimeLeft}%`, position: "absolute" }}
                 />
               )}
             </div>
 
-            {rows.map(row => (
+            {rows.map((row) => (
               <GanttRow
                 key={row.id}
                 row={row}
@@ -193,13 +198,27 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               />
             ))}
 
-            {rows.every(row => {
-              return !unifiedItems.some(item => {
-                const matchesRow = groupBy === 'WORKER' ? item.userId === row.id : item.resourceId === row.id;
+            {rows.every((row) => {
+              return !unifiedItems.some((item) => {
+                const matchesRow =
+                  groupBy === "WORKER" ? item.userId === row.id : item.resourceId === row.id;
                 if (!matchesRow) return false;
-                const tStart = item.startTime ? new Date(item.startTime) : (item.dueDate ? new Date(item.dueDate) : null);
+                const tStart = item.startTime
+                  ? new Date(item.startTime)
+                  : item.dueDate
+                    ? new Date(item.dueDate)
+                    : null;
                 if (!tStart) return false;
-                const tEnd = item.endTime ? new Date(item.endTime as string) : (item.status === 'IN_PROGRESS' ? new Date() : (item.dueDate ? new Date(new Date(item.dueDate as string).getTime() + Number(item.expectedDurationHours || 2) * 3600000) : tStart));
+                const tEnd = item.endTime
+                  ? new Date(item.endTime as string)
+                  : item.status === "IN_PROGRESS"
+                    ? new Date()
+                    : item.dueDate
+                      ? new Date(
+                          new Date(item.dueDate as string).getTime() +
+                            Number(item.expectedDurationHours || 2) * 3600000
+                        )
+                      : tStart;
                 return tStart <= dEnd && tEnd >= dStart;
               });
             }) && (

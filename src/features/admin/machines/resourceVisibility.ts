@@ -8,7 +8,7 @@ export type ResourceFieldVisibility = {
 
 export function mergeResourceFieldVisibility(
   categoryIds: number[],
-  categories: MachinesCategory[],
+  categories: MachinesCategory[]
 ): ResourceFieldVisibility {
   const selected = categories.filter((c) => categoryIds.includes(c.id));
   if (selected.length === 0) {

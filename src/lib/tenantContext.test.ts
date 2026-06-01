@@ -34,7 +34,7 @@ describe("tenantContext", () => {
 
   it("getTenantCompanyId blokuje superadmina", () => {
     expect(() => getTenantCompanyId({ userId: 1, role: "superadmin", companyId: 1 })).toThrow(
-      TenantContextError,
+      TenantContextError
     );
   });
 });

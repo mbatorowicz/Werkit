@@ -10,9 +10,14 @@ import { narrowMachinesCategoryRows, narrowMachinesResourceRows } from "@/lib/na
 import type { MachinesCategory, MachinesResource } from "./types";
 
 async function parseJsonList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
-  const res = await fetchWithDeviceTelemetry(`Admin machines: GET ${url}`, url, { cache: "no-store" }, {
-    category: "admin",
-  });
+  const res = await fetchWithDeviceTelemetry(
+    `Admin machines: GET ${url}`,
+    url,
+    { cache: "no-store" },
+    {
+      category: "admin",
+    }
+  );
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
     return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };
@@ -32,7 +37,10 @@ export function useMachinesAdminData() {
     const dict = getDictionary().admin.machines;
     const apiErrors = getDictionary().apiErrors as Record<string, string>;
     try {
-      const [mList, cList] = await Promise.all([parseJsonList("/api/machines"), parseJsonList("/api/categories")]);
+      const [mList, cList] = await Promise.all([
+        parseJsonList("/api/machines"),
+        parseJsonList("/api/categories"),
+      ]);
       setMachines(narrowMachinesResourceRows(mList.rows));
       setCategories(narrowMachinesCategoryRows(cList.rows));
 

@@ -1,6 +1,6 @@
-import { db } from '@/db';
-import { companies, companySettings, users } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { db } from "@/db";
+import { companies, companySettings, users } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export type CompanyRow = typeof companies.$inferSelect;
 
@@ -8,16 +8,21 @@ function slugifyName(name: string): string {
   const base = name
     .trim()
     .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, 90);
-  return base || 'firma';
+  return base || "firma";
 }
 
 function isPgUniqueViolation(err: unknown): boolean {
-  return typeof err === 'object' && err !== null && 'code' in err && (err as { code?: unknown }).code === '23505';
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: unknown }).code === "23505"
+  );
 }
 
 export class PlatformCompanyService {
@@ -32,10 +37,10 @@ export class PlatformCompanyService {
 
   static async createCompany(name: string, slugInput?: string): Promise<CompanyRow> {
     const trimmed = name.trim();
-    if (!trimmed) throw new Error('missing_name');
+    if (!trimmed) throw new Error("missing_name");
 
     let slug = (slugInput?.trim() || slugifyName(trimmed)).toLowerCase();
-    if (!slug) slug = 'firma';
+    if (!slug) slug = "firma";
 
     return db.transaction(async (tx) => {
       const [row] = await tx
@@ -58,13 +63,13 @@ export class PlatformCompanyService {
   static async createCompanyWithAdmin(
     name: string,
     slugInput: string | undefined,
-    admin: { fullName: string; usernameEmail: string; passwordHash: string } | null,
+    admin: { fullName: string; usernameEmail: string; passwordHash: string } | null
   ): Promise<CompanyRow> {
     const trimmed = name.trim();
-    if (!trimmed) throw new Error('missing_name');
+    if (!trimmed) throw new Error("missing_name");
 
     let slug = (slugInput?.trim() || slugifyName(trimmed)).toLowerCase();
-    if (!slug) slug = 'firma';
+    if (!slug) slug = "firma";
 
     return db.transaction(async (tx) => {
       const [row] = await tx
@@ -83,7 +88,7 @@ export class PlatformCompanyService {
           fullName: admin.fullName.trim(),
           usernameEmail: admin.usernameEmail.trim().toLowerCase(),
           passwordHash: admin.passwordHash,
-          role: 'admin',
+          role: "admin",
           isActive: true,
           canCreateOwnOrders: false,
           canEditRoute: false,
@@ -97,7 +102,7 @@ export class PlatformCompanyService {
 
   static async updateCompany(
     id: number,
-    patch: { name?: string; slug?: string; isActive?: boolean },
+    patch: { name?: string; slug?: string; isActive?: boolean }
   ): Promise<CompanyRow | null> {
     const existing = await PlatformCompanyService.getCompanyById(id);
     if (!existing) return null;
@@ -109,11 +114,7 @@ export class PlatformCompanyService {
 
     if (Object.keys(updates).length === 0) return existing;
 
-    const [row] = await db
-      .update(companies)
-      .set(updates)
-      .where(eq(companies.id, id))
-      .returning();
+    const [row] = await db.update(companies).set(updates).where(eq(companies.id, id)).returning();
 
     if (updates.name) {
       await db
@@ -131,17 +132,17 @@ export class PlatformCompanyService {
       fullName: string;
       usernameEmail: string;
       passwordHash: string;
-    },
+    }
   ): Promise<void> {
     const company = await PlatformCompanyService.getCompanyById(companyId);
-    if (!company) throw new Error('company_not_found');
+    if (!company) throw new Error("company_not_found");
 
     await db.insert(users).values({
       companyId,
       fullName: payload.fullName.trim(),
       usernameEmail: payload.usernameEmail.trim().toLowerCase(),
       passwordHash: payload.passwordHash,
-      role: 'admin',
+      role: "admin",
       isActive: true,
       canCreateOwnOrders: false,
       canEditRoute: false,
@@ -149,11 +150,11 @@ export class PlatformCompanyService {
     });
   }
 
-  static mapCreateError(err: unknown): 'slug_exists' | 'user_exists' | null {
+  static mapCreateError(err: unknown): "slug_exists" | "user_exists" | null {
     if (!isPgUniqueViolation(err)) return null;
     const msg = err instanceof Error ? err.message : String(err);
-    if (/users.*username|username_email|unique.*email/i.test(msg)) return 'user_exists';
-    if (/companies.*slug|slug/i.test(msg)) return 'slug_exists';
-    return 'slug_exists';
+    if (/users.*username|username_email|unique.*email/i.test(msg)) return "user_exists";
+    if (/companies.*slug|slug/i.test(msg)) return "slug_exists";
+    return "slug_exists";
   }
 }

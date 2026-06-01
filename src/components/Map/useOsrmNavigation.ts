@@ -39,7 +39,7 @@ export interface NavigationState {
 function findCurrentInstructionIndex(
   instructions: NavigationInstruction[],
   currentLocation: RouteLngLat,
-  routeGeometry: [number, number][],
+  routeGeometry: [number, number][]
 ): number {
   if (instructions.length === 0) return 0;
 
@@ -99,7 +99,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 /** Calculate remaining distance along route geometry from closest point to end. */
 function calculateRemainingDistance(
   currentLocation: RouteLngLat,
-  routeGeometry: [number, number][],
+  routeGeometry: [number, number][]
 ): number {
   if (routeGeometry.length < 2) return 0;
 
@@ -116,7 +116,7 @@ function calculateRemainingDistance(
       lat1,
       lng1,
       lat2,
-      lng2,
+      lng2
     );
     if (d < minDist) {
       minDist = d;
@@ -142,7 +142,7 @@ function pointToSegmentDistance(
   ax: number,
   ay: number,
   bx: number,
-  by: number,
+  by: number
 ): number {
   const dx = bx - ax;
   const dy = by - ay;
@@ -178,9 +178,12 @@ export function useOsrmNavigation(
   currentLocation: RouteLngLat,
   destination: RouteLngLat | null,
   waypoints: RouteLngLat[] = [],
-  options: UseOsrmNavigationOptions = {},
+  options: UseOsrmNavigationOptions = {}
 ): NavigationState {
-  const { recalculateIntervalMs = 3000, routeGeometryProvider = projectOsrmPublicRouteGeometryProvider } = options;
+  const {
+    recalculateIntervalMs = 3000,
+    routeGeometryProvider = projectOsrmPublicRouteGeometryProvider,
+  } = options;
 
   const [instructions, setInstructions] = useState<NavigationInstruction[]>([]);
   const [routeGeometry, setRouteGeometry] = useState<[number, number][]>([]);
@@ -220,18 +223,17 @@ export function useOsrmNavigation(
         const baseUrl = routeGeometryProvider.buildDrivingRouteUrl(
           currentLocation,
           destination,
-          waypoints,
+          waypoints
         );
         // Append steps=true for turn-by-turn instructions
         const separator = baseUrl.includes("?") ? "&" : "?";
         const url = `${baseUrl}${separator}steps=true&annotations=true`;
 
-        const res = await fetchWithDeviceTelemetry(
-          "Map: OSRM navigation route",
-          url,
-          undefined,
-          { category: "http", throttleKey: "osrm_navigation_route", throttleMs: 15_000 },
-        );
+        const res = await fetchWithDeviceTelemetry("Map: OSRM navigation route", url, undefined, {
+          category: "http",
+          throttleKey: "osrm_navigation_route",
+          throttleMs: 15_000,
+        });
         const data: unknown = await res.json();
 
         if (cancelled) return;
@@ -249,7 +251,11 @@ export function useOsrmNavigation(
         setRemainingDuration(parsed.totalDuration);
 
         // Find initial instruction
-        const idx = findCurrentInstructionIndex(parsed.instructions, currentLocation, parsed.geometry);
+        const idx = findCurrentInstructionIndex(
+          parsed.instructions,
+          currentLocation,
+          parsed.geometry
+        );
         setCurrentInstructionIndex(idx);
 
         // Calculate remaining to next instruction
@@ -258,7 +264,7 @@ export function useOsrmNavigation(
             currentLocation.lat,
             currentLocation.lng,
             parsed.instructions[idx].location.lat,
-            parsed.instructions[idx].location.lng,
+            parsed.instructions[idx].location.lng
           );
           setRemainingToNextInstruction(distToInst);
         }
@@ -288,7 +294,7 @@ export function useOsrmNavigation(
       const idx = findCurrentInstructionIndex(
         instructionsRef.current,
         currentLocation,
-        routeGeometryRef.current,
+        routeGeometryRef.current
       );
       setCurrentInstructionIndex(idx);
 
@@ -298,10 +304,15 @@ export function useOsrmNavigation(
 
       // Estimate remaining duration proportionally
       if (totalDurationRef.current > 0 && instructionsRef.current.length > 0) {
-        const totalDist = remDist + calculateRemainingDistance(
-          { lat: routeGeometryRef.current[0]?.[0] ?? currentLocation.lat, lng: routeGeometryRef.current[0]?.[1] ?? currentLocation.lng },
-          routeGeometryRef.current,
-        );
+        const totalDist =
+          remDist +
+          calculateRemainingDistance(
+            {
+              lat: routeGeometryRef.current[0]?.[0] ?? currentLocation.lat,
+              lng: routeGeometryRef.current[0]?.[1] ?? currentLocation.lng,
+            },
+            routeGeometryRef.current
+          );
         const traveledRatio = totalDist > 0 ? remDist / totalDist : 1;
         setRemainingDuration(totalDurationRef.current * traveledRatio);
       }
@@ -312,14 +323,20 @@ export function useOsrmNavigation(
           currentLocation.lat,
           currentLocation.lng,
           instructionsRef.current[idx].location.lat,
-          instructionsRef.current[idx].location.lng,
+          instructionsRef.current[idx].location.lng
         );
         setRemainingToNextInstruction(distToInst);
       }
     }, recalculateIntervalMs);
 
     return () => window.clearInterval(interval);
-  }, [destination, instructions.length, routeGeometry.length, currentLocation, recalculateIntervalMs]);
+  }, [
+    destination,
+    instructions.length,
+    routeGeometry.length,
+    currentLocation,
+    recalculateIntervalMs,
+  ]);
 
   return {
     instructions,

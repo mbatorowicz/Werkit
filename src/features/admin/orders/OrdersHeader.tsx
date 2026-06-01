@@ -39,9 +39,14 @@ export function OrdersHeader({
           type="button"
           onClick={async () => {
             try {
-              const res = await fetchWithDeviceTelemetry("Admin dispatch: settings GET", adminApi.settings, undefined, {
-                category: "admin",
-              });
+              const res = await fetchWithDeviceTelemetry(
+                "Admin dispatch: settings GET",
+                adminApi.settings,
+                undefined,
+                {
+                  category: "admin",
+                }
+              );
               if (res.ok) {
                 const raw = await parseJsonUnknown(res);
                 if (isRecord(raw)) onOpenSettings(raw);

@@ -35,7 +35,7 @@ export function ProfileSettings({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationsEnabled: newVal }),
       },
-      { category: "profile" },
+      { category: "profile" }
     );
   };
 
@@ -47,12 +47,19 @@ export function ProfileSettings({
             <Bell className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="font-medium text-zinc-900 dark:text-white">{profileDict.notificationsTitle}</p>
+            <p className="font-medium text-zinc-900 dark:text-white">
+              {profileDict.notificationsTitle}
+            </p>
             <p className="text-xs text-zinc-500">{profileDict.notificationsDesc}</p>
           </div>
         </div>
         <label className="relative flex cursor-pointer items-center">
-          <input type="checkbox" className="peer sr-only" checked={enabled} onChange={toggleNotifications} />
+          <input
+            type="checkbox"
+            className="peer sr-only"
+            checked={enabled}
+            onChange={toggleNotifications}
+          />
           <div className={toggleClass} />
         </label>
       </div>

@@ -1,4 +1,4 @@
-import { DictionaryService } from '@/services/DictionaryService';
+import { DictionaryService } from "@/services/DictionaryService";
 
 export type CategoryRequirementFlags = {
   reqCustomer: boolean;
@@ -17,7 +17,7 @@ export function validateWorkOrderFieldsAgainstCategory(
     materialId?: unknown;
     quantityTons?: unknown;
     taskDescription?: unknown;
-  },
+  }
 ):
   | "ok"
   | "invalid_category"
@@ -27,28 +27,21 @@ export function validateWorkOrderFieldsAgainstCategory(
   | "missing_task_description" {
   if (!cat) return "invalid_category";
 
-  const hasCustomer =
-    payload.customerId != null && String(payload.customerId).trim() !== "";
+  const hasCustomer = payload.customerId != null && String(payload.customerId).trim() !== "";
   if (cat.reqCustomer && !hasCustomer) return "missing_customer";
 
-  const hasMaterial =
-    payload.materialId != null && String(payload.materialId).trim() !== "";
+  const hasMaterial = payload.materialId != null && String(payload.materialId).trim() !== "";
   if (cat.reqMaterial && !hasMaterial) return "missing_material";
 
   if (cat.reqQuantity) {
     const raw = payload.quantityTons;
     const n =
-      typeof raw === "number"
-        ? raw
-        : Number.parseFloat(String(raw ?? "").replace(",", "."));
+      typeof raw === "number" ? raw : Number.parseFloat(String(raw ?? "").replace(",", "."));
     if (!Number.isFinite(n) || n <= 0) return "missing_quantity";
   }
 
   if (cat.reqTaskDescription) {
-    const d =
-      typeof payload.taskDescription === "string"
-        ? payload.taskDescription.trim()
-        : "";
+    const d = typeof payload.taskDescription === "string" ? payload.taskDescription.trim() : "";
     if (!d) return "missing_task_description";
   }
 
@@ -63,14 +56,14 @@ export async function validateCategoryForOrder(
     materialId?: unknown;
     quantityTons?: unknown;
     taskDescription?: unknown;
-  },
+  }
 ): Promise<{ ok: true } | never> {
   const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
   if (!categoryRow || categoryRow.isGroup) {
-    throw new Error('invalid_category');
+    throw new Error("invalid_category");
   }
   const check = validateWorkOrderFieldsAgainstCategory(categoryRow, fields);
-  if (check !== 'ok') {
+  if (check !== "ok") {
     throw new Error(check);
   }
   return { ok: true };

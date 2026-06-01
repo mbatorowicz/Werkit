@@ -30,10 +30,17 @@ export function narrowBaseMachines(rows: unknown[]): BaseMachine[] {
       name: r.name,
       brand: typeof r.brand === "string" ? r.brand : undefined,
       model: typeof r.model === "string" ? r.model : undefined,
-      registrationNumber: typeof r.registrationNumber === "string" ? r.registrationNumber : undefined,
-      description: r.description === null || typeof r.description === "string" ? (r.description as string | null) : null,
+      registrationNumber:
+        typeof r.registrationNumber === "string" ? r.registrationNumber : undefined,
+      description:
+        r.description === null || typeof r.description === "string"
+          ? (r.description as string | null)
+          : null,
       categoryIds,
-      imageUrl: r.imageUrl === null || typeof r.imageUrl === "string" ? (r.imageUrl as string | null) : null,
+      imageUrl:
+        r.imageUrl === null || typeof r.imageUrl === "string"
+          ? (r.imageUrl as string | null)
+          : null,
     });
   }
   return out;
@@ -55,9 +62,14 @@ export function narrowBaseCustomers(rows: unknown[]): BaseCustomer[] {
   for (const r of rows) {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.lastName !== "string") continue;
-    const firstName = r.firstName === null || typeof r.firstName === "string" ? (r.firstName as string | null) : null;
+    const firstName =
+      r.firstName === null || typeof r.firstName === "string"
+        ? (r.firstName as string | null)
+        : null;
     const defaultAddress =
-      r.defaultAddress === null || typeof r.defaultAddress === "string" ? (r.defaultAddress as string | null) : null;
+      r.defaultAddress === null || typeof r.defaultAddress === "string"
+        ? (r.defaultAddress as string | null)
+        : null;
     const locationAddresses = narrowStringArray(r.locationAddresses);
     out.push({
       id: r.id,
@@ -88,7 +100,8 @@ export function narrowBaseCategories(rows: unknown[]): BaseCategory[] {
       reqTaskDescription: readBool(raw, "reqTaskDescription", true),
       isGlobal: readBool(raw, "isGlobal", false),
       isStationary: readBool(raw, "isStationary", false),
-      color: raw.color === null || typeof raw.color === "string" ? (raw.color as string | null) : null,
+      color:
+        raw.color === null || typeof raw.color === "string" ? (raw.color as string | null) : null,
       showResourceName: readBool(raw, "showResourceName", true),
       showResourceDescription: readBool(raw, "showResourceDescription", false),
       showRegistrationNumber: readBool(raw, "showRegistrationNumber", true),

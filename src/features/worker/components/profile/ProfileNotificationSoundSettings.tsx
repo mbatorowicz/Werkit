@@ -77,7 +77,9 @@ export function ProfileNotificationSoundSettings({
             <Volume2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <p className="font-medium text-zinc-900 dark:text-white">{profileDict.notificationSoundTitle}</p>
+            <p className="font-medium text-zinc-900 dark:text-white">
+              {profileDict.notificationSoundTitle}
+            </p>
             <p className="text-xs text-zinc-500">{profileDict.notificationSoundDesc}</p>
           </div>
         </div>
@@ -124,12 +126,16 @@ export function ProfileNotificationSoundSettings({
                 className="flex flex-col gap-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-700 sm:flex-row sm:items-center"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{kindLabel(kind)}</p>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {kindLabel(kind)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <select
                     value={settings.presets[kind]}
-                    onChange={(e) => onPresetChange(kind, e.target.value as NotificationSoundPresetId)}
+                    onChange={(e) =>
+                      onPresetChange(kind, e.target.value as NotificationSoundPresetId)
+                    }
                     className="min-w-[9rem] rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
                     aria-label={kindLabel(kind)}
                   >

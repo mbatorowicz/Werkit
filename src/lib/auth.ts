@@ -1,10 +1,10 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error('JWT_SECRET is not defined in environment variables');
+    throw new Error("JWT_SECRET is not defined in environment variables");
   }
   return new TextEncoder().encode(secret);
 };
@@ -24,7 +24,7 @@ export interface JwtPayload {
  */
 export async function getAuthSession(): Promise<JwtPayload | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
+  const token = cookieStore.get("auth_token")?.value;
   if (!token) return null;
 
   try {

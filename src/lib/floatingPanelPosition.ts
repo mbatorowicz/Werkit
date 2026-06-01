@@ -31,7 +31,7 @@ export function computeFloatingPanelStyle(rect: DOMRect): FloatingPanelStyle {
       width: rect.width,
       maxHeight: Math.min(
         FLOATING_PANEL_MAX_HEIGHT,
-        Math.max(spaceAbove - FLOATING_PANEL_GAP, FLOATING_PANEL_MIN_HEIGHT),
+        Math.max(spaceAbove - FLOATING_PANEL_GAP, FLOATING_PANEL_MIN_HEIGHT)
       ),
     };
   }
@@ -42,7 +42,7 @@ export function computeFloatingPanelStyle(rect: DOMRect): FloatingPanelStyle {
     width: rect.width,
     maxHeight: Math.min(
       FLOATING_PANEL_MAX_HEIGHT,
-      Math.max(spaceBelow - FLOATING_PANEL_GAP, FLOATING_PANEL_MIN_HEIGHT),
+      Math.max(spaceBelow - FLOATING_PANEL_GAP, FLOATING_PANEL_MIN_HEIGHT)
     ),
   };
 }

@@ -51,24 +51,54 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     void (async () => {
       try {
         const [cat, mac, mat, cus, ord, sess] = await Promise.all([
-          fetchWithDeviceTelemetry("Worker wizard: categories", "/api/categories?leavesOnly=1", { cache: "no-store" }, {
-            category: "lifecycle",
-          }).then(parseJsonArray),
-          fetchWithDeviceTelemetry("Worker wizard: machines", "/api/machines", { cache: "no-store" }, {
-            category: "lifecycle",
-          }).then(parseJsonArray),
-          fetchWithDeviceTelemetry("Worker wizard: materials", "/api/materials", { cache: "no-store" }, {
-            category: "lifecycle",
-          }).then(parseJsonArray),
-          fetchWithDeviceTelemetry("Worker wizard: customers", "/api/customers", { cache: "no-store" }, {
-            category: "lifecycle",
-          }).then(parseJsonArray),
-          fetchWithDeviceTelemetry("Worker wizard: work-orders", "/api/worker/work-orders", { cache: "no-store" }, {
-            category: "orders",
-          }).then(parseJsonArray),
-          fetchWithDeviceTelemetry("Worker wizard: session user", "/api/worker/session", { cache: "no-store" }, {
-            category: "session",
-          }).then(parseJsonUnknown),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: categories",
+            "/api/categories?leavesOnly=1",
+            { cache: "no-store" },
+            {
+              category: "lifecycle",
+            }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: machines",
+            "/api/machines",
+            { cache: "no-store" },
+            {
+              category: "lifecycle",
+            }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: materials",
+            "/api/materials",
+            { cache: "no-store" },
+            {
+              category: "lifecycle",
+            }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: customers",
+            "/api/customers",
+            { cache: "no-store" },
+            {
+              category: "lifecycle",
+            }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: work-orders",
+            "/api/worker/work-orders",
+            { cache: "no-store" },
+            {
+              category: "orders",
+            }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: session user",
+            "/api/worker/session",
+            { cache: "no-store" },
+            {
+              category: "session",
+            }
+          ).then(parseJsonUnknown),
         ]);
         if (cancelled) return;
         setCategories(narrowWizardCategories(cat));
@@ -96,12 +126,12 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id.toString() === categoryId),
-    [categories, categoryId],
+    [categories, categoryId]
   );
 
   const availableMachines = useMemo(
     () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: true }),
-    [machines, selectedCategory],
+    [machines, selectedCategory]
   );
 
   const handleStart = useCallback(async () => {
@@ -127,7 +157,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(createPayload),
         },
-        { category: "orders" },
+        { category: "orders" }
       );
 
       if (!createRes.ok) {
@@ -140,7 +170,9 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
 
       const createBody = await parseJsonUnknown(createRes);
       const orderId =
-        createBody && typeof createBody === "object" && typeof (createBody as { orderId?: unknown }).orderId === "number"
+        createBody &&
+        typeof createBody === "object" &&
+        typeof (createBody as { orderId?: unknown }).orderId === "number"
           ? (createBody as { orderId: number }).orderId
           : null;
 
@@ -159,7 +191,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
         },
-        { category: "orders" },
+        { category: "orders" }
       );
 
       if (acceptRes.ok) {
@@ -205,7 +237,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
           },
-          { category: "orders" },
+          { category: "orders" }
         );
         if (res.ok) {
           router.replace("/worker");
@@ -218,7 +250,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
         setIsLoading(false);
       }
     },
-    [appAlert, dict.errAcceptOrder, dict.errNetwork, router],
+    [appAlert, dict.errAcceptOrder, dict.errNetwork, router]
   );
 
   const handleCustomerCreated = useCallback((customer: WizardCustomer) => {

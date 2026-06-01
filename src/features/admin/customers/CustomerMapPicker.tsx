@@ -10,7 +10,8 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { FALLBACK_COMPANY_BASE } from "@/lib/map/companyBaseLocation";
 
 const iconLocation = L.icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -77,7 +78,13 @@ function MapPinLayer({
   );
 }
 
-export default function CustomerMapPicker({ lat, lng, address, defaultCenter, onChange }: CustomerMapPickerProps) {
+export default function CustomerMapPicker({
+  lat,
+  lng,
+  address,
+  defaultCenter,
+  onChange,
+}: CustomerMapPickerProps) {
   const dict = getDictionary().admin.customers;
   const [geocodeBusy, setGeocodeBusy] = useState(false);
   const [geocodeMsg, setGeocodeMsg] = useState<string | null>(null);
@@ -105,7 +112,7 @@ export default function CustomerMapPicker({ lat, lng, address, defaultCenter, on
       setGeocodeMsg(null);
       onChange(la.toString(), lg.toString());
     },
-    [onChange],
+    [onChange]
   );
 
   const handleGeocode = async () => {
@@ -122,15 +129,23 @@ export default function CustomerMapPicker({ lat, lng, address, defaultCenter, on
         "Admin customers: geocode",
         `/api/geocode?q=${encodeURIComponent(q)}`,
         { cache: "no-store" },
-        { category: "admin" },
+        { category: "admin" }
       );
-      const data = (await res.json()) as { lat?: number | null; lng?: number | null; error?: string };
+      const data = (await res.json()) as {
+        lat?: number | null;
+        lng?: number | null;
+        error?: string;
+      };
 
       if (!res.ok) {
         setGeocodeMsg(dict.geocodeNoResults);
         return;
       }
-      if (data.error === "not_found" || typeof data.lat !== "number" || typeof data.lng !== "number") {
+      if (
+        data.error === "not_found" ||
+        typeof data.lat !== "number" ||
+        typeof data.lng !== "number"
+      ) {
         setGeocodeMsg(dict.geocodeNoResults);
         return;
       }
@@ -156,11 +171,18 @@ export default function CustomerMapPicker({ lat, lng, address, defaultCenter, on
           {geocodeBusy ? dict.geocodeLoading : dict.geocodeBtn}
         </button>
       </div>
-      {geocodeMsg ? <p className="text-xs text-amber-600 dark:text-amber-400">{geocodeMsg}</p> : null}
+      {geocodeMsg ? (
+        <p className="text-xs text-amber-600 dark:text-amber-400">{geocodeMsg}</p>
+      ) : null}
       <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-snug">{dict.mapHint}</p>
 
       <div className="w-full h-[280px] rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0">
-        <MapContainer center={center} zoom={initialZoom} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={center}
+          zoom={initialZoom}
+          scrollWheelZoom
+          style={{ height: "100%", width: "100%" }}
+        >
           <WerkitTileLayer />
           <FlyToCoordinates latSig={flySig} />
           <MapPinLayer lat={lat} lng={lng} onPick={onPick} />

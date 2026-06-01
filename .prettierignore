@@ -1,0 +1,10 @@
+.next
+out
+build
+node_modules
+drizzle
+artifacts
+docs/archive
+*.min.js
+*.min.css
+package-lock.json

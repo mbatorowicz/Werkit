@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
@@ -18,8 +21,10 @@ import type {
 import type { AdminOrdersDict } from "@/components/Admin/Modals/OrderFormModal";
 
 const FIELD = "space-y-1.5";
-const LABEL = "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
-const CONTROL = "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
+const LABEL =
+  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const CONTROL =
+  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
 const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 type Props = {
@@ -55,7 +60,7 @@ export function OrderFormFields({
 
   const availableMachines = useMemo(
     () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: false }),
-    [machines, selectedCategory],
+    [machines, selectedCategory]
   );
 
   const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
@@ -68,12 +73,12 @@ export function OrderFormFields({
 
   const categoryOptions: AdminSearchComboboxOption[] = useMemo(
     () => categories.map((c) => ({ id: String(c.id), label: c.name })),
-    [categories],
+    [categories]
   );
 
   const workerOptions: AdminSearchComboboxOption[] = useMemo(
     () => workers.map((w) => ({ id: String(w.id), label: w.fullName })),
-    [workers],
+    [workers]
   );
 
   const machineOptions: AdminSearchComboboxOption[] = useMemo(
@@ -83,7 +88,7 @@ export function OrderFormFields({
           m.brand ?? "",
           m.model ?? "",
           m.registrationNumber ?? "",
-          m.description,
+          m.description
         );
         return {
           id: String(m.id),
@@ -91,18 +96,22 @@ export function OrderFormFields({
           sublabel: canonical && canonical !== m.name ? canonical : undefined,
         };
       }),
-    [availableMachines],
+    [availableMachines]
   );
 
   const materialOptions: AdminSearchComboboxOption[] = useMemo(
     () => materials.map((m) => ({ id: String(m.id), label: m.name })),
-    [materials],
+    [materials]
   );
 
   const comboboxCommon = comboboxFeedbackProps(dict);
 
-  const materialLabel = selectedCategory?.reqMaterial ? dict.chooseMaterialRequired : dict.chooseMaterial;
-  const customerLabel = selectedCategory?.reqCustomer ? dict.chooseCustomerRequired : dict.chooseCustomer;
+  const materialLabel = selectedCategory?.reqMaterial
+    ? dict.chooseMaterialRequired
+    : dict.chooseMaterial;
+  const customerLabel = selectedCategory?.reqCustomer
+    ? dict.chooseCustomerRequired
+    : dict.chooseCustomer;
 
   return (
     <>
@@ -210,7 +219,9 @@ export function OrderFormFields({
           <label className={LABEL}>
             {dict.taskDesc}
             {!selectedCategory.reqTaskDescription ? (
-              <span className="ml-1 font-normal normal-case text-zinc-400">{dict.optionalSuffix}</span>
+              <span className="ml-1 font-normal normal-case text-zinc-400">
+                {dict.optionalSuffix}
+              </span>
             ) : null}
           </label>
           <textarea
@@ -242,10 +253,7 @@ export function OrderFormFields({
       </div>
 
       {/* 7. Części zamienne — tylko dla napraw */}
-      <WorkOrderSparePartsSection
-        workOrderId={editingOrderId ?? null}
-        orderType={orderType}
-      />
+      <WorkOrderSparePartsSection workOrderId={editingOrderId ?? null} orderType={orderType} />
     </>
   );
 }

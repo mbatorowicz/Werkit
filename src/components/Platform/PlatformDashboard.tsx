@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { CompanyUsageRow } from '@/services/PlatformAnalyticsService';
-import type { AppDictionary } from '@/i18n/types';
-import { getDictionary, formatDict } from '@/i18n';
-import { PlatformCompanyForm } from '@/components/Platform/PlatformCompanyForm';
-import { PlatformCompanyTable } from '@/components/Platform/PlatformCompanyTable';
-import { FeatureFlagsSection } from '@/components/Platform/FeatureFlagsSection';
+import { useState } from "react";
+import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
+import type { AppDictionary } from "@/i18n/types";
+import { getDictionary, formatDict } from "@/i18n";
+import { PlatformCompanyForm } from "@/components/Platform/PlatformCompanyForm";
+import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
+import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
 type Props = {
   initialOverview: CompanyUsageRow[];
-  dict: AppDictionary['platform'];
+  dict: AppDictionary["platform"];
 };
 
 export function PlatformDashboard({ initialOverview, dict }: Props) {
@@ -19,22 +19,22 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   const [pending, setPending] = useState(false);
   const [messageIsError, setMessageIsError] = useState(false);
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [adminName, setAdminName] = useState('');
-  const [adminEmail, setAdminEmail] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
 
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editSlug, setEditSlug] = useState('');
+  const [editName, setEditName] = useState("");
+  const [editSlug, setEditSlug] = useState("");
   const [editPending, setEditPending] = useState(false);
 
   /** Która organizacja ma rozwinięty panel ustawień funkcji. */
   const [settingsOpenId, setSettingsOpenId] = useState<number | null>(null);
 
   async function refreshOverview() {
-    const res = await fetch('/api/platform/analytics', { credentials: 'include' });
+    const res = await fetch("/api/platform/analytics", { credentials: "include" });
     if (!res.ok) return;
     const data = await res.json();
     if (Array.isArray(data)) setRows(data as CompanyUsageRow[]);
@@ -51,10 +51,10 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     setMessage(null);
     setMessageIsError(false);
     try {
-      const res = await fetch('/api/platform/companies', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/platform/companies", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           slug: slug.trim() || undefined,
@@ -66,17 +66,17 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
-        const code = typeof body.error === 'string' ? body.error : '';
+        const code = typeof body.error === "string" ? body.error : "";
         showFeedback(apiErrors[code] ?? dict.createError, true);
-        if (code === 'slug_exists') await refreshOverview();
+        if (code === "slug_exists") await refreshOverview();
         return;
       }
       showFeedback(dict.createSuccess, false);
-      setName('');
-      setSlug('');
-      setAdminName('');
-      setAdminEmail('');
-      setAdminPassword('');
+      setName("");
+      setSlug("");
+      setAdminName("");
+      setAdminEmail("");
+      setAdminPassword("");
       await refreshOverview();
     } finally {
       setPending(false);
@@ -85,9 +85,9 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
 
   async function toggleActive(organizationId: number, isActive: boolean) {
     const res = await fetch(`/api/platform/companies/${organizationId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !isActive }),
     });
     if (res.ok) await refreshOverview();
@@ -101,17 +101,17 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
 
   function cancelEdit() {
     setEditingId(null);
-    setEditName('');
-    setEditSlug('');
+    setEditName("");
+    setEditSlug("");
   }
 
   async function saveEdit(organizationId: number) {
     setEditPending(true);
     try {
       const res = await fetch(`/api/platform/companies/${organizationId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName.trim(),
           slug: editSlug.trim().toLowerCase(),
@@ -120,7 +120,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
-        showFeedback(apiErrors[body.error ?? ''] ?? dict.updateError, true);
+        showFeedback(apiErrors[body.error ?? ""] ?? dict.updateError, true);
         return;
       }
       showFeedback(dict.updateSuccess, false);
@@ -180,11 +180,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       />
 
       {settingsOpenId != null && (
-        <FeatureFlagsSection
-          key={settingsOpenId}
-          companyId={settingsOpenId}
-          dict={dict.settings}
-        />
+        <FeatureFlagsSection key={settingsOpenId} companyId={settingsOpenId} dict={dict.settings} />
       )}
     </div>
   );

@@ -62,14 +62,14 @@ export function OrdersDispatchItemCard({
   const { orderNo, mode, machine, material, qty, customer, desc } = buildDispatchItemCardCopy(
     item,
     dict,
-    workerUiLabels,
+    workerUiLabels
   );
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
 
   const statusPill = (
     <span
       className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${dispatchStatusPillClass(
-        item.status,
+        item.status
       )}`}
     >
       {dispatchStatusLabel(item.status, dict, archiveDict)}
@@ -127,13 +127,15 @@ export function OrdersDispatchItemCard({
   const completedStartEnd = (startClass: string, endClass: string) =>
     item.status === "COMPLETED" && item.startTime && item.endTime ? (
       <>
-        <div className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${startClass}`}>
-          {dict.start}:{" "}
-          {formatUiTimeHm(item.startTime as string)}
+        <div
+          className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${startClass}`}
+        >
+          {dict.start}: {formatUiTimeHm(item.startTime as string)}
         </div>
-        <div className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${endClass}`}>
-          {dict.end}:{" "}
-          {formatUiTimeHm(item.endTime as string)}
+        <div
+          className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${endClass}`}
+        >
+          {dict.end}: {formatUiTimeHm(item.endTime as string)}
         </div>
       </>
     ) : null;
@@ -147,12 +149,10 @@ export function OrdersDispatchItemCard({
           {item.status === "COMPLETED" && item.startTime && item.endTime && (
             <>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.start}:{" "}
-                {formatUiTimeHm(item.startTime as string)}
+                {dict.start}: {formatUiTimeHm(item.startTime as string)}
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.end}:{" "}
-                {formatUiTimeHm(item.endTime as string)}
+                {dict.end}: {formatUiTimeHm(item.endTime as string)}
               </div>
             </>
           )}
@@ -166,7 +166,10 @@ export function OrdersDispatchItemCard({
         <div className="flex items-center gap-2 flex-wrap">
           {durationChipBoard}
           {dueChipBoard}
-          {completedStartEnd("text-emerald-600 dark:text-emerald-400", "text-emerald-600 dark:text-emerald-400")}
+          {completedStartEnd(
+            "text-emerald-600 dark:text-emerald-400",
+            "text-emerald-600 dark:text-emerald-400"
+          )}
           {isWorking && <ProgressBar progress={progress} label={dict.timeProgressLabel} />}
         </div>
       </div>
@@ -190,12 +193,10 @@ export function OrdersDispatchItemCard({
           {item.startTime && item.endTime && (
             <>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.start}:{" "}
-                {formatUiTimeHm(item.startTime as string)}
+                {dict.start}: {formatUiTimeHm(item.startTime as string)}
               </div>
               <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.end}:{" "}
-                {formatUiTimeHm(item.endTime as string)}
+                {dict.end}: {formatUiTimeHm(item.endTime as string)}
               </div>
             </>
           )}
@@ -210,7 +211,7 @@ export function OrdersDispatchItemCard({
       tone={tone}
       orderNo={orderNo}
       title={item.workerName as string}
-      orderedBy={(item.creatorName ?? item.workerName) ?? null}
+      orderedBy={item.creatorName ?? item.workerName ?? null}
       orderedByLabel={dict.orderedBy}
       attachmentPhotos={Boolean(item.hasPhotos)}
       attachmentNotes={Boolean(item.hasNotes)}

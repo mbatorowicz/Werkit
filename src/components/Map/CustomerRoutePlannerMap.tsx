@@ -17,14 +17,16 @@ import {
 } from "./mapSharedComponents";
 
 const iconDest = L.icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
 
 const iconStart = L.icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
@@ -65,7 +67,14 @@ export function CustomerRoutePlannerMap({
 
   const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);
 
-  const routeLine = useOsrmRouteToDestination(routeOrigin, destination, undefined, undefined, waypoints, 8_000);
+  const routeLine = useOsrmRouteToDestination(
+    routeOrigin,
+    destination,
+    undefined,
+    undefined,
+    waypoints,
+    8_000
+  );
 
   const center = useMemo((): [number, number] => {
     if (destination) return [destination.lat, destination.lng];
@@ -78,7 +87,7 @@ export function CustomerRoutePlannerMap({
     (lat: number, lng: number) => {
       onDestinationChange?.(lat, lng);
     },
-    [onDestinationChange],
+    [onDestinationChange]
   );
 
   const onAddWaypoint = useCallback(
@@ -86,7 +95,7 @@ export function CustomerRoutePlannerMap({
       onWaypointsChange([...waypoints, { lat, lng }]);
       setWaypointMode(null);
     },
-    [onWaypointsChange, waypoints],
+    [onWaypointsChange, waypoints]
   );
 
   const canEditDestination = editable && Boolean(onDestinationChange);
@@ -105,7 +114,12 @@ export function CustomerRoutePlannerMap({
       <div
         className={`w-full ${heightClass} rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 relative z-0`}
       >
-        <MapContainer center={center} zoom={13} scrollWheelZoom style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={center}
+          zoom={13}
+          scrollWheelZoom
+          style={{ height: "100%", width: "100%" }}
+        >
           <WerkitTileLayer />
           <MapFlyTo center={center} key={centerSig} />
 

@@ -14,9 +14,7 @@ export function LocaleSwitcher() {
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground hidden sm:inline">
-        {localeLabel}
-      </span>
+      <span className="text-muted-foreground hidden sm:inline">{localeLabel}</span>
       <select
         value={locale}
         onChange={(e) => setLocale(e.target.value as typeof locale)}

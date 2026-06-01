@@ -44,15 +44,18 @@ export const pl = {
     missing_material: "Ten typ zlecenia wymaga wyboru materiału.",
     missing_quantity: "Ten typ zlecenia wymaga podania dodatniej ilości (tony).",
     missing_task_description: "Ten typ zlecenia wymaga krótkiego opisu.",
-    session_still_active: "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
+    session_still_active:
+      "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
     schedule_conflict: "Termin koliduje z innym zleceniem lub aktywną sesją w tym samym czasie.",
     resource_busy: "Ten zasób jest obecnie zajęty przez inną aktywną sesję.",
     order_not_found: "Nie znaleziono zlecenia.",
     not_in_progress: "Ta sesja nie jest już w stanie „w toku”.",
-    group_has_children: "Nie można usunąć grupy, która ma podkategorie. Najpierw usuń lub przenieś elementy podrzędne.",
+    group_has_children:
+      "Nie można usunąć grupy, która ma podkategorie. Najpierw usuń lub przenieś elementy podrzędne.",
     parent_must_be_group: "Rodzicem może być tylko wpis oznaczony jako grupa.",
     invalid_parent: "Nieprawidłowy rodzic (cykl lub nieistniejący wpis).",
-    feature_disabled: "Ta funkcja jest wyłączona dla Twojej organizacji. Skontaktuj się z administratorem.",
+    feature_disabled:
+      "Ta funkcja jest wyłączona dla Twojej organizacji. Skontaktuj się z administratorem.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Szacowany czas pracy (godz.)",
@@ -63,9 +66,11 @@ export const pl = {
       title: "Wykryto konflikty harmonogramu",
       checking: "Sprawdzanie dostępności…",
       worker: "{workerName} jest zajęty w godz. {timeRange} (zlecenie #{orderId}: {task})",
-      resource: "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
+      resource:
+        "{resourceName} jest zarezerwowany/a w godz. {timeRange} (zlecenie #{orderId}: {task})",
       sessionWorker: "{workerName} ma aktywną sesję #{sessionId} w godz. {start}–{end} ({task})",
-      sessionResource: "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
+      sessionResource:
+        "{resourceName} jest zajęty/a przez sesję #{sessionId} w godz. {start}–{end} ({task})",
       machineHint:
         "Do jednej maszyny można przypisać więcej niż jedno zlecenie — użyj «Utwórz mimo konfliktu», jeśli to zamierzone.",
       workerBlockedHint:
@@ -118,7 +123,7 @@ export const pl = {
       system: "System",
       companySettings: "Ustawienia Firmy",
       organization: "Organizacja",
-      logoutSession: "Wyloguj sesję"
+      logoutSession: "Wyloguj sesję",
     },
     organization: {
       title: "Struktura organizacyjna",
@@ -186,7 +191,8 @@ export const pl = {
         panelTitle: "Kategorie zleceń i zasobów",
         panelSubtitle:
           "Drzewo grup i kategorii: typy zleceń w terenie, pola formularza oraz klasyfikacja wpisów w rejestrze zasobów.",
-        empty: "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby przypisywać zasoby i ustawiać formularze zleceń.",
+        empty:
+          "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby przypisywać zasoby i ustawiać formularze zleceń.",
         confirmDelete: "Usunąć ten wpis? Nie przypiszesz go już do nowych zasobów ani zleceń.",
         namePlaceholder: "Np. Transport, plac serwisowy",
       },
@@ -231,12 +237,13 @@ export const pl = {
       completedTasks: "Zrealizowane zlecenia",
       transportedMaterials: "Przewiezione materiały",
       machineUtilization: "Wykorzystanie zasobów",
-      noDataThisMonth: "Brak danych za ten miesiąc."
+      noDataThisMonth: "Brak danych za ten miesiąc.",
     },
     reports: {
       title: "Raporty operacyjne",
       subtitle: "Podsumowanie realizacji i obciążenia dla",
-      periodHint: "Zakres „w tym miesiącu”: od 1. dnia bieżącego miesiąca do teraz (sesje zakończone).",
+      periodHint:
+        "Zakres „w tym miesiącu”: od 1. dnia bieżącego miesiąca do teraz (sesje zakończone).",
       workersWithAssignedOrders: "Pracownicy z oczekującymi zleceniami",
       workersCurrentlyWorking: "Pracownicy realizujący zlecenie teraz",
       pendingOrdersTotal: "Zlecenia oczekujące (szt.)",
@@ -269,7 +276,7 @@ export const pl = {
       workshop: "Warsztat",
       inProgress: "W trakcie",
       completed: "Zakończone",
-      none: "Brak"
+      none: "Brak",
     },
     orders: {
       title: "Dyspozycja",
@@ -278,7 +285,8 @@ export const pl = {
       workerDate: "Pracownik / Data",
       fetching: "Pobieranie zleceń...",
       proactiveManagement: "Zarządzanie z wyprzedzeniem",
-      noOrders: "Brak wystawionych zleceń. Kliknij „Nowa dyspozycja”, aby przydzielić zlecenie pracownikowi.",
+      noOrders:
+        "Brak wystawionych zleceń. Kliknij „Nowa dyspozycja”, aby przydzielić zlecenie pracownikowi.",
       orderedBy: "Zlecił(a):",
       pending: "Oczekujące",
       success: "Zlecenie wysłane pomyślnie do pracownika!",
@@ -343,7 +351,8 @@ export const pl = {
       workshop: "Warsztat",
       noMachine: "Brak zasobu",
       notStartedTitle: "Zlecenie jeszcze nierozpoczęte",
-      notStartedDesc: "To zlecenie ma status oczekującego. Mapa i zdjęcia będą dostępne po rozpoczęciu pracy przez pracownika.",
+      notStartedDesc:
+        "To zlecenie ma status oczekującego. Mapa i zdjęcia będą dostępne po rozpoczęciu pracy przez pracownika.",
       loadingData: "Ładowanie danych z trasy...",
       noGpsData: "Brak danych GPS dla tego zlecenia.",
       timelineTitle: "Oś czasu: Zdjęcia i Notatki",
@@ -538,7 +547,8 @@ export const pl = {
       fleetTitle: "Zasoby operacyjne",
       pageSubtitle: "Drzewo kategorii zleceń i zasobów oraz rejestr wpisów operacyjnych.",
       sectionVehiclesTitle: "Rejestr zasobów",
-      fleetSubtitle: "Wpisy w rejestrze (pojazdy, maszyny, lokalizacje itd.) — według kategorii powyżej.",
+      fleetSubtitle:
+        "Wpisy w rejestrze (pojazdy, maszyny, lokalizacje itd.) — według kategorii powyżej.",
       registerVehicle: "Dodaj zasób",
       addResource: "Dodaj zasób",
       resourceColTitle: "Zasób",
@@ -562,12 +572,14 @@ export const pl = {
       machNamePlaceholder: "Np. Warsztat, Scania R420",
       machRegLabel: "Nr rejestracyjny",
       machRegPlaceholder: "Np. WGR 80912",
-      machIdentityRequired: "Uzupełnij pola widoczne dla wybranej kategorii (np. nazwa, nr rej. lub opis).",
+      machIdentityRequired:
+        "Uzupełnij pola widoczne dla wybranej kategorii (np. nazwa, nr rej. lub opis).",
       machCatLabel: "Kategoria",
       machCatWarning: "Najpierw dodaj kategorię powyżej.",
       saveFleet: "Zapisz",
       catResourceFormTitle: "Formularz zasobu w tej kategorii",
-      catResourceFormHint: "Przy dodawaniu wpisu do rejestru zasobów — np. pojazd lub lokalizacja. Zaznacz, które pola pokazać.",
+      catResourceFormHint:
+        "Przy dodawaniu wpisu do rejestru zasobów — np. pojazd lub lokalizacja. Zaznacz, które pola pokazać.",
       fieldResourceName: "Nazwa zasobu",
       fieldResourceDescription: "Opis zasobu",
       fieldResourceRegistration: "Numer rejestracyjny",
@@ -593,7 +605,8 @@ export const pl = {
     },
     materials: {
       title: "Baza materiałów",
-      subtitle: "Najpierw kategorie materiałów, potem wpisy w bazie — ten sam układ co w module Zasoby.",
+      subtitle:
+        "Najpierw kategorie materiałów, potem wpisy w bazie — ten sam układ co w module Zasoby.",
       pageSubtitle: "Drzewo kategorii materiałów oraz materiały w bazie.",
       catalogSubtitle:
         "Drzewo grup, kategorii i materiałów — rozwijaj węzły, aby zobaczyć zawartość.",
@@ -601,7 +614,8 @@ export const pl = {
       uncategorizedTitle: "Bez przypisanej kategorii",
       sectionItemsTitle: "Materiały w bazie",
       fleetTitle: "Materiały",
-      fleetSubtitle: "Dodawaj materiały i przypisuj je do co najmniej jednej kategorii z drzewa powyżej.",
+      fleetSubtitle:
+        "Dodawaj materiały i przypisuj je do co najmniej jednej kategorii z drzewa powyżej.",
       registerMaterial: "Dodaj materiał",
       materialReg: "Materiał / Nazwa",
       addMaterial: "Dodaj materiał",
@@ -617,7 +631,7 @@ export const pl = {
       matCatRequired: "Zaznacz co najmniej jedną kategorię.",
       save: "Zapisz zmiany",
       saveFleet: "Zapisz materiał",
-      create: "Dodaj materiał"
+      create: "Dodaj materiał",
     },
     customers: {
       title: "Klienci",
@@ -697,7 +711,8 @@ export const pl = {
       cityLabel: "Miejscowość",
       cityPlaceholder: "Warszawa",
       gpsLocation: "Lokalizacja GPS Bazy Głównej",
-      gpsWarning: "Lokalizacja używana jako domyślna baza przy obliczeniach dystansu dla maszyn z warsztatu. W razie braku automatycznej geolokalizacji z podanego adresu, współrzędne mogą nie być w 100% dokładne.",
+      gpsWarning:
+        "Lokalizacja używana jako domyślna baza przy obliczeniach dystansu dla maszyn z warsztatu. W razie braku automatycznej geolokalizacji z podanego adresu, współrzędne mogą nie być w 100% dokładne.",
       calcGpsBtn: "Wylicz automatycznie GPS na podst. adresu",
       lat: "Szerokość G. (LAT)",
       lng: "Długość G. (LNG)",
@@ -710,17 +725,20 @@ export const pl = {
       geofenceLabel: "Promień tolerancji dla 'Dojechał' (metry)",
       reminderLabel: "Przypomnienie przed zleceniem (minuty)",
       requirePhoto: "Wymagaj zdjęcia przy zamykaniu sesji",
-      requirePhotoDesc: "Przycisk 'Zakończ' będzie zablokowany dopóki nie zostanie dodane przynajmniej jedno zdjęcie.",
+      requirePhotoDesc:
+        "Przycisk 'Zakończ' będzie zablokowany dopóki nie zostanie dodane przynajmniej jedno zdjęcie.",
       timeOverrun: "Ostrzeżenie o przekroczeniu czasu",
-      timeOverrunDesc: "Pokazuj powiadomienie przypominające pracownikowi o zakończeniu zlecenia, gdy minie szacowany czas.",
+      timeOverrunDesc:
+        "Pokazuj powiadomienie przypominające pracownikowi o zakończeniu zlecenia, gdy minie szacowany czas.",
       savedSuccess: "Ustawienia zostały zapisane.",
       saving: "Zapisywanie...",
       saveBtn: "Zapisz",
-      saveError: "Błąd podczas zapisu."
+      saveError: "Błąd podczas zapisu.",
     },
     logs: {
       subtitle: "Podgląd zdarzeń z aplikacji pracowniczej w terenie.",
-      scopeNote: "Lista: do {page} najnowszych wpisów (filtry działają w tym zakresie). Eksport pliku: do {exportMax} wpisów z bazy.",
+      scopeNote:
+        "Lista: do {page} najnowszych wpisów (filtry działają w tym zakresie). Eksport pliku: do {exportMax} wpisów z bazy.",
       filterAllWorkers: "Wszyscy pracownicy",
       filterAllLevels: "Wszystkie logi",
       filterAllCategories: "Wszystkie kategorie",
@@ -761,7 +779,7 @@ export const pl = {
         edge: "region {region}",
         httpStatus: "HTTP {status}",
       },
-    }
+    },
   },
   worker: {
     nav: {
@@ -774,9 +792,12 @@ export const pl = {
       refresh: "Odśwież listę",
       offlineBanner: "Brak połączenia z internetem",
       offlinePendingCount: "{count} operacji oczekuje",
-      offlineQueuedEndSession: "Zakończenie sesji zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
-      offlineQueuedCancel: "Cofnięcie zlecenia zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
-      offlineQueuedCheckpoint: "Zapisano dotarcie na miejsce. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedEndSession:
+        "Zakończenie sesji zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedCancel:
+        "Cofnięcie zlecenia zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
+      offlineQueuedCheckpoint:
+        "Zapisano dotarcie na miejsce. Zostanie wysłane po przywróceniu połączenia.",
       offlineQueuedNote: "Notatka została zapisana. Zostanie wysłana po przywróceniu połączenia.",
       offlineQueuedPhoto: "Zdjęcie zostało zapisane. Zostanie wysłane po przywróceniu połączenia.",
       loadingWorkerDashboard: "Wczytywanie statusu…",
@@ -835,11 +856,13 @@ export const pl = {
       edit: "Edytuj",
       photoSaved: "Zdjęcie zapisane.",
       photoError: "Błąd zapisu zdjęcia.",
-      photoReqFinish: "Wymagane jest dodanie przynajmniej jednego zdjęcia przed zakończeniem trasy!",
+      photoReqFinish:
+        "Wymagane jest dodanie przynajmniej jednego zdjęcia przed zakończeniem trasy!",
       locationError: "Błąd udostępniania lokalizacji.",
       locationErrorDesc: "Upewnij się, że przeglądarka ma uprawnienia.",
       locationReq: "Wymagane udostępnianie lokalizacji",
-      locationReqDesc: "Aplikacja logistyczna wymaga ciągłego dostępu do GPS. Włącz GPS i zezwól na dostęp w przeglądarce.",
+      locationReqDesc:
+        "Aplikacja logistyczna wymaga ciągłego dostępu do GPS. Włącz GPS i zezwól na dostęp w przeglądarce.",
       errEndSession: "Błąd zakończenia sesji.",
       errAcceptOrder: "Błąd akceptacji zlecenia.",
       errNetwork: "Błąd sieci.",
@@ -852,8 +875,10 @@ export const pl = {
       arrivedSuccess: "Zapisano dotarcie na miejsce!",
       errArrived: "Błąd zapisu dotarcia.",
       confirmEndSession: "Czy na pewno chcesz zakończyć obecną zmianę/pracę?",
-      confirmCancelSession: "Czy na pewno chcesz cofnąć rozpoczęcie tego zlecenia? To usunie obecną sesję i przywróci zlecenie do oczekujących.",
-      geofenceConfirm: "Jesteś za daleko od celu ({dist}m, dozwolone: {max}m). Czy na pewno chcesz zameldować dotarcie na miejsce?",
+      confirmCancelSession:
+        "Czy na pewno chcesz cofnąć rozpoczęcie tego zlecenia? To usunie obecną sesję i przywróci zlecenie do oczekujących.",
+      geofenceConfirm:
+        "Jesteś za daleko od celu ({dist}m, dozwolone: {max}m). Czy na pewno chcesz zameldować dotarcie na miejsce?",
       checkpointNote: "Meldunek: dotarcie na miejsce.",
       orderedBy: "Zlecił(a):",
       durationLabel: "Przewidywany czas:",
@@ -949,7 +974,8 @@ export const pl = {
       notificationsTitle: "Powiadomienia PUSH",
       notificationsDesc: "Zlecenia zbliżające się, opóźnione i przekroczony czas",
       notificationSoundTitle: "Dźwięk alarmów",
-      notificationSoundDesc: "Sygnał dźwiękowy przy alarmie w aplikacji i w powiadomieniach systemowych",
+      notificationSoundDesc:
+        "Sygnał dźwiękowy przy alarmie w aplikacji i w powiadomieniach systemowych",
       notificationSoundVolumeLabel: "Głośność",
       notificationSoundPerKindTitle: "Dźwięk dla typu alarmu",
       notificationSoundPreview: "Podgląd",
@@ -966,10 +992,13 @@ export const pl = {
         order_upcoming: "Zbliżające się zlecenie",
       },
       biometricTitle: "Logowanie biometryczne",
-      biometricDesc: "Na tym urządzeniu możesz logować się odciskiem palca lub twarzą (tylko aplikacja mobilna).",
-      biometricUnavailable: "Biometria nie jest dostępna na tym urządzeniu lub nie została skonfigurowana w systemie.",
+      biometricDesc:
+        "Na tym urządzeniu możesz logować się odciskiem palca lub twarzą (tylko aplikacja mobilna).",
+      biometricUnavailable:
+        "Biometria nie jest dostępna na tym urządzeniu lub nie została skonfigurowana w systemie.",
       biometricChecking: "Sprawdzanie dostępności biometrii…",
-      biometricResyncHint: "W bazie włączono biometrię, ale ten telefon nie ma zapisanego klucza — wyłącz i włącz ponownie z hasłem.",
+      biometricResyncHint:
+        "W bazie włączono biometrię, ale ten telefon nie ma zapisanego klucza — wyłącz i włącz ponownie z hasłem.",
       biometricConfirmTitle: "Potwierdź hasłem",
       biometricConfirmHint:
         "Ze względów bezpieczeństwa podaj swoje obecne hasło do aplikacji. Zostanie zapisane w zabezpieczonym magazynie urządzenia i odblokowane biometrią.",
@@ -977,7 +1006,8 @@ export const pl = {
       biometricCancel: "Anuluj",
       biometricConfirmSave: "Zapisz i włącz",
       biometricSaveError: "Nie udało się zapisać ustawień.",
-      biometricVaultError: "Nie udało się zapisać danych w zabezpieczonym magazynie. Spróbuj ponownie.",
+      biometricVaultError:
+        "Nie udało się zapisać danych w zabezpieczonym magazynie. Spróbuj ponownie.",
     },
     history: {
       accessDenied: "Brak dostępu",
@@ -1001,7 +1031,8 @@ export const pl = {
       backToSession: "Powrót do sesji",
       title: "Instrukcja Obsługi",
       quickContact: "Szybki kontakt z bazą",
-      contactDesc: "Masz problem z zasobem, ładunkiem lub aplikacją? Skontaktuj się bezpośrednio z biurem.",
+      contactDesc:
+        "Masz problem z zasobem, ładunkiem lub aplikacją? Skontaktuj się bezpośrednio z biurem.",
       callDispatcher: "Zadzwoń do dyspozytora",
       userManual: "Podręcznik Użytkownika",
       startWork: "1. Rozpoczynanie pracy",
@@ -1014,31 +1045,41 @@ export const pl = {
       priorities: "Priorytety:",
       prioritiesDesc: "Niektóre zlecenia mają przypisany wysoki priorytet - zwracaj na to uwagę.",
       startWorkInstruction: "Aby rozpocząć pracę, kliknij duży przycisk ",
-      startWorkInstruction2: ". Od tego momentu aplikacja zacznie rejestrować Twój czas pracy oraz (jeśli to wymagane) trasę GPS.",
+      startWorkInstruction2:
+        ". Od tego momentu aplikacja zacznie rejestrować Twój czas pracy oraz (jeśli to wymagane) trasę GPS.",
       notesAndPhotos: "2. Notatki i Zdjęcia z trasy",
-      notesAndPhotosDesc: "Podczas trwania zlecenia, na ekranie głównym pojawiają się nowe przyciski:",
+      notesAndPhotosDesc:
+        "Podczas trwania zlecenia, na ekranie głównym pojawiają się nowe przyciski:",
       addNote: "Dodaj Notatkę:",
-      addNoteDesc: "Pozwala zapisać ważną informację z drogi (np. \"Korek na bramkach\", \"Klient odmówił przyjęcia\"). Notatka jest przypisywana do Twojej obecnej lokalizacji na mapie.",
+      addNoteDesc:
+        'Pozwala zapisać ważną informację z drogi (np. "Korek na bramkach", "Klient odmówił przyjęcia"). Notatka jest przypisywana do Twojej obecnej lokalizacji na mapie.',
       takePhoto: "Zrób Zdjęcie:",
       takePhotoDesc:
         "Uruchamia aparat wbudowany w urządzenie. Służy do dokumentowania wykonanej pracy (np. rozładunku materiału, awarii maszyny, podpisów na WZ).",
-      photoWarning: "Ważne: Niektóre zlecenia mogą wymagać zrobienia co najmniej jednego zdjęcia przed możliwością ich zakończenia!",
+      photoWarning:
+        "Ważne: Niektóre zlecenia mogą wymagać zrobienia co najmniej jednego zdjęcia przed możliwością ich zakończenia!",
       gpsTracking: "3. Śledzenie i GPS",
-      gpsTrackingDesc: "Aplikacja używa sygnału satelitarnego do wyznaczania przebytej przez Ciebie trasy.",
+      gpsTrackingDesc:
+        "Aplikacja używa sygnału satelitarnego do wyznaczania przebytej przez Ciebie trasy.",
       gpsWait: "Status: Oczekuję na GPS",
-      gpsWaitDesc: "(Żółty) - telefon szuka satelity. Upewnij się, że nie jesteś w podziemnym garażu.",
+      gpsWaitDesc:
+        "(Żółty) - telefon szuka satelity. Upewnij się, że nie jesteś w podziemnym garażu.",
       gpsActive: "Status: GPS Aktywny",
       gpsActiveDesc: "(Zielony) - wszystko działa prawidłowo.",
       gpsPrivacy: "GPS jest włączany ",
       gpsPrivacy2: "tylko i wyłącznie",
-      gpsPrivacy3: " w momencie aktywnego zlecenia (po kliknięciu Rozpocznij). Gdy klikniesz \"Zakończ\", aplikacja całkowicie przestaje pobierać dane o Twojej lokalizacji, chroniąc Twoją baterię i prywatność.",
+      gpsPrivacy3:
+        ' w momencie aktywnego zlecenia (po kliknięciu Rozpocznij). Gdy klikniesz "Zakończ", aplikacja całkowicie przestaje pobierać dane o Twojej lokalizacji, chroniąc Twoją baterię i prywatność.',
       customOrders: "4. Zlecenia Własne",
-      customOrdersDesc1: "Jeśli masz włączone uprawnienia od administratora, na dole ekranu powitalnego znajdziesz przycisk ",
+      customOrdersDesc1:
+        "Jeśli masz włączone uprawnienia od administratora, na dole ekranu powitalnego znajdziesz przycisk ",
       customOrdersDesc2: "LUB ZDEFINIUJ WŁASNE",
-      customOrdersDesc3: "Pozwala na samodzielny wybór klienta, zasobu i materiału oraz natychmiastowe rozpoczęcie pracy bez czekania na zlecenie z biura.",
+      customOrdersDesc3:
+        "Pozwala na samodzielny wybór klienta, zasobu i materiału oraz natychmiastowe rozpoczęcie pracy bez czekania na zlecenie z biura.",
       emergency: "Procedura awaryjna",
-      emergencyDesc: "W przypadku kolizji, awarii zasobu lub innego zagrożenia zatrzymaj pracę w bezpiecznym miejscu, zabezpiecz ładunek i użyj przycisku telefonu u góry ekranu, aby poinformować dyspozytora. Jeśli to możliwe, wykonaj zdjęcie sytuacji w aplikacji."
-    }
+      emergencyDesc:
+        "W przypadku kolizji, awarii zasobu lub innego zagrożenia zatrzymaj pracę w bezpiecznym miejscu, zabezpiecz ładunek i użyj przycisku telefonu u góry ekranu, aby poinformować dyspozytora. Jeśli to możliwe, wykonaj zdjęcie sytuacji w aplikacji.",
+    },
   },
   platform: {
     badge: "Konsola platformy Werkit",
@@ -1161,7 +1202,8 @@ export const pl = {
     },
     categories: {
       title: "Kategorie części zamiennych",
-      subtitle: "Grupowanie części według przeznaczenia (np. łożyska, filtry, uszczelki, elektronika).",
+      subtitle:
+        "Grupowanie części według przeznaczenia (np. łożyska, filtry, uszczelki, elektronika).",
       empty: "Dodaj pierwszą kategorię lub grupę, aby klasyfikować części.",
       confirmDelete: "Usunięcie kategorii odłączy ją od części. Kontynuować?",
       namePlaceholder: "Np. łożyska, filtry, uszczelki",
@@ -1172,7 +1214,8 @@ export const pl = {
         modalCreate: "Nowa kategoria",
         badgeGroup: "Grupa",
         isGroupLabel: "Grupa (tylko organizacja)",
-        isGroupHint: "Grupy nie wybiera się przy przypisaniu części — służą wyłącznie do porządku w drzewie.",
+        isGroupHint:
+          "Grupy nie wybiera się przy przypisaniu części — służą wyłącznie do porządku w drzewie.",
         parentLabel: "Grupa nadrzędna",
         parentNone: "— bez grupy nadrzędnej —",
         sortOrderLabel: "Kolejność",

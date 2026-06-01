@@ -19,7 +19,7 @@ export function buildScheduleConflictLabels(dict: ScheduleDict): ScheduleConflic
 
 export function buildWorkOrderScheduleFieldLabels(
   dict: ScheduleDict,
-  options?: { mode?: "admin" | "worker" },
+  options?: { mode?: "admin" | "worker" }
 ): WorkOrderScheduleFieldLabels {
   const c = dict.conflict;
   const mode = options?.mode ?? "admin";

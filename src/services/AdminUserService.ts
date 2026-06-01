@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { desc, eq, sql, and } from 'drizzle-orm';
-import { comparePassword } from '@/lib/passwordCrypto';
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { desc, eq, sql, and } from "drizzle-orm";
+import { comparePassword } from "@/lib/passwordCrypto";
 
 export class AdminUserService {
   static async getAllUsers(companyId: number) {
@@ -50,7 +50,7 @@ export class AdminUserService {
     return await db
       .select({ id: users.id, fullName: users.fullName })
       .from(users)
-      .where(and(eq(users.companyId, companyId), eq(users.role, 'worker')));
+      .where(and(eq(users.companyId, companyId), eq(users.role, "worker")));
   }
 
   static async createUser(
@@ -59,21 +59,21 @@ export class AdminUserService {
       fullName: string;
       usernameEmail: string;
       passwordHash: string;
-      role?: 'worker' | 'admin' | 'viewer';
+      role?: "worker" | "admin" | "viewer";
       canCreateOwnOrders?: boolean;
       canEditRoute?: boolean;
       canCreateCustomers?: boolean;
-    },
+    }
   ) {
-    const role = payload.role || 'worker';
+    const role = payload.role || "worker";
     const canCreateOwnOrders =
-      role === 'worker'
+      role === "worker"
         ? payload.canCreateOwnOrders !== undefined
           ? payload.canCreateOwnOrders
           : true
         : false;
-    const canEditRoute = role === 'worker' ? !!payload.canEditRoute : false;
-    const canCreateCustomers = role === 'worker' ? !!payload.canCreateCustomers : false;
+    const canEditRoute = role === "worker" ? !!payload.canEditRoute : false;
+    const canCreateCustomers = role === "worker" ? !!payload.canCreateCustomers : false;
     await db.insert(users).values({
       companyId,
       fullName: payload.fullName,
@@ -90,7 +90,7 @@ export class AdminUserService {
   static async updateUser(
     companyId: number,
     userId: number,
-    updates: Partial<typeof users.$inferInsert>,
+    updates: Partial<typeof users.$inferInsert>
   ) {
     const { companyId: _c, ...rest } = updates;
     await db
@@ -120,9 +120,7 @@ export class AdminUserService {
   }
 
   static async deleteUser(companyId: number, userId: number) {
-    await db
-      .delete(users)
-      .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
+    await db.delete(users).where(and(eq(users.id, userId), eq(users.companyId, companyId)));
   }
 }
 

@@ -10,7 +10,7 @@ import type { InitialWorkerData } from "@/types/worker";
  */
 export function useWorkerSessionSync(
   initialData: InitialWorkerData | null,
-  fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => Promise<void>,
+  fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => Promise<void>
 ) {
   useEffect(() => {
     queueMicrotask(() => {

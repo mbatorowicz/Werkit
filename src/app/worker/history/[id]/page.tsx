@@ -4,7 +4,7 @@ import { TimelineItem } from "@/types/worker";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
-import { requireServerCompanyId } from '@/lib/serverTenant';
+import { requireServerCompanyId } from "@/lib/serverTenant";
 import { notFound } from "next/navigation";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import MapWrapper from "./MapWrapper";
@@ -20,7 +20,7 @@ function asDate(v: unknown): Date | null {
 }
 
 async function getUserId() {
-  const token = (await cookies()).get('auth_token')?.value;
+  const token = (await cookies()).get("auth_token")?.value;
   if (!token) return null;
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
@@ -30,7 +30,7 @@ async function getUserId() {
   }
 }
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const dict = getDictionary();
@@ -45,8 +45,12 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
   if (isNaN(sessionId)) notFound();
 
   const companyId = await requireServerCompanyId();
-  const { WorkerSessionService } = await import('@/services/WorkerSessionService');
-  const historyData = await WorkerSessionService.getSessionHistoryFull(sessionId, userId, companyId);
+  const { WorkerSessionService } = await import("@/services/WorkerSessionService");
+  const historyData = await WorkerSessionService.getSessionHistoryFull(
+    sessionId,
+    userId,
+    companyId
+  );
 
   if (!historyData) {
     notFound();
@@ -56,7 +60,9 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   const pathTraveled = displayPathFromRawGpsRows(logs, { reverseToChronological: false });
 
-  const isStationary = Boolean((sessionData as { categoryIsStationary?: boolean | null }).categoryIsStationary);
+  const isStationary = Boolean(
+    (sessionData as { categoryIsStationary?: boolean | null }).categoryIsStationary
+  );
 
   // Oś czasu pokazujemy zawsze (nawet jeśli brak koordynatów). Mapę karmimy tylko zdarzeniami z lat/lng.
   const timelineEvents: TimelineItem[] = [
@@ -78,13 +84,21 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
     })),
   ].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-  const mapEvents = timelineEvents.filter((e) => Number.isFinite(e.lat) && Number.isFinite(e.lng) && e.lat !== 0 && e.lng !== 0);
+  const mapEvents = timelineEvents.filter(
+    (e) => Number.isFinite(e.lat) && Number.isFinite(e.lng) && e.lat !== 0 && e.lng !== 0
+  );
 
-  const currentLocation = pathTraveled.length > 0 ? pathTraveled[pathTraveled.length - 1] : { lat: 52.2297, lng: 21.0122 };
+  const currentLocation =
+    pathTraveled.length > 0
+      ? pathTraveled[pathTraveled.length - 1]
+      : { lat: 52.2297, lng: 21.0122 };
 
   let destination = null;
   if (sessionData.customerLat && sessionData.customerLng) {
-    destination = { lat: parseFloat(sessionData.customerLat), lng: parseFloat(sessionData.customerLng) };
+    destination = {
+      lat: parseFloat(sessionData.customerLat),
+      lng: parseFloat(sessionData.customerLng),
+    };
   }
 
   const st = asDate(sessionData.startTime);
@@ -92,7 +106,10 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="py-6 pb-20">
-      <Link href="/worker/history" className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors">
+      <Link
+        href="/worker/history"
+        className="inline-flex items-center gap-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-6 transition-colors"
+      >
         <ArrowLeft className="w-4 h-4" />
         <span className="text-sm font-semibold">{historyLabels.backToHistory}</span>
       </Link>
@@ -116,7 +133,9 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
       {!isStationary ? (
         <>
-          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">{historyLabels.routeAndEventsTitle}</h3>
+          <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">
+            {historyLabels.routeAndEventsTitle}
+          </h3>
           <div className="w-full h-64 md:h-96 relative rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-zinc-100 dark:bg-zinc-900 mb-6">
             {pathTraveled.length > 0 || mapEvents.length > 0 ? (
               <MapWrapper

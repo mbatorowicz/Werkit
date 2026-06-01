@@ -46,12 +46,14 @@ export const en: AppDictionary = {
     missing_material: "This order type requires selecting a material.",
     missing_quantity: "This order type requires a positive quantity (tons).",
     missing_task_description: "This order type requires a short description.",
-    session_still_active: "Session is still active — finish it manually first or from the worker app.",
+    session_still_active:
+      "Session is still active — finish it manually first or from the worker app.",
     schedule_conflict: "This time slot conflicts with another order or active session.",
     resource_busy: "This resource is currently in use by another active session.",
     order_not_found: "Order not found.",
     not_in_progress: "This session is no longer in progress.",
-    group_has_children: "Cannot delete a group that has child categories. Remove or move children first.",
+    group_has_children:
+      "Cannot delete a group that has child categories. Remove or move children first.",
     parent_must_be_group: "Parent must be an entry marked as a group.",
     invalid_parent: "Invalid parent (cycle or missing entry).",
     feature_disabled: "This feature is disabled for your organization. Contact your administrator.",
@@ -120,7 +122,7 @@ export const en: AppDictionary = {
       system: "System",
       companySettings: "Company Settings",
       organization: "Organization",
-      logoutSession: "Logout session"
+      logoutSession: "Logout session",
     },
     organization: {
       title: "Organization structure",
@@ -188,7 +190,8 @@ export const en: AppDictionary = {
         panelTitle: "Order & resource categories",
         panelSubtitle:
           "Tree of groups and categories: field order types, form fields, and classification of resource registry entries.",
-        empty: "Add your first category or group (e.g. transport, yard) to assign resources and configure order forms.",
+        empty:
+          "Add your first category or group (e.g. transport, yard) to assign resources and configure order forms.",
         confirmDelete: "Delete this entry? It will no longer be assignable to resources or orders.",
         namePlaceholder: "e.g. Transport, service yard",
       },
@@ -233,12 +236,13 @@ export const en: AppDictionary = {
       completedTasks: "Completed orders",
       transportedMaterials: "Transported materials",
       machineUtilization: "Resource utilization",
-      noDataThisMonth: "No data for this month."
+      noDataThisMonth: "No data for this month.",
     },
     reports: {
       title: "Operational reports",
       subtitle: "Performance summary and workload for",
-      periodHint: "“This month” means completed sessions that started from the 1st of the current calendar month through now.",
+      periodHint:
+        "“This month” means completed sessions that started from the 1st of the current calendar month through now.",
       workersWithAssignedOrders: "Workers with pending orders",
       workersCurrentlyWorking: "Workers fulfilling an order right now",
       pendingOrdersTotal: "Pending orders (count)",
@@ -271,7 +275,7 @@ export const en: AppDictionary = {
       workshop: "Workshop",
       inProgress: "In progress",
       completed: "Completed",
-      none: "None"
+      none: "None",
     },
     orders: {
       title: "Dispatch",
@@ -280,7 +284,7 @@ export const en: AppDictionary = {
       workerDate: "Worker / Date",
       fetching: "Fetching orders...",
       proactiveManagement: "Proactive management",
-      noOrders: "No issued orders. Click \"New dispatch\" to assign an order to a worker.",
+      noOrders: 'No issued orders. Click "New dispatch" to assign an order to a worker.',
       orderedBy: "Ordered by:",
       pending: "Pending",
       success: "Order sent successfully to the worker!",
@@ -329,10 +333,12 @@ export const en: AppDictionary = {
       priorityNormal: "Normal",
       priorityHigh: "High",
       priorityUrgent: "Urgent",
-      noMachinesForCategory: "No resources in this category. Add a registry entry or mark the category as global.",
+      noMachinesForCategory:
+        "No resources in this category. Add a registry entry or mark the category as global.",
       modalEditOrderTitle: "Edit order {id}",
       optionalSuffix: "(optional)",
-      taskOptionalHint: "You can still leave notes for the operator — not required for this job type.",
+      taskOptionalHint:
+        "You can still leave notes for the operator — not required for this job type.",
       pickCategoryFirstHint: "Pick an order type first to set the resource and form fields.",
       taskDesc: "Short order description / notes for the driver",
       taskDescPlaceholder: "e.g. Watch out for muddy terrain at the entrance...",
@@ -344,7 +350,8 @@ export const en: AppDictionary = {
       workshop: "Workshop",
       noMachine: "No resource",
       notStartedTitle: "Order not started yet",
-      notStartedDesc: "This order is pending. Map and photos will be available after the worker starts the job.",
+      notStartedDesc:
+        "This order is pending. Map and photos will be available after the worker starts the job.",
       loadingData: "Loading route data...",
       noGpsData: "No GPS data for this order.",
       timelineTitle: "Timeline: Photos and Notes",
@@ -539,7 +546,8 @@ export const en: AppDictionary = {
       fleetTitle: "Operational resources",
       pageSubtitle: "Order and resource category tree plus the operational registry.",
       sectionVehiclesTitle: "Resource registry",
-      fleetSubtitle: "Registry entries (vehicles, machines, locations, etc.) under the categories above.",
+      fleetSubtitle:
+        "Registry entries (vehicles, machines, locations, etc.) under the categories above.",
       registerVehicle: "Add resource",
       addResource: "Add resource",
       resourceColTitle: "Resource",
@@ -563,7 +571,8 @@ export const en: AppDictionary = {
       machNamePlaceholder: "e.g. Workshop, Scania R420",
       machRegLabel: "Registration no.",
       machRegPlaceholder: "e.g. ABC 12345",
-      machIdentityRequired: "Fill in the fields visible for the selected category (e.g. name, reg. no., or description).",
+      machIdentityRequired:
+        "Fill in the fields visible for the selected category (e.g. name, reg. no., or description).",
       machCatLabel: "Category",
       machCatWarning: "Add a category above first.",
       saveFleet: "Save",
@@ -597,8 +606,7 @@ export const en: AppDictionary = {
       title: "Materials base",
       subtitle: "Material categories first, then inventory — same layout as Resources.",
       pageSubtitle: "Material category tree and materials in the database.",
-      catalogSubtitle:
-        "Tree of groups, categories, and materials — expand nodes to see contents.",
+      catalogSubtitle: "Tree of groups, categories, and materials — expand nodes to see contents.",
       materialBadge: "Material",
       uncategorizedTitle: "Without assigned category",
       sectionItemsTitle: "Materials in database",
@@ -619,7 +627,7 @@ export const en: AppDictionary = {
       matCatRequired: "Select at least one category.",
       save: "Save changes",
       saveFleet: "Save material",
-      create: "Add material"
+      create: "Add material",
     },
     customers: {
       title: "Customers",
@@ -699,7 +707,8 @@ export const en: AppDictionary = {
       cityLabel: "City",
       cityPlaceholder: "New York",
       gpsLocation: "Main Base GPS Location",
-      gpsWarning: "Location used as the default base for calculating distance for workshop machines. If automatic geolocation from the provided address fails, coordinates may not be 100% accurate.",
+      gpsWarning:
+        "Location used as the default base for calculating distance for workshop machines. If automatic geolocation from the provided address fails, coordinates may not be 100% accurate.",
       calcGpsBtn: "Calculate GPS automatically based on address",
       lat: "Latitude (LAT)",
       lng: "Longitude (LNG)",
@@ -714,15 +723,17 @@ export const en: AppDictionary = {
       requirePhoto: "Require photo when closing session",
       requirePhotoDesc: "The 'Finish' button will be blocked until at least one photo is added.",
       timeOverrun: "Time overrun warning",
-      timeOverrunDesc: "Show notification reminding the worker to finish the order when the estimated time has passed.",
+      timeOverrunDesc:
+        "Show notification reminding the worker to finish the order when the estimated time has passed.",
       savedSuccess: "Settings saved.",
       saving: "Saving...",
       saveBtn: "Save",
-      saveError: "Error during saving."
+      saveError: "Error during saving.",
     },
     logs: {
       subtitle: "Events from worker devices in the field.",
-      scopeNote: "List: up to {page} newest rows (filters apply within this range). File export: up to {exportMax} rows from the database.",
+      scopeNote:
+        "List: up to {page} newest rows (filters apply within this range). File export: up to {exportMax} rows from the database.",
       filterAllWorkers: "All workers",
       filterAllLevels: "All logs",
       filterAllCategories: "All categories",
@@ -763,7 +774,7 @@ export const en: AppDictionary = {
         edge: "edge {region}",
         httpStatus: "HTTP {status}",
       },
-    }
+    },
   },
   worker: {
     nav: {
@@ -776,8 +787,10 @@ export const en: AppDictionary = {
       refresh: "Refresh list",
       offlineBanner: "No internet connection",
       offlinePendingCount: "{count} operations pending",
-      offlineQueuedEndSession: "Session end has been saved. It will be sent when connection is restored.",
-      offlineQueuedCancel: "Order cancellation has been saved. It will be sent when connection is restored.",
+      offlineQueuedEndSession:
+        "Session end has been saved. It will be sent when connection is restored.",
+      offlineQueuedCancel:
+        "Order cancellation has been saved. It will be sent when connection is restored.",
       offlineQueuedCheckpoint: "Arrival saved. It will be sent when connection is restored.",
       offlineQueuedNote: "Note has been saved. It will be sent when connection is restored.",
       offlineQueuedPhoto: "Photo has been saved. It will be sent when connection is restored.",
@@ -841,7 +854,8 @@ export const en: AppDictionary = {
       locationError: "Error sharing location.",
       locationErrorDesc: "Make sure your browser has permissions.",
       locationReq: "Location sharing required",
-      locationReqDesc: "The logistics application requires continuous GPS access. Turn on GPS and allow access in the browser.",
+      locationReqDesc:
+        "The logistics application requires continuous GPS access. Turn on GPS and allow access in the browser.",
       errEndSession: "Error ending session.",
       errAcceptOrder: "Error accepting order.",
       errNetwork: "Network error.",
@@ -854,8 +868,10 @@ export const en: AppDictionary = {
       arrivedSuccess: "Arrival recorded successfully!",
       errArrived: "Error recording arrival.",
       confirmEndSession: "Are you sure you want to finish the current shift/work?",
-      confirmCancelSession: "Are you sure you want to cancel starting this order? This will delete the current session and return the order to pending.",
-      geofenceConfirm: "You are too far from the destination ({dist}m, allowed: {max}m). Are you sure you want to report arrival?",
+      confirmCancelSession:
+        "Are you sure you want to cancel starting this order? This will delete the current session and return the order to pending.",
+      geofenceConfirm:
+        "You are too far from the destination ({dist}m, allowed: {max}m). Are you sure you want to report arrival?",
       checkpointNote: "Report: arrived on site.",
       orderedBy: "Ordered by:",
       durationLabel: "Estimated time:",
@@ -863,9 +879,9 @@ export const en: AppDictionary = {
       gpsAlwaysPermissionTitle: "Location permission",
       gpsAlwaysPermissionLead:
         "For routes to record correctly in the background (with the screen off), location permission must be set to ",
-      gpsAlwaysPermissionEmphasis: "\"Always allow\"",
+      gpsAlwaysPermissionEmphasis: '"Always allow"',
       gpsAlwaysPermissionTail:
-        ". If you use \"While using the app\", the route will break into straight segments.",
+        '. If you use "While using the app", the route will break into straight segments.',
       gpsOpenPhoneSettings: "Open phone settings",
       gpsUnderstandAlwaysSet: "I understand — it's set to Always",
       wizardTitle: "What are we doing today?",
@@ -925,7 +941,7 @@ export const en: AppDictionary = {
       partNotes: "Notes",
       choosePart: "Choose part",
       quantityPlaceholder: "e.g. 2",
-      sparePartNotesPlaceholder: "e.g. serial number, installation notes"
+      sparePartNotesPlaceholder: "e.g. serial number, installation notes",
     },
     alarms: {
       timeOverrunTitle: "Work time exceeded!",
@@ -969,9 +985,11 @@ export const en: AppDictionary = {
       },
       biometricTitle: "Biometric login",
       biometricDesc: "On this device you can sign in with fingerprint or face (mobile app only).",
-      biometricUnavailable: "Biometrics are not available on this device or not set up in system settings.",
+      biometricUnavailable:
+        "Biometrics are not available on this device or not set up in system settings.",
       biometricChecking: "Checking biometric availability…",
-      biometricResyncHint: "Biometrics are enabled in your account but this phone has no saved key — turn off and enable again with your password.",
+      biometricResyncHint:
+        "Biometrics are enabled in your account but this phone has no saved key — turn off and enable again with your password.",
       biometricConfirmTitle: "Confirm with password",
       biometricConfirmHint:
         "For security, enter your current app password. It will be stored in the device secure vault and unlocked with biometrics.",
@@ -1003,7 +1021,8 @@ export const en: AppDictionary = {
       backToSession: "Back to session",
       title: "User Manual",
       quickContact: "Quick contact with base",
-      contactDesc: "Have a problem with the machine, cargo, or app? Contact the dispatcher directly.",
+      contactDesc:
+        "Have a problem with the machine, cargo, or app? Contact the dispatcher directly.",
       callDispatcher: "Call dispatcher",
       userManual: "User Manual",
       startWork: "1. Starting work",
@@ -1016,31 +1035,39 @@ export const en: AppDictionary = {
       priorities: "Priorities:",
       prioritiesDesc: "Some orders are assigned a high priority - pay attention to this.",
       startWorkInstruction: "To start work, click the large ",
-      startWorkInstruction2: " button. From this moment, the app will start recording your work time and (if required) your GPS route.",
+      startWorkInstruction2:
+        " button. From this moment, the app will start recording your work time and (if required) your GPS route.",
       notesAndPhotos: "2. Notes and Photos on route",
       notesAndPhotosDesc: "During the order, new buttons appear on the main screen:",
       addNote: "Add Note:",
-      addNoteDesc: "Allows you to save important information from the road (e.g., \"Traffic jam\", \"Client refused delivery\"). The note is assigned to your current GPS location.",
+      addNoteDesc:
+        'Allows you to save important information from the road (e.g., "Traffic jam", "Client refused delivery"). The note is assigned to your current GPS location.',
       takePhoto: "Take Photo:",
       takePhotoDesc:
         "Opens the built-in camera. Used to document completed work (e.g., unloading material, machine failure, signatures on documents).",
-      photoWarning: "Important: Some orders may require taking at least one photo before they can be finished!",
+      photoWarning:
+        "Important: Some orders may require taking at least one photo before they can be finished!",
       gpsTracking: "3. Tracking and GPS",
       gpsTrackingDesc: "The application uses satellite signals to track your route.",
       gpsWait: "Status: Waiting for GPS",
-      gpsWaitDesc: "(Yellow) - the phone is searching for satellites. Make sure you are not in an underground garage.",
+      gpsWaitDesc:
+        "(Yellow) - the phone is searching for satellites. Make sure you are not in an underground garage.",
       gpsActive: "Status: GPS Active",
       gpsActiveDesc: "(Green) - everything is working correctly.",
       gpsPrivacy: "GPS is turned on ",
       gpsPrivacy2: "only and exclusively",
-      gpsPrivacy3: " during an active order (after clicking Start). When you click \"Finish\", the app completely stops retrieving your location data, protecting your battery and privacy.",
+      gpsPrivacy3:
+        ' during an active order (after clicking Start). When you click "Finish", the app completely stops retrieving your location data, protecting your battery and privacy.',
       customOrders: "4. Custom Orders",
-      customOrdersDesc1: "If you have permissions enabled by the administrator, at the bottom of the welcome screen you will find the ",
+      customOrdersDesc1:
+        "If you have permissions enabled by the administrator, at the bottom of the welcome screen you will find the ",
       customOrdersDesc2: "OR DEFINE CUSTOM",
-      customOrdersDesc3: " button. It allows you to independently select a client from the list, machine, material, and immediately start work without waiting for an order from the office.",
+      customOrdersDesc3:
+        " button. It allows you to independently select a client from the list, machine, material, and immediately start work without waiting for an order from the office.",
       emergency: "Emergency procedure",
-      emergencyDesc: "In case of a collision, equipment failure, or other danger, immediately stop the machine in a safe place, secure the cargo, and use the phone button at the top of this page to inform the dispatcher. If possible, take a photo of the situation using the application."
-    }
+      emergencyDesc:
+        "In case of a collision, equipment failure, or other danger, immediately stop the machine in a safe place, secure the cargo, and use the phone button at the top of this page to inform the dispatcher. If possible, take a photo of the situation using the application.",
+    },
   },
   platform: {
     badge: "Werkit platform console",
@@ -1142,7 +1169,8 @@ export const en: AppDictionary = {
         categories: "Part categories",
         categoriesPlaceholder: "Select categories…",
         machineCategories: "Compatible machine types",
-        machineCategoriesHint: "Part will be available for selection when repairing these machine types.",
+        machineCategoriesHint:
+          "Part will be available for selection when repairing these machine types.",
         machineCategoriesPlaceholder: "Select machine types…",
       },
       table: {
@@ -1174,7 +1202,8 @@ export const en: AppDictionary = {
         modalCreate: "New category",
         badgeGroup: "Group",
         isGroupLabel: "Group (organization only)",
-        isGroupHint: "Groups are not selectable when assigning parts — they only organize the tree.",
+        isGroupHint:
+          "Groups are not selectable when assigning parts — they only organize the tree.",
         parentLabel: "Parent group",
         parentNone: "— no parent group —",
         sortOrderLabel: "Order",
@@ -1192,7 +1221,8 @@ export const en: AppDictionary = {
       subtitle: "Assign parts to machine types so they are available during repairs.",
       add: "Add link",
       remove: "Remove",
-      removeConfirm: "Remove this link? The part will no longer be available for this machine type.",
+      removeConfirm:
+        "Remove this link? The part will no longer be available for this machine type.",
       empty: "No links yet. Select a part and machine type to add compatibility.",
       fields: {
         part: "Part",

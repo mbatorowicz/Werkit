@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Cog, Plus, Pencil, Trash2, Search, AlertTriangle } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { useSparePartsAdminData, type SparePartsAdminAlertContext } from "@/features/admin/dur/useSparePartsAdminData";
+import {
+  useSparePartsAdminData,
+  type SparePartsAdminAlertContext,
+} from "@/features/admin/dur/useSparePartsAdminData";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
@@ -24,7 +27,8 @@ export default function SparePartsClient() {
     listFetchFallback: "Failed to load spare parts.",
   });
 
-  const { parts, categories, machineCategories, isLoading, fetchData } = useSparePartsAdminData(alertCtxRef);
+  const { parts, categories, machineCategories, isLoading, fetchData } =
+    useSparePartsAdminData(alertCtxRef);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -89,74 +93,106 @@ export default function SparePartsClient() {
     setEditingPart(null);
   }, []);
 
-  const handleSave = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim()) {
-      await appAlert({ message: durApiErrors.missing_part_name });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const body: SparePartInput = {
-        name: formName.trim(),
-        catalogNumber: formCatalogNumber.trim() || undefined,
-        manufacturer: formManufacturer.trim() || undefined,
-        unit: formUnit.trim() || "szt.",
-        purchasePrice: formPurchasePrice || null,
-        description: formDescription.trim() || null,
-        minStock: formMinStock || undefined,
-        location: formLocation.trim() || undefined,
-        isActive: formIsActive,
-        categoryIds: formCategoryIds,
-        machineCategoryIds: formMachineCategoryIds,
-      };
-
-      const url = editingPart ? `/api/dur/spare-parts/${editingPart.id}` : "/api/dur/spare-parts";
-      const method = editingPart ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.save_error });
+  const handleSave = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!formName.trim()) {
+        await appAlert({ message: durApiErrors.missing_part_name });
         return;
       }
 
-      await appAlert({ message: dict.saveSuccess });
-      closeModal();
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.save_error });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formName, formCatalogNumber, formManufacturer, formUnit, formPurchasePrice, formDescription, formMinStock, formLocation, formIsActive, formCategoryIds, formMachineCategoryIds, editingPart, appAlert, durApiErrors, apiErrors, dict, closeModal, fetchData]);
+      setIsSubmitting(true);
+      try {
+        const body: SparePartInput = {
+          name: formName.trim(),
+          catalogNumber: formCatalogNumber.trim() || undefined,
+          manufacturer: formManufacturer.trim() || undefined,
+          unit: formUnit.trim() || "szt.",
+          purchasePrice: formPurchasePrice || null,
+          description: formDescription.trim() || null,
+          minStock: formMinStock || undefined,
+          location: formLocation.trim() || undefined,
+          isActive: formIsActive,
+          categoryIds: formCategoryIds,
+          machineCategoryIds: formMachineCategoryIds,
+        };
 
-  const handleDelete = useCallback(async (part: SparePart) => {
-    const confirmed = await appConfirm({ message: dict.deleteConfirm, variant: "danger" });
-    if (!confirmed) return;
-    try {
-      const res = await fetch(`/api/dur/spare-parts/${part.id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.delete_error });
-        return;
+        const url = editingPart ? `/api/dur/spare-parts/${editingPart.id}` : "/api/dur/spare-parts";
+        const method = editingPart ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.save_error,
+          });
+          return;
+        }
+
+        await appAlert({ message: dict.saveSuccess });
+        closeModal();
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.save_error });
+      } finally {
+        setIsSubmitting(false);
       }
-      await appAlert({ message: dict.deleteSuccess });
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.delete_error });
-    }
-  }, [appConfirm, appAlert, dict, apiErrors, fetchData]);
+    },
+    [
+      formName,
+      formCatalogNumber,
+      formManufacturer,
+      formUnit,
+      formPurchasePrice,
+      formDescription,
+      formMinStock,
+      formLocation,
+      formIsActive,
+      formCategoryIds,
+      formMachineCategoryIds,
+      editingPart,
+      appAlert,
+      durApiErrors,
+      apiErrors,
+      dict,
+      closeModal,
+      fetchData,
+    ]
+  );
 
-  const toggleCategoryId = useCallback((id: number, current: number[], setter: (ids: number[]) => void) => {
-    setter(current.includes(id) ? current.filter((c) => c !== id) : [...current, id]);
-  }, []);
+  const handleDelete = useCallback(
+    async (part: SparePart) => {
+      const confirmed = await appConfirm({ message: dict.deleteConfirm, variant: "danger" });
+      if (!confirmed) return;
+      try {
+        const res = await fetch(`/api/dur/spare-parts/${part.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.delete_error,
+          });
+          return;
+        }
+        await appAlert({ message: dict.deleteSuccess });
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.delete_error });
+      }
+    },
+    [appConfirm, appAlert, dict, apiErrors, fetchData]
+  );
+
+  const toggleCategoryId = useCallback(
+    (id: number, current: number[], setter: (ids: number[]) => void) => {
+      setter(current.includes(id) ? current.filter((c) => c !== id) : [...current, id]);
+    },
+    []
+  );
 
   const filteredParts = parts.filter((p) => {
     if (!searchQuery.trim()) return true;
@@ -222,24 +258,44 @@ export default function SparePartsClient() {
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 dark:bg-zinc-800/50">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.name}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.catalogNumber}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.manufacturer}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.unit}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.price}</th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.location}</th>
-                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.table.actions}</th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.name}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.catalogNumber}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.manufacturer}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.unit}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.price}
+                </th>
+                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.location}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
               {filteredParts.map((part) => (
-                <tr key={part.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
+                <tr
+                  key={part.id}
+                  className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+                >
                   <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">
                     <div className="flex items-center gap-2">
                       {part.name}
                       {part.minStock != null && Number(part.minStock) > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-full"
-                          title={dict.lowStockTooltip.replace("{minStock}", String(part.minStock)).replace("{unit}", part.unit)}
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded-full"
+                          title={dict.lowStockTooltip
+                            .replace("{minStock}", String(part.minStock))
+                            .replace("{unit}", part.unit)}
                         >
                           <AlertTriangle className="w-3 h-3" />
                           {dict.lowStock}
@@ -253,9 +309,7 @@ export default function SparePartsClient() {
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {part.manufacturer ?? "—"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {part.unit}
-                  </td>
+                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{part.unit}</td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                     {part.purchasePrice ? `${part.purchasePrice} zł` : "—"}
                   </td>
@@ -455,22 +509,28 @@ export default function SparePartsClient() {
             <p className="text-[10px] text-zinc-500 mb-2">{dict.fields.machineCategoriesHint}</p>
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
               {machineCategories.filter((c) => !c.isGroup).length === 0 && (
-                <p className="text-xs text-zinc-500 italic">{dict.fields.machineCategoriesPlaceholder}</p>
+                <p className="text-xs text-zinc-500 italic">
+                  {dict.fields.machineCategoriesPlaceholder}
+                </p>
               )}
-              {machineCategories.filter((c) => !c.isGroup).map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => toggleCategoryId(cat.id, formMachineCategoryIds, setFormMachineCategoryIds)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    formMachineCategoryIds.includes(cat.id)
-                      ? "bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 text-blue-700 dark:text-blue-300"
-                      : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+              {machineCategories
+                .filter((c) => !c.isGroup)
+                .map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() =>
+                      toggleCategoryId(cat.id, formMachineCategoryIds, setFormMachineCategoryIds)
+                    }
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      formMachineCategoryIds.includes(cat.id)
+                        ? "bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 text-blue-700 dark:text-blue-300"
+                        : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
             </div>
           </div>
 

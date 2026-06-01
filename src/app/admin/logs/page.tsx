@@ -1,15 +1,15 @@
 import LogsClient from "@/features/admin/logs/LogsClient";
 import { getDictionary } from "@/i18n";
 import { DEVICE_LOGS_EXPORT_MAX, DEVICE_LOGS_PAGE_LIMIT } from "@/lib/deviceLogLimits";
-import { requireServerCompanyId } from '@/lib/serverTenant';
+import { requireServerCompanyId } from "@/lib/serverTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function AdminLogsPage() {
   const companyId = await requireServerCompanyId();
   const { sidebar, logs: logsDict } = getDictionary().admin;
-  const { SystemLogService } = await import('@/services/SystemLogService');
-  const { AdminUserService } = await import('@/services/AdminUserService');
+  const { SystemLogService } = await import("@/services/SystemLogService");
+  const { AdminUserService } = await import("@/services/AdminUserService");
 
   const [formattedLogs, allUsers] = await Promise.all([
     SystemLogService.getRecentLogs(companyId, DEVICE_LOGS_PAGE_LIMIT),

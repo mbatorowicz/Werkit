@@ -37,12 +37,27 @@ export default function SessionDetailsModal({
   const dict = dictionary.admin.orders;
   const adminUi = dictionary.admin.ui;
 
-  const [logs, setLogs] = useState<Array<{ latitude?: unknown; longitude?: unknown; timestamp?: unknown }>>([]);
+  const [logs, setLogs] = useState<
+    Array<{ latitude?: unknown; longitude?: unknown; timestamp?: unknown }>
+  >([]);
   const [photos, setPhotos] = useState<
-    { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[]
+    {
+      id?: number;
+      latitude?: string | null;
+      longitude?: string | null;
+      photoUrl?: string;
+      photoType?: string;
+      createdAt?: string;
+    }[]
   >([]);
   const [notes, setNotes] = useState<
-    { id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[]
+    {
+      id?: number;
+      latitude?: string | null;
+      longitude?: string | null;
+      note?: string;
+      createdAt?: string;
+    }[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [actionBusy, setActionBusy] = useState<null | "complete" | "delete">(null);
@@ -61,13 +76,26 @@ export default function SessionDetailsModal({
           `Admin: work-session ${item.id}`,
           `/api/admin/work-sessions/${item.id}`,
           undefined,
-          { category: "admin" },
+          { category: "admin" }
         );
         if (!r.ok) return;
         const data = (await r.json()) as {
           logs?: { latitude?: unknown; longitude?: unknown; timestamp?: unknown }[];
-          photos?: { id?: number; latitude?: string | null; longitude?: string | null; photoUrl?: string; photoType?: string; createdAt?: string }[];
-          notes?: { id?: number; latitude?: string | null; longitude?: string | null; note?: string; createdAt?: string }[];
+          photos?: {
+            id?: number;
+            latitude?: string | null;
+            longitude?: string | null;
+            photoUrl?: string;
+            photoType?: string;
+            createdAt?: string;
+          }[];
+          notes?: {
+            id?: number;
+            latitude?: string | null;
+            longitude?: string | null;
+            note?: string;
+            createdAt?: string;
+          }[];
         };
         if (cancelled) return;
         if (data.logs) setLogs(data.logs);
@@ -88,7 +116,9 @@ export default function SessionDetailsModal({
   const pathTraveled = displayPathFromRawGpsRows(logs, { reverseToChronological: true });
   const events: TimelineItem[] = [
     ...photos
-      .filter((p): p is typeof p & { latitude: string; longitude: string } => Boolean(p.latitude && p.longitude))
+      .filter((p): p is typeof p & { latitude: string; longitude: string } =>
+        Boolean(p.latitude && p.longitude)
+      )
       .map((p) => ({
         lat: parseFloat(p.latitude),
         lng: parseFloat(p.longitude),
@@ -99,7 +129,7 @@ export default function SessionDetailsModal({
       })),
     ...notes
       .filter((n): n is typeof n & { latitude: string; longitude: string; note: string } =>
-        Boolean(n.latitude && n.longitude && n.note),
+        Boolean(n.latitude && n.longitude && n.note)
       )
       .map((n) => ({
         lat: parseFloat(n.latitude),
@@ -120,11 +150,22 @@ export default function SessionDetailsModal({
         : { lat: 52.2297, lng: 21.0122 };
 
   const timelineItems = [
-    ...photos.map((p) => ({ ...p, type: "photo" as const, time: new Date(p.createdAt ?? 0).getTime() })),
-    ...notes.map((n) => ({ ...n, type: "note" as const, time: new Date(n.createdAt ?? 0).getTime() })),
+    ...photos.map((p) => ({
+      ...p,
+      type: "photo" as const,
+      time: new Date(p.createdAt ?? 0).getTime(),
+    })),
+    ...notes.map((n) => ({
+      ...n,
+      type: "note" as const,
+      time: new Date(n.createdAt ?? 0).getTime(),
+    })),
   ].sort((a, b) => b.time - a.time);
   const allPhotos = timelineItems
-    .filter((entry): entry is typeof entry & { photoUrl: string } => entry.type === "photo" && typeof entry.photoUrl === "string")
+    .filter(
+      (entry): entry is typeof entry & { photoUrl: string } =>
+        entry.type === "photo" && typeof entry.photoUrl === "string"
+    )
     .map((p) => p.photoUrl);
 
   const showSessionFooter =
@@ -141,7 +182,11 @@ export default function SessionDetailsModal({
       onForceComplete={
         item.status === "IN_PROGRESS" && onForceCompleteSession
           ? async () => {
-              if (!dict.forceCompleteConfirm || !(await appConfirm({ message: dict.forceCompleteConfirm, variant: "danger" }))) return;
+              if (
+                !dict.forceCompleteConfirm ||
+                !(await appConfirm({ message: dict.forceCompleteConfirm, variant: "danger" }))
+              )
+                return;
               setActionBusy("complete");
               try {
                 await onForceCompleteSession(item.id);
@@ -173,70 +218,70 @@ export default function SessionDetailsModal({
   return (
     <SessionDetailsLocaleContext.Provider value={resolvedLocale}>
       <>
-      <AdminModalShell
-        open
-        onClose={onClose}
-        title={dict.sessionDetailsModalTitle}
-        maxWidthClass="max-w-4xl"
-        titleSize="lg"
-        scrollableBody
-        closeOnBackdropClick={false}
-        footer={footerContent}
-        footerClassName="flex flex-wrap justify-end gap-2"
-      >
-        <SessionDetailsContent
-          item={item}
-          isLoading={isLoading}
-          hasMapData={hasMapData}
-          isStationary={isStationary}
-          currentLocation={currentLocation}
-          pathTraveled={pathTraveled}
-          events={events}
-          timelineItems={timelineItems}
-          allPhotos={allPhotos}
-          onPhotoClick={handlePhotoClick}
-          onEdit={onEdit}
-          dict={dict}
-        />
-      </AdminModalShell>
+        <AdminModalShell
+          open
+          onClose={onClose}
+          title={dict.sessionDetailsModalTitle}
+          maxWidthClass="max-w-4xl"
+          titleSize="lg"
+          scrollableBody
+          closeOnBackdropClick={false}
+          footer={footerContent}
+          footerClassName="flex flex-wrap justify-end gap-2"
+        >
+          <SessionDetailsContent
+            item={item}
+            isLoading={isLoading}
+            hasMapData={hasMapData}
+            isStationary={isStationary}
+            currentLocation={currentLocation}
+            pathTraveled={pathTraveled}
+            events={events}
+            timelineItems={timelineItems}
+            allPhotos={allPhotos}
+            onPhotoClick={handlePhotoClick}
+            onEdit={onEdit}
+            dict={dict}
+          />
+        </AdminModalShell>
 
-      <AdminPasswordConfirmModal
-        open={deletePwdOpen}
-        onClose={() => {
-          if (actionBusy === "delete") return;
-          setDeletePwdOpen(false);
-          setDeletePwdError(null);
-        }}
-        title={dict.deleteArchivedPasswordTitle}
-        description={dict.deleteArchivedPasswordHint}
-        confirmLabel={dict.deleteArchivedPasswordConfirm}
-        isSubmitting={actionBusy === "delete"}
-        error={deletePwdError}
-        onConfirm={async (password) => {
-          if (!onDeleteArchivedSession) return;
-          setDeletePwdError(null);
-          setActionBusy("delete");
-          try {
-            await onDeleteArchivedSession(item.id, password);
+        <AdminPasswordConfirmModal
+          open={deletePwdOpen}
+          onClose={() => {
+            if (actionBusy === "delete") return;
             setDeletePwdOpen(false);
-          } catch (err) {
-            const code = err instanceof Error ? err.message : "";
-            setDeletePwdError(apiErrors[code] ?? code ?? dict.error);
-          } finally {
-            setActionBusy(null);
-          }
-        }}
-      />
+            setDeletePwdError(null);
+          }}
+          title={dict.deleteArchivedPasswordTitle}
+          description={dict.deleteArchivedPasswordHint}
+          confirmLabel={dict.deleteArchivedPasswordConfirm}
+          isSubmitting={actionBusy === "delete"}
+          error={deletePwdError}
+          onConfirm={async (password) => {
+            if (!onDeleteArchivedSession) return;
+            setDeletePwdError(null);
+            setActionBusy("delete");
+            try {
+              await onDeleteArchivedSession(item.id, password);
+              setDeletePwdOpen(false);
+            } catch (err) {
+              const code = err instanceof Error ? err.message : "";
+              setDeletePwdError(apiErrors[code] ?? code ?? dict.error);
+            } finally {
+              setActionBusy(null);
+            }
+          }}
+        />
 
-      <SessionPhotoLightbox
-        photos={allPhotos}
-        currentIndex={lightboxIndex!}
-        onClose={() => setLightboxIndex(null)}
-        onNavigate={setLightboxIndex}
-        dict={dict}
-        adminUi={adminUi}
-      />
-    </>
+        <SessionPhotoLightbox
+          photos={allPhotos}
+          currentIndex={lightboxIndex!}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={setLightboxIndex}
+          dict={dict}
+          adminUi={adminUi}
+        />
+      </>
     </SessionDetailsLocaleContext.Provider>
   );
 }

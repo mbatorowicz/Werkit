@@ -1,18 +1,21 @@
-import { db } from '@/db';
-import { workOrders, customers, workSessions, users } from '@/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { db } from "@/db";
+import { workOrders, customers, workSessions, users } from "@/db/schema";
+import { eq, and, asc } from "drizzle-orm";
 import {
   applyWorkOrderListJoins,
   newWorkOrderCreatorUserAlias,
   workOrderListSharedSelectFields,
-} from '@/services/workOrders/workOrderListQueryParts';
-import { normalizeWorkOrderPriority } from '@/features/worker/lib/workOrderPriority';
-import { coordPairToNumericStrings } from '@/lib/coordsFromRequestBody';
-import { computeLockedUntil, parseDurationHours } from '@/lib/scheduleConflict';
-import { ScheduleConflictService } from '@/services/ScheduleConflictService';
-import { coerceWorkOrderPriority, validateCategoryForOrder } from '@/lib/workOrderCategoryValidation';
-import { parseOrderBody } from '@/lib/parseRouteParams';
-import { assertOrderEntitiesBelongToCompany } from '@/lib/tenantContext';
+} from "@/services/workOrders/workOrderListQueryParts";
+import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
+import { coordPairToNumericStrings } from "@/lib/coordsFromRequestBody";
+import { computeLockedUntil, parseDurationHours } from "@/lib/scheduleConflict";
+import { ScheduleConflictService } from "@/services/ScheduleConflictService";
+import {
+  coerceWorkOrderPriority,
+  validateCategoryForOrder,
+} from "@/lib/workOrderCategoryValidation";
+import { parseOrderBody } from "@/lib/parseRouteParams";
+import { assertOrderEntitiesBelongToCompany } from "@/lib/tenantContext";
 
 export class WorkerOrderService {
   /**
@@ -22,7 +25,7 @@ export class WorkerOrderService {
   static async getPendingOrders(
     userId: number,
     companyId: number,
-    options?: { offset?: number; limit?: number },
+    options?: { offset?: number; limit?: number }
   ) {
     const creator = newWorkOrderCreatorUserAlias();
     const offset = options?.offset ?? 0;
@@ -36,14 +39,14 @@ export class WorkerOrderService {
         })
         .from(workOrders),
       creator,
-      { joinAssignedWorker: false },
+      { joinAssignedWorker: false }
     )
       .where(
         and(
           eq(workOrders.companyId, companyId),
           eq(workOrders.userId, userId),
-          eq(workOrders.status, 'PENDING'),
-        ),
+          eq(workOrders.status, "PENDING")
+        )
       )
       .orderBy(asc(workOrders.dueDate), asc(workOrders.createdAt))
       .limit(limit)
@@ -61,7 +64,7 @@ export class WorkerOrderService {
     userId: number,
     companyId: number,
     orderId: number,
-    startCoord?: { lat: number; lng: number } | null,
+    startCoord?: { lat: number; lng: number } | null
   ) {
     const [order] = await db
       .select()
@@ -70,13 +73,13 @@ export class WorkerOrderService {
         and(
           eq(workOrders.id, orderId),
           eq(workOrders.userId, userId),
-          eq(workOrders.companyId, companyId),
-        ),
+          eq(workOrders.companyId, companyId)
+        )
       );
-    if (!order) throw new Error('order_not_found');
+    if (!order) throw new Error("order_not_found");
 
     if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
-      throw new Error('session_active');
+      throw new Error("session_active");
     }
 
     const durationHours = parseDurationHours(order.expectedDurationHours);
@@ -102,7 +105,7 @@ export class WorkerOrderService {
       await tx
         .update(workOrders)
         .set({
-          status: 'IN_PROGRESS',
+          status: "IN_PROGRESS",
           ...(customerLocationId && !order.customerLocationId ? { customerLocationId } : {}),
           ...(order.dueDate && durationHours != null && !order.lockedUntil
             ? { lockedUntil: computeLockedUntil(order.dueDate, durationHours) }
@@ -110,29 +113,32 @@ export class WorkerOrderService {
         })
         .where(eq(workOrders.id, order.id));
 
-      const [newSession] = await tx.insert(workSessions).values({
-        companyId,
-        workOrderId: order.id,
-        userId: userId,
-        categoryId: order.categoryId!,
-        resourceId: order.resourceId,
-        materialId: order.materialId,
-        customerId: order.customerId,
-        taskDescription: order.taskDescription,
-        quantityTons: order.quantityTons,
-        expectedDurationHours: order.expectedDurationHours,
-        dueDate: order.dueDate,
-        status: 'IN_PROGRESS',
-        orderType: order.orderType,
-        repairDescription: order.repairDescription,
-        repairNotes: order.repairNotes,
-        ...(startNums
-          ? {
-              startLatitude: startNums.lat,
-              startLongitude: startNums.lng,
-            }
-          : {}),
-      }).returning();
+      const [newSession] = await tx
+        .insert(workSessions)
+        .values({
+          companyId,
+          workOrderId: order.id,
+          userId: userId,
+          categoryId: order.categoryId!,
+          resourceId: order.resourceId,
+          materialId: order.materialId,
+          customerId: order.customerId,
+          taskDescription: order.taskDescription,
+          quantityTons: order.quantityTons,
+          expectedDurationHours: order.expectedDurationHours,
+          dueDate: order.dueDate,
+          status: "IN_PROGRESS",
+          orderType: order.orderType,
+          repairDescription: order.repairDescription,
+          repairNotes: order.repairNotes,
+          ...(startNums
+            ? {
+                startLatitude: startNums.lat,
+                startLongitude: startNums.lng,
+              }
+            : {}),
+        })
+        .returning();
 
       return newSession.id;
     });
@@ -146,7 +152,7 @@ export class WorkerOrderService {
   static async createOwnOrder(
     userId: number,
     companyId: number,
-    body: Record<string, unknown>,
+    body: Record<string, unknown>
   ): Promise<number> {
     const parsed = parseOrderBody(body);
     const payload = {
@@ -160,11 +166,11 @@ export class WorkerOrderService {
       .limit(1);
 
     if (!userRow?.canCreateOwnOrders) {
-      throw new Error('forbidden');
+      throw new Error("forbidden");
     }
 
     if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
-      throw new Error('session_active');
+      throw new Error("session_active");
     }
 
     // Cross-tenant validation: verify all referenced entities belong to the same company
@@ -202,7 +208,8 @@ export class WorkerOrderService {
             ? String(payload.quantityTons)
             : null,
         expectedDurationHours:
-          payload.expectedDurationHours != null && String(payload.expectedDurationHours).trim() !== ""
+          payload.expectedDurationHours != null &&
+          String(payload.expectedDurationHours).trim() !== ""
             ? String(payload.expectedDurationHours)
             : null,
         dueDate: payload.dueDate ?? null,
@@ -210,10 +217,10 @@ export class WorkerOrderService {
           payload.dueDate && durationHours != null
             ? computeLockedUntil(payload.dueDate, durationHours)
             : null,
-        status: 'PENDING',
+        status: "PENDING",
         priority: prio,
         createdById: userId,
-        orderType: (payload.orderType ?? 'machine_work') as 'machine_work' | 'machine_repair',
+        orderType: (payload.orderType ?? "machine_work") as "machine_work" | "machine_repair",
         repairDescription: payload.repairDescription ?? null,
         repairNotes: payload.repairNotes ?? null,
       })

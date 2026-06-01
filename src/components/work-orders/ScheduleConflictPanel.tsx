@@ -56,10 +56,14 @@ export function ScheduleConflictPanel({
             ))}
           </ul>
           {mode === "admin" && machineHint ? (
-            <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">{machineHint}</p>
+            <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">
+              {machineHint}
+            </p>
           ) : null}
           {mode === "worker" && workerBlockedHint ? (
-            <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">{workerBlockedHint}</p>
+            <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">
+              {workerBlockedHint}
+            </p>
           ) : null}
           {mode === "admin" && onForceSave && createDespiteLabel ? (
             <button
@@ -68,7 +72,11 @@ export function ScheduleConflictPanel({
               onClick={onForceSave}
               className="mt-1 w-full rounded-lg border border-amber-400 bg-amber-100 px-4 py-2.5 text-sm font-bold text-amber-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50 dark:border-amber-500/40 dark:bg-amber-500/20 dark:text-amber-100 dark:hover:bg-amber-500/30 sm:w-auto"
             >
-              {isSubmitting ? <Loader2 className="mx-auto h-5 w-5 animate-spin" /> : createDespiteLabel}
+              {isSubmitting ? (
+                <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+              ) : (
+                createDespiteLabel
+              )}
             </button>
           ) : null}
         </div>

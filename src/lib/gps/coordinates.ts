@@ -13,7 +13,10 @@ export function isoTimestampFromUnknown(v: unknown): string | undefined {
   return undefined;
 }
 
-export function gpsTimestampFromRow(row: { recordedAt?: unknown; timestamp?: unknown }): string | undefined {
+export function gpsTimestampFromRow(row: {
+  recordedAt?: unknown;
+  timestamp?: unknown;
+}): string | undefined {
   return isoTimestampFromUnknown(row.recordedAt) ?? isoTimestampFromUnknown(row.timestamp);
 }
 

@@ -65,7 +65,7 @@ export function WaypointControls({
       e.stopPropagation();
       onModeChange(isAddMode ? null : "add");
     },
-    [isAddMode, onModeChange],
+    [isAddMode, onModeChange]
   );
 
   const handleRemoveClick = useCallback(
@@ -74,7 +74,7 @@ export function WaypointControls({
       // Toggle remove mode — analogicznie do "+"
       onModeChange(isRemoveMode ? null : "remove");
     },
-    [isRemoveMode, onModeChange],
+    [isRemoveMode, onModeChange]
   );
 
   return (
@@ -124,7 +124,9 @@ export function WaypointControls({
           title={dict.openGoogleMaps}
         >
           <Navigation className={iconSize} />
-          <ExternalLink className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-indigo-300`} />
+          <ExternalLink
+            className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-indigo-300`}
+          />
         </button>
       ) : null}
     </div>
@@ -134,13 +136,7 @@ export function WaypointControls({
 // ---------------------------------------------------------------------------
 // Ustawia początkowy widok mapy przy pierwszym renderze, potem nic nie robi
 // ---------------------------------------------------------------------------
-export function MapInitialView({
-  center,
-  zoom,
-}: {
-  center: [number, number];
-  zoom: number;
-}) {
+export function MapInitialView({ center, zoom }: { center: [number, number]; zoom: number }) {
   const map = useMap();
   const done = useRef(false);
 
@@ -172,7 +168,7 @@ export function LocateMeButton({
         duration: 0.5,
       });
     },
-    [map, currentLocation.lat, currentLocation.lng],
+    [map, currentLocation.lat, currentLocation.lng]
   );
 
   return (
@@ -199,13 +195,14 @@ export function LocateMeButton({
 export function openGoogleNavigation(
   dest: { lat: number; lng: number },
   origin?: { lat: number; lng: number } | null,
-  waypoints?: { lat: number; lng: number }[],
+  waypoints?: { lat: number; lng: number }[]
 ) {
   const d = `${dest.lat},${dest.lng}`;
   const o = origin ? `${origin.lat},${origin.lng}` : undefined;
-  const wp = waypoints && waypoints.length > 0
-    ? waypoints.map((w) => `${w.lat},${w.lng}`).join("|")
-    : undefined;
+  const wp =
+    waypoints && waypoints.length > 0
+      ? waypoints.map((w) => `${w.lat},${w.lng}`).join("|")
+      : undefined;
   const params = new URLSearchParams();
   if (o) params.set("origin", o);
   params.set("destination", d);

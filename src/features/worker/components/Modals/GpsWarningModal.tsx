@@ -75,7 +75,9 @@ export default function GpsWarningModal({
         </div>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {dict.gpsAlwaysPermissionLead}
-          <strong className="text-zinc-900 dark:text-white">{dict.gpsAlwaysPermissionEmphasis}</strong>
+          <strong className="text-zinc-900 dark:text-white">
+            {dict.gpsAlwaysPermissionEmphasis}
+          </strong>
           {dict.gpsAlwaysPermissionTail}
         </p>
       </div>

@@ -67,8 +67,11 @@ export default function OrderFormModal({
   const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
 
   const availableMachines = useMemo(
-    () => (selectedCategory ? machines.filter((m) => m.categoryIds?.includes(selectedCategory.id) ?? true) : []),
-    [machines, selectedCategory],
+    () =>
+      selectedCategory
+        ? machines.filter((m) => m.categoryIds?.includes(selectedCategory.id) ?? true)
+        : [],
+    [machines, selectedCategory]
   );
 
   const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
@@ -88,7 +91,7 @@ export default function OrderFormModal({
         setIsSubmitting(false);
       }
     },
-    [form, noMachinesForCategory, onSave, selectedCategory],
+    [form, noMachinesForCategory, onSave, selectedCategory]
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -167,7 +170,9 @@ export default function OrderFormModal({
           dueDate={form.dueDate}
           expectedDurationHours={form.expectedDurationHours}
           onDueDateChange={(value) => setForm({ ...form, dueDate: value })}
-          onExpectedDurationHoursChange={(value) => setForm({ ...form, expectedDurationHours: value })}
+          onExpectedDurationHoursChange={(value) =>
+            setForm({ ...form, expectedDurationHours: value })
+          }
           excludeOrderId={editingOrderId}
           previewEnabled={isOpen}
           labels={scheduleLabels}

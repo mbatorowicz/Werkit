@@ -19,7 +19,8 @@ describe("clientRateLimit (przez publiczne API, izolacja modułu)", () => {
   });
 
   it("throttle: nie koliduje z dedupe (osobna mapa)", async () => {
-    const { shouldSkipClientLogDedupe, shouldThrottleTelemetryLog } = await import("@/lib/clientRateLimit");
+    const { shouldSkipClientLogDedupe, shouldThrottleTelemetryLog } =
+      await import("@/lib/clientRateLimit");
     expect(shouldSkipClientLogDedupe("shared-key", 5000)).toBe(false);
     expect(shouldThrottleTelemetryLog("shared-key", 5000)).toBe(false);
     expect(shouldThrottleTelemetryLog("shared-key", 5000)).toBe(true);

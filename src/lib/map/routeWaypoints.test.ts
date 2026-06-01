@@ -14,7 +14,7 @@ describe("parseRouteWaypoints", () => {
         { lat: "52.2", lng: "21.1" },
         { lat: "x", lng: 1 },
         null,
-      ]),
+      ])
     ).toEqual([
       { lat: 52.1, lng: 21 },
       { lat: 52.2, lng: 21.1 },

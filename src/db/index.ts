@@ -8,10 +8,10 @@
  * Pool utrzymuje stałe połączenia, więc nie ma narzutu na nawiązywanie nowego
  * połączenia przy każdym żądaniu (w przeciwieństwie do `createClient()` z `@vercel/postgres`).
  */
-import '@/db/env';
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
-import * as schema from './schema';
+import "@/db/env";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "./schema";
 
 function getConnectionString(): string {
   // Kolejność: POSTGRES_URL_NON_POOLING (unpooled) > POSTGRES_URL > DATABASE_URL
@@ -19,7 +19,7 @@ function getConnectionString(): string {
     process.env.POSTGRES_URL_NON_POOLING?.trim() ||
     process.env.POSTGRES_URL?.trim() ||
     process.env.DATABASE_URL?.trim() ||
-    ''
+    ""
   );
 }
 
@@ -27,7 +27,7 @@ const connectionString = getConnectionString();
 
 if (!connectionString) {
   throw new Error(
-    'Brak connection stringa — ustaw POSTGRES_URL_NON_POOLING, POSTGRES_URL lub DATABASE_URL w .env.local',
+    "Brak connection stringa — ustaw POSTGRES_URL_NON_POOLING, POSTGRES_URL lub DATABASE_URL w .env.local"
   );
 }
 

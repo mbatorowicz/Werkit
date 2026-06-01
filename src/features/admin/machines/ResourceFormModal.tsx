@@ -60,7 +60,9 @@ export function ResourceFormModal({
         {(resourceVis.showResourceName || resourceVis.showRegistrationNumber) && (
           <div
             className={`grid grid-cols-1 gap-4 ${
-              resourceVis.showResourceName && resourceVis.showRegistrationNumber ? "sm:grid-cols-2" : "sm:grid-cols-1"
+              resourceVis.showResourceName && resourceVis.showRegistrationNumber
+                ? "sm:grid-cols-2"
+                : "sm:grid-cols-1"
             }`}
           >
             {resourceVis.showResourceName ? (
@@ -105,11 +107,20 @@ export function ResourceFormModal({
         ) : null}
 
         <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{dict.machPhotoLabel}</label>
+          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            {dict.machPhotoLabel}
+          </label>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             <div className="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 sm:h-36 sm:w-36">
               {form.imageUrl ? (
-                <Image src={form.imageUrl} alt={dict.machPhotoLabel} width={144} height={144} unoptimized className="h-full w-full object-cover" />
+                <Image
+                  src={form.imageUrl}
+                  alt={dict.machPhotoLabel}
+                  width={144}
+                  height={144}
+                  unoptimized
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <Camera className="h-10 w-10 text-zinc-400" aria-hidden />
               )}
@@ -134,7 +145,9 @@ export function ResourceFormModal({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{dict.machCatLabel}</label>
+          <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            {dict.machCatLabel}
+          </label>
           <div className={`grid max-h-48 grid-cols-2 gap-2 pr-1 ${INLINE_SCROLL_PANEL_CLASS}`}>
             {categories.map((c) => (
               <label
@@ -146,8 +159,12 @@ export function ResourceFormModal({
                   checked={form.categoryIds.includes(c.id)}
                   onChange={(e) => {
                     setForm((prev) => {
-                      if (e.target.checked) return { ...prev, categoryIds: [...prev.categoryIds, c.id] };
-                      return { ...prev, categoryIds: prev.categoryIds.filter((cid) => cid !== c.id) };
+                      if (e.target.checked)
+                        return { ...prev, categoryIds: [...prev.categoryIds, c.id] };
+                      return {
+                        ...prev,
+                        categoryIds: prev.categoryIds.filter((cid) => cid !== c.id),
+                      };
                     });
                   }}
                   className="h-4 w-4 rounded text-emerald-600"
@@ -156,9 +173,10 @@ export function ResourceFormModal({
               </label>
             ))}
           </div>
-          {categories.length === 0 ? <p className="text-xs text-red-400">{dict.machCatWarning}</p> : null}
+          {categories.length === 0 ? (
+            <p className="text-xs text-red-400">{dict.machCatWarning}</p>
+          ) : null}
         </div>
-
       </form>
     </AdminModalShell>
   );

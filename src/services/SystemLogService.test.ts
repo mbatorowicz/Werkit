@@ -134,7 +134,7 @@ describe("SystemLogService", () => {
         expect.objectContaining({
           companyId: 1,
           userId: 10,
-        }),
+        })
       );
     });
 

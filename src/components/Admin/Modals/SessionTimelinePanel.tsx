@@ -59,7 +59,9 @@ export default function SessionTimelinePanel({
                     {dateStr} {timeStr}
                   </div>
                   {isNote ? (
-                    <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-200">{entry.note ?? ""}</p>
+                    <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-200">
+                      {entry.note ?? ""}
+                    </p>
                   ) : (
                     <>
                       <Image

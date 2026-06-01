@@ -1,30 +1,30 @@
-import { existsSync, statSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import type { AndroidApkBuildType, AndroidApkMeta } from '@/lib/apkMeta';
-import { parseAndroidApkMeta } from '@/lib/apkMeta';
+import { existsSync, statSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { AndroidApkBuildType, AndroidApkMeta } from "@/lib/apkMeta";
+import { parseAndroidApkMeta } from "@/lib/apkMeta";
 import {
   fetchGithubReleaseApkMeta,
   isGithubReleaseApkAvailable,
   resolveGithubReleaseApkConfig,
-} from '@/lib/githubReleaseApk';
-import { WEB_PACKAGE_VERSION } from '@/lib/version';
+} from "@/lib/githubReleaseApk";
+import { WEB_PACKAGE_VERSION } from "@/lib/version";
 
 /** Ścieżka względem katalogu projektu (opcjonalny plik na deploy). */
-export const LOCAL_ANDROID_APK_RELATIVE = 'public/downloads/werkit.apk';
+export const LOCAL_ANDROID_APK_RELATIVE = "public/downloads/werkit.apk";
 
-export const LOCAL_ANDROID_APK_META_RELATIVE = 'public/downloads/werkit-apk-meta.json';
+export const LOCAL_ANDROID_APK_META_RELATIVE = "public/downloads/werkit-apk-meta.json";
 
-export const ANDROID_APK_DOWNLOAD_ROUTE = '/api/app/android';
+export const ANDROID_APK_DOWNLOAD_ROUTE = "/api/app/android";
 
-export const ANDROID_APK_INFO_ROUTE = '/api/app/android/info';
+export const ANDROID_APK_INFO_ROUTE = "/api/app/android/info";
 
 export function getAndroidApkFileName(apkVersion?: string | null): string {
   const v = apkVersion?.trim() || WEB_PACKAGE_VERSION;
   return `werkit-${v}.apk`;
 }
 
-export type AndroidAppDownloadSource = 'remote' | 'local' | 'github' | null;
+export type AndroidAppDownloadSource = "remote" | "local" | "github" | null;
 
 export type AndroidAppDownloadInfo = {
   available: boolean;
@@ -59,13 +59,13 @@ function resolveLocalAndroidApkMetaPath(): string | undefined {
 }
 
 export function resolveAndroidApkDownloadSource(): AndroidAppDownloadSource {
-  if (resolveRemoteAndroidApkUrl()) return 'remote';
-  if (resolveLocalAndroidApkPath()) return 'local';
-  if (resolveGithubReleaseApkConfig()) return 'github';
+  if (resolveRemoteAndroidApkUrl()) return "remote";
+  if (resolveLocalAndroidApkPath()) return "local";
+  if (resolveGithubReleaseApkConfig()) return "github";
   return null;
 }
 
-function baseInfo(source: AndroidAppDownloadSource): Omit<AndroidAppDownloadInfo, 'available'> {
+function baseInfo(source: AndroidAppDownloadSource): Omit<AndroidAppDownloadInfo, "available"> {
   return {
     href: ANDROID_APK_DOWNLOAD_ROUTE,
     fileName: getAndroidApkFileName(),
@@ -80,10 +80,10 @@ function baseInfo(source: AndroidAppDownloadSource): Omit<AndroidAppDownloadInfo
 }
 
 function infoFromMeta(
-  partial: Omit<AndroidAppDownloadInfo, 'available'>,
+  partial: Omit<AndroidAppDownloadInfo, "available">,
   meta: AndroidApkMeta | null,
-  fallbackVersion?: string,
-): Omit<AndroidAppDownloadInfo, 'available'> {
+  fallbackVersion?: string
+): Omit<AndroidAppDownloadInfo, "available"> {
   const apkVersion = meta?.version ?? fallbackVersion ?? null;
   return {
     ...partial,
@@ -100,7 +100,7 @@ async function readLocalApkMeta(): Promise<AndroidApkMeta | null> {
   const metaPath = resolveLocalAndroidApkMetaPath();
   if (!metaPath) return null;
   try {
-    const text = await readFile(metaPath, 'utf8');
+    const text = await readFile(metaPath, "utf8");
     return parseAndroidApkMeta(JSON.parse(text) as unknown);
   } catch {
     return null;
@@ -112,7 +112,7 @@ export async function getAndroidAppDownloadInfoAsync(): Promise<AndroidAppDownlo
   const remoteUrl = resolveRemoteAndroidApkUrl();
   if (remoteUrl) {
     return {
-      ...infoFromMeta(baseInfo('remote'), null, WEB_PACKAGE_VERSION),
+      ...infoFromMeta(baseInfo("remote"), null, WEB_PACKAGE_VERSION),
       available: true,
       inSync: true,
     };
@@ -127,11 +127,11 @@ export async function getAndroidAppDownloadInfoAsync(): Promise<AndroidAppDownlo
       ({
         version: WEB_PACKAGE_VERSION,
         packageVersion: WEB_PACKAGE_VERSION,
-        buildType: 'debug',
+        buildType: "debug",
         builtAt: stat.mtime.toISOString(),
       } satisfies AndroidApkMeta);
     return {
-      ...infoFromMeta(baseInfo('local'), mergedMeta, WEB_PACKAGE_VERSION),
+      ...infoFromMeta(baseInfo("local"), mergedMeta, WEB_PACKAGE_VERSION),
       available: true,
     };
   }
@@ -143,7 +143,7 @@ export async function getAndroidAppDownloadInfoAsync(): Promise<AndroidAppDownlo
       fetchGithubReleaseApkMeta(github),
     ]);
     return {
-      ...infoFromMeta(baseInfo('github'), meta),
+      ...infoFromMeta(baseInfo("github"), meta),
       available,
     };
   }

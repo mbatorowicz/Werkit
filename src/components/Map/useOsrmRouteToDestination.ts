@@ -17,7 +17,7 @@ export function useOsrmRouteToDestination(
   onRouteDistance?: (distanceKm: number) => void,
   routeGeometryProvider: RouteGeometryProvider = projectOsrmPublicRouteGeometryProvider,
   waypoints: RouteLngLat[] = [],
-  throttleMs: number = 12_000,
+  throttleMs: number = 12_000
 ): [number, number][] {
   const [routeToDest, setRouteToDest] = useState<[number, number][]>([]);
   const wpKey = JSON.stringify(waypoints);
@@ -35,21 +35,21 @@ export function useOsrmRouteToDestination(
         const url = routeGeometryProvider.buildDrivingRouteUrl(
           currentLocation,
           destination,
-          waypoints,
+          waypoints
         );
-        const res = await fetchWithDeviceTelemetry(
-          "Map: OSRM driving route",
-          url,
-          undefined,
-          { category: "http", throttleKey: "osrm_driving_route", throttleMs },
-        );
+        const res = await fetchWithDeviceTelemetry("Map: OSRM driving route", url, undefined, {
+          category: "http",
+          throttleKey: "osrm_driving_route",
+          throttleMs,
+        });
         const data: unknown = await res.json();
-        const routes = (data as { routes?: { geometry: { coordinates: [number, number][] }; distance: number }[] })
-          .routes;
+        const routes = (
+          data as { routes?: { geometry: { coordinates: [number, number][] }; distance: number }[] }
+        ).routes;
         if (Array.isArray(routes) && routes.length > 0) {
           const route = routes[0];
           const coordinates = route.geometry.coordinates.map(
-            (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
+            (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
           );
           setRouteToDest(coordinates);
           onRouteDistance?.(route.distance / 1000);
@@ -61,7 +61,15 @@ export function useOsrmRouteToDestination(
 
     void fetchRoute();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- śledzimy wyłącznie współrzędne
-  }, [currentLocation.lat, currentLocation.lng, destination?.lat, destination?.lng, wpKey, routeGeometryProvider, onRouteDistance]);
+  }, [
+    currentLocation.lat,
+    currentLocation.lng,
+    destination?.lat,
+    destination?.lng,
+    wpKey,
+    routeGeometryProvider,
+    onRouteDistance,
+  ]);
 
   return routeToDest;
 }

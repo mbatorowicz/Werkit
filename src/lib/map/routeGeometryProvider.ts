@@ -95,8 +95,7 @@ export interface RouteGeometryProvider {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const PROJECT_OSRM_DRIVING_ROUTE_BASE =
-  "https://router.project-osrm.org/route/v1/driving";
+const PROJECT_OSRM_DRIVING_ROUTE_BASE = "https://router.project-osrm.org/route/v1/driving";
 
 function coordSegment(p: RouteLngLat): string {
   return `${p.lng},${p.lat}`;
@@ -146,7 +145,7 @@ export const projectOsrmPublicRouteGeometryProvider: RouteGeometryProvider = {
 
     const instructions = stepsToInstructions(allSteps);
     const geometry = route.geometry.coordinates.map(
-      (coord: [number, number]) => [coord[1], coord[0]] as [number, number],
+      (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
     );
 
     return {

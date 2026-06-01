@@ -34,20 +34,20 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
 
 /** Klucze flag do iteracji w UI. */
 export const FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
-  'gpsTrackingEnabled',
-  'mapViewEnabled',
-  'geofencingEnabled',
-  'routePlanningEnabled',
-  'navigationEnabled',
-  'durEnabled',
+  "gpsTrackingEnabled",
+  "mapViewEnabled",
+  "geofencingEnabled",
+  "routePlanningEnabled",
+  "navigationEnabled",
+  "durEnabled",
 ];
 
 /** Etykiety i18n dla flag. */
 export const FEATURE_FLAG_LABELS: Record<keyof FeatureFlags, string> = {
-  gpsTrackingEnabled: 'platform.settings.gpsTrackingEnabled',
-  mapViewEnabled: 'platform.settings.mapViewEnabled',
-  geofencingEnabled: 'platform.settings.geofencingEnabled',
-  routePlanningEnabled: 'platform.settings.routePlanningEnabled',
-  navigationEnabled: 'platform.settings.navigationEnabled',
-  durEnabled: 'platform.settings.durEnabled',
+  gpsTrackingEnabled: "platform.settings.gpsTrackingEnabled",
+  mapViewEnabled: "platform.settings.mapViewEnabled",
+  geofencingEnabled: "platform.settings.geofencingEnabled",
+  routePlanningEnabled: "platform.settings.routePlanningEnabled",
+  navigationEnabled: "platform.settings.navigationEnabled",
+  durEnabled: "platform.settings.durEnabled",
 };

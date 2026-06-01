@@ -12,7 +12,7 @@ export function formatDueDatetimeLocal(dateString: string | null): string {
 export function buildUnifiedDispatchItems(
   orders: UnifiedGanttItem[],
   sessions: UnifiedGanttItem[],
-  searchQuery: string,
+  searchQuery: string
 ): UnifiedGanttItem[] {
   const q = searchQuery.trim();
   return [

@@ -115,9 +115,7 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
             />
             {!previewItem.isGroup && previewItem.color ? (
               <AdminPreviewField label={shared.colorLabel}>
-                <span
-                  className="inline-flex items-center gap-2"
-                >
+                <span className="inline-flex items-center gap-2">
                   <span
                     className="inline-block h-4 w-4 rounded shadow-sm"
                     style={{ backgroundColor: previewItem.color }}

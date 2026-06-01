@@ -37,7 +37,9 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 vi.mock("@/lib/passwordCrypto", () => ({
-  comparePassword: vi.fn((plain: string, hash: string) => plain === "correct-password" && hash === "hashed-value"),
+  comparePassword: vi.fn(
+    (plain: string, hash: string) => plain === "correct-password" && hash === "hashed-value"
+  ),
 }));
 
 describe("AdminUserService", () => {
@@ -50,9 +52,21 @@ describe("AdminUserService", () => {
 
   describe("getAllUsers", () => {
     it("zwraca listę użytkowników dla companyId z projekcją kolumn", async () => {
-      const orderBy = vi.fn().mockResolvedValue([
-        { id: 1, fullName: "Jan Kowalski", usernameEmail: "jan@test.pl", role: "worker", isActive: true, canCreateOwnOrders: true, canEditRoute: false, canCreateCustomers: false, companyId: 1 },
-      ]);
+      const orderBy = vi
+        .fn()
+        .mockResolvedValue([
+          {
+            id: 1,
+            fullName: "Jan Kowalski",
+            usernameEmail: "jan@test.pl",
+            role: "worker",
+            isActive: true,
+            canCreateOwnOrders: true,
+            canEditRoute: false,
+            canCreateCustomers: false,
+            companyId: 1,
+          },
+        ]);
       const where = vi.fn().mockReturnValue({ orderBy });
       const from = vi.fn().mockReturnValue({ where });
       selectMock.mockReturnValue({ from });
@@ -171,7 +185,7 @@ describe("AdminUserService", () => {
           canCreateOwnOrders: true,
           canEditRoute: false,
           canCreateCustomers: false,
-        }),
+        })
       );
     });
 
@@ -193,7 +207,7 @@ describe("AdminUserService", () => {
           canCreateOwnOrders: false,
           canEditRoute: false,
           canCreateCustomers: false,
-        }),
+        })
       );
     });
   });
@@ -252,7 +266,9 @@ describe("AdminUserService", () => {
       selectMock.mockReturnValue({ from });
 
       const { AdminUserService } = await import("./AdminUserService");
-      await expect(AdminUserService.verifyPasswordForUserId(1, "correct-password")).resolves.toBe(true);
+      await expect(AdminUserService.verifyPasswordForUserId(1, "correct-password")).resolves.toBe(
+        true
+      );
     });
 
     it("zwraca false gdy hasło niepoprawne", async () => {
@@ -262,7 +278,9 @@ describe("AdminUserService", () => {
       selectMock.mockReturnValue({ from });
 
       const { AdminUserService } = await import("./AdminUserService");
-      await expect(AdminUserService.verifyPasswordForUserId(1, "wrong-password")).resolves.toBe(false);
+      await expect(AdminUserService.verifyPasswordForUserId(1, "wrong-password")).resolves.toBe(
+        false
+      );
     });
 
     it("zwraca false gdy brak użytkownika", async () => {

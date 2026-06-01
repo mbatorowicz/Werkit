@@ -61,7 +61,7 @@ export class StockMovementService {
   static async addReceipt(
     companyId: number,
     userId: number,
-    input: StockReceiptInput,
+    input: StockReceiptInput
   ): Promise<StockReceipt> {
     const [row] = await db
       .insert(stockReceipts)
@@ -140,7 +140,7 @@ export class StockMovementService {
   static async addIssue(
     companyId: number,
     userId: number,
-    input: StockIssueInput,
+    input: StockIssueInput
   ): Promise<StockIssue> {
     // Walidacja: quantity musi być dodatnia
     const qty = input.quantity;

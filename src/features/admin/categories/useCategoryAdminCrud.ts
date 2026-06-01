@@ -67,7 +67,7 @@ export function useCategoryAdminCrud<TForm extends object>({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         },
-        { category: "admin" },
+        { category: "admin" }
       );
       if (res.ok) {
         setIsOpen(false);
@@ -83,9 +83,14 @@ export function useCategoryAdminCrud<TForm extends object>({
 
   const handleDelete = async (id: number) => {
     if (!(await appConfirm({ message: confirmDeleteMessage, variant: "danger" }))) return;
-    const res = await fetchWithDeviceTelemetry(`${telemetry} DELETE ${id}`, `${apiBase}/${id}`, { method: "DELETE" }, {
-      category: "admin",
-    });
+    const res = await fetchWithDeviceTelemetry(
+      `${telemetry} DELETE ${id}`,
+      `${apiBase}/${id}`,
+      { method: "DELETE" },
+      {
+        category: "admin",
+      }
+    );
     if (res.ok) void fetchData();
     else {
       const body = (await res.json()) as { error?: string };

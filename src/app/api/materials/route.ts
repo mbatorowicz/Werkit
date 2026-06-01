@@ -1,9 +1,9 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { isMissingMaterialCategoriesTables } from '@/lib/postgresMigrationHints';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { isMissingMaterialCategoriesTables } from "@/lib/postgresMigrationHints";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -16,9 +16,12 @@ export const GET = withApiErrorHandling(
     return jsonOk(allMaterials);
   },
   {
-    mapUnknownError: (err) => (isMissingMaterialCategoriesTables(err) ? jsonError("migration_material_categories", 503) : null),
+    mapUnknownError: (err) =>
+      isMissingMaterialCategoriesTables(err)
+        ? jsonError("migration_material_categories", 503)
+        : null,
     defaultErrorCode: "fetch_error",
-  },
+  }
 );
 
 export const POST = withApiErrorHandling(
@@ -47,5 +50,5 @@ export const POST = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );

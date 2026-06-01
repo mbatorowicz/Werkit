@@ -87,7 +87,9 @@ export function WorkOrderPendingCard({
               {order.categoryName || dict.noCategoryName}
             </div>
           </span>
-          {!positionLabel ? <WorkOrderPriorityRibbon priority={order.priority} labels={dict} /> : null}
+          {!positionLabel ? (
+            <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
+          ) : null}
         </div>
         <div className={positionLabel ? undefined : "mt-2"}>
           <OrderLabelCard
@@ -102,8 +104,12 @@ export function WorkOrderPendingCard({
             description={order.taskDescription}
             orderedBy={order.creatorName ?? null}
             orderedByLabel={dict.orderedBy}
-            dateLabel={order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)}
-            timeLabel={order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)}
+            dateLabel={
+              order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
+            }
+            timeLabel={
+              order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
+            }
             className="bg-white/60 dark:bg-zinc-950/30"
             attachmentPhotos={Boolean(order.hasPhotos)}
             attachmentNotes={Boolean(order.hasNotes)}

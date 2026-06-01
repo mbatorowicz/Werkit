@@ -3,18 +3,20 @@
  * Uruchom: npm run db:napraw-slowniki-baza
  */
 async function main() {
-  const { loadEnvConfig } = await import('@next/env');
+  const { loadEnvConfig } = await import("@next/env");
   loadEnvConfig(process.cwd());
 
-  const { ensurePostgresUrlForVercelDriver } = await import('@/lib/resolveNeonPostgresUrl');
+  const { ensurePostgresUrlForVercelDriver } = await import("@/lib/resolveNeonPostgresUrl");
   if (!ensurePostgresUrlForVercelDriver()) {
-    console.error('Brak DATABASE_URL / POSTGRES_URL w .env.local — patrz npm run db:napraw-maszyny (instrukcja).');
+    console.error(
+      "Brak DATABASE_URL / POSTGRES_URL w .env.local — patrz npm run db:napraw-maszyny (instrukcja)."
+    );
     process.exit(1);
   }
 
-  const { sql } = await import('@vercel/postgres');
+  const { sql } = await import("@vercel/postgres");
 
-  console.log('Tworzenie tabel material_categories / material_to_categories (jeśli brak)…');
+  console.log("Tworzenie tabel material_categories / material_to_categories (jeśli brak)…");
   await sql`
     CREATE TABLE IF NOT EXISTS "material_categories" (
       "id" serial PRIMARY KEY NOT NULL,
@@ -32,7 +34,7 @@ async function main() {
     )
   `;
 
-  console.log('Kolumna is_stationary na resource_categories…');
+  console.log("Kolumna is_stationary na resource_categories…");
   await sql`
     ALTER TABLE "resource_categories"
     ADD COLUMN IF NOT EXISTS "is_stationary" boolean DEFAULT false NOT NULL
@@ -44,7 +46,7 @@ async function main() {
        OR upper(trim("name")) LIKE '%WORKSHOP%'
   `;
 
-  console.log('OK — słowniki (materiały + mobilność typów sprzętu).');
+  console.log("OK — słowniki (materiały + mobilność typów sprzętu).");
 }
 
 void main().catch((err: unknown) => {

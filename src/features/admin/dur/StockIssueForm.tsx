@@ -40,7 +40,9 @@ export function StockIssueForm({
 }: StockIssueFormProps) {
   return (
     <form
-      onSubmit={(e) => { e.preventDefault(); }}
+      onSubmit={(e) => {
+        e.preventDefault();
+      }}
       className="space-y-4"
       id="issue-form"
     >

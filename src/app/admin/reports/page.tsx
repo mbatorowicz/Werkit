@@ -1,7 +1,7 @@
 import { getDictionary } from "@/i18n";
 import { ReportsDashboard } from "@/components/Admin/Reports/ReportsDashboard";
 import { AdminReportService } from "@/services/AdminReportService";
-import { requireServerCompanyId } from '@/lib/serverTenant';
+import { requireServerCompanyId } from "@/lib/serverTenant";
 
 export const dynamic = "force-dynamic";
 

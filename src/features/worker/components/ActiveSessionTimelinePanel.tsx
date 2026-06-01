@@ -54,13 +54,17 @@ export function ActiveSessionTimelinePanel({
       </button>
 
       {isTimelineOpen && (
-        <div className={`mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] flex flex-col gap-4 shadow-inner relative scroll-smooth ${INLINE_SCROLL_PANEL_CLASS}`}>
+        <div
+          className={`mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] flex flex-col gap-4 shadow-inner relative scroll-smooth ${INLINE_SCROLL_PANEL_CLASS}`}
+        >
           {timelineEvents.map((item, index) => (
             <div
               key={item.id}
               id={item.id}
               className={`flex gap-3 relative ${
-                selectedEventId === item.id ? "bg-blue-50 dark:bg-blue-500/10 p-2 -mx-2 rounded-lg" : ""
+                selectedEventId === item.id
+                  ? "bg-blue-50 dark:bg-blue-500/10 p-2 -mx-2 rounded-lg"
+                  : ""
               } transition-all`}
             >
               {index < timelineEvents.length - 1 && (
@@ -73,10 +77,16 @@ export function ActiveSessionTimelinePanel({
                     : "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
                 }`}
               >
-                {item.type === "photo" ? <Camera className="w-3 h-3" /> : <FileText className="w-3 h-3" />}
+                {item.type === "photo" ? (
+                  <Camera className="w-3 h-3" />
+                ) : (
+                  <FileText className="w-3 h-3" />
+                )}
               </div>
               <div className="flex-1 pb-2">
-                <div className="text-[10px] text-zinc-400 mb-1">{formatUiTimeHm(item.createdAt)}</div>
+                <div className="text-[10px] text-zinc-400 mb-1">
+                  {formatUiTimeHm(item.createdAt)}
+                </div>
                 {item.type === "photo" ? (
                   <div className="w-16 h-16 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
                     <Image
@@ -89,7 +99,9 @@ export function ActiveSessionTimelinePanel({
                     />
                   </div>
                 ) : (
-                  <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words">{item.content}</div>
+                  <div className="text-sm text-zinc-700 dark:text-zinc-300 break-words">
+                    {item.content}
+                  </div>
                 )}
               </div>
             </div>

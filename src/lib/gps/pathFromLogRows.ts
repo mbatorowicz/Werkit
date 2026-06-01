@@ -29,7 +29,7 @@ export function coordFromRawGpsRow(row: RawGpsCoordinateRow): Coord | null {
 
 export function coordsFromRawGpsLogRows(
   rows: readonly RawGpsCoordinateRow[],
-  options?: { reverseToChronological?: boolean },
+  options?: { reverseToChronological?: boolean }
 ): Coord[] {
   const mapped = rows.map(coordFromRawGpsRow).filter((p): p is Coord => p !== null);
   return options?.reverseToChronological ? [...mapped].reverse() : mapped;
@@ -38,7 +38,7 @@ export function coordsFromRawGpsLogRows(
 /** Ślad do mapy: parsowanie + ewentualne odwrócenie kolejności + scalenie szumu postoju. */
 export function displayPathFromRawGpsRows(
   rows: readonly RawGpsCoordinateRow[],
-  options?: { reverseToChronological?: boolean },
+  options?: { reverseToChronological?: boolean }
 ): Coord[] {
   return foldMicroJumpsInPath(coordsFromRawGpsLogRows(rows, options));
 }

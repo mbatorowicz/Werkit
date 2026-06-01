@@ -1,7 +1,7 @@
 import type { OrderType, WorkOrderPriority } from "./worker";
 
 export type UnifiedGanttItem = {
-  _type: 'ORDER' | 'SESSION';
+  _type: "ORDER" | "SESSION";
   id: number;
   userId?: number | null;
   resourceId?: number | null;

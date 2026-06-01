@@ -29,7 +29,9 @@ export function filterCategoryGroups<T extends CategoryHierarchyRow>(rows: T[]):
   return rows.filter((r) => r.isGroup);
 }
 
-export function buildCategoryTree<T extends CategoryHierarchyRow>(rows: T[]): CategoryTreeNode<T>[] {
+export function buildCategoryTree<T extends CategoryHierarchyRow>(
+  rows: T[]
+): CategoryTreeNode<T>[] {
   const sorted = sortCategoriesForDisplay(rows);
   const byId = new Map<number, CategoryTreeNode<T>>();
   for (const row of sorted) {
@@ -58,7 +60,9 @@ export function buildCategoryTree<T extends CategoryHierarchyRow>(rows: T[]): Ca
   return roots;
 }
 
-export function flattenCategoryTree<T extends CategoryHierarchyRow>(roots: CategoryTreeNode<T>[]): CategoryTreeNode<T>[] {
+export function flattenCategoryTree<T extends CategoryHierarchyRow>(
+  roots: CategoryTreeNode<T>[]
+): CategoryTreeNode<T>[] {
   const out: CategoryTreeNode<T>[] = [];
   const walk = (nodes: CategoryTreeNode<T>[]) => {
     for (const n of nodes) {
@@ -74,7 +78,7 @@ export function flattenCategoryTree<T extends CategoryHierarchyRow>(roots: Categ
 export function isDescendantOf<T extends CategoryHierarchyRow>(
   rows: T[],
   nodeId: number,
-  ancestorId: number,
+  ancestorId: number
 ): boolean {
   const byId = new Map(rows.map((r) => [r.id, r]));
   let cur: number | null = nodeId;

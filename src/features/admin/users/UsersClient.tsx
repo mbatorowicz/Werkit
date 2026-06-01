@@ -37,18 +37,26 @@ export default function UsersClient() {
   const ui = dictionary.admin.ui;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const roleSubtitle = useCallback((role: string) => {
-    if (role === "admin") return dict.roleAdminShort;
-    if (role === "viewer") return dict.roleViewerShort;
-    return dict.roleWorkerShort;
-  }, [dict]);
+  const roleSubtitle = useCallback(
+    (role: string) => {
+      if (role === "admin") return dict.roleAdminShort;
+      if (role === "viewer") return dict.roleViewerShort;
+      return dict.roleWorkerShort;
+    },
+    [dict]
+  );
 
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Admin users: list", adminApi.users, { cache: "no-store" }, {
-        category: "admin",
-      });
+      const res = await fetchWithDeviceTelemetry(
+        "Admin users: list",
+        adminApi.users,
+        { cache: "no-store" },
+        {
+          category: "admin",
+        }
+      );
       const data = await parseJsonArray(res);
       setUsers(narrowAdminUserRows(data));
     } catch {
@@ -74,17 +82,23 @@ export default function UsersClient() {
           role: user.role,
           roleLabel: roleSubtitle(user.role),
         },
-        q,
-      ),
+        q
+      )
     );
   }, [users, searchQuery, roleSubtitle]);
 
   const handleDelete = async (id: number, name: string) => {
-    if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" }))) return;
+    if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" })))
+      return;
     try {
-      const res = await fetchWithDeviceTelemetry(`Admin users: delete ${id}`, adminApi.user(id), { method: "DELETE" }, {
-        category: "admin",
-      });
+      const res = await fetchWithDeviceTelemetry(
+        `Admin users: delete ${id}`,
+        adminApi.user(id),
+        { method: "DELETE" },
+        {
+          category: "admin",
+        }
+      );
       if (res.ok) {
         fetchUsers();
       } else {
@@ -139,7 +153,7 @@ export default function UsersClient() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
         },
-        { category: "admin" },
+        { category: "admin" }
       );
 
       const body = await parseJsonUnknown(res);

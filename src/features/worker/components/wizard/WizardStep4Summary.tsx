@@ -46,13 +46,17 @@ export function WizardStep4Summary({
       <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
         <CheckCircle2 className="w-10 h-10 text-emerald-500" />
       </div>
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">{dict.wizardStep5Title}</h2>
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 text-center">
+        {dict.wizardStep5Title}
+      </h2>
       <p className="text-zinc-500 text-sm mb-8 text-center">{dict.wizardStep5Subtitle}</p>
 
       <div className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 space-y-3 mb-10">
         <div className="flex justify-between">
           <span className="text-zinc-500 text-sm">{dict.wizardSummaryType}</span>
-          <span className="text-zinc-900 dark:text-white font-medium">{selectedCategory?.name}</span>
+          <span className="text-zinc-900 dark:text-white font-medium">
+            {selectedCategory?.name}
+          </span>
         </div>
         <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
           <span className="text-zinc-500 text-sm">{dict.wizardSummaryMachine}</span>

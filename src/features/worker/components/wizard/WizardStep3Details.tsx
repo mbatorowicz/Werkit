@@ -52,7 +52,7 @@ export function WizardStep3Details({
 }: Props) {
   const materialOptions = useMemo(
     () => materials.map((m) => ({ id: String(m.id), label: m.name })),
-    [materials],
+    [materials]
   );
 
   const comboboxCommon = comboboxFeedbackProps(dict);
@@ -66,14 +66,18 @@ export function WizardStep3Details({
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-      <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">{dict.wizardStep3Title}</h2>
+      <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
+        {dict.wizardStep3Title}
+      </h2>
       <p className="text-zinc-500 text-sm mb-4">{dict.wizardStep3Subtitle}</p>
 
       <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 mb-6 space-y-2">
         <div className="flex justify-between items-center">
           <div className="text-sm">
             <span className="text-zinc-500">{dict.wizardSelectedType} </span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">{selectedCategory?.name}</span>
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              {selectedCategory?.name}
+            </span>
           </div>
         </div>
         <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-700 pt-2">
@@ -83,7 +87,11 @@ export function WizardStep3Details({
               {machines.find((m) => m.id.toString() === resourceId)?.name}
             </span>
           </div>
-          <button type="button" onClick={() => setStep(2)} className="text-xs text-zinc-500 underline">
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="text-xs text-zinc-500 underline"
+          >
             {dict.wizardChangeLink}
           </button>
         </div>
@@ -133,7 +141,7 @@ export function WizardStep3Details({
           </div>
         ) : null}
 
-        {(!selectedCategory || selectedCategory?.showTaskDescription) ? (
+        {!selectedCategory || selectedCategory?.showTaskDescription ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
             <textarea

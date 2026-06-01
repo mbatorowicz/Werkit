@@ -46,7 +46,10 @@ function writeDismissedSet(set: Set<string>): void {
 }
 
 /** Minuty do terminu zlecenia (zaokrąglone w dół); null = brak twardego terminu. */
-export function minutesUntilDue(dueDate: string | null | undefined, nowMs = Date.now()): number | null {
+export function minutesUntilDue(
+  dueDate: string | null | undefined,
+  nowMs = Date.now()
+): number | null {
   if (!dueDate) return null;
   const dueMs = new Date(dueDate).getTime();
   if (!Number.isFinite(dueMs)) return null;

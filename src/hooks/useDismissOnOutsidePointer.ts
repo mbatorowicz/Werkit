@@ -5,7 +5,7 @@ import { useEffect, useRef, type RefObject } from "react";
 export function useDismissOnOutsidePointer(
   refs: Array<RefObject<Node | null>>,
   active: boolean,
-  onDismiss: () => void,
+  onDismiss: () => void
 ): void {
   const refsRef = useRef(refs);
   const onDismissRef = useRef(onDismiss);

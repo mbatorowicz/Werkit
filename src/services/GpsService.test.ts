@@ -12,7 +12,12 @@ vi.mock("@/db", () => ({
 
 vi.mock("@/db/schema", () => ({
   workSessions: { id: "id", userId: "userId", companyId: "companyId", status: "status" },
-  gpsLogs: { workSessionId: "workSessionId", latitude: "latitude", longitude: "longitude", timestamp: "timestamp" },
+  gpsLogs: {
+    workSessionId: "workSessionId",
+    latitude: "latitude",
+    longitude: "longitude",
+    timestamp: "timestamp",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -53,8 +58,16 @@ describe("GpsService", () => {
             where: () => ({
               orderBy: () =>
                 Promise.resolve([
-                  { latitude: "52.2297", longitude: "21.0122", timestamp: new Date("2025-01-01T10:00:00Z") },
-                  { latitude: "52.2298", longitude: "21.0123", timestamp: new Date("2025-01-01T10:01:00Z") },
+                  {
+                    latitude: "52.2297",
+                    longitude: "21.0122",
+                    timestamp: new Date("2025-01-01T10:00:00Z"),
+                  },
+                  {
+                    latitude: "52.2298",
+                    longitude: "21.0123",
+                    timestamp: new Date("2025-01-01T10:01:00Z"),
+                  },
                 ]),
             }),
           }),
@@ -96,9 +109,9 @@ describe("GpsService", () => {
       });
 
       const { GpsService } = await import("@/services/GpsService");
-      await expect(
-        GpsService.saveGpsLogs(1, 1, [{ lat: 52.2297, lng: 21.0122 }]),
-      ).rejects.toThrow("no_active_session");
+      await expect(GpsService.saveGpsLogs(1, 1, [{ lat: 52.2297, lng: 21.0122 }])).rejects.toThrow(
+        "no_active_session"
+      );
     });
 
     it("zwraca 0 gdy pusta tablica punktów", async () => {

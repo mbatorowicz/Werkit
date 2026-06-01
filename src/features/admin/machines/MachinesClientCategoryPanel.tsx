@@ -37,7 +37,16 @@ export function MachinesClientCategoryPanel({
       createEmptyForm={() => ({ ...EMPTY_CATEGORY_FORM })}
       itemToForm={resourceCategoryToForm}
       stationaryBadge={dict.badgeStationary}
-      renderModal={({ open, onClose, isEdit, editId, form, setForm, categories: tree, onSubmit }) => (
+      renderModal={({
+        open,
+        onClose,
+        isEdit,
+        editId,
+        form,
+        setForm,
+        categories: tree,
+        onSubmit,
+      }) => (
         <ResourceCategoryFormModal
           open={open}
           onClose={onClose}

@@ -86,7 +86,9 @@ export default function SessionPhotoLightbox({
         ) : null}
       </div>
 
-      <div className={`z-10 flex h-24 items-center justify-center gap-2 bg-black/50 p-4 ${INLINE_SCROLL_X_PANEL_CLASS}`}>
+      <div
+        className={`z-10 flex h-24 items-center justify-center gap-2 bg-black/50 p-4 ${INLINE_SCROLL_X_PANEL_CLASS}`}
+      >
         {photos.map((url, idx) => (
           <Image
             key={url}
@@ -96,7 +98,9 @@ export default function SessionPhotoLightbox({
             height={64}
             unoptimized
             className={`h-16 w-16 cursor-pointer rounded object-cover transition-all ${
-              idx === currentIndex ? "scale-110 border-2 border-amber-500 opacity-100" : "opacity-40 hover:opacity-100"
+              idx === currentIndex
+                ? "scale-110 border-2 border-amber-500 opacity-100"
+                : "opacity-40 hover:opacity-100"
             }`}
             onClick={() => onNavigate(idx)}
           />

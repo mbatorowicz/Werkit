@@ -7,7 +7,7 @@ import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /** DELETE /api/worker/work-orders/[id]/spare-parts/[partId] — usuń część ze zlecenia (pracownik) */
 export const DELETE = withApiErrorHandling(
@@ -25,11 +25,17 @@ export const DELETE = withApiErrorHandling(
     if (Number.isNaN(workOrderId) || Number.isNaN(sparePartId)) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
-    const orderBelongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(workOrderId, ctx.companyId);
+    const orderBelongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(
+      workOrderId,
+      ctx.companyId
+    );
     if (!orderBelongs) return jsonError("not_found", 404);
 
     // Weryfikacja: część należy do zlecenia
-    const belongs = await WorkOrderSparePartService.assertPartBelongsToOrder(sparePartId, workOrderId);
+    const belongs = await WorkOrderSparePartService.assertPartBelongsToOrder(
+      sparePartId,
+      workOrderId
+    );
     if (!belongs) return jsonError("not_found", 404);
 
     const deleted = await WorkOrderSparePartService.removePartFromOrder(sparePartId);
@@ -37,5 +43,5 @@ export const DELETE = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "delete_error" },
+  { defaultErrorCode: "delete_error" }
 );

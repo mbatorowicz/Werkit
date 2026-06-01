@@ -37,7 +37,9 @@ type LogItem = {
 
 type LogsDict = AppDictionary["admin"]["logs"];
 
-function getLogCategory(metadata: Record<string, unknown> | null | undefined): WerkitLogCategory | undefined {
+function getLogCategory(
+  metadata: Record<string, unknown> | null | undefined
+): WerkitLogCategory | undefined {
   if (!metadata) return undefined;
   const top = metadata.category;
   if (typeof top === "string") return top as WerkitLogCategory;
@@ -51,7 +53,7 @@ function getLogCategory(metadata: Record<string, unknown> | null | undefined): W
 
 function summarizeTelemetryLine(
   metadata: Record<string, unknown> | null | undefined,
-  logsDict: LogsDict,
+  logsDict: LogsDict
 ): string | null {
   if (!metadata) return null;
   const parts: string[] = [];
@@ -65,7 +67,8 @@ function summarizeTelemetryLine(
     const client = wco.client;
     if (client && typeof client === "object" && !Array.isArray(client)) {
       const c = client as Record<string, unknown>;
-      if (typeof c.appVersion === "string") parts.push(formatDict(tl.appVersion, { version: c.appVersion }));
+      if (typeof c.appVersion === "string")
+        parts.push(formatDict(tl.appVersion, { version: c.appVersion }));
       if (typeof c.platform === "string") parts.push(c.platform);
       if (typeof c.path === "string") parts.push(c.path);
       if (typeof c.correlationId === "string") {
@@ -125,9 +128,14 @@ export default function LogsClient({
   const handleExportJson = async () => {
     setExporting(true);
     try {
-      const res = await fetchWithDeviceTelemetry("Admin logs: export JSON", "/api/admin/logs/export", {
-        credentials: "same-origin",
-      }, { category: "admin" });
+      const res = await fetchWithDeviceTelemetry(
+        "Admin logs: export JSON",
+        "/api/admin/logs/export",
+        {
+          credentials: "same-origin",
+        },
+        { category: "admin" }
+      );
       if (!res.ok) {
         await appAlert({ message: logsDict.exportJsonError });
         return;
@@ -183,7 +191,9 @@ export default function LogsClient({
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={filterUserId}
-            onChange={(e) => setFilterUserId(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
+            onChange={(e) =>
+              setFilterUserId(e.target.value === "ALL" ? "ALL" : Number(e.target.value))
+            }
             className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500"
           >
             <option value="ALL">{logsDict.filterAllWorkers}</option>
@@ -207,7 +217,9 @@ export default function LogsClient({
           <select
             value={filterCategory}
             onChange={(e) =>
-              setFilterCategory(e.target.value === "ALL" ? "ALL" : (e.target.value as WerkitLogCategory))
+              setFilterCategory(
+                e.target.value === "ALL" ? "ALL" : (e.target.value as WerkitLogCategory)
+              )
             }
             className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500 max-w-[11rem]"
           >
@@ -240,7 +252,9 @@ export default function LogsClient({
         </div>
       </div>
 
-      <div className={`flex-1 p-4 bg-zinc-950 font-mono text-xs sm:text-sm relative ${INLINE_SCROLL_PANEL_CLASS}`}>
+      <div
+        className={`flex-1 p-4 bg-zinc-950 font-mono text-xs sm:text-sm relative ${INLINE_SCROLL_PANEL_CLASS}`}
+      >
         {filteredLogs.length === 0 ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-zinc-600">
             <TerminalSquare className="w-12 h-12 mb-3 opacity-20" />
@@ -259,14 +273,20 @@ export default function LogsClient({
                 >
                   <div className="whitespace-pre-wrap">
                     <span className="text-zinc-500">[{formatUiDateTimeShort(log.createdAt)}]</span>
-                    <span className={`mx-2 font-bold rounded border px-1 ${getLevelColor(log.level)}`}>
+                    <span
+                      className={`mx-2 font-bold rounded border px-1 ${getLevelColor(log.level)}`}
+                    >
                       [{log.level}]
                     </span>
-                    {log.workerName && <span className="mr-2 text-zinc-300">[{log.workerName}]</span>}
+                    {log.workerName && (
+                      <span className="mr-2 text-zinc-300">[{log.workerName}]</span>
+                    )}
                     <span className="text-zinc-100">{log.message}</span>
                   </div>
                   {summary && (
-                    <div className="mt-1 text-[11px] sm:text-xs text-zinc-500 pl-0 sm:pl-1 leading-snug">{summary}</div>
+                    <div className="mt-1 text-[11px] sm:text-xs text-zinc-500 pl-0 sm:pl-1 leading-snug">
+                      {summary}
+                    </div>
                   )}
                   {hasPayload && (
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">

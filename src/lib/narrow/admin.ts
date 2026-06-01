@@ -57,11 +57,20 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
   for (const r of rows) {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.lastName !== "string") continue;
-    const firstName = r.firstName === null || typeof r.firstName === "string" ? (r.firstName as string | null) : null;
+    const firstName =
+      r.firstName === null || typeof r.firstName === "string"
+        ? (r.firstName as string | null)
+        : null;
     const defaultAddress =
-      r.defaultAddress === null || typeof r.defaultAddress === "string" ? (r.defaultAddress as string | null) : null;
-    const latitude = r.latitude === null || typeof r.latitude === "string" ? (r.latitude as string | null) : null;
-    const longitude = r.longitude === null || typeof r.longitude === "string" ? (r.longitude as string | null) : null;
+      r.defaultAddress === null || typeof r.defaultAddress === "string"
+        ? (r.defaultAddress as string | null)
+        : null;
+    const latitude =
+      r.latitude === null || typeof r.latitude === "string" ? (r.latitude as string | null) : null;
+    const longitude =
+      r.longitude === null || typeof r.longitude === "string"
+        ? (r.longitude as string | null)
+        : null;
     const locationAddresses = narrowStringArray(r.locationAddresses);
     out.push({
       id: r.id,

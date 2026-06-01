@@ -16,7 +16,9 @@ let htmlAudio: HTMLAudioElement | null = null;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
-  const Ctx = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  const Ctx =
+    window.AudioContext ??
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!Ctx) return null;
   if (!audioContext) audioContext = new Ctx();
   return audioContext;
@@ -33,7 +35,7 @@ function scheduleTone(
   startAt: number,
   durationSec: number,
   gainValue: number,
-  type: OscillatorType = "sine",
+  type: OscillatorType = "sine"
 ): void {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -52,7 +54,7 @@ function playWebAudioPreset(
   ctx: AudioContext,
   presetId: NotificationSoundPresetId,
   gainValue: number,
-  when = ctx.currentTime,
+  when = ctx.currentTime
 ): void {
   switch (presetId) {
     case "classic":
@@ -101,7 +103,10 @@ export function stopAlarmSound(): void {
   stopHtmlAudio();
 }
 
-async function playSampleOnce(presetId: NotificationSoundPresetId, gainValue: number): Promise<void> {
+async function playSampleOnce(
+  presetId: NotificationSoundPresetId,
+  gainValue: number
+): Promise<void> {
   stopHtmlAudio();
   const url = getPublicSoundUrl(presetId);
   const audio = new Audio(url);
@@ -119,7 +124,7 @@ async function playSampleOnce(presetId: NotificationSoundPresetId, gainValue: nu
 
 export async function previewAlarmSound(
   kind: WorkerAlarmKind,
-  presetOverride?: NotificationSoundPresetId,
+  presetOverride?: NotificationSoundPresetId
 ): Promise<void> {
   if (!isNotificationSoundEnabled()) return;
   const presetId = presetOverride ?? getNotificationSoundSettings().presets[kind];

@@ -52,7 +52,9 @@ export default function CatalogMaterialRow({
         >
           <Package className="h-2.5 w-2.5 text-white/90" />
         </div>
-        <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">{material.name}</span>
+        <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">
+          {material.name}
+        </span>
         {materialBadge ? (
           <span className="shrink-0 rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">
             {materialBadge}

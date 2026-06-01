@@ -20,7 +20,12 @@ export type WizardCategory = {
   isStationary?: boolean;
 };
 
-export type WizardMachine = { id: number; name: string; categoryIds: number[]; description?: string | null };
+export type WizardMachine = {
+  id: number;
+  name: string;
+  categoryIds: number[];
+  description?: string | null;
+};
 
 export type WizardMaterial = { id: number; name: string; categoryIds?: number[] };
 

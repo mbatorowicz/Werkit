@@ -20,7 +20,7 @@ describe("workerUserPermissions", () => {
         canCreateOwnOrders: true,
         canEditRoute: false,
         canCreateCustomers: true,
-      }),
+      })
     ).toEqual({
       canCreateOwnOrders: true,
       canEditRoute: false,
@@ -30,7 +30,7 @@ describe("workerUserPermissions", () => {
 
   it("clears worker flags for non-worker roles", () => {
     expect(workerPermissionsFromBody("admin", { canCreateOwnOrders: true })).toEqual(
-      NON_WORKER_PERMISSION_FLAGS,
+      NON_WORKER_PERMISSION_FLAGS
     );
   });
 

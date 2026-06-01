@@ -54,15 +54,24 @@ export default function UsersTable({
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-50 dark:bg-[#0a0a0b]/80">
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.nameRole}</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{dict.systemLogin}</th>
-                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">{dict.management}</th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {dict.nameRole}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                  {dict.systemLogin}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider text-right">
+                  {dict.management}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                  <td
+                    colSpan={3}
+                    className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm"
+                  >
                     {dict.fetching}
                   </td>
                 </tr>
@@ -81,10 +90,14 @@ export default function UsersTable({
                         <div>
                           <div className="font-medium text-zinc-900 dark:text-zinc-200 flex items-center gap-2">
                             {user.fullName}
-                            {user.role === "admin" && <Shield className="w-3.5 h-3.5 text-amber-500" />}
+                            {user.role === "admin" && (
+                              <Shield className="w-3.5 h-3.5 text-amber-500" />
+                            )}
                             {user.role === "viewer" && <Eye className="w-3.5 h-3.5 text-sky-500" />}
                           </div>
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{roleSubtitle(user.role)}</div>
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {roleSubtitle(user.role)}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -128,14 +141,20 @@ export default function UsersTable({
               )}
               {!isLoading && users.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                  <td
+                    colSpan={3}
+                    className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm"
+                  >
                     {dict.noUsers}
                   </td>
                 </tr>
               )}
               {!isLoading && users.length > 0 && filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
+                  <td
+                    colSpan={3}
+                    className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm"
+                  >
                     {dict.listSearchNoResults}
                   </td>
                 </tr>

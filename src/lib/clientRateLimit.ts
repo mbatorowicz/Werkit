@@ -12,7 +12,7 @@ function markOrSkip(
   store: Map<string, number>,
   key: string,
   windowMs: number,
-  options?: { maxKeys?: number; staleMinMs?: number },
+  options?: { maxKeys?: number; staleMinMs?: number }
 ): boolean {
   const now = Date.now();
   const prev = store.get(key);

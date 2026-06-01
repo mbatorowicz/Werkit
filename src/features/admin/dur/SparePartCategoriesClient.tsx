@@ -78,62 +78,86 @@ export default function SparePartCategoriesClient() {
     setEditingCat(null);
   }, []);
 
-  const handleSave = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim()) {
-      await appAlert({ message: durApiErrors.missing_category_name });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const body: SparePartCategoryInput = {
-        name: formName.trim(),
-        parentId: formParentId,
-        isGroup: formIsGroup,
-        sortOrder: formSortOrder,
-        color: formColor || undefined,
-      };
-
-      const url = editingCat ? `/api/dur/spare-part-categories/${editingCat.id}` : "/api/dur/spare-part-categories";
-      const method = editingCat ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.save_error });
+  const handleSave = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!formName.trim()) {
+        await appAlert({ message: durApiErrors.missing_category_name });
         return;
       }
 
-      closeModal();
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.save_error });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formName, formParentId, formIsGroup, formSortOrder, formColor, editingCat, appAlert, durApiErrors, apiErrors, closeModal, fetchData]);
+      setIsSubmitting(true);
+      try {
+        const body: SparePartCategoryInput = {
+          name: formName.trim(),
+          parentId: formParentId,
+          isGroup: formIsGroup,
+          sortOrder: formSortOrder,
+          color: formColor || undefined,
+        };
 
-  const handleDelete = useCallback(async (cat: SparePartCategory) => {
-    const confirmed = await appConfirm({ message: dict.confirmDelete, variant: "danger" });
-    if (!confirmed) return;
-    try {
-      const res = await fetch(`/api/dur/spare-part-categories/${cat.id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        await appAlert({ message: (errData as { error?: string }).error ?? apiErrors.delete_error });
-        return;
+        const url = editingCat
+          ? `/api/dur/spare-part-categories/${editingCat.id}`
+          : "/api/dur/spare-part-categories";
+        const method = editingCat ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.save_error,
+          });
+          return;
+        }
+
+        closeModal();
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.save_error });
+      } finally {
+        setIsSubmitting(false);
       }
-      await fetchData();
-    } catch {
-      await appAlert({ message: apiErrors.delete_error });
-    }
-  }, [appConfirm, appAlert, dict, apiErrors, fetchData]);
+    },
+    [
+      formName,
+      formParentId,
+      formIsGroup,
+      formSortOrder,
+      formColor,
+      editingCat,
+      appAlert,
+      durApiErrors,
+      apiErrors,
+      closeModal,
+      fetchData,
+    ]
+  );
+
+  const handleDelete = useCallback(
+    async (cat: SparePartCategory) => {
+      const confirmed = await appConfirm({ message: dict.confirmDelete, variant: "danger" });
+      if (!confirmed) return;
+      try {
+        const res = await fetch(`/api/dur/spare-part-categories/${cat.id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          await appAlert({
+            message: (errData as { error?: string }).error ?? apiErrors.delete_error,
+          });
+          return;
+        }
+        await fetchData();
+      } catch {
+        await appAlert({ message: apiErrors.delete_error });
+      }
+    },
+    [appConfirm, appAlert, dict, apiErrors, fetchData]
+  );
 
   // Build tree for display
   const rootCategories = categories.filter((c) => c.parentId === null);
@@ -149,7 +173,10 @@ export default function SparePartCategoriesClient() {
           {cat.isGroup ? (
             <FolderTree className="w-4 h-4 text-amber-500 shrink-0" />
           ) : (
-            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color ?? "#a1a1aa" }} />
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: cat.color ?? "#a1a1aa" }}
+            />
           )}
           <span className="text-sm font-medium text-zinc-900 dark:text-white truncate">
             {cat.name}
@@ -186,7 +213,9 @@ export default function SparePartCategoriesClient() {
   );
 
   // Available parents for the form (only groups, excluding self and descendants when editing)
-  const availableParents = categories.filter((c) => c.isGroup && (!editingCat || c.id !== editingCat.id));
+  const availableParents = categories.filter(
+    (c) => c.isGroup && (!editingCat || c.id !== editingCat.id)
+  );
 
   return (
     <>
@@ -207,9 +236,7 @@ export default function SparePartCategoriesClient() {
         )}
       </div>
 
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-        {dict.subtitle}
-      </p>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{dict.subtitle}</p>
 
       {/* Loading */}
       {isLoading && (
@@ -248,7 +275,11 @@ export default function SparePartCategoriesClient() {
           />
         }
       >
-        <form id="spare-part-category-form" onSubmit={(e) => void handleSave(e)} className="space-y-4 p-6">
+        <form
+          id="spare-part-category-form"
+          onSubmit={(e) => void handleSave(e)}
+          className="space-y-4 p-6"
+        >
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">

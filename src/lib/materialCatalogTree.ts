@@ -1,4 +1,8 @@
-import { buildCategoryTree, type CategoryHierarchyRow, type CategoryTreeNode } from "@/lib/categoryTree";
+import {
+  buildCategoryTree,
+  type CategoryHierarchyRow,
+  type CategoryTreeNode,
+} from "@/lib/categoryTree";
 
 export type CatalogMaterialRow = {
   id: number;
@@ -13,7 +17,7 @@ export type MaterialCatalogIndex = {
 
 export function indexMaterialsByCategory<T extends CategoryHierarchyRow>(
   categories: T[],
-  materials: CatalogMaterialRow[],
+  materials: CatalogMaterialRow[]
 ): MaterialCatalogIndex {
   const leafIds = new Set(categories.filter((c) => !c.isGroup).map((c) => c.id));
   const byCategoryId = new Map<number, CatalogMaterialRow[]>();
@@ -40,7 +44,9 @@ export function indexMaterialsByCategory<T extends CategoryHierarchyRow>(
   return { byCategoryId, uncategorized };
 }
 
-export function buildMaterialCategoryTree<T extends CategoryHierarchyRow>(categories: T[]): CategoryTreeNode<T>[] {
+export function buildMaterialCategoryTree<T extends CategoryHierarchyRow>(
+  categories: T[]
+): CategoryTreeNode<T>[] {
   return buildCategoryTree(categories);
 }
 
@@ -55,7 +61,7 @@ export type CategoryBranchStats = {
 
 export function computeCategoryBranchStats<T extends CategoryHierarchyRow>(
   roots: CategoryTreeNode<T>[],
-  materialsByCategory: Map<number, CatalogMaterialRow[]>,
+  materialsByCategory: Map<number, CatalogMaterialRow[]>
 ): Map<number, CategoryBranchStats> {
   const stats = new Map<number, CategoryBranchStats>();
 
@@ -87,7 +93,7 @@ export function computeCategoryBranchStats<T extends CategoryHierarchyRow>(
 
 export function collectExpandableCategoryIds<T extends CategoryHierarchyRow>(
   roots: CategoryTreeNode<T>[],
-  materialsByCategory: Map<number, CatalogMaterialRow[]>,
+  materialsByCategory: Map<number, CatalogMaterialRow[]>
 ): number[] {
   const ids: number[] = [];
   const walk = (nodes: CategoryTreeNode<T>[]) => {

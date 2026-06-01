@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -14,7 +14,7 @@ export const GET = withApiErrorHandling(
     const receipts = await StockMovementService.getReceipts(companyId);
     return jsonOk(receipts);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 export const POST = withApiErrorHandling(
@@ -28,7 +28,8 @@ export const POST = withApiErrorHandling(
     const userId = session.userId;
 
     const body = await parseJsonBody(request);
-    const partId = typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
+    const partId =
+      typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
     const quantity = typeof body.quantity === "string" ? body.quantity : String(body.quantity);
 
     if (!partId || Number.isNaN(partId)) {
@@ -42,12 +43,13 @@ export const POST = withApiErrorHandling(
     const receipt = await StockMovementService.addReceipt(companyId, userId, {
       partId,
       quantity,
-      unitPrice: body.unitPrice !== null && body.unitPrice !== undefined ? String(body.unitPrice) : null,
+      unitPrice:
+        body.unitPrice !== null && body.unitPrice !== undefined ? String(body.unitPrice) : null,
       invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
       notes: typeof body.notes === "string" ? body.notes : null,
     });
 
     return jsonOk(receipt);
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );

@@ -46,9 +46,14 @@ export function useOnlineStatus() {
       const count = await offlineActionQueue.getCount();
       if (count === 0 || cancelled) return;
 
-      sendRemoteLog("INFO", `OnlineStatus: flushing ${count} queued actions`, {
-        count,
-      }, { category: "session", dedupeWindowMs: 10_000 });
+      sendRemoteLog(
+        "INFO",
+        `OnlineStatus: flushing ${count} queued actions`,
+        {
+          count,
+        },
+        { category: "session", dedupeWindowMs: 10_000 }
+      );
 
       const result = await offlineActionQueue.flushAll();
       if (!cancelled && result.remaining > 0) {

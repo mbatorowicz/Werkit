@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  narrowSpareParts,
-  narrowSparePart,
-  narrowSparePartCategories,
-} from "./dur";
+import { narrowSpareParts, narrowSparePart, narrowSparePartCategories } from "./dur";
 
 describe("narrowSpareParts", () => {
   it("zwraca pustą tablicę dla null/undefined/obiektu", () => {
@@ -46,9 +42,7 @@ describe("narrowSpareParts", () => {
   });
 
   it("uzupełnia domyślne wartości dla brakujących pól", () => {
-    const out = narrowSpareParts([
-      { id: 1, name: "Test", companyId: 1 },
-    ]);
+    const out = narrowSpareParts([{ id: 1, name: "Test", companyId: 1 }]);
     expect(out[0]).toMatchObject({
       catalogNumber: "",
       manufacturer: "",
@@ -103,7 +97,15 @@ describe("narrowSparePartCategories", () => {
 
   it("obsługuje parentId null", () => {
     const out = narrowSparePartCategories([
-      { id: 2, name: "Filtry", companyId: 1, parentId: null, isGroup: false, sortOrder: 1, color: "#ff0000" },
+      {
+        id: 2,
+        name: "Filtry",
+        companyId: 1,
+        parentId: null,
+        isGroup: false,
+        sortOrder: 1,
+        color: "#ff0000",
+      },
     ]);
     expect(out[0].parentId).toBeNull();
     expect(out[0].color).toBe("#ff0000");

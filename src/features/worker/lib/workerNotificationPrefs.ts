@@ -26,7 +26,7 @@ function clampVolume(value: number): number {
 }
 
 function normalizePresets(
-  raw: Partial<Record<WorkerAlarmKind, string>> | undefined,
+  raw: Partial<Record<WorkerAlarmKind, string>> | undefined
 ): Record<WorkerAlarmKind, NotificationSoundPresetId> {
   const out = { ...DEFAULT_SOUND_PRESETS };
   if (!raw) return out;
@@ -85,12 +85,13 @@ export function getNotificationSoundSettings(): WorkerNotificationSoundSettings 
 }
 
 export function saveNotificationSoundSettings(
-  patch: Partial<WorkerNotificationSoundSettings>,
+  patch: Partial<WorkerNotificationSoundSettings>
 ): WorkerNotificationSoundSettings {
   const next: WorkerNotificationSoundSettings = {
     ...getNotificationSoundSettings(),
     ...patch,
-    volume: patch.volume != null ? clampVolume(patch.volume) : getNotificationSoundSettings().volume,
+    volume:
+      patch.volume != null ? clampVolume(patch.volume) : getNotificationSoundSettings().volume,
     presets: patch.presets
       ? normalizePresets({ ...getNotificationSoundSettings().presets, ...patch.presets })
       : getNotificationSoundSettings().presets,
@@ -101,7 +102,7 @@ export function saveNotificationSoundSettings(
 
 export function setSoundPresetForKind(
   kind: WorkerAlarmKind,
-  presetId: NotificationSoundPresetId,
+  presetId: NotificationSoundPresetId
 ): WorkerNotificationSoundSettings {
   return saveNotificationSoundSettings({
     presets: { ...getNotificationSoundSettings().presets, [kind]: presetId },

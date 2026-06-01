@@ -58,16 +58,56 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
-  workSessions: { id: "id", companyId: "companyId", workOrderId: "workOrderId", userId: "userId", categoryId: "categoryId", resourceId: "resourceId", materialId: "materialId", customerId: "customerId", taskDescription: "taskDescription", quantityTons: "quantityTons", expectedDurationHours: "expectedDurationHours", dueDate: "dueDate", status: "status", startTime: "startTime", endTime: "endTime", startLatitude: "startLatitude", startLongitude: "startLongitude", endLatitude: "endLatitude", endLongitude: "endLongitude" },
+  workSessions: {
+    id: "id",
+    companyId: "companyId",
+    workOrderId: "workOrderId",
+    userId: "userId",
+    categoryId: "categoryId",
+    resourceId: "resourceId",
+    materialId: "materialId",
+    customerId: "customerId",
+    taskDescription: "taskDescription",
+    quantityTons: "quantityTons",
+    expectedDurationHours: "expectedDurationHours",
+    dueDate: "dueDate",
+    status: "status",
+    startTime: "startTime",
+    endTime: "endTime",
+    startLatitude: "startLatitude",
+    startLongitude: "startLongitude",
+    endLatitude: "endLatitude",
+    endLongitude: "endLongitude",
+  },
   workOrders: { id: "id", status: "status" },
-  customers: { id: "id", lastName: "lastName", firstName: "firstName", defaultAddress: "defaultAddress", latitude: "latitude", longitude: "longitude" },
+  customers: {
+    id: "id",
+    lastName: "lastName",
+    firstName: "firstName",
+    defaultAddress: "defaultAddress",
+    latitude: "latitude",
+    longitude: "longitude",
+  },
   resources: { id: "id", name: "name" },
   materials: { id: "id", name: "name" },
   resourceCategories: { id: "id", name: "name", isStationary: "isStationary" },
   companySettings: { id: "id", companyId: "companyId" },
   users: { id: "id", canCreateOwnOrders: "canCreateOwnOrders" },
-  sessionPhotos: { id: "id", workSessionId: "workSessionId", photoUrl: "photoUrl", photoType: "photoType", latitude: "latitude", longitude: "longitude" },
-  sessionNotes: { id: "id", workSessionId: "workSessionId", note: "note", latitude: "latitude", longitude: "longitude" },
+  sessionPhotos: {
+    id: "id",
+    workSessionId: "workSessionId",
+    photoUrl: "photoUrl",
+    photoType: "photoType",
+    latitude: "latitude",
+    longitude: "longitude",
+  },
+  sessionNotes: {
+    id: "id",
+    workSessionId: "workSessionId",
+    note: "note",
+    latitude: "latitude",
+    longitude: "longitude",
+  },
   gpsLogs: { id: "id", workSessionId: "workSessionId", timestamp: "timestamp" },
 }));
 
@@ -153,7 +193,17 @@ describe("WorkerSessionService", () => {
 
     it("zwraca pełne dane sesji gdy aktywna sesja istnieje", async () => {
       const sessionRow = {
-        session: { id: 1, userId: 1, companyId: 1, status: "IN_PROGRESS", categoryId: 1, resourceId: 1, customerId: 1, materialId: 1, workOrderId: 1 },
+        session: {
+          id: 1,
+          userId: 1,
+          companyId: 1,
+          status: "IN_PROGRESS",
+          categoryId: 1,
+          resourceId: 1,
+          customerId: 1,
+          materialId: 1,
+          workOrderId: 1,
+        },
         customerAddress: "ul. Test 1",
         customerLat: "50.1",
         customerLng: "20.1",
@@ -188,7 +238,9 @@ describe("WorkerSessionService", () => {
       // 4. SELECT photos: .select().from().where() — where terminalem
       const photosChain = {
         from: vi.fn(() => photosChain),
-        where: vi.fn(() => resultArray([{ id: 1, photoUrl: "https://example.com/photo.jpg", photoType: "AD_HOC" }])),
+        where: vi.fn(() =>
+          resultArray([{ id: 1, photoUrl: "https://example.com/photo.jpg", photoType: "AD_HOC" }])
+        ),
       };
       // 5. SELECT notes: .select().from().where() — where terminalem
       const notesChain = {
@@ -237,11 +289,33 @@ describe("WorkerSessionService", () => {
       selectMock.mockReturnValue(chain);
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
-      await expect(WorkerSessionService.endActiveSession(1, 1)).rejects.toThrow("no_active_session");
+      await expect(WorkerSessionService.endActiveSession(1, 1)).rejects.toThrow(
+        "no_active_session"
+      );
     });
 
     it("wykonuje transakcję zamknięcia sesji", async () => {
-      const sessionRow = { id: 1, userId: 1, companyId: 1, status: "IN_PROGRESS", workOrderId: 1, categoryId: 1, resourceId: 1, customerId: 1, materialId: 1, taskDescription: null, quantityTons: null, expectedDurationHours: null, dueDate: null, startLatitude: null, startLongitude: null, endLatitude: null, endLongitude: null, startTime: null, endTime: null };
+      const sessionRow = {
+        id: 1,
+        userId: 1,
+        companyId: 1,
+        status: "IN_PROGRESS",
+        workOrderId: 1,
+        categoryId: 1,
+        resourceId: 1,
+        customerId: 1,
+        materialId: 1,
+        taskDescription: null,
+        quantityTons: null,
+        expectedDurationHours: null,
+        dueDate: null,
+        startLatitude: null,
+        startLongitude: null,
+        endLatitude: null,
+        endLongitude: null,
+        startTime: null,
+        endTime: null,
+      };
       const chain = {
         from: vi.fn(() => chain),
         where: vi.fn(() => chain),
@@ -277,7 +351,9 @@ describe("WorkerSessionService", () => {
       selectMock.mockReturnValue(chain);
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
-      await expect(WorkerSessionService.cancelActiveSession(1, 1)).rejects.toThrow("no_active_session");
+      await expect(WorkerSessionService.cancelActiveSession(1, 1)).rejects.toThrow(
+        "no_active_session"
+      );
     });
 
     it("wykonuje transakcję anulowania sesji", async () => {
@@ -342,9 +418,7 @@ describe("WorkerSessionService", () => {
       await WorkerSessionService.addNote(1, 1, "Test note", "50.1", "20.1");
 
       expect(insertMock).toHaveBeenCalledTimes(1);
-      expect(valuesMock).toHaveBeenCalledWith(
-        expect.objectContaining({ note: "Test note" })
-      );
+      expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({ note: "Test note" }));
     });
   });
 
@@ -358,7 +432,9 @@ describe("WorkerSessionService", () => {
       selectMock.mockReturnValue(chain);
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
-      await expect(WorkerSessionService.addPhoto(1, 1, "https://example.com/photo.jpg")).rejects.toThrow("no_active_session");
+      await expect(
+        WorkerSessionService.addPhoto(1, 1, "https://example.com/photo.jpg")
+      ).rejects.toThrow("no_active_session");
     });
 
     it("dodaje zdjęcie do aktywnej sesji", async () => {
@@ -385,7 +461,21 @@ describe("WorkerSessionService", () => {
   describe("getCompletedSessions", () => {
     it("zwraca listę zakończonych sesji", async () => {
       const rows = resultArray([
-        { id: 1, workOrderId: null, categoryId: 1, categoryName: "Budowlane", startTime: new Date(), endTime: new Date(), taskDescription: null, quantityTons: null, materialName: null, customerLastName: null, resourceName: "Koparka", hasPhotos: 1, hasNotes: 0 },
+        {
+          id: 1,
+          workOrderId: null,
+          categoryId: 1,
+          categoryName: "Budowlane",
+          startTime: new Date(),
+          endTime: new Date(),
+          taskDescription: null,
+          quantityTons: null,
+          materialName: null,
+          customerLastName: null,
+          resourceName: "Koparka",
+          hasPhotos: 1,
+          hasNotes: 0,
+        },
       ]);
       // Chain: .select().from().leftJoin(x4).where().orderBy().limit()
       // Terminal: limit
@@ -444,10 +534,22 @@ describe("WorkerSessionService", () => {
 
     it("zwraca pełne dane sesji historycznej", async () => {
       const sessionData = {
-        id: 1, workOrderId: null, categoryId: 1, categoryName: "Budowlane", categoryIsStationary: false,
-        startTime: new Date(), endTime: new Date(), taskDescription: null, quantityTons: null,
-        materialName: null, resourceName: "Koparka", customerFirstName: "Jan", customerLastName: "Kowalski",
-        customerAddress: "ul. Test 1", customerLat: "50.1", customerLng: "20.1",
+        id: 1,
+        workOrderId: null,
+        categoryId: 1,
+        categoryName: "Budowlane",
+        categoryIsStationary: false,
+        startTime: new Date(),
+        endTime: new Date(),
+        taskDescription: null,
+        quantityTons: null,
+        materialName: null,
+        resourceName: "Koparka",
+        customerFirstName: "Jan",
+        customerLastName: "Kowalski",
+        customerAddress: "ul. Test 1",
+        customerLat: "50.1",
+        customerLng: "20.1",
       };
 
       // 1. SELECT sesji z joinami: .select().from().leftJoin(x4).where() — where terminalem
@@ -461,7 +563,9 @@ describe("WorkerSessionService", () => {
       const gpsChain = {
         from: vi.fn(() => gpsChain),
         where: vi.fn(() => gpsChain),
-        orderBy: vi.fn(() => resultArray([{ id: 1, latitude: "50.1", longitude: "20.1", timestamp: new Date() }])),
+        orderBy: vi.fn(() =>
+          resultArray([{ id: 1, latitude: "50.1", longitude: "20.1", timestamp: new Date() }])
+        ),
       };
 
       // 3. SELECT notes: .select().from().where() — where terminalem
@@ -495,9 +599,9 @@ describe("WorkerSessionService", () => {
   describe("createWizardSession", () => {
     it("rzuca błąd gdy brak wymaganych pól", async () => {
       const { WorkerSessionService } = await import("./WorkerSessionService");
-      await expect(
-        WorkerSessionService.createWizardSession(1, 1, {})
-      ).rejects.toThrow("missing_fields");
+      await expect(WorkerSessionService.createWizardSession(1, 1, {})).rejects.toThrow(
+        "missing_fields"
+      );
     });
 
     it("rzuca błąd gdy aktywna sesja", async () => {
@@ -582,9 +686,7 @@ describe("WorkerSessionService", () => {
         where: vi.fn(() => resourceCheckChain),
         limit: vi.fn(() => resultArray([{ id: 1, companyId: 1 }])),
       };
-      selectMock
-        .mockReturnValueOnce(sessionCheckChain)
-        .mockReturnValueOnce(resourceCheckChain);
+      selectMock.mockReturnValueOnce(sessionCheckChain).mockReturnValueOnce(resourceCheckChain);
 
       const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
       vi.mocked(ScheduleConflictService.hasActiveResourceSession).mockResolvedValue(true);

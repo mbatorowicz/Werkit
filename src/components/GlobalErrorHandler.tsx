@@ -7,7 +7,12 @@ function rejectionDedupeExtra(reason: unknown): string {
   if (reason instanceof Error) {
     return `${reason.name}|${reason.message}|${reason.stack?.slice(0, 200) ?? ""}`;
   }
-  if (reason && typeof reason === "object" && "stack" in reason && typeof (reason as { stack: unknown }).stack === "string") {
+  if (
+    reason &&
+    typeof reason === "object" &&
+    "stack" in reason &&
+    typeof (reason as { stack: unknown }).stack === "string"
+  ) {
     return (reason as { stack: string }).stack.slice(0, 280);
   }
   return String(reason).slice(0, 280);
@@ -20,7 +25,7 @@ export function GlobalErrorHandler() {
       if (msg.includes("ResizeObserver loop")) return;
       const stackHead =
         event.error instanceof Error
-          ? event.error.stack?.slice(0, 200) ?? event.error.message
+          ? (event.error.stack?.slice(0, 200) ?? event.error.message)
           : typeof event.error === "string"
             ? event.error.slice(0, 200)
             : "";
@@ -35,7 +40,7 @@ export function GlobalErrorHandler() {
           colno: event.colno,
           error: event.error?.stack || event.error,
         },
-        { category: "errors", dedupeWindowMs: 15_000, dedupeKeyExtra },
+        { category: "errors", dedupeWindowMs: 15_000, dedupeKeyExtra }
       );
     };
 
@@ -47,7 +52,7 @@ export function GlobalErrorHandler() {
         {
           reason: event.reason?.stack || event.reason || "Brak szczegółów",
         },
-        { category: "errors", dedupeWindowMs: 15_000, dedupeKeyExtra: extra },
+        { category: "errors", dedupeWindowMs: 15_000, dedupeKeyExtra: extra }
       );
     };
 

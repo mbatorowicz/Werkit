@@ -38,7 +38,7 @@ export function parseHierarchyFields(body: Record<string, unknown>): {
 export function validateHierarchyPatch<T extends CategoryHierarchyRow>(
   allRows: T[],
   patch: HierarchyPatch,
-  selfId?: number,
+  selfId?: number
 ): void {
   const self = selfId != null ? allRows.find((r) => r.id === selfId) : undefined;
   const parentId = patch.parentId !== undefined ? patch.parentId : (self?.parentId ?? null);
@@ -65,37 +65,30 @@ export function validateHierarchyPatch<T extends CategoryHierarchyRow>(
 
 export async function assertResourceCategoryAssignable(
   categoryId: number,
-  companyId: number,
+  companyId: number
 ): Promise<void> {
   const row = await db
     .select()
     .from(resourceCategories)
-    .where(
-      and(eq(resourceCategories.id, categoryId), eq(resourceCategories.companyId, companyId)),
-    )
+    .where(and(eq(resourceCategories.id, categoryId), eq(resourceCategories.companyId, companyId)))
     .limit(1);
   const cat = row[0];
-  if (!cat) throw new CategoryHierarchyError('invalid_category');
-  if (cat.isGroup) throw new CategoryHierarchyError('invalid_category');
+  if (!cat) throw new CategoryHierarchyError("invalid_category");
+  if (cat.isGroup) throw new CategoryHierarchyError("invalid_category");
 }
 
 export async function assertMaterialCategoriesAssignable(
   categoryIds: number[],
-  companyId: number,
+  companyId: number
 ): Promise<void> {
   const ids = [...new Set(categoryIds.filter((n) => Number.isFinite(n) && n > 0))];
   if (ids.length === 0) return;
   const all = await db
     .select()
     .from(materialCategories)
-    .where(
-      and(
-        eq(materialCategories.companyId, companyId),
-        inArray(materialCategories.id, ids),
-      ),
-    );
-  if (all.length !== ids.length) throw new CategoryHierarchyError('invalid_category');
-  if (all.some((r) => r.isGroup)) throw new CategoryHierarchyError('invalid_category');
+    .where(and(eq(materialCategories.companyId, companyId), inArray(materialCategories.id, ids)));
+  if (all.length !== ids.length) throw new CategoryHierarchyError("invalid_category");
+  if (all.some((r) => r.isGroup)) throw new CategoryHierarchyError("invalid_category");
 }
 
 export async function countResourceCategoryChildren(id: number): Promise<number> {

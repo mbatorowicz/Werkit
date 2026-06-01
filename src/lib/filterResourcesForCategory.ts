@@ -14,7 +14,7 @@ export type ResourceWithCategoryIds = {
 export function filterResourcesForCategory<T extends ResourceWithCategoryIds>(
   resources: T[],
   category: ResourceCategoryFilter | undefined,
-  options: { whenNoCategory: boolean },
+  options: { whenNoCategory: boolean }
 ): T[] {
   return resources.filter((resource) => {
     if (!category) return options.whenNoCategory;

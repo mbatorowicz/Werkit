@@ -1,15 +1,18 @@
 import { jsonError, jsonOk, parseJson, withApiErrorHandling } from "@/lib/apiRoute";
-import { requireWorkerCompanySession } from '@/lib/apiTenant';
-import { GpsService, GpsPoint } from '@/services/GpsService';
-import { PlatformFeatureFlagService } from '@/services/PlatformFeatureFlagService';
+import { requireWorkerCompanySession } from "@/lib/apiTenant";
+import { GpsService, GpsPoint } from "@/services/GpsService";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
-export const GET = withApiErrorHandling(async () => {
-  const ctx = await requireWorkerCompanySession();
-  if (!ctx.ok) return ctx.response;
+export const GET = withApiErrorHandling(
+  async () => {
+    const ctx = await requireWorkerCompanySession();
+    if (!ctx.ok) return ctx.response;
 
-  const logs = await GpsService.getActiveSessionGpsLogs(ctx.userId, ctx.companyId);
-  return jsonOk({ logs });
-}, { defaultErrorCode: "fetch_error" });
+    const logs = await GpsService.getActiveSessionGpsLogs(ctx.userId, ctx.companyId);
+    return jsonOk({ logs });
+  },
+  { defaultErrorCode: "fetch_error" }
+);
 
 export const POST = withApiErrorHandling(
   async (request: Request) => {
@@ -31,7 +34,10 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true, count: savedCount });
   },
   {
-    mapUnknownError: (err) => (err instanceof Error && err.message === "no_active_session" ? jsonError("no_active_session", 400) : null),
+    mapUnknownError: (err) =>
+      err instanceof Error && err.message === "no_active_session"
+        ? jsonError("no_active_session", 400)
+        : null,
     defaultErrorCode: "save_error",
-  },
+  }
 );

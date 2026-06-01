@@ -51,13 +51,16 @@ export function getLoginRateLimitRemaining(key: string): number {
 }
 
 // Okresowe czyszczenie starych wpisów (co 5 minut)
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of loginAttempts) {
-      if (now > entry.resetAt) {
-        loginAttempts.delete(key);
+if (typeof setInterval !== "undefined") {
+  setInterval(
+    () => {
+      const now = Date.now();
+      for (const [key, entry] of loginAttempts) {
+        if (now > entry.resetAt) {
+          loginAttempts.delete(key);
+        }
       }
-    }
-  }, 5 * 60 * 1000).unref?.();
+    },
+    5 * 60 * 1000
+  ).unref?.();
 }

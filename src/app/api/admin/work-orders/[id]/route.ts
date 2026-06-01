@@ -1,10 +1,13 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { coerceWorkOrderPriority, validateWorkOrderFieldsAgainstCategory } from '@/lib/workOrderCategoryValidation';
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { AdminOrderService } from '@/services/AdminOrderService';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import {
+  coerceWorkOrderPriority,
+  validateWorkOrderFieldsAgainstCategory,
+} from "@/lib/workOrderCategoryValidation";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { AdminOrderService } from "@/services/AdminOrderService";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, props: { params: Promise<{ id: string }> }) => {
@@ -26,9 +29,13 @@ export const PUT = withApiErrorHandling(
     const materialId = body.materialId;
     const customerId = body.customerId;
     const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
-    const quantityTons = typeof body.quantityTons === "string" || typeof body.quantityTons === "number" ? body.quantityTons : null;
+    const quantityTons =
+      typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
+        ? body.quantityTons
+        : null;
     const expectedDurationHours =
-      typeof body.expectedDurationHours === "string" || typeof body.expectedDurationHours === "number"
+      typeof body.expectedDurationHours === "string" ||
+      typeof body.expectedDurationHours === "number"
         ? body.expectedDurationHours
         : null;
     const priority = body.priority;
@@ -39,7 +46,14 @@ export const PUT = withApiErrorHandling(
     const resIdNum = parseInt(String(resourceId), 10);
     const catIdNum = parseInt(String(categoryId), 10);
 
-    if (!assignedUserId || !resourceId || !categoryId || Number.isNaN(uidNum) || Number.isNaN(resIdNum) || Number.isNaN(catIdNum)) {
+    if (
+      !assignedUserId ||
+      !resourceId ||
+      !categoryId ||
+      Number.isNaN(uidNum) ||
+      Number.isNaN(resIdNum) ||
+      Number.isNaN(catIdNum)
+    ) {
       return jsonError("missing_fields", 400);
     }
 
@@ -69,7 +83,7 @@ export const PUT = withApiErrorHandling(
         expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
           ? parseFloat(String(expectedDurationHours))
           : null,
-        orderId,
+        orderId
       );
       if (blockCode) {
         return jsonError(blockCode, 409);
@@ -90,9 +104,12 @@ export const PUT = withApiErrorHandling(
         materialId: materialId ? parseInt(String(materialId), 10) : null,
         customerId: customerId ? parseInt(String(customerId), 10) : null,
         taskDescription,
-        quantityTons: quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+        quantityTons:
+          quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
         expectedDurationHours:
-          expectedDurationHours !== null && String(expectedDurationHours).trim() !== "" ? String(expectedDurationHours) : null,
+          expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
+            ? String(expectedDurationHours)
+            : null,
         priority: prio,
         dueDate: parsedDueDate,
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
@@ -106,7 +123,7 @@ export const PUT = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );
 
 export const DELETE = withApiErrorHandling(
@@ -125,7 +142,8 @@ export const DELETE = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (e) => (e instanceof Error && e.message === "not_found" ? jsonError("not_found", 404) : null),
+    mapUnknownError: (e) =>
+      e instanceof Error && e.message === "not_found" ? jsonError("not_found", 404) : null,
     defaultErrorCode: "delete_error",
-  },
+  }
 );

@@ -13,11 +13,7 @@ import {
   UserTakeoverOnMapGesture,
   type WaypointMode,
 } from "./mapSharedComponents";
-import {
-  createCurrentLocationIcon,
-  iconDest,
-  iconStart,
-} from "./liveMapIcons";
+import { createCurrentLocationIcon, iconDest, iconStart } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
 import FullScreenMapModal from "./FullScreenMapModal";
@@ -80,7 +76,7 @@ export default function LiveMap({
     destination,
     onRouteDistance,
     undefined,
-    plannedRouteWaypoints,
+    plannedRouteWaypoints
   );
 
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
@@ -96,23 +92,22 @@ export default function LiveMap({
       onAddRouteWaypoint?.(lat, lng);
       setWaypointMode(null);
     },
-    [onAddRouteWaypoint],
+    [onAddRouteWaypoint]
   );
 
   const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
   const navPivotMode = Boolean(preferPivotNavigation);
   // W trybie thumbnail nie pokazujemy igły azymutu na znaczniku — mapa ma być czysta
-  const showNeedleOnMarker = Boolean(!thumbnail && navPivotMode && showHeadingNeedle && headingKnown);
+  const showNeedleOnMarker = Boolean(
+    !thumbnail && navPivotMode && showHeadingNeedle && headingKnown
+  );
 
   // W trybie thumbnail (miniatura) zawsze pokazujemy całą trasę — fitContent wymuszony.
   // W trybie nawigacji (preferPivotNavigation) bez thumbnail śledzimy pozycję.
   const hasRouteContent = Boolean(
-    destination ||
-      pathTraveled.length > 0 ||
-      events.length > 0 ||
-      routeToDest.length > 0,
+    destination || pathTraveled.length > 0 || events.length > 0 || routeToDest.length > 0
   );
-  const fitContentMode = thumbnail ? hasRouteContent : (!navPivotMode && hasRouteContent);
+  const fitContentMode = thumbnail ? hasRouteContent : !navPivotMode && hasRouteContent;
 
   const followPanMode = !thumbnail && !navPivotMode && !fitContentMode;
 
@@ -128,7 +123,7 @@ export default function LiveMap({
         showHeadingNeedle: showNeedleOnMarker,
         heading: currentLocation.heading,
       }),
-    [showNeedleOnMarker, currentLocation.heading],
+    [showNeedleOnMarker, currentLocation.heading]
   );
 
   const showResumeFollow = !cameraFollowGps && (navPivotMode || followPanMode);
@@ -162,9 +157,7 @@ export default function LiveMap({
           <WerkitTileLayer />
 
           <MapInvalidateOnResize />
-          {!thumbnail && (
-            <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />
-          )}
+          {!thumbnail && <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />}
           {!thumbnail && (
             <RouteWaypointClickLayer mode={waypointMode} onAdd={handleMapAddWaypoint} />
           )}
@@ -187,7 +180,13 @@ export default function LiveMap({
 
           {/* Trasa — zawsze jako przerywana czerwona linia (podgląd) na miniaturze */}
           {routeToDest.length > 0 ? (
-            <Polyline positions={routeToDest} color="#ef4444" weight={4} dashArray="5, 10" opacity={0.8} />
+            <Polyline
+              positions={routeToDest}
+              color="#ef4444"
+              weight={4}
+              dashArray="5, 10"
+              opacity={0.8}
+            />
           ) : null}
 
           <EventMarkers

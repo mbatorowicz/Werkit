@@ -55,8 +55,24 @@ describe("SparePartCategoryService", () => {
   describe("getCategories", () => {
     it("zwraca wszystkie kategorie posortowane", async () => {
       const fakeRows = [
-        { id: 1, companyId, name: "Łożyska", parentId: null, isGroup: true, sortOrder: 0, color: "#3f3f46" },
-        { id: 2, companyId, name: "Filtry", parentId: null, isGroup: false, sortOrder: 1, color: "#ff0000" },
+        {
+          id: 1,
+          companyId,
+          name: "Łożyska",
+          parentId: null,
+          isGroup: true,
+          sortOrder: 0,
+          color: "#3f3f46",
+        },
+        {
+          id: 2,
+          companyId,
+          name: "Filtry",
+          parentId: null,
+          isGroup: false,
+          sortOrder: 1,
+          color: "#ff0000",
+        },
       ];
       selectMock.mockReturnValue({
         from: () => ({
@@ -73,8 +89,24 @@ describe("SparePartCategoryService", () => {
 
     it("zwraca tylko liście gdy leavesOnly=true", async () => {
       const fakeRows = [
-        { id: 1, companyId, name: "Łożyska", parentId: null, isGroup: true, sortOrder: 0, color: "#3f3f46" },
-        { id: 2, companyId, name: "Filtr oleju", parentId: 1, isGroup: false, sortOrder: 0, color: null },
+        {
+          id: 1,
+          companyId,
+          name: "Łożyska",
+          parentId: null,
+          isGroup: true,
+          sortOrder: 0,
+          color: "#3f3f46",
+        },
+        {
+          id: 2,
+          companyId,
+          name: "Filtr oleju",
+          parentId: 1,
+          isGroup: false,
+          sortOrder: 0,
+          color: null,
+        },
       ];
       selectMock.mockReturnValue({
         from: () => ({
@@ -113,14 +145,22 @@ describe("SparePartCategoryService", () => {
           where: () => ({
             orderBy: () =>
               Promise.resolve([
-                { id: 1, companyId, name: "Liść", parentId: null, isGroup: false, sortOrder: 0, color: "#3f3f46" },
+                {
+                  id: 1,
+                  companyId,
+                  name: "Liść",
+                  parentId: null,
+                  isGroup: false,
+                  sortOrder: 0,
+                  color: "#3f3f46",
+                },
               ]),
           }),
         }),
       });
 
       await expect(
-        SparePartCategoryService.addCategory(companyId, { name: "Podkategoria", parentId: 1 }),
+        SparePartCategoryService.addCategory(companyId, { name: "Podkategoria", parentId: 1 })
       ).rejects.toThrow(CategoryHierarchyError);
     });
   });
@@ -128,7 +168,15 @@ describe("SparePartCategoryService", () => {
   describe("updateCategory", () => {
     it("aktualizuje kategorię", async () => {
       const existing = [
-        { id: 1, companyId, name: "Łożyska", parentId: null, isGroup: true, sortOrder: 0, color: "#3f3f46" },
+        {
+          id: 1,
+          companyId,
+          name: "Łożyska",
+          parentId: null,
+          isGroup: true,
+          sortOrder: 0,
+          color: "#3f3f46",
+        },
       ];
       selectMock.mockReturnValue({
         from: () => ({
@@ -149,8 +197,24 @@ describe("SparePartCategoryService", () => {
 
     it("rzuca błąd przy zmianie grupy na liść gdy ma dzieci", async () => {
       const existing = [
-        { id: 1, companyId, name: "Grupa", parentId: null, isGroup: true, sortOrder: 0, color: "#3f3f46" },
-        { id: 2, companyId, name: "Dziecko", parentId: 1, isGroup: false, sortOrder: 0, color: null },
+        {
+          id: 1,
+          companyId,
+          name: "Grupa",
+          parentId: null,
+          isGroup: true,
+          sortOrder: 0,
+          color: "#3f3f46",
+        },
+        {
+          id: 2,
+          companyId,
+          name: "Dziecko",
+          parentId: 1,
+          isGroup: false,
+          sortOrder: 0,
+          color: null,
+        },
       ];
       selectMock
         .mockReturnValueOnce({
@@ -167,7 +231,7 @@ describe("SparePartCategoryService", () => {
         });
 
       await expect(
-        SparePartCategoryService.updateCategory(companyId, 1, { isGroup: false }),
+        SparePartCategoryService.updateCategory(companyId, 1, { isGroup: false })
       ).rejects.toThrow(CategoryHierarchyError);
     });
   });
@@ -194,9 +258,9 @@ describe("SparePartCategoryService", () => {
         }),
       });
 
-      await expect(
-        SparePartCategoryService.deleteCategory(companyId, 1),
-      ).rejects.toThrow(CategoryHierarchyError);
+      await expect(SparePartCategoryService.deleteCategory(companyId, 1)).rejects.toThrow(
+        CategoryHierarchyError
+      );
     });
   });
 });

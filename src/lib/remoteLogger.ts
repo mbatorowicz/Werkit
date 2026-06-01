@@ -15,7 +15,7 @@ export type RemoteLogOptions = {
 
 function mergeWerkitMetadata(
   metadata: Record<string, unknown> | undefined,
-  opts: RemoteLogOptions | undefined,
+  opts: RemoteLogOptions | undefined
 ): Record<string, unknown> {
   const base = { ...(metadata ?? {}) };
   const client = buildWerkitClientTelemetry();
@@ -55,7 +55,7 @@ export function sendRemoteLog(
   level: RemoteLogLevel,
   message: string,
   metadata?: Record<string, unknown>,
-  opts?: RemoteLogOptions,
+  opts?: RemoteLogOptions
 ): void {
   if (typeof window === "undefined") return;
   const dedupeMs = opts?.dedupeWindowMs;
@@ -80,7 +80,7 @@ export function sendRemoteLog(
 export function logWorkerInsight(
   category: WerkitLogCategory,
   message: string,
-  details?: Record<string, unknown>,
+  details?: Record<string, unknown>
 ): void {
   sendRemoteLog("INFO", `[${category}] ${message}`, details, { category });
 }

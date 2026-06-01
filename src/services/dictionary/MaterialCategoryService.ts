@@ -1,12 +1,12 @@
-import { db } from '@/db';
-import { materialCategories } from '@/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
-import { filterCategoryLeaves } from '@/lib/categoryTree';
+import { db } from "@/db";
+import { materialCategories } from "@/db/schema";
+import { eq, and, asc } from "drizzle-orm";
+import { filterCategoryLeaves } from "@/lib/categoryTree";
 import {
   CategoryHierarchyError,
   countMaterialCategoryChildren,
   validateHierarchyPatch,
-} from '@/services/categoryHierarchyValidation';
+} from "@/services/categoryHierarchyValidation";
 
 export class MaterialCategoryService {
   static async getMaterialCategories(companyId: number, opts?: { leavesOnly?: boolean }) {
@@ -20,7 +20,7 @@ export class MaterialCategoryService {
 
   static async addMaterialCategory(
     companyId: number,
-    data: Partial<typeof materialCategories.$inferInsert>,
+    data: Partial<typeof materialCategories.$inferInsert>
   ) {
     const all = await MaterialCategoryService.getMaterialCategories(companyId);
     validateHierarchyPatch(all, {
@@ -29,8 +29,8 @@ export class MaterialCategoryService {
     });
     await db.insert(materialCategories).values({
       companyId,
-      name: (data.name ?? '').trim(),
-      color: data.color || '#3f3f46',
+      name: (data.name ?? "").trim(),
+      color: data.color || "#3f3f46",
       parentId: data.parentId ?? null,
       isGroup: data.isGroup ?? false,
       sortOrder: data.sortOrder ?? 0,
@@ -40,18 +40,14 @@ export class MaterialCategoryService {
   static async updateMaterialCategory(
     companyId: number,
     id: number,
-    data: Partial<typeof materialCategories.$inferInsert>,
+    data: Partial<typeof materialCategories.$inferInsert>
   ) {
     const all = await MaterialCategoryService.getMaterialCategories(companyId);
-    validateHierarchyPatch(
-      all,
-      { parentId: data.parentId, isGroup: data.isGroup },
-      id,
-    );
+    validateHierarchyPatch(all, { parentId: data.parentId, isGroup: data.isGroup }, id);
     const self = all.find((r) => r.id === id);
     if (self?.isGroup && data.isGroup === false) {
       const childCount = await countMaterialCategoryChildren(id);
-      if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     }
     await db
       .update(materialCategories)
@@ -61,7 +57,7 @@ export class MaterialCategoryService {
 
   static async deleteMaterialCategory(companyId: number, id: number) {
     const childCount = await countMaterialCategoryChildren(id);
-    if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     await db
       .delete(materialCategories)
       .where(and(eq(materialCategories.id, id), eq(materialCategories.companyId, companyId)));

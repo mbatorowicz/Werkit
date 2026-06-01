@@ -25,7 +25,9 @@ export function WorkerPermissionToggles({ toggles }: Props) {
             />
             <div className="h-6 w-11 rounded-full bg-zinc-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-zinc-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-emerald-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none dark:bg-zinc-700 dark:after:border-zinc-600" />
           </label>
-          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">{toggle.label}</span>
+          <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+            {toggle.label}
+          </span>
         </div>
       ))}
     </div>

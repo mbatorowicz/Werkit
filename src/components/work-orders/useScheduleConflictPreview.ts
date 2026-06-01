@@ -26,7 +26,7 @@ function parsePreviewBody(body: unknown): ScheduleConflictPreview[] {
       item != null &&
       typeof item === "object" &&
       typeof (item as ScheduleConflictPreview).kind === "string" &&
-      typeof (item as ScheduleConflictPreview).conflictingId === "number",
+      typeof (item as ScheduleConflictPreview).conflictingId === "number"
   );
 }
 
@@ -96,10 +96,12 @@ export function useScheduleConflictPreview(params: {
           : "/api/admin/work-orders/schedule-conflicts";
 
       void fetchWithDeviceTelemetry(
-        scope === "worker" ? "Worker orders: schedule conflicts preview" : "Admin orders: schedule conflicts preview",
+        scope === "worker"
+          ? "Worker orders: schedule conflicts preview"
+          : "Admin orders: schedule conflicts preview",
         `${basePath}?${qs.toString()}`,
         { cache: "no-store" },
-        { category: scope === "worker" ? "orders" : "admin" },
+        { category: scope === "worker" ? "orders" : "admin" }
       )
         .then(async (res) => {
           if (cancelled) return;

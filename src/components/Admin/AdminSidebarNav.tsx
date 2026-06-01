@@ -6,7 +6,13 @@ import type { AppDictionary } from "@/i18n/types";
 import { buildAdminNavLinks } from "./adminNavLinks";
 import { isAdminDispatchNavActive } from "./adminNavActive";
 
-export function AdminSidebarNav({ dict, durDict }: { dict: AppDictionary["admin"]; durDict: AppDictionary["dur"] }) {
+export function AdminSidebarNav({
+  dict,
+  durDict,
+}: {
+  dict: AppDictionary["admin"];
+  durDict: AppDictionary["dur"];
+}) {
   const pathname = usePathname();
   const links = buildAdminNavLinks(dict, durDict);
 
@@ -38,7 +44,9 @@ export function AdminSidebarNav({ dict, durDict }: { dict: AppDictionary["admin"
                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-white dark:hover:bg-zinc-800/50"
             }`}
           >
-            <Icon className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`} />
+            <Icon
+              className={`w-4 h-4 ${shouldHighlight ? "text-zinc-900 dark:text-white" : "text-zinc-500"}`}
+            />
             <span>{link.label}</span>
           </Link>
         );

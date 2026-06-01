@@ -1,12 +1,6 @@
-import { db } from '@/db';
-import {
-  companies,
-  users,
-  workSessions,
-  workOrders,
-  deviceLogs,
-} from '@/db/schema';
-import { sql, eq, gte, and, count } from 'drizzle-orm';
+import { db } from "@/db";
+import { companies, users, workSessions, workOrders, deviceLogs } from "@/db/schema";
+import { sql, eq, gte, and, count } from "drizzle-orm";
 
 export type CompanyUsageRow = {
   companyId: number;
@@ -30,34 +24,33 @@ export class PlatformAnalyticsService {
     const since7 = new Date();
     since7.setDate(since7.getDate() - 7);
 
-    const [userCounts, workerCounts, sessionCounts, pendingCounts, logCounts] =
-      await Promise.all([
-        db
-          .select({ companyId: users.companyId, c: count() })
-          .from(users)
-          .where(sql`${users.companyId} IS NOT NULL`)
-          .groupBy(users.companyId),
-        db
-          .select({ companyId: users.companyId, c: count() })
-          .from(users)
-          .where(and(eq(users.role, 'worker'), sql`${users.companyId} IS NOT NULL`))
-          .groupBy(users.companyId),
-        db
-          .select({ companyId: workSessions.companyId, c: count() })
-          .from(workSessions)
-          .where(gte(workSessions.startTime, since30))
-          .groupBy(workSessions.companyId),
-        db
-          .select({ companyId: workOrders.companyId, c: count() })
-          .from(workOrders)
-          .where(eq(workOrders.status, 'PENDING'))
-          .groupBy(workOrders.companyId),
-        db
-          .select({ companyId: deviceLogs.companyId, c: count() })
-          .from(deviceLogs)
-          .where(gte(deviceLogs.createdAt, since7))
-          .groupBy(deviceLogs.companyId),
-      ]);
+    const [userCounts, workerCounts, sessionCounts, pendingCounts, logCounts] = await Promise.all([
+      db
+        .select({ companyId: users.companyId, c: count() })
+        .from(users)
+        .where(sql`${users.companyId} IS NOT NULL`)
+        .groupBy(users.companyId),
+      db
+        .select({ companyId: users.companyId, c: count() })
+        .from(users)
+        .where(and(eq(users.role, "worker"), sql`${users.companyId} IS NOT NULL`))
+        .groupBy(users.companyId),
+      db
+        .select({ companyId: workSessions.companyId, c: count() })
+        .from(workSessions)
+        .where(gte(workSessions.startTime, since30))
+        .groupBy(workSessions.companyId),
+      db
+        .select({ companyId: workOrders.companyId, c: count() })
+        .from(workOrders)
+        .where(eq(workOrders.status, "PENDING"))
+        .groupBy(workOrders.companyId),
+      db
+        .select({ companyId: deviceLogs.companyId, c: count() })
+        .from(deviceLogs)
+        .where(gte(deviceLogs.createdAt, since7))
+        .groupBy(deviceLogs.companyId),
+    ]);
 
     const mapCount = (rows: { companyId: number | null; c: number }[]) => {
       const m = new Map<number, number>();

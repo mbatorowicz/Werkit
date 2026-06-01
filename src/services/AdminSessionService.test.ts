@@ -15,7 +15,13 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
-  workSessions: { id: "id", companyId: "companyId", status: "status", workOrderId: "workOrderId", endTime: "endTime" },
+  workSessions: {
+    id: "id",
+    companyId: "companyId",
+    status: "status",
+    workOrderId: "workOrderId",
+    endTime: "endTime",
+  },
   gpsLogs: { workSessionId: "workSessionId", timestamp: "timestamp" },
   sessionPhotos: { workSessionId: "workSessionId", createdAt: "createdAt" },
   sessionNotes: { workSessionId: "workSessionId", createdAt: "createdAt" },
@@ -56,7 +62,9 @@ describe("AdminSessionService", () => {
         })
         .mockReturnValueOnce({
           from: () => ({
-            where: () => ({ orderBy: () => Promise.resolve([{ id: 10, photoUrl: "https://blob.url/1" }]) }),
+            where: () => ({
+              orderBy: () => Promise.resolve([{ id: 10, photoUrl: "https://blob.url/1" }]),
+            }),
           }),
         })
         .mockReturnValueOnce({
@@ -91,7 +99,8 @@ describe("AdminSessionService", () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () => Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: 42, companyId: 1 }]),
+            limit: () =>
+              Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: 42, companyId: 1 }]),
           }),
         }),
       });
@@ -118,13 +127,16 @@ describe("AdminSessionService", () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () => Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: null, companyId: 1 }]),
+            limit: () =>
+              Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: null, companyId: 1 }]),
           }),
         }),
       });
 
       const { AdminSessionService } = await import("@/services/AdminSessionService");
-      await expect(AdminSessionService.forceCompleteSession(1, 1)).rejects.toThrow("not_in_progress");
+      await expect(AdminSessionService.forceCompleteSession(1, 1)).rejects.toThrow(
+        "not_in_progress"
+      );
     });
   });
 
@@ -133,7 +145,8 @@ describe("AdminSessionService", () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () => Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: 42, companyId: 1 }]),
+            limit: () =>
+              Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: 42, companyId: 1 }]),
           }),
         }),
       });
@@ -152,13 +165,16 @@ describe("AdminSessionService", () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () => Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: null, companyId: 1 }]),
+            limit: () =>
+              Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: null, companyId: 1 }]),
           }),
         }),
       });
 
       const { AdminSessionService } = await import("@/services/AdminSessionService");
-      await expect(AdminSessionService.deleteArchivedSession(1, 1)).rejects.toThrow("session_still_active");
+      await expect(AdminSessionService.deleteArchivedSession(1, 1)).rejects.toThrow(
+        "session_still_active"
+      );
     });
 
     it("rzuca błąd gdy sesja nie istnieje", async () => {

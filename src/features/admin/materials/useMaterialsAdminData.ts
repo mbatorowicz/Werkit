@@ -9,9 +9,14 @@ import { narrowMaterialCategoryRows, narrowMaterialRowRows } from "@/lib/narrowA
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 
 async function parseList(url: string): Promise<{ rows: unknown[]; errorCode?: string }> {
-  const res = await fetchWithDeviceTelemetry(`Admin materials: GET ${url}`, url, { cache: "no-store" }, {
-    category: "admin",
-  });
+  const res = await fetchWithDeviceTelemetry(
+    `Admin materials: GET ${url}`,
+    url,
+    { cache: "no-store" },
+    {
+      category: "admin",
+    }
+  );
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
     return { rows: [], errorCode: readApiErrorString(body) || "fetch_error" };

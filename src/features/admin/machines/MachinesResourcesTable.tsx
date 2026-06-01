@@ -45,7 +45,8 @@ export function MachinesResourcesTable({
     if (!q) return machines;
     return machines.filter((machine) => {
       if (matchesSearchQuery(machine.name, q)) return true;
-      if (machine.registrationNumber && matchesSearchQuery(machine.registrationNumber, q)) return true;
+      if (machine.registrationNumber && matchesSearchQuery(machine.registrationNumber, q))
+        return true;
       if (machine.description && matchesSearchQuery(machine.description, q)) return true;
       const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
       return mCats.some((c) => matchesSearchQuery(c.name, q));
@@ -100,13 +101,19 @@ export function MachinesResourcesTable({
             <tbody className="divide-y divide-zinc-800/50">
               {isLoading ? (
                 <tr>
-                  <td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                  <td
+                    colSpan={canMutate ? 3 : 2}
+                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
+                  >
                     {dict.fetching}
                   </td>
                 </tr>
               ) : filteredMachines.length === 0 ? (
                 <tr>
-                  <td colSpan={canMutate ? 3 : 2} className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                  <td
+                    colSpan={canMutate ? 3 : 2}
+                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
+                  >
                     {searchQuery.trim() ? dict.resourceSearchNoResults : dict.noMachines}
                   </td>
                 </tr>
@@ -136,7 +143,9 @@ export function MachinesResourcesTable({
                             )}
                           </div>
                           <div>
-                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">{machine.name}</div>
+                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">
+                              {machine.name}
+                            </div>
                             <div className="mt-0.5 text-[11px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
                               {dict.idReg} #{machine.id}
                             </div>
@@ -160,7 +169,9 @@ export function MachinesResourcesTable({
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs italic text-zinc-500">{dict.noCategoryBadge}</span>
+                            <span className="text-xs italic text-zinc-500">
+                              {dict.noCategoryBadge}
+                            </span>
                           )}
                         </div>
                       </td>
@@ -245,7 +256,10 @@ export function MachinesResourcesTable({
               </div>
             </AdminPreviewField>
             {previewMachine.registrationNumber ? (
-              <AdminPreviewField label={dict.machRegLabel} value={previewMachine.registrationNumber} />
+              <AdminPreviewField
+                label={dict.machRegLabel}
+                value={previewMachine.registrationNumber}
+              />
             ) : null}
             {previewMachine.description ? (
               <AdminPreviewField label={dict.machDescLabel} value={previewMachine.description} />
@@ -256,5 +270,3 @@ export function MachinesResourcesTable({
     </>
   );
 }
-
-

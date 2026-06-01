@@ -77,8 +77,13 @@ export function MaterialsMaterialFormModal({
                   type="checkbox"
                   checked={form.categoryIds.includes(c.id)}
                   onChange={(e) => {
-                    if (e.target.checked) setForm({ ...form, categoryIds: [...form.categoryIds, c.id] });
-                    else setForm({ ...form, categoryIds: form.categoryIds.filter((id) => id !== c.id) });
+                    if (e.target.checked)
+                      setForm({ ...form, categoryIds: [...form.categoryIds, c.id] });
+                    else
+                      setForm({
+                        ...form,
+                        categoryIds: form.categoryIds.filter((id) => id !== c.id),
+                      });
                   }}
                   className="h-4 w-4 rounded text-amber-500"
                 />
@@ -86,7 +91,9 @@ export function MaterialsMaterialFormModal({
               </label>
             ))}
           </div>
-          {leafCategories.length === 0 ? <p className="text-xs text-red-400">{machDict.machCatWarning}</p> : null}
+          {leafCategories.length === 0 ? (
+            <p className="text-xs text-red-400">{machDict.machCatWarning}</p>
+          ) : null}
         </div>
       </form>
     </AdminModalShell>

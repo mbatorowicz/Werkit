@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
-import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -39,7 +42,8 @@ type Props = {
 };
 
 const FIELD = "space-y-1.5";
-const LABEL = "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const LABEL =
+  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
 const CONTROL =
   "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
 
@@ -78,7 +82,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
         `Admin: spare-parts GET work-order ${workOrderId}`,
         `/api/admin/work-orders/${workOrderId}/spare-parts`,
         undefined,
-        { category: "admin" },
+        { category: "admin" }
       );
       if (!res.ok) return;
       const data = await parseJsonArray(res);
@@ -112,7 +116,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
         "Admin: spare-parts catalog GET",
         "/api/dur/spare-parts",
         undefined,
-        { category: "admin" },
+        { category: "admin" }
       );
       if (!res.ok) return;
       const data = await parseJsonArray(res);
@@ -162,7 +166,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
             notes: addNotes || null,
           }),
         },
-        { category: "admin" },
+        { category: "admin" }
       );
 
       if (res.ok) {
@@ -195,7 +199,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
         `Admin: spare-parts DELETE work-order ${workOrderId} part ${partId}`,
         `/api/admin/work-orders/${workOrderId}/spare-parts/${partId}`,
         { method: "DELETE" },
-        { category: "admin" },
+        { category: "admin" }
       );
 
       if (res.ok) {
@@ -217,9 +221,11 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
       catalog.map((p) => ({
         id: String(p.id),
         label: p.name,
-        sublabel: p.catalogNumber ? `${p.catalogNumber} (stan: ${p.stockQuantity} ${p.unit})` : undefined,
+        sublabel: p.catalogNumber
+          ? `${p.catalogNumber} (stan: ${p.stockQuantity} ${p.unit})`
+          : undefined,
       })),
-    [catalog],
+    [catalog]
   );
 
   const comboboxCommon = comboboxFeedbackProps(adminOrdersDict);
@@ -378,9 +384,13 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType }: P
                 const total = qty * price;
                 return (
                   <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
-                    <td className="px-3 py-2 font-medium text-zinc-900 dark:text-white">{p.partName}</td>
+                    <td className="px-3 py-2 font-medium text-zinc-900 dark:text-white">
+                      {p.partName}
+                    </td>
                     <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{p.partSku}</td>
-                    <td className="px-3 py-2 text-right text-zinc-900 dark:text-white">{p.quantity}</td>
+                    <td className="px-3 py-2 text-right text-zinc-900 dark:text-white">
+                      {p.quantity}
+                    </td>
                     <td className="px-3 py-2 text-right text-zinc-700 dark:text-zinc-300">
                       {p.unitPrice ? `${p.unitPrice} zł` : "—"}
                     </td>

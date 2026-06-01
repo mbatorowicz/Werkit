@@ -1,6 +1,6 @@
-import { db } from '@/db';
-import { customers, customerLocations } from '@/db/schema';
-import { eq, and, desc, inArray } from 'drizzle-orm';
+import { db } from "@/db";
+import { customers, customerLocations } from "@/db/schema";
+import { eq, and, desc, inArray } from "drizzle-orm";
 
 export class CustomerService {
   static async getCustomers(companyId: number) {
@@ -50,18 +50,18 @@ export class CustomerService {
     lastName: string,
     defaultAddress?: string | null,
     latitude?: string | null,
-    longitude?: string | null,
+    longitude?: string | null
   ) {
     const [row] = await db
       .insert(customers)
       .values({ companyId, firstName, lastName, defaultAddress, latitude, longitude })
       .returning();
     if (row && latitude && longitude) {
-      const { CustomerLocationService } = await import('@/services/CustomerLocationService');
+      const { CustomerLocationService } = await import("@/services/CustomerLocationService");
       await CustomerLocationService.createLocation({
         customerId: row.id,
         companyId,
-        label: 'Główna',
+        label: "Główna",
         address: defaultAddress ?? null,
         latitude,
         longitude,
@@ -75,7 +75,7 @@ export class CustomerService {
   static async updateCustomer(
     companyId: number,
     id: number,
-    data: Partial<typeof customers.$inferInsert>,
+    data: Partial<typeof customers.$inferInsert>
   ) {
     await db
       .update(customers)
@@ -84,8 +84,6 @@ export class CustomerService {
   }
 
   static async deleteCustomer(companyId: number, id: number) {
-    await db
-      .delete(customers)
-      .where(and(eq(customers.id, id), eq(customers.companyId, companyId)));
+    await db.delete(customers).where(and(eq(customers.id, id), eq(customers.companyId, companyId)));
   }
 }

@@ -13,7 +13,9 @@ export function AdminCategoryColorFieldRow({
 }) {
   return (
     <div className="space-y-2">
-      <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{label}</label>
+      <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+        {label}
+      </label>
       <div className="flex items-center gap-3">
         <input
           type="color"

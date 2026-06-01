@@ -126,7 +126,7 @@ async function main(): Promise<void> {
   const asJson = hasFlag("json");
 
   if (level && !["INFO", "WARN", "ERROR", "DEBUG"].includes(level)) {
-    console.error('Nieprawidłowy --level (dozwolone: INFO, WARN, ERROR, DEBUG).');
+    console.error("Nieprawidłowy --level (dozwolone: INFO, WARN, ERROR, DEBUG).");
     process.exit(1);
   }
   if (userId !== undefined && (Number.isNaN(userId) || userId < 1)) {
@@ -142,14 +142,15 @@ async function main(): Promise<void> {
   if (userId !== undefined && !Number.isNaN(userId)) filters.push(eq(deviceLogs.userId, userId));
   if (category) {
     filters.push(
-      sql`coalesce(${deviceLogs.metadata}->>'category', ${deviceLogs.metadata}#>>'{werkitContext,category}') = ${category}`,
+      sql`coalesce(${deviceLogs.metadata}->>'category', ${deviceLogs.metadata}#>>'{werkitContext,category}') = ${category}`
     );
   }
   if (minutes !== undefined) {
     const since = new Date(Date.now() - minutes * 60_000);
     filters.push(gte(deviceLogs.createdAt, since));
   }
-  const whereClause: SQL = filters.length === 0 ? sql`true` : filters.length === 1 ? filters[0]! : and(...filters)!;
+  const whereClause: SQL =
+    filters.length === 0 ? sql`true` : filters.length === 1 ? filters[0]! : and(...filters)!;
 
   const rows = await db
     .select({
@@ -185,7 +186,7 @@ async function main(): Promise<void> {
           message: r.message,
           metadata: r.metadata,
           createdAt: created,
-        }),
+        })
       );
       continue;
     }

@@ -22,4 +22,3 @@ export { DEFAULT_UI_LOCALE, DEFAULT_UI_TIMEZONE } from "./constants";
 export function getDictionary(locale: Locale = "pl"): AppDictionary {
   return dictionaries[locale];
 }
-

@@ -1,9 +1,9 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { AdminSessionService } from '@/services/AdminSessionService';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { AdminSessionService } from "@/services/AdminSessionService";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const POST = withApiErrorHandling(
   async (_request: Request, props: { params: Promise<{ id: string }> }) => {
@@ -28,5 +28,5 @@ export const POST = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "save_error",
-  },
+  }
 );

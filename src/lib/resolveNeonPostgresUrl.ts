@@ -25,16 +25,15 @@ export function resolveNeonPostgresUrl(): string | undefined {
     trim(process.env.PGHOST_UNPOOLED);
   const user = trim(process.env.PGUSER) ?? trim(process.env.POSTGRES_USER);
   const password = process.env.PGPASSWORD ?? process.env.POSTGRES_PASSWORD;
-  const database =
-    trim(process.env.PGDATABASE) ?? trim(process.env.POSTGRES_DATABASE);
+  const database = trim(process.env.PGDATABASE) ?? trim(process.env.POSTGRES_DATABASE);
 
-  if (!host || !user || password === undefined || password === '' || !database) {
+  if (!host || !user || password === undefined || password === "" || !database) {
     return undefined;
   }
 
   const encUser = encodeURIComponent(user);
   const encPass = encodeURIComponent(password);
-  const ssl = host.includes('neon.tech') ? '?sslmode=require' : '';
+  const ssl = host.includes("neon.tech") ? "?sslmode=require" : "";
 
   return `postgresql://${encUser}:${encPass}@${host}/${database}${ssl}`;
 }

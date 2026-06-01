@@ -28,7 +28,7 @@ export function normalizeAppRole(role: unknown): Role {
 
 export function workerPermissionsFromBody(
   role: Role,
-  body: Record<string, unknown>,
+  body: Record<string, unknown>
 ): WorkerPermissionFlags {
   if (role !== "worker") return NON_WORKER_PERMISSION_FLAGS;
   return {
@@ -41,7 +41,7 @@ export function workerPermissionsFromBody(
 export function applyWorkerPermissionsToUpdate(
   updateData: UserUpdatePayload,
   role: Role,
-  body: Record<string, unknown>,
+  body: Record<string, unknown>
 ): void {
   const flags = workerPermissionsFromBody(role, body);
   updateData.canCreateOwnOrders = flags.canCreateOwnOrders;

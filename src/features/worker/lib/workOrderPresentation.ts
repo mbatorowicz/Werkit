@@ -10,8 +10,8 @@ export const WORK_ORDER_PRIORITY_WEIGHT: Record<string, number> = {
 
 export function sortWorkOrdersByPriorityThenCreated(orders: WorkOrder[]): WorkOrder[] {
   return [...orders].sort((a, b) => {
-    const pA = a.priority ? WORK_ORDER_PRIORITY_WEIGHT[a.priority] ?? 3 : 3;
-    const pB = b.priority ? WORK_ORDER_PRIORITY_WEIGHT[b.priority] ?? 3 : 3;
+    const pA = a.priority ? (WORK_ORDER_PRIORITY_WEIGHT[a.priority] ?? 3) : 3;
+    const pB = b.priority ? (WORK_ORDER_PRIORITY_WEIGHT[b.priority] ?? 3) : 3;
     if (pA !== pB) return pA - pB;
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });

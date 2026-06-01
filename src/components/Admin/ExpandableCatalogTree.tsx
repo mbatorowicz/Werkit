@@ -84,11 +84,11 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   const roots = useMemo(() => buildMaterialCategoryTree(categories), [categories]);
   const materialIndex = useMemo(
     () => indexMaterialsByCategory(categories, materialList),
-    [categories, materialList],
+    [categories, materialList]
   );
   const branchStats = useMemo(
     () => computeCategoryBranchStats(roots, materialIndex.byCategoryId),
-    [roots, materialIndex.byCategoryId],
+    [roots, materialIndex.byCategoryId]
   );
   const showMaterialStats = Boolean(treeStatMaterials);
   const catalogDict = getDictionary().admin.categories.shared;
@@ -100,7 +100,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
 
   const filtered = useMemo(
     () => filterCatalogTree(roots, materialIndex, searchQuery),
-    [roots, materialIndex, searchQuery],
+    [roots, materialIndex, searchQuery]
   );
 
   const displayRoots = filtered.roots;
@@ -122,10 +122,11 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   };
 
   const hasContent =
-    categories.length > 0 || materialIndex.uncategorized.length > 0 || (isLoading && categories.length === 0);
+    categories.length > 0 ||
+    materialIndex.uncategorized.length > 0 ||
+    (isLoading && categories.length === 0);
 
-  const hasFilteredContent =
-    displayRoots.length > 0 || displayUncategorized.length > 0;
+  const hasFilteredContent = displayRoots.length > 0 || displayUncategorized.length > 0;
 
   const isNodeExpanded = (id: number) =>
     filtered.hasQuery ? filtered.expandIds.has(id) : expanded.has(id);

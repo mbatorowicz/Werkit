@@ -26,7 +26,7 @@ function pickActiveAlarm(
   session: Session | null,
   overdueOrder: WorkOrder | undefined,
   upcomingOrder: WorkOrder | undefined,
-  nowMs: number,
+  nowMs: number
 ): WorkerActiveAlarm | null {
   const alarmsDict = getDictionary().worker.alarms;
   if (isTimeOverrun && session) {
@@ -45,7 +45,7 @@ export function useWorkerNotifications(
   session: Session | null,
   workOrders: WorkOrder[],
   settings: AppSettings | null,
-  currentUser: UserData | null,
+  currentUser: UserData | null
 ) {
   const [alarmClock, setAlarmClock] = useState(() => Date.now());
   const [alarmSuppressVersion, setAlarmSuppressVersion] = useState(0);
@@ -63,8 +63,7 @@ export function useWorkerNotifications(
 
   const isTimeOverrun = useMemo(() => {
     if (!session?.expectedDurationHours || !settings?.timeOverrunReminder) return false;
-    const elapsedH =
-      (alarmClock - new Date(session.startTime).getTime()) / 3_600_000;
+    const elapsedH = (alarmClock - new Date(session.startTime).getTime()) / 3_600_000;
     return elapsedH > parseFloat(String(session.expectedDurationHours));
   }, [session, settings?.timeOverrunReminder, alarmClock]);
 
@@ -74,7 +73,7 @@ export function useWorkerNotifications(
         if (!order.dueDate) return false;
         return new Date(order.dueDate).getTime() < alarmClock;
       }),
-    [workOrders, alarmClock],
+    [workOrders, alarmClock]
   );
 
   const upcomingOrder = useMemo(
@@ -85,12 +84,12 @@ export function useWorkerNotifications(
         const reminderMs = (settings?.upcomingOrderReminderMinutes ?? 120) * 60 * 1000;
         return dueTime > alarmClock && dueTime - alarmClock < reminderMs;
       }),
-    [workOrders, settings?.upcomingOrderReminderMinutes, alarmClock],
+    [workOrders, settings?.upcomingOrderReminderMinutes, alarmClock]
   );
 
   const candidateAlarm = useMemo(
     () => pickActiveAlarm(isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock),
-    [isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock],
+    [isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock]
   );
 
   const activeAlarm = useMemo(() => {
@@ -118,7 +117,7 @@ export function useWorkerNotifications(
             "WARN",
             "Brak uprawnień do LocalNotifications",
             { alarmKey: alarm.alarmKey },
-            { category: "notifications" },
+            { category: "notifications" }
           );
           return;
         }
@@ -129,11 +128,11 @@ export function useWorkerNotifications(
           "ERROR",
           "Błąd podczas LocalNotifications.schedule",
           { error: e instanceof Error ? e.message : String(e), alarmKey: alarm.alarmKey },
-          { category: "notifications" },
+          { category: "notifications" }
         );
       }
     },
-    [alarmClock],
+    [alarmClock]
   );
 
   useEffect(() => {
@@ -179,7 +178,7 @@ export function useWorkerNotifications(
       delete lastNativeScheduledRef.current[activeAlarm.alarmKey];
       refreshAlarmUi();
     },
-    [activeAlarm, refreshAlarmUi],
+    [activeAlarm, refreshAlarmUi]
   );
 
   return {

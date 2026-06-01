@@ -30,7 +30,10 @@ export function QueuedPendingOrdersDuringSession({ orders, dict }: Props) {
         className="w-full flex items-center justify-between gap-2 rounded-lg border border-amber-200/80 dark:border-amber-500/25 bg-amber-50/80 dark:bg-amber-500/10 px-3 py-2.5 text-left transition-colors hover:bg-amber-100/90 dark:hover:bg-amber-500/15"
       >
         <div className="flex items-start gap-2 min-w-0">
-          <ListOrdered className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden />
+          <ListOrdered
+            className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"
+            aria-hidden
+          />
           <div className="min-w-0">
             <div className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
               {formatDict(dict.queuedOrdersToggle, { count: orders.length })}
@@ -43,12 +46,17 @@ export function QueuedPendingOrdersDuringSession({ orders, dict }: Props) {
         {open ? (
           <ChevronUp className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" aria-hidden />
         ) : (
-          <ChevronDown className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0" aria-hidden />
+          <ChevronDown
+            className="w-5 h-5 text-amber-700 dark:text-amber-400 shrink-0"
+            aria-hidden
+          />
         )}
       </button>
 
       {open && (
-        <div className={`mt-3 flex flex-col gap-3 max-h-[min(52vh,420px)] pr-0.5 ${INLINE_SCROLL_PANEL_CLASS}`}>
+        <div
+          className={`mt-3 flex flex-col gap-3 max-h-[min(52vh,420px)] pr-0.5 ${INLINE_SCROLL_PANEL_CLASS}`}
+        >
           {orders.map((order, index) => (
             <WorkOrderPendingCard
               key={order.id}

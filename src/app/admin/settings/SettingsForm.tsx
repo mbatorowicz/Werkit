@@ -49,12 +49,20 @@ export default function SettingsForm({
   const [baseLat, setBaseLat] = useState(initialBase.lat);
   const [baseLng, setBaseLng] = useState(initialBase.lng);
   const [geocodeBusy, setGeocodeBusy] = useState(false);
-  const [cancelWindowMinutes, setCancelWindowMinutes] = useState<number>(initialData?.cancelWindowMinutes ?? 5);
-  const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(initialData?.requirePhotoToFinish ?? false);
-  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(initialData?.geofenceRadiusMeters ?? 500);
-  const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(initialData?.timeOverrunReminder ?? true);
+  const [cancelWindowMinutes, setCancelWindowMinutes] = useState<number>(
+    initialData?.cancelWindowMinutes ?? 5
+  );
+  const [requirePhotoToFinish, setRequirePhotoToFinish] = useState<boolean>(
+    initialData?.requirePhotoToFinish ?? false
+  );
+  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState<number>(
+    initialData?.geofenceRadiusMeters ?? 500
+  );
+  const [timeOverrunReminder, setTimeOverrunReminder] = useState<boolean>(
+    initialData?.timeOverrunReminder ?? true
+  );
   const [upcomingOrderReminderMinutes, setUpcomingOrderReminderMinutes] = useState<number>(
-    initialData?.upcomingOrderReminderMinutes ?? 120,
+    initialData?.upcomingOrderReminderMinutes ?? 120
   );
 
   const [saveStatus, setSaveStatus] = useState<"IDLE" | "SAVING" | "SAVED">("IDLE");
@@ -85,7 +93,7 @@ export default function SettingsForm({
             upcomingOrderReminderMinutes,
           }),
         },
-        { category: "admin" },
+        { category: "admin" }
       );
       if (res.ok) {
         setSaveStatus("SAVED");
@@ -108,7 +116,9 @@ export default function SettingsForm({
         </h2>
       </div>
 
-      <div className={`p-6 md:p-8 space-y-8 ${!canMutate ? "opacity-85 pointer-events-none select-none" : ""}`}>
+      <div
+        className={`p-6 md:p-8 space-y-8 ${!canMutate ? "opacity-85 pointer-events-none select-none" : ""}`}
+      >
         {(mode === "all" || mode === "company") && (
           <SettingsCompanySection
             name={name}
@@ -150,7 +160,9 @@ export default function SettingsForm({
 
         {canMutate && (
           <div className="pt-8 border-t border-zinc-200 dark:border-zinc-700 flex justify-end items-center gap-4">
-            {saveStatus === "SAVED" && <span className="text-emerald-500 text-sm font-medium">{dict.savedSuccess}</span>}
+            {saveStatus === "SAVED" && (
+              <span className="text-emerald-500 text-sm font-medium">{dict.savedSuccess}</span>
+            )}
             <button
               type="button"
               onClick={() => void handleSave()}

@@ -61,9 +61,11 @@ export default function CustomerFormFields({
         </div>
       </div>
 
-      {(form.defaultAddress || (form.latitude && form.longitude)) ? (
+      {form.defaultAddress || (form.latitude && form.longitude) ? (
         <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.defaultAddressSummary}</p>
+          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            {dict.defaultAddressSummary}
+          </p>
           {form.defaultAddress ? (
             <div className="flex items-start gap-2 text-sm text-zinc-800 dark:text-zinc-200">
               <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />

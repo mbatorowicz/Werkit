@@ -13,17 +13,29 @@ export type FetchDeviceTelemetryOptions = {
 function isLikelyTransientFetchFailure(e: unknown): boolean {
   if (e === null || e === undefined) return false;
   if (typeof e !== "object") return false;
-  const name = "name" in e && typeof (e as { name?: unknown }).name === "string" ? (e as { name: string }).name : "";
+  const name =
+    "name" in e && typeof (e as { name?: unknown }).name === "string"
+      ? (e as { name: string }).name
+      : "";
   if (name === "AbortError") return true;
   const msg =
     "message" in e && typeof (e as { message?: unknown }).message === "string"
       ? String((e as { message: string }).message)
       : "";
   const lower = msg.toLowerCase();
-  if (lower.includes("failed to fetch") || lower.includes("networkerror") || lower.includes("load failed"))
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("load failed")
+  )
     return true;
   if (lower.includes("network request failed") || lower.includes("fetch failed")) return true;
-  if (lower.includes("ecconnreset") || lower.includes("etimedout") || lower.includes("econnrefused")) return true;
+  if (
+    lower.includes("ecconnreset") ||
+    lower.includes("etimedout") ||
+    lower.includes("econnrefused")
+  )
+    return true;
   return false;
 }
 
@@ -35,23 +47,26 @@ export async function fetchWithDeviceTelemetry(
   label: string,
   input: RequestInfo | URL,
   init?: RequestInit,
-  logOpts?: FetchDeviceTelemetryOptions,
+  logOpts?: FetchDeviceTelemetryOptions
 ): Promise<Response> {
   const category: WerkitLogCategory = logOpts?.category ?? "http";
   const throttleKey = logOpts?.throttleKey;
   const throttleMs = logOpts?.throttleMs ?? 0;
 
-  const urlStr =
-    typeof input === "string"
-      ? input
-      : input instanceof URL
-        ? input.href
-        : input.url;
+  const urlStr = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
 
   const allowHttpLog = () =>
-    !(throttleKey && throttleMs > 0 && shouldThrottleTelemetryLog(`${throttleKey}:http`, throttleMs));
+    !(
+      throttleKey &&
+      throttleMs > 0 &&
+      shouldThrottleTelemetryLog(`${throttleKey}:http`, throttleMs)
+    );
   const allowThrowLog = () =>
-    !(throttleKey && throttleMs > 0 && shouldThrottleTelemetryLog(`${throttleKey}:throw`, throttleMs));
+    !(
+      throttleKey &&
+      throttleMs > 0 &&
+      shouldThrottleTelemetryLog(`${throttleKey}:throw`, throttleMs)
+    );
 
   try {
     const res = await fetch(input, init);
@@ -74,7 +89,7 @@ export async function fetchWithDeviceTelemetry(
           category,
           dedupeWindowMs: 12_000,
           dedupeKeyExtra: `http|${res.status}|${urlStr.slice(0, 240)}`,
-        },
+        }
       );
     }
     return res;
@@ -100,7 +115,7 @@ export async function fetchWithDeviceTelemetry(
               ? { name: e.name, message: e.message, stack: e.stack?.slice(0, 4000) }
               : { raw: String(e) },
         },
-        remoteOpts,
+        remoteOpts
       );
     }
     throw e;

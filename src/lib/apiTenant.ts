@@ -1,6 +1,6 @@
-import { getAuthSession, type JwtPayload } from '@/lib/auth';
-import { jsonError } from '@/lib/apiRoute';
-import { isSuperadminRole, resolveTenantCompanyId } from '@/lib/tenantContext';
+import { getAuthSession, type JwtPayload } from "@/lib/auth";
+import { jsonError } from "@/lib/apiRoute";
+import { isSuperadminRole, resolveTenantCompanyId } from "@/lib/tenantContext";
 
 export type CompanyScopedSession = {
   session: JwtPayload;
@@ -13,7 +13,7 @@ export async function requireWorkerCompanySession(): Promise<
 > {
   const session = await getAuthSession();
   if (!session?.userId) {
-    return { ok: false, response: jsonError('Unauthorized', 401) };
+    return { ok: false, response: jsonError("Unauthorized", 401) };
   }
   try {
     return {
@@ -23,22 +23,23 @@ export async function requireWorkerCompanySession(): Promise<
       session,
     };
   } catch {
-    return { ok: false, response: jsonError('Forbidden', 403) };
+    return { ok: false, response: jsonError("Forbidden", 403) };
   }
 }
 
-export async function requireCompanyScopedSession():
-  Promise<{ ok: true; data: CompanyScopedSession } | { ok: false; response: Response }> {
+export async function requireCompanyScopedSession(): Promise<
+  { ok: true; data: CompanyScopedSession } | { ok: false; response: Response }
+> {
   const session = await getAuthSession();
   if (!session) {
-    return { ok: false, response: jsonError('Unauthorized', 401) };
+    return { ok: false, response: jsonError("Unauthorized", 401) };
   }
   if (isSuperadminRole(session.role)) {
-    return { ok: false, response: jsonError('Forbidden', 403) };
+    return { ok: false, response: jsonError("Forbidden", 403) };
   }
   try {
     return { ok: true, data: { session, companyId: await resolveTenantCompanyId(session) } };
   } catch {
-    return { ok: false, response: jsonError('Forbidden', 403) };
+    return { ok: false, response: jsonError("Forbidden", 403) };
   }
 }

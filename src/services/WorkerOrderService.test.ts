@@ -48,9 +48,52 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
-  workOrders: { id: "id", companyId: "companyId", userId: "userId", status: "status", dueDate: "dueDate", createdAt: "createdAt", priority: "priority", hasPhotos: "hasPhotos", hasNotes: "hasNotes", resourceId: "resourceId", customerId: "customerId", customerLocationId: "customerLocationId", categoryId: "categoryId", materialId: "materialId", taskDescription: "taskDescription", quantityTons: "quantityTons", expectedDurationHours: "expectedDurationHours", lockedUntil: "lockedUntil", createdById: "createdById" },
-  workSessions: { id: "id", companyId: "companyId", workOrderId: "workOrderId", userId: "userId", categoryId: "categoryId", resourceId: "resourceId", materialId: "materialId", customerId: "customerId", taskDescription: "taskDescription", quantityTons: "quantityTons", expectedDurationHours: "expectedDurationHours", dueDate: "dueDate", status: "status", startLatitude: "startLatitude", startLongitude: "startLongitude" },
-  customers: { id: "id", lastName: "lastName", firstName: "firstName", defaultAddress: "defaultAddress", latitude: "latitude", longitude: "longitude" },
+  workOrders: {
+    id: "id",
+    companyId: "companyId",
+    userId: "userId",
+    status: "status",
+    dueDate: "dueDate",
+    createdAt: "createdAt",
+    priority: "priority",
+    hasPhotos: "hasPhotos",
+    hasNotes: "hasNotes",
+    resourceId: "resourceId",
+    customerId: "customerId",
+    customerLocationId: "customerLocationId",
+    categoryId: "categoryId",
+    materialId: "materialId",
+    taskDescription: "taskDescription",
+    quantityTons: "quantityTons",
+    expectedDurationHours: "expectedDurationHours",
+    lockedUntil: "lockedUntil",
+    createdById: "createdById",
+  },
+  workSessions: {
+    id: "id",
+    companyId: "companyId",
+    workOrderId: "workOrderId",
+    userId: "userId",
+    categoryId: "categoryId",
+    resourceId: "resourceId",
+    materialId: "materialId",
+    customerId: "customerId",
+    taskDescription: "taskDescription",
+    quantityTons: "quantityTons",
+    expectedDurationHours: "expectedDurationHours",
+    dueDate: "dueDate",
+    status: "status",
+    startLatitude: "startLatitude",
+    startLongitude: "startLongitude",
+  },
+  customers: {
+    id: "id",
+    lastName: "lastName",
+    firstName: "firstName",
+    defaultAddress: "defaultAddress",
+    latitude: "latitude",
+    longitude: "longitude",
+  },
   users: { id: "id", companyId: "companyId", canCreateOwnOrders: "canCreateOwnOrders" },
   resources: { id: "id", name: "name", companyId: "companyId" },
   materials: { id: "id", name: "name", companyId: "companyId" },
@@ -122,7 +165,9 @@ describe("WorkerOrderService", () => {
 
   describe("getPendingOrders", () => {
     it("zwraca listę oczekujących zleceń z paginacją", async () => {
-      const rows = resultArray([{ id: 1, status: "PENDING", priority: "NORMAL", hasPhotos: false, hasNotes: false }]);
+      const rows = resultArray([
+        { id: 1, status: "PENDING", priority: "NORMAL", hasPhotos: false, hasNotes: false },
+      ]);
       // Chain: .select().from().leftJoin().where().orderBy().limit().offset()
       // Terminal: offset
       const chain = {
@@ -180,7 +225,18 @@ describe("WorkerOrderService", () => {
     });
 
     it("rzuca błąd gdy aktywna sesja", async () => {
-      const orderRow = { id: 1, userId: 1, companyId: 1, status: "PENDING", resourceId: 1, customerId: 1, customerLocationId: null, dueDate: null, expectedDurationHours: null, categoryId: 1 };
+      const orderRow = {
+        id: 1,
+        userId: 1,
+        companyId: 1,
+        status: "PENDING",
+        resourceId: 1,
+        customerId: 1,
+        customerLocationId: null,
+        dueDate: null,
+        expectedDurationHours: null,
+        categoryId: 1,
+      };
       const orderResult = resultArray([orderRow]);
       const chain = {
         from: vi.fn(() => chain),
@@ -196,7 +252,18 @@ describe("WorkerOrderService", () => {
     });
 
     it("wykonuje transakcję przy akceptacji zlecenia", async () => {
-      const orderRow = { id: 1, userId: 1, companyId: 1, status: "PENDING", resourceId: 1, customerId: 1, customerLocationId: null, dueDate: null, expectedDurationHours: null, categoryId: 1 };
+      const orderRow = {
+        id: 1,
+        userId: 1,
+        companyId: 1,
+        status: "PENDING",
+        resourceId: 1,
+        customerId: 1,
+        customerLocationId: null,
+        dueDate: null,
+        expectedDurationHours: null,
+        categoryId: 1,
+      };
       const orderResult = resultArray([orderRow]);
       const chain = {
         from: vi.fn(() => chain),
@@ -239,9 +306,7 @@ describe("WorkerOrderService", () => {
   describe("createOwnOrder", () => {
     it("rzuca błąd gdy brak wymaganych pól", async () => {
       const { WorkerOrderService } = await import("./WorkerOrderService");
-      await expect(
-        WorkerOrderService.createOwnOrder(1, 1, {})
-      ).rejects.toThrow("missing_fields");
+      await expect(WorkerOrderService.createOwnOrder(1, 1, {})).rejects.toThrow("missing_fields");
     });
 
     it("rzuca błąd gdy brak uprawnień", async () => {
@@ -282,13 +347,28 @@ describe("WorkerOrderService", () => {
 
       const { DictionaryService } = await import("@/services/DictionaryService");
       vi.mocked(DictionaryService.getResourceCategoryById).mockResolvedValue({
-        id: 1, name: "Test", isGroup: false, companyId: 1,
-        parentId: null, sortOrder: 0, icon: null, showCustomer: false,
-        showMaterial: false, showQuantity: false, showTaskDescription: false,
-        showResourceName: false, showResourceDescription: false, showRegistrationNumber: false,
-        reqCustomer: false, reqMaterial: false, reqQuantity: false, reqTaskDescription: false,
-        isGlobal: false, isStationary: false, color: null,
-        orderType: 'machine_work',
+        id: 1,
+        name: "Test",
+        isGroup: false,
+        companyId: 1,
+        parentId: null,
+        sortOrder: 0,
+        icon: null,
+        showCustomer: false,
+        showMaterial: false,
+        showQuantity: false,
+        showTaskDescription: false,
+        showResourceName: false,
+        showResourceDescription: false,
+        showRegistrationNumber: false,
+        reqCustomer: false,
+        reqMaterial: false,
+        reqQuantity: false,
+        reqTaskDescription: false,
+        isGlobal: false,
+        isStationary: false,
+        color: null,
+        orderType: "machine_work",
       });
 
       // Drugie zapytanie: INSERT ... VALUES ... RETURNING

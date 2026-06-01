@@ -3,7 +3,13 @@
 import { getDictionary } from "@/i18n";
 import { filterCategoryGroups } from "@/lib/categoryTree";
 
-type Row = { id: number; name: string; parentId: number | null; isGroup: boolean; sortOrder: number };
+type Row = {
+  id: number;
+  name: string;
+  parentId: number | null;
+  isGroup: boolean;
+  sortOrder: number;
+};
 
 type Props = {
   parentId: number | null;
@@ -39,7 +45,9 @@ export function CategoryHierarchyFields({
           className="mt-1 h-4 w-4 rounded text-emerald-600"
         />
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">{g.isGroupLabel}</span>
+          <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+            {g.isGroupLabel}
+          </span>
           <span className="text-[10px] text-zinc-500 dark:text-zinc-400">{g.isGroupHint}</span>
         </span>
       </label>
@@ -76,4 +84,3 @@ export function CategoryHierarchyFields({
     </div>
   );
 }
-

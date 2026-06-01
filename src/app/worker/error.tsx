@@ -23,7 +23,8 @@ export default function WorkerError({
         Wystąpił błąd ładowania
       </h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm">
-        Niestety, wystąpił problem podczas ładowania panelu pracownika. Spróbuj odświeżyć stronę lub zalogować się ponownie.
+        Niestety, wystąpił problem podczas ładowania panelu pracownika. Spróbuj odświeżyć stronę lub
+        zalogować się ponownie.
       </p>
       <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg w-full max-w-md mb-6 overflow-auto text-left">
         <p className="text-xs font-mono text-red-600 dark:text-red-400 break-words">
@@ -33,7 +34,7 @@ export default function WorkerError({
       <div className="flex gap-4">
         <button
           onClick={() => {
-            if (error.message && error.message.toLowerCase().includes('chunk')) {
+            if (error.message && error.message.toLowerCase().includes("chunk")) {
               window.location.reload();
             } else {
               reset();
@@ -44,7 +45,7 @@ export default function WorkerError({
           Spróbuj ponownie
         </button>
         <button
-          onClick={() => window.location.href = '/login'}
+          onClick={() => (window.location.href = "/login")}
           className="bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white font-bold py-3 px-6 rounded-lg transition-colors"
         >
           Wróć do logowania

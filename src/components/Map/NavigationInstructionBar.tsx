@@ -81,20 +81,24 @@ export default function NavigationInstructionBar({
       {/* Main instruction row */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Maneuver icon */}
-        <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-          isArrive
-            ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
-            : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
-        }`}>
-          <ManeuverIcon type={currentInstruction.type} modifier={currentInstruction.modifier} className="h-5 w-5" />
+        <div
+          className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+            isArrive
+              ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
+              : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+          }`}
+        >
+          <ManeuverIcon
+            type={currentInstruction.type}
+            modifier={currentInstruction.modifier}
+            className="h-5 w-5"
+          />
         </div>
 
         {/* Instruction text + distance to next turn */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">
-            {isArrive
-              ? (destinationName || currentInstruction.text)
-              : currentInstruction.text}
+            {isArrive ? destinationName || currentInstruction.text : currentInstruction.text}
           </p>
           {!isArrive && remainingToNextInstruction > 0 && (
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -106,8 +110,14 @@ export default function NavigationInstructionBar({
         {/* Next street preview — hidden on mobile, shown on sm+ */}
         {nextInstruction && !isArrive && (
           <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 shrink-0">
-            <span className="truncate max-w-[100px]">{nextInstruction.streetName || nextInstruction.text}</span>
-            <ManeuverIcon type={nextInstruction.type} modifier={nextInstruction.modifier} className="h-3.5 w-3.5 text-zinc-400" />
+            <span className="truncate max-w-[100px]">
+              {nextInstruction.streetName || nextInstruction.text}
+            </span>
+            <ManeuverIcon
+              type={nextInstruction.type}
+              modifier={nextInstruction.modifier}
+              className="h-3.5 w-3.5 text-zinc-400"
+            />
           </div>
         )}
       </div>

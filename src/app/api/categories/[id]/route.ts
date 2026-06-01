@@ -6,7 +6,7 @@ import {
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
@@ -38,17 +38,21 @@ export const PUT = withApiErrorHandling(
     if (body.showCustomer !== undefined) updateData.showCustomer = !!body.showCustomer;
     if (body.showMaterial !== undefined) updateData.showMaterial = !!body.showMaterial;
     if (body.showQuantity !== undefined) updateData.showQuantity = !!body.showQuantity;
-    if (body.showTaskDescription !== undefined) updateData.showTaskDescription = !!body.showTaskDescription;
+    if (body.showTaskDescription !== undefined)
+      updateData.showTaskDescription = !!body.showTaskDescription;
     if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
     if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
     if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
-    if (body.reqTaskDescription !== undefined) updateData.reqTaskDescription = !!body.reqTaskDescription;
+    if (body.reqTaskDescription !== undefined)
+      updateData.reqTaskDescription = !!body.reqTaskDescription;
     if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
     if (body.isStationary !== undefined) updateData.isStationary = !!body.isStationary;
     if (body.color !== undefined) updateData.color = body.color as string;
     if (body.showResourceName !== undefined) updateData.showResourceName = !!body.showResourceName;
-    if (body.showResourceDescription !== undefined) updateData.showResourceDescription = !!body.showResourceDescription;
-    if (body.showRegistrationNumber !== undefined) updateData.showRegistrationNumber = !!body.showRegistrationNumber;
+    if (body.showResourceDescription !== undefined)
+      updateData.showResourceDescription = !!body.showResourceDescription;
+    if (body.showRegistrationNumber !== undefined)
+      updateData.showRegistrationNumber = !!body.showRegistrationNumber;
 
     if (updateData.reqCustomer) updateData.showCustomer = true;
     if (updateData.reqMaterial) updateData.showMaterial = true;
@@ -61,13 +65,16 @@ export const PUT = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
-      if (isMissingResourceCategoriesStationaryColumn(err) || isMissingResourceCategoriesVisibilityColumns(err)) {
+      if (
+        isMissingResourceCategoriesStationaryColumn(err) ||
+        isMissingResourceCategoriesVisibilityColumns(err)
+      ) {
         return jsonError("migration_required", 503);
       }
       return null;
     },
     defaultErrorCode: "category_in_use",
-  },
+  }
 );
 
 export const DELETE = withApiErrorHandling(
@@ -93,5 +100,5 @@ export const DELETE = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "category_has_machines",
-  },
+  }
 );

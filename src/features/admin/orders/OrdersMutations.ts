@@ -6,13 +6,13 @@ export async function handleDeleteWorkOrder(
   appAlert: (opts: { message: string }) => Promise<void>,
   apiErrors: Record<string, string>,
   dict: { error: string; mutationOk: string },
-  fetchData: (force?: boolean) => void,
+  fetchData: (force?: boolean) => void
 ): Promise<void> {
   const res = await fetchWithDeviceTelemetry(
     `Admin orders: delete work-order ${orderId}`,
     `/api/admin/work-orders/${orderId}`,
     { method: "DELETE" },
-    { category: "admin" },
+    { category: "admin" }
   );
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
@@ -31,13 +31,13 @@ export async function handleForceCompleteSession(
   apiErrors: Record<string, string>,
   dict: { error: string; mutationOk: string },
   closeSessionDetails: () => void,
-  fetchData: (force?: boolean) => void,
+  fetchData: (force?: boolean) => void
 ): Promise<void> {
   const res = await fetchWithDeviceTelemetry(
     `Admin sessions: force-complete ${sessionId}`,
     `/api/admin/work-sessions/${sessionId}/force-complete`,
     { method: "POST" },
-    { category: "admin" },
+    { category: "admin" }
   );
   if (!res.ok) {
     const body = await parseJsonUnknown(res);
@@ -58,7 +58,7 @@ export async function handleDeleteArchivedSession(
   apiErrors: Record<string, string>,
   dict: { mutationOk: string },
   closeSessionDetails: () => void,
-  fetchData: (force?: boolean) => void,
+  fetchData: (force?: boolean) => void
 ): Promise<void> {
   const res = await fetchWithDeviceTelemetry(
     `Admin sessions: delete archived ${sessionId}`,
@@ -68,7 +68,7 @@ export async function handleDeleteArchivedSession(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password: adminPassword }),
     },
-    { category: "admin" },
+    { category: "admin" }
   );
   if (!res.ok) {
     const body = await parseJsonUnknown(res);

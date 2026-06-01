@@ -2,9 +2,9 @@
 // Werkit — Serwis: części zamienne przypisane do zlecenia naprawy
 // ============================================================
 
-import { db } from '@/db';
-import { workOrderSpareParts, spareParts, workOrders } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { db } from "@/db";
+import { workOrderSpareParts, spareParts, workOrders } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export class WorkOrderSparePartService {
   /**
@@ -13,7 +13,7 @@ export class WorkOrderSparePartService {
    */
   static async verifyOrderBelongsToCompany(
     workOrderId: number,
-    companyId: number,
+    companyId: number
   ): Promise<boolean> {
     const [row] = await db
       .select({ id: workOrders.id })
@@ -57,14 +57,14 @@ export class WorkOrderSparePartService {
       quantity?: string;
       unitPrice?: string | null;
       notes?: string | null;
-    },
+    }
   ) {
     const [inserted] = await db
       .insert(workOrderSpareParts)
       .values({
         workOrderId,
         partId: data.partId,
-        quantity: data.quantity ?? '1',
+        quantity: data.quantity ?? "1",
         unitPrice: data.unitPrice ?? null,
         notes: data.notes ?? null,
       })
@@ -82,7 +82,7 @@ export class WorkOrderSparePartService {
       quantity?: string;
       unitPrice?: string | null;
       notes?: string | null;
-    },
+    }
   ) {
     const [updated] = await db
       .update(workOrderSpareParts)
@@ -112,18 +112,12 @@ export class WorkOrderSparePartService {
   /**
    * Sprawdza, czy dana część należy do zlecenia.
    */
-  static async assertPartBelongsToOrder(
-    partId: number,
-    workOrderId: number,
-  ): Promise<boolean> {
+  static async assertPartBelongsToOrder(partId: number, workOrderId: number): Promise<boolean> {
     const [row] = await db
       .select({ id: workOrderSpareParts.id })
       .from(workOrderSpareParts)
       .where(
-        and(
-          eq(workOrderSpareParts.id, partId),
-          eq(workOrderSpareParts.workOrderId, workOrderId),
-        ),
+        and(eq(workOrderSpareParts.id, partId), eq(workOrderSpareParts.workOrderId, workOrderId))
       )
       .limit(1);
 

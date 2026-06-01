@@ -35,15 +35,24 @@ type Props = {
 };
 
 export function SettingsCompanySection({
-  name, setName,
-  address, setAddress,
-  zipCode, setZipCode,
-  city, setCity,
-  phone, setPhone,
-  email, setEmail,
-  baseLat, baseLng,
-  setBaseLat, setBaseLng,
-  geocodeBusy, setGeocodeBusy,
+  name,
+  setName,
+  address,
+  setAddress,
+  zipCode,
+  setZipCode,
+  city,
+  setCity,
+  phone,
+  setPhone,
+  email,
+  setEmail,
+  baseLat,
+  baseLng,
+  setBaseLat,
+  setBaseLng,
+  geocodeBusy,
+  setGeocodeBusy,
 }: Props) {
   const dict = getDictionary().admin.settings;
   const customersDict = getDictionary().admin.customers;
@@ -61,10 +70,19 @@ export function SettingsCompanySection({
         "Admin settings: geocode company base",
         `/api/geocode?q=${encodeURIComponent(q)}`,
         { cache: "no-store" },
-        { category: "admin" },
+        { category: "admin" }
       );
-      const data = (await res.json()) as { lat?: number | null; lng?: number | null; error?: string };
-      if (!res.ok || data.error === "not_found" || typeof data.lat !== "number" || typeof data.lng !== "number") {
+      const data = (await res.json()) as {
+        lat?: number | null;
+        lng?: number | null;
+        error?: string;
+      };
+      if (
+        !res.ok ||
+        data.error === "not_found" ||
+        typeof data.lat !== "number" ||
+        typeof data.lng !== "number"
+      ) {
         await appAlert({ message: customersDict.geocodeNoResults });
         return;
       }
@@ -132,7 +150,9 @@ export function SettingsCompanySection({
 
         <div className="space-y-3 pt-2 border-t border-zinc-200 dark:border-zinc-800">
           <div>
-            <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">{dict.gpsLocation}</h3>
+            <h3 className="font-medium text-zinc-900 dark:text-zinc-200 mb-1">
+              {dict.gpsLocation}
+            </h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-3">{dict.gpsWarning}</p>
           </div>
           <button

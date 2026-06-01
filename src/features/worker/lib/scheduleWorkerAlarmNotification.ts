@@ -15,13 +15,11 @@ function buildActionTypeId(alarmKey: string): string {
 
 export async function scheduleWorkerAlarmNotification(
   alarm: WorkerActiveAlarm,
-  dict: AlarmDict,
+  dict: AlarmDict
 ): Promise<void> {
   await ensureWorkerNotificationChannels();
 
-  const actions: { id: string; title: string }[] = [
-    { id: "ok", title: dict.actionOk },
-  ];
+  const actions: { id: string; title: string }[] = [{ id: "ok", title: dict.actionOk }];
   if (alarm.canStart && alarm.orderId != null) {
     actions.push({ id: "start", title: dict.actionStart });
   }

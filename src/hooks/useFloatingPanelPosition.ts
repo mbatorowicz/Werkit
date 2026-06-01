@@ -1,14 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState, type RefObject } from "react";
-import {
-  computeFloatingPanelStyle,
-  type FloatingPanelStyle,
-} from "@/lib/floatingPanelPosition";
+import { computeFloatingPanelStyle, type FloatingPanelStyle } from "@/lib/floatingPanelPosition";
 
 export function useFloatingPanelPosition(
   anchorRef: RefObject<HTMLElement | null>,
-  open: boolean,
+  open: boolean
 ): FloatingPanelStyle | null {
   const [style, setStyle] = useState<FloatingPanelStyle | null>(null);
 

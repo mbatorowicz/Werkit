@@ -1,6 +1,6 @@
-import { db } from '@/db';
-import { deviceLogs, users } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { db } from "@/db";
+import { deviceLogs, users } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 export class SystemLogService {
   static async getRecentLogs(companyId: number, limitCount: number = 500) {
@@ -32,10 +32,10 @@ export class SystemLogService {
     userId: number,
     level: string,
     message: string,
-    metadata?: Record<string, unknown> | null,
+    metadata?: Record<string, unknown> | null
   ) {
-    const safeLevel = (level || 'INFO').slice(0, 20);
-    const safeMessage = (message || 'Brak wiadomości').slice(0, 4000);
+    const safeLevel = (level || "INFO").slice(0, 20);
+    const safeMessage = (message || "Brak wiadomości").slice(0, 4000);
     await db.insert(deviceLogs).values({
       companyId,
       userId,

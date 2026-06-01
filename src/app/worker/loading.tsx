@@ -5,4 +5,3 @@ export default function Loading() {
   const t = getDictionary().routeLoading;
   return <RouteLoading title={t.title} subtitle={t.workerApp} />;
 }
-

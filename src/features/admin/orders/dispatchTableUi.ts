@@ -25,7 +25,7 @@ export function dispatchStatusPillClass(status: UnifiedGanttItem["status"]) {
 export function dispatchStatusLabel(
   status: UnifiedGanttItem["status"],
   ordersDict: OrdersDict,
-  archiveDict: ArchiveDict,
+  archiveDict: ArchiveDict
 ) {
   if (status === "PENDING") return ordersDict.pending;
   if (status === "IN_PROGRESS") return archiveDict.inProgress;
@@ -34,7 +34,7 @@ export function dispatchStatusLabel(
 
 export function computeDispatchInProgressPercent(
   item: UnifiedGanttItem,
-  liveClockMs: number | null,
+  liveClockMs: number | null
 ): number {
   if (item.status !== "IN_PROGRESS" || !item._sortDate || liveClockMs === null) return 0;
   const start = new Date(item._sortDate as number).getTime();
@@ -56,9 +56,11 @@ export function sortUnifiedDispatchTableRows(items: UnifiedGanttItem[]): Unified
     const rb = b.status ? (statusRank[b.status as ItemStatus] ?? 9) : 9;
     if (ra !== rb) return ra - rb;
     const da =
-      (a._sortDate as number | undefined) ?? Date.parse(String(a.dueDate ?? a.startTime ?? a.createdAt ?? 0));
+      (a._sortDate as number | undefined) ??
+      Date.parse(String(a.dueDate ?? a.startTime ?? a.createdAt ?? 0));
     const db =
-      (b._sortDate as number | undefined) ?? Date.parse(String(b.dueDate ?? b.startTime ?? b.createdAt ?? 0));
+      (b._sortDate as number | undefined) ??
+      Date.parse(String(b.dueDate ?? b.startTime ?? b.createdAt ?? 0));
     return (db || 0) - (da || 0);
   });
 }
@@ -66,7 +68,7 @@ export function sortUnifiedDispatchTableRows(items: UnifiedGanttItem[]): Unified
 export function buildDispatchItemCardCopy(
   item: UnifiedGanttItem,
   ordersDict: OrdersDict,
-  workerUiLabels: WorkerClient,
+  workerUiLabels: WorkerClient
 ) {
   const orderNo = `#${item.workOrderId || item.id}`;
   const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
@@ -86,7 +88,7 @@ export function buildDispatchItemCardCopy(
 export function dispatchItemDateTimeLabels(
   item: UnifiedGanttItem,
   layout: DispatchItemCardLayout,
-  liveClockMs: number | null,
+  liveClockMs: number | null
 ): { dateLabel: string; timeLabel: string } {
   if (layout === "boardActive") {
     const tStart = item.startTime ? new Date(item.startTime as string) : null;
@@ -108,9 +110,7 @@ export function dispatchItemDateTimeLabels(
       ? formatUiDateOnly(tStart)
       : formatUiDateOnly(item.createdAt as string);
     const timeLabel = tStart
-      ? `${formatUiTimeHm(tStart)}${
-          tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""
-        }`
+      ? `${formatUiTimeHm(tStart)}${tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""}`
       : "—";
     return { dateLabel, timeLabel };
   }
@@ -131,17 +131,13 @@ export function dispatchItemDateTimeLabels(
         : item.status === "PENDING" && item.dueDate && item.expectedDurationHours
           ? new Date(
               new Date(item.dueDate as string).getTime() +
-                Number(item.expectedDurationHours) * 60 * 60 * 1000,
+                Number(item.expectedDurationHours) * 60 * 60 * 1000
             )
           : null;
 
-  const dateLabel = tStart
-    ? formatUiDateOnly(tStart)
-    : formatUiDateOnly(item.createdAt as string);
+  const dateLabel = tStart ? formatUiDateOnly(tStart) : formatUiDateOnly(item.createdAt as string);
   const timeLabel = tStart
-    ? `${formatUiTimeHm(tStart)}${
-        tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""
-      }`
+    ? `${formatUiTimeHm(tStart)}${tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""}`
     : "";
 
   return { dateLabel, timeLabel };

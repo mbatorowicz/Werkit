@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -14,7 +14,7 @@ export const GET = withApiErrorHandling(
     const issues = await StockMovementService.getIssues(companyId);
     return jsonOk(issues);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 export const POST = withApiErrorHandling(
@@ -28,7 +28,8 @@ export const POST = withApiErrorHandling(
     const userId = session.userId;
 
     const body = await parseJsonBody(request);
-    const partId = typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
+    const partId =
+      typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
     const quantity = typeof body.quantity === "string" ? body.quantity : String(body.quantity);
 
     if (!partId || Number.isNaN(partId)) {
@@ -42,12 +43,18 @@ export const POST = withApiErrorHandling(
     const issue = await StockMovementService.addIssue(companyId, userId, {
       partId,
       quantity,
-      workOrderId: body.workOrderId !== null && body.workOrderId !== undefined ? parseInt(String(body.workOrderId), 10) : null,
-      issuedTo: body.issuedTo !== null && body.issuedTo !== undefined ? parseInt(String(body.issuedTo), 10) : null,
+      workOrderId:
+        body.workOrderId !== null && body.workOrderId !== undefined
+          ? parseInt(String(body.workOrderId), 10)
+          : null,
+      issuedTo:
+        body.issuedTo !== null && body.issuedTo !== undefined
+          ? parseInt(String(body.issuedTo), 10)
+          : null,
       notes: typeof body.notes === "string" ? body.notes : null,
     });
 
     return jsonOk(issue);
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );

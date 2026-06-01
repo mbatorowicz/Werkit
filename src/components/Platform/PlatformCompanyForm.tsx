@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Building2 } from 'lucide-react';
-import type { AppDictionary } from '@/i18n/types';
+import { Building2 } from "lucide-react";
+import type { AppDictionary } from "@/i18n/types";
 
 type Props = {
-  dict: AppDictionary['platform'];
+  dict: AppDictionary["platform"];
   name: string;
   setName: (v: string) => void;
   slug: string;
@@ -46,13 +46,17 @@ export function PlatformCompanyForm({
             <Building2 className="w-5 h-5" aria-hidden />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{dict.registerTitle}</h2>
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+              {dict.registerTitle}
+            </h2>
           </div>
         </div>
       </div>
       <form onSubmit={onSubmit} className="p-6 grid gap-5 md:grid-cols-2">
         <label className="block text-sm">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">{dict.organizationName}</span>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">
+            {dict.organizationName}
+          </span>
           <input
             required
             value={name}
@@ -62,7 +66,9 @@ export function PlatformCompanyForm({
           />
         </label>
         <label className="block text-sm">
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">{dict.organizationSlug}</span>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">
+            {dict.organizationSlug}
+          </span>
           <input
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
@@ -72,7 +78,9 @@ export function PlatformCompanyForm({
         </label>
 
         <div className="md:col-span-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-4">{dict.adminSection}</p>
+          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-4">
+            {dict.adminSection}
+          </p>
           <PlatformAdminFields
             dict={dict}
             adminName={adminName}
@@ -94,7 +102,7 @@ export function PlatformCompanyForm({
           </button>
           {message && (
             <p
-              className={`text-sm ${messageIsError ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'}`}
+              className={`text-sm ${messageIsError ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}
             >
               {message}
             </p>
@@ -114,7 +122,7 @@ function PlatformAdminFields({
   adminPassword,
   setAdminPassword,
 }: {
-  dict: AppDictionary['platform'];
+  dict: AppDictionary["platform"];
   adminName: string;
   setAdminName: (v: string) => void;
   adminEmail: string;

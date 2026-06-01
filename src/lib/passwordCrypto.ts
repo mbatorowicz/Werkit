@@ -9,21 +9,21 @@ type Impl = {
 };
 
 async function loadImpl(): Promise<Impl> {
-  if (process.env.WERKIT_USE_BCRYPTJS === '1') {
-    const bcryptjs = await import('bcryptjs');
+  if (process.env.WERKIT_USE_BCRYPTJS === "1") {
+    const bcryptjs = await import("bcryptjs");
     return {
       compare: (plain, hash) => Promise.resolve(bcryptjs.compare(plain, hash)),
       hash: (plain, rounds) => Promise.resolve(bcryptjs.hash(plain, rounds)),
     };
   }
   try {
-    const bcrypt = await import('bcrypt');
+    const bcrypt = await import("bcrypt");
     return {
       compare: (plain, hash) => bcrypt.compare(plain, hash),
       hash: (plain, rounds) => bcrypt.hash(plain, rounds),
     };
   } catch {
-    const bcryptjs = await import('bcryptjs');
+    const bcryptjs = await import("bcryptjs");
     return {
       compare: (plain, hash) => Promise.resolve(bcryptjs.compare(plain, hash)),
       hash: (plain, rounds) => Promise.resolve(bcryptjs.hash(plain, rounds)),

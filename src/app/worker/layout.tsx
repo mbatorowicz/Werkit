@@ -7,17 +7,17 @@ import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
 
-import { JWT_SECRET } from '@/lib/auth';
-import { requireServerCompanyId } from '@/lib/serverTenant';
-export const dynamic = 'force-dynamic';
+import { JWT_SECRET } from "@/lib/auth";
+import { requireServerCompanyId } from "@/lib/serverTenant";
+export const dynamic = "force-dynamic";
 
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
   const dict = getDictionary().worker.nav;
-  const { DictionaryService } = await import('@/services/DictionaryService');
-  const { AdminUserService } = await import('@/services/AdminUserService');
+  const { DictionaryService } = await import("@/services/DictionaryService");
+  const { AdminUserService } = await import("@/services/AdminUserService");
 
   const companyId = await requireServerCompanyId();
   const settings = await DictionaryService.getSettings(companyId);
@@ -25,7 +25,7 @@ export default async function WorkerLayout({ children }: { children: React.React
 
   let userName = "Pracownik";
   try {
-    const token = (await cookies()).get('auth_token')?.value;
+    const token = (await cookies()).get("auth_token")?.value;
     if (token) {
       const verified = await jwtVerify(token, JWT_SECRET);
       const userId = verified.payload.userId as number;
@@ -42,18 +42,32 @@ export default async function WorkerLayout({ children }: { children: React.React
       <header className="h-16 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 sticky top-0 z-50">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">WERKIT</h1>
-            <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">v{APP_VERSION}</span>
+            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
+              WERKIT
+            </h1>
+            <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
+              v{APP_VERSION}
+            </span>
           </div>
-          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]" title={companyName}>{companyName}</p>
+          <p
+            className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]"
+            title={companyName}
+          >
+            {companyName}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 mr-1 sm:mr-2 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full border border-zinc-200 dark:border-zinc-700">
             <User className="w-3 h-3 text-emerald-500" />
-            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">{userName}</span>
+            <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">
+              {userName}
+            </span>
           </div>
           <ThemeToggle />
-          <LogoutButton className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors" iconClass="w-5 h-5" />
+          <LogoutButton
+            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            iconClass="w-5 h-5"
+          />
         </div>
       </header>
 
@@ -62,19 +76,31 @@ export default async function WorkerLayout({ children }: { children: React.React
       </main>
 
       <nav className="h-16 border-t border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 flex items-center justify-around sticky bottom-0 z-50 pb-safe">
-        <Link href="/worker" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors flex-1 h-full gap-1">
+        <Link
+          href="/worker"
+          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors flex-1 h-full gap-1"
+        >
           <Clock className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.session}</span>
         </Link>
-        <Link href="/worker/history" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-amber-500 transition-colors flex-1 h-full gap-1">
+        <Link
+          href="/worker/history"
+          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-amber-500 transition-colors flex-1 h-full gap-1"
+        >
           <Map className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.history}</span>
         </Link>
-        <Link href="/worker/profile" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1">
+        <Link
+          href="/worker/profile"
+          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1"
+        >
           <User className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.profile}</span>
         </Link>
-        <Link href="/worker/help" className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1">
+        <Link
+          href="/worker/help"
+          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1"
+        >
           <HelpCircle className="w-5 h-5" />
           <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.help}</span>
         </Link>
@@ -82,5 +108,3 @@ export default async function WorkerLayout({ children }: { children: React.React
     </div>
   );
 }
-
-

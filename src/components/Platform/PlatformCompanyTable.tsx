@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { Fragment, useState } from 'react';
-import { Pencil, Settings } from 'lucide-react';
-import type { CompanyUsageRow } from '@/services/PlatformAnalyticsService';
-import type { AppDictionary } from '@/i18n/types';
-import { getDictionary } from '@/i18n';
-import { INLINE_SCROLL_X_PANEL_CLASS } from '@/components/scrollPanelStyles';
+import { Fragment, useState } from "react";
+import { Pencil, Settings } from "lucide-react";
+import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
+import type { AppDictionary } from "@/i18n/types";
+import { getDictionary } from "@/i18n";
+import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 type Props = {
   rows: CompanyUsageRow[];
-  dict: AppDictionary['platform'];
+  dict: AppDictionary["platform"];
   editingId: number | null;
   editName: string;
   editSlug: string;
@@ -45,10 +45,14 @@ export function PlatformCompanyTable({
   return (
     <section className="mt-10">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{dict.registryTitle}</h2>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          {dict.registryTitle}
+        </h2>
         <p className="text-sm text-zinc-500 mt-0.5">{dict.usageTitle}</p>
       </div>
-      <div className={`${INLINE_SCROLL_X_PANEL_CLASS} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm`}>
+      <div
+        className={`${INLINE_SCROLL_X_PANEL_CLASS} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm`}
+      >
         <table className="min-w-full text-sm">
           <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-left text-xs uppercase tracking-wide text-zinc-500">
             <tr>
@@ -82,7 +86,9 @@ export function PlatformCompanyTable({
                           className="w-full min-w-[140px] rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-2 py-1 text-sm font-medium"
                         />
                       ) : (
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{r.companyName}</span>
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {r.companyName}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3.5">
@@ -110,8 +116,8 @@ export function PlatformCompanyTable({
                         title={dict.toggleActive}
                         className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                           r.isActive
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
+                            : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                         }`}
                       >
                         {r.isActive ? dict.statusActive : dict.statusInactive}
@@ -153,8 +159,8 @@ export function PlatformCompanyTable({
                               title={dict.settings.title}
                               className={`inline-flex items-center gap-1 text-xs font-medium transition-colors ${
                                 settingsOpenId === r.companyId
-                                  ? 'text-emerald-600 dark:text-emerald-400'
-                                  : 'text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400'
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
                               }`}
                             >
                               <Settings className="w-3.5 h-3.5" aria-hidden />
@@ -191,12 +197,12 @@ function OrganizationAddAdminForm({
   onDone,
 }: {
   organizationId: number;
-  dict: AppDictionary['platform'];
+  dict: AppDictionary["platform"];
   onDone: () => Promise<void>;
 }) {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -207,16 +213,16 @@ function OrganizationAddAdminForm({
     setMsg(null);
     try {
       const res = await fetch(`/api/platform/companies/${organizationId}/admin`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fullName, usernameEmail: email, password }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
         setIsError(true);
-        setMsg(apiErrors[body.error ?? ''] ?? dict.createError);
+        setMsg(apiErrors[body.error ?? ""] ?? dict.createError);
         return;
       }
       setIsError(false);
@@ -232,7 +238,9 @@ function OrganizationAddAdminForm({
       onSubmit={submit}
       className="rounded-lg border border-amber-200/80 dark:border-amber-900/40 bg-white dark:bg-zinc-900 p-4"
     >
-      <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3">{dict.noAdminYet}</p>
+      <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-3">
+        {dict.noAdminYet}
+      </p>
       <div className="flex flex-wrap items-end gap-3">
         <label className="text-xs block min-w-[140px]">
           <span className="text-zinc-500">{dict.adminName}</span>
@@ -271,7 +279,9 @@ function OrganizationAddAdminForm({
           {dict.addAdmin}
         </button>
         {msg && (
-          <p className={`text-xs self-center ${isError ? 'text-red-600' : 'text-emerald-600'}`}>{msg}</p>
+          <p className={`text-xs self-center ${isError ? "text-red-600" : "text-emerald-600"}`}>
+            {msg}
+          </p>
         )}
       </div>
     </form>

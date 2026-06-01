@@ -1,9 +1,9 @@
 import { jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { requireWorkerCompanySession } from '@/lib/apiTenant';
+import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import type { WerkitServerTelemetry } from "@/types/deviceTelemetry";
 
 function attachServerTelemetry(
-  metadata: Record<string, unknown> | null | undefined,
+  metadata: Record<string, unknown> | null | undefined
 ): Record<string, unknown> | null | undefined {
   if (metadata === null || metadata === undefined) {
     return metadata;
@@ -27,35 +27,42 @@ function attachServerTelemetry(
   };
 }
 
-export const POST = withApiErrorHandling(async (req: Request) => {
-  const ctx = await requireWorkerCompanySession();
-  if (!ctx.ok) return ctx.response;
-  const { userId, companyId } = ctx;
+export const POST = withApiErrorHandling(
+  async (req: Request) => {
+    const ctx = await requireWorkerCompanySession();
+    if (!ctx.ok) return ctx.response;
+    const { userId, companyId } = ctx;
 
-  const body = await parseJsonBody(req);
-  const rawLevel = typeof body.level === "string" ? body.level.trim().toUpperCase() : "INFO";
-  const allowed = new Set(["INFO", "WARN", "ERROR", "DEBUG"]);
-  const level = allowed.has(rawLevel) ? rawLevel : "INFO";
-  const rawMsg = typeof body.message === "string" ? body.message : "Brak wiadomości";
-  const message = rawMsg.length > 4000 ? rawMsg.slice(0, 4000) : rawMsg;
-  let metadata: Record<string, unknown> | null | undefined;
-  if (!("metadata" in body)) metadata = undefined;
-  else if (body.metadata === null) metadata = null;
-  else if (typeof body.metadata === "object" && body.metadata !== null && !Array.isArray(body.metadata)) {
-    metadata = attachServerTelemetry(body.metadata as Record<string, unknown>);
-    try {
-      if (metadata && JSON.stringify(metadata).length > 24000) {
-        metadata = { truncated: true, reason: "metadata_too_large" };
+    const body = await parseJsonBody(req);
+    const rawLevel = typeof body.level === "string" ? body.level.trim().toUpperCase() : "INFO";
+    const allowed = new Set(["INFO", "WARN", "ERROR", "DEBUG"]);
+    const level = allowed.has(rawLevel) ? rawLevel : "INFO";
+    const rawMsg = typeof body.message === "string" ? body.message : "Brak wiadomości";
+    const message = rawMsg.length > 4000 ? rawMsg.slice(0, 4000) : rawMsg;
+    let metadata: Record<string, unknown> | null | undefined;
+    if (!("metadata" in body)) metadata = undefined;
+    else if (body.metadata === null) metadata = null;
+    else if (
+      typeof body.metadata === "object" &&
+      body.metadata !== null &&
+      !Array.isArray(body.metadata)
+    ) {
+      metadata = attachServerTelemetry(body.metadata as Record<string, unknown>);
+      try {
+        if (metadata && JSON.stringify(metadata).length > 24000) {
+          metadata = { truncated: true, reason: "metadata_too_large" };
+        }
+      } catch {
+        metadata = { truncated: true, reason: "metadata_not_serializable" };
       }
-    } catch {
-      metadata = { truncated: true, reason: "metadata_not_serializable" };
+    } else {
+      metadata = undefined;
     }
-  } else {
-    metadata = undefined;
-  }
 
-  const { SystemLogService } = await import("@/services/SystemLogService");
-  await SystemLogService.insertLog(companyId, userId, level, message, metadata);
+    const { SystemLogService } = await import("@/services/SystemLogService");
+    await SystemLogService.insertLog(companyId, userId, level, message, metadata);
 
-  return jsonOk({ success: true });
-}, { defaultErrorCode: "save_error" });
+    return jsonOk({ success: true });
+  },
+  { defaultErrorCode: "save_error" }
+);

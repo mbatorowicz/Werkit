@@ -1,32 +1,29 @@
-import { readFile } from 'node:fs/promises';
-import { NextResponse } from 'next/server';
-import { getAuthSession } from '@/lib/auth';
-import { jsonError } from '@/lib/apiRoute';
+import { readFile } from "node:fs/promises";
+import { NextResponse } from "next/server";
+import { getAuthSession } from "@/lib/auth";
+import { jsonError } from "@/lib/apiRoute";
 import {
   getAndroidAppDownloadInfoAsync,
   resolveLocalAndroidApkPath,
   resolveRemoteAndroidApkUrl,
-} from '@/lib/androidAppDownload';
-import {
-  fetchGithubReleaseApkBytes,
-  resolveGithubReleaseApkConfig,
-} from '@/lib/githubReleaseApk';
-import { isSuperadminRole } from '@/lib/tenantContext';
+} from "@/lib/androidAppDownload";
+import { fetchGithubReleaseApkBytes, resolveGithubReleaseApkConfig } from "@/lib/githubReleaseApk";
+import { isSuperadminRole } from "@/lib/tenantContext";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const DOWNLOAD_ROLES = new Set(['admin', 'viewer', 'worker']);
+const DOWNLOAD_ROLES = new Set(["admin", "viewer", "worker"]);
 
 function apkResponse(bytes: Uint8Array, fileName: string): NextResponse {
   return new NextResponse(Buffer.from(bytes), {
     status: 200,
     headers: {
-      'Content-Type': 'application/vnd.android.package-archive',
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Length': String(bytes.byteLength),
-      'Cache-Control': 'private, max-age=300',
-      'X-Content-Type-Options': 'nosniff',
+      "Content-Type": "application/vnd.android.package-archive",
+      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Length": String(bytes.byteLength),
+      "Cache-Control": "private, max-age=300",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }
@@ -35,10 +32,10 @@ function apkResponse(bytes: Uint8Array, fileName: string): NextResponse {
 export async function GET() {
   const session = await getAuthSession();
   if (!session) {
-    return jsonError('Unauthorized', 401);
+    return jsonError("Unauthorized", 401);
   }
   if (isSuperadminRole(session.role) || !DOWNLOAD_ROLES.has(session.role)) {
-    return jsonError('Forbidden', 403);
+    return jsonError("Forbidden", 403);
   }
 
   const remoteUrl = resolveRemoteAndroidApkUrl();
@@ -62,9 +59,9 @@ export async function GET() {
       ]);
       return apkResponse(bytes, info.fileName);
     } catch {
-      return jsonError('apk_unavailable', 404);
+      return jsonError("apk_unavailable", 404);
     }
   }
 
-  return jsonError('apk_unavailable', 404);
+  return jsonError("apk_unavailable", 404);
 }

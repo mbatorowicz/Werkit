@@ -1,11 +1,11 @@
-import type { Coord } from '@/types/worker';
+import type { Coord } from "@/types/worker";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 
 export type GPSQueueItem = Coord & { timestamp: string };
 
-const DB_NAME = 'werkit_gps_db';
-const STORE_NAME = 'gps_queue';
+const DB_NAME = "werkit_gps_db";
+const STORE_NAME = "gps_queue";
 const DB_VERSION = 1;
 
 /**
@@ -27,7 +27,7 @@ export class GPSManager {
       req.onupgradeneeded = () => {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'timestamp' });
+          db.createObjectStore(STORE_NAME, { keyPath: "timestamp" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -43,13 +43,18 @@ export class GPSManager {
     try {
       const db = await this.openDb();
       return new Promise((resolve) => {
-        const tx = db.transaction(STORE_NAME, 'readonly');
+        const tx = db.transaction(STORE_NAME, "readonly");
         const store = tx.objectStore(STORE_NAME);
         const req = store.getAll();
         req.onsuccess = () => {
           const data = req.result;
           if (!Array.isArray(data)) {
-            sendRemoteLog('WARN', 'GPSManager: queue in IndexedDB is not an array', { data }, { category: 'gps', dedupeWindowMs: 60_000 });
+            sendRemoteLog(
+              "WARN",
+              "GPSManager: queue in IndexedDB is not an array",
+              { data },
+              { category: "gps", dedupeWindowMs: 60_000 }
+            );
             resolve([]);
             return;
           }
@@ -58,7 +63,12 @@ export class GPSManager {
         req.onerror = () => resolve([]);
       });
     } catch {
-      sendRemoteLog('WARN', 'GPSManager: failed to read queue from IndexedDB, falling back to empty', {}, { category: 'gps', dedupeWindowMs: 60_000 });
+      sendRemoteLog(
+        "WARN",
+        "GPSManager: failed to read queue from IndexedDB, falling back to empty",
+        {},
+        { category: "gps", dedupeWindowMs: 60_000 }
+      );
       return [];
     }
   }
@@ -66,7 +76,7 @@ export class GPSManager {
   private static async saveQueue(queue: GPSQueueItem[]): Promise<void> {
     try {
       const db = await this.openDb();
-      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
       store.clear();
       for (const item of queue) {
@@ -77,7 +87,12 @@ export class GPSManager {
         tx.onerror = () => reject(tx.error);
       });
     } catch {
-      sendRemoteLog('ERROR', 'GPSManager: failed to save queue to IndexedDB', {}, { category: 'gps', dedupeWindowMs: 60_000 });
+      sendRemoteLog(
+        "ERROR",
+        "GPSManager: failed to save queue to IndexedDB",
+        {},
+        { category: "gps", dedupeWindowMs: 60_000 }
+      );
     }
   }
 
@@ -85,7 +100,7 @@ export class GPSManager {
   static async clearQueue(): Promise<void> {
     try {
       const db = await this.openDb();
-      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).clear();
     } catch {
       /* ignore */
@@ -96,23 +111,28 @@ export class GPSManager {
     const payload: GPSQueueItem = { ...location, timestamp: new Date().toISOString() };
     try {
       const db = await this.openDb();
-      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).add(payload);
     } catch {
-      sendRemoteLog('ERROR', 'GPSManager: failed to enqueue location', { lat: location.lat, lng: location.lng }, { category: 'gps', dedupeWindowMs: 60_000 });
+      sendRemoteLog(
+        "ERROR",
+        "GPSManager: failed to enqueue location",
+        { lat: location.lat, lng: location.lng },
+        { category: "gps", dedupeWindowMs: 60_000 }
+      );
     }
     return payload;
   }
 
   static async flushQueue(onSuccess?: () => void): Promise<void> {
     if (!navigator.onLine || this.isFlushing) return;
-    
+
     const queue = await this.getQueue();
     if (queue.length === 0) return;
 
     this.isFlushing = true;
 
-    const sentTimestamps = new Set(queue.map(q => q.timestamp));
+    const sentTimestamps = new Set(queue.map((q) => q.timestamp));
 
     try {
       const res = await fetchWithDeviceTelemetry(
@@ -124,12 +144,12 @@ export class GPSManager {
           body: JSON.stringify(queue),
           keepalive: true,
         },
-        { category: "gps", throttleKey: "gps_batch_post", throttleMs: 60_000 },
+        { category: "gps", throttleKey: "gps_batch_post", throttleMs: 60_000 }
       );
 
       if (res.ok) {
         const currentQueue = await this.getQueue();
-        const updatedQueue = currentQueue.filter(q => !sentTimestamps.has(q.timestamp));
+        const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
         await this.saveQueue(updatedQueue);
         if (onSuccess) onSuccess();
       } else if (res.status === 400) {
@@ -148,10 +168,15 @@ export class GPSManager {
       }
     } catch (error) {
       sendRemoteLog(
-        'ERROR',
-        'GPSManager: flush failed',
-        { error: error instanceof Error ? { name: error.name, message: error.message } : { raw: String(error) } },
-        { category: 'gps', dedupeWindowMs: 60_000 },
+        "ERROR",
+        "GPSManager: flush failed",
+        {
+          error:
+            error instanceof Error
+              ? { name: error.name, message: error.message }
+              : { raw: String(error) },
+        },
+        { category: "gps", dedupeWindowMs: 60_000 }
       );
     } finally {
       this.isFlushing = false;
@@ -165,14 +190,14 @@ export class GPSManager {
 
   static getDistance(a: Coord, b: Coord): number {
     const R = 6371e3;
-    const φ1 = a.lat * Math.PI / 180;
-    const φ2 = b.lat * Math.PI / 180;
-    const Δφ = (b.lat - a.lat) * Math.PI / 180;
-    const Δλ = (b.lng - a.lng) * Math.PI / 180;
+    const φ1 = (a.lat * Math.PI) / 180;
+    const φ2 = (b.lat * Math.PI) / 180;
+    const Δφ = ((b.lat - a.lat) * Math.PI) / 180;
+    const Δλ = ((b.lng - a.lng) * Math.PI) / 180;
 
-    const x = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) *
-      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const x =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
     return R * c;
   }

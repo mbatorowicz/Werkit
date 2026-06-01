@@ -40,7 +40,9 @@ export function useOrdersDeepLink({
 
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState<number | null>(null);
-  const [orderFormInitial, setOrderFormInitial] = useState<OrderFormState>(() => ({ ...EMPTY_ORDER_FORM }));
+  const [orderFormInitial, setOrderFormInitial] = useState<OrderFormState>(() => ({
+    ...EMPTY_ORDER_FORM,
+  }));
   const [selectedDispatchItem, setSelectedDispatchItem] = useState<UnifiedGanttItem | null>(null);
 
   const handledOpenRef = useRef<string | null>(null);
@@ -65,7 +67,7 @@ export function useOrdersDeepLink({
       setSelectedDispatchItem(null);
       setIsOrderModalOpen(true);
     },
-    [canMutate],
+    [canMutate]
   );
 
   useEffect(() => {
@@ -123,7 +125,7 @@ export function useOrdersDeepLink({
         setSelectedDispatchItem(item);
       }
     },
-    [canMutate, handleEditOrder],
+    [canMutate, handleEditOrder]
   );
 
   return {

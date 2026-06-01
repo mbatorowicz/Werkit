@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { FeatureFlags } from '@/types/featureFlags';
-import { DEFAULT_FEATURE_FLAGS, FEATURE_FLAG_KEYS, FEATURE_FLAG_LABELS } from '@/types/featureFlags';
-import type { AppDictionary } from '@/i18n/types';
-import { getDictionary } from '@/i18n';
+import { useState, useEffect, useCallback } from "react";
+import type { FeatureFlags } from "@/types/featureFlags";
+import {
+  DEFAULT_FEATURE_FLAGS,
+  FEATURE_FLAG_KEYS,
+  FEATURE_FLAG_LABELS,
+} from "@/types/featureFlags";
+import type { AppDictionary } from "@/i18n/types";
+import { getDictionary } from "@/i18n";
 
 type Props = {
   companyId: number;
-  dict: AppDictionary['platform']['settings'];
+  dict: AppDictionary["platform"]["settings"];
 };
 
 export function FeatureFlagsSection({ companyId, dict }: Props) {
@@ -22,7 +26,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
     setLoading(true);
     try {
       const res = await fetch(`/api/platform/feature-flags/${companyId}`, {
-        credentials: 'include',
+        credentials: "include",
       });
       if (!res.ok) return;
       const data = (await res.json()) as { flags?: FeatureFlags };
@@ -45,9 +49,9 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
     setMessage(null);
     try {
       const res = await fetch(`/api/platform/feature-flags/${companyId}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [key]: newValue }),
       });
       if (!res.ok) {
@@ -55,7 +59,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
         setFlags((prev) => ({ ...prev, [key]: previous }));
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
-        setMessage(apiErrors[body.error ?? ''] ?? dict.saveError);
+        setMessage(apiErrors[body.error ?? ""] ?? dict.saveError);
         setMessageIsError(true);
         return;
       }
@@ -93,10 +97,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
           const hint = dict[hintKey] as string | undefined;
 
           return (
-            <label
-              key={key}
-              className="flex items-start gap-3 cursor-pointer group"
-            >
+            <label key={key} className="flex items-start gap-3 cursor-pointer group">
               <input
                 type="checkbox"
                 checked={flags[key]}
@@ -108,9 +109,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
                 <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                   {label}
                 </span>
-                {hint && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{hint}</p>
-                )}
+                {hint && <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{hint}</p>}
               </div>
             </label>
           );
@@ -118,11 +117,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
       </div>
 
       {message && (
-        <p
-          className={`mt-3 text-xs ${
-            messageIsError ? 'text-red-600' : 'text-emerald-600'
-          }`}
-        >
+        <p className={`mt-3 text-xs ${messageIsError ? "text-red-600" : "text-emerald-600"}`}>
           {message}
         </p>
       )}

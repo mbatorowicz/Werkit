@@ -18,13 +18,18 @@ function filterCategoryNodes<T extends CategoryHierarchyRow>(
   nodes: CategoryTreeNode<T>[],
   materialsByCategoryId: Map<number, CatalogMaterialRow[]>,
   rawQuery: string,
-  expandIds: Set<number>,
+  expandIds: Set<number>
 ): CategoryTreeNode<T>[] {
   const q = normalizeCatalogSearchQuery(rawQuery);
   const filtered: CategoryTreeNode<T>[] = [];
 
   for (const node of nodes) {
-    const childNodes = filterCategoryNodes(node.children, materialsByCategoryId, rawQuery, expandIds);
+    const childNodes = filterCategoryNodes(
+      node.children,
+      materialsByCategoryId,
+      rawQuery,
+      expandIds
+    );
     const materials = materialsByCategoryId.get(node.id) ?? [];
     const visibleMaterials = q ? materials.filter((m) => materialMatches(m, rawQuery)) : materials;
     const selfMatch = nameMatches(node.name, rawQuery);
@@ -56,7 +61,7 @@ export type CatalogTreeFilterResult<T extends CategoryHierarchyRow> = {
 export function filterCatalogTree<T extends CategoryHierarchyRow>(
   roots: CategoryTreeNode<T>[],
   materialIndex: MaterialCatalogIndex,
-  rawQuery: string,
+  rawQuery: string
 ): CatalogTreeFilterResult<T> {
   const q = normalizeCatalogSearchQuery(rawQuery);
   if (!q) {
@@ -76,7 +81,9 @@ export function filterCatalogTree<T extends CategoryHierarchyRow>(
   const walk = (nodes: CategoryTreeNode<T>[]) => {
     for (const node of nodes) {
       if (!node.isGroup) {
-        const list = (materialIndex.byCategoryId.get(node.id) ?? []).filter((m) => materialMatches(m, rawQuery));
+        const list = (materialIndex.byCategoryId.get(node.id) ?? []).filter((m) =>
+          materialMatches(m, rawQuery)
+        );
         if (list.length > 0) materialsByCategoryId.set(node.id, list);
       }
       walk(node.children);

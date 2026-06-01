@@ -95,7 +95,7 @@ export function FitContentDebounced({
             : null,
         routeTail: routeToDest.length > 0 ? routeToDest[routeToDest.length - 1] : null,
       }),
-    [destination, pathTraveled, routeToDest, events.length],
+    [destination, pathTraveled, routeToDest, events.length]
   );
 
   useEffect(() => {

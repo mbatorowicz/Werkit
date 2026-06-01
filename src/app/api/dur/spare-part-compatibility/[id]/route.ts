@@ -1,7 +1,7 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 /**
  * DELETE /api/dur/spare-part-compatibility/[id]?partId=X&categoryId=Y
@@ -20,10 +20,11 @@ export const DELETE = withApiErrorHandling(
       return jsonError("missing_params", 400);
     }
 
-    const { SparePartCompatibilityService } = await import("@/services/dur/SparePartCompatibilityService");
+    const { SparePartCompatibilityService } =
+      await import("@/services/dur/SparePartCompatibilityService");
     await SparePartCompatibilityService.remove(partId, categoryId);
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "delete_error" },
+  { defaultErrorCode: "delete_error" }
 );

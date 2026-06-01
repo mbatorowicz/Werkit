@@ -3,7 +3,11 @@
 import type { StockReceipt } from "@/types/dur";
 
 interface StockReceiptsTableProps {
-  receipts: (StockReceipt & { partName?: string; partCatalogNumber?: string; creatorName?: string })[];
+  receipts: (StockReceipt & {
+    partName?: string;
+    partCatalogNumber?: string;
+    creatorName?: string;
+  })[];
   dict: {
     table: {
       date: string;
@@ -25,33 +29,65 @@ export function StockReceiptsTable({ receipts, dict }: StockReceiptsTableProps) 
       <table className="w-full text-sm">
         <thead className="bg-zinc-50 dark:bg-zinc-800/50">
           <tr>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.date}</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.part}</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.catalogNumber}</th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.table.quantity}</th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.table.unitPrice}</th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">{dict.table.totalValue}</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.invoiceNumber}</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.createdBy}</th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">{dict.table.notes}</th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.date}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.part}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.catalogNumber}
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.quantity}
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.unitPrice}
+            </th>
+            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.totalValue}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.invoiceNumber}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.createdBy}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.notes}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
           {receipts.map((r) => (
             <tr key={r.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-              <td className="px-4 py-3 text-zinc-500 text-xs">{new Date(r.createdAt).toLocaleString()}</td>
-              <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">{r.partName || `#${r.partId}`}</td>
-              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{r.partCatalogNumber || "—"}</td>
-              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">{r.quantity}</td>
-              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-600 dark:text-zinc-400">{r.unitPrice || "—"}</td>
+              <td className="px-4 py-3 text-zinc-500 text-xs">
+                {new Date(r.createdAt).toLocaleString()}
+              </td>
+              <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">
+                {r.partName || `#${r.partId}`}
+              </td>
+              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                {r.partCatalogNumber || "—"}
+              </td>
+              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">
+                {r.quantity}
+              </td>
+              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-600 dark:text-zinc-400">
+                {r.unitPrice || "—"}
+              </td>
               <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">
                 {r.unitPrice && r.quantity
                   ? (Number(r.unitPrice) * Number(r.quantity)).toFixed(2)
                   : "—"}
               </td>
-              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{r.invoiceNumber || "—"}</td>
+              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                {r.invoiceNumber || "—"}
+              </td>
               <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{r.creatorName || "—"}</td>
-              <td className="px-4 py-3 text-zinc-500 text-xs max-w-[200px] truncate">{r.notes || "—"}</td>
+              <td className="px-4 py-3 text-zinc-500 text-xs max-w-[200px] truncate">
+                {r.notes || "—"}
+              </td>
             </tr>
           ))}
         </tbody>

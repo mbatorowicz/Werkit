@@ -59,7 +59,11 @@ type WorkOrderJoinFluent = {
  * Jednolita kolejność LEFT JOIN od `work_orders`:
  * opcjonalnie przypisany pracownik (`users`), potem zasób, materiał, klient, twórca, kategoria.
  */
-export function applyWorkOrderListJoins<Q>(qb: Q, creator: WorkOrderCreatorUserAlias, opts: { joinAssignedWorker: boolean }): Q {
+export function applyWorkOrderListJoins<Q>(
+  qb: Q,
+  creator: WorkOrderCreatorUserAlias,
+  opts: { joinAssignedWorker: boolean }
+): Q {
   let q = qb as unknown as WorkOrderJoinFluent;
   if (opts.joinAssignedWorker) {
     q = q.leftJoin(users, eq(workOrders.userId, users.id));

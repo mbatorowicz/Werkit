@@ -1,13 +1,13 @@
-import { db } from '@/db';
-import { isMissingResourceCategoriesVisibilityColumns } from '@/lib/postgresMigrationHints';
-import { resourceCategories } from '@/db/schema';
-import { eq, asc, desc, and, inArray } from 'drizzle-orm';
-import { filterCategoryLeaves } from '@/lib/categoryTree';
+import { db } from "@/db";
+import { isMissingResourceCategoriesVisibilityColumns } from "@/lib/postgresMigrationHints";
+import { resourceCategories } from "@/db/schema";
+import { eq, asc, desc, and, inArray } from "drizzle-orm";
+import { filterCategoryLeaves } from "@/lib/categoryTree";
 import {
   CategoryHierarchyError,
   countResourceCategoryChildren,
   validateHierarchyPatch,
-} from '@/services/categoryHierarchyValidation';
+} from "@/services/categoryHierarchyValidation";
 
 export class CategoryService {
   /** Zapytanie bez `show_*` — działa na bazie sprzed migracji 0010. */
@@ -41,7 +41,7 @@ export class CategoryService {
     } catch (err: unknown) {
       if (!isMissingResourceCategoriesVisibilityColumns(err)) throw err;
       console.warn(
-        'CategoryService.getCategories: brak kolumn show_* na resource_categories — zapytanie legacy; uruchom migrację (npm run db:napraw-kategorie-widocznosc lub drizzle/0010).',
+        "CategoryService.getCategories: brak kolumn show_* na resource_categories — zapytanie legacy; uruchom migrację (npm run db:napraw-kategorie-widocznosc lub drizzle/0010)."
       );
       const legacy = await CategoryService.getCategoriesLegacyColumnsOnly(companyId);
       rows = legacy.map((row) => ({
@@ -57,7 +57,7 @@ export class CategoryService {
         showResourceName: true,
         showResourceDescription: false,
         showRegistrationNumber: true,
-        orderType: 'machine_work' as const,
+        orderType: "machine_work" as const,
       }));
     }
     return opts?.leavesOnly ? filterCategoryLeaves(rows) : rows;
@@ -65,7 +65,7 @@ export class CategoryService {
 
   static async addCategory(
     companyId: number,
-    data: Partial<typeof resourceCategories.$inferInsert>,
+    data: Partial<typeof resourceCategories.$inferInsert>
   ) {
     const all = await CategoryService.getCategories(companyId);
     validateHierarchyPatch(all, {
@@ -81,18 +81,14 @@ export class CategoryService {
   static async updateCategory(
     companyId: number,
     id: number,
-    data: Partial<typeof resourceCategories.$inferInsert>,
+    data: Partial<typeof resourceCategories.$inferInsert>
   ) {
     const all = await CategoryService.getCategories(companyId);
-    validateHierarchyPatch(
-      all,
-      { parentId: data.parentId, isGroup: data.isGroup },
-      id,
-    );
+    validateHierarchyPatch(all, { parentId: data.parentId, isGroup: data.isGroup }, id);
     const self = all.find((r) => r.id === id);
     if (self?.isGroup && data.isGroup === false) {
       const childCount = await countResourceCategoryChildren(id);
-      if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+      if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     }
     await db
       .update(resourceCategories)
@@ -102,7 +98,7 @@ export class CategoryService {
 
   static async deleteCategory(companyId: number, id: number) {
     const childCount = await countResourceCategoryChildren(id);
-    if (childCount > 0) throw new CategoryHierarchyError('group_has_children');
+    if (childCount > 0) throw new CategoryHierarchyError("group_has_children");
     await db
       .delete(resourceCategories)
       .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)));
@@ -120,7 +116,7 @@ export class CategoryService {
   /** Łączenie widoczności pól zasobu — pole widoczne, jeśli któraś z wybranych kategorii je pokazuje. */
   static async mergeResourceFormVisibility(
     companyId: number,
-    categoryIds: number[],
+    categoryIds: number[]
   ): Promise<{
     showResourceName: boolean;
     showResourceDescription: boolean;
@@ -141,12 +137,7 @@ export class CategoryService {
         showRegistrationNumber: resourceCategories.showRegistrationNumber,
       })
       .from(resourceCategories)
-      .where(
-        and(
-          eq(resourceCategories.companyId, companyId),
-          inArray(resourceCategories.id, ids),
-        ),
-      );
+      .where(and(eq(resourceCategories.companyId, companyId), inArray(resourceCategories.id, ids)));
     if (cats.length === 0) {
       return {
         showResourceName: true,
@@ -162,7 +153,7 @@ export class CategoryService {
   }
 }
 
-export { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
+export { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 
 /** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
 export type ResourceCategoryUpdateInput = Partial<typeof resourceCategories.$inferInsert>;

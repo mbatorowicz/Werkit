@@ -1,8 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
@@ -17,7 +17,7 @@ export const GET = withApiErrorHandling(
     const inventory = await InventoryService.getInventory(companyId, { partId });
     return jsonOk(inventory);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 export const PUT = withApiErrorHandling(
@@ -30,7 +30,8 @@ export const PUT = withApiErrorHandling(
     const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
-    const partId = typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
+    const partId =
+      typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
     const quantity = typeof body.quantity === "string" ? body.quantity : String(body.quantity);
 
     if (!partId || Number.isNaN(partId)) {
@@ -42,5 +43,5 @@ export const PUT = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" },
+  { defaultErrorCode: "save_error" }
 );

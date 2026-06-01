@@ -38,7 +38,7 @@ export function MachinesClientResourcesTablePanel({
       `Admin machines: delete resource ${id}`,
       `/api/machines/${id}`,
       { method: "DELETE" },
-      { category: "admin" },
+      { category: "admin" }
     );
     if (res.ok) void fetchData();
     else {

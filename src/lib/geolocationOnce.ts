@@ -1,8 +1,8 @@
-import type { Coord } from '@/types/worker';
+import type { Coord } from "@/types/worker";
 
 /** Jednorazowy odczyt pozycji (np. start/koniec zlecenia). Na brak zgody lub timeout → null. */
 export function getCurrentPositionOnce(timeoutMs = 12000): Promise<Coord | null> {
-  if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+  if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
     return Promise.resolve(null);
   }
   return new Promise((resolve) => {
@@ -20,7 +20,7 @@ export function getCurrentPositionOnce(timeoutMs = 12000): Promise<Coord | null>
         window.clearTimeout(timer);
         resolve(null);
       },
-      { enableHighAccuracy: true, maximumAge: 45000, timeout: timeoutMs },
+      { enableHighAccuracy: true, maximumAge: 45000, timeout: timeoutMs }
     );
   });
 }

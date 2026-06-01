@@ -14,9 +14,9 @@
  * (WorkerSessionService, AdminSessionService) przy każdym zapytaniu o dane sesji.
  */
 
-import { put, del, list, issueSignedToken, presignUrl } from '@vercel/blob';
+import { put, del, list, issueSignedToken, presignUrl } from "@vercel/blob";
 
-const BLOB_PREFIX = 'werkit-photos';
+const BLOB_PREFIX = "werkit-photos";
 
 /**
  * Prywatny store Vercel Blob zwraca signed URL, które wygasają.
@@ -44,7 +44,7 @@ export async function refreshBlobUrl(photoUrl: string | null | undefined): Promi
   }
 
   // Dla URL-i spoza Vercel Blob private store zwracamy oryginał
-  if (!photoUrl.includes('.private.blob.vercel-storage.com')) {
+  if (!photoUrl.includes(".private.blob.vercel-storage.com")) {
     return photoUrl;
   }
 
@@ -54,12 +54,12 @@ export async function refreshBlobUrl(photoUrl: string | null | undefined): Promi
     const token = await issueSignedToken({
       pathname,
       validUntil,
-      operations: ['get'],
+      operations: ["get"],
     });
     const { presignedUrl } = await presignUrl(token, {
-      operation: 'get',
+      operation: "get",
       pathname,
-      access: 'private',
+      access: "private",
       validUntil,
     });
 
@@ -78,7 +78,9 @@ export async function refreshBlobUrl(photoUrl: string | null | undefined): Promi
 /**
  * Odświeża tablicę URL-i zdjęć — batch processing z równoległymi wywołaniami.
  */
-export async function refreshBlobUrls(urls: (string | null | undefined)[]): Promise<(string | null)[]> {
+export async function refreshBlobUrls(
+  urls: (string | null | undefined)[]
+): Promise<(string | null)[]> {
   return Promise.all(urls.map((u) => refreshBlobUrl(u)));
 }
 
@@ -93,16 +95,16 @@ export type PhotoUploadResult = {
 export async function uploadPhotoBase64(
   base64DataUrl: string,
   sessionId: number,
-  photoType: string,
+  photoType: string
 ): Promise<PhotoUploadResult> {
   // Konwersja data URL na Blob (kompatybilne z Edge + Node.js)
   const matches = base64DataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
   if (!matches || !matches[2]) {
-    throw new Error('invalid_photo_data');
+    throw new Error("invalid_photo_data");
   }
 
   const mimeType = matches[1];
-  const ext = mimeType.split('/')[1] || 'jpg';
+  const ext = mimeType.split("/")[1] || "jpg";
 
   // Dekoduj base64 do Blob — nie używa Buffer, działa w Edge Runtime
   const binaryStr = atob(matches[2]);
@@ -116,7 +118,7 @@ export async function uploadPhotoBase64(
 
   const result = await put(filename, fileBlob, {
     contentType: mimeType,
-    access: 'private',
+    access: "private",
     addRandomSuffix: true,
   });
 
@@ -132,14 +134,14 @@ export async function uploadPhotoBase64(
 export async function uploadPhotoFile(
   file: File | Blob,
   sessionId: number,
-  photoType: string,
+  photoType: string
 ): Promise<PhotoUploadResult> {
-  const ext = file.type.split('/')[1] || 'jpg';
+  const ext = file.type.split("/")[1] || "jpg";
   const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
 
   const blob = await put(filename, file, {
     contentType: file.type,
-    access: 'private',
+    access: "private",
     addRandomSuffix: true,
   });
 
@@ -183,7 +185,6 @@ export async function refreshPhotoUrls<T extends { photoUrl: string }>(photos: T
     photos.map(async (p) => ({
       ...p,
       photoUrl: (await refreshBlobUrl(p.photoUrl)) ?? p.photoUrl,
-    })),
+    }))
   );
 }
-

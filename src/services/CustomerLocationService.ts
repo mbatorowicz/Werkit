@@ -1,7 +1,11 @@
 import { db } from "@/db";
 import { customerLocations, customers, workOrders } from "@/db/schema";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { parseRouteWaypoints, serializeRouteWaypoints, type RouteWaypoint } from "@/lib/map/routeWaypoints";
+import {
+  parseRouteWaypoints,
+  serializeRouteWaypoints,
+  type RouteWaypoint,
+} from "@/lib/map/routeWaypoints";
 import { assertCustomerBelongsToCompany } from "@/lib/tenantContext";
 
 export type CustomerLocationRow = {
@@ -31,7 +35,10 @@ function mapRow(row: typeof customerLocations.$inferSelect): CustomerLocationRow
 }
 
 export class CustomerLocationService {
-  static async listByCustomerId(customerId: number, companyId?: number): Promise<CustomerLocationRow[]> {
+  static async listByCustomerId(
+    customerId: number,
+    companyId?: number
+  ): Promise<CustomerLocationRow[]> {
     if (companyId != null) {
       await assertCustomerBelongsToCompany(customerId, companyId);
     }
@@ -39,23 +46,36 @@ export class CustomerLocationService {
       .select()
       .from(customerLocations)
       .where(eq(customerLocations.customerId, customerId))
-      .orderBy(desc(customerLocations.isDefault), asc(customerLocations.sortOrder), desc(customerLocations.id));
+      .orderBy(
+        desc(customerLocations.isDefault),
+        asc(customerLocations.sortOrder),
+        desc(customerLocations.id)
+      );
     return rows.map(mapRow);
   }
 
   static async getById(id: number): Promise<CustomerLocationRow | null> {
-    const [row] = await db.select().from(customerLocations).where(eq(customerLocations.id, id)).limit(1);
+    const [row] = await db
+      .select()
+      .from(customerLocations)
+      .where(eq(customerLocations.id, id))
+      .limit(1);
     return row ? mapRow(row) : null;
   }
 
-  static async getDefaultForCustomer(customerId: number, companyId?: number): Promise<CustomerLocationRow | null> {
+  static async getDefaultForCustomer(
+    customerId: number,
+    companyId?: number
+  ): Promise<CustomerLocationRow | null> {
     if (companyId != null) {
       await assertCustomerBelongsToCompany(customerId, companyId);
     }
     const [row] = await db
       .select()
       .from(customerLocations)
-      .where(and(eq(customerLocations.customerId, customerId), eq(customerLocations.isDefault, true)))
+      .where(
+        and(eq(customerLocations.customerId, customerId), eq(customerLocations.isDefault, true))
+      )
       .limit(1);
     if (row) return mapRow(row);
     const [fallback] = await db
@@ -67,7 +87,11 @@ export class CustomerLocationService {
     return fallback ? mapRow(fallback) : null;
   }
 
-  static async resolveForWorkOrder(workOrderId: number | null, customerId: number | null, companyId?: number) {
+  static async resolveForWorkOrder(
+    workOrderId: number | null,
+    customerId: number | null,
+    companyId?: number
+  ) {
     if (workOrderId) {
       const [wo] = await db
         .select({
@@ -135,7 +159,7 @@ export class CustomerLocationService {
       isDefault: boolean;
       routeWaypoints: RouteWaypoint[];
     }>,
-    companyId: number,
+    companyId: number
   ): Promise<CustomerLocationRow | null> {
     const existing = await CustomerLocationService.getById(id);
     if (!existing) return null;
@@ -155,12 +179,20 @@ export class CustomerLocationService {
     if (input.routeWaypoints !== undefined) {
       patch.routeWaypoints = serializeRouteWaypoints(input.routeWaypoints);
     }
-    const [row] = await db.update(customerLocations).set(patch).where(eq(customerLocations.id, id)).returning();
+    const [row] = await db
+      .update(customerLocations)
+      .set(patch)
+      .where(eq(customerLocations.id, id))
+      .returning();
     await CustomerLocationService.syncCustomerLegacyCoords(existing.customerId);
     return row ? mapRow(row) : null;
   }
 
-  static async setRouteWaypoints(id: number, waypoints: RouteWaypoint[], companyId: number): Promise<CustomerLocationRow | null> {
+  static async setRouteWaypoints(
+    id: number,
+    waypoints: RouteWaypoint[],
+    companyId: number
+  ): Promise<CustomerLocationRow | null> {
     return CustomerLocationService.updateLocation(id, { routeWaypoints: waypoints }, companyId);
   }
 
@@ -190,7 +222,10 @@ export class CustomerLocationService {
       .where(eq(customers.id, customerId));
   }
 
-  static async ensureDefaultFromLegacyCustomer(customerId: number, companyId: number): Promise<CustomerLocationRow | null> {
+  static async ensureDefaultFromLegacyCustomer(
+    customerId: number,
+    companyId: number
+  ): Promise<CustomerLocationRow | null> {
     await assertCustomerBelongsToCompany(customerId, companyId);
     const existing = await CustomerLocationService.listByCustomerId(customerId);
     if (existing.length > 0) return existing[0];

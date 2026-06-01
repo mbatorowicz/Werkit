@@ -95,18 +95,33 @@ export default function OrdersClient() {
   };
 
   const onForceCompleteSession = async (sessionId: number) => {
-    await handleForceCompleteSession(sessionId, appAlert, apiErrors, dict, closeSessionDetails, fetchData);
+    await handleForceCompleteSession(
+      sessionId,
+      appAlert,
+      apiErrors,
+      dict,
+      closeSessionDetails,
+      fetchData
+    );
   };
 
   const onDeleteArchivedSession = async (sessionId: number, adminPassword: string) => {
-    await handleDeleteArchivedSession(sessionId, adminPassword, appAlert, apiErrors, dict, closeSessionDetails, fetchData);
+    await handleDeleteArchivedSession(
+      sessionId,
+      adminPassword,
+      appAlert,
+      apiErrors,
+      dict,
+      closeSessionDetails,
+      fetchData
+    );
   };
 
   const tableColSpan = canMutate ? 3 : 2;
 
   const unifiedItems = useMemo(
     () => buildUnifiedDispatchItems(orders, sessions, searchQuery),
-    [orders, sessions, searchQuery],
+    [orders, sessions, searchQuery]
   );
 
   const totalPages = useMemo(() => {
@@ -188,21 +203,25 @@ export default function OrdersClient() {
               : undefined
           }
           onSave={async (formData, options) => {
-            const url = editingOrderId ? `/api/admin/work-orders/${editingOrderId}` : "/api/admin/work-orders";
+            const url = editingOrderId
+              ? `/api/admin/work-orders/${editingOrderId}`
+              : "/api/admin/work-orders";
             const method = editingOrderId ? "PUT" : "POST";
             const payload = { ...formData, forceSave: Boolean(options?.forceSave) };
             if (payload.dueDate) {
               payload.dueDate = new Date(payload.dueDate).toISOString();
             }
             const res = await fetchWithDeviceTelemetry(
-              editingOrderId ? `Admin orders: save PUT ${editingOrderId}` : "Admin orders: save POST",
+              editingOrderId
+                ? `Admin orders: save PUT ${editingOrderId}`
+                : "Admin orders: save POST",
               url,
               {
                 method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
               },
-              { category: "admin" },
+              { category: "admin" }
             );
             if (res.ok) {
               await appAlert({ message: dict.success });

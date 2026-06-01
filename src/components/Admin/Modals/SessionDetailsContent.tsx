@@ -58,23 +58,32 @@ export function SessionDetailsContent({
   onEdit,
   dict,
 }: SessionDetailsContentProps) {
-  const categoryLabel = ((item.categoryName as string) || "").trim() || dict.sessionDetailsNoCategory;
-  const machineLabel = ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
+  const categoryLabel =
+    ((item.categoryName as string) || "").trim() || dict.sessionDetailsNoCategory;
+  const machineLabel =
+    ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
 
   return (
     <div className="p-6">
       <OrderLabelCard
-        tone={item.status === "IN_PROGRESS" ? "active" : item.status === "COMPLETED" ? "done" : "planned"}
+        tone={
+          item.status === "IN_PROGRESS"
+            ? "active"
+            : item.status === "COMPLETED"
+              ? "done"
+              : "planned"
+        }
         orderNo={`#${item.workOrderId || item.id}`}
         title={(item.workerName as string) || null}
-        orderedBy={(item.creatorName ?? item.workerName) ?? null}
+        orderedBy={item.creatorName ?? item.workerName ?? null}
         orderedByLabel={dict.orderedBy}
         mode={categoryLabel}
         machine={machineLabel}
         material={(item.materialName as string) || null}
         quantity={item.quantityTons ? `${item.quantityTons as string}${dict.tons}` : null}
         customer={
-          `${(item.customerLastName as string) || ""} ${(item.customerFirstName as string) || ""}`.trim() || null
+          `${(item.customerLastName as string) || ""} ${(item.customerFirstName as string) || ""}`.trim() ||
+          null
         }
         description={(item.taskDescription as string) || null}
         dateLabel={

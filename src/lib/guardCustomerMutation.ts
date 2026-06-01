@@ -29,7 +29,10 @@ export async function guardCustomerCreate(): Promise<GuardOk | GuardFail> {
 
   if (session.role === "worker") {
     const { AdminUserService } = await import("@/services/AdminUserService");
-    const user = await AdminUserService.getUserByIdForCompany(session.userId, scoped.data.companyId);
+    const user = await AdminUserService.getUserByIdForCompany(
+      session.userId,
+      scoped.data.companyId
+    );
     if (user?.canCreateCustomers) {
       return { ok: true, companyId: scoped.data.companyId, userId: session.userId };
     }

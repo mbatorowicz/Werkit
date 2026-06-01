@@ -1,12 +1,10 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import {
-  isMissingResourcesVehicleColumns,
-} from '@/lib/postgresMigrationHints';
-import { buildResourceCanonicalName } from '@/lib/resourceDisplayName';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { isMissingResourcesVehicleColumns } from "@/lib/postgresMigrationHints";
+import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -19,9 +17,10 @@ export const GET = withApiErrorHandling(
     return jsonOk(allMachines);
   },
   {
-    mapUnknownError: (err) => (isMissingResourcesVehicleColumns(err) ? jsonError("migration_required", 503) : null),
+    mapUnknownError: (err) =>
+      isMissingResourcesVehicleColumns(err) ? jsonError("migration_required", 503) : null,
     defaultErrorCode: "fetch_error",
-  },
+  }
 );
 
 export const POST = withApiErrorHandling(
@@ -36,7 +35,8 @@ export const POST = withApiErrorHandling(
     const body = await parseJsonBody(request);
     const brand = typeof body.brand === "string" ? body.brand : "";
     const model = typeof body.model === "string" ? body.model : "";
-    const registrationNumber = typeof body.registrationNumber === "string" ? body.registrationNumber : "";
+    const registrationNumber =
+      typeof body.registrationNumber === "string" ? body.registrationNumber : "";
     const description = typeof body.description === "string" ? body.description : "";
     const categoryIds = body.categoryIds;
     const imageUrl = body.imageUrl;
@@ -56,7 +56,7 @@ export const POST = withApiErrorHandling(
       vis.showResourceName ? brand : "",
       vis.showResourceName ? model : "",
       vis.showRegistrationNumber ? registrationNumber : "",
-      vis.showResourceDescription ? description : null,
+      vis.showResourceDescription ? description : null
     );
     if (!name.trim()) {
       return jsonError("missing_fields", 400);
@@ -72,13 +72,14 @@ export const POST = withApiErrorHandling(
         description: vis.showResourceDescription ? description : null,
       },
       parsedCatIds,
-      typeof imageUrl === "string" || imageUrl === null ? imageUrl : undefined,
+      typeof imageUrl === "string" || imageUrl === null ? imageUrl : undefined
     );
 
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) => (isMissingResourcesVehicleColumns(err) ? jsonError("migration_required", 503) : null),
+    mapUnknownError: (err) =>
+      isMissingResourcesVehicleColumns(err) ? jsonError("migration_required", 503) : null,
     defaultErrorCode: "save_error",
-  },
+  }
 );

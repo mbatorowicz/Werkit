@@ -1,7 +1,7 @@
-import { db } from '@/db';
-import { resources, resourceToCategories } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
-import { assertResourceCategoryAssignable } from '@/services/categoryHierarchyValidation';
+import { db } from "@/db";
+import { resources, resourceToCategories } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import { assertResourceCategoryAssignable } from "@/services/categoryHierarchyValidation";
 
 export class ResourceService {
   static async getResources(companyId: number) {
@@ -21,9 +21,9 @@ export class ResourceService {
     return allResources.map((r) => ({
       id: r.id,
       name: r.name,
-      brand: r.brand ?? '',
-      model: r.model ?? '',
-      registrationNumber: r.registrationNumber ?? '',
+      brand: r.brand ?? "",
+      model: r.model ?? "",
+      registrationNumber: r.registrationNumber ?? "",
       description: r.description ?? null,
       categoryIds: byResourceId.get(r.id) ?? [],
       imageUrl: r.imageUrl,
@@ -40,10 +40,10 @@ export class ResourceService {
       description?: string | null;
     },
     categoryIds: number[],
-    imageUrl?: string | null,
+    imageUrl?: string | null
   ) {
     const desc =
-      identity.description != null && String(identity.description).trim() !== ''
+      identity.description != null && String(identity.description).trim() !== ""
         ? String(identity.description).trim().slice(0, 4000)
         : null;
     const res = await db
@@ -66,7 +66,7 @@ export class ResourceService {
         categoryIds.map((cid) => ({
           resourceId: res[0].id,
           categoryId: cid,
-        })),
+        }))
       );
     }
   }
@@ -75,7 +75,7 @@ export class ResourceService {
     companyId: number,
     id: number,
     data: Partial<typeof resources.$inferInsert>,
-    categoryIds?: number[],
+    categoryIds?: number[]
   ) {
     const patch: Partial<typeof resources.$inferInsert> = {};
     if (data.name !== undefined) patch.name = data.name;
@@ -100,15 +100,13 @@ export class ResourceService {
           categoryIds.map((cid) => ({
             resourceId: id,
             categoryId: cid,
-          })),
+          }))
         );
       }
     }
   }
 
   static async deleteResource(companyId: number, id: number) {
-    await db
-      .delete(resources)
-      .where(and(eq(resources.id, id), eq(resources.companyId, companyId)));
+    await db.delete(resources).where(and(eq(resources.id, id), eq(resources.companyId, companyId)));
   }
 }

@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Package, Trash2 } from "lucide-react";
-import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -37,7 +40,8 @@ type Props = {
   orderType: string | null;
 };
 
-const LABEL = "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const LABEL =
+  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
 const CONTROL =
   "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
 
@@ -74,7 +78,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
         `Worker: spare-parts GET work-order ${workOrderId}`,
         `/api/worker/work-orders/${workOrderId}/spare-parts`,
         undefined,
-        { category: "orders" },
+        { category: "orders" }
       );
       if (!res.ok) return;
       const data = await parseJsonArray(res);
@@ -106,7 +110,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
         "Worker: spare-parts catalog GET",
         "/api/dur/spare-parts",
         undefined,
-        { category: "orders" },
+        { category: "orders" }
       );
       if (!res.ok) return;
       const data = await parseJsonArray(res);
@@ -155,7 +159,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
             notes: addNotes || null,
           }),
         },
-        { category: "orders" },
+        { category: "orders" }
       );
 
       if (res.ok) {
@@ -168,7 +172,9 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
-        await appAlert({ message: appDialogApiMessage(apiErrors, code, "Nie udało się dodać części.") });
+        await appAlert({
+          message: appDialogApiMessage(apiErrors, code, "Nie udało się dodać części."),
+        });
       }
     } catch {
       await appAlert({ message: "Nie udało się dodać części." });
@@ -185,7 +191,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
         `Worker: spare-parts DELETE work-order ${workOrderId} part ${partId}`,
         `/api/worker/work-orders/${workOrderId}/spare-parts/${partId}`,
         { method: "DELETE" },
-        { category: "orders" },
+        { category: "orders" }
       );
 
       if (res.ok) {
@@ -194,7 +200,9 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
-        await appAlert({ message: appDialogApiMessage(apiErrors, code, "Nie udało się usunąć części.") });
+        await appAlert({
+          message: appDialogApiMessage(apiErrors, code, "Nie udało się usunąć części."),
+        });
       }
     } catch {
       await appAlert({ message: "Nie udało się usunąć części." });
@@ -207,9 +215,11 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
       catalog.map((p) => ({
         id: String(p.id),
         label: p.name,
-        sublabel: p.catalogNumber ? `${p.catalogNumber} (stan: ${p.stockQuantity} ${p.unit})` : undefined,
+        sublabel: p.catalogNumber
+          ? `${p.catalogNumber} (stan: ${p.stockQuantity} ${p.unit})`
+          : undefined,
       })),
-    [catalog],
+    [catalog]
   );
 
   const comboboxCommon = comboboxFeedbackProps(workerDict);
@@ -347,7 +357,9 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType }: Props)
                       <span className="ml-1 text-zinc-400 dark:text-zinc-500">({p.partSku})</span>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2 text-right text-zinc-900 dark:text-white">{p.quantity}</td>
+                  <td className="px-3 py-2 text-right text-zinc-900 dark:text-white">
+                    {p.quantity}
+                  </td>
                   <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{p.notes ?? "—"}</td>
                   <td className="px-3 py-2 text-center">
                     <button

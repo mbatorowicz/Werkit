@@ -135,7 +135,14 @@ describe("OrganizationService", () => {
     });
 
     it("zwraca departament po ID", async () => {
-      const dept = { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 };
+      const dept = {
+        id: 1,
+        companyId: 1,
+        name: "Transport",
+        parentId: null,
+        managerId: 1,
+        sortOrder: 0,
+      };
       const chain = {
         from: vi.fn(() => chain),
         where: vi.fn(() => chain),
@@ -153,7 +160,14 @@ describe("OrganizationService", () => {
 
   describe("createDepartment", () => {
     it("tworzy nowy departament", async () => {
-      const inserted = { id: 1, companyId: 1, name: "Administracja", parentId: null, managerId: null, sortOrder: 0 };
+      const inserted = {
+        id: 1,
+        companyId: 1,
+        name: "Administracja",
+        parentId: null,
+        managerId: null,
+        sortOrder: 0,
+      };
       const chain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
@@ -167,7 +181,14 @@ describe("OrganizationService", () => {
     });
 
     it("tworzy departament z parentId i managerId", async () => {
-      const inserted = { id: 2, companyId: 1, name: "Serwis mobilny", parentId: 1, managerId: 3, sortOrder: 0 };
+      const inserted = {
+        id: 2,
+        companyId: 1,
+        name: "Serwis mobilny",
+        parentId: 1,
+        managerId: 3,
+        sortOrder: 0,
+      };
       const chain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
@@ -187,7 +208,14 @@ describe("OrganizationService", () => {
 
   describe("updateDepartment", () => {
     it("aktualizuje nazwe departamentu", async () => {
-      const updated = { id: 1, companyId: 1, name: "Transport i logistyka", parentId: null, managerId: 1, sortOrder: 0 };
+      const updated = {
+        id: 1,
+        companyId: 1,
+        name: "Transport i logistyka",
+        parentId: null,
+        managerId: 1,
+        sortOrder: 0,
+      };
       const chain = {
         set: vi.fn(() => chain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
@@ -195,7 +223,9 @@ describe("OrganizationService", () => {
       updateMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.updateDepartment(1, { name: "Transport i logistyka" });
+      const result = await OrganizationService.updateDepartment(1, {
+        name: "Transport i logistyka",
+      });
 
       expect(result.name).toBe("Transport i logistyka");
     });
@@ -203,7 +233,14 @@ describe("OrganizationService", () => {
 
   describe("deleteDepartment", () => {
     it("usuwa departament", async () => {
-      const deleted = { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 };
+      const deleted = {
+        id: 1,
+        companyId: 1,
+        name: "Transport",
+        parentId: null,
+        managerId: 1,
+        sortOrder: 0,
+      };
       const chain = {
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([deleted])) })),
       };
@@ -222,8 +259,26 @@ describe("OrganizationService", () => {
   describe("getTeams", () => {
     it("zwraca liste zespolow firmy przez join z departamentami", async () => {
       const mockRows = [
-        { teams: { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 1, sortOrder: 0 } },
-        { teams: { id: 2, companyId: 1, departmentId: 1, name: "Zmiana B", leaderId: 2, sortOrder: 1 } },
+        {
+          teams: {
+            id: 1,
+            companyId: 1,
+            departmentId: 1,
+            name: "Zmiana A",
+            leaderId: 1,
+            sortOrder: 0,
+          },
+        },
+        {
+          teams: {
+            id: 2,
+            companyId: 1,
+            departmentId: 1,
+            name: "Zmiana B",
+            leaderId: 2,
+            sortOrder: 1,
+          },
+        },
       ];
       // .where() zwraca thenable — serwis woła .then() na wyniku where
       const whereResult = {
@@ -280,7 +335,14 @@ describe("OrganizationService", () => {
     });
 
     it("zwraca zespol po ID", async () => {
-      const team = { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 1, sortOrder: 0 };
+      const team = {
+        id: 1,
+        companyId: 1,
+        departmentId: 1,
+        name: "Zmiana A",
+        leaderId: 1,
+        sortOrder: 0,
+      };
       const chain = {
         from: vi.fn(() => chain),
         where: vi.fn(() => chain),
@@ -298,7 +360,14 @@ describe("OrganizationService", () => {
 
   describe("createTeam", () => {
     it("tworzy nowy zespol", async () => {
-      const inserted = { id: 1, companyId: 1, departmentId: 1, name: "Zmiana C", leaderId: null, sortOrder: 0 };
+      const inserted = {
+        id: 1,
+        companyId: 1,
+        departmentId: 1,
+        name: "Zmiana C",
+        leaderId: null,
+        sortOrder: 0,
+      };
       const chain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
@@ -314,7 +383,14 @@ describe("OrganizationService", () => {
 
   describe("updateTeam", () => {
     it("aktualizuje lidera zespolu", async () => {
-      const updated = { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 5, sortOrder: 0 };
+      const updated = {
+        id: 1,
+        companyId: 1,
+        departmentId: 1,
+        name: "Zmiana A",
+        leaderId: 5,
+        sortOrder: 0,
+      };
       const chain = {
         set: vi.fn(() => chain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
@@ -330,7 +406,14 @@ describe("OrganizationService", () => {
 
   describe("deleteTeam", () => {
     it("usuwa zespol", async () => {
-      const deleted = { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 1, sortOrder: 0 };
+      const deleted = {
+        id: 1,
+        companyId: 1,
+        departmentId: 1,
+        name: "Zmiana A",
+        leaderId: 1,
+        sortOrder: 0,
+      };
       const chain = {
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([deleted])) })),
       };
@@ -349,11 +432,19 @@ describe("OrganizationService", () => {
     it("zwraca członków zespołu z danymi użytkownika", async () => {
       const mockRows = [
         {
-          id: 1, teamId: 1, userId: 10, role: "leader", joinedAt: new Date("2026-01-01"),
+          id: 1,
+          teamId: 1,
+          userId: 10,
+          role: "leader",
+          joinedAt: new Date("2026-01-01"),
           user: { id: 10, fullName: "Jan Kowalski", usernameEmail: "jan@test.pl" },
         },
         {
-          id: 2, teamId: 1, userId: 11, role: "member", joinedAt: new Date("2026-02-01"),
+          id: 2,
+          teamId: 1,
+          userId: 11,
+          role: "member",
+          joinedAt: new Date("2026-02-01"),
           user: { id: 11, fullName: "Anna Nowak", usernameEmail: "anna@test.pl" },
         },
       ];
@@ -410,7 +501,11 @@ describe("OrganizationService", () => {
       insertMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.addTeamMember({ teamId: 1, userId: 11, role: "leader" });
+      const result = await OrganizationService.addTeamMember({
+        teamId: 1,
+        userId: 11,
+        role: "leader",
+      });
 
       expect(result.role).toBe("leader");
     });
@@ -451,8 +546,22 @@ describe("OrganizationService", () => {
     it("zwraca zespoły użytkownika z departamentami", async () => {
       const mockRows = [
         {
-          team: { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 1, sortOrder: 0 },
-          department: { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 },
+          team: {
+            id: 1,
+            companyId: 1,
+            departmentId: 1,
+            name: "Zmiana A",
+            leaderId: 1,
+            sortOrder: 0,
+          },
+          department: {
+            id: 1,
+            companyId: 1,
+            name: "Transport",
+            parentId: null,
+            managerId: 1,
+            sortOrder: 0,
+          },
         },
       ];
       const chain = {

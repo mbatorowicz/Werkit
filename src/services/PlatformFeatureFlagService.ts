@@ -2,11 +2,11 @@
 // Werkit — Serwis: feature flags organizacji (GPS, DUR, …)
 // ============================================================
 
-import { db } from '@/db';
-import { companySettings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import type { FeatureFlags } from '@/types/featureFlags';
-import { DEFAULT_FEATURE_FLAGS } from '@/types/featureFlags';
+import { db } from "@/db";
+import { companySettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import type { FeatureFlags } from "@/types/featureFlags";
+import { DEFAULT_FEATURE_FLAGS } from "@/types/featureFlags";
 
 /**
  * Mapuje wiersz company_settings na FeatureFlags.
@@ -47,9 +47,9 @@ export class PlatformFeatureFlagService {
   static async updateFlags(companyId: number, flags: Partial<FeatureFlags>): Promise<FeatureFlags> {
     const updateData: Record<string, boolean> = {};
     for (const [key, value] of Object.entries(flags)) {
-      if (typeof value === 'boolean') {
+      if (typeof value === "boolean") {
         // Mapowanie camelCase → snake_case dla kolumn DB
-        const dbKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
         updateData[dbKey] = value;
       }
     }

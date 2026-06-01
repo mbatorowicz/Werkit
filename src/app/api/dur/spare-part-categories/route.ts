@@ -1,9 +1,9 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
-import { CategoryHierarchyError } from '@/services/dur/categoryValidation';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
@@ -16,7 +16,7 @@ export const GET = withApiErrorHandling(
     const rows = await SparePartCategoryService.getCategories(companyId, { leavesOnly });
     return jsonOk(rows);
   },
-  { defaultErrorCode: "fetch_error" },
+  { defaultErrorCode: "fetch_error" }
 );
 
 export const POST = withApiErrorHandling(
@@ -55,5 +55,5 @@ export const POST = withApiErrorHandling(
       return null;
     },
     defaultErrorCode: "save_error",
-  },
+  }
 );

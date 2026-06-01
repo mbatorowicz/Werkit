@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { ensurePostgresUrlForVercelDriver, resolveNeonPostgresUrl } from "@/lib/resolveNeonPostgresUrl";
+import {
+  ensurePostgresUrlForVercelDriver,
+  resolveNeonPostgresUrl,
+} from "@/lib/resolveNeonPostgresUrl";
 
 const envKeys = [
   "POSTGRES_URL",

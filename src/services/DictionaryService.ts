@@ -5,12 +5,12 @@
  * dlatego zachowujemy klasę `DictionaryService` z tymi samymi statycznymi metodami.
  */
 
-import { CategoryService } from '@/services/dictionary/CategoryService';
-import { MaterialService } from '@/services/dictionary/MaterialService';
-import { MaterialCategoryService } from '@/services/dictionary/MaterialCategoryService';
-import { CustomerService } from '@/services/dictionary/CustomerService';
-import { ResourceService } from '@/services/dictionary/ResourceService';
-import { SettingsService } from '@/services/dictionary/SettingsService';
+import { CategoryService } from "@/services/dictionary/CategoryService";
+import { MaterialService } from "@/services/dictionary/MaterialService";
+import { MaterialCategoryService } from "@/services/dictionary/MaterialCategoryService";
+import { CustomerService } from "@/services/dictionary/CustomerService";
+import { ResourceService } from "@/services/dictionary/ResourceService";
+import { SettingsService } from "@/services/dictionary/SettingsService";
 
 export class DictionaryService {
   // --- KATEGORIE ZASOBÓW ---
@@ -50,10 +50,10 @@ export class DictionaryService {
   static updateSettings = SettingsService.updateSettings;
 }
 
-export { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
+export { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 
 /** Payload aktualizacji kategorii zasobów — do importu w Route Handlers bez `@/db/schema`. */
-export type { ResourceCategoryUpdateInput } from '@/services/dictionary/CategoryService';
+export type { ResourceCategoryUpdateInput } from "@/services/dictionary/CategoryService";
 
 /** Payload aktualizacji kategorii materiałów — bez importu schematu w kontrolerze. */
-export type { MaterialCategoryUpdateInput } from '@/services/dictionary/MaterialCategoryService';
+export type { MaterialCategoryUpdateInput } from "@/services/dictionary/MaterialCategoryService";

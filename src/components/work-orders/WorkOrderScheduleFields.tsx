@@ -55,7 +55,10 @@ export function WorkOrderScheduleFields({
   onForceSave?: () => void;
   isSubmitting?: boolean;
   controlClassName?: string;
-  onPreviewChange?: (state: { hasConflicts: boolean; status: "idle" | "loading" | "clear" | "conflicts" | "error" }) => void;
+  onPreviewChange?: (state: {
+    hasConflicts: boolean;
+    status: "idle" | "loading" | "clear" | "conflicts" | "error";
+  }) => void;
 }) {
   const control = controlClassName ?? (mode === "admin" ? CONTROL : CONTROL_WORKER);
 

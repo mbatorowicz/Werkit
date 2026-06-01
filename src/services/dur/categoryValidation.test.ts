@@ -48,36 +48,32 @@ describe("validateHierarchyPatch", () => {
   ];
 
   it("akceptuje poprawne przypisanie do grupy", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: 1, isGroup: false }),
-    ).not.toThrow();
+    expect(() => validateHierarchyPatch(allRows, { parentId: 1, isGroup: false })).not.toThrow();
   });
 
   it("rzuca błąd gdy parentId wskazuje na liść (nie grupę)", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: 3, isGroup: false }),
-    ).toThrow(CategoryHierarchyError);
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: 3, isGroup: false }),
-    ).toThrow(/parent_must_be_group/);
+    expect(() => validateHierarchyPatch(allRows, { parentId: 3, isGroup: false })).toThrow(
+      CategoryHierarchyError
+    );
+    expect(() => validateHierarchyPatch(allRows, { parentId: 3, isGroup: false })).toThrow(
+      /parent_must_be_group/
+    );
   });
 
   it("rzuca błąd gdy parentId === selfId", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: 1, isGroup: true }, 1),
-    ).toThrow(CategoryHierarchyError);
+    expect(() => validateHierarchyPatch(allRows, { parentId: 1, isGroup: true }, 1)).toThrow(
+      CategoryHierarchyError
+    );
   });
 
   it("rzuca błąd gdy parent nie istnieje", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: 999, isGroup: false }),
-    ).toThrow(CategoryHierarchyError);
+    expect(() => validateHierarchyPatch(allRows, { parentId: 999, isGroup: false })).toThrow(
+      CategoryHierarchyError
+    );
   });
 
   it("akceptuje kategorię bez rodzica (root)", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, { parentId: null, isGroup: true }),
-    ).not.toThrow();
+    expect(() => validateHierarchyPatch(allRows, { parentId: null, isGroup: true })).not.toThrow();
   });
 
   it("rzuca błąd gdy liść z dziećmi próbuje zostać bez rodzica", () => {
@@ -86,17 +82,15 @@ describe("validateHierarchyPatch", () => {
       { id: 5, name: "Podliść", parentId: 3, isGroup: false, sortOrder: 0 },
     ];
     expect(() =>
-      validateHierarchyPatch(rowsWithChildren, { parentId: null, isGroup: false }, 3),
+      validateHierarchyPatch(rowsWithChildren, { parentId: null, isGroup: false }, 3)
     ).toThrow(CategoryHierarchyError);
     expect(() =>
-      validateHierarchyPatch(rowsWithChildren, { parentId: null, isGroup: false }, 3),
+      validateHierarchyPatch(rowsWithChildren, { parentId: null, isGroup: false }, 3)
     ).toThrow(/group_has_children/);
   });
 
   it("akceptuje brak zmian gdy patch jest pusty (undefined)", () => {
-    expect(() =>
-      validateHierarchyPatch(allRows, {}, 3),
-    ).not.toThrow();
+    expect(() => validateHierarchyPatch(allRows, {}, 3)).not.toThrow();
   });
 });
 
@@ -130,15 +124,11 @@ describe("assertSparePartCategoriesAssignable", () => {
   });
 
   it("nie rzuca błędu dla pustej tablicy", async () => {
-    await expect(
-      assertSparePartCategoriesAssignable([], 1),
-    ).resolves.toBeUndefined();
+    await expect(assertSparePartCategoriesAssignable([], 1)).resolves.toBeUndefined();
   });
 
   it("nie rzuca błędu dla niepoprawnych ID (filtrowane)", async () => {
-    await expect(
-      assertSparePartCategoriesAssignable([0, -1, NaN], 1),
-    ).resolves.toBeUndefined();
+    await expect(assertSparePartCategoriesAssignable([0, -1, NaN], 1)).resolves.toBeUndefined();
   });
 
   it("rzuca błąd gdy kategoria nie istnieje", async () => {
@@ -148,9 +138,9 @@ describe("assertSparePartCategoriesAssignable", () => {
       }),
     });
 
-    await expect(
-      assertSparePartCategoriesAssignable([1], 1),
-    ).rejects.toThrow(CategoryHierarchyError);
+    await expect(assertSparePartCategoriesAssignable([1], 1)).rejects.toThrow(
+      CategoryHierarchyError
+    );
   });
 
   it("rzuca błąd gdy kategoria jest grupą", async () => {
@@ -158,14 +148,22 @@ describe("assertSparePartCategoriesAssignable", () => {
       from: () => ({
         where: () =>
           Promise.resolve([
-            { id: 1, companyId: 1, name: "Grupa", parentId: null, isGroup: true, sortOrder: 0, color: "#3f3f46" },
+            {
+              id: 1,
+              companyId: 1,
+              name: "Grupa",
+              parentId: null,
+              isGroup: true,
+              sortOrder: 0,
+              color: "#3f3f46",
+            },
           ]),
       }),
     });
 
-    await expect(
-      assertSparePartCategoriesAssignable([1], 1),
-    ).rejects.toThrow(CategoryHierarchyError);
+    await expect(assertSparePartCategoriesAssignable([1], 1)).rejects.toThrow(
+      CategoryHierarchyError
+    );
   });
 
   it("przechodzi gdy wszystkie kategorie istnieją i są liśćmi", async () => {
@@ -173,14 +171,28 @@ describe("assertSparePartCategoriesAssignable", () => {
       from: () => ({
         where: () =>
           Promise.resolve([
-            { id: 1, companyId: 1, name: "Liść 1", parentId: null, isGroup: false, sortOrder: 0, color: null },
-            { id: 2, companyId: 1, name: "Liść 2", parentId: null, isGroup: false, sortOrder: 1, color: null },
+            {
+              id: 1,
+              companyId: 1,
+              name: "Liść 1",
+              parentId: null,
+              isGroup: false,
+              sortOrder: 0,
+              color: null,
+            },
+            {
+              id: 2,
+              companyId: 1,
+              name: "Liść 2",
+              parentId: null,
+              isGroup: false,
+              sortOrder: 1,
+              color: null,
+            },
           ]),
       }),
     });
 
-    await expect(
-      assertSparePartCategoriesAssignable([1, 2], 1),
-    ).resolves.toBeUndefined();
+    await expect(assertSparePartCategoriesAssignable([1, 2], 1)).resolves.toBeUndefined();
   });
 });

@@ -1,100 +1,105 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { SignJWT } from 'jose';
+import { SignJWT } from "jose";
 
-import { JWT_SECRET } from '@/lib/auth';
-import { comparePassword } from '@/lib/passwordCrypto';
+import { JWT_SECRET } from "@/lib/auth";
+import { comparePassword } from "@/lib/passwordCrypto";
 import { isLoginRateLimited, clearLoginRateLimit } from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
   return (
-    /POSTGRES|postgres|Neon|connection|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|database/i.test(msg) ||
-    /relation .*does not exist|failed query|socket|websocket|NeonDbError/i.test(msg)
+    /POSTGRES|postgres|Neon|connection|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|timeout|database/i.test(
+      msg
+    ) || /relation .*does not exist|failed query|socket|websocket|NeonDbError/i.test(msg)
   );
 }
 
-export const POST = withApiErrorHandling(async (req: Request) => {
-  const url = new URL(req.url);
-  const forwardedProto = req.headers.get("x-forwarded-proto");
-  const isHttps = forwardedProto === "https" || url.protocol === "https:";
-  const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
+export const POST = withApiErrorHandling(
+  async (req: Request) => {
+    const url = new URL(req.url);
+    const forwardedProto = req.headers.get("x-forwarded-proto");
+    const isHttps = forwardedProto === "https" || url.protocol === "https:";
+    const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
 
-  // Rate limiting: klucz = IP + username (jeśli podany)
-  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const body = await parseJsonBody(req);
-  const u = body.usernameEmail;
-  const p = body.password;
-  const usernameEmail = typeof u === "string" ? u.trim().toLowerCase() : "";
-  const password = typeof p === "string" ? p : "";
+    // Rate limiting: klucz = IP + username (jeśli podany)
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const body = await parseJsonBody(req);
+    const u = body.usernameEmail;
+    const p = body.password;
+    const usernameEmail = typeof u === "string" ? u.trim().toLowerCase() : "";
+    const password = typeof p === "string" ? p : "";
 
-  const rateLimitKey = `${clientIp}:${usernameEmail || "anon"}`;
-  if (isLoginRateLimited(rateLimitKey)) {
-    return jsonError("too_many_attempts", 429);
-  }
+    const rateLimitKey = `${clientIp}:${usernameEmail || "anon"}`;
+    if (isLoginRateLimited(rateLimitKey)) {
+      return jsonError("too_many_attempts", 429);
+    }
 
-  if (!usernameEmail || !password) {
-    return jsonError("missing_credentials", 400);
-  }
+    if (!usernameEmail || !password) {
+      return jsonError("missing_credentials", 400);
+    }
 
-  const { AdminUserService } = await import("@/services/AdminUserService");
-  const user = await AdminUserService.getUserByUsername(usernameEmail);
+    const { AdminUserService } = await import("@/services/AdminUserService");
+    const user = await AdminUserService.getUserByUsername(usernameEmail);
 
-  if (!user) {
-    return jsonError("invalid_credentials", 401);
-  }
+    if (!user) {
+      return jsonError("invalid_credentials", 401);
+    }
 
-  if (!user.isActive) {
-    return jsonError("account_blocked", 403);
-  }
+    if (!user.isActive) {
+      return jsonError("account_blocked", 403);
+    }
 
-  let isPasswordValid = false;
-  try {
-    isPasswordValid = await comparePassword(password, user.passwordHash);
-  } catch {
-    return jsonError("invalid_credentials", 401);
-  }
+    let isPasswordValid = false;
+    try {
+      isPasswordValid = await comparePassword(password, user.passwordHash);
+    } catch {
+      return jsonError("invalid_credentials", 401);
+    }
 
-  if (!isPasswordValid) {
-    return jsonError("invalid_credentials", 401);
-  }
+    if (!isPasswordValid) {
+      return jsonError("invalid_credentials", 401);
+    }
 
-  // Udane logowanie — czyścimy licznik prób
-  clearLoginRateLimit(rateLimitKey);
+    // Udane logowanie — czyścimy licznik prób
+    clearLoginRateLimit(rateLimitKey);
 
-  const jwt = await new SignJWT({
-    userId: user.id,
-    role: user.role,
-    companyId: user.companyId ?? null,
-    username: user.usernameEmail,
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("7d")
-    .sign(JWT_SECRET);
+    const jwt = await new SignJWT({
+      userId: user.id,
+      role: user.role,
+      companyId: user.companyId ?? null,
+      username: user.usernameEmail,
+    })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("7d")
+      .sign(JWT_SECRET);
 
-  const response = jsonOk({
-    success: true,
-    user: { id: user.id, fullName: user.fullName, role: user.role },
-  });
+    const response = jsonOk({
+      success: true,
+      user: { id: user.id, fullName: user.fullName, role: user.role },
+    });
 
-  response.cookies.set({
-    name: "auth_token",
-    value: jwt,
-    httpOnly: true,
-    secure: isHttps,
-    sameSite: cookieSameSite,
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
-  });
+    response.cookies.set({
+      name: "auth_token",
+      value: jwt,
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: cookieSameSite,
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
 
-  return response;
-}, {
-  mapUnknownError: (err) => {
-    const e = err instanceof Error ? err : new Error(String(err));
-    // Drizzle może opakować błąd połączenia w cause
-    const cause = e instanceof Error && 'cause' in e ? (e as Error & { cause?: unknown }).cause : undefined;
-    const checkErr = cause instanceof Error ? cause : e;
-    return isLikelyDatabaseOrInfraError(checkErr) ? jsonError("service_unavailable", 503) : null;
+    return response;
   },
-  defaultErrorCode: "server_error",
-});
+  {
+    mapUnknownError: (err) => {
+      const e = err instanceof Error ? err : new Error(String(err));
+      // Drizzle może opakować błąd połączenia w cause
+      const cause =
+        e instanceof Error && "cause" in e ? (e as Error & { cause?: unknown }).cause : undefined;
+      const checkErr = cause instanceof Error ? cause : e;
+      return isLikelyDatabaseOrInfraError(checkErr) ? jsonError("service_unavailable", 503) : null;
+    },
+    defaultErrorCode: "server_error",
+  }
+);

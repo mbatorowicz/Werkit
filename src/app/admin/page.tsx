@@ -1,7 +1,7 @@
-import { Suspense } from 'react';
-import OrdersClient from '@/features/admin/orders/OrdersClient';
+import { Suspense } from "react";
+import OrdersClient from "@/features/admin/orders/OrdersClient";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function DashboardPage() {
   return (

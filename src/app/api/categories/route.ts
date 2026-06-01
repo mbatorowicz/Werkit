@@ -1,13 +1,13 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { guardAdminMutation } from '@/lib/requireAdminMutation';
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
-} from '@/lib/postgresMigrationHints';
-import { CategoryHierarchyError } from '@/services/categoryHierarchyValidation';
-import { requireCompanyScopedSession } from '@/lib/apiTenant';
+} from "@/lib/postgresMigrationHints";
+import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
@@ -21,9 +21,12 @@ export const GET = withApiErrorHandling(
     return jsonOk(allCategories);
   },
   {
-    mapUnknownError: (err) => (isMissingResourceCategoriesStationaryColumn(err) ? jsonError("migration_required", 503) : null),
+    mapUnknownError: (err) =>
+      isMissingResourceCategoriesStationaryColumn(err)
+        ? jsonError("migration_required", 503)
+        : null,
     defaultErrorCode: "fetch_error",
-  },
+  }
 );
 
 export const POST = withApiErrorHandling(
@@ -97,11 +100,14 @@ export const POST = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
-      if (isMissingResourceCategoriesVisibilityColumns(err) || isMissingResourceCategoriesStationaryColumn(err)) {
+      if (
+        isMissingResourceCategoriesVisibilityColumns(err) ||
+        isMissingResourceCategoriesStationaryColumn(err)
+      ) {
         return jsonError("migration_required", 503);
       }
       return null;
     },
     defaultErrorCode: "category_exists",
-  },
+  }
 );

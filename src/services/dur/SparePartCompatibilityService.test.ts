@@ -148,9 +148,9 @@ describe("SparePartCompatibilityService", () => {
         }),
       });
 
-      await expect(
-        SparePartCompatibilityService.add(999, 10, companyId),
-      ).rejects.toThrow("Part not found");
+      await expect(SparePartCompatibilityService.add(999, 10, companyId)).rejects.toThrow(
+        "Part not found"
+      );
     });
 
     it("rzuca błąd gdy kategoria maszyny nie istnieje", async () => {
@@ -170,9 +170,9 @@ describe("SparePartCompatibilityService", () => {
           }),
         });
 
-      await expect(
-        SparePartCompatibilityService.add(1, 999, companyId),
-      ).rejects.toThrow("Machine category not found");
+      await expect(SparePartCompatibilityService.add(1, 999, companyId)).rejects.toThrow(
+        "Machine category not found"
+      );
     });
   });
 
