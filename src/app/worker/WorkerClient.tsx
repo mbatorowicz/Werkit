@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { Capacitor } from "@capacitor/core";
+import { useState } from "react";
 import { getDictionary } from "@/i18n";
-import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import type { InitialWorkerData } from "@/types/worker";
 
 import { useWorkerAlarmSound } from "@/features/worker/hooks/useWorkerAlarmSound";
 import { useWorkerNotifications } from "@/features/worker/hooks/useWorkerNotifications";
 import { useWorkerNotificationActions } from "@/features/worker/hooks/useWorkerNotificationActions";
+import { useWorkerGpsActions } from "@/features/worker/hooks/useWorkerGpsActions";
+import { useCancelWindow } from "@/features/worker/hooks/useCancelWindow";
 import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
@@ -52,38 +52,19 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   const [showGpsWarning, setShowGpsWarning] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
-  /** Zegar do okna anulowania — bez `Date.now()` w renderze (React 19 / purity). */
-  const [cancelWindowClock, setCancelWindowClock] = useState(() => Date.now());
-  useEffect(() => {
-    const tick = () => setCancelWindowClock(Date.now());
-    tick();
-    const id = window.setInterval(tick, 30_000);
-    return () => window.clearInterval(id);
-  }, [shell.session?.id, shell.session?.startTime]);
 
-  const requestAcceptOrder = useCallback(
-    (orderId: number) => {
-      if (Capacitor.isNativePlatform()) {
-        const verified = localStorage.getItem("werkit_bg_loc_verified");
-        if (verified !== "true") {
-          setPendingOrderId(orderId);
-          setShowGpsWarning(true);
-          return;
-        }
-      }
-      void (async () => {
-        const startLoc = shell.location ?? (await getCurrentPositionOnce());
-        await submitAcceptOrder(orderId, startLoc);
-      })();
-    },
-    [shell.location, submitAcceptOrder]
-  );
+  const { requestAcceptOrder, handleEndSession, handleAcceptOrderFromModal } = useWorkerGpsActions({
+    location: shell.location,
+    submitAcceptOrder,
+    submitEndSession,
+    setPendingOrderId,
+    setShowGpsWarning,
+  });
 
-  const isCancelWindowOpen =
-    shell.session && shell.settings?.cancelWindowMinutes
-      ? (cancelWindowClock - new Date(shell.session.startTime).getTime()) / 60000 <=
-        shell.settings.cancelWindowMinutes
-      : true;
+  const { isCancelWindowOpen } = useCancelWindow({
+    session: shell.session,
+    cancelWindowMinutes: shell.settings?.cancelWindowMinutes,
+  });
 
   const {
     isTimeOverrun,
@@ -147,12 +128,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           handleCheckpoint={() => handleCheckpoint(shell.location)}
           isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}
-          handleEndSession={() => {
-            void (async () => {
-              const endLoc = shell.location ?? (await getCurrentPositionOnce());
-              await submitEndSession(endLoc);
-            })();
-          }}
+          handleEndSession={handleEndSession}
           settings={shell.settings}
           setDistanceToDestKm={shell.setDistanceToDestKm}
           plannedRouteWaypoints={shell.routeWaypoints}
@@ -182,12 +158,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           setShowGpsWarning,
           pendingOrderId,
           setPendingOrderId,
-          handleAcceptOrder: (orderId) => {
-            void (async () => {
-              const startLoc = shell.location ?? (await getCurrentPositionOnce());
-              await submitAcceptOrder(orderId, startLoc);
-            })();
-          },
+          handleAcceptOrder: handleAcceptOrderFromModal,
         }}
       />
 
