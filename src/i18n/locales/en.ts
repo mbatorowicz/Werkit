@@ -1364,18 +1364,21 @@ export const en: AppDictionary = {
     },
     apiErrors: {
       part_not_found: "Part not found.",
-      category_not_found: "Category not found.",
+      category_not_found: "Spare part category not found.",
       part_in_use: "Part is in use in orders and cannot be deleted.",
-      category_in_use: "Category is assigned to parts and cannot be deleted.",
+      category_in_use:
+        "Spare part category is assigned to catalog items and cannot be deleted.",
       compatibility_exists: "This link already exists.",
       compatibility_not_found: "Link not found.",
       missing_part_name: "Part name is required.",
-      missing_category_name: "Category name is required.",
+      missing_category_name: "Spare part category name is required.",
       invalid_unit: "Invalid unit of measure.",
       invalid_price: "Invalid price.",
       invalid_stock: "Invalid stock value.",
-      invalid_machine_group: "Selected order category does not exist or is not a group.",
-      invalid_resource_group: "Selected resource type does not exist.",
+      invalid_category:
+        "Select a spare part category (a leaf in the tree, not an organizational group).",
+      invalid_resource_group:
+        "Selected resource type does not exist (Maintenance → Resource types).",
       missing_part_id: "Select a part from the catalog.",
       invalid_quantity: "Enter a positive quantity.",
       insufficient_stock: "Insufficient stock.",

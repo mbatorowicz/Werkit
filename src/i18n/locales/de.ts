@@ -1397,18 +1397,21 @@ export const de: AppDictionary = {
     },
     apiErrors: {
       part_not_found: "Teil nicht gefunden.",
-      category_not_found: "Kategorie nicht gefunden.",
+      category_not_found: "Ersatzteilkategorie nicht gefunden.",
       part_in_use: "Teil wird in Aufträgen verwendet und kann nicht gelöscht werden.",
-      category_in_use: "Kategorie ist Teilen zugewiesen und kann nicht gelöscht werden.",
+      category_in_use:
+        "Ersatzteilkategorie ist Katalogpositionen zugewiesen und kann nicht gelöscht werden.",
       compatibility_exists: "Diese Verknüpfung existiert bereits.",
       compatibility_not_found: "Verknüpfung nicht gefunden.",
       missing_part_name: "Teilname ist erforderlich.",
-      missing_category_name: "Kategoriename ist erforderlich.",
+      missing_category_name: "Name der Ersatzteilkategorie ist erforderlich.",
       invalid_unit: "Ungültige Maßeinheit.",
       invalid_price: "Ungültiger Preis.",
       invalid_stock: "Ungültiger Bestandswert.",
-      invalid_machine_group: "Ausgewählte Auftragskategorie existiert nicht oder ist keine Gruppe.",
-      invalid_resource_group: "Ausgewählter Ressourcentyp existiert nicht.",
+      invalid_category:
+        "Wählen Sie eine Ersatzteilkategorie (Blatt im Baum, keine Organisationsgruppe).",
+      invalid_resource_group:
+        "Ausgewählter Ressourcentyp existiert nicht (Instandhaltung → Ressourcentypen).",
       missing_part_id: "Teil aus dem Katalog wählen.",
       invalid_quantity: "Positive Menge eingeben.",
       insufficient_stock: "Nicht genügend Lagerbestand.",

@@ -1377,18 +1377,21 @@ export const pl = {
     },
     apiErrors: {
       part_not_found: "Nie znaleziono części.",
-      category_not_found: "Nie znaleziono kategorii.",
+      category_not_found: "Nie znaleziono kategorii części.",
       part_in_use: "Część jest używana w zleceniach i nie może zostać usunięta.",
-      category_in_use: "Kategoria jest przypisana do części i nie może zostać usunięta.",
+      category_in_use:
+        "Kategoria części jest przypisana do pozycji katalogu i nie może zostać usunięta.",
       compatibility_exists: "To powiązanie już istnieje.",
       compatibility_not_found: "Powiązanie nie istnieje.",
       missing_part_name: "Nazwa części jest wymagana.",
-      missing_category_name: "Nazwa kategorii jest wymagana.",
+      missing_category_name: "Nazwa kategorii części jest wymagana.",
       invalid_unit: "Nieprawidłowa jednostka miary.",
       invalid_price: "Nieprawidłowa cena.",
       invalid_stock: "Nieprawidłowa wartość stanu magazynowego.",
-      invalid_machine_group: "Wybrana kategoria zleceń nie istnieje lub nie jest grupą.",
-      invalid_resource_group: "Wybrany typ zasobu nie istnieje.",
+      invalid_category:
+        "Wybierz kategorię części (konkretną pozycję w drzewie, nie grupę organizacyjną).",
+      invalid_resource_group:
+        "Wybrany typ zasobu nie istnieje (moduł utrzymania ruchu → typy zasobów).",
       missing_part_id: "Wybierz część z katalogu.",
       invalid_quantity: "Podaj dodatnią ilość.",
       insufficient_stock: "Niewystarczający stan magazynowy.",
