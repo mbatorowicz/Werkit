@@ -13,6 +13,7 @@ export interface UserFormState {
   canCreateOwnOrders: boolean;
   canEditRoute: boolean;
   canCreateCustomers: boolean;
+  isDurWorker: boolean;
 }
 
 export const emptyUserForm = (): UserFormState => ({
@@ -24,6 +25,9 @@ export const emptyUserForm = (): UserFormState => ({
   ...WORKER_PERMISSION_DEFAULTS,
 });
 
+const INPUT =
+  "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
+
 interface UserFormFieldsProps {
   form: UserFormState;
   editId: number | null;
@@ -31,6 +35,8 @@ interface UserFormFieldsProps {
   onFormChange: (form: UserFormState) => void;
   onTogglePassword: () => void;
   dict: Record<string, string>;
+  /** Gdy false — ukryj checkbox pracownika serwisowego (moduł DUR wyłączony). */
+  durEnabled?: boolean;
 }
 
 export default function UserFormFields({
@@ -40,36 +46,73 @@ export default function UserFormFields({
   onFormChange,
   onTogglePassword,
   dict,
+  durEnabled = false,
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
 
+  const workerToggles = [
+    {
+      id: "canCreateOwnOrders",
+      checked: form.canCreateOwnOrders,
+      onChange: (checked: boolean) => setForm({ canCreateOwnOrders: checked }),
+      label: dict.canCreateOwnOrdersLabel,
+    },
+    {
+      id: "canEditRoute",
+      checked: form.canEditRoute,
+      onChange: (checked: boolean) => setForm({ canEditRoute: checked }),
+      label: dict.canEditRouteLabel,
+    },
+    {
+      id: "canCreateCustomers",
+      checked: form.canCreateCustomers,
+      onChange: (checked: boolean) => setForm({ canCreateCustomers: checked }),
+      label: dict.canCreateCustomersLabel,
+    },
+  ];
+
+  if (durEnabled) {
+    workerToggles.push({
+      id: "isDurWorker",
+      checked: form.isDurWorker,
+      onChange: (checked: boolean) => setForm({ isDurWorker: checked }),
+      label: dict.isDurWorkerLabel,
+    });
+  }
+
   return (
-    <form id="admin-user-form" onSubmit={(e) => e.preventDefault()} className="p-6 space-y-5">
+    <div className="space-y-5 p-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-400">{dict.fullNameLabel}</label>
+        <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          {dict.fullNameLabel}
+        </label>
         <input
           required
           type="text"
           placeholder={dict.fullNamePlaceholder}
           value={form.fullName}
           onChange={(e) => setForm({ fullName: e.target.value })}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+          className={INPUT}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
+        <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          {dict.phoneLabel}
+        </label>
         <input
           type="tel"
           placeholder={dict.phonePlaceholder}
           value={form.phone}
           onChange={(e) => setForm({ phone: e.target.value })}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+          className={INPUT}
         />
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-amber-500/80">{dict.roleLabel}</label>
+        <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+          {dict.roleLabel}
+        </label>
         <select
           value={form.role}
           onChange={(e) => {
@@ -79,9 +122,10 @@ export default function UserFormFields({
               canCreateOwnOrders: role === "worker" ? form.canCreateOwnOrders : false,
               canEditRoute: role === "worker" ? form.canEditRoute : false,
               canCreateCustomers: role === "worker" ? form.canCreateCustomers : false,
+              isDurWorker: role === "worker" ? form.isDurWorker : false,
             });
           }}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none appearance-none"
+          className={`${INPUT} py-3 appearance-none`}
         >
           <option value="worker">{dict.roleWorker}</option>
           <option value="admin">{dict.roleAdmin}</option>
@@ -89,24 +133,26 @@ export default function UserFormFields({
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 pt-2">
+      <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.loginLabel}</label>
+          <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            {dict.loginLabel}
+          </label>
           <input
             required
             type="text"
             placeholder={dict.loginPlaceholder}
             value={form.usernameEmail}
             onChange={(e) => setForm({ usernameEmail: e.target.value.toLowerCase() })}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+            className={INPUT}
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">
+          <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
             {editId ? dict.passwordLabelEdit : dict.passwordLabelNew}
           </label>
           <div className="relative">
-            <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+            <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               required={!editId}
               type={showPassword ? "text" : "password"}
@@ -114,7 +160,7 @@ export default function UserFormFields({
               placeholder={editId ? dict.passwordPlaceholderEdit : dict.passwordPlaceholderNew}
               value={form.password}
               onChange={(e) => setForm({ password: e.target.value })}
-              className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] py-2.5 pl-10 pr-11 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+              className={`${INPUT} py-2.5 pl-10 pr-11`}
             />
             <button
               type="button"
@@ -128,30 +174,7 @@ export default function UserFormFields({
         </div>
       </div>
 
-      {form.role === "worker" ? (
-        <WorkerPermissionToggles
-          toggles={[
-            {
-              id: "canCreateOwnOrders",
-              checked: form.canCreateOwnOrders,
-              onChange: (checked) => setForm({ canCreateOwnOrders: checked }),
-              label: dict.canCreateOwnOrdersLabel,
-            },
-            {
-              id: "canEditRoute",
-              checked: form.canEditRoute,
-              onChange: (checked) => setForm({ canEditRoute: checked }),
-              label: dict.canEditRouteLabel,
-            },
-            {
-              id: "canCreateCustomers",
-              checked: form.canCreateCustomers,
-              onChange: (checked) => setForm({ canCreateCustomers: checked }),
-              label: dict.canCreateCustomersLabel,
-            },
-          ]}
-        />
-      ) : null}
-    </form>
+      {form.role === "worker" ? <WorkerPermissionToggles toggles={workerToggles} /> : null}
+    </div>
   );
 }

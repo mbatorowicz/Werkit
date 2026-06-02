@@ -4,18 +4,23 @@ import { useState, useEffect, useCallback } from "react";
 import type { FeatureFlags } from "@/types/featureFlags";
 import {
   DEFAULT_FEATURE_FLAGS,
-  FEATURE_FLAG_KEYS,
+  DUR_FEATURE_FLAG_KEYS,
   FEATURE_FLAG_LABELS,
+  gpsModuleFlagsPatch,
+  isGpsModuleEnabled,
 } from "@/types/featureFlags";
 import type { AppDictionary } from "@/i18n/types";
 import { getDictionary } from "@/i18n";
+import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
 
 type Props = {
   companyId: number;
   dict: AppDictionary["platform"]["settings"];
+  /** Gdy true — render w wierszu tabeli (bez marginesu górnego). */
+  inline?: boolean;
 };
 
-export function FeatureFlagsSection({ companyId, dict }: Props) {
+export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) {
   const [flags, setFlags] = useState<FeatureFlags>(DEFAULT_FEATURE_FLAGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,11 +45,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
     void loadFlags();
   }, [loadFlags]);
 
-  async function toggleFlag(key: keyof FeatureFlags) {
-    const newValue = !flags[key];
-    const previous = flags[key];
-    // Optimistic update
-    setFlags((prev) => ({ ...prev, [key]: newValue }));
+  async function persistFlags(patch: Partial<FeatureFlags>, rollback: FeatureFlags) {
     setSaving(true);
     setMessage(null);
     try {
@@ -52,11 +53,10 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [key]: newValue }),
+        body: JSON.stringify(patch),
       });
       if (!res.ok) {
-        // Rollback on error
-        setFlags((prev) => ({ ...prev, [key]: previous }));
+        setFlags(rollback);
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         const apiErrors = getDictionary().apiErrors as Record<string, string>;
         setMessage(apiErrors[body.error ?? ""] ?? dict.saveError);
@@ -66,7 +66,7 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
       setMessage(dict.saveSuccess);
       setMessageIsError(false);
     } catch {
-      setFlags((prev) => ({ ...prev, [key]: previous }));
+      setFlags(rollback);
       setMessage(dict.saveError);
       setMessageIsError(true);
     } finally {
@@ -74,53 +74,91 @@ export function FeatureFlagsSection({ companyId, dict }: Props) {
     }
   }
 
+  async function toggleGpsModule() {
+    if (saving) return;
+    const newValue = !isGpsModuleEnabled(flags);
+    const rollback = flags;
+    const patch = gpsModuleFlagsPatch(newValue);
+    setFlags((prev) => ({ ...prev, ...patch }));
+    await persistFlags(patch, rollback);
+  }
+
+  async function toggleDurModule() {
+    if (saving) return;
+    const key = DUR_FEATURE_FLAG_KEYS[0];
+    const newValue = !flags[key];
+    const rollback = flags;
+    setFlags((prev) => ({ ...prev, [key]: newValue }));
+    await persistFlags({ [key]: newValue }, rollback);
+  }
+
+  const shellClass = inline
+    ? "rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900"
+    : "mt-6 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900";
+
   if (loading) {
     return (
-      <div className="mt-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
-        <p className="text-sm text-zinc-500 animate-pulse">{dict.title}…</p>
+      <div className={shellClass}>
+        <p className="animate-pulse text-sm text-zinc-500">{dict.title}…</p>
       </div>
     );
   }
 
+  const durLabelKey = FEATURE_FLAG_LABELS.durEnabled;
+  const durHintKey = `${durLabelKey}Hint` as keyof typeof dict;
+
   return (
-    <div className="mt-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-sm">
+    <div className={shellClass}>
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{dict.title}</h3>
-        <p className="text-xs text-zinc-500 mt-0.5">{dict.subtitle}</p>
+        <p className="mt-0.5 text-xs text-zinc-500">{dict.subtitle}</p>
       </div>
 
-      <div className="space-y-3">
-        {FEATURE_FLAG_KEYS.map((key) => {
-          const labelKey = FEATURE_FLAG_LABELS[key];
-          const hintKey = `${labelKey}Hint` as keyof typeof dict;
-          const label = dict[labelKey as keyof typeof dict] as string;
-          const hint = dict[hintKey] as string | undefined;
+      <div className="space-y-5">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            {dict.gpsModuleTitle}
+          </p>
+          <WorkerPermissionToggles
+            toggles={[
+              {
+                id: "gps-module",
+                checked: isGpsModuleEnabled(flags),
+                onChange: () => {
+                  void toggleGpsModule();
+                },
+                label: dict.gpsModuleEnabled,
+                hint: dict.gpsModuleHint,
+              },
+            ]}
+          />
+        </div>
 
-          return (
-            <label key={key} className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={flags[key]}
-                onChange={() => toggleFlag(key)}
-                disabled={saving}
-                className="mt-0.5 h-4 w-4 rounded border-zinc-300 dark:border-zinc-600 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
-              />
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                  {label}
-                </span>
-                {hint && <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{hint}</p>}
-              </div>
-            </label>
-          );
-        })}
+        <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            {dict.durModuleTitle}
+          </p>
+          <WorkerPermissionToggles
+            toggles={[
+              {
+                id: "dur-module",
+                checked: flags.durEnabled,
+                onChange: () => {
+                  void toggleDurModule();
+                },
+                label: dict[durLabelKey as keyof typeof dict] as string,
+                hint: dict[durHintKey] as string | undefined,
+              },
+            ]}
+          />
+        </div>
       </div>
 
-      {message && (
+      {message ? (
         <p className={`mt-3 text-xs ${messageIsError ? "text-red-600" : "text-emerald-600"}`}>
           {message}
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

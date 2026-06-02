@@ -6,6 +6,7 @@ import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { getDictionary } from "@/i18n";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
 type Props = {
   rows: CompanyUsageRow[];
@@ -170,6 +171,17 @@ export function PlatformCompanyTable({
                       </div>
                     </td>
                   </tr>
+                  {settingsOpenId === r.companyId ? (
+                    <tr className="bg-zinc-50/80 dark:bg-zinc-800/30">
+                      <td colSpan={9} className="px-4 py-4">
+                        <FeatureFlagsSection
+                          companyId={r.companyId}
+                          dict={dict.settings}
+                          inline
+                        />
+                      </td>
+                    </tr>
+                  ) : null}
                   {r.userCount === 0 && (
                     <tr className="bg-amber-50/50 dark:bg-amber-950/10">
                       <td colSpan={9} className="px-4 py-4">

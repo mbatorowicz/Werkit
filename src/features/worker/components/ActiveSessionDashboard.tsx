@@ -42,6 +42,7 @@ interface ActiveSessionDashboardProps {
   handleCancelSession: () => void;
   handleEndSession: () => void;
   settings: AppSettings | null;
+  currentUser: { isDurWorker?: boolean } | null;
   setDistanceToDestKm: (val: number | null) => void;
   plannedRouteWaypoints: Coord[];
   canEditRoute: boolean;
@@ -74,6 +75,7 @@ export default function ActiveSessionDashboard({
   handleCancelSession,
   handleEndSession,
   settings,
+  currentUser,
   setDistanceToDestKm,
   plannedRouteWaypoints,
   canEditRoute,
@@ -119,6 +121,8 @@ export default function ActiveSessionDashboard({
         workOrderId={session.workOrderId ?? null}
         orderType={session.orderType ?? null}
         resourceGroupId={session.resourceGroupId ?? null}
+        durEnabled={Boolean(settings?.durEnabled)}
+        isDurWorker={Boolean(currentUser?.isDurWorker)}
       />
 
       {/* WIDGET STATUSU */}

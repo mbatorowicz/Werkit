@@ -97,6 +97,8 @@ export type AppSettings = {
   cancelWindowMinutes?: number;
   timeOverrunReminder?: boolean;
   upcomingOrderReminderMinutes?: number;
+  /** Moduł utrzymania ruchu włączony dla organizacji. */
+  durEnabled?: boolean;
 };
 
 export type UserData = {

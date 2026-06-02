@@ -13,6 +13,7 @@ import { JWT_SECRET } from "@/lib/auth";
 import { AdminAbilityProvider } from "@/components/Admin/AdminAbilityProvider";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { AdminUserService } = await import("@/services/AdminUserService");
 
   const companyId = await requireServerCompanyId();
-  const settings = await DictionaryService.getSettings(companyId);
+  const [settings, featureFlags] = await Promise.all([
+    DictionaryService.getSettings(companyId),
+    PlatformFeatureFlagService.getFlags(companyId),
+  ]);
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
   let loggedInUser = null;
@@ -45,7 +49,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <AdminAbilityProvider canMutate={canMutate}>
+    <AdminAbilityProvider canMutate={canMutate} durEnabled={featureFlags.durEnabled}>
       <div className="layout-admin flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
         <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
           <div>
@@ -65,7 +69,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 {companyName} - {dict.sidebar.logisticsSystem}
               </p>
             </div>
-            <AdminSidebarNav dict={dict} durDict={durDict} />
+            <AdminSidebarNav dict={dict} durDict={durDict} durEnabled={featureFlags.durEnabled} />
           </div>
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
             {loggedInUser && (
@@ -119,6 +123,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 version={APP_VERSION}
                 dict={dict}
                 durDict={durDict}
+                durEnabled={featureFlags.durEnabled}
                 loggedInUser={loggedInUser}
               />
             </div>

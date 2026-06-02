@@ -14,6 +14,7 @@ export type AdminUserListRow = {
   canCreateOwnOrders: boolean;
   canEditRoute: boolean;
   canCreateCustomers: boolean;
+  isDurWorker: boolean;
 };
 
 export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
@@ -39,6 +40,7 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
       canCreateOwnOrders: typeof r.canCreateOwnOrders === "boolean" ? r.canCreateOwnOrders : true,
       canEditRoute: typeof r.canEditRoute === "boolean" ? r.canEditRoute : false,
       canCreateCustomers: typeof r.canCreateCustomers === "boolean" ? r.canCreateCustomers : false,
+      isDurWorker: typeof r.isDurWorker === "boolean" ? r.isDurWorker : false,
     });
   }
   return out;

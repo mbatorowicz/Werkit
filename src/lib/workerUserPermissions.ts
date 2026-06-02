@@ -4,18 +4,21 @@ export type WorkerPermissionFlags = {
   canCreateOwnOrders: boolean;
   canEditRoute: boolean;
   canCreateCustomers: boolean;
+  isDurWorker: boolean;
 };
 
 export const WORKER_PERMISSION_DEFAULTS: WorkerPermissionFlags = {
   canCreateOwnOrders: true,
   canEditRoute: false,
   canCreateCustomers: false,
+  isDurWorker: false,
 };
 
 export const NON_WORKER_PERMISSION_FLAGS: WorkerPermissionFlags = {
   canCreateOwnOrders: false,
   canEditRoute: false,
   canCreateCustomers: false,
+  isDurWorker: false,
 };
 
 type Role = "worker" | "admin" | "viewer";
@@ -35,6 +38,7 @@ export function workerPermissionsFromBody(
     canCreateOwnOrders: !!body.canCreateOwnOrders,
     canEditRoute: !!body.canEditRoute,
     canCreateCustomers: !!body.canCreateCustomers,
+    isDurWorker: !!body.isDurWorker,
   };
 }
 
@@ -47,6 +51,7 @@ export function applyWorkerPermissionsToUpdate(
   updateData.canCreateOwnOrders = flags.canCreateOwnOrders;
   updateData.canEditRoute = flags.canEditRoute;
   updateData.canCreateCustomers = flags.canCreateCustomers;
+  updateData.isDurWorker = flags.isDurWorker;
 }
 
 export function pickWorkerUserFlags(row: {
@@ -55,6 +60,7 @@ export function pickWorkerUserFlags(row: {
   notificationsEnabled: boolean;
   canEditRoute: boolean;
   canCreateCustomers: boolean;
+  isDurWorker: boolean;
 }) {
   return {
     id: row.id,
@@ -62,5 +68,6 @@ export function pickWorkerUserFlags(row: {
     notificationsEnabled: row.notificationsEnabled,
     canEditRoute: row.canEditRoute,
     canCreateCustomers: row.canCreateCustomers,
+    isDurWorker: row.isDurWorker,
   };
 }

@@ -6,7 +6,6 @@ import type { AppDictionary } from "@/i18n/types";
 import { getDictionary, formatDict } from "@/i18n";
 import { PlatformCompanyForm } from "@/components/Platform/PlatformCompanyForm";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
-import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -178,10 +177,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
         onRefresh={refreshOverview}
         onToggleSettings={toggleSettings}
       />
-
-      {settingsOpenId != null && (
-        <FeatureFlagsSection key={settingsOpenId} companyId={settingsOpenId} dict={dict.settings} />
-      )}
     </div>
   );
 }

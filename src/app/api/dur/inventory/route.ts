@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { requireDurFeature } from "@/lib/requireDurFeature";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +10,9 @@ export const GET = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
     const { companyId } = scoped.data;
+
+    const dur = await requireDurFeature(companyId);
+    if (!dur.ok) return dur.response;
 
     const partIdParam = new URL(request.url).searchParams.get("partId");
     const partId = partIdParam ? parseInt(partIdParam, 10) : undefined;
@@ -28,6 +32,9 @@ export const PUT = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
     const { companyId } = scoped.data;
+
+    const dur = await requireDurFeature(companyId);
+    if (!dur.ok) return dur.response;
 
     const body = await parseJsonBody(request);
     const partId =

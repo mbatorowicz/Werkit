@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { requireDurFeature } from "@/lib/requireDurFeature";
 import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,9 @@ export const GET = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
     const { companyId } = scoped.data;
+
+    const dur = await requireDurFeature(companyId);
+    if (!dur.ok) return dur.response;
 
     const leavesOnly = new URL(request.url).searchParams.get("leavesOnly") === "1";
     const { SparePartCategoryService } = await import("@/services/dur/SparePartCategoryService");
@@ -27,6 +31,9 @@ export const POST = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
     const { companyId } = scoped.data;
+
+    const dur = await requireDurFeature(companyId);
+    if (!dur.ok) return dur.response;
 
     const body = await parseJsonBody(request);
     const name = typeof body.name === "string" ? body.name.trim() : "";

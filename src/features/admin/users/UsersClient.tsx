@@ -19,7 +19,7 @@ import UsersTable from "./UsersTable";
 import UserFormFields, { emptyUserForm, type UserFormState } from "./UserFormFields";
 
 export default function UsersClient() {
-  const { canMutate } = useAdminAbility();
+  const { canMutate, durEnabled } = useAdminAbility();
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [users, setUsers] = useState<AdminUserListRow[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,6 +129,7 @@ export default function UsersClient() {
       canCreateOwnOrders: u.canCreateOwnOrders ?? true,
       canEditRoute: u.canEditRoute ?? false,
       canCreateCustomers: u.canCreateCustomers ?? false,
+      isDurWorker: u.isDurWorker ?? false,
     });
     setIsModalOpen(true);
   };
@@ -232,6 +233,7 @@ export default function UsersClient() {
             onFormChange={setForm}
             onTogglePassword={() => setShowPassword((v) => !v)}
             dict={dict}
+            durEnabled={durEnabled}
           />
         </form>
       </AdminModalShell>
@@ -266,6 +268,12 @@ export default function UsersClient() {
                   label={dict.canCreateCustomersLabel}
                   value={previewUser.canCreateCustomers ? dict.previewYes : dict.previewNo}
                 />
+                {durEnabled ? (
+                  <AdminPreviewField
+                    label={dict.isDurWorkerLabel}
+                    value={previewUser.isDurWorker ? dict.previewYes : dict.previewNo}
+                  />
+                ) : null}
               </>
             ) : null}
           </>

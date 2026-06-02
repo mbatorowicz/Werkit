@@ -9,12 +9,14 @@ import { isAdminDispatchNavActive } from "./adminNavActive";
 export function AdminSidebarNav({
   dict,
   durDict,
+  durEnabled = false,
 }: {
   dict: AppDictionary["admin"];
   durDict: AppDictionary["dur"];
+  durEnabled?: boolean;
 }) {
   const pathname = usePathname();
-  const links = buildAdminNavLinks(dict, durDict);
+  const links = buildAdminNavLinks(dict, durDict, { durEnabled });
 
   return (
     <nav className="p-4 space-y-1.5">

@@ -95,6 +95,7 @@ export function narrowAppSettings(v: unknown): AppSettings | null {
   ) {
     s.upcomingOrderReminderMinutes = v.upcomingOrderReminderMinutes;
   }
+  if (typeof v.durEnabled === "boolean") s.durEnabled = v.durEnabled;
   return s;
 }
 
@@ -106,6 +107,7 @@ export function narrowUserData(v: unknown): UserData | null {
   if (typeof v.notificationsEnabled === "boolean") u.notificationsEnabled = v.notificationsEnabled;
   if (typeof v.canEditRoute === "boolean") u.canEditRoute = v.canEditRoute;
   if (typeof v.canCreateCustomers === "boolean") u.canCreateCustomers = v.canCreateCustomers;
+  if (typeof v.isDurWorker === "boolean") u.isDurWorker = v.isDurWorker;
   return u;
 }
 

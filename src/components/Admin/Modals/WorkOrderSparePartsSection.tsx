@@ -11,6 +11,7 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { isRecord } from "@/lib/narrowApiListRows";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { getDictionary } from "@/i18n";
 
 // ── Typy lokalne ──
@@ -45,6 +46,7 @@ const CONTROL =
  * Widoczna tylko gdy orderType === 'machine_repair' i workOrderId !== null.
  */
 export default function WorkOrderSparePartsSection({ workOrderId, orderType, resourceGroupId }: Props) {
+  const { durEnabled } = useAdminAbility();
   const dict = getDictionary();
   const durDict = dict.dur.workOrderSpareParts;
   const wDict = dict.dur.warehouse;
@@ -194,7 +196,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   );
 
   // ── Render ──
-  if (!isRepair) return null;
+  if (!durEnabled || !isRepair) return null;
 
   return (
     <div className={FIELD}>

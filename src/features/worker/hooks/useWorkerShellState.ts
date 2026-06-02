@@ -39,8 +39,12 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(initialData?.workOrders ?? []);
   const [isLoading, setIsLoading] = useState(!initialData);
 
-  const [settings, setSettings] = useState<AppSettings | null>(initialData?.settings ?? null);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(initialData?.user ?? null);
+  const [settings, setSettings] = useState<AppSettings | null>(() =>
+    initialData?.settings ? narrowAppSettings(initialData.settings) : null
+  );
+  const [currentUser, setCurrentUser] = useState<UserData | null>(() =>
+    initialData?.user ? narrowUserData(initialData.user) : null
+  );
 
   const [location, setLocation] = useState<Coord | null>(null);
   const [route, dispatchRoute] = useReducer(workerRouteReducer, { path: [], km: 0 });

@@ -25,6 +25,8 @@ type Props = {
   workOrderId: number | null;
   orderType: string | null;
   resourceGroupId: number | null;
+  durEnabled?: boolean;
+  isDurWorker?: boolean;
 };
 
 const LABEL =
@@ -36,7 +38,13 @@ const CONTROL =
  * Panel części zamiennych dla aktywnej sesji pracownika.
  * Pobranie = automatyczne WZ; zwrot = PZ i usunięcie z zlecenia.
  */
-export default function WorkerSparePartsPanel({ workOrderId, orderType, resourceGroupId }: Props) {
+export default function WorkerSparePartsPanel({
+  workOrderId,
+  orderType,
+  resourceGroupId,
+  durEnabled = false,
+  isDurWorker = false,
+}: Props) {
   const dict = getDictionary();
   const workerDict = dict.worker.client;
   const durDict = dict.dur.workOrderSpareParts;
@@ -178,7 +186,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType, resource
     }
   };
 
-  if (!isRepair) return null;
+  if (!durEnabled || !isDurWorker || !isRepair) return null;
 
   return (
     <div className="w-full rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80">

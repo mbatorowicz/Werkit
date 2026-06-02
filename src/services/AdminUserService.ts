@@ -16,6 +16,7 @@ export class AdminUserService {
         canCreateOwnOrders: users.canCreateOwnOrders,
         canEditRoute: users.canEditRoute,
         canCreateCustomers: users.canCreateCustomers,
+        isDurWorker: users.isDurWorker,
         companyId: users.companyId,
       })
       .from(users)
@@ -65,6 +66,7 @@ export class AdminUserService {
       canCreateOwnOrders?: boolean;
       canEditRoute?: boolean;
       canCreateCustomers?: boolean;
+      isDurWorker?: boolean;
     }
   ) {
     const role = payload.role || "worker";
@@ -76,6 +78,7 @@ export class AdminUserService {
         : false;
     const canEditRoute = role === "worker" ? !!payload.canEditRoute : false;
     const canCreateCustomers = role === "worker" ? !!payload.canCreateCustomers : false;
+    const isDurWorker = role === "worker" ? !!payload.isDurWorker : false;
     await db.insert(users).values({
       companyId,
       fullName: payload.fullName,
@@ -87,6 +90,7 @@ export class AdminUserService {
       canCreateOwnOrders,
       canEditRoute,
       canCreateCustomers,
+      isDurWorker,
     });
   }
 

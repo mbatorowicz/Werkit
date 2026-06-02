@@ -545,6 +545,7 @@ export const pl = {
       canCreateOwnOrdersLabel: "Pracownik może tworzyć własne zlecenia w aplikacji",
       canEditRouteLabel: "Pracownik może edytować trasę na mapie w terenie",
       canCreateCustomersLabel: "Pracownik może dodawać kontrahentów w aplikacji",
+      isDurWorkerLabel: "Pracownik serwisowy (DUR — naprawy i magazyn części)",
       passwordShow: "Pokaż PIN",
       passwordHide: "Ukryj PIN",
     },
@@ -1137,6 +1138,11 @@ export const pl = {
     settings: {
       title: "Ustawienia funkcji",
       subtitle: "Włącz/wyłącz funkcje dla tej organizacji.",
+      gpsModuleTitle: "GPS i mapa",
+      gpsModuleEnabled: "Moduł GPS i mapa",
+      gpsModuleHint:
+        "Śledzenie pozycji, widok mapy, geofencing, planowanie trasy (OSRM) i nawigacja krok po kroku w aplikacji pracownika.",
+      durModuleTitle: "Moduł utrzymania ruchu",
       gpsTrackingEnabled: "Śledzenie GPS",
       gpsTrackingEnabledHint: "Zapis trasy i pozycji pracowników w terenie.",
       mapViewEnabled: "Widok mapy",
@@ -1148,7 +1154,8 @@ export const pl = {
       navigationEnabled: "Nawigacja krok po kroku",
       navigationEnabledHint: "Turn-by-turn w aplikacji pracownika.",
       durEnabled: "Moduł utrzymania ruchu",
-      durEnabledHint: "Magazyn części zamiennych — katalog, przyjęcia, wydania na zlecenia napraw.",
+      durEnabledHint:
+        "Magazyn części, typy zasobów, części na zleceniach napraw i panel serwisowy w aplikacji pracownika.",
       saveSuccess: "Zapisano ustawienia funkcji.",
       saveError: "Nie udało się zapisać ustawień.",
     },

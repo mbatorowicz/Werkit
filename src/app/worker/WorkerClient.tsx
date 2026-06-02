@@ -130,6 +130,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
           handleCancelSession={handleCancelSession}
           handleEndSession={handleEndSession}
           settings={shell.settings}
+          currentUser={shell.currentUser}
           setDistanceToDestKm={shell.setDistanceToDestKm}
           plannedRouteWaypoints={shell.routeWaypoints}
           canEditRoute={Boolean(shell.currentUser?.canEditRoute)}

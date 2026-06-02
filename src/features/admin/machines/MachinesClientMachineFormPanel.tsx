@@ -30,11 +30,15 @@ type Props = {
   apiErrors: Record<string, string>;
   categories: MachinesCategory[];
   resourceGroups: { id: number; name: string }[];
+  durEnabled?: boolean;
   fetchData: () => Promise<void>;
 };
 
 export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFormHandle, Props>(
-  function MachinesClientMachineFormPanel({ dict, apiErrors, categories, resourceGroups, fetchData }, ref) {
+  function MachinesClientMachineFormPanel(
+    { dict, apiErrors, categories, resourceGroups, durEnabled = false, fetchData },
+    ref
+  ) {
     const { alert: appAlert } = useAppDialog();
     const [isMMOpen, setIsMMOpen] = useState(false);
     const [mEditId, setMEditId] = useState<number | null>(null);
@@ -140,6 +144,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         resourceVis={resourceVis}
         categories={leafCategories}
         resourceGroups={resourceGroups}
+        durEnabled={durEnabled}
         form={mForm}
         setForm={setMForm}
         onSubmit={handleMSave}

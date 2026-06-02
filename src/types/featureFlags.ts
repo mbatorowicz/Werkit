@@ -32,14 +32,36 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   durEnabled: false,
 };
 
-/** Klucze flag do iteracji w UI. */
-export const FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
+/** Klucze flag GPS/map — grupa w panelu platformy. */
+export const GPS_FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
   "gpsTrackingEnabled",
   "mapViewEnabled",
   "geofencingEnabled",
   "routePlanningEnabled",
   "navigationEnabled",
-  "durEnabled",
+];
+
+/** Klucze modułu DUR — jeden przełącznik w panelu platformy. */
+export const DUR_FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = ["durEnabled"];
+
+/** Czy moduł GPS i mapa jest włączony (wszystkie flagi GPS muszą być true). */
+export function isGpsModuleEnabled(flags: FeatureFlags): boolean {
+  return GPS_FEATURE_FLAG_KEYS.every((key) => flags[key]);
+}
+
+/** PATCH ustawiający wszystkie flagi modułu GPS/map na tę samą wartość. */
+export function gpsModuleFlagsPatch(enabled: boolean): Partial<FeatureFlags> {
+  const patch: Partial<FeatureFlags> = {};
+  for (const key of GPS_FEATURE_FLAG_KEYS) {
+    patch[key] = enabled;
+  }
+  return patch;
+}
+
+/** Klucze flag do iteracji w UI (legacy — pełna lista). */
+export const FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
+  ...GPS_FEATURE_FLAG_KEYS,
+  ...DUR_FEATURE_FLAG_KEYS,
 ];
 
 /** Etykiety i18n dla flag. */

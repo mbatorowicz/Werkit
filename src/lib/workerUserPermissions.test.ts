@@ -25,7 +25,16 @@ describe("workerUserPermissions", () => {
       canCreateOwnOrders: true,
       canEditRoute: false,
       canCreateCustomers: true,
+      isDurWorker: false,
     });
+  });
+
+  it("maps isDurWorker from body", () => {
+    expect(
+      workerPermissionsFromBody("worker", {
+        isDurWorker: true,
+      })
+    ).toMatchObject({ isDurWorker: true });
   });
 
   it("clears worker flags for non-worker roles", () => {
@@ -45,6 +54,7 @@ describe("workerUserPermissions", () => {
       canCreateOwnOrders: false,
       canEditRoute: true,
       canCreateCustomers: false,
+      isDurWorker: false,
     });
   });
 });

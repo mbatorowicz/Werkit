@@ -554,6 +554,7 @@ export const de: AppDictionary = {
       canCreateOwnOrdersLabel: "Arbeiter kann eigene Aufträge in der App erstellen",
       canEditRouteLabel: "Arbeiter kann die Route auf der Karte im Feld bearbeiten",
       canCreateCustomersLabel: "Arbeiter kann Kunden in der App hinzufügen",
+      isDurWorkerLabel: "Servicemitarbeiter (Instandhaltung — Reparaturen und Ersatzteile)",
       passwordShow: "PIN anzeigen",
       passwordHide: "PIN ausblenden",
     },
@@ -1152,6 +1153,11 @@ export const de: AppDictionary = {
     settings: {
       title: "Funktionseinstellungen",
       subtitle: "Aktivieren/deaktivieren Sie Funktionen für diese Organisation.",
+      gpsModuleTitle: "GPS und Karte",
+      gpsModuleEnabled: "GPS- und Kartenmodul",
+      gpsModuleHint:
+        "Positionsverfolgung, Kartenansicht, Geofencing, Routenplanung (OSRM) und Schritt-für-Schritt-Navigation in der Arbeiter-App.",
+      durModuleTitle: "Instandhaltungsmodul",
       gpsTrackingEnabled: "GPS-Verfolgung",
       gpsTrackingEnabledHint: "Route und Position der Feldarbeiter aufzeichnen.",
       mapViewEnabled: "Kartenansicht",

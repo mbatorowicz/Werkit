@@ -543,6 +543,7 @@ export const en: AppDictionary = {
       canCreateOwnOrdersLabel: "Worker can create custom orders in the app",
       canEditRouteLabel: "Worker can edit the route on the map in the field",
       canCreateCustomersLabel: "Worker can add customers in the app",
+      isDurWorkerLabel: "Service worker (maintenance — repairs and spare parts)",
       passwordShow: "Show PIN",
       passwordHide: "Hide PIN",
     },
@@ -1124,6 +1125,11 @@ export const en: AppDictionary = {
     settings: {
       title: "Feature settings",
       subtitle: "Enable/disable features for this organization.",
+      gpsModuleTitle: "GPS and map",
+      gpsModuleEnabled: "GPS and map module",
+      gpsModuleHint:
+        "Position tracking, map view, geofencing, route planning (OSRM), and turn-by-turn navigation in the worker app.",
+      durModuleTitle: "Maintenance module",
       gpsTrackingEnabled: "GPS tracking",
       gpsTrackingEnabledHint: "Record route and position of field workers.",
       mapViewEnabled: "Map view",

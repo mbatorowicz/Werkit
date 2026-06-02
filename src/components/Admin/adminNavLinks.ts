@@ -19,9 +19,12 @@ export type AdminNavLinkItem =
 /** Jedna definicja kolejności i etykiet — sidebar desktop i drawer mobilny. */
 export function buildAdminNavLinks(
   adminDict: AppDictionary["admin"],
-  durDict: AppDictionary["dur"]
+  durDict: AppDictionary["dur"],
+  options?: { durEnabled?: boolean }
 ): AdminNavLinkItem[] {
-  return [
+  const durEnabled = options?.durEnabled ?? false;
+
+  const links: AdminNavLinkItem[] = [
     {
       kind: "route",
       href: adminRoutes.dispatch,
@@ -45,13 +48,21 @@ export function buildAdminNavLinks(
       icon: Package,
       label: adminDict.sidebar.customers,
     },
-    { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
-    {
-      kind: "route",
-      href: adminRoutes.dur.warehouse,
-      icon: Package,
-      label: durDict.sidebar.warehouse,
-    },
+  ];
+
+  if (durEnabled) {
+    links.push(
+      { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
+      {
+        kind: "route",
+        href: adminRoutes.dur.warehouse,
+        icon: Package,
+        label: durDict.sidebar.warehouse,
+      }
+    );
+  }
+
+  links.push(
     { kind: "section", label: adminDict.sidebar.system },
     {
       kind: "route",
@@ -65,5 +76,7 @@ export function buildAdminNavLinks(
       icon: TerminalSquare,
       label: adminDict.sidebar.deviceLogs,
     },
-  ];
+  );
+
+  return links;
 }

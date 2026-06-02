@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { requireDurFeature } from "@/lib/requireDurFeature";
 import { ResourceGroupService } from "@/services/dictionary/ResourceGroupService";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,10 @@ export const GET = withApiErrorHandling(
   async () => {
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
+
+    const dur = await requireDurFeature(scoped.data.companyId);
+    if (!dur.ok) return dur.response;
+
     const groups = await ResourceGroupService.getGroups(scoped.data.companyId);
     return jsonOk(groups);
   },
@@ -22,6 +27,9 @@ export const POST = withApiErrorHandling(
 
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
+
+    const dur = await requireDurFeature(scoped.data.companyId);
+    if (!dur.ok) return dur.response;
 
     const body = await parseJsonBody(request);
     const name = typeof body.name === "string" ? body.name.trim() : "";
