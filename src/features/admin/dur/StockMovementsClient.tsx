@@ -147,9 +147,8 @@ export default function StockMovementsClient() {
   }, [fetchCatalog, fetchRefs, tab]);
 
   useEffect(() => {
-    if (showModal && tab === "issues") {
-      void fetchRefs();
-    }
+    if (!showModal || tab !== "issues") return;
+    queueMicrotask(() => void fetchRefs());
   }, [showModal, tab, fetchRefs]);
 
   const closeModal = useCallback(() => {
@@ -161,13 +160,17 @@ export default function StockMovementsClient() {
     [catalogItems, tab, rPartId, iPartId]
   );
 
-  useEffect(() => {
-    if (tab !== "receipts" || !rPartId || rUnitPrice.trim()) return;
-    const item = catalogItems.find((p) => String(p.id) === rPartId);
-    if (item?.purchasePrice) {
-      setRUnitPrice(item.purchasePrice);
-    }
-  }, [tab, rPartId, catalogItems, rUnitPrice]);
+  const handleReceiptPartChange = useCallback(
+    (partId: string) => {
+      setRPartId(partId);
+      if (!partId || rUnitPrice.trim()) return;
+      const item = catalogItems.find((p) => String(p.id) === partId);
+      if (item?.purchasePrice) {
+        setRUnitPrice(item.purchasePrice);
+      }
+    },
+    [catalogItems, rUnitPrice]
+  );
 
   const handleSaveReceipt = useCallback(async () => {
     const partId = parseInt(rPartId, 10);
@@ -417,7 +420,7 @@ export default function StockMovementsClient() {
               rNotes={rNotes}
               partOptions={partOptions}
               partsLoading={catalogLoading}
-              onPartIdChange={setRPartId}
+              onPartIdChange={handleReceiptPartChange}
               onQuantityChange={setRQuantity}
               onUnitPriceChange={setRUnitPrice}
               onInvoiceNumberChange={setRInvoiceNumber}

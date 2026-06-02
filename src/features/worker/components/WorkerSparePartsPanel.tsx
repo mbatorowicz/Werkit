@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Package, Trash2 } from "lucide-react";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
 import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartComboboxOptions";
@@ -40,6 +40,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType, resource
   const dict = getDictionary();
   const workerDict = dict.worker.client;
   const durDict = dict.dur.workOrderSpareParts;
+  const wDict = dict.dur.warehouse;
   const durApiErrors = dict.dur.apiErrors as Record<string, string>;
   const apiErrors = dict.apiErrors as Record<string, string>;
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
@@ -91,16 +92,14 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType, resource
   }, [workOrderId]);
 
   useEffect(() => {
-    if (isRepair && hasOrderId) {
+    if (!isRepair || !hasOrderId) return;
+    queueMicrotask(() => {
       void fetchParts();
       void fetchCatalog({ resourceGroupId, audience: "worker" });
-    }
+    });
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
-  const catalogOptions = useMemo(
-    () => durSparePartComboboxOptions(catalogItems, dict.dur.warehouse.partStockSublabel),
-    [catalogItems, dict.dur.warehouse.partStockSublabel]
-  );
+  const catalogOptions = durSparePartComboboxOptions(catalogItems, wDict.partStockSublabel);
 
   const handleAddPart = async () => {
     const partIdNum = parseInt(selectedPartId, 10);

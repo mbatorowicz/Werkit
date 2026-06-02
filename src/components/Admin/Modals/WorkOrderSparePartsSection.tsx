@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
 import { type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
@@ -47,6 +47,7 @@ const CONTROL =
 export default function WorkOrderSparePartsSection({ workOrderId, orderType, resourceGroupId }: Props) {
   const dict = getDictionary();
   const durDict = dict.dur.workOrderSpareParts;
+  const wDict = dict.dur.warehouse;
   const adminOrdersDict = dict.admin.orders;
   const apiErrors = dict.apiErrors as Record<string, string>;
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
@@ -107,10 +108,11 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   }, [workOrderId]);
 
   useEffect(() => {
-    if (isRepair && hasOrderId) {
+    if (!isRepair || !hasOrderId) return;
+    queueMicrotask(() => {
       void fetchParts();
       void fetchCatalog({ resourceGroupId, audience: "admin" });
-    }
+    });
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
   // ── Dodawanie części ──
@@ -186,11 +188,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
     }
   };
 
-  // ── Opcje comboboxa ──
-  const catalogOptions: AdminSearchComboboxOption[] = useMemo(
-    () =>
-      durSparePartComboboxOptions(catalogItems, dict.dur.warehouse.partStockSublabel),
-    [catalogItems, dict.dur.warehouse.partStockSublabel]
+  const catalogOptions: AdminSearchComboboxOption[] = durSparePartComboboxOptions(
+    catalogItems,
+    wDict.partStockSublabel
   );
 
   // ── Render ──
