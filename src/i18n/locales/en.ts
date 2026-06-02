@@ -187,11 +187,11 @@ export const en: AppDictionary = {
         catalogSearchNoResults: "No results for this query.",
       },
       workOrders: {
-        panelTitle: "Order & resource categories",
+        panelTitle: "Order categories",
         panelSubtitle:
-          "Tree of groups and categories: field order types, form fields, and classification of resource registry entries.",
+          "Tree of groups and categories: field order types and form fields.",
         empty:
-          "Add your first category or group (e.g. transport, yard) to assign resources and configure order forms.",
+          "Add your first category or group (e.g. transport, yard) to configure order forms.",
         confirmDelete: "Delete this entry? It will no longer be assignable to resources or orders.",
         namePlaceholder: "e.g. Transport, service yard",
       },
@@ -1227,14 +1227,14 @@ export const en: AppDictionary = {
       fields: {
         part: "Part",
         partPlaceholder: "Select part…",
-        machineCategory: "Machine type",
-        machineCategoryPlaceholder: "Select machine type…",
+        machineCategory: "Resource group",
+        machineCategoryPlaceholder: "Select resource group…",
         notes: "Notes (optional)",
         notesPlaceholder: "e.g. only for X-series engines",
       },
       table: {
         part: "Part",
-        machineCategory: "Machine type",
+        machineCategory: "Resource group",
         notes: "Notes",
         actions: "Actions",
       },

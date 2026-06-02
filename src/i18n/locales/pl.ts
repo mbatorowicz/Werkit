@@ -188,12 +188,12 @@ export const pl = {
         catalogSearchNoResults: "Brak wyników dla tego zapytania.",
       },
       workOrders: {
-        panelTitle: "Kategorie zleceń i zasobów",
+        panelTitle: "Kategorie zleceń",
         panelSubtitle:
-          "Drzewo grup i kategorii: typy zleceń w terenie, pola formularza oraz klasyfikacja wpisów w rejestrze zasobów.",
+          "Drzewo grup i kategorii: typy zleceń w terenie oraz pola formularza.",
         empty:
-          "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby przypisywać zasoby i ustawiać formularze zleceń.",
-        confirmDelete: "Usunąć ten wpis? Nie przypiszesz go już do nowych zasobów ani zleceń.",
+          "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby ustawiać formularze zleceń.",
+        confirmDelete: "Usunąć ten wpis? Nie przypiszesz go już do nowych zleceń.",
         namePlaceholder: "Np. Transport, plac serwisowy",
       },
       materials: {
@@ -1238,14 +1238,14 @@ export const pl = {
       fields: {
         part: "Część",
         partPlaceholder: "Wybierz część…",
-        machineCategory: "Typ maszyny",
-        machineCategoryPlaceholder: "Wybierz typ maszyny…",
+        machineCategory: "Grupa zasobów",
+        machineCategoryPlaceholder: "Wybierz grupę zasobów…",
         notes: "Uwagi (opcjonalnie)",
         notesPlaceholder: "Np. tylko dla silników serii X",
       },
       table: {
         part: "Część",
-        machineCategory: "Typ maszyny",
+        machineCategory: "Grupa zasobów",
         notes: "Uwagi",
         actions: "Akcje",
       },

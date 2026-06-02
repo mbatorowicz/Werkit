@@ -191,11 +191,11 @@ export const de: AppDictionary = {
         catalogSearchNoResults: "Keine Ergebnisse für diese Abfrage.",
       },
       workOrders: {
-        panelTitle: "Auftrags- & Ressourcenkategorien",
+        panelTitle: "Auftragskategorien",
         panelSubtitle:
-          "Baum von Gruppen und Kategorien: Auftragstypen im Feld, Formularfelder und Klassifizierung von Ressourceneinträgen.",
+          "Baum von Gruppen und Kategorien: Auftragstypen im Feld und Formularfelder.",
         empty:
-          "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu (z.B. Transport, Hof), um Ressourcen zuzuweisen und Auftragsformulare zu konfigurieren.",
+          "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu (z.B. Transport, Hof), um Auftragsformulare zu konfigurieren.",
         confirmDelete:
           "Diesen Eintrag löschen? Er kann dann keinen Ressourcen oder Aufträgen mehr zugewiesen werden.",
         namePlaceholder: "z.B. Transport, Servicehof",
@@ -1257,14 +1257,14 @@ export const de: AppDictionary = {
       fields: {
         part: "Teil",
         partPlaceholder: "Teil auswählen…",
-        machineCategory: "Maschinentyp",
-        machineCategoryPlaceholder: "Maschinentyp auswählen…",
+        machineCategory: "Ressourcengruppe",
+        machineCategoryPlaceholder: "Ressourcengruppe auswählen…",
         notes: "Hinweise (optional)",
         notesPlaceholder: "z.B. nur für X-Serienmotoren",
       },
       table: {
         part: "Teil",
-        machineCategory: "Maschinentyp",
+        machineCategory: "Ressourcengruppe",
         notes: "Hinweise",
         actions: "Aktionen",
       },
