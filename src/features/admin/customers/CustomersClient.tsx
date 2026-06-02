@@ -138,6 +138,7 @@ export default function CustomersClient() {
     setForm({
       firstName: customer.firstName || "",
       lastName: customer.lastName,
+      phone: customer.phone || "",
       defaultAddress: customer.defaultAddress || "",
       latitude: customer.latitude || "",
       longitude: customer.longitude || "",
@@ -240,6 +241,9 @@ export default function CustomersClient() {
               }
             />
             <AdminPreviewField label="ID" value={`#${previewCustomer.id}`} />
+            {previewCustomer.phone ? (
+              <AdminPreviewField label={dict.phoneLabel} value={previewCustomer.phone} />
+            ) : null}
             <AdminPreviewField label={dict.defaultAddress}>
               {previewCustomer.defaultAddress ? (
                 <span className="flex items-start gap-2">

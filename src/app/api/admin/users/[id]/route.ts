@@ -21,8 +21,12 @@ export const PUT = withApiErrorHandling(
     const body = await parseJsonBody(request);
     const normalizedRole = normalizeAppRole(body.role);
 
+    const phone =
+      typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
+
     const updateData: UserUpdatePayload = {
       fullName: typeof body.fullName === "string" ? body.fullName : "",
+      phone,
       usernameEmail: typeof body.usernameEmail === "string" ? body.usernameEmail : "",
       role: normalizedRole,
     };

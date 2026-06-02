@@ -7,6 +7,7 @@ import { isRecord, narrowStringArray } from "./shared";
 export type AdminUserListRow = {
   id: number;
   fullName: string;
+  phone: string | null;
   usernameEmail: string;
   role: string;
   isActive: boolean;
@@ -27,9 +28,11 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
     ) {
       continue;
     }
+    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     out.push({
       id: r.id,
       fullName: r.fullName,
+      phone,
       usernameEmail: r.usernameEmail,
       role: r.role,
       isActive: typeof r.isActive === "boolean" ? r.isActive : true,
@@ -46,6 +49,7 @@ export type AdminCustomerListRow = {
   id: number;
   firstName: string | null;
   lastName: string;
+  phone: string | null;
   defaultAddress: string | null;
   latitude: string | null;
   longitude: string | null;
@@ -61,6 +65,7 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
       r.firstName === null || typeof r.firstName === "string"
         ? (r.firstName as string | null)
         : null;
+    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     const defaultAddress =
       r.defaultAddress === null || typeof r.defaultAddress === "string"
         ? (r.defaultAddress as string | null)
@@ -76,6 +81,7 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
       id: r.id,
       firstName,
       lastName: r.lastName,
+      phone,
       defaultAddress,
       latitude,
       longitude,

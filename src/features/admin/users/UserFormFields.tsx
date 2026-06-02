@@ -6,6 +6,7 @@ import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
 
 export interface UserFormState {
   fullName: string;
+  phone: string;
   usernameEmail: string;
   password: string;
   role: string;
@@ -16,6 +17,7 @@ export interface UserFormState {
 
 export const emptyUserForm = (): UserFormState => ({
   fullName: "",
+  phone: "",
   usernameEmail: "",
   password: "",
   role: "worker",
@@ -51,6 +53,17 @@ export default function UserFormFields({
           placeholder={dict.fullNamePlaceholder}
           value={form.fullName}
           onChange={(e) => setForm({ fullName: e.target.value })}
+          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
+        <input
+          type="tel"
+          placeholder={dict.phonePlaceholder}
+          value={form.phone}
+          onChange={(e) => setForm({ phone: e.target.value })}
           className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
         />
       </div>

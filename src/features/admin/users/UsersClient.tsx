@@ -78,6 +78,7 @@ export default function UsersClient() {
       matchesUserSearch(
         {
           fullName: user.fullName,
+          phone: user.phone,
           usernameEmail: user.usernameEmail,
           role: user.role,
           roleLabel: roleSubtitle(user.role),
@@ -121,6 +122,7 @@ export default function UsersClient() {
     setShowPassword(false);
     setForm({
       fullName: u.fullName,
+      phone: u.phone || "",
       usernameEmail: u.usernameEmail,
       role: u.role,
       password: "",
@@ -245,6 +247,9 @@ export default function UsersClient() {
         {previewUser ? (
           <>
             <AdminPreviewField label={dict.fullNameLabel} value={previewUser.fullName} />
+            {previewUser.phone ? (
+              <AdminPreviewField label={dict.phoneLabel} value={previewUser.phone} />
+            ) : null}
             <AdminPreviewField label={dict.roleLabel} value={roleSubtitle(previewUser.role)} />
             <AdminPreviewField label={dict.loginLabel} value={previewUser.usernameEmail} />
             {previewUser.role === "worker" ? (

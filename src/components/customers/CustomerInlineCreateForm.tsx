@@ -44,6 +44,7 @@ export function CustomerInlineCreateForm({
   const [form, setForm] = useState({
     firstName: "",
     lastName: initialLastName,
+    phone: "",
     defaultAddress: "",
     latitude: "",
     longitude: "",
@@ -83,10 +84,12 @@ export function CustomerInlineCreateForm({
         return;
       }
       const defaultAddress = form.defaultAddress.trim() || null;
+      const phone = form.phone.trim() || null;
       onCreated({
         id: customerId,
         firstName: form.firstName.trim() || null,
         lastName: form.lastName.trim(),
+        phone,
         defaultAddress,
       });
     } catch {
@@ -138,6 +141,18 @@ export function CustomerInlineCreateForm({
             className={inputClass}
           />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {dict.phoneLabel}
+        </label>
+        <input
+          type="tel"
+          placeholder={dict.phonePlaceholder}
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          className={inputClass}
+        />
       </div>
       <div className="space-y-1.5">
         <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">

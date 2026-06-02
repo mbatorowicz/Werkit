@@ -7,7 +7,7 @@ export function formatCustomerLabel(c: Pick<BaseCustomer, "firstName" | "lastNam
 
 /** Tekst do filtrowania: imię, nazwisko, ulica, miejscowość (segmenty adresu + lokalizacje). */
 export function buildCustomerSearchText(
-  c: Pick<BaseCustomer, "firstName" | "lastName" | "defaultAddress" | "locationAddresses">
+  c: Pick<BaseCustomer, "firstName" | "lastName" | "phone" | "defaultAddress" | "locationAddresses">
 ): string {
   const tokens: string[] = [];
 
@@ -28,6 +28,7 @@ export function buildCustomerSearchText(
 
   if (c.firstName?.trim()) tokens.push(c.firstName.trim());
   if (c.lastName?.trim()) tokens.push(c.lastName.trim());
+  if (c.phone?.trim()) tokens.push(c.phone.trim());
   if (c.defaultAddress?.trim()) pushParts(c.defaultAddress);
   for (const loc of c.locationAddresses ?? []) {
     if (loc.trim()) pushParts(loc);
@@ -45,7 +46,7 @@ export function formatCustomerDisplayAddress(
 }
 
 export function matchesCustomerSearch(
-  c: Pick<BaseCustomer, "firstName" | "lastName" | "defaultAddress" | "locationAddresses">,
+  c: Pick<BaseCustomer, "firstName" | "lastName" | "phone" | "defaultAddress" | "locationAddresses">,
   query: string
 ): boolean {
   return matchesSearchQuery(buildCustomerSearchText(c), query);

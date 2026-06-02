@@ -44,8 +44,12 @@ export const POST = withApiErrorHandling(
     const { AdminUserService } = await import("@/services/AdminUserService");
     const hashedPassword = await hashPassword(password, 10);
 
+    const phone =
+      typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
+
     await AdminUserService.createUser(companyId, {
       fullName,
+      phone,
       usernameEmail,
       passwordHash: hashedPassword,
       role: normalizedRole,

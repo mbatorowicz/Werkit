@@ -37,6 +37,8 @@ export const POST = withApiErrorHandling(
       String(body.longitude).trim() !== ""
         ? String(body.longitude)
         : null;
+    const phone =
+      typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
 
     if (!lastName.trim()) {
       return jsonError("missing_name", 400);
@@ -49,7 +51,8 @@ export const POST = withApiErrorHandling(
       lastName,
       defaultAddress,
       latitude,
-      longitude
+      longitude,
+      phone
     );
     if (customerId == null) {
       return jsonError("save_error", 500);

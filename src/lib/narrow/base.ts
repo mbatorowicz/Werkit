@@ -72,6 +72,7 @@ export function narrowBaseCustomers(rows: unknown[]): BaseCustomer[] {
       r.firstName === null || typeof r.firstName === "string"
         ? (r.firstName as string | null)
         : null;
+    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     const defaultAddress =
       r.defaultAddress === null || typeof r.defaultAddress === "string"
         ? (r.defaultAddress as string | null)
@@ -81,6 +82,7 @@ export function narrowBaseCustomers(rows: unknown[]): BaseCustomer[] {
       id: r.id,
       firstName,
       lastName: r.lastName,
+      ...(phone ? { phone } : {}),
       defaultAddress,
       ...(locationAddresses.length > 0 ? { locationAddresses } : {}),
     });

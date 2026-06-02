@@ -9,6 +9,7 @@ export class AdminUserService {
       .select({
         id: users.id,
         fullName: users.fullName,
+        phone: users.phone,
         usernameEmail: users.usernameEmail,
         role: users.role,
         isActive: users.isActive,
@@ -57,6 +58,7 @@ export class AdminUserService {
     companyId: number,
     payload: {
       fullName: string;
+      phone?: string | null;
       usernameEmail: string;
       passwordHash: string;
       role?: "worker" | "admin" | "viewer";
@@ -77,6 +79,7 @@ export class AdminUserService {
     await db.insert(users).values({
       companyId,
       fullName: payload.fullName,
+      phone: payload.phone?.trim() || null,
       usernameEmail: payload.usernameEmail,
       passwordHash: payload.passwordHash,
       role,

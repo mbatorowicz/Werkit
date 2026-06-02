@@ -20,9 +20,13 @@ export const PUT = withApiErrorHandling(
     if (!lastName.trim()) return jsonError("missing_name", 400);
 
     const { DictionaryService } = await import("@/services/DictionaryService");
+    const phone =
+      typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
+
     await DictionaryService.updateCustomer(companyId, id, {
       firstName: typeof body.firstName === "string" ? body.firstName : null,
       lastName,
+      phone,
       defaultAddress: typeof body.defaultAddress === "string" ? body.defaultAddress : null,
       latitude:
         body.latitude !== null && body.latitude !== undefined && String(body.latitude).trim() !== ""

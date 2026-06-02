@@ -50,11 +50,12 @@ export class CustomerService {
     lastName: string,
     defaultAddress?: string | null,
     latitude?: string | null,
-    longitude?: string | null
+    longitude?: string | null,
+    phone?: string | null
   ) {
     const [row] = await db
       .insert(customers)
-      .values({ companyId, firstName, lastName, defaultAddress, latitude, longitude })
+      .values({ companyId, firstName, lastName, phone, defaultAddress, latitude, longitude })
       .returning();
     if (row && latitude && longitude) {
       const { CustomerLocationService } = await import("@/services/CustomerLocationService");

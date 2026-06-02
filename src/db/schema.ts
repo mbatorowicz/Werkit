@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   /** NULL tylko dla roli platformowej `superadmin`. */
   companyId: integer("company_id").references(() => companies.id, { onDelete: "restrict" }),
   fullName: varchar("full_name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
   usernameEmail: varchar("username_email", { length: 255 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   role: varchar("role", { length: 50 }).notNull().default("worker"), // superadmin | admin | worker | viewer
@@ -169,6 +170,7 @@ export const customers = pgTable("customers", {
     .references(() => companies.id, { onDelete: "cascade" }),
   firstName: varchar("first_name", { length: 255 }),
   lastName: varchar("last_name", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
   defaultAddress: text("default_address"),
   latitude: numeric("latitude", { precision: 10, scale: 8 }),
   longitude: numeric("longitude", { precision: 11, scale: 8 }),

@@ -75,6 +75,7 @@ export type BaseCustomer = {
   id: number;
   firstName: string | null;
   lastName: string;
+  phone?: string | null;
   defaultAddress?: string | null;
   locationAddresses?: string[];
 };

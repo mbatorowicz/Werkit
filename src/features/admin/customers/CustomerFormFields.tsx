@@ -7,6 +7,7 @@ import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 export interface CustomerFormState {
   firstName: string;
   lastName: string;
+  phone: string;
   defaultAddress: string;
   latitude: string;
   longitude: string;
@@ -15,6 +16,7 @@ export interface CustomerFormState {
 export const emptyCustomerForm = (): CustomerFormState => ({
   firstName: "",
   lastName: "",
+  phone: "",
   defaultAddress: "",
   latitude: "",
   longitude: "",
@@ -59,6 +61,17 @@ export default function CustomerFormFields({
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
+        <input
+          type="tel"
+          placeholder={dict.phonePlaceholder}
+          value={form.phone}
+          onChange={(e) => setForm({ phone: e.target.value })}
+          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
+        />
       </div>
 
       {form.defaultAddress || (form.latitude && form.longitude) ? (
