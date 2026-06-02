@@ -554,7 +554,9 @@ export const de: AppDictionary = {
       canCreateOwnOrdersLabel: "Arbeiter kann eigene Aufträge in der App erstellen",
       canEditRouteLabel: "Arbeiter kann die Route auf der Karte im Feld bearbeiten",
       canCreateCustomersLabel: "Arbeiter kann Kunden in der App hinzufügen",
-      isDurWorkerLabel: "Servicemitarbeiter (Instandhaltung — Reparaturen und Ersatzteile)",
+      isDurWorkerLabel: "Servicemitarbeiter (Instandhaltung)",
+      isDurWorkerModuleOffHint:
+        "Instandhaltungsmodul ist für diese Organisation aus — die Markierung wird gespeichert, Lager und Reparaturen sind erst nach Aktivierung im Plattform-Panel nutzbar.",
       passwordShow: "PIN anzeigen",
       passwordHide: "PIN ausblenden",
     },

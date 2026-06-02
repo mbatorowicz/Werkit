@@ -545,7 +545,9 @@ export const pl = {
       canCreateOwnOrdersLabel: "Pracownik może tworzyć własne zlecenia w aplikacji",
       canEditRouteLabel: "Pracownik może edytować trasę na mapie w terenie",
       canCreateCustomersLabel: "Pracownik może dodawać kontrahentów w aplikacji",
-      isDurWorkerLabel: "Pracownik serwisowy (DUR — naprawy i magazyn części)",
+      isDurWorkerLabel: "Pracownik serwisowy (DUR)",
+      isDurWorkerModuleOffHint:
+        "Moduł utrzymania ruchu jest wyłączony dla organizacji — zapiszesz flagę, ale magazyn i naprawy zadziałają po włączeniu modułu w platformie.",
       passwordShow: "Pokaż PIN",
       passwordHide: "Ukryj PIN",
     },

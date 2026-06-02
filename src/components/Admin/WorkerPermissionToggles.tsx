@@ -1,6 +1,6 @@
 "use client";
 
-type ToggleConfig = {
+export type WorkerPermissionToggleConfig = {
   id: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -9,7 +9,7 @@ type ToggleConfig = {
 };
 
 type Props = {
-  toggles: ToggleConfig[];
+  toggles: WorkerPermissionToggleConfig[];
 };
 
 export function WorkerPermissionToggles({ toggles }: Props) {

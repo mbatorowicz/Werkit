@@ -268,12 +268,10 @@ export default function UsersClient() {
                   label={dict.canCreateCustomersLabel}
                   value={previewUser.canCreateCustomers ? dict.previewYes : dict.previewNo}
                 />
-                {durEnabled ? (
-                  <AdminPreviewField
-                    label={dict.isDurWorkerLabel}
-                    value={previewUser.isDurWorker ? dict.previewYes : dict.previewNo}
-                  />
-                ) : null}
+                <AdminPreviewField
+                  label={dict.isDurWorkerLabel}
+                  value={previewUser.isDurWorker ? dict.previewYes : dict.previewNo}
+                />
               </>
             ) : null}
           </>

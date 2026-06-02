@@ -543,7 +543,9 @@ export const en: AppDictionary = {
       canCreateOwnOrdersLabel: "Worker can create custom orders in the app",
       canEditRouteLabel: "Worker can edit the route on the map in the field",
       canCreateCustomersLabel: "Worker can add customers in the app",
-      isDurWorkerLabel: "Service worker (maintenance — repairs and spare parts)",
+      isDurWorkerLabel: "Service worker (maintenance)",
+      isDurWorkerModuleOffHint:
+        "Maintenance module is off for this organization — the flag is saved, but warehouse and repairs work after enabling the module in the platform panel.",
       passwordShow: "Show PIN",
       passwordHide: "Hide PIN",
     },
