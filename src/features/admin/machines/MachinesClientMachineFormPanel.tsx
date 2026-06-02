@@ -29,11 +29,12 @@ type Props = {
   dict: Dict;
   apiErrors: Record<string, string>;
   categories: MachinesCategory[];
+  resourceGroups: { id: number; name: string }[];
   fetchData: () => Promise<void>;
 };
 
 export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFormHandle, Props>(
-  function MachinesClientMachineFormPanel({ dict, apiErrors, categories, fetchData }, ref) {
+  function MachinesClientMachineFormPanel({ dict, apiErrors, categories, resourceGroups, fetchData }, ref) {
     const { alert: appAlert } = useAppDialog();
     const [isMMOpen, setIsMMOpen] = useState(false);
     const [mEditId, setMEditId] = useState<number | null>(null);
@@ -67,6 +68,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         registrationNumber: mForm.registrationNumber,
         description: mForm.description,
         categoryIds: mForm.categoryIds,
+        resourceGroupId: mForm.resourceGroupId,
         imageUrl: mForm.imageUrl,
       };
       try {
@@ -122,6 +124,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
           registrationNumber: machine.registrationNumber ?? "",
           description: machine.description ?? "",
           categoryIds: machine.categoryIds ?? [],
+          resourceGroupId: machine.resourceGroupId ?? null,
           imageUrl: machine.imageUrl ?? null,
         });
         setIsMMOpen(true);
@@ -136,6 +139,7 @@ export const MachinesClientMachineFormPanel = forwardRef<MachinesClientMachineFo
         dict={dict}
         resourceVis={resourceVis}
         categories={leafCategories}
+        resourceGroups={resourceGroups}
         form={mForm}
         setForm={setMForm}
         onSubmit={handleMSave}

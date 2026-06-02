@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -11,17 +12,17 @@ export const GET = withApiErrorHandling(
     const { companyId } = scoped.data;
 
     const url = new URL(request.url);
-    const compatibleWithCategoryIdRaw = url.searchParams.get("compatibleWithCategoryId");
-    const compatibleWithCategoryId =
-      compatibleWithCategoryIdRaw != null
-        ? parseInt(compatibleWithCategoryIdRaw, 10)
-        : undefined;
+    const groupIdRaw =
+      url.searchParams.get("compatibleWithResourceGroupId") ??
+      url.searchParams.get("compatibleWithCategoryId");
+    const compatibleWithResourceGroupId =
+      groupIdRaw != null ? parseInt(groupIdRaw, 10) : undefined;
 
     const { SparePartService } = await import("@/services/dur/SparePartService");
     const parts = await SparePartService.getParts(companyId, {
-      compatibleWithCategoryId:
-        compatibleWithCategoryId != null && !Number.isNaN(compatibleWithCategoryId)
-          ? compatibleWithCategoryId
+      compatibleWithResourceGroupId:
+        compatibleWithResourceGroupId != null && !Number.isNaN(compatibleWithResourceGroupId)
+          ? compatibleWithResourceGroupId
           : undefined,
     });
     return jsonOk(parts);
@@ -51,11 +52,15 @@ export const POST = withApiErrorHandling(
           .filter((n: number) => !Number.isNaN(n))
       : [];
 
-    const machineCategoryIds: number[] = Array.isArray(body.machineCategoryIds)
-      ? body.machineCategoryIds
-          .map((c: string | number) => parseInt(String(c), 10))
-          .filter((n: number) => !Number.isNaN(n))
-      : [];
+    const parseIds = (arr: unknown) =>
+      Array.isArray(arr)
+        ? arr.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+        : [];
+
+    const resourceGroupIds = [
+      ...parseIds(body.resourceGroupIds),
+      ...parseIds(body.machineCategoryIds),
+    ];
 
     const { SparePartService } = await import("@/services/dur/SparePartService");
     const partId = await SparePartService.addPart(companyId, {
@@ -74,10 +79,14 @@ export const POST = withApiErrorHandling(
       imageUrl: typeof body.imageUrl === "string" ? body.imageUrl : null,
       isActive: body.isActive !== false,
       categoryIds,
-      machineCategoryIds,
+      resourceGroupIds: [...new Set(resourceGroupIds)],
     });
 
     return jsonOk({ id: partId, success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) =>
+      err instanceof CategoryHierarchyError ? jsonError(err.code, 400) : null,
+    defaultErrorCode: "save_error",
+  }
 );

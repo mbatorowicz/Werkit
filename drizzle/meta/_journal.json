@@ -169,6 +169,13 @@
       "when": 1748563200000,
       "tag": "0023_feature_flags_dur",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1748649600000,
+      "tag": "0024_resource_groups",
+      "breakpoints": true
     }
   ]
 }

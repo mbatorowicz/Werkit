@@ -23,6 +23,8 @@ export type Session = {
   customerFirstName?: string | null;
   customerLastName?: string | null;
   resourceName?: string | null;
+  /** Grupa maszyn (typ) z przypisanego zasobu — do filtrowania części DUR. */
+  resourceGroupId?: number | null;
   materialName?: string | null;
   quantityTons?: number | null;
   /** Z załączników sesji (lista historii). */

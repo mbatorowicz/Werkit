@@ -26,6 +26,7 @@ export class ResourceService {
       registrationNumber: r.registrationNumber ?? "",
       description: r.description ?? null,
       categoryIds: byResourceId.get(r.id) ?? [],
+      resourceGroupId: r.resourceGroupId ?? null,
       imageUrl: r.imageUrl,
     }));
   }
@@ -40,7 +41,8 @@ export class ResourceService {
       description?: string | null;
     },
     categoryIds: number[],
-    imageUrl?: string | null
+    imageUrl?: string | null,
+    resourceGroupId?: number | null
   ) {
     const desc =
       identity.description != null && String(identity.description).trim() !== ""
@@ -56,6 +58,7 @@ export class ResourceService {
         registrationNumber: identity.registrationNumber.slice(0, 32),
         description: desc,
         imageUrl: imageUrl ?? null,
+        resourceGroupId: resourceGroupId ?? null,
       })
       .returning();
     if (categoryIds && categoryIds.length > 0) {
@@ -84,6 +87,7 @@ export class ResourceService {
     if (data.registrationNumber !== undefined) patch.registrationNumber = data.registrationNumber;
     if (data.description !== undefined) patch.description = data.description;
     if (data.imageUrl !== undefined) patch.imageUrl = data.imageUrl;
+    if (data.resourceGroupId !== undefined) patch.resourceGroupId = data.resourceGroupId;
     if (Object.keys(patch).length > 0) {
       await db
         .update(resources)

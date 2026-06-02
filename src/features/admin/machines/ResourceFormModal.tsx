@@ -19,6 +19,7 @@ type Props = {
   dict: Dict;
   resourceVis: ResourceFieldVisibility;
   categories: MachinesCategory[];
+  resourceGroups: { id: number; name: string }[];
   form: MachineFormState;
   setForm: React.Dispatch<React.SetStateAction<MachineFormState>>;
   onSubmit: (e: React.FormEvent) => void;
@@ -32,6 +33,7 @@ export function ResourceFormModal({
   dict,
   resourceVis,
   categories,
+  resourceGroups,
   form,
   setForm,
   onSubmit,
@@ -142,6 +144,30 @@ export function ResourceFormModal({
               ) : null}
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            {dict.resourceGroupLabel}
+          </label>
+          <select
+            value={form.resourceGroupId ?? ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                resourceGroupId: e.target.value ? Number(e.target.value) : null,
+              })
+            }
+            className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm"
+          >
+            <option value="">{dict.resourceGroupNone}</option>
+            {resourceGroups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-[10px] text-zinc-500">{dict.resourceGroupHint}</p>
         </div>
 
         <div className="space-y-2">

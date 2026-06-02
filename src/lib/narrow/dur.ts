@@ -69,7 +69,14 @@ function narrowSparePartRaw(r: Record<string, unknown>): SparePart | null {
     isActive: readBool(r, "isActive", true),
     createdAt: readString(r, "createdAt"),
     categoryIds: readNumberArray(r, "categoryIds"),
-    machineCategoryIds: readNumberArray(r, "machineCategoryIds"),
+    resourceGroupIds:
+      readNumberArray(r, "resourceGroupIds").length > 0
+        ? readNumberArray(r, "resourceGroupIds")
+        : readNumberArray(r, "machineCategoryIds"),
+    machineCategoryIds:
+      readNumberArray(r, "resourceGroupIds").length > 0
+        ? readNumberArray(r, "resourceGroupIds")
+        : readNumberArray(r, "machineCategoryIds"),
   };
 }
 

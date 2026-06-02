@@ -29,6 +29,7 @@ export type MachinesResource = {
   registrationNumber?: string;
   description?: string | null;
   categoryIds: number[];
+  resourceGroupId?: number | null;
   imageUrl?: string | null;
 };
 
@@ -37,6 +38,7 @@ export type MachineFormState = {
   registrationNumber: string;
   description: string;
   categoryIds: number[];
+  resourceGroupId: number | null;
   imageUrl: string | null;
 };
 
@@ -45,6 +47,7 @@ export const EMPTY_MACHINE_FORM: MachineFormState = {
   registrationNumber: "",
   description: "",
   categoryIds: [],
+  resourceGroupId: null,
   imageUrl: null,
 };
 

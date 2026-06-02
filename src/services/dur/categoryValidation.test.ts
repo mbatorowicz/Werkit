@@ -20,6 +20,13 @@ vi.mock("@/db/schema", () => ({
     sortOrder: "sortOrder",
     color: "color",
   },
+  resourceGroups: {
+    id: "id",
+    companyId: "companyId",
+    name: "name",
+    description: "description",
+    sortOrder: "sortOrder",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -36,6 +43,7 @@ import {
   validateHierarchyPatch,
   countSparePartCategoryChildren,
   assertSparePartCategoriesAssignable,
+  assertResourceGroupsAssignable,
   CategoryHierarchyError,
 } from "./categoryValidation";
 
@@ -198,5 +206,36 @@ describe("assertSparePartCategoriesAssignable", () => {
     });
 
     await expect(assertSparePartCategoriesAssignable([1, 2], 1)).resolves.toBeUndefined();
+  });
+});
+
+describe("assertResourceGroupsAssignable", () => {
+  beforeEach(() => {
+    selectMock.mockReset();
+  });
+
+  it("nie rzuca błędu dla pustej tablicy", async () => {
+    await expect(assertResourceGroupsAssignable([], 1)).resolves.toBeUndefined();
+  });
+
+  it("rzuca invalid_resource_group gdy grupa nie istnieje", async () => {
+    selectMock.mockReturnValue({
+      from: () => ({
+        where: () => Promise.resolve([]),
+      }),
+    });
+
+    await expect(assertResourceGroupsAssignable([1], 1)).rejects.toThrow(/invalid_resource_group/);
+  });
+
+  it("przechodzi gdy wszystkie grupy istnieją", async () => {
+    selectMock.mockReturnValue({
+      from: () => ({
+        where: () =>
+          Promise.resolve([{ id: 1 }, { id: 2 }]),
+      }),
+    });
+
+    await expect(assertResourceGroupsAssignable([1, 2], 1)).resolves.toBeUndefined();
   });
 });

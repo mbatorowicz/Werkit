@@ -1,17 +1,23 @@
 import { db } from "@/db";
-import { spareParts, sparePartToCategories, sparePartMachineCompatibility } from "@/db/schema";
+import {
+  spareParts,
+  sparePartToCategories,
+  sparePartMachineCompatibility,
+} from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { assertSparePartCategoriesAssignable } from "@/services/dur/categoryValidation";
+import {
+  assertSparePartCategoriesAssignable,
+  assertResourceGroupsAssignable,
+} from "@/services/dur/categoryValidation";
 
 export class SparePartService {
-  static async getParts(companyId: number, opts?: { compatibleWithCategoryId?: number }) {
+  static async getParts(companyId: number, opts?: { compatibleWithResourceGroupId?: number }) {
     const all = await db
       .select()
       .from(spareParts)
       .where(eq(spareParts.companyId, companyId))
       .orderBy(desc(spareParts.id));
 
-    // Pobierz linki N:M — kategorie części
     const categoryLinks = await db.select().from(sparePartToCategories);
     const byPartId = new Map<number, number[]>();
     for (const l of categoryLinks) {
@@ -20,25 +26,25 @@ export class SparePartService {
       byPartId.set(l.partId, arr);
     }
 
-    // Pobierz linki N:M — kompatybilność z kategoriami maszyn
     const machineLinks = await db.select().from(sparePartMachineCompatibility);
-    const byPartIdMachine = new Map<number, number[]>();
+    const byPartIdGroup = new Map<number, number[]>();
     for (const l of machineLinks) {
-      const arr = byPartIdMachine.get(l.partId) ?? [];
-      arr.push(l.categoryId);
-      byPartIdMachine.set(l.partId, arr);
+      const arr = byPartIdGroup.get(l.partId) ?? [];
+      arr.push(l.resourceGroupId);
+      byPartIdGroup.set(l.partId, arr);
     }
 
     const mapped = all.map((p) => ({
       ...p,
       categoryIds: byPartId.get(p.id) ?? [],
-      machineCategoryIds: byPartIdMachine.get(p.id) ?? [],
+      resourceGroupIds: byPartIdGroup.get(p.id) ?? [],
+      /** @deprecated alias — użyj resourceGroupIds */
+      machineCategoryIds: byPartIdGroup.get(p.id) ?? [],
     }));
 
-    // Filtrowanie po kompatybilności z kategorią maszyny (opcjonalne)
-    if (opts?.compatibleWithCategoryId != null) {
-      const catId = opts.compatibleWithCategoryId;
-      return mapped.filter((p) => p.machineCategoryIds.includes(catId));
+    if (opts?.compatibleWithResourceGroupId != null) {
+      const groupId = opts.compatibleWithResourceGroupId;
+      return mapped.filter((p) => p.resourceGroupIds.includes(groupId));
     }
 
     return mapped;
@@ -63,10 +69,13 @@ export class SparePartService {
       .from(sparePartMachineCompatibility)
       .where(eq(sparePartMachineCompatibility.partId, id));
 
+    const resourceGroupIds = machineLinks.map((l) => l.resourceGroupId);
+
     return {
       ...part,
       categoryIds: categoryLinks.map((l) => l.categoryId),
-      machineCategoryIds: machineLinks.map((l) => l.categoryId),
+      resourceGroupIds,
+      machineCategoryIds: resourceGroupIds,
     };
   }
 
@@ -84,14 +93,19 @@ export class SparePartService {
       imageUrl?: string | null;
       isActive?: boolean;
       categoryIds?: number[];
+      resourceGroupIds?: number[];
       machineCategoryIds?: number[];
     }
   ) {
     const catIds = data.categoryIds ?? [];
-    const machIds = data.machineCategoryIds ?? [];
+    const groupIds = data.resourceGroupIds ?? data.machineCategoryIds ?? [];
 
     if (catIds.length > 0) {
       await assertSparePartCategoriesAssignable(catIds, companyId);
+    }
+
+    if (groupIds.length > 0) {
+      await assertResourceGroupsAssignable(groupIds, companyId);
     }
 
     const res = await db
@@ -119,10 +133,10 @@ export class SparePartService {
         .values(catIds.map((cid) => ({ partId, categoryId: cid })));
     }
 
-    if (machIds.length > 0) {
+    if (groupIds.length > 0) {
       await db
         .insert(sparePartMachineCompatibility)
-        .values(machIds.map((cid) => ({ partId, categoryId: cid })));
+        .values(groupIds.map((gid) => ({ partId, resourceGroupId: gid })));
     }
 
     return partId;
@@ -143,6 +157,7 @@ export class SparePartService {
       imageUrl?: string | null;
       isActive?: boolean;
       categoryIds?: number[];
+      resourceGroupIds?: number[];
       machineCategoryIds?: number[];
     }
   ) {
@@ -165,7 +180,6 @@ export class SparePartService {
         .where(and(eq(spareParts.id, id), eq(spareParts.companyId, companyId)));
     }
 
-    // Aktualizacja kategorii części
     if (data.categoryIds !== undefined) {
       const catIds = data.categoryIds;
       if (catIds.length > 0) {
@@ -179,16 +193,18 @@ export class SparePartService {
       }
     }
 
-    // Aktualizacja kompatybilności z kategoriami maszyn
-    if (data.machineCategoryIds !== undefined) {
-      const machIds = data.machineCategoryIds;
+    const groupIds = data.resourceGroupIds ?? data.machineCategoryIds;
+    if (groupIds !== undefined) {
+      if (groupIds.length > 0) {
+        await assertResourceGroupsAssignable(groupIds, companyId);
+      }
       await db
         .delete(sparePartMachineCompatibility)
         .where(eq(sparePartMachineCompatibility.partId, id));
-      if (machIds.length > 0) {
+      if (groupIds.length > 0) {
         await db
           .insert(sparePartMachineCompatibility)
-          .values(machIds.map((cid) => ({ partId: id, categoryId: cid })));
+          .values(groupIds.map((gid) => ({ partId: id, resourceGroupId: gid })));
       }
     }
   }

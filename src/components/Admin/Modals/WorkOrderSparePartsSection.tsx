@@ -40,7 +40,7 @@ type Props = {
   /** Gdy `null` — zlecenie nie zostało jeszcze zapisane, sekcja nieaktywna. */
   orderType: string | null;
   /** ID kategorii maszyny — filtruje katalog części tylko do kompatybilnych z tą maszyną. */
-  machineCategoryId: number | null;
+  resourceGroupId: number | null;
 };
 
 const FIELD = "space-y-1.5";
@@ -53,7 +53,7 @@ const CONTROL =
  * Sekcja części zamiennych w formularzu zlecenia naprawczego (admin).
  * Widoczna tylko gdy orderType === 'machine_repair' i workOrderId !== null.
  */
-export default function WorkOrderSparePartsSection({ workOrderId, orderType, machineCategoryId }: Props) {
+export default function WorkOrderSparePartsSection({ workOrderId, orderType, resourceGroupId }: Props) {
   const dict = getDictionary();
   const durDict = dict.dur.workOrderSpareParts;
   const adminOrdersDict = dict.admin.orders;
@@ -115,8 +115,8 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, mac
   const fetchCatalog = useCallback(async () => {
     try {
       const url =
-        machineCategoryId != null
-          ? `/api/dur/spare-parts?compatibleWithCategoryId=${machineCategoryId}`
+        resourceGroupId != null
+          ? `/api/dur/spare-parts?compatibleWithResourceGroupId=${resourceGroupId}`
           : "/api/dur/spare-parts";
       const res = await fetchWithDeviceTelemetry(
         "Admin: spare-parts catalog GET",
@@ -142,7 +142,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, mac
     } catch {
       /* ignore */
     }
-  }, [machineCategoryId]);
+  }, [resourceGroupId]);
 
   useEffect(() => {
     if (isRepair && hasOrderId) {

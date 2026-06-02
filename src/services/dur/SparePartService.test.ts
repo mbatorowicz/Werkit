@@ -38,7 +38,7 @@ vi.mock("@/db/schema", () => ({
   },
   sparePartMachineCompatibility: {
     partId: "partId",
-    categoryId: "categoryId",
+    resourceGroupId: "resourceGroupId",
     notes: "notes",
   },
 }));
@@ -51,6 +51,7 @@ vi.mock("drizzle-orm", () => ({
 
 vi.mock("@/services/dur/categoryValidation", () => ({
   assertSparePartCategoriesAssignable: vi.fn().mockResolvedValue(undefined),
+  assertResourceGroupsAssignable: vi.fn().mockResolvedValue(undefined),
   CategoryHierarchyError: class extends Error {
     constructor(public readonly code: string) {
       super(code);
@@ -144,12 +145,68 @@ describe("SparePartService", () => {
             ]),
         })
         .mockReturnValueOnce({
-          from: () => Promise.resolve([{ partId: 1, categoryId: 30 }]),
+          from: () => Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
         });
 
       const result = await SparePartService.getParts(companyId);
       expect(result[0].categoryIds).toEqual([10, 20]);
-      expect(result[0].machineCategoryIds).toEqual([30]);
+      expect(result[0].resourceGroupIds).toEqual([30]);
+    });
+
+    it("filtruje części po grupie maszyn", async () => {
+      selectMock
+        .mockReturnValueOnce({
+          from: () => ({
+            where: () => ({
+              orderBy: () =>
+                Promise.resolve([
+                  {
+                    id: 1,
+                    companyId,
+                    name: "Część A",
+                    catalogNumber: "A-001",
+                    manufacturer: "Mfg",
+                    unit: "szt",
+                    purchasePrice: null,
+                    description: null,
+                    minStock: "0",
+                    location: "",
+                    imageUrl: null,
+                    isActive: true,
+                    createdAt: "2026-05-01T00:00:00Z",
+                  },
+                  {
+                    id: 2,
+                    companyId,
+                    name: "Część B",
+                    catalogNumber: "B-001",
+                    manufacturer: "Mfg",
+                    unit: "szt",
+                    purchasePrice: null,
+                    description: null,
+                    minStock: "0",
+                    location: "",
+                    imageUrl: null,
+                    isActive: true,
+                    createdAt: "2026-05-01T00:00:00Z",
+                  },
+                ]),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          from: () => Promise.resolve([]),
+        })
+        .mockReturnValueOnce({
+          from: () =>
+            Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
+        });
+
+      const result = await SparePartService.getParts(companyId, {
+        compatibleWithResourceGroupId: 30,
+      });
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(1);
     });
   });
 
@@ -235,7 +292,7 @@ describe("SparePartService", () => {
       const result = await SparePartService.addPart(companyId, {
         name: "Część z linkami",
         categoryIds: [10, 20],
-        machineCategoryIds: [30],
+        resourceGroupIds: [30],
       });
       expect(result).toBe(1);
       // insert: spareParts + sparePartToCategories + sparePartMachineCompatibility

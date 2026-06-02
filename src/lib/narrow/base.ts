@@ -37,6 +37,12 @@ export function narrowBaseMachines(rows: unknown[]): BaseMachine[] {
           ? (r.description as string | null)
           : null,
       categoryIds,
+      resourceGroupId:
+        typeof r.resourceGroupId === "number"
+          ? r.resourceGroupId
+          : r.resourceGroupId === null
+            ? null
+            : undefined,
       imageUrl:
         r.imageUrl === null || typeof r.imageUrl === "string"
           ? (r.imageUrl as string | null)

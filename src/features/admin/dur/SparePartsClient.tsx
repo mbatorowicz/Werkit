@@ -8,10 +8,11 @@ import {
   useSparePartsAdminData,
   type SparePartsAdminAlertContext,
 } from "@/features/admin/dur/useSparePartsAdminData";
-import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { FormModalFooter } from "@/components/FormModalFooter";
+import { useResourceGroups } from "@/features/admin/dur/useResourceGroups";
+import { useSparePartForm } from "@/features/admin/dur/useSparePartForm";
+import { SparePartFormModal } from "@/features/admin/dur/SparePartFormModal";
 import { useAppDialog } from "@/components/AppDialogProvider";
-import type { SparePart, SparePartInput } from "@/types/dur";
+import type { SparePart } from "@/types/dur";
 
 export default function SparePartsClient() {
   const { canMutate } = useAdminAbility();
@@ -27,26 +28,12 @@ export default function SparePartsClient() {
     listFetchFallback: "Failed to load spare parts.",
   });
 
-  const { parts, categories, machineCategories, isLoading, fetchData } =
-    useSparePartsAdminData(alertCtxRef);
+  const { parts, categories, isLoading, fetchData } = useSparePartsAdminData(alertCtxRef);
+  const { groups: machineGroups, fetchGroups } = useResourceGroups();
+
 
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingPart, setEditingPart] = useState<SparePart | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form state
-  const [formName, setFormName] = useState("");
-  const [formCatalogNumber, setFormCatalogNumber] = useState("");
-  const [formManufacturer, setFormManufacturer] = useState("");
-  const [formUnit, setFormUnit] = useState("");
-  const [formPurchasePrice, setFormPurchasePrice] = useState("");
-  const [formDescription, setFormDescription] = useState("");
-  const [formMinStock, setFormMinStock] = useState("");
-  const [formLocation, setFormLocation] = useState("");
-  const [formIsActive, setFormIsActive] = useState(true);
-  const [formCategoryIds, setFormCategoryIds] = useState<number[]>([]);
-  const [formMachineCategoryIds, setFormMachineCategoryIds] = useState<number[]>([]);
 
   useEffect(() => {
     alertCtxRef.current = { apiErrors, listFetchFallback: "Failed to load spare parts." };
@@ -54,116 +41,52 @@ export default function SparePartsClient() {
 
   useEffect(() => {
     queueMicrotask(() => void fetchData());
-  }, [fetchData]);
+    queueMicrotask(() => void fetchGroups());
+  }, [fetchData, fetchGroups]);
 
-  const openCreateModal = useCallback(() => {
-    setEditingPart(null);
-    setFormName("");
-    setFormCatalogNumber("");
-    setFormManufacturer("");
-    setFormUnit("szt.");
-    setFormPurchasePrice("");
-    setFormDescription("");
-    setFormMinStock("");
-    setFormLocation("");
-    setFormIsActive(true);
-    setFormCategoryIds([]);
-    setFormMachineCategoryIds([]);
-    setShowModal(true);
-  }, []);
-
-  const openEditModal = useCallback((part: SparePart) => {
-    setEditingPart(part);
-    setFormName(part.name);
-    setFormCatalogNumber(part.catalogNumber ?? "");
-    setFormManufacturer(part.manufacturer ?? "");
-    setFormUnit(part.unit);
-    setFormPurchasePrice(part.purchasePrice ?? "");
-    setFormDescription(part.description ?? "");
-    setFormMinStock(part.minStock ?? "");
-    setFormLocation(part.location ?? "");
-    setFormIsActive(part.isActive);
-    setFormCategoryIds(part.categoryIds ?? []);
-    setFormMachineCategoryIds(part.machineCategoryIds ?? []);
-    setShowModal(true);
-  }, []);
-
-  const closeModal = useCallback(() => {
+  const handleSaveSuccess = useCallback(async () => {
+    await appAlert({ message: dict.saveSuccess });
     setShowModal(false);
-    setEditingPart(null);
-  }, []);
+    await fetchData();
+  }, [appAlert, dict.saveSuccess, fetchData]);
 
-  const handleSave = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!formName.trim()) {
-        await appAlert({ message: durApiErrors.missing_part_name });
-        return;
-      }
-
-      setIsSubmitting(true);
-      try {
-        const body: SparePartInput = {
-          name: formName.trim(),
-          catalogNumber: formCatalogNumber.trim() || undefined,
-          manufacturer: formManufacturer.trim() || undefined,
-          unit: formUnit.trim() || "szt.",
-          purchasePrice: formPurchasePrice || null,
-          description: formDescription.trim() || null,
-          minStock: formMinStock || undefined,
-          location: formLocation.trim() || undefined,
-          isActive: formIsActive,
-          categoryIds: formCategoryIds,
-          machineCategoryIds: formMachineCategoryIds,
-        };
-
-        const url = editingPart ? `/api/dur/spare-parts/${editingPart.id}` : "/api/dur/spare-parts";
-        const method = editingPart ? "PUT" : "POST";
-
-        const res = await fetch(url, {
-          method,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          await appAlert({
-            message: (errData as { error?: string }).error ?? apiErrors.save_error,
-          });
-          return;
-        }
-
-        await appAlert({ message: dict.saveSuccess });
-        closeModal();
-        await fetchData();
-      } catch {
-        await appAlert({ message: apiErrors.save_error });
-      } finally {
-        setIsSubmitting(false);
-      }
+  const handleSaveError = useCallback(
+    (message: string) => {
+      void appAlert({ message });
     },
-    [
-      formName,
-      formCatalogNumber,
-      formManufacturer,
-      formUnit,
-      formPurchasePrice,
-      formDescription,
-      formMinStock,
-      formLocation,
-      formIsActive,
-      formCategoryIds,
-      formMachineCategoryIds,
-      editingPart,
-      appAlert,
-      durApiErrors,
-      apiErrors,
-      dict,
-      closeModal,
-      fetchData,
-    ]
+    [appAlert]
   );
+
+  const {
+    formState,
+    setFormState,
+    editingPart,
+    isSubmitting,
+    openCreate,
+    openEdit,
+    save,
+  } = useSparePartForm({
+    onSuccess: handleSaveSuccess,
+    onError: handleSaveError,
+    dict: { saveSuccess: dict.saveSuccess, apiErrors: durApiErrors },
+  });
+
+  const handleOpenCreate = useCallback(() => {
+    openCreate();
+    setShowModal(true);
+  }, [openCreate]);
+
+  const handleOpenEdit = useCallback(
+    (part: SparePart) => {
+      openEdit(part);
+      setShowModal(true);
+    },
+    [openEdit]
+  );
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false);
+  }, []);
 
   const handleDelete = useCallback(
     async (part: SparePart) => {
@@ -187,13 +110,6 @@ export default function SparePartsClient() {
     [appConfirm, appAlert, dict, apiErrors, fetchData]
   );
 
-  const toggleCategoryId = useCallback(
-    (id: number, current: number[], setter: (ids: number[]) => void) => {
-      setter(current.includes(id) ? current.filter((c) => c !== id) : [...current, id]);
-    },
-    []
-  );
-
   const filteredParts = parts.filter((p) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -214,7 +130,7 @@ export default function SparePartsClient() {
         {canMutate && (
           <button
             type="button"
-            onClick={openCreateModal}
+            onClick={handleOpenCreate}
             className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
@@ -322,7 +238,7 @@ export default function SparePartsClient() {
                         <>
                           <button
                             type="button"
-                            onClick={() => openEditModal(part)}
+                            onClick={() => handleOpenEdit(part)}
                             className="p-1.5 text-zinc-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-md transition-colors"
                             title={dict.editPart}
                           >
@@ -348,208 +264,18 @@ export default function SparePartsClient() {
       )}
 
       {/* Create/Edit Modal */}
-      <AdminModalShell
+      <SparePartFormModal
         open={showModal}
-        onClose={closeModal}
-        title={editingPart ? dict.editPart : dict.newPart}
-        scrollableBody
-        footer={
-          <FormModalFooter
-            formId="spare-part-form"
-            onCancel={closeModal}
-            submitLabel={isSubmitting ? dict.saving : dict.saveSuccess}
-            isSubmitting={isSubmitting}
-          />
-        }
-      >
-        <form id="spare-part-form" onSubmit={(e) => void handleSave(e)} className="space-y-4 p-6">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {dict.fields.name} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder={dict.fields.namePlaceholder}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-            />
-          </div>
-
-          {/* Catalog number + Manufacturer */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.catalogNumber}
-              </label>
-              <input
-                type="text"
-                value={formCatalogNumber}
-                onChange={(e) => setFormCatalogNumber(e.target.value)}
-                placeholder={dict.fields.catalogNumberPlaceholder}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.manufacturer}
-              </label>
-              <input
-                type="text"
-                value={formManufacturer}
-                onChange={(e) => setFormManufacturer(e.target.value)}
-                placeholder={dict.fields.manufacturerPlaceholder}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-            </div>
-          </div>
-
-          {/* Unit + Price */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.unit}
-              </label>
-              <input
-                type="text"
-                value={formUnit}
-                onChange={(e) => setFormUnit(e.target.value)}
-                placeholder={dict.fields.unitPlaceholder}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.purchasePrice}
-              </label>
-              <input
-                type="text"
-                value={formPurchasePrice}
-                onChange={(e) => setFormPurchasePrice(e.target.value)}
-                placeholder={dict.fields.purchasePricePlaceholder}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-            </div>
-          </div>
-
-          {/* Min stock + Location */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.minStock}
-              </label>
-              <input
-                type="text"
-                value={formMinStock}
-                onChange={(e) => setFormMinStock(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-              <p className="mt-1 text-[10px] text-zinc-500">{dict.fields.minStockHint}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                {dict.fields.location}
-              </label>
-              <input
-                type="text"
-                value={formLocation}
-                onChange={(e) => setFormLocation(e.target.value)}
-                placeholder={dict.fields.locationPlaceholder}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {dict.fields.description}
-            </label>
-            <textarea
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              placeholder={dict.fields.descriptionPlaceholder}
-              rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
-            />
-          </div>
-
-          {/* Categories */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {dict.fields.categories}
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {categories.length === 0 && (
-                <p className="text-xs text-zinc-500 italic">{dict.fields.categoriesPlaceholder}</p>
-              )}
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => toggleCategoryId(cat.id, formCategoryIds, setFormCategoryIds)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    formCategoryIds.includes(cat.id)
-                      ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
-                      : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Machine categories */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {dict.fields.machineCategories}
-            </label>
-            <p className="text-[10px] text-zinc-500 mb-2">{dict.fields.machineCategoriesHint}</p>
-            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-              {machineCategories.filter((c) => !c.isGroup).length === 0 && (
-                <p className="text-xs text-zinc-500 italic">
-                  {dict.fields.machineCategoriesPlaceholder}
-                </p>
-              )}
-              {machineCategories
-                .filter((c) => !c.isGroup)
-                .map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() =>
-                      toggleCategoryId(cat.id, formMachineCategoryIds, setFormMachineCategoryIds)
-                    }
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      formMachineCategoryIds.includes(cat.id)
-                        ? "bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 text-blue-700 dark:text-blue-300"
-                        : "bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-            </div>
-          </div>
-
-          {/* Active toggle */}
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              checked={formIsActive}
-              onChange={(e) => setFormIsActive(e.target.checked)}
-              className="rounded border-zinc-300 dark:border-zinc-600 text-emerald-500 focus:ring-emerald-500/50"
-            />
-            <label htmlFor="isActive" className="text-sm text-zinc-700 dark:text-zinc-300">
-              {dict.fields.isActive}
-            </label>
-            <span className="text-[10px] text-zinc-500">{dict.fields.isActiveHint}</span>
-          </div>
-        </form>
-      </AdminModalShell>
+        onClose={handleCloseModal}
+        onSubmit={save}
+        formState={formState}
+        onFormStateChange={setFormState}
+        isSubmitting={isSubmitting}
+        isEditing={editingPart !== null}
+        partCategories={categories}
+        machineGroups={machineGroups}
+        dict={dict}
+      />
     </>
   );
 }

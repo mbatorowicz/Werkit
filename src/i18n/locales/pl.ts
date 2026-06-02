@@ -574,8 +574,28 @@ export const pl = {
       machRegPlaceholder: "Np. WGR 80912",
       machIdentityRequired:
         "Uzupełnij pola widoczne dla wybranej kategorii (np. nazwa, nr rej. lub opis).",
-      machCatLabel: "Kategoria",
-      machCatWarning: "Najpierw dodaj kategorię powyżej.",
+      resourceGroupsTitle: "Grupy maszyn (typy zasobów)",
+      resourceGroupsSubtitle:
+        "Np. kapsułkarka 02A — wiele egzemplarzy tego samego typu przypisujesz do jednej grupy. To nie są kategorie zleceń.",
+      resourceGroupsLoading: "Ładowanie grup…",
+      resourceGroupsEmpty: "Dodaj pierwszą grupę maszyn, potem przypisz do niej zasoby w rejestrze.",
+      resourceGroupAdd: "Nowa grupa",
+      resourceGroupEdit: "Edytuj grupę",
+      resourceGroupDelete: "Usuń grupę",
+      resourceGroupDeleteConfirm: "Usunąć tę grupę maszyn? Zasoby pozostaną bez grupy.",
+      resourceGroupSave: "Zapisz",
+      resourceGroupSaving: "Zapisywanie…",
+      resourceGroupNameLabel: "Nazwa grupy",
+      resourceGroupNamePlaceholder: "Np. Kapsułkarka typ 02A",
+      resourceGroupNameRequired: "Nazwa grupy jest wymagana.",
+      resourceGroupDescLabel: "Opis (opcjonalnie)",
+      resourceGroupMachineCount: "{count} zasobów w grupie",
+      resourceGroupLabel: "Grupa maszyn (typ)",
+      resourceGroupNone: "— bez grupy —",
+      resourceGroupHint:
+        "Przypisz typ maszyny (np. model). Kategorie poniżej to kategorie zleceń — osobna sprawa.",
+      machCatLabel: "Kategorie zleceń",
+      machCatWarning: "Najpierw dodaj kategorię zleceń powyżej.",
       saveFleet: "Zapisz",
       catResourceFormTitle: "Formularz zasobu w tej kategorii",
       catResourceFormHint:
@@ -1142,7 +1162,6 @@ export const pl = {
     sidebar: {
       spareParts: "Magazyn części",
       sparePartCategories: "Kategorie części",
-      machineCompatibility: "Kompatybilność z maszynami",
       warehouse: "Gospodarka magazynowa",
     },
     spareParts: {
@@ -1157,6 +1176,7 @@ export const pl = {
       emptySearch: "Brak wyników dla tego zapytania.",
       fetching: "Pobieranie katalogu części…",
       saving: "Zapisywanie…",
+      save: "Zapisz",
       saveSuccess: "Część została zapisana.",
       deleteSuccess: "Część została usunięta.",
       fields: {
@@ -1180,9 +1200,10 @@ export const pl = {
         isActiveHint: "Nieaktywne części nie są dostępne w nowych zleceniach.",
         categories: "Kategorie części",
         categoriesPlaceholder: "Wybierz kategorie…",
-        machineCategories: "Kompatybilne typy maszyn",
-        machineCategoriesHint: "Część będzie dostępna do wyboru przy naprawie tych typów maszyn.",
-        machineCategoriesPlaceholder: "Wybierz typy maszyn…",
+        machineCategories: "Grupy maszyn (typy)",
+        machineCategoriesHint:
+          "Część będzie dostępna przy naprawie zasobu przypisanego do wybranej grupy (np. kapsułkarka 02A). Nie wybieraj kategorii zleceń.",
+        machineCategoriesPlaceholder: "Wybierz typ maszyny…",
       },
       table: {
         name: "Nazwa",
@@ -1347,6 +1368,8 @@ export const pl = {
       invalid_unit: "Nieprawidłowa jednostka miary.",
       invalid_price: "Nieprawidłowa cena.",
       invalid_stock: "Nieprawidłowa wartość stanu magazynowego.",
+      invalid_machine_group: "Wybrana kategoria maszyny nie istnieje lub nie jest grupą.",
+      invalid_resource_group: "Wybrana grupa maszyn nie istnieje.",
     },
     workOrderSpareParts: {
       title: "Części w zleceniu naprawy",

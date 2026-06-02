@@ -38,8 +38,8 @@ type Props = {
   workOrderId: number | null;
   /** Typ zlecenia — sekcja widoczna tylko dla machine_repair. */
   orderType: string | null;
-  /** ID kategorii maszyny — filtruje katalog części tylko do kompatybilnych z tą maszyną. */
-  machineCategoryId: number | null;
+  /** ID grupy maszyn (typ zasobu) — filtruje katalog części kompatybilnych z tą grupą. */
+  resourceGroupId: number | null;
 };
 
 const LABEL =
@@ -51,7 +51,7 @@ const CONTROL =
  * Panel części zamiennych dla aktywnej sesji pracownika (wydanie z magazynu).
  * Widoczny tylko gdy orderType === 'machine_repair' i workOrderId !== null.
  */
-export default function WorkerSparePartsPanel({ workOrderId, orderType, machineCategoryId }: Props) {
+export default function WorkerSparePartsPanel({ workOrderId, orderType, resourceGroupId }: Props) {
   const dict = getDictionary();
   const workerDict = dict.worker.client;
   const apiErrors = dict.apiErrors as Record<string, string>;
@@ -109,8 +109,8 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType, machineC
   const fetchCatalog = useCallback(async () => {
     try {
       const url =
-        machineCategoryId != null
-          ? `/api/dur/spare-parts?compatibleWithCategoryId=${machineCategoryId}`
+        resourceGroupId != null
+          ? `/api/dur/spare-parts?compatibleWithResourceGroupId=${resourceGroupId}`
           : "/api/dur/spare-parts";
       const res = await fetchWithDeviceTelemetry(
         "Worker: spare-parts catalog GET",
@@ -136,7 +136,7 @@ export default function WorkerSparePartsPanel({ workOrderId, orderType, machineC
     } catch {
       /* ignore */
     }
-  }, [machineCategoryId]);
+  }, [resourceGroupId]);
 
   useEffect(() => {
     if (isRepair && hasOrderId) {

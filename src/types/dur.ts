@@ -31,8 +31,10 @@ export type SparePart = {
   createdAt: string;
   /** Kategorie części (z linku N:M). */
   categoryIds: number[];
-  /** Kategorie maszyn do których część pasuje. */
-  machineCategoryIds: number[];
+  /** Grupy maszyn (typy zasobów) do których część pasuje. */
+  resourceGroupIds: number[];
+  /** @deprecated alias — użyj resourceGroupIds */
+  machineCategoryIds?: number[];
 };
 
 /** Kompatybilność części z kategorią maszyny. */
@@ -55,6 +57,8 @@ export type SparePartInput = {
   imageUrl?: string | null;
   isActive?: boolean;
   categoryIds?: number[];
+  resourceGroupIds?: number[];
+  /** @deprecated */
   machineCategoryIds?: number[];
 };
 

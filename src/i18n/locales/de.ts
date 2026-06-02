@@ -585,8 +585,30 @@ export const de: AppDictionary = {
       machRegPlaceholder: "z.B. ABC 12345",
       machIdentityRequired:
         "Füllen Sie die für die ausgewählte Kategorie sichtbaren Felder aus (z.B. Name, Kennzeichen oder Beschreibung).",
-      machCatLabel: "Kategorie",
-      machCatWarning: "Zuerst eine Kategorie oben hinzufügen.",
+      resourceGroupsTitle: "Maschinengruppen (Ressourcentypen)",
+      resourceGroupsSubtitle:
+        "Z.B. Kapselmaschine 02A — viele gleiche Geräte einer Gruppe zuordnen. Nicht dasselbe wie Auftragskategorien.",
+      resourceGroupsLoading: "Gruppen werden geladen…",
+      resourceGroupsEmpty:
+        "Legen Sie zuerst eine Maschinengruppe an und ordnen Sie dann Ressourcen im Register zu.",
+      resourceGroupAdd: "Neue Gruppe",
+      resourceGroupEdit: "Gruppe bearbeiten",
+      resourceGroupDelete: "Gruppe löschen",
+      resourceGroupDeleteConfirm:
+        "Diese Maschinengruppe löschen? Ressourcen bleiben ohne Gruppe.",
+      resourceGroupSave: "Speichern",
+      resourceGroupSaving: "Speichern…",
+      resourceGroupNameLabel: "Gruppenname",
+      resourceGroupNamePlaceholder: "Z.B. Kapselmaschine Typ 02A",
+      resourceGroupNameRequired: "Gruppenname ist erforderlich.",
+      resourceGroupDescLabel: "Beschreibung (optional)",
+      resourceGroupMachineCount: "{count} Ressourcen in der Gruppe",
+      resourceGroupLabel: "Maschinengruppe (Typ)",
+      resourceGroupNone: "— keine Gruppe —",
+      resourceGroupHint:
+        "Ressourcentyp (Modell) zuordnen. Kategorien unten sind Auftragskategorien — getrennt.",
+      machCatLabel: "Auftragskategorien",
+      machCatWarning: "Zuerst eine Auftragskategorie oben hinzufügen.",
       saveFleet: "Speichern",
       catResourceFormTitle: "Ressourcenformular in dieser Kategorie",
       catResourceFormHint:
@@ -1159,7 +1181,6 @@ export const de: AppDictionary = {
     sidebar: {
       spareParts: "Ersatzteile",
       sparePartCategories: "Teilekategorien",
-      machineCompatibility: "Maschinenkompatibilität",
       warehouse: "Lager",
     },
     spareParts: {
@@ -1174,6 +1195,7 @@ export const de: AppDictionary = {
       emptySearch: "Keine Ergebnisse für diese Anfrage.",
       fetching: "Lade Teilekatalog…",
       saving: "Speichern…",
+      save: "Speichern",
       saveSuccess: "Teil wurde gespeichert.",
       deleteSuccess: "Teil wurde gelöscht.",
       fields: {
@@ -1197,10 +1219,10 @@ export const de: AppDictionary = {
         isActiveHint: "Inaktive Teile sind in neuen Aufträgen nicht verfügbar.",
         categories: "Teilekategorien",
         categoriesPlaceholder: "Kategorien auswählen…",
-        machineCategories: "Kompatible Maschinentypen",
+        machineCategories: "Maschinengruppen",
         machineCategoriesHint:
-          "Das Teil steht bei der Reparatur dieser Maschinentypen zur Auswahl.",
-        machineCategoriesPlaceholder: "Maschinentypen auswählen…",
+          "Das Teil steht bei der Reparatur von Maschinen aus diesen Gruppen zur Auswahl.",
+        machineCategoriesPlaceholder: "Maschinengruppen auswählen…",
       },
       table: {
         name: "Name",
@@ -1366,6 +1388,8 @@ export const de: AppDictionary = {
       invalid_unit: "Ungültige Maßeinheit.",
       invalid_price: "Ungültiger Preis.",
       invalid_stock: "Ungültiger Bestandswert.",
+      invalid_machine_group: "Ausgewählte Maschinenkategorie existiert nicht oder ist keine Gruppe.",
+      invalid_resource_group: "Ausgewählte Maschinengruppe existiert nicht.",
     },
     workOrderSpareParts: {
       title: "Teile im Reparaturauftrag",

@@ -22,7 +22,6 @@ export const adminRoutes = {
   dur: {
     spareParts: "/admin/dur/spare-parts",
     sparePartCategories: "/admin/dur/spare-part-categories",
-    compatibility: "/admin/dur/compatibility",
     warehouse: "/admin/dur/warehouse",
   },
 } as const;

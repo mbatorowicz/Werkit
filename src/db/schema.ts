@@ -94,11 +94,26 @@ export const resourceToCategories = pgTable("resource_to_categories", {
     .references(() => resourceCategories.id, { onDelete: "cascade" }),
 });
 
+/** Grupa maszyn (typ zasobu, np. „Kapsułkarka 02A”) — nie mylić z kategoriami zleceń (`resource_categories`). */
+export const resourceGroups = pgTable("resource_groups", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 export const resources = pgTable("resources", {
   id: serial("id").primaryKey(),
   companyId: integer("company_id")
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" }),
+  /** Grupa maszyn (typ) — wiele egzemplarzy tego samego modelu. */
+  resourceGroupId: integer("resource_group_id").references(() => resourceGroups.id, {
+    onDelete: "set null",
+  }),
   /** Wyświetlana nazwa (składana z marki / modelu / nr rej.; pole dla kompatybilności w zapytaniach). */
   name: varchar("name", { length: 255 }).notNull(),
   brand: varchar("brand", { length: 120 }).notNull().default(""),
@@ -433,20 +448,20 @@ export const sparePartToCategories = pgTable(
   })
 );
 
-/** Kompatybilność części z kategoriami maszyn (N:M). */
+/** Kompatybilność części z grupami maszyn (N:M). */
 export const sparePartMachineCompatibility = pgTable(
   "spare_part_machine_compatibility",
   {
     partId: integer("part_id")
       .notNull()
       .references(() => spareParts.id, { onDelete: "cascade" }),
-    categoryId: integer("category_id")
+    resourceGroupId: integer("resource_group_id")
       .notNull()
-      .references(() => resourceCategories.id, { onDelete: "cascade" }),
+      .references(() => resourceGroups.id, { onDelete: "cascade" }),
     notes: varchar("notes", { length: 255 }),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.partId, t.categoryId] }),
+    pk: primaryKey({ columns: [t.partId, t.resourceGroupId] }),
   })
 );
 
@@ -475,9 +490,9 @@ export const sparePartMachineCompatibilityRelations = relations(
       fields: [sparePartMachineCompatibility.partId],
       references: [spareParts.id],
     }),
-    category: one(resourceCategories, {
-      fields: [sparePartMachineCompatibility.categoryId],
-      references: [resourceCategories.id],
+    resourceGroup: one(resourceGroups, {
+      fields: [sparePartMachineCompatibility.resourceGroupId],
+      references: [resourceGroups.id],
     }),
   })
 );

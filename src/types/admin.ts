@@ -59,7 +59,9 @@ export type BaseMachine = {
   model?: string;
   registrationNumber?: string;
   description?: string | null;
-  categoryIds?: number[]; // IDs of classifiers
+  categoryIds?: number[]; // kategorie zleceń (resource_categories)
+  /** Grupa maszyn (typ, np. kapsułkarka 02A). */
+  resourceGroupId?: number | null;
   imageUrl?: string | null;
 };
 

@@ -67,7 +67,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `spare_part_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, `color` | `company_id → companies.id` (cascade) |
 | `spare_parts` | `id` | **`company_id`**, `name`, `catalog_number?`, `manufacturer?`, `unit`, `purchase_price?` (numeric), `description?`, `min_stock` (numeric, default 0), `location?`, `image_url?`, `is_active`, `created_at` | `company_id → companies.id` (cascade) |
 | `spare_part_to_categories` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie części | cascade z `spare_parts` i `spare_part_categories` |
-| `spare_part_machine_compatibility` | PK `(part_id, category_id)` | link N↔M części ↔ kategorie maszyn (`resource_categories`); `notes?` | cascade z `spare_parts` i `resource_categories` |
+| `resource_groups` | `id` | **`company_id`**, `name`, `description?`, `sort_order` | typ maszyny (np. kapsułkarka 02A) — **nie** kategorie zleceń |
+| `resources.resource_group_id` | FK | przypisanie egzemplarza zasobu do grupy maszyn | `resource_groups` (set null) |
+| `spare_part_machine_compatibility` | PK `(part_id, resource_group_id)` | link N↔M części ↔ **grupy maszyn** (`resource_groups`); `notes?` | cascade z `spare_parts` i `resource_groups` |
 | `work_order_spare_parts` | `id` | **`work_order_id`**, **`part_id`**, `quantity` (numeric, default 1), `unit_price` (numeric), `notes?`, `created_at` | `work_order_id → work_orders.id` (cascade); `part_id → spare_parts.id` (cascade) |
 | `spare_part_inventory` | PK `(part_id, company_id)` | **`part_id`**, **`company_id`**, `quantity` (numeric, default 0), `updated_at` | `part_id → spare_parts.id` (cascade); `company_id → companies.id` (cascade) |
 | `stock_receipts` | `id` | **`company_id`**, **`part_id`**, `quantity` (numeric), `unit_price` (numeric), `invoice_number?`, `notes?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `part_id → spare_parts.id` (cascade); `created_by_id → users.id` (set null) |
@@ -135,7 +137,6 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
 | `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Magazyn części zamiennych DUR — lista, wyszukiwanie, CRUD (`features/admin/dur/SparePartsClient.tsx`) | admin |
 | `/admin/dur/spare-part-categories` | RSC | `SparePartCategoriesClient` | Kategorie części DUR — drzewo hierarchiczne (`features/admin/dur/SparePartCategoriesClient.tsx`) | admin |
-| `/admin/dur/compatibility` | RSC | `CompatibilityClient` | Kompatybilność części z kategoriami maszyn (`features/admin/dur/CompatibilityClient.tsx`) | admin |
 | `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
@@ -147,7 +148,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar zawiera sekcję **DUR** (części zamienne) z linkami do `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/compatibility`. Etykiety z `dur.sidebar.*` (i18n). `durDict` przekazywany jako osobny prop do `AdminSidebarNav` i `MobileAdminNav`.
+- Sidebar zawiera sekcję **DUR** z linkami do `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/warehouse`. **Grupy maszyn** (`resource_groups`) — panel na `/admin/machines`; kompatybilność części w `SparePartFormModal`. Kategorie zleceń (`resource_categories`) — osobny drzewo na tej samej stronie zasobów.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -168,7 +169,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
 - **`/api/platform/*`** — wymaga roli **`superadmin`** (`requireSuperadminSession` w `src/lib/apiPlatform.ts`).
-- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`** — `SHARED_API_PREFIXES`. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
+- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`, `/api/resource-groups`** — `SHARED_API_PREFIXES`. `resource-groups` = CRUD **grup maszyn** (`ResourceGroupService`), nie kategorie zleceń. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
 - **Wszystko inne pod `/api/`** — domyślnie traktowane jako `admin API` (deny-by-default), wymaga roli `admin|viewer` na GET, `admin` na mutacjach.
 
 ### 5.1. Auth
@@ -252,7 +253,7 @@ Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Muta
 
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
-| `/api/dur/spare-parts` | GET | `SparePartService.getParts(companyId)` — lista części z kategoriami i kompatybilnością |
+| `/api/dur/spare-parts` | GET | `SparePartService.getParts(companyId, { compatibleWithCategoryId? })` — lista części; opcjonalnie filtr po kategorii zlecenia (liść) z dopasowaniem do zapisanych **grup** maszyn |
 | `/api/dur/spare-parts` | POST | `SparePartService.addPart(companyId, body)` — tworzy część + linki kategorii i kompatybilności |
 | `/api/dur/spare-parts/[id]` | GET | `SparePartService.getPart(companyId, id)` — szczegóły części z linkami |
 | `/api/dur/spare-parts/[id]` | PUT | `SparePartService.updatePart(companyId, id, body)` — edycja + aktualizacja linków |
@@ -261,9 +262,6 @@ Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Muta
 | `/api/dur/spare-part-categories` | POST | `SparePartCategoryService.addCategory(companyId, body)` — tworzy kategorię (grupę lub liść) |
 | `/api/dur/spare-part-categories/[id]` | PUT | `SparePartCategoryService.updateCategory(companyId, id, body)` — edycja + walidacja hierarchii (`validateHierarchyPatch`) |
 | `/api/dur/spare-part-categories/[id]` | DELETE | `SparePartCategoryService.deleteCategory(companyId, id)` — blokada gdy kategoria ma dzieci |
-| `/api/dur/spare-part-compatibility` | GET | `SparePartCompatibilityService.getForPart(partId, companyId)` lub `getForMachineCategory(categoryId, companyId)` — `?partId=X` lub `?machineCategoryId=X` |
-| `/api/dur/spare-part-compatibility` | POST | `SparePartCompatibilityService.add(companyId, body)` — dodaje wpis kompatybilności |
-| `/api/dur/spare-part-compatibility/[id]` | DELETE | `SparePartCompatibilityService.remove(partId, categoryId)` — usuwa wpis (`?partId=X&categoryId=Y`) |
 
 ---
 
@@ -351,22 +349,17 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `deleteCategory(companyId, id)` — blokada gdy kategoria ma dzieci (`countSparePartCategoryChildren > 0`).
 
 ### `SparePartService` (`src/services/dur/SparePartService.ts`)
-- `getParts(companyId)` — lista części z rozwiązanymi linkami: `categoryIds` (z `spare_part_to_categories`) i `machineCategoryIds` (z `spare_part_machine_compatibility`).
+- `getParts(companyId, { compatibleWithCategoryId? })` — lista części z `categoryIds` i `machineCategoryIds`; filtr kompatybilności: dopasowanie ID lub `isDescendantOf` (grupa ↔ liść zlecenia).
 - `getPart(companyId, id)` — szczegóły pojedynczej części z linkami.
-- `addPart(companyId, payload)` — tworzy część + opcjonalne linki kategorii (`categoryIds`) i kompatybilności (`machineCategoryIds`).
-- `updatePart(companyId, id, payload)` — edycja pól + synchronizacja linków (DELETE + INSERT w transakcji).
+- `addPart(companyId, payload)` — tworzy część + linki; `machineCategoryIds` tylko **grupy** (`assertMachineResourceGroupsAssignable`).
+- `updatePart(companyId, id, payload)` — edycja pól + synchronizacja linków (DELETE + INSERT).
 - `deletePart(companyId, id)` — usunięcie (kaskada przez FK).
-
-### `SparePartCompatibilityService` (`src/services/dur/SparePartCompatibilityService.ts`)
-- `getForPart(partId, companyId)` — kategorie maszyn kompatybilne z daną częścią (JOIN `resource_categories`).
-- `getForMachineCategory(categoryId, companyId)` — części kompatybilne z daną kategorią maszyn.
-- `add(companyId, payload)` — dodaje wpis `{partId, categoryId, notes?}`; waliduje istnienie części i kategorii maszyn.
-- `remove(partId, categoryId)` — usuwa wpis kompatybilności.
 
 ### `categoryValidation.ts` (`src/services/dur/categoryValidation.ts`)
 - `validateHierarchyPatch<T>(current, patch)` — walidacja zmiany `parentId`/`isGroup`: zakaz self-parent, zakaz przypisania do liścia jako rodzica, zakaz zmiany grupy→liść gdy ma dzieci.
 - `countSparePartCategoryChildren(id)` — licznik dzieci kategorii części.
 - `assertSparePartCategoriesAssignable(companyId, categoryIds)` — rzuca `CategoryHierarchyError` gdy któreś ID nie istnieje lub jest grupą.
+- `assertResourceGroupsAssignable(companyId, groupIds)` — rzuca `invalid_resource_group` gdy ID nie istnieje w `resource_groups`.
 
 ### `WorkOrderSparePartService` (`src/services/dur/WorkOrderSparePartService.ts`)
 - `getPartsForOrder(workOrderId)` — lista części przypisanych do zlecenia (JOIN `spare_parts` dla `partName`, `catalogNumber`).

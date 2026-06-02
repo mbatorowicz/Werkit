@@ -65,6 +65,13 @@ export function OrderFormFields({
 
   const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
 
+  const resourceGroupId = useMemo(() => {
+    const rid = form.resourceId ? parseInt(form.resourceId, 10) : NaN;
+    if (Number.isNaN(rid)) return null;
+    const machine = machines.find((m) => m.id === rid);
+    return machine?.resourceGroupId ?? null;
+  }, [form.resourceId, machines]);
+
   const allCustomers = useMemo(() => {
     const byId = new Map(customers.map((c) => [c.id, c]));
     for (const c of extraCustomers) byId.set(c.id, c);
@@ -256,7 +263,7 @@ export function OrderFormFields({
       <WorkOrderSparePartsSection
         workOrderId={editingOrderId ?? null}
         orderType={orderType}
-        machineCategoryId={form.categoryId ? parseInt(form.categoryId, 10) : null}
+        resourceGroupId={resourceGroupId}
       />
     </>
   );

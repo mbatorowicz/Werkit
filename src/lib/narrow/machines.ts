@@ -9,6 +9,7 @@ export function narrowMachinesResourceRows(rows: unknown[]): MachinesResource[] 
   return narrowBaseMachines(rows).map((m) => ({
     ...m,
     categoryIds: m.categoryIds ?? [],
+    resourceGroupId: m.resourceGroupId ?? null,
   }));
 }
 

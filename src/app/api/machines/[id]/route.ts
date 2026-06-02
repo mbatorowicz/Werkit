@@ -57,6 +57,12 @@ export const PUT = withApiErrorHandling(
         description: vis.showResourceDescription ? description : null,
         imageUrl:
           body.imageUrl === null || typeof body.imageUrl === "string" ? body.imageUrl : undefined,
+        resourceGroupId:
+          body.resourceGroupId === null || body.resourceGroupId === undefined
+            ? null
+            : parseInt(String(body.resourceGroupId), 10) > 0
+              ? parseInt(String(body.resourceGroupId), 10)
+              : null,
       },
       parsedCatIds
     );

@@ -6,6 +6,12 @@ import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
 export const dynamic = "force-dynamic";
 
+function parseResourceGroupId(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === "") return null;
+  const n = parseInt(String(raw), 10);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 export const GET = withApiErrorHandling(
   async () => {
     const scoped = await requireCompanyScopedSession();
@@ -72,7 +78,8 @@ export const POST = withApiErrorHandling(
         description: vis.showResourceDescription ? description : null,
       },
       parsedCatIds,
-      typeof imageUrl === "string" || imageUrl === null ? imageUrl : undefined
+      typeof imageUrl === "string" || imageUrl === null ? imageUrl : undefined,
+      parseResourceGroupId(body.resourceGroupId)
     );
 
     return jsonOk({ success: true });

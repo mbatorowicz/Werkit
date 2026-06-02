@@ -1,6 +1,6 @@
 import { db } from "@/db";
-import { sparePartCategories } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { sparePartCategories, resourceGroups } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { isDescendantOf, type CategoryHierarchyRow } from "@/lib/categoryTree";
 
 export class CategoryHierarchyError extends Error {
@@ -56,7 +56,6 @@ export async function assertSparePartCategoriesAssignable(
 ): Promise<void> {
   const ids = [...new Set(categoryIds.filter((n) => Number.isFinite(n) && n > 0))];
   if (ids.length === 0) return;
-  const { and, inArray } = await import("drizzle-orm");
   const all = await db
     .select()
     .from(sparePartCategories)
@@ -64,3 +63,23 @@ export async function assertSparePartCategoriesAssignable(
   if (all.length !== ids.length) throw new CategoryHierarchyError("invalid_category");
   if (all.some((r) => r.isGroup)) throw new CategoryHierarchyError("invalid_category");
 }
+
+/**
+ * Waliduje, że podane ID to istniejące grupy maszyn (`resource_groups`).
+ * Używane przy zapisie części zamiennych z resourceGroupIds.
+ */
+export async function assertResourceGroupsAssignable(
+  groupIds: number[],
+  companyId: number
+): Promise<void> {
+  const ids = [...new Set(groupIds.filter((n) => Number.isFinite(n) && n > 0))];
+  if (ids.length === 0) return;
+  const all = await db
+    .select({ id: resourceGroups.id })
+    .from(resourceGroups)
+    .where(and(eq(resourceGroups.companyId, companyId), inArray(resourceGroups.id, ids)));
+  if (all.length !== ids.length) throw new CategoryHierarchyError("invalid_resource_group");
+}
+
+/** @deprecated Użyj assertResourceGroupsAssignable */
+export const assertMachineResourceGroupsAssignable = assertResourceGroupsAssignable;

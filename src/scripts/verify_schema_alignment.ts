@@ -61,6 +61,7 @@ async function main() {
     resources: new Set([
       "id",
       "company_id",
+      "resource_group_id",
       "name",
       "brand",
       "model",
@@ -212,7 +213,8 @@ async function main() {
       "created_at",
     ]),
     spare_part_to_categories: new Set(["part_id", "category_id"]),
-    spare_part_machine_compatibility: new Set(["part_id", "category_id", "notes"]),
+    resource_groups: new Set(["id", "company_id", "name", "description", "sort_order"]),
+    spare_part_machine_compatibility: new Set(["part_id", "resource_group_id", "notes"]),
     // ── DUR — Faza 2: Gospodarka magazynowa ──
     spare_part_inventory: new Set(["id", "company_id", "part_id", "quantity", "updated_at"]),
     stock_receipts: new Set([

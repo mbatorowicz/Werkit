@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
 export const dynamic = "force-dynamic";
 
@@ -64,21 +65,29 @@ export const PUT = withApiErrorHandling(
           .filter((n: number) => !Number.isNaN(n))
       : undefined;
 
-    const machineCategoryIds: number[] | undefined = Array.isArray(body.machineCategoryIds)
-      ? body.machineCategoryIds
-          .map((c: string | number) => parseInt(String(c), 10))
-          .filter((n: number) => !Number.isNaN(n))
-      : undefined;
+    const parseIds = (arr: unknown) =>
+      Array.isArray(arr)
+        ? arr.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+        : [];
+
+    const resourceGroupIds =
+      body.resourceGroupIds !== undefined || body.machineCategoryIds !== undefined
+        ? [...new Set([...parseIds(body.resourceGroupIds), ...parseIds(body.machineCategoryIds)])]
+        : undefined;
 
     await SparePartService.updatePart(companyId, partId, {
       ...updateData,
       categoryIds,
-      machineCategoryIds,
+      resourceGroupIds,
     } as Parameters<typeof SparePartService.updatePart>[2]);
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) =>
+      err instanceof CategoryHierarchyError ? jsonError(err.code, 400) : null,
+    defaultErrorCode: "save_error",
+  }
 );
 
 export const DELETE = withApiErrorHandling(

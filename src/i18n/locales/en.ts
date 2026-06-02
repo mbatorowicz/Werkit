@@ -573,8 +573,28 @@ export const en: AppDictionary = {
       machRegPlaceholder: "e.g. ABC 12345",
       machIdentityRequired:
         "Fill in the fields visible for the selected category (e.g. name, reg. no., or description).",
-      machCatLabel: "Category",
-      machCatWarning: "Add a category above first.",
+      resourceGroupsTitle: "Machine groups (resource types)",
+      resourceGroupsSubtitle:
+        "E.g. Capsule filler 02A — assign many units of the same type to one group. Not the same as order categories.",
+      resourceGroupsLoading: "Loading groups…",
+      resourceGroupsEmpty: "Add a machine group first, then assign resources in the registry.",
+      resourceGroupAdd: "New group",
+      resourceGroupEdit: "Edit group",
+      resourceGroupDelete: "Delete group",
+      resourceGroupDeleteConfirm: "Delete this machine group? Resources will be ungrouped.",
+      resourceGroupSave: "Save",
+      resourceGroupSaving: "Saving…",
+      resourceGroupNameLabel: "Group name",
+      resourceGroupNamePlaceholder: "E.g. Capsule filler type 02A",
+      resourceGroupNameRequired: "Group name is required.",
+      resourceGroupDescLabel: "Description (optional)",
+      resourceGroupMachineCount: "{count} resources in group",
+      resourceGroupLabel: "Machine group (type)",
+      resourceGroupNone: "— no group —",
+      resourceGroupHint:
+        "Assign the machine type (model). Categories below are order categories — separate concept.",
+      machCatLabel: "Order categories",
+      machCatWarning: "Add an order category above first.",
       saveFleet: "Save",
       catResourceFormTitle: "Resource form in this category",
       catResourceFormHint:
@@ -1130,7 +1150,6 @@ export const en: AppDictionary = {
     sidebar: {
       spareParts: "Spare parts",
       sparePartCategories: "Part categories",
-      machineCompatibility: "Machine compatibility",
       warehouse: "Warehouse",
     },
     spareParts: {
@@ -1145,6 +1164,7 @@ export const en: AppDictionary = {
       emptySearch: "No results for this query.",
       fetching: "Loading parts catalog…",
       saving: "Saving…",
+      save: "Save",
       saveSuccess: "Part has been saved.",
       deleteSuccess: "Part has been deleted.",
       fields: {
@@ -1168,10 +1188,10 @@ export const en: AppDictionary = {
         isActiveHint: "Inactive parts are not available in new orders.",
         categories: "Part categories",
         categoriesPlaceholder: "Select categories…",
-        machineCategories: "Compatible machine types",
+        machineCategories: "Machine groups",
         machineCategoriesHint:
-          "Part will be available for selection when repairing these machine types.",
-        machineCategoriesPlaceholder: "Select machine types…",
+          "Part will be available for selection when repairing machines from these groups.",
+        machineCategoriesPlaceholder: "Select machine groups…",
       },
       table: {
         name: "Name",
@@ -1336,6 +1356,8 @@ export const en: AppDictionary = {
       invalid_unit: "Invalid unit of measure.",
       invalid_price: "Invalid price.",
       invalid_stock: "Invalid stock value.",
+      invalid_machine_group: "Selected machine category does not exist or is not a group.",
+      invalid_resource_group: "Selected machine group does not exist.",
     },
     workOrderSpareParts: {
       title: "Parts in repair order",
