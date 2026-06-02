@@ -45,12 +45,10 @@ export class PlatformFeatureFlagService {
    * Zwraca nowy, pełny stan flag.
    */
   static async updateFlags(companyId: number, flags: Partial<FeatureFlags>): Promise<FeatureFlags> {
-    const updateData: Record<string, boolean> = {};
+    const updateData: Partial<typeof companySettings.$inferInsert> = {};
     for (const [key, value] of Object.entries(flags)) {
-      if (typeof value === "boolean") {
-        // Mapowanie camelCase → snake_case dla kolumn DB
-        const dbKey = key.replace(/([A-Z])/g, "_$1").toLowerCase();
-        updateData[dbKey] = value;
+      if (typeof value === "boolean" && key in DEFAULT_FEATURE_FLAGS) {
+        (updateData as Record<string, boolean>)[key] = value;
       }
     }
 
@@ -60,7 +58,7 @@ export class PlatformFeatureFlagService {
 
     await db
       .insert(companySettings)
-      .values({ companyId, ...updateData } as typeof companySettings.$inferInsert)
+      .values({ companyId, ...updateData })
       .onConflictDoUpdate({
         target: companySettings.companyId,
         set: updateData,

@@ -5,7 +5,6 @@ import type { FeatureFlags } from "@/types/featureFlags";
 import {
   DEFAULT_FEATURE_FLAGS,
   DUR_FEATURE_FLAG_KEYS,
-  FEATURE_FLAG_LABELS,
   gpsModuleFlagsPatch,
   isGpsModuleEnabled,
 } from "@/types/featureFlags";
@@ -104,9 +103,6 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
     );
   }
 
-  const durLabelKey = FEATURE_FLAG_LABELS.durEnabled;
-  const durHintKey = `${durLabelKey}Hint` as keyof typeof dict;
-
   return (
     <div className={shellClass}>
       <div className="mb-4">
@@ -146,8 +142,8 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
                 onChange: () => {
                   void toggleDurModule();
                 },
-                label: dict[durLabelKey as keyof typeof dict] as string,
-                hint: dict[durHintKey] as string | undefined,
+                label: dict.durEnabled,
+                hint: dict.durEnabledHint,
               },
             ]}
           />

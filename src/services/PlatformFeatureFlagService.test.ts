@@ -158,7 +158,7 @@ describe("PlatformFeatureFlagService", () => {
       expect(flags.durEnabled).toBe(true);
       expect(onConflictDoUpdateMock).toHaveBeenCalledWith({
         target: "companyId",
-        set: { dur_enabled: true },
+        set: { durEnabled: true },
       });
     });
 
@@ -192,7 +192,7 @@ describe("PlatformFeatureFlagService", () => {
       expect(flags.durEnabled).toBe(false);
     });
 
-    it("mapuje camelCase → snake_case dla kluczy DB", async () => {
+    it("zapisuje flagi camelCase zgodnie ze schematem Drizzle", async () => {
       const onConflictDoUpdateMock = vi.fn().mockResolvedValue(undefined);
       insertMock.mockReturnValueOnce({
         values: () => ({
@@ -224,17 +224,13 @@ describe("PlatformFeatureFlagService", () => {
         navigationEnabled: true,
       });
 
-      // Sprawdź, czy klucze zostały zamienione na snake_case
-      const valuesArg = insertMock.mock.calls[0][0];
-      expect(valuesArg).toBeDefined();
-
       const onConflictArg = onConflictDoUpdateMock.mock.calls[0][0];
       expect(onConflictArg).toEqual({
         target: "companyId",
         set: {
-          gps_tracking_enabled: true,
-          map_view_enabled: false,
-          navigation_enabled: true,
+          gpsTrackingEnabled: true,
+          mapViewEnabled: false,
+          navigationEnabled: true,
         },
       });
     });
