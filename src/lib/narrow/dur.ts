@@ -77,6 +77,7 @@ function narrowSparePartRaw(r: Record<string, unknown>): SparePart | null {
       readNumberArray(r, "resourceGroupIds").length > 0
         ? readNumberArray(r, "resourceGroupIds")
         : readNumberArray(r, "machineCategoryIds"),
+    stockQuantity: readString(r, "stockQuantity", "0"),
   };
 }
 

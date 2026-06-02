@@ -5,6 +5,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
+import { StockMovementError } from "@/services/dur/StockMovementError";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const dynamic = "force-dynamic";
@@ -65,14 +66,28 @@ export const POST = withApiErrorHandling(
     const unitPrice = typeof body.unitPrice === "string" ? body.unitPrice : null;
     const notes = typeof body.notes === "string" ? body.notes : null;
 
-    const inserted = await WorkOrderSparePartService.addPartToOrder(workOrderId, {
-      partId,
-      quantity,
-      unitPrice,
-      notes,
-    });
+    try {
+      const inserted = await WorkOrderSparePartService.pickPartFromWarehouse(
+        scoped.data.companyId,
+        scoped.data.session.userId as number,
+        workOrderId,
+        {
+          partId,
+          quantity,
+          unitPrice,
+          notes,
+          issuedTo:
+            body.issuedTo != null ? parseInt(String(body.issuedTo), 10) : scoped.data.session.userId,
+        }
+      );
 
-    return jsonOk(inserted);
+      return jsonOk(inserted);
+    } catch (err) {
+      if (err instanceof StockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
   },
   { defaultErrorCode: "save_error" }
 );

@@ -10,7 +10,12 @@ import { useAppDialog } from "@/components/AppDialogProvider";
 import { narrowInventory } from "@/lib/narrow/dur";
 import type { SparePartInventory, InventoryAdjustmentInput } from "@/types/dur";
 
-export default function InventoryClient() {
+type Props = {
+  /** Gdy true — nagłówek sekcji (h2) zamiast tytułu strony (h1). */
+  embedded?: boolean;
+};
+
+export default function InventoryClient({ embedded = false }: Props) {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
 
@@ -115,9 +120,13 @@ export default function InventoryClient() {
   return (
     <>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{dict.title}</h1>
+          {embedded ? (
+            <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{dict.title}</h2>
+          ) : (
+            <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{dict.title}</h1>
+          )}
         </div>
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -125,7 +134,7 @@ export default function InventoryClient() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Szukaj po nazwie, katalogu…"
+            placeholder={dict.searchPlaceholder}
             className="w-full pl-9 pr-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>

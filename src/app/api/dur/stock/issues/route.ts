@@ -40,21 +40,28 @@ export const POST = withApiErrorHandling(
     }
 
     const { StockMovementService } = await import("@/services/dur/StockMovementService");
-    const issue = await StockMovementService.addIssue(companyId, userId, {
-      partId,
-      quantity,
-      workOrderId:
-        body.workOrderId !== null && body.workOrderId !== undefined
-          ? parseInt(String(body.workOrderId), 10)
-          : null,
-      issuedTo:
-        body.issuedTo !== null && body.issuedTo !== undefined
-          ? parseInt(String(body.issuedTo), 10)
-          : null,
-      notes: typeof body.notes === "string" ? body.notes : null,
-    });
-
-    return jsonOk(issue);
+    const { StockMovementError } = await import("@/services/dur/StockMovementError");
+    try {
+      const issue = await StockMovementService.addIssue(companyId, userId, {
+        partId,
+        quantity,
+        workOrderId:
+          body.workOrderId !== null && body.workOrderId !== undefined
+            ? parseInt(String(body.workOrderId), 10)
+            : null,
+        issuedTo:
+          body.issuedTo !== null && body.issuedTo !== undefined
+            ? parseInt(String(body.issuedTo), 10)
+            : null,
+        notes: typeof body.notes === "string" ? body.notes : null,
+      });
+      return jsonOk(issue);
+    } catch (err) {
+      if (err instanceof StockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
   },
   { defaultErrorCode: "save_error" }
 );

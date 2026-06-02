@@ -1,19 +1,53 @@
 import { db } from "@/db";
-import { stockReceipts, stockIssues, spareParts, users, workOrders } from "@/db/schema";
+import {
+  stockReceipts,
+  stockIssues,
+  sparePartInventory,
+  spareParts,
+  users,
+  workOrders,
+} from "@/db/schema";
 import type { StockReceipt, StockIssue, StockReceiptInput, StockIssueInput } from "@/types/dur";
 import { InventoryService } from "./InventoryService";
-import { eq, desc } from "drizzle-orm";
+import { StockMovementError } from "./StockMovementError";
+import { eq, and, desc } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type * as schema from "@/db/schema";
+
+type DbClient = NodePgDatabase<typeof schema>;
+
+function assertPositiveQuantity(quantity: string) {
+  if (!quantity || parseFloat(quantity) <= 0) {
+    throw new StockMovementError("invalid_quantity");
+  }
+}
+
+async function assertSufficientStock(
+  companyId: number,
+  partId: number,
+  quantity: string,
+  client: DbClient = db
+) {
+  const [row] = await client
+    .select({ quantity: sparePartInventory.quantity })
+    .from(sparePartInventory)
+    .where(
+      and(
+        eq(sparePartInventory.companyId, companyId),
+        eq(sparePartInventory.partId, partId)
+      )
+    )
+    .limit(1);
+  const currentQty = row ? parseFloat(row.quantity) : 0;
+  if (currentQty < parseFloat(quantity)) {
+    throw new StockMovementError("insufficient_stock");
+  }
+}
 
 /**
  * Serwis ruchów magazynowych (przyjęcia PZ / wydania WZ) — DUR Faza 2.
- * Każda operacja aktualizuje też stan magazynowy (InventoryService).
  */
 export class StockMovementService {
-  // ── Przyjęcia ──
-
-  /**
-   * Lista przyjęć dla firmy.
-   */
   static async getReceipts(companyId: number): Promise<StockReceipt[]> {
     const rows = await db
       .select({
@@ -36,34 +70,31 @@ export class StockMovementService {
       .where(eq(stockReceipts.companyId, companyId))
       .orderBy(desc(stockReceipts.createdAt));
 
-    return rows.map((r) => {
-      const base: StockReceipt = {
-        id: r.id,
-        companyId: r.companyId,
-        partId: r.partId,
-        quantity: r.quantity,
-        unitPrice: r.unitPrice,
-        invoiceNumber: r.invoiceNumber,
-        notes: r.notes,
-        createdBy: r.createdBy,
-        createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
-        partName: r.partName ?? undefined,
-        partCatalogNumber: r.partCatalogNumber ?? undefined,
-        creatorName: r.creatorName ?? undefined,
-      };
-      return base;
-    });
+    return rows.map((r) => ({
+      id: r.id,
+      companyId: r.companyId,
+      partId: r.partId,
+      quantity: r.quantity,
+      unitPrice: r.unitPrice,
+      invoiceNumber: r.invoiceNumber,
+      notes: r.notes,
+      createdBy: r.createdBy,
+      createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
+      partName: r.partName ?? undefined,
+      partCatalogNumber: r.partCatalogNumber ?? undefined,
+      creatorName: r.creatorName ?? undefined,
+    }));
   }
 
-  /**
-   * Dodaje przyjęcie i aktualizuje stan magazynowy (+quantity).
-   */
   static async addReceipt(
     companyId: number,
     userId: number,
-    input: StockReceiptInput
+    input: StockReceiptInput,
+    client: DbClient = db
   ): Promise<StockReceipt> {
-    const [row] = await db
+    assertPositiveQuantity(input.quantity);
+
+    const [row] = await client
       .insert(stockReceipts)
       .values({
         companyId,
@@ -73,11 +104,11 @@ export class StockMovementService {
         invoiceNumber: input.invoiceNumber ?? null,
         notes: input.notes ?? null,
         createdBy: userId,
+        workOrderSparePartId: input.workOrderSparePartId ?? null,
       })
       .returning();
 
-    // Aktualizacja stanu magazynowego (+quantity)
-    await InventoryService.upsertQuantity(companyId, input.partId, input.quantity);
+    await InventoryService.upsertQuantity(companyId, input.partId, input.quantity, client);
 
     return {
       ...row,
@@ -85,11 +116,6 @@ export class StockMovementService {
     };
   }
 
-  // ── Wydania ──
-
-  /**
-   * Lista wydań dla firmy.
-   */
   static async getIssues(companyId: number): Promise<StockIssue[]> {
     const rows = await db
       .select({
@@ -114,48 +140,33 @@ export class StockMovementService {
       .where(eq(stockIssues.companyId, companyId))
       .orderBy(desc(stockIssues.createdAt));
 
-    return rows.map((r) => {
-      const base: StockIssue = {
-        id: r.id,
-        companyId: r.companyId,
-        partId: r.partId,
-        quantity: r.quantity,
-        workOrderId: r.workOrderId,
-        issuedTo: r.issuedTo,
-        notes: r.notes,
-        createdBy: r.createdBy,
-        createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
-        partName: r.partName ?? undefined,
-        partCatalogNumber: r.partCatalogNumber ?? undefined,
-        creatorName: r.creatorName ?? undefined,
-        workOrderLabel: r.workOrderLabel ?? undefined,
-      };
-      return base;
-    });
+    return rows.map((r) => ({
+      id: r.id,
+      companyId: r.companyId,
+      partId: r.partId,
+      quantity: r.quantity,
+      workOrderId: r.workOrderId,
+      issuedTo: r.issuedTo,
+      notes: r.notes,
+      createdBy: r.createdBy,
+      createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
+      partName: r.partName ?? undefined,
+      partCatalogNumber: r.partCatalogNumber ?? undefined,
+      creatorName: r.creatorName ?? undefined,
+      workOrderLabel: r.workOrderLabel ?? undefined,
+    }));
   }
 
-  /**
-   * Dodaje wydanie i aktualizuje stan magazynowy (-quantity).
-   */
   static async addIssue(
     companyId: number,
     userId: number,
-    input: StockIssueInput
+    input: StockIssueInput,
+    client: DbClient = db
   ): Promise<StockIssue> {
-    // Walidacja: quantity musi być dodatnia
-    const qty = input.quantity;
-    if (parseFloat(qty) <= 0) {
-      throw new Error("Ilość wydania musi być dodatnia");
-    }
+    assertPositiveQuantity(input.quantity);
+    await assertSufficientStock(companyId, input.partId, input.quantity, client);
 
-    // Sprawdzenie stanu magazynowego
-    const inventory = await InventoryService.getPartInventory(companyId, input.partId);
-    const currentQty = inventory ? parseFloat(inventory.quantity) : 0;
-    if (currentQty < parseFloat(qty)) {
-      throw new Error("Niewystarczający stan magazynowy");
-    }
-
-    const [row] = await db
+    const [row] = await client
       .insert(stockIssues)
       .values({
         companyId,
@@ -165,15 +176,71 @@ export class StockMovementService {
         issuedTo: input.issuedTo ?? null,
         notes: input.notes ?? null,
         createdBy: userId,
+        workOrderSparePartId: input.workOrderSparePartId ?? null,
       })
       .returning();
 
-    // Aktualizacja stanu magazynowego (-quantity)
-    await InventoryService.upsertQuantity(companyId, input.partId, `-${qty}`);
+    await InventoryService.upsertQuantity(companyId, input.partId, `-${input.quantity}`, client);
 
     return {
       ...row,
       createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
     };
+  }
+
+  /** Wydanie magazynowe powiązane z pobraniem części na zlecenie. */
+  static async issueForWorkOrderLine(
+    companyId: number,
+    actorUserId: number,
+    params: {
+      workOrderSparePartId: number;
+      workOrderId: number;
+      partId: number;
+      quantity: string;
+      issuedTo: number;
+      notes?: string | null;
+    },
+    client: DbClient = db
+  ): Promise<StockIssue> {
+    return this.addIssue(
+      companyId,
+      actorUserId,
+      {
+        partId: params.partId,
+        quantity: params.quantity,
+        workOrderId: params.workOrderId,
+        issuedTo: params.issuedTo,
+        notes: params.notes ?? null,
+        workOrderSparePartId: params.workOrderSparePartId,
+      },
+      client
+    );
+  }
+
+  /** Zwrot na magazyn po usunięciu części ze zlecenia (niewykorzystana). */
+  static async returnForWorkOrderLine(
+    companyId: number,
+    actorUserId: number,
+    params: {
+      workOrderSparePartId: number;
+      partId: number;
+      quantity: string;
+      workOrderId: number;
+    },
+    client: DbClient = db
+  ): Promise<StockReceipt> {
+    return this.addReceipt(
+      companyId,
+      actorUserId,
+      {
+        partId: params.partId,
+        quantity: params.quantity,
+        unitPrice: null,
+        invoiceNumber: null,
+        notes: `Zwrot ze zlecenia #${params.workOrderId}`,
+        workOrderSparePartId: params.workOrderSparePartId,
+      },
+      client
+    );
   }
 }

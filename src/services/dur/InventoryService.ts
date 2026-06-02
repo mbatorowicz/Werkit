@@ -2,6 +2,10 @@ import { db } from "@/db";
 import { sparePartInventory, spareParts } from "@/db/schema";
 import type { SparePartInventory } from "@/types/dur";
 import { eq, and, sql } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type * as schema from "@/db/schema";
+
+type DbClient = NodePgDatabase<typeof schema>;
 
 /**
  * Serwis stanów magazynowych części zamiennych (DUR Faza 2).
@@ -58,8 +62,13 @@ export class InventoryService {
    * Jeśli wiersz nie istnieje — tworzy go.
    * Używane przez StockMovementService przy przyjęciach/wydaniach.
    */
-  static async upsertQuantity(companyId: number, partId: number, delta: string): Promise<void> {
-    await db
+  static async upsertQuantity(
+    companyId: number,
+    partId: number,
+    delta: string,
+    client: DbClient = db
+  ): Promise<void> {
+    await client
       .insert(sparePartInventory)
       .values({
         companyId,

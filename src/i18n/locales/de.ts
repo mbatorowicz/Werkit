@@ -585,24 +585,6 @@ export const de: AppDictionary = {
       machRegPlaceholder: "z.B. ABC 12345",
       machIdentityRequired:
         "Füllen Sie die für die ausgewählte Kategorie sichtbaren Felder aus (z.B. Name, Kennzeichen oder Beschreibung).",
-      resourceGroupsTitle: "Maschinengruppen (Ressourcentypen)",
-      resourceGroupsSubtitle:
-        "Z.B. Kapselmaschine 02A — viele gleiche Geräte einer Gruppe zuordnen. Nicht dasselbe wie Auftragskategorien.",
-      resourceGroupsLoading: "Gruppen werden geladen…",
-      resourceGroupsEmpty:
-        "Legen Sie zuerst eine Maschinengruppe an und ordnen Sie dann Ressourcen im Register zu.",
-      resourceGroupAdd: "Neue Gruppe",
-      resourceGroupEdit: "Gruppe bearbeiten",
-      resourceGroupDelete: "Gruppe löschen",
-      resourceGroupDeleteConfirm:
-        "Diese Maschinengruppe löschen? Ressourcen bleiben ohne Gruppe.",
-      resourceGroupSave: "Speichern",
-      resourceGroupSaving: "Speichern…",
-      resourceGroupNameLabel: "Gruppenname",
-      resourceGroupNamePlaceholder: "Z.B. Kapselmaschine Typ 02A",
-      resourceGroupNameRequired: "Gruppenname ist erforderlich.",
-      resourceGroupDescLabel: "Beschreibung (optional)",
-      resourceGroupMachineCount: "{count} Ressourcen in der Gruppe",
       resourceGroupLabel: "Maschinengruppe (Typ)",
       resourceGroupNone: "— keine Gruppe —",
       resourceGroupHint:
@@ -980,8 +962,12 @@ export const de: AppDictionary = {
       repairNotes: "Reparaturhinweise",
       repairNotesPlaceholder: "Zusätzliche Hinweise...",
       spareParts: "Ersatzteile",
-      addSparePart: "Teil hinzufügen",
-      removeSparePart: "Entfernen",
+      addSparePart: "Aus Lager entnehmen",
+      removeSparePart: "Ins Lager zurückgeben",
+      returnPartConfirm: "Teil ins Lager zurückgeben? Der Bestand wird wiederhergestellt.",
+      pickPartSuccess: "Teil aus dem Lager entnommen.",
+      returnPartSuccess: "Teil ins Lager zurückgegeben.",
+      insufficientStock: "Nicht genügend Lagerbestand.",
       noSpareParts: "Keine Ersatzteile in diesem Auftrag.",
       partName: "Teilname",
       partQuantity: "Menge",
@@ -1179,9 +1165,33 @@ export const de: AppDictionary = {
   },
   dur: {
     sidebar: {
-      spareParts: "Ersatzteile",
+      resourceGroups: "Maschinengruppen",
+      spareParts: "Teilekatalog",
       sparePartCategories: "Teilekategorien",
-      warehouse: "Lager",
+      warehouse: "Lagerverwaltung",
+    },
+    resourceGroups: {
+      title: "Maschinengruppen (Ressourcentypen)",
+      subtitle:
+        "Gerätetyp für DUR — z.B. Kapselmaschine 02A. Viele gleiche Geräte einer Gruppe im Ressourcenregister zuordnen.",
+      assignHint:
+        "Ressource zuordnen: Ressourcen → Ressource bearbeiten → Feld „Maschinengruppe“.",
+      loading: "Gruppen werden geladen…",
+      empty:
+        "Keine Gruppen. Maschinentyp anlegen, dann Ressourcen unter Ressourcen zuordnen.",
+      add: "Neue Gruppe",
+      edit: "Gruppe bearbeiten",
+      delete: "Gruppe löschen",
+      deleteConfirm:
+        "Diese Maschinengruppe löschen? Ressourcen bleiben ohne Gruppe.",
+      save: "Speichern",
+      saving: "Speichern…",
+      nameLabel: "Gruppenname",
+      namePlaceholder: "Z.B. Kapselmaschine Typ 02A",
+      nameRequired: "Gruppenname ist erforderlich.",
+      descLabel: "Beschreibung (optional)",
+      machineCount: "{count} Ressourcen in der Gruppe",
+      apiError: "API-Fehler.",
     },
     spareParts: {
       title: "Ersatzteilkatalog",
@@ -1296,8 +1306,12 @@ export const de: AppDictionary = {
     warehouse: {
       title: "Lagerverwaltung",
       subtitle: "Lagerbestand, Zugänge und Abgänge von Ersatzteilen.",
+      movementsTitle: "Zugänge und Abgänge",
+      movementsSubtitle: "Wareneingänge und Lagerabgänge von Ersatzteilen.",
+      partStockSublabel: "Bestand: {qty} {unit}",
       inventory: {
         title: "Lagerbestand",
+        searchPlaceholder: "Suche nach Name oder Katalognr…",
         empty: "Keine Teile auf Lager. Fügen Sie einen Zugang hinzu.",
         part: "Teil",
         catalogNumber: "Katalog",
@@ -1390,6 +1404,9 @@ export const de: AppDictionary = {
       invalid_stock: "Ungültiger Bestandswert.",
       invalid_machine_group: "Ausgewählte Maschinenkategorie existiert nicht oder ist keine Gruppe.",
       invalid_resource_group: "Ausgewählte Maschinengruppe existiert nicht.",
+      missing_part_id: "Teil aus dem Katalog wählen.",
+      invalid_quantity: "Positive Menge eingeben.",
+      insufficient_stock: "Nicht genügend Lagerbestand.",
     },
     workOrderSpareParts: {
       title: "Teile im Reparaturauftrag",
@@ -1400,8 +1417,12 @@ export const de: AppDictionary = {
       removePart: "Teil entfernen",
       removeConfirm: "Dieses Teil aus dem Auftrag entfernen?",
       saveSuccess: "Teil zum Auftrag hinzugefügt.",
+      pickSuccess: "Teil aus Lager entnommen (automatischer Abgang).",
       updateSuccess: "Teil aktualisiert.",
       removeSuccess: "Teil aus Auftrag entfernt.",
+      returnPart: "Ins Lager zurückgeben",
+      returnConfirm: "Teil ins Lager zurückgeben? Bestand wird wiederhergestellt.",
+      returnSuccess: "Teil ins Lager zurückgegeben.",
       saveError: "Teil konnte nicht hinzugefügt werden.",
       fields: {
         part: "Teil",

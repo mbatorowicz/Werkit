@@ -148,7 +148,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar zawiera sekcję **DUR** z linkami do `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/warehouse`. **Grupy maszyn** (`resource_groups`) — panel na `/admin/machines`; kompatybilność części w `SparePartFormModal`. Kategorie zleceń (`resource_categories`) — osobny drzewo na tej samej stronie zasobów.
+- Sidebar **DUR**: `/admin/dur/resource-groups` (CRUD `resource_groups`), `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Przypisanie zasobu do grupy: formularz zasobu na `/admin/machines`. Kategorie zleceń — drzewo na `/admin/machines` (osobna domena).
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -360,6 +360,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `countSparePartCategoryChildren(id)` — licznik dzieci kategorii części.
 - `assertSparePartCategoriesAssignable(companyId, categoryIds)` — rzuca `CategoryHierarchyError` gdy któreś ID nie istnieje lub jest grupą.
 - `assertResourceGroupsAssignable(companyId, groupIds)` — rzuca `invalid_resource_group` gdy ID nie istnieje w `resource_groups`.
+- **Pobranie części na zlecenie naprawy** (`POST …/work-orders/[id]/spare-parts`, worker + admin): `WorkOrderSparePartService.pickPartFromWarehouse` → wpis `work_order_spare_parts` + automatyczne **WZ** (`stock_issues`, −stan). **Zwrot** (`DELETE …/spare-parts/[lineId]`): **PZ** zwrotu + usunięcie wpisu. Katalog worker: `GET /api/worker/dur/spare-parts`.
 
 ### `WorkOrderSparePartService` (`src/services/dur/WorkOrderSparePartService.ts`)
 - `getPartsForOrder(workOrderId)` — lista części przypisanych do zlecenia (JOIN `spare_parts` dla `partName`, `catalogNumber`).

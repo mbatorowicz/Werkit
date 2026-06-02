@@ -556,6 +556,11 @@ export const stockReceipts = pgTable("stock_receipts", {
   notes: text("notes"),
   createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  /** Zwrot części pobranej na zlecenie, ale niewykorzystanej. */
+  workOrderSparePartId: integer("work_order_spare_part_id").references(
+    () => workOrderSpareParts.id,
+    { onDelete: "set null" }
+  ),
 });
 
 /** Wydania magazynowe. */
@@ -573,6 +578,11 @@ export const stockIssues = pgTable("stock_issues", {
   notes: text("notes"),
   createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  /** Wydanie przy pobraniu części na zlecenie naprawy (1:1). */
+  workOrderSparePartId: integer("work_order_spare_part_id").references(
+    () => workOrderSpareParts.id,
+    { onDelete: "set null" }
+  ),
 });
 
 // Relacje DUR Faza 2

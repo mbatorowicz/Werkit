@@ -35,6 +35,8 @@ export type SparePart = {
   resourceGroupIds: number[];
   /** @deprecated alias — użyj resourceGroupIds */
   machineCategoryIds?: number[];
+  /** Stan magazynowy (gdy API zwraca katalog ze stanem). */
+  stockQuantity?: string;
 };
 
 /** Kompatybilność części z kategorią maszyny. */
@@ -137,6 +139,7 @@ export type StockReceiptInput = {
   unitPrice?: string | null;
   invoiceNumber?: string | null;
   notes?: string | null;
+  workOrderSparePartId?: number | null;
 };
 
 /** Payload wydania towaru. */
@@ -146,6 +149,7 @@ export type StockIssueInput = {
   workOrderId?: number | null;
   issuedTo?: number | null;
   notes?: string | null;
+  workOrderSparePartId?: number | null;
 };
 
 /** Payload korekty stanu magazynowego. */

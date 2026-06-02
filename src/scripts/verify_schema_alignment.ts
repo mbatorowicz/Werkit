@@ -227,6 +227,7 @@ async function main() {
       "notes",
       "created_by",
       "created_at",
+      "work_order_spare_part_id",
     ]),
     stock_issues: new Set([
       "id",
@@ -238,6 +239,7 @@ async function main() {
       "notes",
       "created_by",
       "created_at",
+      "work_order_spare_part_id",
     ]),
   };
 

@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Trash2, Package } from "lucide-react";
-import {
-  AdminSearchCombobox,
-  type AdminSearchComboboxOption,
-} from "@/components/Admin/AdminSearchCombobox";
-import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
+import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
+import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartComboboxOptions";
+import { useDurSparePartCatalog } from "@/features/admin/dur/useDurSparePartCatalog";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
@@ -25,14 +24,6 @@ type WorkOrderSparePartRow = {
   quantity: string;
   unitPrice: string | null;
   notes: string | null;
-};
-
-type SparePartOption = {
-  id: number;
-  name: string;
-  catalogNumber: string;
-  unit: string;
-  stockQuantity: string;
 };
 
 type Props = {
@@ -58,10 +49,14 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   const durDict = dict.dur.workOrderSpareParts;
   const adminOrdersDict = dict.admin.orders;
   const apiErrors = dict.apiErrors as Record<string, string>;
-  const { alert: appAlert } = useAppDialog();
+  const { alert: appAlert, confirm: appConfirm } = useAppDialog();
+  const { items: catalogItems, fetchCatalog } = useDurSparePartCatalog();
+  const refreshCatalog = useCallback(
+    () => fetchCatalog({ resourceGroupId, audience: "admin" }),
+    [fetchCatalog, resourceGroupId]
+  );
 
   const [parts, setParts] = useState<WorkOrderSparePartRow[]>([]);
-  const [catalog, setCatalog] = useState<SparePartOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -111,45 +106,12 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
     }
   }, [workOrderId]);
 
-  // ── Fetch katalogu części (filtrowany po kategorii maszyny) ──
-  const fetchCatalog = useCallback(async () => {
-    try {
-      const url =
-        resourceGroupId != null
-          ? `/api/dur/spare-parts?compatibleWithResourceGroupId=${resourceGroupId}`
-          : "/api/dur/spare-parts";
-      const res = await fetchWithDeviceTelemetry(
-        "Admin: spare-parts catalog GET",
-        url,
-        undefined,
-        { category: "admin" }
-      );
-      if (!res.ok) return;
-      const data = await parseJsonArray(res);
-      const opts: SparePartOption[] = [];
-      for (const item of data) {
-        if (isRecord(item) && typeof item.id === "number" && typeof item.name === "string") {
-          opts.push({
-            id: item.id,
-            name: item.name,
-            catalogNumber: typeof item.catalogNumber === "string" ? item.catalogNumber : "",
-            unit: typeof item.unit === "string" ? item.unit : "szt",
-            stockQuantity: typeof item.stockQuantity === "string" ? item.stockQuantity : "0",
-          });
-        }
-      }
-      setCatalog(opts);
-    } catch {
-      /* ignore */
-    }
-  }, [resourceGroupId]);
-
   useEffect(() => {
     if (isRepair && hasOrderId) {
       void fetchParts();
-      void fetchCatalog();
+      void fetchCatalog({ resourceGroupId, audience: "admin" });
     }
-  }, [isRepair, hasOrderId, fetchParts, fetchCatalog]);
+  }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
   // ── Dodawanie części ──
   const handleAddPart = async () => {
@@ -176,13 +138,14 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
       );
 
       if (res.ok) {
-        await appAlert({ message: durDict.saveSuccess });
+        await appAlert({ message: durDict.pickSuccess ?? durDict.saveSuccess });
         setShowAddForm(false);
         setSelectedPartId("");
         setAddQuantity("1");
         setAddUnitPrice("");
         setAddNotes("");
         await fetchParts();
+        await refreshCatalog();
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
@@ -198,8 +161,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   // ── Usuwanie części ──
   const handleRemovePart = async (partId: number) => {
     if (!workOrderId) return;
-    await appAlert({ message: durDict.removeConfirm });
-    // useAppDialog confirm pattern
+    if (!(await appConfirm({ message: durDict.returnConfirm ?? durDict.removeConfirm, variant: "danger" }))) {
+      return;
+    }
     try {
       const res = await fetchWithDeviceTelemetry(
         `Admin: spare-parts DELETE work-order ${workOrderId} part ${partId}`,
@@ -209,8 +173,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
       );
 
       if (res.ok) {
-        await appAlert({ message: durDict.removeSuccess });
+        await appAlert({ message: durDict.returnSuccess ?? durDict.removeSuccess });
         await fetchParts();
+        await refreshCatalog();
       } else {
         const body = await parseJsonUnknown(res);
         const code = readApiErrorString(body);
@@ -224,17 +189,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   // ── Opcje comboboxa ──
   const catalogOptions: AdminSearchComboboxOption[] = useMemo(
     () =>
-      catalog.map((p) => ({
-        id: String(p.id),
-        label: p.name,
-        sublabel: p.catalogNumber
-          ? `${p.catalogNumber} (stan: ${p.stockQuantity} ${p.unit})`
-          : undefined,
-      })),
-    [catalog]
+      durSparePartComboboxOptions(catalogItems, dict.dur.warehouse.partStockSublabel),
+    [catalogItems, dict.dur.warehouse.partStockSublabel]
   );
-
-  const comboboxCommon = comboboxFeedbackProps(adminOrdersDict);
 
   // ── Render ──
   if (!isRepair) return null;
@@ -272,14 +229,13 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
             <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
               {durDict.fields.part}
             </label>
-            <AdminSearchCombobox
+            <SparePartSearchField
               options={catalogOptions}
               value={selectedPartId}
               onChange={setSelectedPartId}
               placeholder={durDict.fields.partPlaceholder}
               required
               aria-label={durDict.fields.part}
-              {...comboboxCommon}
             />
           </div>
 
@@ -408,7 +364,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
                         type="button"
                         onClick={() => handleRemovePart(p.id)}
                         className="text-red-500 hover:text-red-400 transition"
-                        title={durDict.removePart}
+                        title={durDict.returnPart ?? durDict.removePart}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>

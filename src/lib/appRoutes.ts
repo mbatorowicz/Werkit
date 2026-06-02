@@ -20,6 +20,7 @@ export const adminRoutes = {
   logs: "/admin/logs",
   organization: "/admin/organization",
   dur: {
+    resourceGroups: "/admin/dur/resource-groups",
     spareParts: "/admin/dur/spare-parts",
     sparePartCategories: "/admin/dur/spare-part-categories",
     warehouse: "/admin/dur/warehouse",

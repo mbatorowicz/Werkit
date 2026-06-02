@@ -5,6 +5,7 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
+import { StockMovementError } from "@/services/dur/StockMovementError";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const dynamic = "force-dynamic";
@@ -38,10 +39,22 @@ export const DELETE = withApiErrorHandling(
     );
     if (!belongs) return jsonError("not_found", 404);
 
-    const deleted = await WorkOrderSparePartService.removePartFromOrder(sparePartId);
-    if (!deleted) return jsonError("not_found", 404);
+    try {
+      const deleted = await WorkOrderSparePartService.returnPartToWarehouse(
+        ctx.companyId,
+        ctx.userId,
+        sparePartId,
+        workOrderId
+      );
+      if (!deleted) return jsonError("not_found", 404);
 
-    return jsonOk({ success: true });
+      return jsonOk({ success: true, returned: true });
+    } catch (err) {
+      if (err instanceof StockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
   },
   { defaultErrorCode: "delete_error" }
 );
