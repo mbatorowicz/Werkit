@@ -54,6 +54,17 @@ export function applyWorkerPermissionsToUpdate(
   updateData.isDurWorker = flags.isDurWorker;
 }
 
+export function clampWorkerPermissionsForOrg(
+  permissions: WorkerPermissionFlags,
+  orgModules: { gpsModuleEnabled: boolean; durEnabled: boolean }
+): WorkerPermissionFlags {
+  return {
+    ...permissions,
+    canEditRoute: orgModules.gpsModuleEnabled ? permissions.canEditRoute : false,
+    isDurWorker: orgModules.durEnabled ? permissions.isDurWorker : false,
+  };
+}
+
 export function pickWorkerUserFlags(row: {
   id: number;
   canCreateOwnOrders: boolean;

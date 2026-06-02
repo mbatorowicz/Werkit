@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clampWorkerPermissionsForOrg,
   NON_WORKER_PERMISSION_FLAGS,
   applyWorkerPermissionsToUpdate,
   normalizeAppRole,
@@ -54,6 +55,25 @@ describe("workerUserPermissions", () => {
       canCreateOwnOrders: false,
       canEditRoute: true,
       canCreateCustomers: false,
+      isDurWorker: false,
+    });
+  });
+
+  it("zeruje uprawnienia map/DUR gdy moduły wyłączone", () => {
+    expect(
+      clampWorkerPermissionsForOrg(
+        {
+          canCreateOwnOrders: true,
+          canEditRoute: true,
+          canCreateCustomers: true,
+          isDurWorker: true,
+        },
+        { gpsModuleEnabled: false, durEnabled: false }
+      )
+    ).toEqual({
+      canCreateOwnOrders: true,
+      canEditRoute: false,
+      canCreateCustomers: true,
       isDurWorker: false,
     });
   });

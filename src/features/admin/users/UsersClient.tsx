@@ -19,7 +19,7 @@ import UsersTable from "./UsersTable";
 import UserFormFields, { emptyUserForm, type UserFormState } from "./UserFormFields";
 
 export default function UsersClient() {
-  const { canMutate, durEnabled } = useAdminAbility();
+  const { canMutate, gpsEnabled, durEnabled } = useAdminAbility();
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const [users, setUsers] = useState<AdminUserListRow[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -127,9 +127,9 @@ export default function UsersClient() {
       role: u.role,
       password: "",
       canCreateOwnOrders: u.canCreateOwnOrders ?? true,
-      canEditRoute: u.canEditRoute ?? false,
+      canEditRoute: gpsEnabled ? (u.canEditRoute ?? false) : false,
       canCreateCustomers: u.canCreateCustomers ?? false,
-      isDurWorker: u.isDurWorker ?? false,
+      isDurWorker: durEnabled ? (u.isDurWorker ?? false) : false,
     });
     setIsModalOpen(true);
   };
@@ -148,13 +148,19 @@ export default function UsersClient() {
       const url = editId ? adminApi.user(editId) : adminApi.users;
       const method = editId ? "PUT" : "POST";
 
+      const payload: UserFormState = {
+        ...form,
+        canEditRoute: gpsEnabled ? form.canEditRoute : false,
+        isDurWorker: durEnabled ? form.isDurWorker : false,
+      };
+
       const res = await fetchWithDeviceTelemetry(
         editId ? `Admin users: save PUT ${editId}` : "Admin users: save POST",
         url,
         {
           method,
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         },
         { category: "admin" }
       );
@@ -233,6 +239,7 @@ export default function UsersClient() {
             onFormChange={setForm}
             onTogglePassword={() => setShowPassword((v) => !v)}
             dict={dict}
+            gpsEnabled={gpsEnabled}
             durEnabled={durEnabled}
           />
         </form>
@@ -260,10 +267,12 @@ export default function UsersClient() {
                   label={dict.canCreateOwnOrdersLabel}
                   value={previewUser.canCreateOwnOrders ? dict.previewYes : dict.previewNo}
                 />
-                <AdminPreviewField
-                  label={dict.canEditRouteLabel}
-                  value={previewUser.canEditRoute ? dict.previewYes : dict.previewNo}
-                />
+                {gpsEnabled ? (
+                  <AdminPreviewField
+                    label={dict.canEditRouteLabel}
+                    value={previewUser.canEditRoute ? dict.previewYes : dict.previewNo}
+                  />
+                ) : null}
                 <AdminPreviewField
                   label={dict.canCreateCustomersLabel}
                   value={previewUser.canCreateCustomers ? dict.previewYes : dict.previewNo}

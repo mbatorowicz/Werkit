@@ -3,7 +3,9 @@ import { hashPassword } from "@/lib/passwordCrypto";
 import type { UserUpdatePayload } from "@/services/AdminUserService";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
-import { applyWorkerPermissionsToUpdate, normalizeAppRole } from "@/lib/workerUserPermissions";
+import { normalizeAppRole, clampWorkerPermissionsForOrg, workerPermissionsFromBody } from "@/lib/workerUserPermissions";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
+import { isGpsModuleEnabled } from "@/types/featureFlags";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
@@ -31,7 +33,15 @@ export const PUT = withApiErrorHandling(
       role: normalizedRole,
     };
 
-    applyWorkerPermissionsToUpdate(updateData, normalizedRole, body);
+    const featureFlags = await PlatformFeatureFlagService.getFlags(companyId);
+    const flags = clampWorkerPermissionsForOrg(workerPermissionsFromBody(normalizedRole, body), {
+      gpsModuleEnabled: isGpsModuleEnabled(featureFlags),
+      durEnabled: featureFlags.durEnabled,
+    });
+    updateData.canCreateOwnOrders = flags.canCreateOwnOrders;
+    updateData.canEditRoute = flags.canEditRoute;
+    updateData.canCreateCustomers = flags.canCreateCustomers;
+    updateData.isDurWorker = flags.isDurWorker;
 
     if (typeof body.password === "string" && body.password.trim() !== "") {
       updateData.passwordHash = await hashPassword(body.password, 10);

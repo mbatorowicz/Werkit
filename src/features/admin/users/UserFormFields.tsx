@@ -35,6 +35,8 @@ interface UserFormFieldsProps {
   onFormChange: (form: UserFormState) => void;
   onTogglePassword: () => void;
   dict: Record<string, string>;
+  /** Gdy false — ukryj opcje związane z mapą (np. edycja trasy). */
+  gpsEnabled?: boolean;
   /** Gdy false — ukryj checkbox pracownika serwisowego (moduł DUR wyłączony). */
   durEnabled?: boolean;
 }
@@ -46,6 +48,7 @@ export default function UserFormFields({
   onFormChange,
   onTogglePassword,
   dict,
+  gpsEnabled = true,
   durEnabled = false,
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
@@ -57,19 +60,23 @@ export default function UserFormFields({
       onChange: (checked: boolean) => setForm({ canCreateOwnOrders: checked }),
       label: dict.canCreateOwnOrdersLabel,
     },
-    {
+  ];
+
+  if (gpsEnabled) {
+    workerToggles.push({
       id: "canEditRoute",
       checked: form.canEditRoute,
       onChange: (checked: boolean) => setForm({ canEditRoute: checked }),
       label: dict.canEditRouteLabel,
-    },
-    {
-      id: "canCreateCustomers",
-      checked: form.canCreateCustomers,
-      onChange: (checked: boolean) => setForm({ canCreateCustomers: checked }),
-      label: dict.canCreateCustomersLabel,
-    },
-  ];
+    });
+  }
+
+  workerToggles.push({
+    id: "canCreateCustomers",
+    checked: form.canCreateCustomers,
+    onChange: (checked: boolean) => setForm({ canCreateCustomers: checked }),
+    label: dict.canCreateCustomersLabel,
+  });
 
   if (durEnabled) {
     workerToggles.push({
@@ -120,9 +127,9 @@ export default function UserFormFields({
             setForm({
               role,
               canCreateOwnOrders: role === "worker" ? form.canCreateOwnOrders : false,
-              canEditRoute: role === "worker" ? form.canEditRoute : false,
+              canEditRoute: role === "worker" && gpsEnabled ? form.canEditRoute : false,
               canCreateCustomers: role === "worker" ? form.canCreateCustomers : false,
-              isDurWorker: role === "worker" ? form.isDurWorker : false,
+              isDurWorker: role === "worker" && durEnabled ? form.isDurWorker : false,
             });
           }}
           className={`${INPUT} py-3 appearance-none`}

@@ -14,6 +14,7 @@ import { AdminAbilityProvider } from "@/components/Admin/AdminAbilityProvider";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
+import { isGpsModuleEnabled } from "@/types/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <AdminAbilityProvider canMutate={canMutate} durEnabled={featureFlags.durEnabled}>
+    <AdminAbilityProvider
+      canMutate={canMutate}
+      gpsEnabled={isGpsModuleEnabled(featureFlags)}
+      durEnabled={featureFlags.durEnabled}
+    >
       <div className="layout-admin flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
         <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
           <div>

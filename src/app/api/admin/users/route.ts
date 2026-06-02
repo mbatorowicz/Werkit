@@ -2,7 +2,9 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { hashPassword } from "@/lib/passwordCrypto";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
-import { normalizeAppRole, workerPermissionsFromBody } from "@/lib/workerUserPermissions";
+import { normalizeAppRole, workerPermissionsFromBody, clampWorkerPermissionsForOrg } from "@/lib/workerUserPermissions";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
+import { isGpsModuleEnabled } from "@/types/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +35,16 @@ export const POST = withApiErrorHandling(
     const usernameEmail = typeof body.usernameEmail === "string" ? body.usernameEmail : "";
     const password = typeof body.password === "string" ? body.password : "";
     const role = body.role;
-    const permissions = workerPermissionsFromBody(normalizeAppRole(role), body);
+    const normalizedRole = normalizeAppRole(role);
+    const featureFlags = await PlatformFeatureFlagService.getFlags(companyId);
+    const permissions = clampWorkerPermissionsForOrg(
+      workerPermissionsFromBody(normalizedRole, body),
+      { gpsModuleEnabled: isGpsModuleEnabled(featureFlags), durEnabled: featureFlags.durEnabled }
+    );
 
     if (!fullName || !usernameEmail || !password) {
       return jsonError("missing_fields", 400);
     }
-
-    const normalizedRole = normalizeAppRole(role);
 
     const { AdminUserService } = await import("@/services/AdminUserService");
     const hashedPassword = await hashPassword(password, 10);
