@@ -91,6 +91,7 @@ export function SparePartFormModal({
         <SparePartFormFields
           formState={formState}
           onFormStateChange={onFormStateChange}
+          isEditing={isEditing}
           partCategories={partCategories}
           machineGroups={machineGroups}
           dict={dict}

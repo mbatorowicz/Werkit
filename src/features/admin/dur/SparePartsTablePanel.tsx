@@ -17,6 +17,7 @@ type Props = {
   onAddPart: () => void;
   onEditPart: (part: SparePart) => void;
   onDeletePart: (part: SparePart) => void;
+  onAdjustStock?: (part: SparePart) => void;
 };
 
 export function SparePartsTablePanel({
@@ -27,6 +28,7 @@ export function SparePartsTablePanel({
   onAddPart,
   onEditPart,
   onDeletePart,
+  onAdjustStock,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -99,8 +101,11 @@ export function SparePartsTablePanel({
                 <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
                   {dict.table.unit}
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                  {dict.table.price}
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.stock}
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
+                  {dict.table.minStock}
                 </th>
                 <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
                   {dict.table.location}
@@ -111,7 +116,11 @@ export function SparePartsTablePanel({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
-              {filteredParts.map((part) => (
+              {filteredParts.map((part) => {
+                const stock = Number(part.stockQuantity ?? "0");
+                const minStock = Number(part.minStock ?? "0");
+                const isLowStock = minStock > 0 && stock < minStock;
+                return (
                 <tr
                   key={part.id}
                   className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/30"
@@ -119,7 +128,7 @@ export function SparePartsTablePanel({
                   <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">
                     <div className="flex items-center gap-2">
                       {part.name}
-                      {part.minStock != null && Number(part.minStock) > 0 ? (
+                      {isLowStock ? (
                         <span
                           className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
                           title={dict.lowStockTooltip
@@ -139,8 +148,17 @@ export function SparePartsTablePanel({
                     {part.manufacturer ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{part.unit}</td>
-                  <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                    {part.purchasePrice ? `${part.purchasePrice} zł` : "—"}
+                  <td
+                    className={`px-4 py-3 text-right font-mono tabular-nums ${
+                      isLowStock
+                        ? "font-semibold text-red-600 dark:text-red-400"
+                        : "text-zinc-900 dark:text-white"
+                    }`}
+                  >
+                    {part.stockQuantity ?? "0"}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-600 dark:text-zinc-400">
+                    {minStock > 0 ? part.minStock : "—"}
                   </td>
                   <td className="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400">
                     {part.location ?? "—"}
@@ -148,6 +166,16 @@ export function SparePartsTablePanel({
                   <td className="px-4 py-3 text-right">
                     {canMutate ? (
                       <div className="flex items-center justify-end gap-1">
+                        {onAdjustStock ? (
+                          <button
+                            type="button"
+                            onClick={() => onAdjustStock(part)}
+                            className="rounded-md px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                            title={dict.adjustStock}
+                          >
+                            {dict.adjustStock}
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => onEditPart(part)}
@@ -168,7 +196,8 @@ export function SparePartsTablePanel({
                     ) : null}
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

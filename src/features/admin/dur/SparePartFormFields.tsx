@@ -8,6 +8,8 @@ import type { ResourceGroupOption } from "@/features/admin/dur/useResourceGroups
 interface SparePartFormFieldsProps {
   formState: SparePartFormState;
   onFormStateChange: (state: SparePartFormState) => void;
+  /** Ukrywa cenę zakupu przy pierwszym dodaniu części do katalogu. */
+  isEditing: boolean;
   partCategories: SparePartCategory[];
   machineGroups: ResourceGroupOption[];
   dict: {
@@ -42,6 +44,7 @@ interface SparePartFormFieldsProps {
 export function SparePartFormFields({
   formState,
   onFormStateChange,
+  isEditing,
   partCategories,
   machineGroups,
   dict,
@@ -97,8 +100,8 @@ export function SparePartFormFields({
         </div>
       </div>
 
-      {/* Unit + Price */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Unit (+ price only when editing) */}
+      <div className={isEditing ? "grid grid-cols-2 gap-4" : undefined}>
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
             {dict.fields.unit}
@@ -111,18 +114,20 @@ export function SparePartFormFields({
             className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.purchasePrice}
-          </label>
-          <input
-            type="text"
-            value={formState.purchasePrice}
-            onChange={(e) => updateField("purchasePrice", e.target.value)}
-            placeholder={dict.fields.purchasePricePlaceholder}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-          />
-        </div>
+        {isEditing ? (
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              {dict.fields.purchasePrice}
+            </label>
+            <input
+              type="text"
+              value={formState.purchasePrice}
+              onChange={(e) => updateField("purchasePrice", e.target.value)}
+              placeholder={dict.fields.purchasePricePlaceholder}
+              className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Min stock + Location */}

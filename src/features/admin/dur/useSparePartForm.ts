@@ -41,7 +41,9 @@ export function useSparePartForm({ onSuccess, onError, dict }: UseSparePartFormP
 
     setIsSubmitting(true);
     try {
-      const input = formStateToSparePartInput(formState);
+      const input = formStateToSparePartInput(formState, {
+        omitPurchasePrice: editingPart === null,
+      });
       const url = editingPart
         ? `/api/dur/spare-parts/${editingPart.id}`
         : "/api/dur/spare-parts";

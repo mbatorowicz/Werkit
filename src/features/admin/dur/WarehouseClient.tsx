@@ -2,7 +2,6 @@
 
 import { Package } from "lucide-react";
 import { getDictionary } from "@/i18n";
-import InventoryClient from "@/features/admin/dur/InventoryClient";
 import StockMovementsClient from "@/features/admin/dur/StockMovementsClient";
 
 export default function WarehouseClient() {
@@ -17,12 +16,6 @@ export default function WarehouseClient() {
         </h1>
         <p className="mt-2 text-sm text-zinc-500">{dict.subtitle}</p>
       </div>
-
-      <section>
-        <InventoryClient embedded />
-      </section>
-
-      <hr className="border-zinc-200 dark:border-zinc-700" />
 
       <section>
         <StockMovementsClient />

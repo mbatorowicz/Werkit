@@ -13,6 +13,7 @@ import { useSparePartForm } from "@/features/admin/dur/useSparePartForm";
 import { SparePartFormModal } from "@/features/admin/dur/SparePartFormModal";
 import { SparePartsCategoryPanel } from "@/features/admin/dur/SparePartsCategoryPanel";
 import { SparePartsTablePanel } from "@/features/admin/dur/SparePartsTablePanel";
+import { SparePartStockAdjustModal } from "@/features/admin/dur/SparePartStockAdjustModal";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import type { SparePart } from "@/types/dur";
 
@@ -40,6 +41,7 @@ export default function SparePartsClient() {
   );
 
   const [showModal, setShowModal] = useState(false);
+  const [adjustingPart, setAdjustingPart] = useState<SparePart | null>(null);
 
   useEffect(() => {
     alertCtxRef.current = { apiErrors, listFetchFallback: dict.fetchError };
@@ -145,6 +147,7 @@ export default function SparePartsClient() {
         onAddPart={handleOpenCreate}
         onEditPart={handleOpenEdit}
         onDeletePart={handleDelete}
+        onAdjustStock={canMutate ? setAdjustingPart : undefined}
       />
 
       <SparePartFormModal
@@ -158,6 +161,16 @@ export default function SparePartsClient() {
         partCategories={leafCategories}
         machineGroups={machineGroups}
         dict={dict}
+      />
+
+      <SparePartStockAdjustModal
+        open={adjustingPart !== null}
+        part={adjustingPart}
+        onClose={() => setAdjustingPart(null)}
+        onSaved={async () => {
+          await fetchData();
+          await appAlert({ message: dictionary.dur.warehouse.adjustment.saveSuccess });
+        }}
       />
     </>
   );

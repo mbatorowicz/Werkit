@@ -1197,9 +1197,11 @@ export const de: AppDictionary = {
       title: "Ersatzteilkatalog",
       subtitle: "Teile für Ressourcenreparaturen und Wartung.",
       pageSubtitle:
-        "Teilekategorien und Katalogpositionen auf einer Seite — wie Ressourcen und Materialien im Admin.",
+        "Teilekategorien, Katalog und aktueller Lagerbestand — auf einer Seite.",
       sectionCatalogTitle: "Teile im Katalog",
-      sectionCatalogSubtitle: "Teile für Ressourcenreparaturen und Wartung.",
+      sectionCatalogSubtitle:
+        "Katalog mit Lagerbestand. Bestand in der Zeile korrigieren; Zugänge und Abgänge unter Lagerverwaltung.",
+      adjustStock: "Bestand korrigieren",
       fetchError: "Teilekatalog konnte nicht geladen werden.",
       newPart: "Neues Teil",
       editPart: "Teil bearbeiten",
@@ -1310,7 +1312,7 @@ export const de: AppDictionary = {
     },
     warehouse: {
       title: "Lagerverwaltung",
-      subtitle: "Lagerbestand, Zugänge und Abgänge von Ersatzteilen.",
+      subtitle: "Zugänge und Abgänge (aktueller Bestand steht im Teilekatalog).",
       movementsTitle: "Zugänge und Abgänge",
       movementsSubtitle: "Wareneingänge und Lagerabgänge von Ersatzteilen.",
       partStockSublabel: "Bestand: {qty} {unit}",

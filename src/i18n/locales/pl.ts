@@ -1178,9 +1178,11 @@ export const pl = {
       title: "Magazyn części zamiennych",
       subtitle: "Katalog części używanych w naprawach i przeglądach zasobów.",
       pageSubtitle:
-        "Kategorie części i pozycje katalogu na jednej stronie — jak zasoby i materiały w panelu.",
+        "Kategorie części, katalog pozycji i bieżący stan magazynowy — na jednej stronie.",
       sectionCatalogTitle: "Części w katalogu",
-      sectionCatalogSubtitle: "Katalog części używanych w naprawach i przeglądach zasobów.",
+      sectionCatalogSubtitle:
+        "Katalog z aktualnym stanem magazynowym. Korektę stanu wykonasz w wierszu; przyjęcia i wydania — w gospodarce magazynowej.",
+      adjustStock: "Korekta stanu",
       fetchError: "Nie udało się wczytać katalogu części.",
       newPart: "Nowa część",
       editPart: "Edytuj część",
@@ -1290,7 +1292,7 @@ export const pl = {
     },
     warehouse: {
       title: "Gospodarka magazynowa",
-      subtitle: "Stan magazynu, przyjęcia i wydania części zamiennych.",
+      subtitle: "Przyjęcia i wydania części (stan bieżący jest w katalogu części).",
       movementsTitle: "Przyjęcia i wydania",
       movementsSubtitle: "Rejestr PZ (przyjęć) i WZ (wydań) części z magazynu.",
       partStockSublabel: "stan: {qty} {unit}",

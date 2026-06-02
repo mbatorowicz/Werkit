@@ -41,6 +41,11 @@ vi.mock("@/db/schema", () => ({
     resourceGroupId: "resourceGroupId",
     notes: "notes",
   },
+  sparePartInventory: {
+    partId: "partId",
+    companyId: "companyId",
+    quantity: "quantity",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -103,12 +108,18 @@ describe("SparePartService", () => {
         })
         .mockReturnValueOnce({
           from: () => Promise.resolve([]),
+        })
+        .mockReturnValueOnce({
+          from: () => ({
+            where: () => Promise.resolve([]),
+          }),
         });
 
       const result = await SparePartService.getParts(companyId);
       expect(result).toHaveLength(1);
       expect(result[0].categoryIds).toEqual([]);
       expect(result[0].machineCategoryIds).toEqual([]);
+      expect(result[0].stockQuantity).toBe("0");
     });
 
     it("zwraca część z linkami do kategorii", async () => {
@@ -146,10 +157,16 @@ describe("SparePartService", () => {
         })
         .mockReturnValueOnce({
           from: () => Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
+        })
+        .mockReturnValueOnce({
+          from: () => ({
+            where: () => Promise.resolve([{ partId: 1, quantity: "5" }]),
+          }),
         });
 
       const result = await SparePartService.getParts(companyId);
       expect(result[0].categoryIds).toEqual([10, 20]);
+      expect(result[0].stockQuantity).toBe("5");
       expect(result[0].resourceGroupIds).toEqual([30]);
     });
 
@@ -200,6 +217,11 @@ describe("SparePartService", () => {
         .mockReturnValueOnce({
           from: () =>
             Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
+        })
+        .mockReturnValueOnce({
+          from: () => ({
+            where: () => Promise.resolve([]),
+          }),
         });
 
       const result = await SparePartService.getParts(companyId, {

@@ -112,19 +112,20 @@ export function sparePartToFormState(part: SparePart): SparePartFormState {
 
 
 
-export function formStateToSparePartInput(state: SparePartFormState): SparePartInput {
-
+export function formStateToSparePartInput(
+  state: SparePartFormState,
+  opts?: { omitPurchasePrice?: boolean }
+): SparePartInput {
   return {
-
     name: state.name.trim(),
-
     catalogNumber: state.catalogNumber.trim() || undefined,
-
     manufacturer: state.manufacturer.trim() || undefined,
-
     unit: state.unit.trim() || "szt.",
-
-    purchasePrice: state.purchasePrice || null,
+    purchasePrice: opts?.omitPurchasePrice
+      ? undefined
+      : state.purchasePrice.trim()
+        ? state.purchasePrice.trim()
+        : null,
 
     description: state.description.trim() || null,
 

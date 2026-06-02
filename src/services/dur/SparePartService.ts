@@ -3,6 +3,7 @@ import {
   spareParts,
   sparePartToCategories,
   sparePartMachineCompatibility,
+  sparePartInventory,
 } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import {
@@ -34,12 +35,25 @@ export class SparePartService {
       byPartIdGroup.set(l.partId, arr);
     }
 
+    const inventoryRows = await db
+      .select({
+        partId: sparePartInventory.partId,
+        quantity: sparePartInventory.quantity,
+      })
+      .from(sparePartInventory)
+      .where(eq(sparePartInventory.companyId, companyId));
+    const stockByPartId = new Map<number, string>();
+    for (const row of inventoryRows) {
+      stockByPartId.set(row.partId, String(row.quantity ?? "0"));
+    }
+
     const mapped = all.map((p) => ({
       ...p,
       categoryIds: byPartId.get(p.id) ?? [],
       resourceGroupIds: byPartIdGroup.get(p.id) ?? [],
       /** @deprecated alias — użyj resourceGroupIds */
       machineCategoryIds: byPartIdGroup.get(p.id) ?? [],
+      stockQuantity: stockByPartId.get(p.id) ?? "0",
     }));
 
     if (opts?.compatibleWithResourceGroupId != null) {
