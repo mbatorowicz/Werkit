@@ -1,10 +1,7 @@
 "use client";
 
 import { Lock, Eye, EyeOff } from "lucide-react";
-import {
-  WorkerPermissionToggles,
-  type WorkerPermissionToggleConfig,
-} from "@/components/Admin/WorkerPermissionToggles";
+import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
 import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
 
 export interface UserFormState {
@@ -38,7 +35,7 @@ interface UserFormFieldsProps {
   onFormChange: (form: UserFormState) => void;
   onTogglePassword: () => void;
   dict: Record<string, string>;
-  /** Moduł DUR w organizacji — przy false pokazuj podpowiedź przy checkboxie serwisowym. */
+  /** Gdy false — ukryj checkbox pracownika serwisowego (moduł DUR wyłączony). */
   durEnabled?: boolean;
 }
 
@@ -53,7 +50,7 @@ export default function UserFormFields({
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
 
-  const workerToggles: WorkerPermissionToggleConfig[] = [
+  const workerToggles = [
     {
       id: "canCreateOwnOrders",
       checked: form.canCreateOwnOrders,
@@ -74,13 +71,14 @@ export default function UserFormFields({
     },
   ];
 
-  workerToggles.push({
-    id: "isDurWorker",
-    checked: form.isDurWorker,
-    onChange: (checked: boolean) => setForm({ isDurWorker: checked }),
-    label: dict.isDurWorkerLabel,
-    hint: durEnabled ? undefined : dict.isDurWorkerModuleOffHint,
-  });
+  if (durEnabled) {
+    workerToggles.push({
+      id: "isDurWorker",
+      checked: form.isDurWorker,
+      onChange: (checked: boolean) => setForm({ isDurWorker: checked }),
+      label: dict.isDurWorkerLabel,
+    });
+  }
 
   return (
     <div className="space-y-5 p-6">
