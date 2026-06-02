@@ -8,7 +8,6 @@ import {
   Settings,
   TerminalSquare,
   BarChart3,
-  Cog,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -47,12 +46,6 @@ export function buildAdminNavLinks(
       label: adminDict.sidebar.customers,
     },
     { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
-    {
-      kind: "route",
-      href: adminRoutes.dur.spareParts,
-      icon: Cog,
-      label: durDict.sidebar.spareParts,
-    },
     {
       kind: "route",
       href: adminRoutes.dur.warehouse,

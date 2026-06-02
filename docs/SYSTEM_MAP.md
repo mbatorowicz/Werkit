@@ -135,8 +135,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
-| `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Kategorie części (`SparePartsCategoryPanel`) + katalog (`SparePartsTablePanel`) | admin |
-| `/admin/dur/spare-part-categories` | RSC | redirect → `spare-parts` | Legacy URL — kategorie na jednej stronie z katalogiem | admin |
+| `/admin/dur/warehouse` | RSC | `WarehouseClient` | Magazyn: kategorie + katalog (`SparePartsClient` embedded) + przyjęcia/wydania (`StockMovementsClient`) | admin |
+| `/admin/dur/spare-parts` | RSC | redirect → `warehouse` | Legacy URL | admin |
+| `/admin/dur/spare-part-categories` | RSC | redirect → `warehouse` | Legacy URL — kategorie na stronie Magazyn | admin |
 | `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
@@ -148,7 +149,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar **DUR**: `/admin/dur/spare-parts` (kategorie + katalog części), `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Legacy: `/admin/dur/resource-groups` → `/admin/machines`; `/admin/dur/spare-part-categories` → `spare-parts`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines`. Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
+- Sidebar **DUR**: `/admin/dur/warehouse` (Magazyn — katalog części + przyjęcia/wydania). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines`. Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.

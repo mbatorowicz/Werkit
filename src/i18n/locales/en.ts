@@ -1141,7 +1141,7 @@ export const en: AppDictionary = {
       resourceGroups: "Resource types",
       spareParts: "Parts catalog",
       sparePartCategories: "Part categories",
-      warehouse: "Warehouse operations",
+      warehouse: "Warehouse",
     },
     resourceGroups: {
       title: "Resource types",
@@ -1169,7 +1169,7 @@ export const en: AppDictionary = {
       pageSubtitle: "Part categories, catalog items, and current stock levels — on one page.",
       sectionCatalogTitle: "Parts in catalog",
       sectionCatalogSubtitle:
-        "Catalog with live stock. Adjust stock in each row; receipts and issues under Warehouse operations.",
+        "Catalog with live stock. Adjust stock in each row; receipts and issues in the section below.",
       adjustStock: "Adjust stock",
       fetchError: "Could not load the parts catalog.",
       newPart: "New part",
@@ -1279,8 +1279,9 @@ export const en: AppDictionary = {
       removeSuccess: "Link removed.",
     },
     warehouse: {
-      title: "Warehouse Management",
-      subtitle: "Receipts and issues (current stock is shown in the parts catalog).",
+      title: "Warehouse",
+      subtitle:
+        "Part categories, catalog items, stock adjustments, and receipts/issues — on one page.",
       movementsTitle: "Receipts and issues",
       movementsSubtitle: "Goods receipts and warehouse issues.",
       partStockSublabel: "stock: {qty} {unit}",

@@ -1169,7 +1169,7 @@ export const de: AppDictionary = {
       resourceGroups: "Ressourcentypen",
       spareParts: "Teilekatalog",
       sparePartCategories: "Teilekategorien",
-      warehouse: "Lagerverwaltung",
+      warehouse: "Lager",
     },
     resourceGroups: {
       title: "Ressourcentypen",
@@ -1201,7 +1201,7 @@ export const de: AppDictionary = {
         "Teilekategorien, Katalog und aktueller Lagerbestand — auf einer Seite.",
       sectionCatalogTitle: "Teile im Katalog",
       sectionCatalogSubtitle:
-        "Katalog mit Lagerbestand. Bestand in der Zeile korrigieren; Zugänge und Abgänge unter Lagerverwaltung.",
+        "Katalog mit Lagerbestand. Bestand in der Zeile korrigieren; Zugänge und Abgänge im Abschnitt darunter.",
       adjustStock: "Bestand korrigieren",
       fetchError: "Teilekatalog konnte nicht geladen werden.",
       newPart: "Neues Teil",
@@ -1312,8 +1312,9 @@ export const de: AppDictionary = {
       removeSuccess: "Verknüpfung entfernt.",
     },
     warehouse: {
-      title: "Lagerverwaltung",
-      subtitle: "Zugänge und Abgänge (aktueller Bestand steht im Teilekatalog).",
+      title: "Lager",
+      subtitle:
+        "Teilekategorien, Katalog, Bestandskorrekturen sowie Zugänge und Abgänge — auf einer Seite.",
       movementsTitle: "Zugänge und Abgänge",
       movementsSubtitle: "Wareneingänge und Lagerabgänge von Ersatzteilen.",
       partStockSublabel: "Bestand: {qty} {unit}",

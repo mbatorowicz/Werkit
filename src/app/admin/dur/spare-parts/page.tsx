@@ -1,9 +1,7 @@
-import SparePartsClient from "@/features/admin/dur/SparePartsClient";
+import { redirect } from "next/navigation";
+import { adminRoutes } from "@/lib/appRoutes";
 
+/** Legacy URL — katalog i gospodarka magazynowa na `/admin/dur/warehouse`. */
 export default function SparePartsPage() {
-  return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
-      <SparePartsClient />
-    </div>
-  );
+  redirect(adminRoutes.dur.warehouse);
 }

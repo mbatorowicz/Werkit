@@ -1154,7 +1154,7 @@ export const pl = {
       resourceGroups: "Typy zasobów",
       spareParts: "Katalog części",
       sparePartCategories: "Kategorie części",
-      warehouse: "Gospodarka magazynowa",
+      warehouse: "Magazyn",
     },
     resourceGroups: {
       title: "Typy zasobów",
@@ -1184,7 +1184,7 @@ export const pl = {
         "Kategorie części, katalog pozycji i bieżący stan magazynowy — na jednej stronie.",
       sectionCatalogTitle: "Części w katalogu",
       sectionCatalogSubtitle:
-        "Katalog z aktualnym stanem magazynowym. Korektę stanu wykonasz w wierszu; przyjęcia i wydania — w gospodarce magazynowej.",
+        "Katalog z aktualnym stanem magazynowym. Korektę stanu wykonasz w wierszu; przyjęcia i wydania — w sekcji poniżej.",
       adjustStock: "Korekta stanu",
       fetchError: "Nie udało się wczytać katalogu części.",
       newPart: "Nowa część",
@@ -1294,8 +1294,9 @@ export const pl = {
       removeSuccess: "Powiązanie usunięte.",
     },
     warehouse: {
-      title: "Gospodarka magazynowa",
-      subtitle: "Przyjęcia i wydania części (stan bieżący jest w katalogu części).",
+      title: "Magazyn",
+      subtitle:
+        "Kategorie części, katalog pozycji, korekty stanu oraz przyjęcia i wydania — na jednej stronie.",
       movementsTitle: "Przyjęcia i wydania",
       movementsSubtitle: "Rejestr PZ (przyjęć) i WZ (wydań) części z magazynu.",
       partStockSublabel: "stan: {qty} {unit}",
