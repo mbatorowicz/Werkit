@@ -1196,6 +1196,11 @@ export const de: AppDictionary = {
     spareParts: {
       title: "Ersatzteilkatalog",
       subtitle: "Teile für Maschinenreparaturen und Wartung.",
+      pageSubtitle:
+        "Teilekategorien und Katalogpositionen auf einer Seite — wie Ressourcen und Materialien im Admin.",
+      sectionCatalogTitle: "Teile im Katalog",
+      sectionCatalogSubtitle: "Teile für Maschinenreparaturen und Wartung.",
+      fetchError: "Teilekatalog konnte nicht geladen werden.",
       newPart: "Neues Teil",
       editPart: "Teil bearbeiten",
       deletePart: "Teil löschen",

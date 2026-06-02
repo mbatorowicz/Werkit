@@ -135,8 +135,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
-| `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Magazyn części zamiennych DUR — lista, wyszukiwanie, CRUD (`features/admin/dur/SparePartsClient.tsx`) | admin |
-| `/admin/dur/spare-part-categories` | RSC | `SparePartCategoriesClient` | Kategorie części DUR — drzewo hierarchiczne (`features/admin/dur/SparePartCategoriesClient.tsx`) | admin |
+| `/admin/dur/spare-parts` | RSC | `SparePartsClient` | Kategorie części (`SparePartsCategoryPanel`) + katalog (`SparePartsTablePanel`) | admin |
+| `/admin/dur/spare-part-categories` | RSC | redirect → `spare-parts` | Legacy URL — kategorie na jednej stronie z katalogiem | admin |
 | `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
@@ -148,7 +148,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar **DUR**: `/admin/dur/resource-groups` (CRUD `resource_groups`), `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories`, `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Przypisanie zasobu do grupy: formularz zasobu na `/admin/machines`. Kategorie zleceń — drzewo na `/admin/machines` (osobna domena).
+- Sidebar **DUR**: `/admin/dur/resource-groups` (CRUD `resource_groups`), `/admin/dur/spare-parts` (kategorie + katalog części), `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Stary URL `/admin/dur/spare-part-categories` → redirect. Przypisanie zasobu do grupy: formularz zasobu na `/admin/machines`. Kategorie zleceń — drzewo na `/admin/machines` (osobna domena).
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.

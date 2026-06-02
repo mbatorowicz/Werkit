@@ -8,11 +8,13 @@ import type { CategoryAdminVariant } from "./types";
 const API_BASE: Record<CategoryAdminVariant, string> = {
   workOrders: "/api/categories",
   materials: "/api/material-categories",
+  spareParts: "/api/dur/spare-part-categories",
 };
 
 const TELEMETRY_SCOPE: Record<CategoryAdminVariant, string> = {
   workOrders: "Admin machines: category",
   materials: "Admin materials: category",
+  spareParts: "Admin DUR: spare part category",
 };
 
 type Options<TForm> = {

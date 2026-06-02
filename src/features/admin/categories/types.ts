@@ -1,6 +1,6 @@
 import type { CategoryHierarchyRow } from "@/lib/categoryTree";
 
-export type CategoryAdminVariant = "workOrders" | "materials";
+export type CategoryAdminVariant = "workOrders" | "materials" | "spareParts";
 
 export type CategoryAdminTreeItem = CategoryHierarchyRow & {
   color?: string | null;

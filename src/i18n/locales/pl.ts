@@ -1177,6 +1177,11 @@ export const pl = {
     spareParts: {
       title: "Magazyn części zamiennych",
       subtitle: "Katalog części używanych w naprawach i przeglądach maszyn.",
+      pageSubtitle:
+        "Kategorie części i pozycje katalogu na jednej stronie — jak zasoby i materiały w panelu.",
+      sectionCatalogTitle: "Części w katalogu",
+      sectionCatalogSubtitle: "Katalog części używanych w naprawach i przeglądach maszyn.",
+      fetchError: "Nie udało się wczytać katalogu części.",
       newPart: "Nowa część",
       editPart: "Edytuj część",
       deletePart: "Usuń część",

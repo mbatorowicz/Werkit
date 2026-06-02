@@ -1,9 +1,7 @@
-import SparePartCategoriesClient from "@/features/admin/dur/SparePartCategoriesClient";
+import { redirect } from "next/navigation";
+import { adminRoutes } from "@/lib/appRoutes";
 
+/** Kategorie części — jedna strona z katalogiem (`/admin/dur/spare-parts`). */
 export default function SparePartCategoriesPage() {
-  return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
-      <SparePartCategoriesClient />
-    </div>
-  );
+  redirect(adminRoutes.dur.spareParts);
 }

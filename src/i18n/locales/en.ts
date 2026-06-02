@@ -1164,6 +1164,11 @@ export const en: AppDictionary = {
     spareParts: {
       title: "Spare Parts Catalog",
       subtitle: "Parts used in machine repairs and maintenance.",
+      pageSubtitle:
+        "Part categories and catalog items on one page — like resources and materials in the admin panel.",
+      sectionCatalogTitle: "Parts in catalog",
+      sectionCatalogSubtitle: "Parts used in machine repairs and maintenance.",
+      fetchError: "Could not load the parts catalog.",
       newPart: "New part",
       editPart: "Edit part",
       deletePart: "Delete part",

@@ -10,7 +10,6 @@ import {
   BarChart3,
   Cog,
   Layers,
-  Tags,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -60,12 +59,6 @@ export function buildAdminNavLinks(
       href: adminRoutes.dur.spareParts,
       icon: Cog,
       label: durDict.sidebar.spareParts,
-    },
-    {
-      kind: "route",
-      href: adminRoutes.dur.sparePartCategories,
-      icon: Tags,
-      label: durDict.sidebar.sparePartCategories,
     },
     {
       kind: "route",

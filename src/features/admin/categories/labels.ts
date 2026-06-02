@@ -2,10 +2,21 @@ import { getDictionary } from "@/i18n";
 import type { CategoryAdminLabels, CategoryAdminVariant } from "./types";
 
 export function getCategoryAdminLabels(variant: CategoryAdminVariant): CategoryAdminLabels {
-  const { shared, workOrders, materials } = getDictionary().admin.categories;
-  const scope = variant === "workOrders" ? workOrders : materials;
+  const adminCat = getDictionary().admin.categories;
+  if (variant === "spareParts") {
+    const scope = getDictionary().dur.categories;
+    return {
+      ...adminCat.shared,
+      ...scope.shared,
+      panelTitle: scope.title,
+      empty: scope.empty,
+      confirmDelete: scope.confirmDelete,
+      namePlaceholder: scope.namePlaceholder,
+    };
+  }
+  const scope = variant === "workOrders" ? adminCat.workOrders : adminCat.materials;
   return {
-    ...shared,
+    ...adminCat.shared,
     panelTitle: scope.panelTitle,
     empty: scope.empty,
     confirmDelete: scope.confirmDelete,
