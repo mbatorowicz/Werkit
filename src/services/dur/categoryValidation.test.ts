@@ -28,6 +28,10 @@ vi.mock("drizzle-orm", () => ({
   inArray: (col: unknown, vals: unknown[]) => vals,
 }));
 
+vi.mock("@/lib/categoryTree", () => ({
+  isDescendantOf: (_rows: unknown[], _nodeId: number, _ancestorId: number) => false,
+}));
+
 import {
   validateHierarchyPatch,
   countSparePartCategoryChildren,
