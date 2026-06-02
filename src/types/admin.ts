@@ -98,7 +98,7 @@ export type BaseCategory = {
   showResourceName: boolean;
   showResourceDescription: boolean;
   showRegistrationNumber: boolean;
-  /** Typ zlecenia dla kategorii: machine_work | machine_repair. null = domyślny (machine_work). */
+  /** Rodzaj zlecenia dla kategorii: machine_work | machine_repair. null = domyślny (machine_work). */
   orderType?: OrderType | null;
 };
 

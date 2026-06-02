@@ -41,7 +41,7 @@ export function workOrderListSharedSelectFields(creator: WorkOrderCreatorUserAli
     createdAt: workOrders.createdAt,
     hasPhotos: sqlWorkOrderHasPhotos(),
     hasNotes: sqlWorkOrderHasNotes(),
-    /** Typ zlecenia: machine_work | machine_repair. */
+    /** Rodzaj zlecenia: machine_work | machine_repair. */
     orderType: workOrders.orderType,
     /** Opis naprawy (dla machine_repair). */
     repairDescription: workOrders.repairDescription,

@@ -34,7 +34,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
     const customerName = `${item.customerLastName || ""} ${item.customerFirstName || ""}`.trim();
     return [
       `#${item.workOrderId || item.id}`,
-      `${fields.orderType}: ${item.categoryName || "—"}`,
+      `${fields.category}: ${item.categoryName || "—"}`,
       `${fields.resource}: ${item.resourceName || "—"}`,
       `${fields.material}: ${item.materialName || "—"}`,
       `${fields.quantity}: ${item.quantityTons ? `${item.quantityTons}t` : "—"}`,

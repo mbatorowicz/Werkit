@@ -115,7 +115,7 @@ export function OrderLabelCard({
   const attachDict = getDictionary().worker.client;
   const fieldLabels = getDictionary().admin.orderFields;
   const labels = {
-    mode: fieldLabels.orderType,
+    mode: fieldLabels.category,
     machine: fieldLabels.resource,
     material: fieldLabels.material,
     quantity: fieldLabels.quantity,

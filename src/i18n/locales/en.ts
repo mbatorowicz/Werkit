@@ -41,11 +41,11 @@ export const en: AppDictionary = {
     invalid_payload: "Invalid form data.",
     short_query: "Geocode query is too short (min. 3 characters).",
     query_too_long: "Geocode query is too long (max. 280 characters).",
-    invalid_category: "Missing or invalid order type (category).",
-    missing_customer: "This order type requires selecting a customer.",
-    missing_material: "This order type requires selecting a material.",
-    missing_quantity: "This order type requires a positive quantity (tons).",
-    missing_task_description: "This order type requires a short description.",
+    invalid_category: "Missing or invalid order category.",
+    missing_customer: "This order category requires selecting a customer.",
+    missing_material: "This order category requires selecting a material.",
+    missing_quantity: "This order category requires a positive quantity (tons).",
+    missing_task_description: "This order category requires a short description.",
     session_still_active:
       "Session is still active — finish it manually first or from the worker app.",
     schedule_conflict: "This time slot conflicts with another order or active session.",
@@ -189,7 +189,7 @@ export const en: AppDictionary = {
       workOrders: {
         panelTitle: "Order categories",
         panelSubtitle:
-          "Tree of groups and categories: field order types and form fields.",
+          "Tree of groups and categories: order categories in the field and form fields.",
         empty:
           "Add your first category or group (e.g. transport, yard) to configure order forms.",
         confirmDelete: "Delete this entry? It will no longer be assignable to resources or orders.",
@@ -247,8 +247,8 @@ export const en: AppDictionary = {
       workersCurrentlyWorking: "Workers fulfilling an order right now",
       pendingOrdersTotal: "Pending orders (count)",
       activeSessionsLive: "Active GPS sessions (in progress)",
-      activeByCategoryTitle: "Live sessions by order type",
-      uncategorized: "Uncategorized order type",
+      activeByCategoryTitle: "Live sessions by order category",
+      uncategorized: "No order category assigned",
       activeEquipmentTitle: "Equipment active in the field",
       taskSummaryHint: "Route details and dispatch edits — Orders module.",
       vsPrevMonthUp: "up vs previous month",
@@ -265,7 +265,7 @@ export const en: AppDictionary = {
       choosePeriod: "Choose Period",
       workerAndTime: "Worker / Time",
       machine: "Resource",
-      taskType: "Order / type",
+      taskType: "Order / category",
       status: "Status",
       fetching: "Fetching registry...",
       noEntries: "No entries in the registry",
@@ -293,7 +293,7 @@ export const en: AppDictionary = {
       issueOrder: "Issue Order for Worker",
       chooseWorker: "Choose worker",
       chooseFromList: "Choose someone from the list...",
-      jobType: "Job Type",
+      jobType: "Order category",
       transportType: "Material transport",
       machineType: "Resource operation",
       workshopType: "Workshop / Repairs",
@@ -318,7 +318,7 @@ export const en: AppDictionary = {
       chooseMachine: "Assign resource",
       chooseMaterial: "Choose material (optional)",
       chooseCustomer: "Choose Customer/Address (Optional)",
-      chooseJobTypePlaceholder: "Select order type…",
+      chooseJobTypePlaceholder: "Select order category…",
       searchPlaceholder: "Search…",
       searchNoResults: "No results",
       searchClear: "Clear",
@@ -338,8 +338,9 @@ export const en: AppDictionary = {
       modalEditOrderTitle: "Edit order {id}",
       optionalSuffix: "(optional)",
       taskOptionalHint:
-        "You can still leave notes for the operator — not required for this job type.",
-      pickCategoryFirstHint: "Pick an order type first to set the resource and form fields.",
+        "You can still leave notes for the operator — not required for this order category.",
+      pickCategoryFirstHint:
+        "Pick an order category first to set the resource and form fields.",
       taskDesc: "Short order description / notes for the driver",
       taskDescPlaceholder: "e.g. Watch out for muddy terrain at the entrance...",
       save: "Confirm and Send Order",
@@ -477,7 +478,8 @@ export const en: AppDictionary = {
       groupByResource: "Resource",
     },
     orderFields: {
-      orderType: "Order type",
+      category: "Order category",
+      orderType: "Order kind",
       resource: "Resource",
       material: "Material",
       quantity: "Quantity",
@@ -544,10 +546,10 @@ export const en: AppDictionary = {
     },
     machines: {
       fleetTitle: "Operational resources",
-      pageSubtitle: "Order and resource category tree plus the operational registry.",
+      pageSubtitle: "Resource types and registry of vehicles, equipment, and locations.",
       sectionVehiclesTitle: "Resource registry",
       fleetSubtitle:
-        "Registry entries (vehicles, machines, locations, etc.) under the categories above.",
+        "Registry entries — assign a resource type and order categories (configure order categories under Orders).",
       registerVehicle: "Add resource",
       addResource: "Add resource",
       resourceColTitle: "Resource",
@@ -576,9 +578,9 @@ export const en: AppDictionary = {
       resourceGroupLabel: "Resource type",
       resourceGroupNone: "— no type —",
       resourceGroupHint:
-        "Assign the resource type (e.g. model). Categories below are order categories — separate concept.",
+        "Assign the resource type (e.g. model). Below you assign order categories — a separate classification.",
       machCatLabel: "Order categories",
-      machCatWarning: "Add an order category above first.",
+      machCatWarning: "Add an order category first under Orders.",
       saveFleet: "Save",
       catResourceFormTitle: "Resource form in this category",
       catResourceFormHint:
@@ -835,7 +837,7 @@ export const en: AppDictionary = {
       sessionStationaryBadge: "Job mode",
       sessionStationaryGpsNote: "Stationary — no GPS route tracking.",
       sessionStationaryMapHint:
-        "For this equipment type we do not record route or distance to the customer address. You can still add notes and photos as usual.",
+        "For this order category we do not record route or distance to the customer address. You can still add notes and photos as usual.",
       routeEditHint:
         "Tap the map to add a point. Drag a yellow point or tap it and choose Delete — changes save automatically.",
       toDest: "To Dest.",
@@ -921,10 +923,10 @@ export const en: AppDictionary = {
       wizardSummarySchedule: "Schedule:",
       wizardClassType: "Class assigned in system",
       wizardChangeLink: "Change",
-      wizardSelectedType: "Order type:",
+      wizardSelectedType: "Order category:",
       wizardSelectedMachine: "Resource:",
       wizardBack: "Back",
-      wizardBackToType: "Back to type selection",
+      wizardBackToType: "Back to category selection",
       wizardNext: "Next",
       wizardStartWork: "Start Work",
       wizardFixData: "Fix Data",
@@ -1379,7 +1381,7 @@ export const en: AppDictionary = {
       invalid_category:
         "Select a spare part category (a leaf in the tree, not an organizational group).",
       invalid_resource_group:
-        "Selected resource type does not exist (Maintenance → Resource types).",
+        "Selected resource type does not exist (Resources → Resource types).",
       missing_part_id: "Select a part from the catalog.",
       invalid_quantity: "Enter a positive quantity.",
       insufficient_stock: "Insufficient stock.",

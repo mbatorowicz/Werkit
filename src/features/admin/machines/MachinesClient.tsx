@@ -5,7 +5,6 @@ import { Wrench } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminCollapsibleSection } from "@/components/Admin/AdminCollapsibleSection";
-import { MachinesClientCategoryPanel } from "@/features/admin/machines/MachinesClientCategoryPanel";
 import {
   MachinesClientMachineFormPanel,
   type MachinesClientMachineFormHandle,
@@ -42,25 +41,10 @@ export default function MachinesClient() {
         </h1>
       </div>
 
-      <div className="space-y-4">
+      <div className="mb-6">
         <AdminCollapsibleSection
-          title={getDictionary().admin.categories.workOrders.panelTitle}
-          subtitle={getDictionary().admin.categories.workOrders.panelSubtitle}
-          defaultOpen={false}
-        >
-          <MachinesClientCategoryPanel
-            dict={dict}
-            apiErrors={apiErrors}
-            categories={categories}
-            isLoading={isLoading}
-            canMutate={canMutate}
-            fetchData={fetchData}
-          />
-        </AdminCollapsibleSection>
-
-        <AdminCollapsibleSection
-          title={getDictionary().dur.resourceGroups.title}
-          subtitle={getDictionary().dur.resourceGroups.subtitle}
+          title={dictionary.dur.resourceGroups.title}
+          subtitle={dictionary.dur.resourceGroups.subtitle}
           defaultOpen={false}
         >
           <DurResourceGroupsClient />

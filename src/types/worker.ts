@@ -1,6 +1,6 @@
 export type WorkOrderPriority = "URGENT" | "HIGH" | "NORMAL" | "LOW";
 
-/** Typ zlecenia: machine_work (praca na maszynie) lub machine_repair (naprawa maszyny). */
+/** Rodzaj zlecenia: machine_work (praca na maszynie) lub machine_repair (naprawa maszyny). */
 export type OrderType = "machine_work" | "machine_repair";
 
 export type Session = {
@@ -30,7 +30,7 @@ export type Session = {
   /** Z załączników sesji (lista historii). */
   hasPhotos?: boolean;
   hasNotes?: boolean;
-  /** Typ zlecenia (machine_work | machine_repair) — propagowany z work_order lub kategorii. */
+  /** Rodzaj zlecenia (machine_work | machine_repair) — propagowany z work_order lub kategorii. */
   orderType?: OrderType | null;
   /** Opis naprawy (dla machine_repair). */
   repairDescription?: string | null;
@@ -57,7 +57,7 @@ export type WorkOrder = {
   /** Z realizacji powiązanej sesji (jeśli była). */
   hasPhotos?: boolean;
   hasNotes?: boolean;
-  /** Typ zlecenia. */
+  /** Rodzaj zlecenia. */
   orderType?: OrderType | null;
   /** Opis naprawy (dla machine_repair). */
   repairDescription?: string | null;

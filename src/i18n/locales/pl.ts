@@ -39,11 +39,11 @@ export const pl = {
     invalid_payload: "Nieprawidłowe dane formularza.",
     short_query: "Zapytanie geokodowania jest za krótkie (min. 3 znaki).",
     query_too_long: "Zapytanie geokodowania jest za długie (maks. 280 znaków).",
-    invalid_category: "Brak lub nieprawidłowy typ zlecenia (kategoria).",
-    missing_customer: "Ten typ zlecenia wymaga wyboru klienta.",
-    missing_material: "Ten typ zlecenia wymaga wyboru materiału.",
-    missing_quantity: "Ten typ zlecenia wymaga podania dodatniej ilości (tony).",
-    missing_task_description: "Ten typ zlecenia wymaga krótkiego opisu.",
+    invalid_category: "Brak lub nieprawidłowa kategoria zlecenia.",
+    missing_customer: "Ta kategoria zlecenia wymaga wyboru klienta.",
+    missing_material: "Ta kategoria zlecenia wymaga wyboru materiału.",
+    missing_quantity: "Ta kategoria zlecenia wymaga podania dodatniej ilości (tony).",
+    missing_task_description: "Ta kategoria zlecenia wymaga krótkiego opisu.",
     session_still_active:
       "Sesja jest nadal aktywna — najpierw zakończ ją ręcznie lub w aplikacji pracownika.",
     schedule_conflict: "Termin koliduje z innym zleceniem lub aktywną sesją w tym samym czasie.",
@@ -190,7 +190,7 @@ export const pl = {
       workOrders: {
         panelTitle: "Kategorie zleceń",
         panelSubtitle:
-          "Drzewo grup i kategorii: typy zleceń w terenie oraz pola formularza.",
+          "Drzewo grup i kategorii: kategorie zleceń w terenie oraz pola formularza.",
         empty:
           "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby ustawiać formularze zleceń.",
         confirmDelete: "Usunąć ten wpis? Nie przypiszesz go już do nowych zleceń.",
@@ -248,8 +248,8 @@ export const pl = {
       workersCurrentlyWorking: "Pracownicy realizujący zlecenie teraz",
       pendingOrdersTotal: "Zlecenia oczekujące (szt.)",
       activeSessionsLive: "Aktywne sesje GPS (trwające)",
-      activeByCategoryTitle: "Trwające sesje wg typu zlecenia",
-      uncategorized: "Bez przypisanego typu",
+      activeByCategoryTitle: "Trwające sesje wg kategorii zlecenia",
+      uncategorized: "Bez przypisanej kategorii",
       activeEquipmentTitle: "Aktywne zasoby w terenie",
       taskSummaryHint: "Szczegóły tras i edycja dyspozycji — moduł Zlecenia.",
       vsPrevMonthUp: "wzrost vs poprzedni miesiąc",
@@ -266,7 +266,7 @@ export const pl = {
       choosePeriod: "Wybierz Okres",
       workerAndTime: "Pracownik / Czas",
       machine: "Zasób",
-      taskType: "Zlecenie / typ",
+      taskType: "Zlecenie / kategoria",
       status: "Status",
       fetching: "Pobieranie ewidencji...",
       noEntries: "Brak wpisów w ewidencji",
@@ -295,7 +295,7 @@ export const pl = {
       issueOrder: "Wystaw Zlecenie dla Pracownika",
       chooseWorker: "Wybierz pracownika",
       chooseFromList: "Wybierz kogoś z listy...",
-      jobType: "Typ zlecenia",
+      jobType: "Kategoria zlecenia",
       transportType: "Transport materiałów",
       machineType: "Praca zasobem",
       workshopType: "Warsztat / naprawy",
@@ -320,7 +320,7 @@ export const pl = {
       chooseMachine: "Przypisz zasób",
       chooseMaterial: "Wybierz materiał (opcjonalnie)",
       chooseCustomer: "Wybierz Klienta/Adres (Opcjonalne)",
-      chooseJobTypePlaceholder: "Wybierz typ zlecenia…",
+      chooseJobTypePlaceholder: "Wybierz kategorię zlecenia…",
       searchPlaceholder: "Szukaj…",
       searchNoResults: "Brak wyników",
       searchClear: "Wyczyść",
@@ -339,8 +339,10 @@ export const pl = {
         "Brak zasobów w tej kategorii. Dodaj wpis w rejestrze zasobów lub oznacz kategorię jako globalną.",
       modalEditOrderTitle: "Edytuj zlecenie nr {id}",
       optionalSuffix: "(opcjonalnie)",
-      taskOptionalHint: "Możesz dopisać uwagi dla operatora — ten typ pracy nie wymaga opisu.",
-      pickCategoryFirstHint: "Wybierz typ zlecenia, aby ustawić zasób i pola formularza.",
+      taskOptionalHint:
+        "Możesz dopisać uwagi dla operatora — ta kategoria zlecenia nie wymaga opisu.",
+      pickCategoryFirstHint:
+        "Wybierz kategorię zlecenia, aby ustawić zasób i pola formularza.",
       taskDesc: "Krótki opis zlecenia / uwagi dla kierowcy",
       taskDescPlaceholder: "np. Uważaj na grząski teren przy wjeździe...",
       save: "Zatwierdź i Wyślij Zlecenie",
@@ -433,7 +435,8 @@ export const pl = {
       groupByResource: "Zasób",
     },
     orderFields: {
-      orderType: "Typ zlecenia",
+      category: "Kategoria zlecenia",
+      orderType: "Rodzaj zlecenia",
       resource: "Zasób",
       material: "Materiał",
       quantity: "Ilość",
@@ -545,10 +548,10 @@ export const pl = {
     },
     machines: {
       fleetTitle: "Zasoby operacyjne",
-      pageSubtitle: "Drzewo kategorii zleceń i zasobów oraz rejestr wpisów operacyjnych.",
+      pageSubtitle: "Typy zasobów i rejestr pojazdów, urządzeń oraz lokalizacji.",
       sectionVehiclesTitle: "Rejestr zasobów",
       fleetSubtitle:
-        "Wpisy w rejestrze (pojazdy, urządzenia, lokalizacje itd.) — według kategorii powyżej.",
+        "Wpisy w rejestrze — przypisz typ zasobu oraz kategorie zleceń (kategorie zleceń konfigurujesz w module Zlecenia).",
       registerVehicle: "Dodaj zasób",
       addResource: "Dodaj zasób",
       resourceColTitle: "Zasób",
@@ -577,9 +580,9 @@ export const pl = {
       resourceGroupLabel: "Typ zasobu",
       resourceGroupNone: "— bez typu —",
       resourceGroupHint:
-        "Przypisz typ zasobu (np. model). Kategorie poniżej to kategorie zleceń — osobna sprawa.",
+        "Przypisz typ zasobu (np. model). Poniżej przypisujesz kategorie zleceń — inna klasyfikacja.",
       machCatLabel: "Kategorie zleceń",
-      machCatWarning: "Najpierw dodaj kategorię zleceń powyżej.",
+      machCatWarning: "Najpierw dodaj kategorię zlecenia w module Zlecenia.",
       saveFleet: "Zapisz",
       catResourceFormTitle: "Formularz zasobu w tej kategorii",
       catResourceFormHint:
@@ -841,7 +844,7 @@ export const pl = {
       sessionStationaryBadge: "Tryb pracy",
       sessionStationaryGpsNote: "Stacjonarnie — bez śledzenia trasy GPS.",
       sessionStationaryMapHint:
-        "Dla tego typu zlecenia nie zapisujemy trasy ani odległości do adresu klienta. Możesz normalnie dodawać notatki i zdjęcia.",
+        "Dla tej kategorii zlecenia nie zapisujemy trasy ani odległości do adresu klienta. Możesz normalnie dodawać notatki i zdjęcia.",
       routeEditHint:
         "Kliknij mapę, aby dodać punkt. Przeciągnij żółty punkt lub kliknij go i wybierz „Usuń” — zmiany zapisują się automatycznie.",
       toDest: "Do Celu",
@@ -928,10 +931,10 @@ export const pl = {
       wizardSummarySchedule: "Termin:",
       wizardClassType: "Klasa przypisana w systemie",
       wizardChangeLink: "Zmień",
-      wizardSelectedType: "Typ zlecenia:",
+      wizardSelectedType: "Kategoria zlecenia:",
       wizardSelectedMachine: "Zasób:",
       wizardBack: "Wróć",
-      wizardBackToType: "Wróć do wyboru typu",
+      wizardBackToType: "Wróć do wyboru kategorii",
       wizardNext: "Dalej",
       wizardStartWork: "Start Pracy",
       wizardFixData: "Popraw Dane",
@@ -1393,7 +1396,7 @@ export const pl = {
       invalid_category:
         "Wybierz kategorię części (konkretną pozycję w drzewie, nie grupę organizacyjną).",
       invalid_resource_group:
-        "Wybrany typ zasobu nie istnieje (moduł utrzymania ruchu → typy zasobów).",
+        "Wybrany typ zasobu nie istnieje (Zasoby → typy zasobów).",
       missing_part_id: "Wybierz część z katalogu.",
       invalid_quantity: "Podaj dodatnią ilość.",
       insufficient_stock: "Niewystarczający stan magazynowy.",

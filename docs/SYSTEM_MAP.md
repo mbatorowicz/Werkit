@@ -126,10 +126,10 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/` | RSC | — | `redirect('/login')` | root |
 | `/login` | Client (`use client`) | treść w `login/page.tsx` | Login + biometryczny przycisk; POST `/api/auth/login` | root |
 | `/privacy-policy` | static | treść w `privacy-policy/page.tsx` | Polityka prywatności | root |
-| `/admin` | RSC | `OrdersClient` | Dyspozycja (Gantt, mapa, zlecenia); `features/admin/orders/OrdersClient.tsx` | `admin/layout.tsx` |
+| `/admin` | RSC | `OrdersClient` | Zlecenia (Gantt, kategorie zleceń, planowanie); `features/admin/orders/OrdersClient.tsx` | `admin/layout.tsx` |
 | `/admin/orders` | RSC | — | Legacy redirect → `/admin` (zachowuje query, np. `?open=` z Gantta) | admin |
 | `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi uprawnień (`features/admin/users/UsersClient.tsx`) | admin |
-| `/admin/machines` | RSC | `MachinesClient` | Rejestr zasobów + kategorie zleceń (`features/admin/machines/MachinesClient.tsx`) | admin |
+| `/admin/machines` | RSC | `MachinesClient` | Typy zasobów (zwijany blok) + rejestr zasobów (`features/admin/machines/MachinesClient.tsx`) | admin |
 | `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + lokalizacje + geocode (`features/admin/customers/`) | admin |
 | `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów (`features/admin/materials/MaterialsClient.tsx`) | admin |
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
@@ -148,7 +148,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar **DUR**: `/admin/dur/resource-groups` (CRUD `resource_groups`), `/admin/dur/spare-parts` (kategorie + katalog części), `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Stary URL `/admin/dur/spare-part-categories` → redirect. Przypisanie zasobu do grupy: formularz zasobu na `/admin/machines`. Kategorie zleceń — drzewo na `/admin/machines` (osobna domena).
+- Sidebar **DUR**: `/admin/dur/spare-parts` (kategorie + katalog części), `/admin/dur/warehouse` (`WarehouseClient` — stan, przyjęcia, wydania). Legacy: `/admin/dur/resource-groups` → `/admin/machines`; `/admin/dur/spare-part-categories` → `spare-parts`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines`. Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -589,6 +589,20 @@ Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors`, `dur.workOrderSpareParts` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API, części w zleceniu naprawy |
 
 Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej UI pokaże surowy kod.
+
+### 13.1. Słownik produktowy (UI vs kod)
+
+W tekstach dla użytkownika (**pl/en/de**) trzymaj rozróżnienie — nazwy tabel/API mogą zostać historyczne (`category_id`, `order_type`):
+
+| Słowo w UI | Znaczenie | W bazie / API |
+|---|---|---|
+| **Typ zasobu** | Model/rodzina zasobu (dobór części DUR) | `resource_groups`, `resources.resource_group_id` |
+| **Kategoria zlecenia** | Drzewo w module Zlecenia, pole formularza zlecenia | `resource_categories`, `work_orders.category_id` |
+| **Kategoria materiału** | Drzewo materiałów | `material_categories` |
+| **Kategoria części** | Katalog DUR | `spare_part_categories` |
+| **Rodzaj zlecenia** | Praca operacyjna vs naprawa | `order_type` ∈ `machine_work` \| `machine_repair` |
+
+Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji słownikowej; **„Rodzaj”** — enum pracy vs naprawy. Etykiety list: `admin.orderFields.category` (kategoria), `orderFields.orderType` (rodzaj).
 
 ---
 

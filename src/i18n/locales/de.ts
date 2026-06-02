@@ -42,11 +42,11 @@ export const de: AppDictionary = {
     invalid_payload: "Ungültige Formulardaten.",
     short_query: "Geocode-Abfrage ist zu kurz (min. 3 Zeichen).",
     query_too_long: "Geocode-Abfrage ist zu lang (max. 280 Zeichen).",
-    invalid_category: "Fehlender oder ungültiger Auftragstyp (Kategorie).",
-    missing_customer: "Dieser Auftragstyp erfordert die Auswahl eines Kunden.",
-    missing_material: "Dieser Auftragstyp erfordert die Auswahl eines Materials.",
-    missing_quantity: "Dieser Auftragstyp erfordert eine positive Menge (Tonnen).",
-    missing_task_description: "Dieser Auftragstyp erfordert eine kurze Beschreibung.",
+    invalid_category: "Fehlende oder ungültige Auftragskategorie.",
+    missing_customer: "Diese Auftragskategorie erfordert die Auswahl eines Kunden.",
+    missing_material: "Diese Auftragskategorie erfordert die Auswahl eines Materials.",
+    missing_quantity: "Diese Auftragskategorie erfordert eine positive Menge (Tonnen).",
+    missing_task_description: "Diese Auftragskategorie erfordert eine kurze Beschreibung.",
     session_still_active:
       "Sitzung ist noch aktiv — beenden Sie sie zuerst manuell oder in der Arbeiter-App.",
     schedule_conflict:
@@ -193,7 +193,7 @@ export const de: AppDictionary = {
       workOrders: {
         panelTitle: "Auftragskategorien",
         panelSubtitle:
-          "Baum von Gruppen und Kategorien: Auftragstypen im Feld und Formularfelder.",
+          "Baum von Gruppen und Kategorien: Auftragskategorien im Feld und Formularfelder.",
         empty:
           "Fügen Sie Ihre erste Kategorie oder Gruppe hinzu (z.B. Transport, Hof), um Auftragsformulare zu konfigurieren.",
         confirmDelete:
@@ -255,8 +255,8 @@ export const de: AppDictionary = {
       workersCurrentlyWorking: "Arbeiter, die gerade einen Auftrag ausführen",
       pendingOrdersTotal: "Ausstehende Aufträge (Anzahl)",
       activeSessionsLive: "Aktive GPS-Sitzungen (in Bearbeitung)",
-      activeByCategoryTitle: "Live-Sitzungen nach Auftragstyp",
-      uncategorized: "Ohne zugewiesenen Typ",
+      activeByCategoryTitle: "Live-Sitzungen nach Auftragskategorie",
+      uncategorized: "Ohne zugewiesene Auftragskategorie",
       activeEquipmentTitle: "Aktive Geräte im Feld",
       taskSummaryHint: "Routendetails und Dispositionsbearbeitung — Modul Aufträge.",
       vsPrevMonthUp: "Anstieg zum Vormonat",
@@ -273,7 +273,7 @@ export const de: AppDictionary = {
       choosePeriod: "Zeitraum wählen",
       workerAndTime: "Arbeiter / Zeit",
       machine: "Ressource",
-      taskType: "Auftrag / Typ",
+      taskType: "Auftrag / Kategorie",
       status: "Status",
       fetching: "Register wird abgerufen...",
       noEntries: "Keine Einträge im Register",
@@ -303,7 +303,7 @@ export const de: AppDictionary = {
       issueOrder: "Auftrag für Arbeiter erteilen",
       chooseWorker: "Arbeiter auswählen",
       chooseFromList: "Jemanden aus der Liste auswählen...",
-      jobType: "Auftragstyp",
+      jobType: "Auftragskategorie",
       transportType: "Materialtransport",
       machineType: "Ressourceneinsatz",
       workshopType: "Werkstatt / Reparaturen",
@@ -328,7 +328,7 @@ export const de: AppDictionary = {
       chooseMachine: "Ressource zuweisen",
       chooseMaterial: "Material auswählen (optional)",
       chooseCustomer: "Kunden/Adresse auswählen (optional)",
-      chooseJobTypePlaceholder: "Auftragstyp auswählen…",
+      chooseJobTypePlaceholder: "Auftragskategorie auswählen…",
       searchPlaceholder: "Suchen…",
       searchNoResults: "Keine Ergebnisse",
       searchClear: "Löschen",
@@ -348,9 +348,9 @@ export const de: AppDictionary = {
       modalEditOrderTitle: "Auftrag {id} bearbeiten",
       optionalSuffix: "(optional)",
       taskOptionalHint:
-        "Sie können trotzdem Notizen für den Bediener hinterlassen — für diesen Auftragstyp nicht erforderlich.",
+        "Sie können trotzdem Notizen für den Bediener hinterlassen — für diese Auftragskategorie nicht erforderlich.",
       pickCategoryFirstHint:
-        "Wählen Sie zuerst einen Auftragstyp, um die Ressource und Formularfelder festzulegen.",
+        "Wählen Sie zuerst eine Auftragskategorie, um die Ressource und Formularfelder festzulegen.",
       taskDesc: "Kurze Auftragsbeschreibung / Hinweise für den Fahrer",
       taskDescPlaceholder: "z.B. Achten Sie auf matschiges Gelände am Eingang...",
       save: "Bestätigen und Auftrag senden",
@@ -488,7 +488,8 @@ export const de: AppDictionary = {
       groupByResource: "Ressource",
     },
     orderFields: {
-      orderType: "Auftragstyp",
+      category: "Auftragskategorie",
+      orderType: "Auftragsart",
       resource: "Ressource",
       material: "Material",
       quantity: "Menge",
@@ -556,10 +557,10 @@ export const de: AppDictionary = {
     },
     machines: {
       fleetTitle: "Betriebsmittel",
-      pageSubtitle: "Auftrags- und Ressourcenkategoriebaum plus Betriebsregister.",
+      pageSubtitle: "Ressourcentypen und Register für Fahrzeuge, Geräte und Standorte.",
       sectionVehiclesTitle: "Ressourcenregister",
       fleetSubtitle:
-        "Registereinträge (Fahrzeuge, Geräte, Standorte usw.) unter den obigen Kategorien.",
+        "Registereinträge — Ressourcentyp und Auftragskategorien zuordnen (Auftragskategorien unter Aufträge konfigurieren).",
       registerVehicle: "Ressource hinzufügen",
       addResource: "Ressource hinzufügen",
       resourceColTitle: "Ressource",
@@ -588,9 +589,9 @@ export const de: AppDictionary = {
       resourceGroupLabel: "Ressourcentyp",
       resourceGroupNone: "— kein Typ —",
       resourceGroupHint:
-        "Ressourcentyp (z.B. Modell) zuordnen. Kategorien unten sind Auftragskategorien — getrennt.",
+        "Ressourcentyp (z.B. Modell) zuordnen. Unten ordnen Sie Auftragskategorien zu — getrennte Klassifikation.",
       machCatLabel: "Auftragskategorien",
-      machCatWarning: "Zuerst eine Auftragskategorie oben hinzufügen.",
+      machCatWarning: "Zuerst eine Auftragskategorie unter Aufträge anlegen.",
       saveFleet: "Speichern",
       catResourceFormTitle: "Ressourcenformular in dieser Kategorie",
       catResourceFormHint:
@@ -856,7 +857,7 @@ export const de: AppDictionary = {
       sessionStationaryBadge: "Arbeitsmodus",
       sessionStationaryGpsNote: "Stationär — keine GPS-Routenverfolgung.",
       sessionStationaryMapHint:
-        "Für diesen Gerätetyp zeichnen wir keine Route oder Entfernung zur Kundenadresse auf. Sie können weiterhin wie gewohnt Notizen und Fotos hinzufügen.",
+        "Für diese Auftragskategorie zeichnen wir keine Route oder Entfernung zur Kundenadresse auf. Sie können weiterhin wie gewohnt Notizen und Fotos hinzufügen.",
       routeEditHint:
         "Tippen Sie auf die Karte, um einen Punkt hinzuzufügen. Ziehen Sie einen gelben Punkt oder tippen Sie darauf und wählen Sie Löschen — Änderungen werden automatisch gespeichert.",
       toDest: "Zum Ziel",
@@ -946,10 +947,10 @@ export const de: AppDictionary = {
       wizardSummarySchedule: "Zeitplan:",
       wizardClassType: "Im System zugewiesene Klasse",
       wizardChangeLink: "Ändern",
-      wizardSelectedType: "Auftragstyp:",
+      wizardSelectedType: "Auftragskategorie:",
       wizardSelectedMachine: "Ressource:",
       wizardBack: "Zurück",
-      wizardBackToType: "Zurück zur Typauswahl",
+      wizardBackToType: "Zurück zur Kategorieauswahl",
       wizardNext: "Weiter",
       wizardStartWork: "Arbeit starten",
       wizardFixData: "Daten korrigieren",
@@ -1413,7 +1414,7 @@ export const de: AppDictionary = {
       invalid_category:
         "Wählen Sie eine Ersatzteilkategorie (Blatt im Baum, keine Organisationsgruppe).",
       invalid_resource_group:
-        "Ausgewählter Ressourcentyp existiert nicht (Instandhaltung → Ressourcentypen).",
+        "Ausgewählter Ressourcentyp existiert nicht (Ressourcen → Ressourcentypen).",
       missing_part_id: "Teil aus dem Katalog wählen.",
       invalid_quantity: "Positive Menge eingeben.",
       insufficient_stock: "Nicht genügend Lagerbestand.",
