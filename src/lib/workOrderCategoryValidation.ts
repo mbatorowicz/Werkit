@@ -1,4 +1,6 @@
+import { resolveOrderType } from "@/lib/orderType";
 import { DictionaryService } from "@/services/DictionaryService";
+import type { OrderType } from "@/types/worker";
 
 export type CategoryRequirementFlags = {
   reqCustomer: boolean;
@@ -74,4 +76,14 @@ export function coerceWorkOrderPriority(value: unknown): "URGENT" | "HIGH" | "NO
     return value;
   }
   return "NORMAL";
+}
+
+/** Rodzaj zlecenia z body lub z kategorii zlecenia (`resource_categories.order_type`). */
+export async function resolveOrderTypeForCategory(
+  companyId: number,
+  categoryId: number,
+  explicit: unknown
+): Promise<OrderType> {
+  const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
+  return resolveOrderType(explicit, categoryRow?.orderType);
 }

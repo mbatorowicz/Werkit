@@ -3,6 +3,7 @@
 import type { AppDictionary } from "@/i18n/types";
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { getDictionary } from "@/i18n";
+import type { OrderType } from "@/types/worker";
 import type { CategoryFormState } from "./types";
 
 type Dict = AppDictionary["admin"]["machines"];
@@ -24,6 +25,22 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         label={shared.colorLabel}
         hint={shared.colorHint}
       />
+
+      <section className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          {dict.orderTypeTitle}
+        </h3>
+        <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">{dict.orderTypeHint}</p>
+        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.orderTypeLabel}</label>
+        <select
+          value={form.orderType}
+          onChange={(e) => setForm({ ...form, orderType: e.target.value as OrderType })}
+          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+        >
+          <option value="machine_work">{dict.machineWork}</option>
+          <option value="machine_repair">{dict.machineRepair}</option>
+        </select>
+      </section>
 
       <section className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">

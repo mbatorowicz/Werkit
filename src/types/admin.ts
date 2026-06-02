@@ -30,6 +30,9 @@ export type UnifiedGanttItem = {
   _statusGroup?: number;
   hasPhotos?: boolean | null;
   hasNotes?: boolean | null;
+  orderType?: OrderType | string | null;
+  repairDescription?: string | null;
+  repairNotes?: string | null;
   [key: string]: unknown;
 };
 
@@ -45,6 +48,10 @@ export interface OrderFormState {
   expectedDurationHours: string;
   dueDate: string;
   forceSave: boolean;
+  /** Rodzaj zlecenia — domyślnie z kategorii przy zmianie `categoryId`. */
+  orderType: OrderType;
+  repairDescription: string;
+  repairNotes: string;
 }
 
 export type BaseWorker = {
@@ -99,8 +106,8 @@ export type BaseCategory = {
   showResourceName: boolean;
   showResourceDescription: boolean;
   showRegistrationNumber: boolean;
-  /** Rodzaj zlecenia dla kategorii: machine_work | machine_repair. null = domyślny (machine_work). */
-  orderType?: OrderType | null;
+  /** Rodzaj zlecenia dla kategorii: machine_work | machine_repair. */
+  orderType: OrderType;
 };
 
 /** Wiersz aktywnej sesji w module Raporty (serwer → RSC). */

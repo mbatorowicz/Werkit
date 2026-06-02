@@ -2,8 +2,10 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 
 export const dynamic = "force-dynamic";
 
+import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
 import {
   coerceWorkOrderPriority,
+  resolveOrderTypeForCategory,
   validateCategoryForOrder,
 } from "@/lib/workOrderCategoryValidation";
 import { AdminOrderService } from "@/services/AdminOrderService";
@@ -96,22 +98,25 @@ export const POST = withApiErrorHandling(
         ? parseFloat(String(expectedDurationHours))
         : null;
 
-    const orderType = typeof body.orderType === "string" ? body.orderType : "machine_work";
+    const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
     const repairDescription =
       typeof body.repairDescription === "string" ? body.repairDescription : null;
     const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
+
+    const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
+    const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
+      normalizeWorkOrderMaterialFields(orderType, matIdParsed, quantityTons);
 
     await AdminOrderService.createOrder({
       companyId,
       userId: uidNum,
       resourceId: resIdNum,
       categoryId: catIdNum,
-      materialId: materialId ? parseInt(String(materialId), 10) : null,
+      materialId: orderMaterialId,
       customerId: customerId ? parseInt(String(customerId), 10) : null,
       taskDescription,
       status: "PENDING",
-      quantityTons:
-        quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+      quantityTons: orderQuantityTons,
       expectedDurationHours:
         expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
           ? String(expectedDurationHours)
@@ -120,7 +125,7 @@ export const POST = withApiErrorHandling(
       dueDate: parsedDueDate,
       lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
       createdById: adminUserId,
-      orderType: orderType as "machine_work" | "machine_repair",
+      orderType,
       repairDescription,
       repairNotes,
     });

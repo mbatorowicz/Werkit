@@ -2,6 +2,7 @@
 
 import type { WorkOrder } from "@/types/worker";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
+import { narrowOrderType } from "@/lib/orderType";
 import { isRecord, narrowNumberArray, narrowPriority, narrowNullableNumber } from "./shared";
 import { narrowBaseCategories, narrowBaseMaterials, narrowBaseCustomers } from "./base";
 
@@ -51,6 +52,11 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
           : null,
       hasPhotos: typeof r.hasPhotos === "boolean" ? r.hasPhotos : undefined,
       hasNotes: typeof r.hasNotes === "boolean" ? r.hasNotes : undefined,
+      orderType: narrowOrderType(r.orderType),
+      repairDescription:
+        r.repairDescription === null || typeof r.repairDescription === "string"
+          ? (r.repairDescription as string | null)
+          : null,
     });
   }
   return out;

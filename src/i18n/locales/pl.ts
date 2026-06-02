@@ -604,6 +604,12 @@ export const pl = {
       fieldTaskDescription: "Opis zlecenia",
       isGlobalLabel: "Wszystkie zasoby (globalna)",
       isGlobalDesc: "Np. praca na placu — przy wyborze zasobu widać cały rejestr.",
+      orderTypeTitle: "Rodzaj zlecenia",
+      orderTypeLabel: "Rodzaj",
+      orderTypeHint:
+        "Naprawa (DUR) umożliwia przypisywanie części zamiennych z magazynu do zlecenia i w aplikacji pracownika.",
+      machineWork: "Praca operacyjna",
+      machineRepair: "Utrzymanie ruchu (naprawa)",
       catMobilityTitle: "Mobilność",
       isStationaryLabel: "Tryb stacjonarny",
       isStationaryDesc:

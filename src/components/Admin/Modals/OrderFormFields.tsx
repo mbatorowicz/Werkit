@@ -9,7 +9,9 @@ import { CustomerSearchField } from "@/components/customers/CustomerSearchField"
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
+import { isRepairOrderType } from "@/lib/orderType";
 import WorkOrderSparePartsSection from "@/components/Admin/Modals/WorkOrderSparePartsSection";
+import type { OrderType } from "@/types/worker";
 import type {
   OrderFormState,
   BaseWorker,
@@ -56,7 +58,22 @@ export function OrderFormFields({
   editingOrderId,
 }: Props) {
   const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
-  const orderType = selectedCategory?.orderType ?? null;
+  const orderType: OrderType = form.orderType ?? selectedCategory?.orderType ?? "machine_work";
+  const isRepair = isRepairOrderType(orderType);
+
+  const applyCategoryChange = (categoryId: string) => {
+    const cat = categories.find((c) => String(c.id) === categoryId);
+    const nextType = cat?.orderType ?? "machine_work";
+    setForm({
+      ...form,
+      categoryId,
+      resourceId: "",
+      orderType: nextType,
+      ...(isRepairOrderType(nextType)
+        ? { materialId: "", quantityTons: "" }
+        : {}),
+    });
+  };
 
   const availableMachines = useMemo(
     () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: false }),
@@ -128,7 +145,7 @@ export function OrderFormFields({
         <AdminSearchCombobox
           options={categoryOptions}
           value={form.categoryId}
-          onChange={(id) => setForm({ ...form, categoryId: id, resourceId: "" })}
+          onChange={applyCategoryChange}
           placeholder={dict.chooseJobTypePlaceholder}
           required
           aria-label={dict.jobType}
@@ -175,7 +192,7 @@ export function OrderFormFields({
       </div>
 
       {/* 4. Warunkowe: materiał, klient, ilość */}
-      {selectedCategory?.showMaterial ? (
+      {selectedCategory?.showMaterial && !isRepair ? (
         <div className={FIELD}>
           <label className={LABEL}>{materialLabel}</label>
           <AdminSearchCombobox
@@ -204,7 +221,7 @@ export function OrderFormFields({
         />
       ) : null}
 
-      {selectedCategory?.showQuantity ? (
+      {selectedCategory?.showQuantity && !isRepair ? (
         <div className={FIELD}>
           <label className={LABEL}>{dict.quantityTonsLabel}</label>
           <input
@@ -221,7 +238,7 @@ export function OrderFormFields({
       ) : null}
 
       {/* 5. Opis — tylko po wyborze kategorii */}
-      {selectedCategory && selectedCategory.showTaskDescription ? (
+      {selectedCategory && selectedCategory.showTaskDescription && !isRepair ? (
         <div className={FIELD}>
           <label className={LABEL}>
             {dict.taskDesc}
@@ -241,6 +258,33 @@ export function OrderFormFields({
           {!selectedCategory.reqTaskDescription ? (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.taskOptionalHint}</p>
           ) : null}
+        </div>
+      ) : null}
+
+      {isRepair ? (
+        <div className={FIELD}>
+          <label className={LABEL}>{dict.repairDescription}</label>
+          <textarea
+            placeholder={dict.repairDescriptionPlaceholder}
+            value={form.repairDescription}
+            onChange={(e) => setForm({ ...form, repairDescription: e.target.value })}
+            className={TEXTAREA}
+          />
+        </div>
+      ) : null}
+
+      {isRepair && editingOrderId != null ? (
+        <div className={FIELD}>
+          <label className={LABEL}>
+            {dict.repairNotes}
+            <span className="ml-1 font-normal normal-case text-zinc-400">{dict.optionalSuffix}</span>
+          </label>
+          <textarea
+            placeholder={dict.repairNotesPlaceholder}
+            value={form.repairNotes}
+            onChange={(e) => setForm({ ...form, repairNotes: e.target.value })}
+            className={TEXTAREA}
+          />
         </div>
       ) : null}
 

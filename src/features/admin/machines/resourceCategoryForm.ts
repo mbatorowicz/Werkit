@@ -1,4 +1,5 @@
 import { hierarchyFieldsFromRow } from "@/features/admin/categories/categoryHierarchyForm";
+import { narrowOrderType } from "@/lib/orderType";
 import type { CategoryFormState, MachinesCategory } from "./types";
 
 export function resourceCategoryToForm(cat: MachinesCategory): CategoryFormState {
@@ -20,5 +21,6 @@ export function resourceCategoryToForm(cat: MachinesCategory): CategoryFormState
     showResourceName: cat.showResourceName !== false,
     showResourceDescription: Boolean(cat.showResourceDescription),
     showRegistrationNumber: cat.showRegistrationNumber !== false,
+    orderType: narrowOrderType(cat.orderType),
   };
 }

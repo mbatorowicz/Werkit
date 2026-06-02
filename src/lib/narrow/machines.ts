@@ -2,6 +2,7 @@
 
 import type { MachinesCategory, MachinesResource } from "@/features/admin/machines/types";
 import type { MaterialCategory, MaterialRow } from "@/features/admin/materials/types";
+import { narrowOrderType } from "@/lib/orderType";
 import { isRecord, readBool } from "./shared";
 import { narrowBaseMachines, narrowBaseMaterials } from "./base";
 
@@ -39,6 +40,7 @@ export function narrowMachinesCategoryRows(rows: unknown[]): MachinesCategory[] 
       isGlobal: readBool(raw, "isGlobal", false),
       isStationary: readBool(raw, "isStationary", false),
       color: typeof raw.color === "string" ? raw.color : undefined,
+      orderType: narrowOrderType(raw.orderType),
     });
   }
   return out;

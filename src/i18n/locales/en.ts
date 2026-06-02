@@ -602,6 +602,12 @@ export const en: AppDictionary = {
       fieldTaskDescription: "Order description",
       isGlobalLabel: "All resources (global)",
       isGlobalDesc: "e.g. yard work — full registry appears when selecting equipment.",
+      orderTypeTitle: "Order kind",
+      orderTypeLabel: "Kind",
+      orderTypeHint:
+        "Repair (CMMS) enables spare parts from the warehouse on the work order and in the worker app.",
+      machineWork: "Operational work",
+      machineRepair: "Maintenance (repair)",
       catMobilityTitle: "Mobility",
       isStationaryLabel: "Stationary mode",
       isStationaryDesc:

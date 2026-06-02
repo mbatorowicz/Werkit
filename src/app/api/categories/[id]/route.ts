@@ -5,6 +5,7 @@ import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
+import { narrowOrderType } from "@/lib/orderType";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
@@ -53,6 +54,7 @@ export const PUT = withApiErrorHandling(
       updateData.showResourceDescription = !!body.showResourceDescription;
     if (body.showRegistrationNumber !== undefined)
       updateData.showRegistrationNumber = !!body.showRegistrationNumber;
+    if (body.orderType !== undefined) updateData.orderType = narrowOrderType(body.orderType);
 
     if (updateData.reqCustomer) updateData.showCustomer = true;
     if (updateData.reqMaterial) updateData.showMaterial = true;

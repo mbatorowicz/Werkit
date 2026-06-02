@@ -1,6 +1,8 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
 import {
   coerceWorkOrderPriority,
+  resolveOrderTypeForCategory,
   validateWorkOrderFieldsAgainstCategory,
 } from "@/lib/workOrderCategoryValidation";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
@@ -96,16 +98,24 @@ export const PUT = withApiErrorHandling(
         ? parseFloat(String(expectedDurationHours))
         : null;
 
+    const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
+    const repairDescription =
+      typeof body.repairDescription === "string" ? body.repairDescription : null;
+    const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
+
+    const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
+    const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
+      normalizeWorkOrderMaterialFields(orderType, matIdParsed, quantityTons);
+
     try {
       await AdminOrderService.updateOrder(companyId, orderId, {
         userId: uidNum,
         resourceId: resIdNum,
         categoryId: catIdNum,
-        materialId: materialId ? parseInt(String(materialId), 10) : null,
+        materialId: orderMaterialId,
         customerId: customerId ? parseInt(String(customerId), 10) : null,
         taskDescription,
-        quantityTons:
-          quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+        quantityTons: orderQuantityTons,
         expectedDurationHours:
           expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
             ? String(expectedDurationHours)
@@ -113,6 +123,9 @@ export const PUT = withApiErrorHandling(
         priority: prio,
         dueDate: parsedDueDate,
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
+        orderType,
+        repairDescription,
+        repairNotes,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";

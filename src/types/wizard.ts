@@ -1,5 +1,7 @@
 /** Dane pomocnicze API kreatora zlecenia własnego (/worker/wizard). */
 
+import type { OrderType } from "@/types/worker";
+
 export type WizardCategory = {
   id: number;
   name: string;
@@ -18,6 +20,7 @@ export type WizardCategory = {
   isGlobal: boolean;
   /** Z API `/api/categories` — tryb stacjonarny (warsztat / plac). */
   isStationary?: boolean;
+  orderType: OrderType;
 };
 
 export type WizardMachine = {

@@ -1,3 +1,5 @@
+import type { OrderType } from "@/types/worker";
+
 export type MachinesCategory = {
   id: number;
   name: string;
@@ -5,6 +7,7 @@ export type MachinesCategory = {
   isGroup: boolean;
   sortOrder: number;
   icon?: string;
+  orderType: OrderType;
   showCustomer: boolean;
   showMaterial: boolean;
   showQuantity: boolean;
@@ -76,6 +79,7 @@ export type CategoryFormState = {
   showResourceName: boolean;
   showResourceDescription: boolean;
   showRegistrationNumber: boolean;
+  orderType: OrderType;
 };
 
 export const EMPTY_CATEGORY_FORM: CategoryFormState = {
@@ -98,4 +102,5 @@ export const EMPTY_CATEGORY_FORM: CategoryFormState = {
   showResourceName: true,
   showResourceDescription: false,
   showRegistrationNumber: true,
+  orderType: "machine_work",
 };

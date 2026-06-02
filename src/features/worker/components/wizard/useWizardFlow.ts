@@ -18,6 +18,7 @@ import {
   narrowWorkOrders,
 } from "@/lib/narrowApiListRows";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
+import { isRepairOrderType } from "@/lib/orderType";
 
 export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers = false) {
   const router = useRouter();
@@ -42,6 +43,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
   const [customerId, setCustomerId] = useState("");
   const [quantityTons, setQuantityTons] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [repairDescription, setRepairDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [expectedDurationHours, setExpectedDurationHours] = useState("");
   const [canCreateCustomers, setCanCreateCustomers] = useState(initialCanCreateCustomers);
@@ -138,13 +140,18 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     if (hasScheduleConflicts) return;
     setIsLoading(true);
     try {
+      const isRepair = isRepairOrderType(selectedCategory?.orderType);
       const createPayload: Record<string, unknown> = {
         categoryId,
         resourceId,
-        materialId: selectedCategory?.showMaterial ? materialId || null : null,
+        materialId:
+          !isRepair && selectedCategory?.showMaterial ? materialId || null : null,
         customerId: selectedCategory?.showCustomer ? customerId || null : null,
-        quantityTons: selectedCategory?.showQuantity ? quantityTons || null : null,
-        taskDescription: selectedCategory?.showTaskDescription ? taskDescription || null : null,
+        quantityTons:
+          !isRepair && selectedCategory?.showQuantity ? quantityTons || null : null,
+        taskDescription:
+          !isRepair && selectedCategory?.showTaskDescription ? taskDescription || null : null,
+        repairDescription: isRepair ? repairDescription.trim() || null : null,
         expectedDurationHours: expectedDurationHours.trim() || null,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       };
@@ -222,6 +229,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     router,
     selectedCategory,
     taskDescription,
+    repairDescription,
   ]);
 
   const handleAcceptOrder = useCallback(
@@ -279,6 +287,8 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     setQuantityTons,
     taskDescription,
     setTaskDescription,
+    repairDescription,
+    setRepairDescription,
     dueDate,
     setDueDate,
     expectedDurationHours,

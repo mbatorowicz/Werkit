@@ -8,6 +8,7 @@ import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { workerCustomerSearchFieldDict } from "@/components/customers/customerSearchFieldDict";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { isRepairOrderType } from "@/lib/orderType";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -26,6 +27,8 @@ type Props = {
   setQuantityTons: (v: string) => void;
   taskDescription: string;
   setTaskDescription: (v: string) => void;
+  repairDescription: string;
+  setRepairDescription: (v: string) => void;
   setStep: (s: number) => void;
   canCreateCustomers: boolean;
   onCustomerCreated: (customer: WizardCustomer) => void;
@@ -46,6 +49,8 @@ export function WizardStep3Details({
   setQuantityTons,
   taskDescription,
   setTaskDescription,
+  repairDescription,
+  setRepairDescription,
   setStep,
   canCreateCustomers,
   onCustomerCreated,
@@ -57,12 +62,14 @@ export function WizardStep3Details({
 
   const comboboxCommon = comboboxFeedbackProps(dict);
   const customerSearchDict = workerCustomerSearchFieldDict(dict);
+  const isRepair = isRepairOrderType(selectedCategory?.orderType);
 
   const nextDisabled =
-    (selectedCategory?.reqMaterial && !materialId) ||
+    (selectedCategory?.reqMaterial && !isRepair && !materialId) ||
     (selectedCategory?.reqCustomer && !customerId) ||
-    (selectedCategory?.reqQuantity && !quantityTons) ||
-    (selectedCategory?.reqTaskDescription && !taskDescription);
+    (selectedCategory?.reqQuantity && !isRepair && !quantityTons) ||
+    (selectedCategory?.reqTaskDescription && !isRepair && !taskDescription) ||
+    (isRepair && !repairDescription.trim());
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
@@ -98,7 +105,7 @@ export function WizardStep3Details({
       </div>
 
       <div className="space-y-5">
-        {selectedCategory?.showMaterial ? (
+        {selectedCategory?.showMaterial && !isRepair ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
             <AdminSearchCombobox
@@ -127,7 +134,7 @@ export function WizardStep3Details({
           />
         ) : null}
 
-        {selectedCategory?.showQuantity ? (
+        {selectedCategory?.showQuantity && !isRepair ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
             <input
@@ -141,7 +148,18 @@ export function WizardStep3Details({
           </div>
         ) : null}
 
-        {!selectedCategory || selectedCategory?.showTaskDescription ? (
+        {isRepair ? (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-400">{dict.repairDescription}</label>
+            <textarea
+              required
+              value={repairDescription}
+              onChange={(e) => setRepairDescription(e.target.value)}
+              placeholder={dict.repairDescriptionPlaceholder}
+              className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+            />
+          </div>
+        ) : !selectedCategory || selectedCategory.showTaskDescription ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
             <textarea

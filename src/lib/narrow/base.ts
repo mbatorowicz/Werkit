@@ -7,6 +7,7 @@ import type {
   BaseMaterial,
   BaseWorker,
 } from "@/types/admin";
+import { narrowOrderType } from "@/lib/orderType";
 import { isRecord, narrowNumberArray, narrowStringArray, readBool } from "./shared";
 
 export function narrowBaseWorkers(rows: unknown[]): BaseWorker[] {
@@ -113,6 +114,7 @@ export function narrowBaseCategories(rows: unknown[]): BaseCategory[] {
       showResourceName: readBool(raw, "showResourceName", true),
       showResourceDescription: readBool(raw, "showResourceDescription", false),
       showRegistrationNumber: readBool(raw, "showRegistrationNumber", true),
+      orderType: narrowOrderType(raw.orderType),
     });
   }
   return out;

@@ -4,6 +4,7 @@ import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
+import { narrowOrderType } from "@/lib/orderType";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
@@ -55,6 +56,7 @@ export const POST = withApiErrorHandling(
     const showResourceName = body.showResourceName;
     const showResourceDescription = body.showResourceDescription;
     const showRegistrationNumber = body.showRegistrationNumber;
+    const orderType = narrowOrderType(body.orderType);
 
     if (!name) {
       return jsonError("missing_name", 400);
@@ -94,6 +96,7 @@ export const POST = withApiErrorHandling(
       isGlobal: !!isGlobal,
       isStationary: !!isStationary,
       color: color || "#3f3f46",
+      orderType,
     });
     return jsonOk({ success: true });
   },

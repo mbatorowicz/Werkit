@@ -613,6 +613,12 @@ export const de: AppDictionary = {
       fieldTaskDescription: "Auftragsbeschreibung",
       isGlobalLabel: "Alle Ressourcen (global)",
       isGlobalDesc: "z.B. Hofarbeit — vollständiges Register erscheint bei der Geräteauswahl.",
+      orderTypeTitle: "Auftragsart",
+      orderTypeLabel: "Art",
+      orderTypeHint:
+        "Reparatur (DUR) ermöglicht Ersatzteile aus dem Lager am Auftrag und in der Mitarbeiter-App.",
+      machineWork: "Betriebsarbeit",
+      machineRepair: "Instandhaltung (Reparatur)",
       catMobilityTitle: "Mobilität",
       isStationaryLabel: "Stationärer Modus",
       isStationaryDesc:

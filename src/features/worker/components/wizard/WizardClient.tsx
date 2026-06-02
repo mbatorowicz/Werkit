@@ -59,6 +59,8 @@ export default function WizardClient({
             setQuantityTons={flow.setQuantityTons}
             taskDescription={flow.taskDescription}
             setTaskDescription={flow.setTaskDescription}
+            repairDescription={flow.repairDescription}
+            setRepairDescription={flow.setRepairDescription}
             setStep={flow.setStep}
             canCreateCustomers={flow.canCreateCustomers}
             onCustomerCreated={flow.handleCustomerCreated}

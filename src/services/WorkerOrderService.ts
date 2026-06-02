@@ -14,7 +14,9 @@ import {
   coerceWorkOrderPriority,
   validateCategoryForOrder,
 } from "@/lib/workOrderCategoryValidation";
+import { resolveOrderType } from "@/lib/orderType";
 import { parseOrderBody } from "@/lib/parseRouteParams";
+import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
 import { assertOrderEntitiesBelongToCompany } from "@/lib/tenantContext";
 
 export class WorkerOrderService {
@@ -183,6 +185,19 @@ export class WorkerOrderService {
       taskDescription: payload.taskDescription,
     });
 
+    const { DictionaryService } = await import("@/services/DictionaryService");
+    const categoryRow = await DictionaryService.getResourceCategoryById(
+      companyId,
+      payload.categoryId
+    );
+    const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
+    const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
+      normalizeWorkOrderMaterialFields(
+        orderType,
+        payload.materialId,
+        payload.quantityTons
+      );
+
     const durationHours = parseDurationHours(payload.expectedDurationHours);
     await ScheduleConflictService.assertNoScheduleConflict(companyId, {
       userId,
@@ -200,13 +215,10 @@ export class WorkerOrderService {
         userId,
         resourceId: payload.resourceId,
         categoryId: payload.categoryId,
-        materialId: payload.materialId ?? null,
+        materialId: orderMaterialId,
         customerId: payload.customerId ?? null,
         taskDescription: payload.taskDescription ?? null,
-        quantityTons:
-          payload.quantityTons != null && String(payload.quantityTons).trim() !== ""
-            ? String(payload.quantityTons)
-            : null,
+        quantityTons: orderQuantityTons,
         expectedDurationHours:
           payload.expectedDurationHours != null &&
           String(payload.expectedDurationHours).trim() !== ""
@@ -220,7 +232,7 @@ export class WorkerOrderService {
         status: "PENDING",
         priority: prio,
         createdById: userId,
-        orderType: (payload.orderType ?? "machine_work") as "machine_work" | "machine_repair",
+        orderType,
         repairDescription: payload.repairDescription ?? null,
         repairNotes: payload.repairNotes ?? null,
       })

@@ -38,6 +38,7 @@ describe("narrowBaseCategories", () => {
         name: "Transport",
         showCustomer: false,
         reqTaskDescription: false,
+        orderType: "machine_repair",
       },
       { id: "x", name: "Zły" },
     ]);
@@ -49,6 +50,7 @@ describe("narrowBaseCategories", () => {
       showMaterial: true,
       reqCustomer: false,
       isStationary: false,
+      orderType: "machine_repair",
     });
   });
 });

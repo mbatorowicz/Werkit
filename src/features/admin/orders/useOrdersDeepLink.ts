@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { OrderFormState, UnifiedGanttItem } from "@/types/admin";
+import { narrowOrderType } from "@/lib/orderType";
 import { formatDueDatetimeLocal } from "@/features/admin/orders/dispatchPlanning";
 
 const EMPTY_ORDER_FORM: OrderFormState = {
@@ -17,6 +18,9 @@ const EMPTY_ORDER_FORM: OrderFormState = {
   expectedDurationHours: "",
   dueDate: "",
   forceSave: false,
+  orderType: "machine_work",
+  repairDescription: "",
+  repairNotes: "",
 };
 
 /**
@@ -63,6 +67,10 @@ export function useOrdersDeepLink({
         expectedDurationHours: String(item.expectedDurationHours || ""),
         dueDate: formatDueDatetimeLocal(item.dueDate as string | null),
         forceSave: false,
+        orderType: narrowOrderType(item.orderType),
+        repairDescription:
+          typeof item.repairDescription === "string" ? item.repairDescription : "",
+        repairNotes: typeof item.repairNotes === "string" ? item.repairNotes : "",
       });
       setSelectedDispatchItem(null);
       setIsOrderModalOpen(true);
