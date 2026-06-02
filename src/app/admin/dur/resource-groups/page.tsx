@@ -1,9 +1,7 @@
-import DurResourceGroupsClient from "@/features/admin/dur/DurResourceGroupsClient";
+import { redirect } from "next/navigation";
+import { adminRoutes } from "@/lib/appRoutes";
 
 export default function DurResourceGroupsPage() {
-  return (
-    <div className="mx-auto w-full max-w-7xl p-6 md:p-8">
-      <DurResourceGroupsClient />
-    </div>
-  );
+  // Legacy: typy zasobów są w module Zasoby.
+  redirect(adminRoutes.machines);
 }

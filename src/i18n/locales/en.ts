@@ -104,7 +104,7 @@ export const en: AppDictionary = {
       defaultCompany: "Add Company Name",
       logisticsSystem: "Logistics System",
       mainDashboard: "Main Dashboard",
-      dispatch: "Dispatch",
+      dispatch: "Orders",
       reports: "Report",
       users: "Users",
       resources: "Resources",
@@ -1144,7 +1144,7 @@ export const en: AppDictionary = {
     resourceGroups: {
       title: "Resource types",
       subtitle:
-        "Resource model or family for maintenance — e.g. capsule filler 02A. Assign many units of the same model to one type in the resource registry.",
+        "Resource model or family — e.g. capsule filler 02A. Assign many units of the same model to one type in the resource registry.",
       assignHint: "To assign a resource: Resources → edit resource → “Resource type” field.",
       loading: "Loading types…",
       empty: "No types yet. Add a resource type, then assign resources under Resources.",

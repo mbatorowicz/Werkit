@@ -108,7 +108,7 @@ export const de: AppDictionary = {
       defaultCompany: "Firmenname hinzufügen",
       logisticsSystem: "Logistiksystem",
       mainDashboard: "Haupt-Dashboard",
-      dispatch: "Disposition",
+      dispatch: "Aufträge",
       reports: "Bericht",
       users: "Benutzer",
       resources: "Ressourcen",
@@ -1173,7 +1173,7 @@ export const de: AppDictionary = {
     resourceGroups: {
       title: "Ressourcentypen",
       subtitle:
-        "Ressourcenmodell oder -familie für die Instandhaltung — z.B. Kapselmaschine 02A. Viele gleiche Geräte einem Typ im Ressourcenregister zuordnen.",
+        "Ressourcenmodell oder -familie — z.B. Kapselmaschine 02A. Viele gleiche Geräte einem Typ im Ressourcenregister zuordnen.",
       assignHint:
         "Ressource zuordnen: Ressourcen → Ressource bearbeiten → Feld „Ressourcentyp“.",
       loading: "Typen werden geladen…",

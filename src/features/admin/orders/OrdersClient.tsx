@@ -17,6 +17,8 @@ import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatch
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { OrdersHeader } from "./OrdersHeader";
+import { AdminCollapsibleSection } from "@/components/Admin/AdminCollapsibleSection";
+import { OrdersCategoriesPanel } from "@/features/admin/orders/OrdersCategoriesPanel";
 import {
   handleDeleteWorkOrder,
   handleForceCompleteSession,
@@ -29,6 +31,7 @@ export default function OrdersClient() {
 
   const dictionary = getDictionary();
   const dict = dictionary.admin.orders;
+  const machinesDict = dictionary.admin.machines;
   const navTitle = dictionary.admin.sidebar.dispatch;
   const archiveDict = dictionary.admin.archive;
   const workerUiLabels = dictionary.worker.client;
@@ -133,6 +136,20 @@ export default function OrdersClient() {
 
   return (
     <>
+      <div className="mb-4">
+        <AdminCollapsibleSection
+          title={dictionary.admin.categories.workOrders.panelTitle}
+          subtitle={dictionary.admin.categories.workOrders.panelSubtitle}
+          defaultOpen={false}
+        >
+          <OrdersCategoriesPanel
+            machinesDict={machinesDict}
+            apiErrors={apiErrors}
+            canMutate={canMutate}
+          />
+        </AdminCollapsibleSection>
+      </div>
+
       <OrdersHeader
         navTitle={navTitle}
         dict={dict}

@@ -9,7 +9,6 @@ import {
   TerminalSquare,
   BarChart3,
   Cog,
-  Layers,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -48,12 +47,6 @@ export function buildAdminNavLinks(
       label: adminDict.sidebar.customers,
     },
     { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
-    {
-      kind: "route",
-      href: adminRoutes.dur.resourceGroups,
-      icon: Layers,
-      label: durDict.sidebar.resourceGroups,
-    },
     {
       kind: "route",
       href: adminRoutes.dur.spareParts,

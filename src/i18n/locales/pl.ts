@@ -105,7 +105,7 @@ export const pl = {
       defaultCompany: "Dodaj Nazwę Firmy",
       logisticsSystem: "System Logistyczny",
       mainDashboard: "Główny Pulpit",
-      dispatch: "Dyspozycja",
+      dispatch: "Zlecenia",
       reports: "Raport",
       users: "Użytkownicy",
       resources: "Zasoby",
@@ -279,14 +279,14 @@ export const pl = {
       none: "Brak",
     },
     orders: {
-      title: "Dyspozycja",
+      title: "Zlecenia",
       subtitle: "Wydawaj gotowe zlecenia dla konkretnych pracowników w terenie.",
-      newOrder: "Nowa dyspozycja",
+      newOrder: "Nowe zlecenie",
       workerDate: "Pracownik / Data",
       fetching: "Pobieranie zleceń...",
       proactiveManagement: "Zarządzanie z wyprzedzeniem",
       noOrders:
-        "Brak wystawionych zleceń. Kliknij „Nowa dyspozycja”, aby przydzielić zlecenie pracownikowi.",
+        "Brak wystawionych zleceń. Kliknij „Nowe zlecenie”, aby przydzielić zlecenie pracownikowi.",
       orderedBy: "Zlecił(a):",
       pending: "Oczekujące",
       success: "Zlecenie wysłane pomyślnie do pracownika!",
@@ -1156,7 +1156,7 @@ export const pl = {
     resourceGroups: {
       title: "Typy zasobów",
       subtitle:
-        "Model lub rodzina zasobu w module utrzymania ruchu — np. kapsułkarka 02A. Wiele egzemplarzy tego samego modelu przypisujesz do jednego typu w rejestrze zasobów.",
+        "Model lub rodzina zasobu — np. kapsułkarka 02A. Wiele egzemplarzy tego samego modelu przypisujesz do jednego typu w rejestrze zasobów.",
       assignHint:
         "Przypisanie egzemplarza: Zasoby → edycja zasobu → pole „Typ zasobu”.",
       loading: "Ładowanie typów…",

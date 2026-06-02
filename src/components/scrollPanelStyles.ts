@@ -6,7 +6,7 @@ export const INLINE_SCROLL_PANEL_CLASS =
 
 /** Poziome przewijanie tabel i szerokich paneli (admin, Gantt). */
 export const INLINE_SCROLL_X_PANEL_CLASS =
-  "overflow-x-auto overscroll-x-contain touch-pan-x custom-scrollbar";
+  "overflow-x-auto overscroll-auto custom-scrollbar";
 
 /** Panel listy combobox renderowany przez portal nad resztą UI. */
 export const FLOATING_LISTBOX_PANEL_CLASS = [

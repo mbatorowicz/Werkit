@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Wrench } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminCollapsibleSection } from "@/components/Admin/AdminCollapsibleSection";
 import { MachinesClientCategoryPanel } from "@/features/admin/machines/MachinesClientCategoryPanel";
 import {
   MachinesClientMachineFormPanel,
@@ -11,6 +12,7 @@ import {
 } from "@/features/admin/machines/MachinesClientMachineFormPanel";
 import { MachinesClientResourcesTablePanel } from "@/features/admin/machines/MachinesClientResourcesTablePanel";
 import { useMachinesAdminData } from "@/features/admin/machines/useMachinesAdminData";
+import DurResourceGroupsClient from "@/features/admin/dur/DurResourceGroupsClient";
 import { useResourceGroups } from "@/features/admin/dur/useResourceGroups";
 
 export default function MachinesClient() {
@@ -40,14 +42,30 @@ export default function MachinesClient() {
         </h1>
       </div>
 
-      <MachinesClientCategoryPanel
-        dict={dict}
-        apiErrors={apiErrors}
-        categories={categories}
-        isLoading={isLoading}
-        canMutate={canMutate}
-        fetchData={fetchData}
-      />
+      <div className="space-y-4">
+        <AdminCollapsibleSection
+          title={getDictionary().admin.categories.workOrders.panelTitle}
+          subtitle={getDictionary().admin.categories.workOrders.panelSubtitle}
+          defaultOpen={false}
+        >
+          <MachinesClientCategoryPanel
+            dict={dict}
+            apiErrors={apiErrors}
+            categories={categories}
+            isLoading={isLoading}
+            canMutate={canMutate}
+            fetchData={fetchData}
+          />
+        </AdminCollapsibleSection>
+
+        <AdminCollapsibleSection
+          title={getDictionary().dur.resourceGroups.title}
+          subtitle={getDictionary().dur.resourceGroups.subtitle}
+          defaultOpen={false}
+        >
+          <DurResourceGroupsClient />
+        </AdminCollapsibleSection>
+      </div>
 
       <MachinesClientResourcesTablePanel
         dict={dict}
