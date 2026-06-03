@@ -42,7 +42,7 @@ export function CategoryColorAbbrevBadge({
   return (
     <span
       title={label.trim() || undefined}
-      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.xs} cursor-default ${className}`.trim()}
+      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.abbrev} cursor-default ${className}`.trim()}
       style={categoryColorBadgeStyle(color)}
     >
       {abbrev}

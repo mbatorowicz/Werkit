@@ -1,4 +1,5 @@
-export { WorkOrderPriorityRibbon, type WorkOrderPriorityLabels } from "./WorkOrderPriorityRibbon";
+export { WorkOrderPriorityRibbon } from "./WorkOrderPriorityRibbon";
+export type { WorkOrderPriorityLabels } from "@/lib/workOrderPriorityStyles";
 export { ScheduleConflictPanel } from "./ScheduleConflictPanel";
 export { WorkOrderScheduleFields } from "./WorkOrderScheduleFields";
 export { WorkOrderPendingCard } from "./WorkOrderPendingCard";
