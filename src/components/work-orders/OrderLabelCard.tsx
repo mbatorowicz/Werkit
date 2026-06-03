@@ -12,6 +12,7 @@ import { UI_RADIUS_CARD } from "@/lib/uiRadius";
 
 type Tone = "planned" | "active" | "done";
 type Density = "normal" | "compact";
+type Layout = "full" | "teaser";
 
 function toneClasses(tone: Tone) {
   switch (tone) {
@@ -50,6 +51,7 @@ export function OrderLabelCard({
   orderedBy,
   orderedByLabel,
   density = "normal",
+  layout = "full",
   showDateTime = true,
   mode,
   modeColor,
@@ -65,12 +67,13 @@ export function OrderLabelCard({
   description,
   dateLabel,
   timeLabel,
-  /** Ikony załączników z realizacji zlecenia (sesja: zdjęcia / notatki). */
   attachmentPhotos,
   attachmentNotes,
   fieldVisibility,
   onCategoryClick,
   categoryBadgeAriaLabel,
+  onCardClick,
+  cardAriaLabel,
   className = "",
 }: {
   tone: Tone;
@@ -79,22 +82,20 @@ export function OrderLabelCard({
   badges?: React.ReactNode;
   footer?: React.ReactNode;
   subheader?: React.ReactNode;
-  /** Kto zlecił (szary tekst w środku kafelka). */
   orderedBy?: string | null;
   orderedByLabel?: string;
   density?: Density;
+  /** `teaser` — nagłówek i zajawka; pełna siatka pól w `full` (domyślnie). */
+  layout?: Layout;
   showDateTime?: boolean;
   attachmentPhotos?: boolean;
   attachmentNotes?: boolean;
   mode: string;
-  /** Kolor kategorii zlecenia (`resource_categories.color`). */
   modeColor?: string | null;
   machine: string;
   material?: string | null;
   quantity?: string | null;
-  /** Gotowy wynik {@link buildOrderLabelCustomerDisplay} (np. dyspozycja / podgląd sesji). */
   customerDisplay?: OrderLabelCustomerDisplay;
-  /** Nazwa z API listy zleceń (`customerName`). */
   customer?: string | null;
   customerFirstName?: string | null;
   customerLastName?: string | null;
@@ -103,15 +104,18 @@ export function OrderLabelCard({
   description?: string | null;
   dateLabel?: string | null;
   timeLabel?: string | null;
-  /** Które pola siatki pokazać — z {@link resolveOrderLabelFieldVisibility}. */
   fieldVisibility?: OrderLabelFieldVisibility;
-  /** Otwiera szczegóły zlecenia (np. modal workera) po kliknięciu etykiety kategorii. */
   onCategoryClick?: () => void;
   categoryBadgeAriaLabel?: string;
+  /** Klik w kartę (główny ekran workera) — otwiera modal szczegółów. */
+  onCardClick?: () => void;
+  cardAriaLabel?: string;
   className?: string;
 }) {
   const cls = toneClasses(tone);
   const isCompact = density === "compact";
+  const isTeaser = layout === "teaser";
+  const isClickable = isTeaser && Boolean(onCardClick);
   const attachDict = getDictionary().worker.client;
   const fieldLabels = getDictionary().admin.orderFields;
   const customerDict = getDictionary().admin.customers;
@@ -149,117 +153,167 @@ export function OrderLabelCard({
   };
   const orderedByText = orderedByLabel ?? fieldLabels.orderedBy;
 
-  return (
-    <div
-      className={`${UI_RADIUS_CARD} border ${cls.border} bg-white dark:bg-zinc-900 shadow-sm overflow-hidden ${className}`}
-    >
-      <div className="flex">
-        {/* Pasek statusu (pełna wysokość wiersza) */}
-        <div className={`w-1.5 shrink-0 ${cls.bar}`} />
+  const categoryClick = isClickable ? undefined : onCategoryClick;
+  const dateTimeTeaser = [dateLabel?.trim(), timeLabel?.trim()].filter(Boolean).join(" · ");
 
-        <div className={`flex-1 ${isCompact ? "p-2.5" : "p-3"}`}>
-          {/* Nr zlecenia — jedyny element w kolorze statusu */}
-          <div
-            className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}
-          >
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
-                {title?.trim() ? (
-                  <div className={`text-sm font-black truncate ${cls.label}`}>{title}</div>
+  const body = (
+    <div className="flex min-w-0">
+      <div className={`w-1.5 shrink-0 ${cls.bar}`} />
+
+      <div className={`flex-1 min-w-0 ${isCompact ? "p-2.5" : "p-3"}`}>
+        <div
+          className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}
+        >
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
+              {title?.trim() ? (
+                <div className={`text-sm font-black truncate ${cls.label}`}>{title}</div>
+              ) : null}
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            {(attachmentPhotos || attachmentNotes) && (
+              <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 mr-1">
+                {attachmentPhotos ? (
+                  <span title={attachDict.orderAttachmentPhotosTitle}>
+                    <Camera className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`} aria-hidden />
+                  </span>
+                ) : null}
+                {attachmentNotes ? (
+                  <span title={attachDict.orderAttachmentNotesTitle}>
+                    <FileText
+                      className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
+                      aria-hidden
+                    />
+                  </span>
                 ) : null}
               </div>
-            </div>
-            <div className="shrink-0 flex items-center gap-2">
-              {(attachmentPhotos || attachmentNotes) && (
-                <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400 mr-1">
-                  {attachmentPhotos ? (
-                    <span title={attachDict.orderAttachmentPhotosTitle}>
-                      <Camera className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`} aria-hidden />
-                    </span>
-                  ) : null}
-                  {attachmentNotes ? (
-                    <span title={attachDict.orderAttachmentNotesTitle}>
-                      <FileText
-                        className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
-                        aria-hidden
-                      />
-                    </span>
-                  ) : null}
-                </div>
-              )}
-              {badges ? badges : null}
-            </div>
+            )}
+            {badges ? badges : null}
           </div>
-
-          {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}
-
-          {vis.showMode && mode?.trim() ? (
-            <div className={`flex items-center min-w-0 ${isCompact ? "mb-1.5" : "mb-2"}`}>
-              <CategoryColorCardBadge
-                label={mode}
-                color={modeColor}
-                onClick={onCategoryClick}
-                ariaLabel={categoryBadgeAriaLabel}
-              />
-            </div>
-          ) : null}
-
-          <div
-            className={`grid grid-cols-1 ${
-              isCompact ? "gap-y-1.5" : "gap-x-4 gap-y-2 sm:grid-cols-2"
-            }`}
-          >
-            <OrderDetailField label={labels.machine} value={machine || "—"} />
-            {vis.showMaterial ? (
-              <OrderDetailField
-                label={labels.material}
-                value={material?.trim() ? material : "—"}
-              />
-            ) : null}
-            {vis.showQuantity ? (
-              <OrderDetailField
-                label={labels.quantity}
-                value={quantity?.trim() ? quantity : "—"}
-              />
-            ) : null}
-            {vis.showCustomer ? (
-              <CustomerContactFields
-                variant="order"
-                labels={customerContactLabels}
-                customerName={customerDisplay.customerName}
-                phone={customerDisplay.customerPhone}
-                addressParts={customerDisplay.addressParts}
-              />
-            ) : null}
-            {vis.showDescription && description?.trim() ? (
-              <OrderDetailField
-                label={labels.description}
-                value={description}
-                multiline
-                className={isCompact ? undefined : "sm:col-span-2"}
-              />
-            ) : null}
-            {showDateTime ? (
-              <OrderDetailField label={labels.date} value={dateLabel?.trim() ? dateLabel : "—"} />
-            ) : null}
-            {showDateTime ? (
-              <OrderDetailField label={labels.time} value={timeLabel?.trim() ? timeLabel : "—"} />
-            ) : null}
-          </div>
-
-          {orderedBy?.trim() ? (
-            <div className={isCompact ? "mt-2" : "mt-3"}>
-              <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                {orderedByText}{" "}
-                <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
-              </div>
-            </div>
-          ) : null}
-
-          {footer ? <div className={isCompact ? "mt-2" : "mt-3"}>{footer}</div> : null}
         </div>
+
+        {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}
+
+        {vis.showMode && mode?.trim() ? (
+          <div className={`flex items-center min-w-0 ${isCompact ? "mb-1.5" : "mb-2"}`}>
+            <CategoryColorCardBadge
+              label={mode}
+              color={modeColor}
+              onClick={categoryClick}
+              ariaLabel={categoryBadgeAriaLabel}
+            />
+          </div>
+        ) : null}
+
+        {isTeaser ? (
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+              {machine?.trim() || "—"}
+            </p>
+            {vis.showCustomer && customerDisplay.customerName ? (
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
+                {customerDisplay.customerName}
+              </p>
+            ) : null}
+            {vis.showMaterial && material?.trim() ? (
+              <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">{material}</p>
+            ) : null}
+            {showDateTime && dateTimeTeaser ? (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">{dateTimeTeaser}</p>
+            ) : null}
+            {isClickable ? (
+              <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400 pt-0.5">
+                {attachDict.orderDetailsTeaserHint}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <div
+              className={`grid grid-cols-1 ${
+                isCompact ? "gap-y-1.5" : "gap-x-4 gap-y-2 sm:grid-cols-2"
+              }`}
+            >
+              <OrderDetailField label={labels.machine} value={machine || "—"} />
+              {vis.showMaterial ? (
+                <OrderDetailField
+                  label={labels.material}
+                  value={material?.trim() ? material : "—"}
+                />
+              ) : null}
+              {vis.showQuantity ? (
+                <OrderDetailField
+                  label={labels.quantity}
+                  value={quantity?.trim() ? quantity : "—"}
+                />
+              ) : null}
+              {vis.showCustomer ? (
+                <CustomerContactFields
+                  variant="order"
+                  labels={customerContactLabels}
+                  customerName={customerDisplay.customerName}
+                  phone={customerDisplay.customerPhone}
+                  addressParts={customerDisplay.addressParts}
+                />
+              ) : null}
+              {vis.showDescription && description?.trim() ? (
+                <OrderDetailField
+                  label={labels.description}
+                  value={description}
+                  multiline
+                  className={isCompact ? undefined : "sm:col-span-2"}
+                />
+              ) : null}
+              {showDateTime ? (
+                <OrderDetailField
+                  label={labels.date}
+                  value={dateLabel?.trim() ? dateLabel : "—"}
+                />
+              ) : null}
+              {showDateTime ? (
+                <OrderDetailField
+                  label={labels.time}
+                  value={timeLabel?.trim() ? timeLabel : "—"}
+                />
+              ) : null}
+            </div>
+
+            {orderedBy?.trim() ? (
+              <div className={isCompact ? "mt-2" : "mt-3"}>
+                <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  {orderedByText}{" "}
+                  <span className="font-medium text-zinc-600 dark:text-zinc-300">{orderedBy}</span>
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {footer ? <div className={isCompact ? "mt-2" : "mt-3"}>{footer}</div> : null}
       </div>
     </div>
   );
+
+  const shellClass =
+    `${UI_RADIUS_CARD} border ${cls.border} bg-white dark:bg-zinc-900 shadow-sm overflow-hidden ${className}` +
+    (isClickable
+      ? " w-full text-left cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/80 active:scale-[0.99]"
+      : "");
+
+  if (isClickable) {
+    return (
+      <button
+        type="button"
+        onClick={onCardClick}
+        aria-label={cardAriaLabel ?? attachDict.orderDetailsOpenCategory}
+        className={shellClass}
+      >
+        {body}
+      </button>
+    );
+  }
+
+  return <div className={shellClass}>{body}</div>;
 }

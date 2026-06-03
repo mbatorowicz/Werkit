@@ -74,6 +74,7 @@ export function WorkOrderPendingCard({
   const blocked = mode === "start" && (hasConflicts || Boolean(acceptError));
   const tonsSuffix = scheduleDict.tons;
   const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
+  const orderDetails = () => workerOrderDetailsFromWorkOrder(order, tonsSuffix);
 
   const isOwnOrder =
     mode === "start" &&
@@ -119,8 +120,11 @@ export function WorkOrderPendingCard({
 
       <OrderLabelCard
         tone="planned"
+        layout="teaser"
         density={density}
         orderNo={`#${order.id}`}
+        onCardClick={() => openOrderDetails(orderDetails())}
+        cardAriaLabel={dict.orderDetailsOpenCategory}
         mode={labelFields.mode || dict.noCategoryName}
         modeColor={labelFields.modeColor}
         machine={labelFields.machine}
@@ -145,8 +149,6 @@ export function WorkOrderPendingCard({
         className="bg-white/60 dark:bg-zinc-950/30"
         attachmentPhotos={Boolean(order.hasPhotos)}
         attachmentNotes={Boolean(order.hasNotes)}
-        onCategoryClick={() => openOrderDetails(workerOrderDetailsFromWorkOrder(order, tonsSuffix))}
-        categoryBadgeAriaLabel={dict.orderDetailsOpenCategory}
       />
 
       <ScheduleConflictPanel

@@ -111,7 +111,12 @@ export default function ActiveSessionDashboard({
         <QueuedPendingOrdersDuringSession orders={queuedPendingOrders} dict={dict} />
         <OrderLabelCard
           tone="active"
+          layout="teaser"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
+          onCardClick={() =>
+            openOrderDetails(workerOrderDetailsFromSession(session, tonsSuffix, dict))
+          }
+          cardAriaLabel={dict.orderDetailsOpenCategory}
           mode={session.categoryName || dict.noCategoryName}
           modeColor={session.categoryColor}
           machine={session.resourceName || "—"}
@@ -134,10 +139,6 @@ export default function ActiveSessionDashboard({
           timeLabel={`${formatUiTimeHm(session.startTime)} – …`}
           attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}
           attachmentNotes={timelineEvents.some((e) => e.type === "note")}
-          onCategoryClick={() =>
-            openOrderDetails(workerOrderDetailsFromSession(session, tonsSuffix, dict))
-          }
-          categoryBadgeAriaLabel={dict.orderDetailsOpenCategory}
         />
       </div>
       {orderDetailsModal}

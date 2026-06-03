@@ -928,6 +928,7 @@ export const en: AppDictionary = {
       orderAttachmentNotesTitle: "Notes were added during execution",
       orderDetailsTitle: "Order details #{id}",
       orderDetailsOpenCategory: "Show order details",
+      orderDetailsTeaserHint: "Tap for full details",
       orderDetailsAddress: "Address",
       wizardStep3Title: "Order details",
       wizardStep3Subtitle: "Fill in the required information before starting work.",

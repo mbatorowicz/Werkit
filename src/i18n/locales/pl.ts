@@ -935,6 +935,7 @@ export const pl = {
       orderAttachmentNotesTitle: "W realizacji były notatki",
       orderDetailsTitle: "Szczegóły zlecenia #{id}",
       orderDetailsOpenCategory: "Pokaż szczegóły zlecenia",
+      orderDetailsTeaserHint: "Kliknij — pełne szczegóły",
       orderDetailsAddress: "Adres",
       wizardStep3Title: "Szczegóły zlecenia",
       wizardStep3Subtitle: "Wypełnij wymagane informacje przed rozpoczęciem pracy.",

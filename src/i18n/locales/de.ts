@@ -949,6 +949,7 @@ export const de: AppDictionary = {
       orderAttachmentNotesTitle: "Während der Ausführung wurden Notizen hinzugefügt",
       orderDetailsTitle: "Auftragsdetails #{id}",
       orderDetailsOpenCategory: "Auftragsdetails anzeigen",
+      orderDetailsTeaserHint: "Tippen — alle Details",
       orderDetailsAddress: "Adresse",
       wizardStep3Title: "Auftragsdetails",
       wizardStep3Subtitle: "Füllen Sie die erforderlichen Informationen vor Arbeitsbeginn aus.",

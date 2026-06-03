@@ -27,7 +27,7 @@ export function CategoryColorBadge({ label, color, size = "sm", className = "" }
   );
 }
 
-/** Tag kategorii na karcie zlecenia — pełna nazwa (do 2 wierszy), bez powiększania pola. */
+/** Tag kategorii na karcie zlecenia — jedna linia, pełna nazwa w `title`. */
 export function CategoryColorCardBadge({
   label,
   color,
@@ -44,7 +44,7 @@ export function CategoryColorCardBadge({
   const text = label.trim() || "—";
   const sharedClass = `${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} ${onClick ? "cursor-pointer hover:brightness-95 active:scale-[0.98] dark:hover:brightness-110" : "cursor-default"} ${className}`.trim();
   const inner = (
-    <span className="line-clamp-2 max-w-full text-center text-[10px] font-bold leading-[1.15] break-words">
+    <span className="block min-w-0 w-full truncate text-center text-[10px] font-bold leading-none whitespace-nowrap">
       {text}
     </span>
   );
