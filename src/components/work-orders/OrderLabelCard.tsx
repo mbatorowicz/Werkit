@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from "react";
 import { Camera, FileText } from "lucide-react";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
@@ -302,16 +303,26 @@ export function OrderLabelCard({
       ? " w-full text-left cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/80 active:scale-[0.99]"
       : "");
 
+  const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!onCardClick) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onCardClick();
+    }
+  };
+
   if (isClickable) {
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onCardClick}
+        onKeyDown={handleCardKeyDown}
         aria-label={cardAriaLabel ?? attachDict.orderDetailsOpenCategory}
         className={shellClass}
       >
         {body}
-      </button>
+      </div>
     );
   }
 

@@ -119,25 +119,23 @@ export function OrdersDispatchTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
-            {pageItems.map((item) => (
-              <tr
-                key={`${item._type}-${item.id}`}
-                onClick={() => onRowClick(item)}
-                className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors ${
-                  item._type === "SESSION" || canMutate ? "cursor-pointer" : ""
-                }`}
-              >
-                <td className="px-6 py-4">
-                  <OrdersDispatchItemCard
-                    item={item}
-                    layout="table"
-                    liveClockMs={liveClockMs}
-                    ordersDict={ordersDict}
-                    workerUiLabels={workerUiLabels}
-                  />
-                </td>
-              </tr>
-            ))}
+            {pageItems.map((item) => {
+              const canOpen = item._type === "SESSION" || canMutate;
+              return (
+                <tr key={`${item._type}-${item.id}`}>
+                  <td className="px-6 py-4">
+                    <OrdersDispatchItemCard
+                      item={item}
+                      layout="table"
+                      liveClockMs={liveClockMs}
+                      ordersDict={ordersDict}
+                      workerUiLabels={workerUiLabels}
+                      onOpenDetails={canOpen ? () => onRowClick(item) : undefined}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

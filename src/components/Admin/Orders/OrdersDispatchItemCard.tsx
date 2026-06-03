@@ -1,7 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { formatDict, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
@@ -9,7 +8,6 @@ import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
 import {
   buildDispatchItemCardCopy,
-  computeDispatchInProgressPercent,
   dispatchItemDateTimeLabels,
   dispatchStatusTone,
   type DispatchItemCardLayout,
@@ -17,25 +15,6 @@ import {
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type WorkerClient = AppDictionary["worker"]["client"];
-
-function ProgressBar({ progress, label }: { progress: number; label: string }) {
-  return (
-    <div className="w-[140px]">
-      <div className="flex justify-between text-[10px] text-zinc-500 mb-1">
-        <span>{label}</span>
-        <span>{progress}%</span>
-      </div>
-      <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-full h-1.5 overflow-hidden">
-        <div
-          className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000 relative"
-          style={{ width: `${Math.max(5, progress)}%` }}
-        >
-          <div className="absolute inset-0 bg-white/30 animate-pulse" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function OrdersDispatchItemCard({
   item,
@@ -50,21 +29,14 @@ export function OrdersDispatchItemCard({
   liveClockMs: number | null;
   ordersDict: OrdersDict;
   workerUiLabels: WorkerClient;
-  /** Tablica Kanban — klik w kartę otwiera podgląd sesji/zlecenia. */
+  /** Klik w kartę — podgląd sesji/zlecenia (tablica i tabela). */
   onOpenDetails?: () => void;
 }) {
   const dict = ordersDict;
   const tone = dispatchStatusTone(item.status);
-  const isWorking = item.status === "IN_PROGRESS";
-  const progress = computeDispatchInProgressPercent(item, liveClockMs);
   const { orderNo, mode, modeColor, machine, material, qty, customerDisplay, desc, fieldVisibility } =
-    buildDispatchItemCardCopy(
-    item,
-    dict,
-    workerUiLabels
-  );
+    buildDispatchItemCardCopy(item, dict, workerUiLabels);
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
-  const isBoard = layout !== "table";
 
   const showOrderPriority = layout !== "boardDone" && item._type === "ORDER";
 
@@ -75,135 +47,19 @@ export function OrdersDispatchItemCard({
     />
   ) : null;
 
-  const subheader =
-    layout === "table" ? (
-      <div className="flex items-center gap-2 flex-wrap">
-        {item.expectedDurationHours && (
-          <div className="text-[10px] text-amber-700 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-            {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-          </div>
-        )}
-        {item.dueDate && (
-          <div className="text-[10px] text-rose-700 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-            {formatDict(workerUiLabels.term, {
-              date: formatUiDateOnly(item.dueDate as string),
-              time: formatUiTimeHm(item.dueDate as string),
-            })}
-          </div>
-        )}
-      </div>
-    ) : undefined;
-
-  const durationChipBoard = item.expectedDurationHours ? (
-    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-500/10 inline-block px-1.5 py-0.5 rounded">
-      {workerUiLabels.durationLabel} {item.expectedDurationHours}h
-    </div>
-  ) : null;
-
-  const dueChipBoard = item.dueDate ? (
-    <div className="text-[10px] text-rose-600 dark:text-rose-400 font-medium bg-rose-50 dark:bg-rose-500/10 inline-block px-1.5 py-0.5 rounded">
-      {formatDict(workerUiLabels.term, {
-        date: formatUiDateOnly(item.dueDate as string),
-        time: formatUiTimeHm(item.dueDate as string),
-      })}
-    </div>
-  ) : null;
-
-  const completedStartEnd = (startClass: string, endClass: string) =>
-    item.status === "COMPLETED" && item.startTime && item.endTime ? (
-      <>
-        <div
-          className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${startClass}`}
-        >
-          {dict.start}: {formatUiTimeHm(item.startTime as string)}
-        </div>
-        <div
-          className={`text-[10px] font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded ${endClass}`}
-        >
-          {dict.end}: {formatUiTimeHm(item.endTime as string)}
-        </div>
-      </>
-    ) : null;
-
-  let footer: ReactNode;
-
-  if (layout === "table") {
-    footer = (
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {item.status === "COMPLETED" && item.startTime && item.endTime && (
-            <>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.start}: {formatUiTimeHm(item.startTime as string)}
-              </div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.end}: {formatUiTimeHm(item.endTime as string)}
-              </div>
-            </>
-          )}
-          {isWorking && <ProgressBar progress={progress} label={dict.timeProgressLabel} />}
-        </div>
-      </div>
-    );
-  } else if (layout === "boardPending") {
-    footer = (
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {durationChipBoard}
-          {dueChipBoard}
-          {completedStartEnd(
-            "text-emerald-600 dark:text-emerald-400",
-            "text-emerald-600 dark:text-emerald-400"
-          )}
-          {isWorking && <ProgressBar progress={progress} label={dict.timeProgressLabel} />}
-        </div>
-      </div>
-    );
-  } else if (layout === "boardActive") {
-    footer = (
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {durationChipBoard}
-          {dueChipBoard}
-          <ProgressBar progress={progress} label={dict.timeProgressLabel} />
-        </div>
-      </div>
-    );
-  } else {
-    footer = (
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          {durationChipBoard}
-          {dueChipBoard}
-          {item.startTime && item.endTime && (
-            <>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.start}: {formatUiTimeHm(item.startTime as string)}
-              </div>
-              <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-500/10 inline-block px-1.5 py-0.5 rounded">
-                {dict.end}: {formatUiTimeHm(item.endTime as string)}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
     <OrderLabelCard
       density="compact"
-      layout={isBoard ? "teaser" : "full"}
+      layout="teaser"
       tone={tone}
       orderNo={orderNo}
       title={item.workerName as string}
-      orderedBy={isBoard ? null : (item.creatorName ?? item.workerName ?? null)}
+      orderedBy={null}
       orderedByLabel={dict.orderedBy}
       attachmentPhotos={Boolean(item.hasPhotos)}
       attachmentNotes={Boolean(item.hasNotes)}
       badges={badges}
-      subheader={isBoard ? undefined : subheader}
-      showDateTime={isBoard}
+      showDateTime
       mode={mode}
       modeColor={modeColor}
       machine={machine}
@@ -214,8 +70,7 @@ export function OrdersDispatchItemCard({
       fieldVisibility={fieldVisibility}
       dateLabel={dateLabel}
       timeLabel={timeLabel || "—"}
-      footer={isBoard ? undefined : footer}
-      onCardClick={isBoard ? onOpenDetails : undefined}
+      onCardClick={onOpenDetails}
       cardAriaLabel={workerUiLabels.orderDetailsOpenCategory}
     />
   );
