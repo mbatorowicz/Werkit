@@ -1,10 +1,13 @@
 "use client";
 
-import {
-  DATETIME_LOCAL_STEP_SECONDS,
-  roundDatetimeLocalToStep,
-} from "@/lib/datetimeLocal";
+import { useMemo } from "react";
+import { DateInput } from "@/components/DateInput";
 import { dateInputClassName, type DateInputVariant } from "@/components/datetimeFieldStyles";
+import {
+  DATETIME_LOCAL_TIME_OPTIONS,
+  joinDatetimeLocal,
+  splitDatetimeLocal,
+} from "@/lib/datetimeLocal";
 
 type Props = {
   value: string;
@@ -13,10 +16,13 @@ type Props = {
   className?: string;
   id?: string;
   disabled?: boolean;
+  timePlaceholder?: string;
   "aria-label"?: string;
 };
 
-/** Termin zlecenia — natywny picker z krokiem 10 min i spójnym stylem formularza. */
+/**
+ * Termin zlecenia: data (natywny picker) + godzina (lista co 10 min — bez minut 1–9 itd.).
+ */
 export function DatetimeLocalInput({
   value,
   onChange,
@@ -24,18 +30,61 @@ export function DatetimeLocalInput({
   className = "",
   id,
   disabled = false,
+  timePlaceholder = "--:--",
   "aria-label": ariaLabel,
 }: Props) {
+  const fieldClass = className.trim() ? className : dateInputClassName(variant);
+  const { date, time } = useMemo(() => splitDatetimeLocal(value), [value]);
+
+  const handleDateChange = (nextDate: string) => {
+    if (!nextDate.trim()) {
+      onChange("");
+      return;
+    }
+    const nextTime = time || DATETIME_LOCAL_TIME_OPTIONS[0];
+    onChange(joinDatetimeLocal(nextDate, nextTime));
+  };
+
+  const handleTimeChange = (nextTime: string) => {
+    if (!nextTime) {
+      onChange("");
+      return;
+    }
+    if (!date.trim()) {
+      return;
+    }
+    onChange(joinDatetimeLocal(date, nextTime));
+  };
+
   return (
-    <input
-      id={id}
-      type="datetime-local"
-      step={DATETIME_LOCAL_STEP_SECONDS}
-      value={value}
-      disabled={disabled}
+    <div
+      className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto]"
+      role="group"
       aria-label={ariaLabel}
-      onChange={(e) => onChange(roundDatetimeLocalToStep(e.target.value))}
-      className={className.trim() ? className : dateInputClassName(variant)}
-    />
+    >
+      <DateInput
+        id={id}
+        variant={variant}
+        value={date}
+        onChange={handleDateChange}
+        disabled={disabled}
+        className={fieldClass}
+        aria-label={ariaLabel ? `${ariaLabel} — data` : undefined}
+      />
+      <select
+        value={time}
+        disabled={disabled || !date}
+        onChange={(e) => handleTimeChange(e.target.value)}
+        className={`${fieldClass} min-w-[6.5rem] sm:w-28`}
+        aria-label={ariaLabel ? `${ariaLabel} — godzina` : undefined}
+      >
+        <option value="">{timePlaceholder}</option>
+        {DATETIME_LOCAL_TIME_OPTIONS.map((slot) => (
+          <option key={slot} value={slot}>
+            {slot}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

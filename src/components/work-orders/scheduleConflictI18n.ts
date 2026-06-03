@@ -1,5 +1,5 @@
 import type { AppDictionary } from "@/i18n/types";
-import { roundDatetimeLocalToStep } from "@/lib/datetimeLocal";
+import { snapDatetimeLocalValue } from "@/lib/datetimeLocal";
 import type { ScheduleConflictLabels } from "@/components/work-orders/formatScheduleConflictLine";
 import type { WorkOrderScheduleFieldLabels } from "@/components/work-orders/WorkOrderScheduleFields";
 
@@ -43,5 +43,5 @@ export function toDatetimeLocalValue(iso: string | null): string {
   if (Number.isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   const raw = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  return roundDatetimeLocalToStep(raw);
+  return snapDatetimeLocalValue(raw);
 }
