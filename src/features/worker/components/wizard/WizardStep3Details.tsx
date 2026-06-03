@@ -135,10 +135,15 @@ export function WizardStep3Details({
               materials={materials}
               materialCategoryId={materialCategoryId}
               materialId={materialId}
-              onMaterialCategoryChange={setMaterialCategoryId}
+              onMaterialCategoryChange={(id) => {
+                setMaterialCategoryId(id);
+                setMaterialId("");
+              }}
               onMaterialChange={setMaterialId}
               dict={materialPickerDict}
-              placeholder={dict.wizardMaterialPlaceholder}
+              placeholder={
+                materialCategoryId ? dict.wizardMaterialPlaceholder : undefined
+              }
               required={selectedCategory.reqMaterial}
               aria-label={dict.wizardMaterialLabel}
             />

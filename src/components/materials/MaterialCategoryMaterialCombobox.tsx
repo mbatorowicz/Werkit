@@ -82,24 +82,32 @@ export function MaterialCategoryMaterialCombobox({
     [materials, materialId]
   );
 
+  const categoryStepActive = categories.length > 0 && !materialCategoryId;
+
   const listOptions: ListOption[] = useMemo(() => {
-    if (!materialCategoryId) {
+    if (categoryStepActive) {
       return categories.map((c) => ({
         id: toMaterialCategoryOptionId(c.id),
         label: c.name,
         kind: "category" as const,
       }));
     }
-    return filterMaterialsByMaterialCategory(materials, materialCategoryId).map((m) => ({
+    let scoped = materialCategoryId
+      ? filterMaterialsByMaterialCategory(materials, materialCategoryId)
+      : materials;
+    if (materialCategoryId && scoped.length === 0) {
+      scoped = materials;
+    }
+    return scoped.map((m) => ({
       id: String(m.id),
       label: m.name,
       kind: "material" as const,
     }));
-  }, [categories, materialCategoryId, materials]);
+  }, [categories, categoryStepActive, materialCategoryId, materials]);
 
   const filtered = useMemo(
     () =>
-      filterComboboxOptions(listOptions, query, (o) => o.label).map((o) => ({
+      filterComboboxOptions(listOptions, query, (o) => o.label, 50).map((o) => ({
         id: o.id,
         label: o.label,
         kind: o.kind,
@@ -107,9 +115,18 @@ export function MaterialCategoryMaterialCombobox({
     [listOptions, query]
   );
 
-  const emptyLabel = materialCategoryId ? dict.noMaterialsInCategory : dict.noCategories;
+  const emptyLabel = categoryStepActive
+    ? dict.noCategories
+    : materialCategoryId
+      ? dict.noMaterialsInCategory
+      : dict.noCategories;
   const resolvedPlaceholder =
-    placeholder ?? (materialCategoryId ? dict.searchMaterial : dict.chooseCategory);
+    placeholder ??
+    (categoryStepActive
+      ? dict.chooseCategory
+      : materialCategoryId
+        ? dict.searchMaterial
+        : dict.chooseCategory);
 
   useEffect(() => {
     setHighlightIndex(0);
@@ -192,11 +209,22 @@ export function MaterialCategoryMaterialCombobox({
           <li className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">{emptyLabel}</li>
         ) : (
           filtered.map((option, index) => (
-            <li key={option.id} role="option" aria-selected={materialId === option.id}>
+            <li
+              key={option.id}
+              role="option"
+              aria-selected={
+                option.kind === "material"
+                  ? materialId === option.id
+                  : materialCategoryId === String(parseMaterialCategoryOptionId(option.id) ?? "")
+              }
+            >
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pickOption(option.id)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  pickOption(option.id);
+                }}
                 className={`w-full px-3 py-2 text-left text-sm transition ${
                   index === highlightIndex
                     ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100"
@@ -204,11 +232,6 @@ export function MaterialCategoryMaterialCombobox({
                 }`}
               >
                 <div className="font-medium">{option.label}</div>
-                {option.kind === "category" ? (
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {dict.chooseCategory}
-                  </div>
-                ) : null}
               </button>
             </li>
           ))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
 import {
   AdminSearchCombobox,
   type AdminSearchComboboxOption,
@@ -37,7 +37,7 @@ const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 type Props = {
   form: OrderFormState;
-  setForm: (f: OrderFormState) => void;
+  setForm: Dispatch<SetStateAction<OrderFormState>>;
   dict: AdminOrdersDict;
   categories: BaseCategory[];
   workers: BaseWorker[];
@@ -217,11 +217,13 @@ export function OrderFormFields({
             materialCategoryId={form.materialCategoryId}
             materialId={form.materialId}
             onMaterialCategoryChange={(materialCategoryId) =>
-              setForm({ ...form, materialCategoryId })
+              setForm((prev) => ({ ...prev, materialCategoryId, materialId: "" }))
             }
-            onMaterialChange={(materialId) => setForm({ ...form, materialId })}
+            onMaterialChange={(materialId) => setForm((prev) => ({ ...prev, materialId }))}
             dict={materialPickerDict}
-            placeholder={materialLabel}
+            placeholder={
+              form.materialCategoryId ? materialLabel : undefined
+            }
             required={selectedCategory.reqMaterial}
             aria-label={materialLabel}
           />
