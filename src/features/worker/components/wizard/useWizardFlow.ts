@@ -171,9 +171,15 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     setIsLoading(true);
     try {
       const isRepair = isRepairOrderType(selectedCategory?.orderType);
+      const parsedDue = dueDate ? new Date(dueDate) : null;
+      if (dueDate && (!parsedDue || Number.isNaN(parsedDue.getTime()))) {
+        await appAlert({ message: apiErrors.invalid_payload ?? apiErrors.save_error });
+        setIsLoading(false);
+        return;
+      }
       const createPayload: Record<string, unknown> = {
-        categoryId,
-        resourceId,
+        categoryId: Number(categoryId),
+        resourceId: Number(resourceId),
         materialId:
           !isRepair && selectedCategory?.showMaterial ? materialId || null : null,
         customerId: selectedCategory?.showCustomer ? customerId || null : null,
@@ -183,7 +189,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
           !isRepair && selectedCategory?.showTaskDescription ? taskDescription || null : null,
         repairDescription: isRepair ? repairDescription.trim() || null : null,
         expectedDurationHours: expectedDurationHours.trim() || null,
-        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+        dueDate: parsedDue ? parsedDue.toISOString() : null,
       };
 
       const createRes = await fetchWithDeviceTelemetry(

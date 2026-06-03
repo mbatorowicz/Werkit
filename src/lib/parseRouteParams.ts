@@ -56,6 +56,9 @@ export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
       : null;
   const dueDateRaw = typeof body.dueDate === "string" ? body.dueDate : null;
   const parsedDueDate = dueDateRaw ? new Date(dueDateRaw) : null;
+  if (dueDateRaw && (!parsedDueDate || Number.isNaN(parsedDueDate.getTime()))) {
+    throw new Error("invalid_payload");
+  }
   const priority = typeof body.priority === "string" ? body.priority : null;
 
   const orderType = typeof body.orderType === "string" ? body.orderType : null;

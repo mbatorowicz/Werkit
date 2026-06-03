@@ -1,6 +1,23 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
+
+/** Kody błędów domenowych (nie surowy komunikat Postgresa). */
+const WORKER_ORDER_ERROR_CODES = new Set([
+  "forbidden",
+  "session_active",
+  "schedule_conflict",
+  "resource_busy",
+  "invalid_category",
+  "missing_fields",
+  "invalid_payload",
+  "invalid_user",
+  "missing_customer",
+  "missing_material",
+  "missing_quantity",
+  "missing_task_description",
+]);
 
 export const dynamic = "force-dynamic";
 
@@ -38,19 +55,18 @@ export const POST = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof Error && err.message === "forbidden") return jsonError("Forbidden", 403);
-      if (err instanceof Error && err.message === "session_active")
-        return jsonError("session_active", 400);
-      if (err instanceof Error && err.message === "schedule_conflict")
-        return jsonError("schedule_conflict", 409);
-      if (err instanceof Error && err.message === "resource_busy")
-        return jsonError("resource_busy", 409);
-      if (err instanceof Error && err.message === "invalid_category")
-        return jsonError("invalid_category", 400);
-      if (err instanceof Error && err.message === "missing_fields")
-        return jsonError("missing_fields", 400);
-      if (err instanceof Error && err.message === "invalid_payload")
-        return jsonError("invalid_payload", 400);
-      if (err instanceof Error && err.message !== "ok") return jsonError(err.message, 400);
+      if (err instanceof Error && WORKER_ORDER_ERROR_CODES.has(err.message)) {
+        const status =
+          err.message === "schedule_conflict" || err.message === "resource_busy" ? 409 : 400;
+        return jsonError(err.message, status);
+      }
+      if (isMissingWorkOrderRepairColumns(err)) {
+        console.error("[worker/work-orders] Brak kolumn order_type / repair_* — uruchom migracje Drizzle.");
+        return jsonError("save_error", 503);
+      }
+      if (err instanceof Error) {
+        console.error("[worker/work-orders] createOwnOrder:", err.message);
+      }
       return null;
     },
     defaultErrorCode: "save_error",
