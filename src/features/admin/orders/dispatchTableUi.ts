@@ -6,6 +6,7 @@ import {
   orderLabelDescriptionText,
   resolveOrderLabelFieldVisibility,
 } from "@/lib/orderLabelFieldVisibility";
+import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import { narrowOrderType } from "@/lib/orderType";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
@@ -85,12 +86,12 @@ export function buildDispatchItemCardCopy(
   const machine = ((item.resourceName as string) || ordersDict.noMachine) as string;
   const material = (item.materialName as string) || "";
   const qty = item.quantityTons ? `${item.quantityTons}t` : "";
-  const customer = [
-    item.customerLastName ? (item.customerLastName as string) : "",
-    item.customerFirstName ? (item.customerFirstName as string) : "",
-  ]
-    .join(" ")
-    .trim();
+  const customerDisplay = buildOrderLabelCustomerDisplay({
+    customerFirstName: item.customerFirstName as string | null,
+    customerLastName: item.customerLastName as string | null,
+    customerPhone: item.customerPhone as string | null,
+    customerAddress: item.customerAddress as string | null,
+  });
   const orderType = narrowOrderType(item.orderType);
   const desc =
     orderLabelDescriptionText({
@@ -107,7 +108,17 @@ export function buildDispatchItemCardCopy(
       categoryShowTaskDescription: item.categoryShowTaskDescription,
     }),
   });
-  return { orderNo, mode, modeColor, machine, material, qty, customer, desc, fieldVisibility };
+  return {
+    orderNo,
+    mode,
+    modeColor,
+    machine,
+    material,
+    qty,
+    customerDisplay,
+    desc,
+    fieldVisibility,
+  };
 }
 
 export function dispatchItemDateTimeLabels(

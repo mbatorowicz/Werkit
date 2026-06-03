@@ -1,4 +1,5 @@
 import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatCustomerLabel } from "@/lib/customerSearch";
 import {
   orderLabelDescriptionText,
   workOrderOrderLabelCardFields,
@@ -55,9 +56,10 @@ export function workerOrderDetailsFromSession(
   dict: { noCategoryName: string }
 ): WorkerOrderDetailsData {
   const customerName =
-    `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim() ||
-    session.customerAddress?.trim() ||
-    null;
+    formatCustomerLabel({
+      firstName: session.customerFirstName ?? null,
+      lastName: session.customerLastName ?? null,
+    }) || null;
   const fieldVisibility = workOrderOrderLabelCardFields(
     {
       orderType: session.orderType ?? null,
@@ -99,8 +101,4 @@ export function workerOrderDetailsFromSession(
   };
 }
 
-/** href dla `tel:` — usuwa spacje, zostawia cyfry i leading +. */
-export function phoneTelHref(phone: string): string {
-  const normalized = phone.replace(/[^\d+]/g, "");
-  return `tel:${normalized || phone}`;
-}
+export { phoneTelHref } from "@/lib/phoneTelHref";

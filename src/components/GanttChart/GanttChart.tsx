@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { formatCustomerLabel } from "@/lib/customerSearch";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
@@ -31,7 +32,10 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
       footer: string;
     }
   ) => {
-    const customerName = `${item.customerLastName || ""} ${item.customerFirstName || ""}`.trim();
+    const customerName = formatCustomerLabel({
+      firstName: (item.customerFirstName as string) ?? null,
+      lastName: (item.customerLastName as string) ?? null,
+    });
     return [
       `#${item.workOrderId || item.id}`,
       `${fields.category}: ${item.categoryName || "—"}`,

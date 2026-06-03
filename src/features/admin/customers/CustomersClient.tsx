@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Package, Plus } from "lucide-react";
 import { getDictionary } from "@/i18n";
-import { parseCustomerAddress } from "@/lib/customerAddress";
+import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
+import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -32,35 +33,31 @@ function CustomerPreviewFields({
   customer: Customer;
   dict: Record<string, string>;
 }) {
-  const address = parseCustomerAddress(customer.defaultAddress);
-  const hasAddress =
-    Boolean(address.street.trim()) ||
-    Boolean(address.city.trim()) ||
-    Boolean(address.postalCode.trim());
-  const customerName = customer.firstName
-    ? `${customer.firstName} ${customer.lastName}`
-    : customer.lastName;
+  const customerDisplay = buildOrderLabelCustomerDisplay({
+    customerFirstName: customer.firstName,
+    customerLastName: customer.lastName,
+    customerPhone: customer.phone,
+    customerAddress: customer.defaultAddress,
+  });
 
   return (
     <>
       <AdminPreviewField label="ID" value={`#${customer.id}`} />
-      <AdminPreviewField label={dict.customerData} value={customerName} />
-      {hasAddress ? (
-        <>
-          {address.street.trim() ? (
-            <AdminPreviewField label={dict.streetLabel} value={address.street} />
-          ) : null}
-          {address.postalCode.trim() ? (
-            <AdminPreviewField label={dict.postalCodeLabel} value={address.postalCode} />
-          ) : null}
-          {address.city.trim() ? (
-            <AdminPreviewField label={dict.cityLabel} value={address.city} />
-          ) : null}
-        </>
-      ) : (
-        <AdminPreviewField label={dict.defaultAddress} value={dict.noAddress} />
-      )}
-      <AdminPreviewField label={dict.phoneLabel} value={customer.phone?.trim() || null} />
+      <CustomerContactFields
+        variant="admin"
+        labels={{
+          customer: dict.customerData,
+          streetLabel: dict.streetLabel,
+          postalCodeLabel: dict.postalCodeLabel,
+          cityLabel: dict.cityLabel,
+          phoneLabel: dict.phoneLabel,
+          defaultAddressLabel: dict.defaultAddress,
+          noAddressValue: dict.noAddress,
+        }}
+        customerName={customerDisplay.customerName}
+        phone={customerDisplay.customerPhone}
+        addressParts={customerDisplay.addressParts}
+      />
     </>
   );
 }

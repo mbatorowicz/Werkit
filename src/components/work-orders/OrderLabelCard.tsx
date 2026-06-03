@@ -3,6 +3,11 @@ import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { getDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
+import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
+import {
+  buildOrderLabelCustomerDisplay,
+  type OrderLabelCustomerDisplay,
+} from "@/lib/orderLabelCustomerDisplay";
 import { UI_RADIUS_CARD } from "@/lib/uiRadius";
 
 type Tone = "planned" | "active" | "done";
@@ -52,6 +57,11 @@ export function OrderLabelCard({
   material,
   quantity,
   customer,
+  customerFirstName,
+  customerLastName,
+  customerPhone,
+  customerAddress,
+  customerDisplay: customerDisplayProp,
   description,
   dateLabel,
   timeLabel,
@@ -82,7 +92,14 @@ export function OrderLabelCard({
   machine: string;
   material?: string | null;
   quantity?: string | null;
+  /** Gotowy wynik {@link buildOrderLabelCustomerDisplay} (np. dyspozycja / podgląd sesji). */
+  customerDisplay?: OrderLabelCustomerDisplay;
+  /** Nazwa z API listy zleceń (`customerName`). */
   customer?: string | null;
+  customerFirstName?: string | null;
+  customerLastName?: string | null;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
   description?: string | null;
   dateLabel?: string | null;
   timeLabel?: string | null;
@@ -97,6 +114,23 @@ export function OrderLabelCard({
   const isCompact = density === "compact";
   const attachDict = getDictionary().worker.client;
   const fieldLabels = getDictionary().admin.orderFields;
+  const customerDict = getDictionary().admin.customers;
+  const customerDisplay =
+    customerDisplayProp ??
+    buildOrderLabelCustomerDisplay({
+      customerName: customer,
+      customerFirstName,
+      customerLastName,
+      customerPhone,
+      customerAddress,
+    });
+  const customerContactLabels = {
+    customer: fieldLabels.customer,
+    streetLabel: customerDict.streetLabel,
+    postalCodeLabel: customerDict.postalCodeLabel,
+    cityLabel: customerDict.cityLabel,
+    phoneLabel: customerDict.phoneLabel,
+  };
   const vis = fieldVisibility ?? {
     showMode: true,
     showMaterial: true,
@@ -109,7 +143,6 @@ export function OrderLabelCard({
     machine: fieldLabels.resource,
     material: fieldLabels.material,
     quantity: fieldLabels.quantity,
-    customer: fieldLabels.customer,
     description: vis.descriptionLabel,
     date: fieldLabels.date,
     time: fieldLabels.time,
@@ -191,9 +224,12 @@ export function OrderLabelCard({
               />
             ) : null}
             {vis.showCustomer ? (
-              <OrderDetailField
-                label={labels.customer}
-                value={customer?.trim() ? customer : "—"}
+              <CustomerContactFields
+                variant="order"
+                labels={customerContactLabels}
+                customerName={customerDisplay.customerName}
+                phone={customerDisplay.customerPhone}
+                addressParts={customerDisplay.addressParts}
               />
             ) : null}
             {vis.showDescription && description?.trim() ? (

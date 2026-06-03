@@ -7,6 +7,7 @@ import type { AppDictionary } from "@/i18n/types";
 import { formatDict, formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { formatCustomerLabel } from "@/lib/customerSearch";
 import {
   categoryFlagsFromWorkOrderRow,
   orderLabelDescriptionText,
@@ -94,7 +95,10 @@ export default function ActiveSessionDashboard({
   // Derive destination name from session customer info
   const destinationName = useMemo(() => {
     if (!destination) return undefined;
-    const name = `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim();
+    const name = formatCustomerLabel({
+      firstName: session.customerFirstName ?? null,
+      lastName: session.customerLastName ?? null,
+    });
     if (name) return name;
     if (session.customerAddress) return session.customerAddress;
     return undefined;
@@ -113,10 +117,10 @@ export default function ActiveSessionDashboard({
           machine={session.resourceName || "—"}
           material={session.materialName}
           quantity={session.quantityTons ? `${session.quantityTons}${tonsSuffix}` : null}
-          customer={
-            `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim() ||
-            (session.customerAddress ? session.customerAddress : null)
-          }
+          customerFirstName={session.customerFirstName}
+          customerLastName={session.customerLastName}
+          customerPhone={session.customerPhone}
+          customerAddress={session.customerAddress}
           description={orderLabelDescriptionText({
             orderType: session.orderType,
             taskDescription: session.taskDescription,

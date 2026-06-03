@@ -3,8 +3,10 @@
 import { Map as MapIcon } from "lucide-react";
 import type { TimelineItem } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { getDictionary } from "@/i18n";
 import { formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
 import type { UnifiedGanttItem } from "@/types/admin";
+import { buildDispatchItemCardCopy } from "@/features/admin/orders/dispatchTableUi";
 import SessionMapSection from "./SessionMapSection";
 import SessionTimelinePanel from "./SessionTimelinePanel";
 
@@ -58,10 +60,12 @@ export function SessionDetailsContent({
   onEdit,
   dict,
 }: SessionDetailsContentProps) {
-  const categoryLabel =
-    ((item.categoryName as string) || "").trim() || dict.sessionDetailsNoCategory;
-  const machineLabel =
-    ((item.resourceName as string) || "").trim() || dict.sessionDetailsMachinePlaceholder;
+  const appDict = getDictionary();
+  const cardCopy = buildDispatchItemCardCopy(
+    item,
+    appDict.admin.orders,
+    appDict.worker.client
+  );
 
   return (
     <div className="p-6">
@@ -77,20 +81,14 @@ export function SessionDetailsContent({
         title={(item.workerName as string) || null}
         orderedBy={item.creatorName ?? item.workerName ?? null}
         orderedByLabel={dict.orderedBy}
-        mode={categoryLabel}
-        modeColor={
-          item.categoryColor === null || typeof item.categoryColor === "string"
-            ? item.categoryColor
-            : null
-        }
-        machine={machineLabel}
-        material={(item.materialName as string) || null}
+        mode={cardCopy.mode}
+        modeColor={cardCopy.modeColor}
+        machine={cardCopy.machine}
+        material={cardCopy.material || null}
         quantity={item.quantityTons ? `${item.quantityTons as string}${dict.tons}` : null}
-        customer={
-          `${(item.customerLastName as string) || ""} ${(item.customerFirstName as string) || ""}`.trim() ||
-          null
-        }
-        description={(item.taskDescription as string) || null}
+        customerDisplay={cardCopy.customerDisplay}
+        description={cardCopy.desc || null}
+        fieldVisibility={cardCopy.fieldVisibility}
         dateLabel={
           item.startTime
             ? formatUiDateOnly(item.startTime as string)

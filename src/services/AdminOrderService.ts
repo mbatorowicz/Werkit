@@ -129,6 +129,8 @@ export class AdminOrderService {
         customerId: workSessions.customerId,
         customerFirstName: customers.firstName,
         customerLastName: customers.lastName,
+        customerPhone: customers.phone,
+        customerAddress: customers.defaultAddress,
         quantityTons: workSessions.quantityTons,
         expectedDurationHours: workSessions.expectedDurationHours,
         dueDate: workSessions.dueDate,

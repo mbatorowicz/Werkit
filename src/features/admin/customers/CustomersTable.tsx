@@ -6,6 +6,7 @@ import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { formatCustomerAddressDisplay } from "@/lib/customerAddress";
+import { formatCustomerLabel } from "@/lib/customerSearch";
 
 interface CustomersTableProps {
   customers: AdminCustomerListRow[];
@@ -79,9 +80,7 @@ export default function CustomersTable({
                   >
                     <td className="px-6 py-4">
                       <div className="font-semibold text-zinc-900 dark:text-zinc-200">
-                        {customer.firstName
-                          ? `${customer.firstName} ${customer.lastName}`
-                          : customer.lastName}
+                        {formatCustomerLabel(customer)}
                       </div>
                       <div className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
                         ID: #{customer.id}

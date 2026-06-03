@@ -2,12 +2,12 @@
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
+import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { formatDict, getDictionary } from "@/i18n";
-import { parseCustomerAddress } from "@/lib/customerAddress";
+import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import type { WorkerOrderDetailsData } from "@/features/worker/lib/workerOrderDetails";
-import { phoneTelHref } from "@/features/worker/lib/workerOrderDetails";
 import { UI_RADIUS_INNER } from "@/lib/uiRadius";
 
 export function WorkerOrderDetailsModal({
@@ -25,9 +25,11 @@ export function WorkerOrderDetailsModal({
   if (!data) return null;
 
   const vis = data.fieldVisibility;
-  const phone = data.customerPhone?.trim() ?? "";
-  const customerName = data.customerName?.trim() ?? "";
-  const addressParts = parseCustomerAddress(data.customerAddress);
+  const customerDisplay = buildOrderLabelCustomerDisplay({
+    customerName: data.customerName,
+    customerPhone: data.customerPhone,
+    customerAddress: data.customerAddress,
+  });
 
   const fieldsCard = `${UI_RADIUS_INNER} border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/50 px-4 py-3`;
 
@@ -79,41 +81,21 @@ export function WorkerOrderDetailsModal({
             />
           ) : null}
           {vis.showCustomer ? (
-            <>
-              <OrderDetailField
-                label={fieldLabels.customer}
-                value={customerName || "—"}
-              />
-              {addressParts.street.trim() ? (
-                <OrderDetailField
-                  label={customerDict.streetLabel}
-                  value={addressParts.street}
-                />
-              ) : null}
-              {addressParts.postalCode.trim() ? (
-                <OrderDetailField
-                  label={customerDict.postalCodeLabel}
-                  value={addressParts.postalCode}
-                />
-              ) : null}
-              {addressParts.city.trim() ? (
-                <OrderDetailField label={customerDict.cityLabel} value={addressParts.city} />
-              ) : null}
-              {phone ? (
-                <OrderDetailField
-                  label={customerDict.phoneLabel}
-                  value={phone}
-                  valueNode={
-                    <a
-                      href={phoneTelHref(phone)}
-                      className="mt-0.5 inline-block text-[15px] font-semibold text-emerald-700 dark:text-emerald-400 break-all hover:underline"
-                    >
-                      {phone}
-                    </a>
-                  }
-                />
-              ) : null}
-            </>
+            <CustomerContactFields
+              variant="order"
+              labels={{
+                customer: fieldLabels.customer,
+                streetLabel: customerDict.streetLabel,
+                postalCodeLabel: customerDict.postalCodeLabel,
+                cityLabel: customerDict.cityLabel,
+                phoneLabel: customerDict.phoneLabel,
+              }}
+              customerName={customerDisplay.customerName}
+              phone={customerDisplay.customerPhone}
+              addressParts={customerDisplay.addressParts}
+              showPhoneWhenEmpty={false}
+              phoneAsLink
+            />
           ) : null}
           {vis.showDescription && data.description?.trim() ? (
             <OrderDetailField

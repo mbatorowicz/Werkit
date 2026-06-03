@@ -1,7 +1,10 @@
 import type { BaseCustomer } from "@/types/admin";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 
-export function formatCustomerLabel(c: Pick<BaseCustomer, "firstName" | "lastName">): string {
+export function formatCustomerLabel(c: {
+  firstName?: string | null;
+  lastName?: string | null;
+}): string {
   return [c.lastName, c.firstName].filter(Boolean).join(" ").trim();
 }
 

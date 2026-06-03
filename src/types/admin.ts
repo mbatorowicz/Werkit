@@ -17,6 +17,8 @@ export type UnifiedGanttItem = {
   materialName?: string | null;
   customerFirstName?: string | null;
   customerLastName?: string | null;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
   quantityTons?: number | string | null;
   taskDescription?: string | null;
   priority?: WorkOrderPriority | string | null;

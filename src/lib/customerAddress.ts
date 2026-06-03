@@ -32,6 +32,14 @@ export function formatCustomerAddressDisplay(raw: string | null | undefined): st
   return lines.length ? lines.join("\n") : "";
 }
 
+export function customerAddressHasParts(parts: CustomerAddressParts): boolean {
+  return (
+    Boolean(parts.street.trim()) ||
+    Boolean(parts.city.trim()) ||
+    Boolean(parts.postalCode.trim())
+  );
+}
+
 export function parseCustomerAddress(raw: string | null | undefined): CustomerAddressParts {
   const s = raw?.trim() ?? "";
   if (!s) return { street: "", city: "", postalCode: "" };
