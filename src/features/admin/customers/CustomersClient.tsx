@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Package, Plus, MapPin } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { getDictionary } from "@/i18n";
-import { formatCustomerAddressDisplay } from "@/lib/customerAddress";
+import { parseCustomerAddress } from "@/lib/customerAddress";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -24,6 +24,46 @@ import CustomerFormFields, {
 import { customerFormFromStored, customerFormToApiBody } from "./customerFormApi";
 
 type Customer = AdminCustomerListRow;
+
+function CustomerPreviewFields({
+  customer,
+  dict,
+}: {
+  customer: Customer;
+  dict: Record<string, string>;
+}) {
+  const address = parseCustomerAddress(customer.defaultAddress);
+  const hasAddress =
+    Boolean(address.street.trim()) ||
+    Boolean(address.city.trim()) ||
+    Boolean(address.postalCode.trim());
+  const customerName = customer.firstName
+    ? `${customer.firstName} ${customer.lastName}`
+    : customer.lastName;
+
+  return (
+    <>
+      <AdminPreviewField label={dict.customerData} value={customerName} />
+      <AdminPreviewField label={dict.phoneLabel} value={customer.phone?.trim() || null} />
+      {hasAddress ? (
+        <>
+          {address.street.trim() ? (
+            <AdminPreviewField label={dict.streetLabel} value={address.street} />
+          ) : null}
+          {address.city.trim() ? (
+            <AdminPreviewField label={dict.cityLabel} value={address.city} />
+          ) : null}
+          {address.postalCode.trim() ? (
+            <AdminPreviewField label={dict.postalCodeLabel} value={address.postalCode} />
+          ) : null}
+        </>
+      ) : (
+        <AdminPreviewField label={dict.defaultAddress} value={dict.noAddress} />
+      )}
+      <AdminPreviewField label="ID" value={`#${customer.id}`} />
+    </>
+  );
+}
 
 export default function CustomersClient() {
   const { canMutate } = useAdminAbility();
@@ -235,30 +275,7 @@ export default function CustomersClient() {
         maxWidthClass="max-w-lg"
       >
         {previewCustomer ? (
-          <>
-            <AdminPreviewField
-              label={dict.customerData}
-              value={
-                previewCustomer.firstName
-                  ? `${previewCustomer.firstName} ${previewCustomer.lastName}`
-                  : previewCustomer.lastName
-              }
-            />
-            <AdminPreviewField label="ID" value={`#${previewCustomer.id}`} />
-            {previewCustomer.phone ? (
-              <AdminPreviewField label={dict.phoneLabel} value={previewCustomer.phone} />
-            ) : null}
-            <AdminPreviewField label={dict.defaultAddress}>
-              {previewCustomer.defaultAddress ? (
-                <span className="flex items-start gap-2 whitespace-pre-wrap">
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-                  {formatCustomerAddressDisplay(previewCustomer.defaultAddress)}
-                </span>
-              ) : (
-                <span className="italic text-zinc-500">{dict.noAddress}</span>
-              )}
-            </AdminPreviewField>
-          </>
+          <CustomerPreviewFields customer={previewCustomer} dict={dict} />
         ) : null}
       </AdminPreviewModal>
     </>
