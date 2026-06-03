@@ -4,7 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDictionary } from "@/i18n";
 import { WorkOrder } from "@/types/worker";
-import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
+import type {
+  WizardCategory,
+  WizardCustomer,
+  WizardMachine,
+  WizardMaterial,
+  WizardMaterialCategory,
+} from "@/types/wizard";
 import { getCurrentPositionOnce } from "@/lib/geolocationOnce";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
@@ -16,6 +22,7 @@ import {
   narrowWizardMachines,
   narrowWizardMaterials,
   narrowWorkOrders,
+  narrowMaterialCategoryRows,
 } from "@/lib/narrowApiListRows";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 import { isRepairOrderType } from "@/lib/orderType";
@@ -34,11 +41,13 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
   const [categories, setCategories] = useState<WizardCategory[]>([]);
   const [machines, setMachines] = useState<WizardMachine[]>([]);
   const [materials, setMaterials] = useState<WizardMaterial[]>([]);
+  const [materialCategories, setMaterialCategories] = useState<WizardMaterialCategory[]>([]);
   const [customers, setCustomers] = useState<WizardCustomer[]>([]);
   const [orders, setOrders] = useState<WorkOrder[]>([]);
 
   const [categoryId, setCategoryId] = useState<string>("");
   const [resourceId, setResourceId] = useState("");
+  const [materialCategoryId, setMaterialCategoryId] = useState("");
   const [materialId, setMaterialId] = useState("");
   const [customerId, setCustomerId] = useState("");
   const [quantityTons, setQuantityTons] = useState("");
@@ -52,7 +61,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     let cancelled = false;
     void (async () => {
       try {
-        const [cat, mac, mat, cus, ord, sess] = await Promise.all([
+        const [cat, mac, mat, matCats, cus, ord, sess] = await Promise.all([
           fetchWithDeviceTelemetry(
             "Worker wizard: categories",
             "/api/categories?leavesOnly=1",
@@ -76,6 +85,12 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
             {
               category: "lifecycle",
             }
+          ).then(parseJsonArray),
+          fetchWithDeviceTelemetry(
+            "Worker wizard: material-categories",
+            "/api/material-categories?leavesOnly=1",
+            { cache: "no-store" },
+            { category: "lifecycle" }
           ).then(parseJsonArray),
           fetchWithDeviceTelemetry(
             "Worker wizard: customers",
@@ -106,6 +121,9 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
         setCategories(narrowWizardCategories(cat));
         setMachines(narrowWizardMachines(mac));
         setMaterials(narrowWizardMaterials(mat));
+        setMaterialCategories(
+          narrowMaterialCategoryRows(matCats).map((c) => ({ id: c.id, name: c.name }))
+        );
         setCustomers(narrowWizardCustomers(cus));
         setOrders(narrowWorkOrders(ord));
         if (sess && typeof sess === "object" && !Array.isArray(sess)) {
@@ -125,6 +143,18 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
       cancelled = true;
     };
   }, [initialUserId]);
+
+  const applyCategoryChange = useCallback((id: string) => {
+    const cat = categories.find((c) => String(c.id) === id);
+    const nextRepair = isRepairOrderType(cat?.orderType);
+    setCategoryId(id);
+    setResourceId("");
+    setMaterialCategoryId("");
+    setMaterialId("");
+    if (nextRepair) {
+      setQuantityTons("");
+    }
+  }, [categories]);
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id.toString() === categoryId),
@@ -255,12 +285,16 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     categories,
     machines,
     materials,
+    materialCategories,
     customers,
     orders,
     categoryId,
     setCategoryId,
+    applyCategoryChange,
     resourceId,
     setResourceId,
+    materialCategoryId,
+    setMaterialCategoryId,
     materialId,
     setMaterialId,
     customerId,

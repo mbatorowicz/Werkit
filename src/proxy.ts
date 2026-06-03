@@ -8,6 +8,7 @@ import { isCompanyScopedRole, isSuperadminRole } from "@/lib/tenantRoles";
 const SHARED_API_PREFIXES = [
   "/api/machines",
   "/api/materials",
+  "/api/material-categories",
   "/api/customers",
   "/api/categories",
 ];

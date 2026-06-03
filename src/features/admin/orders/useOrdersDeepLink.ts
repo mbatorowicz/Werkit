@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { OrderFormState, UnifiedGanttItem } from "@/types/admin";
+import { inferMaterialCategoryId } from "@/lib/materialCategoryPicker";
 import { narrowOrderType } from "@/lib/orderType";
+import type { BaseMaterial } from "@/types/admin";
 import { formatDueDatetimeLocal } from "@/features/admin/orders/dispatchPlanning";
 
 const EMPTY_ORDER_FORM: OrderFormState = {
   userId: "",
   resourceId: "",
   categoryId: "",
+  materialCategoryId: "",
   materialId: "",
   customerId: "",
   taskDescription: "",
@@ -31,11 +34,13 @@ export function useOrdersDeepLink({
   canMutate,
   orders,
   sessions,
+  materials,
   isLoading,
 }: {
   canMutate: boolean;
   orders: UnifiedGanttItem[];
   sessions: UnifiedGanttItem[];
+  materials: BaseMaterial[];
   isLoading: boolean;
 }) {
   const searchParams = useSearchParams();
@@ -59,6 +64,10 @@ export function useOrdersDeepLink({
         userId: String(item.userId || ""),
         resourceId: String(item.resourceId || ""),
         categoryId: String(item.categoryId || ""),
+        materialCategoryId: inferMaterialCategoryId(
+          String(item.materialId || ""),
+          materials
+        ),
         materialId: String(item.materialId || ""),
         customerId: String(item.customerId || ""),
         taskDescription: item.taskDescription || "",
@@ -75,7 +84,7 @@ export function useOrdersDeepLink({
       setSelectedDispatchItem(null);
       setIsOrderModalOpen(true);
     },
-    [canMutate]
+    [canMutate, materials]
   );
 
   useEffect(() => {

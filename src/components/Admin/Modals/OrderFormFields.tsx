@@ -6,6 +6,10 @@ import {
   type AdminSearchComboboxOption,
 } from "@/components/Admin/AdminSearchCombobox";
 import { DecimalInput } from "@/components/DecimalInput";
+import {
+  MaterialCategoryMaterialCombobox,
+  type MaterialCategoryMaterialComboboxDict,
+} from "@/components/materials/MaterialCategoryMaterialCombobox";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
@@ -18,6 +22,7 @@ import type {
   BaseWorker,
   BaseMachine,
   BaseMaterial,
+  BaseMaterialCategory,
   BaseCustomer,
   BaseCategory,
 } from "@/types/admin";
@@ -38,6 +43,7 @@ type Props = {
   workers: BaseWorker[];
   machines: BaseMachine[];
   materials: BaseMaterial[];
+  materialCategories: BaseMaterialCategory[];
   customers: BaseCustomer[];
   extraCustomers: BaseCustomer[];
   setExtraCustomers: (updater: (prev: BaseCustomer[]) => BaseCustomer[]) => void;
@@ -53,6 +59,7 @@ export function OrderFormFields({
   workers,
   machines,
   materials,
+  materialCategories,
   customers,
   extraCustomers,
   setExtraCustomers,
@@ -71,8 +78,8 @@ export function OrderFormFields({
       resourceId: "",
       orderType: nextType,
       ...(isRepairOrderType(nextType)
-        ? { materialId: "", quantityTons: "" }
-        : {}),
+        ? { materialCategoryId: "", materialId: "", quantityTons: "" }
+        : { materialCategoryId: "", materialId: "" }),
     });
   };
 
@@ -124,12 +131,20 @@ export function OrderFormFields({
     [availableMachines]
   );
 
-  const materialOptions: AdminSearchComboboxOption[] = useMemo(
-    () => materials.map((m) => ({ id: String(m.id), label: m.name })),
-    [materials]
-  );
-
   const comboboxCommon = comboboxFeedbackProps(dict);
+
+  const materialPickerDict: MaterialCategoryMaterialComboboxDict = useMemo(
+    () => ({
+      chooseCategory: dict.materialPickerChooseCategory,
+      searchMaterial: dict.materialPickerSearchMaterial,
+      noCategories: dict.materialPickerNoCategories,
+      noMaterialsInCategory: dict.materialPickerNoMaterialsInCategory,
+      clearCategory: dict.materialPickerClearCategory,
+      clear: dict.searchClear,
+      noResults: dict.searchNoResults,
+    }),
+    [dict]
+  );
 
   const materialLabel = selectedCategory?.reqMaterial
     ? dict.chooseMaterialRequired
@@ -196,14 +211,19 @@ export function OrderFormFields({
       {selectedCategory?.showMaterial && !isRepair ? (
         <div className={FIELD}>
           <label className={LABEL}>{materialLabel}</label>
-          <AdminSearchCombobox
-            options={materialOptions}
-            value={form.materialId}
-            onChange={(id) => setForm({ ...form, materialId: id })}
+          <MaterialCategoryMaterialCombobox
+            categories={materialCategories}
+            materials={materials}
+            materialCategoryId={form.materialCategoryId}
+            materialId={form.materialId}
+            onMaterialCategoryChange={(materialCategoryId) =>
+              setForm({ ...form, materialCategoryId })
+            }
+            onMaterialChange={(materialId) => setForm({ ...form, materialId })}
+            dict={materialPickerDict}
             placeholder={materialLabel}
             required={selectedCategory.reqMaterial}
             aria-label={materialLabel}
-            {...comboboxCommon}
           />
         </div>
       ) : null}

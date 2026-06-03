@@ -28,7 +28,7 @@ export default function WizardClient({
             orders={flow.orders}
             categories={flow.categories}
             categoryId={flow.categoryId}
-            setCategoryId={flow.setCategoryId}
+            setCategoryId={flow.applyCategoryChange}
             setStep={flow.setStep}
             onAcceptOrder={flow.handleAcceptOrder}
           />
@@ -49,8 +49,11 @@ export default function WizardClient({
             selectedCategory={flow.selectedCategory}
             machines={flow.machines}
             materials={flow.materials}
+            materialCategories={flow.materialCategories}
             customers={flow.customers}
             resourceId={flow.resourceId}
+            materialCategoryId={flow.materialCategoryId}
+            setMaterialCategoryId={flow.setMaterialCategoryId}
             materialId={flow.materialId}
             setMaterialId={flow.setMaterialId}
             customerId={flow.customerId}

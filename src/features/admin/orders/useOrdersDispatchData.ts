@@ -6,6 +6,7 @@ import type {
   BaseCustomer,
   BaseMachine,
   BaseMaterial,
+  BaseMaterialCategory,
   BaseWorker,
   UnifiedGanttItem,
 } from "@/types/admin";
@@ -20,12 +21,14 @@ import {
   narrowBaseMaterials,
   narrowBaseWorkers,
   narrowUnifiedGanttItems,
+  narrowMaterialCategoryRows,
 } from "@/lib/narrowApiListRows";
 
 export function useOrdersDispatchData() {
   const [workers, setWorkers] = useState<BaseWorker[]>([]);
   const [machines, setMachines] = useState<BaseMachine[]>([]);
   const [materials, setMaterials] = useState<BaseMaterial[]>([]);
+  const [materialCategories, setMaterialCategories] = useState<BaseMaterialCategory[]>([]);
   const [customers, setCustomers] = useState<BaseCustomer[]>([]);
   const [categories, setCategories] = useState<BaseCategory[]>([]);
   const [orders, setOrders] = useState<UnifiedGanttItem[]>([]);
@@ -60,6 +63,12 @@ export function useOrdersDispatchData() {
           {
             category: "admin",
           }
+        ).then(parseJsonArray),
+        fetchWithDeviceTelemetry(
+          "Admin dispatch: material-categories",
+          "/api/material-categories?leavesOnly=1",
+          { cache: "no-store" },
+          { category: "admin" }
         ).then(parseJsonArray),
         fetchWithDeviceTelemetry(
           "Admin dispatch: customers",
@@ -101,13 +110,17 @@ export function useOrdersDispatchData() {
       const wor = pick(0);
       const mac = pick(1);
       const mat = pick(2);
-      const cus = pick(3);
-      const cats = pick(4);
-      const ords = pick(5);
-      const arch = pick(6);
+      const matCats = pick(3);
+      const cus = pick(4);
+      const cats = pick(5);
+      const ords = pick(6);
+      const arch = pick(7);
       setWorkers(narrowBaseWorkers(wor));
       setMachines(narrowBaseMachines(mac));
       setMaterials(narrowBaseMaterials(mat));
+      setMaterialCategories(
+        narrowMaterialCategoryRows(matCats).map((c) => ({ id: c.id, name: c.name }))
+      );
       setCustomers(narrowBaseCustomers(cus));
       setCategories(narrowBaseCategories(cats));
       setOrders(narrowUnifiedGanttItems(ords));
@@ -174,6 +187,7 @@ export function useOrdersDispatchData() {
     workers,
     machines,
     materials,
+    materialCategories,
     customers,
     categories,
     orders,

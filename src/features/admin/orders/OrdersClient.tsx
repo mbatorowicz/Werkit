@@ -41,6 +41,7 @@ export default function OrdersClient() {
     workers,
     machines,
     materials,
+    materialCategories,
     customers,
     categories,
     orders,
@@ -59,7 +60,7 @@ export default function OrdersClient() {
     selectedDispatchItem,
     closeSessionDetails,
     onDispatchItemClick,
-  } = useOrdersDeepLink({ canMutate, orders, sessions, isLoading });
+  } = useOrdersDeepLink({ canMutate, orders, sessions, materials, isLoading });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
@@ -224,7 +225,8 @@ export default function OrdersClient() {
               ? `/api/admin/work-orders/${editingOrderId}`
               : "/api/admin/work-orders";
             const method = editingOrderId ? "PUT" : "POST";
-            const payload = { ...formData, forceSave: Boolean(options?.forceSave) };
+            const { materialCategoryId: _materialCategoryId, ...rest } = formData;
+            const payload = { ...rest, forceSave: Boolean(options?.forceSave) };
             if (payload.dueDate) {
               payload.dueDate = new Date(payload.dueDate).toISOString();
             }
@@ -257,6 +259,7 @@ export default function OrdersClient() {
           workers={workers}
           machines={machines}
           materials={materials}
+          materialCategories={materialCategories}
           customers={customers}
           categories={categories}
           initialForm={orderFormInitial}

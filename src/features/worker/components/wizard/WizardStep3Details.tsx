@@ -3,11 +3,19 @@
 import { useMemo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
-import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
-import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
+import type {
+  WizardCategory,
+  WizardCustomer,
+  WizardMachine,
+  WizardMaterial,
+  WizardMaterialCategory,
+} from "@/types/wizard";
+import {
+  MaterialCategoryMaterialCombobox,
+  type MaterialCategoryMaterialComboboxDict,
+} from "@/components/materials/MaterialCategoryMaterialCombobox";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { workerCustomerSearchFieldDict } from "@/components/customers/customerSearchFieldDict";
-import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { DecimalInput } from "@/components/DecimalInput";
 import { isRepairOrderType } from "@/lib/orderType";
 
@@ -18,8 +26,11 @@ type Props = {
   selectedCategory: WizardCategory | undefined;
   machines: WizardMachine[];
   materials: WizardMaterial[];
+  materialCategories: WizardMaterialCategory[];
   customers: WizardCustomer[];
   resourceId: string;
+  materialCategoryId: string;
+  setMaterialCategoryId: (id: string) => void;
   materialId: string;
   setMaterialId: (id: string) => void;
   customerId: string;
@@ -40,8 +51,11 @@ export function WizardStep3Details({
   selectedCategory,
   machines,
   materials,
+  materialCategories,
   customers,
   resourceId,
+  materialCategoryId,
+  setMaterialCategoryId,
   materialId,
   setMaterialId,
   customerId,
@@ -56,12 +70,19 @@ export function WizardStep3Details({
   canCreateCustomers,
   onCustomerCreated,
 }: Props) {
-  const materialOptions = useMemo(
-    () => materials.map((m) => ({ id: String(m.id), label: m.name })),
-    [materials]
+  const materialPickerDict: MaterialCategoryMaterialComboboxDict = useMemo(
+    () => ({
+      chooseCategory: dict.materialPickerChooseCategory,
+      searchMaterial: dict.materialPickerSearchMaterial,
+      noCategories: dict.materialPickerNoCategories,
+      noMaterialsInCategory: dict.materialPickerNoMaterialsInCategory,
+      clearCategory: dict.materialPickerClearCategory,
+      clear: dict.searchClear,
+      noResults: dict.searchNoResults,
+    }),
+    [dict]
   );
 
-  const comboboxCommon = comboboxFeedbackProps(dict);
   const customerSearchDict = workerCustomerSearchFieldDict(dict);
   const isRepair = isRepairOrderType(selectedCategory?.orderType);
 
@@ -109,14 +130,17 @@ export function WizardStep3Details({
         {selectedCategory?.showMaterial && !isRepair ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
-            <AdminSearchCombobox
-              options={materialOptions}
-              value={materialId}
-              onChange={setMaterialId}
+            <MaterialCategoryMaterialCombobox
+              categories={materialCategories}
+              materials={materials}
+              materialCategoryId={materialCategoryId}
+              materialId={materialId}
+              onMaterialCategoryChange={setMaterialCategoryId}
+              onMaterialChange={setMaterialId}
+              dict={materialPickerDict}
               placeholder={dict.wizardMaterialPlaceholder}
               required={selectedCategory.reqMaterial}
               aria-label={dict.wizardMaterialLabel}
-              {...comboboxCommon}
             />
           </div>
         ) : null}

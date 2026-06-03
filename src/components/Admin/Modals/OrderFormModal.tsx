@@ -16,6 +16,7 @@ import {
   BaseWorker,
   BaseMachine,
   BaseMaterial,
+  BaseMaterialCategory,
   BaseCustomer,
   BaseCategory,
 } from "@/types/admin";
@@ -31,6 +32,7 @@ export default function OrderFormModal({
   workers,
   machines,
   materials,
+  materialCategories,
   customers,
   categories,
   initialForm,
@@ -45,6 +47,7 @@ export default function OrderFormModal({
   workers: BaseWorker[];
   machines: BaseMachine[];
   materials: BaseMaterial[];
+  materialCategories: BaseMaterialCategory[];
   customers: BaseCustomer[];
   categories: BaseCategory[];
   initialForm: OrderFormState;
@@ -155,6 +158,7 @@ export default function OrderFormModal({
           workers={workers}
           machines={machines}
           materials={materials}
+          materialCategories={materialCategories}
           customers={customers}
           extraCustomers={extraCustomers}
           setExtraCustomers={setExtraCustomers}

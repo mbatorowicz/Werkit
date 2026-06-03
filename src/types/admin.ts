@@ -36,10 +36,17 @@ export type UnifiedGanttItem = {
   [key: string]: unknown;
 };
 
+export type BaseMaterialCategory = {
+  id: number;
+  name: string;
+};
+
 export interface OrderFormState {
   userId: string;
   resourceId: string;
   categoryId: string;
+  /** Liść `material_categories` — tylko UI przed wyborem materiału. */
+  materialCategoryId: string;
   materialId: string;
   customerId: string;
   taskDescription: string;
