@@ -1,4 +1,4 @@
-import { resolveOrderType } from "@/lib/orderType";
+import { isRepairOrderType, resolveOrderType } from "@/lib/orderType";
 import { DictionaryService } from "@/services/DictionaryService";
 import type { OrderType } from "@/types/worker";
 
@@ -7,19 +7,25 @@ export type CategoryRequirementFlags = {
   reqMaterial: boolean;
   reqQuantity: boolean;
   reqTaskDescription: boolean;
+  orderType?: OrderType | string | null;
+};
+
+export type WorkOrderCategoryValidationPayload = {
+  customerId?: unknown;
+  materialId?: unknown;
+  quantityTons?: unknown;
+  taskDescription?: unknown;
+  repairDescription?: unknown;
+  orderType?: unknown;
 };
 
 /**
  * Sprawdza payload zlecenia względem flag z `resource_categories`.
+ * Dla `machine_repair`: materiał/ilość pomijane; wymagany opis → `repairDescription`.
  */
 export function validateWorkOrderFieldsAgainstCategory(
   cat: CategoryRequirementFlags | null | undefined,
-  payload: {
-    customerId?: unknown;
-    materialId?: unknown;
-    quantityTons?: unknown;
-    taskDescription?: unknown;
-  }
+  payload: WorkOrderCategoryValidationPayload
 ):
   | "ok"
   | "invalid_category"
@@ -29,21 +35,27 @@ export function validateWorkOrderFieldsAgainstCategory(
   | "missing_task_description" {
   if (!cat) return "invalid_category";
 
+  const orderType = resolveOrderType(payload.orderType, cat.orderType);
+  const isRepair = isRepairOrderType(orderType);
+
   const hasCustomer = payload.customerId != null && String(payload.customerId).trim() !== "";
   if (cat.reqCustomer && !hasCustomer) return "missing_customer";
 
-  const hasMaterial = payload.materialId != null && String(payload.materialId).trim() !== "";
-  if (cat.reqMaterial && !hasMaterial) return "missing_material";
+  if (!isRepair) {
+    const hasMaterial = payload.materialId != null && String(payload.materialId).trim() !== "";
+    if (cat.reqMaterial && !hasMaterial) return "missing_material";
 
-  if (cat.reqQuantity) {
-    const raw = payload.quantityTons;
-    const n =
-      typeof raw === "number" ? raw : Number.parseFloat(String(raw ?? "").replace(",", "."));
-    if (!Number.isFinite(n) || n <= 0) return "missing_quantity";
+    if (cat.reqQuantity) {
+      const raw = payload.quantityTons;
+      const n =
+        typeof raw === "number" ? raw : Number.parseFloat(String(raw ?? "").replace(",", "."));
+      if (!Number.isFinite(n) || n <= 0) return "missing_quantity";
+    }
   }
 
   if (cat.reqTaskDescription) {
-    const d = typeof payload.taskDescription === "string" ? payload.taskDescription.trim() : "";
+    const descriptionField = isRepair ? payload.repairDescription : payload.taskDescription;
+    const d = typeof descriptionField === "string" ? descriptionField.trim() : "";
     if (!d) return "missing_task_description";
   }
 
@@ -53,12 +65,7 @@ export function validateWorkOrderFieldsAgainstCategory(
 export async function validateCategoryForOrder(
   companyId: number,
   categoryId: number,
-  fields: {
-    customerId?: unknown;
-    materialId?: unknown;
-    quantityTons?: unknown;
-    taskDescription?: unknown;
-  }
+  fields: WorkOrderCategoryValidationPayload
 ): Promise<{ ok: true } | never> {
   const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
   if (!categoryRow || categoryRow.isGroup) {

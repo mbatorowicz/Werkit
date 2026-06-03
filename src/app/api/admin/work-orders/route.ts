@@ -36,6 +36,8 @@ export const POST = withApiErrorHandling(
     const materialId = body.materialId;
     const customerId = body.customerId;
     const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
+    const repairDescription =
+      typeof body.repairDescription === "string" ? body.repairDescription : null;
     const quantityTons =
       typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
         ? body.quantityTons
@@ -70,6 +72,8 @@ export const POST = withApiErrorHandling(
         materialId,
         quantityTons,
         taskDescription,
+        repairDescription,
+        orderType: body.orderType,
       });
     } catch (e) {
       return jsonError(e instanceof Error ? e.message : "invalid_category", 400);
@@ -99,8 +103,6 @@ export const POST = withApiErrorHandling(
         : null;
 
     const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
-    const repairDescription =
-      typeof body.repairDescription === "string" ? body.repairDescription : null;
     const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
 
     const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;

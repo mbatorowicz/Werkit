@@ -183,6 +183,8 @@ export class WorkerOrderService {
       materialId: payload.materialId,
       quantityTons: payload.quantityTons,
       taskDescription: payload.taskDescription,
+      repairDescription: payload.repairDescription,
+      orderType: payload.orderType,
     });
 
     const { DictionaryService } = await import("@/services/DictionaryService");
