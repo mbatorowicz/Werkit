@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import {
   CATEGORY_COLOR_BADGE_BASE_CLASS,
   CATEGORY_COLOR_BADGE_SIZE_CLASS,
+  categoryAbbreviation,
   categoryColorBadgeStyle,
   categoryColorSwatchStyle,
   resolveCategoryColor,
@@ -23,6 +24,28 @@ export function CategoryColorBadge({ label, color, size = "sm", className = "" }
       style={categoryColorBadgeStyle(color)}
     >
       {label}
+    </span>
+  );
+}
+
+/** Kompaktowy tag kategorii (inicjały); pełna nazwa w `title` przy najechaniu. */
+export function CategoryColorAbbrevBadge({
+  label,
+  color,
+  className = "",
+}: {
+  label: string;
+  color?: string | null;
+  className?: string;
+}) {
+  const abbrev = categoryAbbreviation(label);
+  return (
+    <span
+      title={label.trim() || undefined}
+      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.xs} cursor-default ${className}`.trim()}
+      style={categoryColorBadgeStyle(color)}
+    >
+      {abbrev}
     </span>
   );
 }

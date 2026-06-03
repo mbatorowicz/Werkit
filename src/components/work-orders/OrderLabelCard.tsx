@@ -1,5 +1,5 @@
 import { Camera, FileText } from "lucide-react";
-import { CategoryColorBadge } from "@/components/CategoryColorBadge";
+import { CategoryColorAbbrevBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
 
@@ -135,7 +135,6 @@ export function OrderLabelCard({
     descriptionLabel: fieldLabels.description,
   };
   const labels = {
-    mode: fieldLabels.category,
     machine: fieldLabels.resource,
     material: fieldLabels.material,
     quantity: fieldLabels.quantity,
@@ -198,23 +197,10 @@ export function OrderLabelCard({
                 : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
             }`}
           >
-            {vis.showMode ? (
-              <LabelItem
-                k={labels.mode}
-                v={mode || "—"}
-                valueNode={
-                  mode?.trim() ? (
-                    <CategoryColorBadge
-                      label={mode}
-                      color={modeColor}
-                      size="md"
-                      className="mt-0.5"
-                    />
-                  ) : (
-                    undefined
-                  )
-                }
-              />
+            {vis.showMode && mode?.trim() ? (
+              <div className="flex items-center min-w-0 self-center">
+                <CategoryColorAbbrevBadge label={mode} color={modeColor} />
+              </div>
             ) : null}
             <LabelItem k={labels.machine} v={machine || "—"} />
             {vis.showMaterial ? (

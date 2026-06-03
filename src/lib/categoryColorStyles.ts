@@ -75,6 +75,29 @@ export function categoryColorChipStyle(
 export const CATEGORY_COLOR_BADGE_BASE_CLASS = "rounded-md border font-semibold";
 
 export const CATEGORY_COLOR_BADGE_SIZE_CLASS = {
+  xs: "inline-flex min-w-[1.75rem] items-center justify-center px-1 py-0 text-[10px] font-bold uppercase tracking-wide",
   sm: "px-2 py-0.5 text-[10px] uppercase tracking-wider",
   md: "px-2 py-0.5 text-xs",
 } as const;
+
+/** Skrót nazwy kategorii: „Utrzymanie Ruchu” → „UR”, „Załadunek” → „ZA”. */
+export function categoryAbbreviation(name: string, maxLetters = 4): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+
+  const firstLetter = (word: string) => {
+    const m = word.match(/[\p{L}\p{N}]/u);
+    return m ? m[0] : "";
+  };
+
+  if (words.length === 1) {
+    const letters = words[0].replace(/[^\p{L}\p{N}]/gu, "");
+    return letters.slice(0, 2).toUpperCase() || "?";
+  }
+
+  return words
+    .map(firstLetter)
+    .join("")
+    .toUpperCase()
+    .slice(0, maxLetters);
+}

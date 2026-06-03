@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  categoryAbbreviation,
   categoryColorBadgeStyle,
   categoryColorChipClassName,
   categoryColorChipStyle,
@@ -25,6 +26,12 @@ describe("categoryColorStyles", () => {
     expect(categoryColorChipStyle(true, "#00ff00")).toEqual(categoryColorBadgeStyle("#00ff00"));
     expect(categoryColorChipStyle(false, "#00ff00")).toBeUndefined();
     expect(categoryColorChipStyle(true, null)).toBeUndefined();
+  });
+
+  it("categoryAbbreviation — inicjały z wyrazów lub 2 litery jednego słowa", () => {
+    expect(categoryAbbreviation("Utrzymanie Ruchu")).toBe("UR");
+    expect(categoryAbbreviation("Załadunek")).toBe("ZA");
+    expect(categoryAbbreviation("Roboty Ziemne")).toBe("RZ");
   });
 
   it("chip bez koloru w słowniku — klasy wariantu", () => {

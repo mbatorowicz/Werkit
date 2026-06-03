@@ -133,7 +133,6 @@ export function OrdersDispatchTable({
                     layout="table"
                     liveClockMs={liveClockMs}
                     ordersDict={ordersDict}
-                    archiveDict={archiveDict}
                     workerUiLabels={workerUiLabels}
                   />
                 </td>
@@ -152,7 +151,6 @@ export function OrdersDispatchTable({
   const cardProps = {
     liveClockMs,
     ordersDict,
-    archiveDict,
     workerUiLabels,
   };
 

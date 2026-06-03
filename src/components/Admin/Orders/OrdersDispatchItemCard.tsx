@@ -11,14 +11,11 @@ import {
   buildDispatchItemCardCopy,
   computeDispatchInProgressPercent,
   dispatchItemDateTimeLabels,
-  dispatchStatusPillClass,
-  dispatchStatusLabel,
   dispatchStatusTone,
   type DispatchItemCardLayout,
 } from "@/features/admin/orders/dispatchTableUi";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
-type ArchiveDict = AppDictionary["admin"]["archive"];
 type WorkerClient = AppDictionary["worker"]["client"];
 
 function ProgressBar({ progress, label }: { progress: number; label: string }) {
@@ -45,14 +42,12 @@ export function OrdersDispatchItemCard({
   layout,
   liveClockMs,
   ordersDict,
-  archiveDict,
   workerUiLabels,
 }: {
   item: UnifiedGanttItem;
   layout: DispatchItemCardLayout;
   liveClockMs: number | null;
   ordersDict: OrdersDict;
-  archiveDict: ArchiveDict;
   workerUiLabels: WorkerClient;
 }) {
   const dict = ordersDict;
@@ -67,29 +62,14 @@ export function OrdersDispatchItemCard({
   );
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
 
-  const statusPill = (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${dispatchStatusPillClass(
-        item.status
-      )}`}
-    >
-      {dispatchStatusLabel(item.status, dict, archiveDict)}
-    </span>
-  );
-
   const showOrderPriority = layout !== "boardDone" && item._type === "ORDER";
 
-  const badges = (
-    <>
-      {statusPill}
-      {showOrderPriority ? (
-        <WorkOrderPriorityRibbon
-          priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
-          labels={workerUiLabels}
-        />
-      ) : null}
-    </>
-  );
+  const badges = showOrderPriority ? (
+    <WorkOrderPriorityRibbon
+      priority={normalizeWorkOrderPriority(item.priority ?? undefined)}
+      labels={workerUiLabels}
+    />
+  ) : null;
 
   const subheader =
     layout === "table" ? (
