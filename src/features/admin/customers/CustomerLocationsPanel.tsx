@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { getDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -243,7 +244,10 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
 
   const destination =
     form.latitude && form.longitude
-      ? { lat: Number.parseFloat(form.latitude), lng: Number.parseFloat(form.longitude) }
+      ? {
+          lat: parseDecimalInput(form.latitude) ?? 0,
+          lng: parseDecimalInput(form.longitude) ?? 0,
+        }
       : null;
 
   if (loading) {

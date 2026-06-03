@@ -1,3 +1,4 @@
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -69,19 +70,31 @@ export const POST = withApiErrorHandling(
       ...parseIds(body.machineCategoryIds),
     ];
 
+    let purchasePrice: string | null = null;
+    if (
+      body.purchasePrice !== null &&
+      body.purchasePrice !== undefined &&
+      String(body.purchasePrice).trim() !== ""
+    ) {
+      purchasePrice = normalizeDecimalBodyField(body.purchasePrice);
+      if (purchasePrice == null) return jsonError("invalid_price", 400);
+    }
+    let minStock: string | undefined;
+    if (body.minStock !== null && body.minStock !== undefined && String(body.minStock).trim() !== "") {
+      const ms = normalizeDecimalBodyField(body.minStock);
+      if (ms == null) return jsonError("invalid_quantity", 400);
+      minStock = ms;
+    }
+
     const { SparePartService } = await import("@/services/dur/SparePartService");
     const partId = await SparePartService.addPart(companyId, {
       name,
       catalogNumber: typeof body.catalogNumber === "string" ? body.catalogNumber : undefined,
       manufacturer: typeof body.manufacturer === "string" ? body.manufacturer : undefined,
       unit: typeof body.unit === "string" ? body.unit : undefined,
-      purchasePrice:
-        body.purchasePrice !== null && body.purchasePrice !== undefined
-          ? String(body.purchasePrice)
-          : null,
+      purchasePrice,
       description: typeof body.description === "string" ? body.description : null,
-      minStock:
-        body.minStock !== null && body.minStock !== undefined ? String(body.minStock) : undefined,
+      minStock,
       location: typeof body.location === "string" ? body.location : undefined,
       imageUrl: typeof body.imageUrl === "string" ? body.imageUrl : null,
       isActive: body.isActive !== false,

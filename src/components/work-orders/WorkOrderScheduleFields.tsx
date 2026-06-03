@@ -1,5 +1,7 @@
 "use client";
 
+import { DecimalInput } from "@/components/DecimalInput";
+
 import { useEffect } from "react";
 import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
 import type { ScheduleConflictLabels } from "@/components/work-orders/formatScheduleConflictLine";
@@ -83,13 +85,10 @@ export function WorkOrderScheduleFields({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className={FIELD}>
           <label className={LABEL}>{labels.expectedDurationLabel}</label>
-          <input
-            type="number"
-            step="0.5"
-            min="0"
+          <DecimalInput
             placeholder={labels.expectedDurationPlaceholder}
             value={expectedDurationHours}
-            onChange={(e) => onExpectedDurationHoursChange(e.target.value)}
+            onChange={onExpectedDurationHoursChange}
             className={control}
           />
         </div>

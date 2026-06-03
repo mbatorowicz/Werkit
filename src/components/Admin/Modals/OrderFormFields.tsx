@@ -5,6 +5,7 @@ import {
   AdminSearchCombobox,
   type AdminSearchComboboxOption,
 } from "@/components/Admin/AdminSearchCombobox";
+import { DecimalInput } from "@/components/DecimalInput";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
@@ -224,14 +225,11 @@ export function OrderFormFields({
       {selectedCategory?.showQuantity && !isRepair ? (
         <div className={FIELD}>
           <label className={LABEL}>{dict.quantityTonsLabel}</label>
-          <input
+          <DecimalInput
             required={selectedCategory.reqQuantity}
-            type="number"
-            step="0.01"
-            min="0"
             placeholder={dict.quantityTonsPlaceholder}
             value={form.quantityTons}
-            onChange={(e) => setForm({ ...form, quantityTons: e.target.value })}
+            onChange={(v) => setForm({ ...form, quantityTons: v })}
             className={CONTROL}
           />
         </div>

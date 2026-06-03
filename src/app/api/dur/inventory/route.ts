@@ -1,3 +1,4 @@
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -39,10 +40,12 @@ export const PUT = withApiErrorHandling(
     const body = await parseJsonBody(request);
     const partId =
       typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
-    const quantity = typeof body.quantity === "string" ? body.quantity : String(body.quantity);
-
+    const quantity = normalizeDecimalBodyField(body.quantity);
     if (!partId || Number.isNaN(partId)) {
       return jsonError("missing_part_id", 400);
+    }
+    if (quantity == null) {
+      return jsonError("invalid_quantity", 400);
     }
 
     const { InventoryService } = await import("@/services/dur/InventoryService");

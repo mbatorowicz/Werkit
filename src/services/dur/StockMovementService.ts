@@ -13,11 +13,13 @@ import { StockMovementError } from "./StockMovementError";
 import { eq, and, desc } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "@/db/schema";
+import { parseDecimalInput } from "@/lib/decimalInput";
 
 type DbClient = NodePgDatabase<typeof schema>;
 
 function assertPositiveQuantity(quantity: string) {
-  if (!quantity || parseFloat(quantity) <= 0) {
+  const n = parseDecimalInput(quantity);
+  if (n == null || n <= 0) {
     throw new StockMovementError("invalid_quantity");
   }
 }
@@ -38,8 +40,8 @@ async function assertSufficientStock(
       )
     )
     .limit(1);
-  const currentQty = row ? parseFloat(row.quantity) : 0;
-  if (currentQty < parseFloat(quantity)) {
+  const currentQty = row ? (parseDecimalInput(row.quantity) ?? 0) : 0;
+  if (currentQty < (parseDecimalInput(quantity) ?? 0)) {
     throw new StockMovementError("insufficient_stock");
   }
 }

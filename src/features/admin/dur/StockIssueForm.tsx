@@ -5,6 +5,7 @@ import {
   type AdminSearchComboboxOption,
 } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { DecimalInput } from "@/components/DecimalInput";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
 import { getDictionary } from "@/i18n";
 
@@ -87,12 +88,9 @@ export function StockIssueForm({
         <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {dict.quantity}
         </label>
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
+        <DecimalInput
           value={iQuantity}
-          onChange={(e) => onQuantityChange(e.target.value)}
+          onChange={onQuantityChange}
           placeholder={dict.quantityPlaceholder}
           className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
         />

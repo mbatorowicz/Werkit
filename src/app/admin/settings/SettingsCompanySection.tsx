@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatCompanyAddressQuery } from "@/lib/map/companyBaseLocation";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import type { SettingsSnapshot } from "./SettingsForm";
@@ -38,8 +39,8 @@ export function SettingsCompanySection({
     baseLongitude,
   } = settings;
 
-  const baseLat = parseFloat(baseLatitude || "0");
-  const baseLng = parseFloat(baseLongitude || "0");
+  const baseLat = parseDecimalInput(baseLatitude || "0") ?? 0;
+  const baseLng = parseDecimalInput(baseLongitude || "0") ?? 0;
   const dict = getDictionary().admin.settings;
   const customersDict = getDictionary().admin.customers;
   const { alert: appAlert } = useAppDialog();

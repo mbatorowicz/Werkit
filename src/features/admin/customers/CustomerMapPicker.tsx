@@ -5,7 +5,12 @@ import { MapContainer, Marker, useMap, useMapEvents } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { getDictionary } from "@/i18n";
+
+function parseCoordString(value: string): number {
+  return parseDecimalInput(value) ?? Number.NaN;
+}
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { FALLBACK_COMPANY_BASE } from "@/lib/map/companyBaseLocation";
 
@@ -33,8 +38,8 @@ function FlyToCoordinates({ latSig }: { latSig: string }) {
   useEffect(() => {
     if (!latSig) return;
     const [laS, lgS] = latSig.split(",");
-    const la = Number.parseFloat(laS);
-    const lg = Number.parseFloat(lgS);
+    const la = parseCoordString(laS);
+    const lg = parseCoordString(lgS);
     if (Number.isNaN(la) || Number.isNaN(lg)) return;
     map.flyTo([la, lg], 17, { duration: 0.65 });
   }, [latSig, map]);
@@ -57,8 +62,8 @@ function MapPinLayer({
     },
   });
 
-  const la = Number.parseFloat(lat);
-  const lg = Number.parseFloat(lng);
+  const la = parseCoordString(lat);
+  const lg = parseCoordString(lng);
   const hasPin = !Number.isNaN(la) && !Number.isNaN(lg);
 
   if (!hasPin) return null;
@@ -90,19 +95,19 @@ export default function CustomerMapPicker({
   const [geocodeMsg, setGeocodeMsg] = useState<string | null>(null);
 
   const center: [number, number] = useMemo(() => {
-    const la = Number.parseFloat(lat);
-    const lg = Number.parseFloat(lng);
+    const la = parseCoordString(lat);
+    const lg = parseCoordString(lng);
     if (!Number.isNaN(la) && !Number.isNaN(lg)) return [la, lg];
     const base = defaultCenter ?? FALLBACK_COMPANY_BASE;
     return [base.lat, base.lng];
   }, [lat, lng, defaultCenter]);
 
-  const initialZoom = lat && lng && !Number.isNaN(Number.parseFloat(lat)) ? 14 : 6;
+  const initialZoom = lat && lng && !Number.isNaN(parseCoordString(lat)) ? 14 : 6;
 
   /** Sygnatura do flyTo po geokodowaniu / zmianie propów. */
   const flySig = useMemo(() => {
-    const la = Number.parseFloat(lat);
-    const lg = Number.parseFloat(lng);
+    const la = parseCoordString(lat);
+    const lg = parseCoordString(lng);
     if (Number.isNaN(la) || Number.isNaN(lg)) return "";
     return `${la.toFixed(6)},${lg.toFixed(6)}`;
   }, [lat, lng]);

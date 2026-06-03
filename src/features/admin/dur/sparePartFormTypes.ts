@@ -1,3 +1,4 @@
+import { decimalStringForStorage } from "@/lib/decimalInput";
 import type { SparePart, SparePartInput } from "@/types/dur";
 
 
@@ -124,12 +125,14 @@ export function formStateToSparePartInput(
     purchasePrice: opts?.omitPurchasePrice
       ? undefined
       : state.purchasePrice.trim()
-        ? state.purchasePrice.trim()
+        ? decimalStringForStorage(state.purchasePrice)
         : null,
 
     description: state.description.trim() || null,
 
-    minStock: state.minStock || undefined,
+    minStock: state.minStock.trim()
+      ? (decimalStringForStorage(state.minStock) ?? undefined)
+      : undefined,
 
     location: state.location.trim() || undefined,
 

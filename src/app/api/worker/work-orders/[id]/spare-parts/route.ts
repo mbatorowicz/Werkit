@@ -2,6 +2,7 @@
 // API: CRUD części zamiennych w zleceniu naprawy (worker)
 // ============================================================
 
+import { normalizeDecimalBodyField, parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
@@ -62,8 +63,16 @@ export const POST = withApiErrorHandling(
     const partId = parseInt(String(body.partId), 10);
     if (!partId || Number.isNaN(partId)) return jsonError("missing_part_id", 400);
 
-    const quantity = typeof body.quantity === "string" ? body.quantity : "1";
-    const unitPrice = typeof body.unitPrice === "string" ? body.unitPrice : null;
+    const qtyParsed = parsePositiveDecimalField(
+      body.quantity != null && String(body.quantity).trim() !== "" ? body.quantity : "1"
+    );
+    if (!qtyParsed.ok) return jsonError("invalid_quantity", 400);
+
+    let unitPrice: string | null = null;
+    if (body.unitPrice != null && String(body.unitPrice).trim() !== "") {
+      unitPrice = normalizeDecimalBodyField(body.unitPrice);
+      if (unitPrice == null) return jsonError("invalid_price", 400);
+    }
     const notes = typeof body.notes === "string" ? body.notes : null;
 
     try {
@@ -71,7 +80,7 @@ export const POST = withApiErrorHandling(
         ctx.companyId,
         ctx.userId,
         workOrderId,
-        { partId, quantity, unitPrice, notes, issuedTo: ctx.userId }
+        { partId, quantity: qtyParsed.value, unitPrice, notes, issuedTo: ctx.userId }
       );
 
       return jsonOk(inserted);

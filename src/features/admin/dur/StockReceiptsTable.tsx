@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDecimalInput } from "@/lib/decimalInput";
 import type { StockReceipt } from "@/types/dur";
 
 interface StockReceiptsTableProps {
@@ -78,7 +79,9 @@ export function StockReceiptsTable({ receipts, dict }: StockReceiptsTableProps) 
               </td>
               <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">
                 {r.unitPrice && r.quantity
-                  ? (Number(r.unitPrice) * Number(r.quantity)).toFixed(2)
+                  ? (
+                      (parseDecimalInput(r.unitPrice) ?? 0) * (parseDecimalInput(r.quantity) ?? 0)
+                    ).toFixed(2)
                   : "—"}
               </td>
               <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">

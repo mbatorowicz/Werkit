@@ -12,6 +12,8 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { isRecord } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { DecimalInput } from "@/components/DecimalInput";
+import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { getDictionary } from "@/i18n";
 
 // ── Typy lokalne ──
@@ -133,8 +135,8 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             partId: partIdNum,
-            quantity: addQuantity || "1",
-            unitPrice: addUnitPrice || null,
+            quantity: decimalStringForStorage(addQuantity || "1") ?? "1",
+            unitPrice: addUnitPrice.trim() ? decimalStringForStorage(addUnitPrice) : null,
             notes: addNotes || null,
           }),
         },
@@ -246,12 +248,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
               <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {durDict.fields.quantity}
               </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
+              <DecimalInput
                 value={addQuantity}
-                onChange={(e) => setAddQuantity(e.target.value)}
+                onChange={setAddQuantity}
                 placeholder={durDict.fields.quantityPlaceholder}
                 className={CONTROL}
               />
@@ -260,12 +259,9 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
               <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {durDict.fields.unitPrice}
               </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
+              <DecimalInput
                 value={addUnitPrice}
-                onChange={(e) => setAddUnitPrice(e.target.value)}
+                onChange={setAddUnitPrice}
                 placeholder={durDict.fields.unitPricePlaceholder}
                 className={CONTROL}
               />
@@ -343,8 +339,8 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {parts.map((p) => {
-                const qty = parseFloat(p.quantity) || 0;
-                const price = parseFloat(p.unitPrice ?? "0") || 0;
+                const qty = parseDecimalInput(p.quantity) ?? 0;
+                const price = parseDecimalInput(p.unitPrice ?? "") ?? 0;
                 const total = qty * price;
                 return (
                   <tr key={p.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30">
@@ -384,8 +380,8 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
               </span>
               {(() => {
                 const totalValue = parts.reduce((sum, p) => {
-                  const qty = parseFloat(p.quantity) || 0;
-                  const price = parseFloat(p.unitPrice ?? "0") || 0;
+                  const qty = parseDecimalInput(p.quantity) ?? 0;
+                  const price = parseDecimalInput(p.unitPrice ?? "") ?? 0;
                   return sum + qty * price;
                 }, 0);
                 return totalValue > 0 ? (

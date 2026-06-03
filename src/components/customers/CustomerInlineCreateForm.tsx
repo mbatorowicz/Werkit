@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatDict, getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -179,8 +180,8 @@ export function CustomerInlineCreateForm({
         {form.latitude && form.longitude ? (
           <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
             {formatDict(dict.pinSaved, {
-              lat: parseFloat(form.latitude).toFixed(5),
-              lng: parseFloat(form.longitude).toFixed(5),
+              lat: (parseDecimalInput(form.latitude) ?? 0).toFixed(5),
+              lng: (parseDecimalInput(form.longitude) ?? 0).toFixed(5),
             })}
           </p>
         ) : null}

@@ -1,3 +1,5 @@
+import { parseDecimalInput } from "@/lib/decimalInput";
+
 /** Domyślny czas trwania (h) gdy brak planu — spójnie z GanttChart. */
 export const DEFAULT_SCHEDULE_DURATION_HOURS = 2;
 
@@ -58,8 +60,9 @@ export function intervalsOverlap(
 
 export function parseDurationHours(value: number | string | null | undefined): number | null {
   if (value == null || String(value).trim() === "") return null;
-  const n = typeof value === "number" ? value : parseFloat(String(value));
-  return Number.isFinite(n) && n > 0 ? n : null;
+  const n =
+    typeof value === "number" ? value : parseDecimalInput(String(value));
+  return n != null && n > 0 ? n : null;
 }
 
 /** Koniec zarezerwowanego okna harmonogramu zlecenia. */

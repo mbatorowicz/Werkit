@@ -1,3 +1,4 @@
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { isRepairOrderType, resolveOrderType } from "@/lib/orderType";
 import { DictionaryService } from "@/services/DictionaryService";
 import type { OrderType } from "@/types/worker";
@@ -46,10 +47,12 @@ export function validateWorkOrderFieldsAgainstCategory(
     if (cat.reqMaterial && !hasMaterial) return "missing_material";
 
     if (cat.reqQuantity) {
-      const raw = payload.quantityTons;
-      const n =
-        typeof raw === "number" ? raw : Number.parseFloat(String(raw ?? "").replace(",", "."));
-      if (!Number.isFinite(n) || n <= 0) return "missing_quantity";
+    const raw = payload.quantityTons;
+    const n =
+      typeof raw === "number"
+        ? raw
+        : parseDecimalInput(typeof raw === "string" ? raw : String(raw ?? ""));
+    if (n == null || n <= 0) return "missing_quantity";
     }
   }
 

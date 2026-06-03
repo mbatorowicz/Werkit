@@ -11,6 +11,7 @@ import { narrowStockReceipts, narrowStockIssues } from "@/lib/narrow/dur";
 import { narrowAdminUserRows } from "@/lib/narrow/admin";
 import { narrowUnifiedGanttItems } from "@/lib/narrow/admin";
 import { parseJsonArray } from "@/lib/parseJsonArray";
+import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { StockReceipt, StockIssue } from "@/types/dur";
 import { StockReceiptForm } from "./StockReceiptForm";
@@ -178,8 +179,8 @@ export default function StockMovementsClient() {
       await appAlert({ message: durApiErrors.missing_part_id ?? wDict.receipts.fields.part });
       return;
     }
-    const qty = parseFloat(rQuantity);
-    if (!rQuantity.trim() || Number.isNaN(qty) || qty <= 0) {
+    const qty = parseDecimalInput(rQuantity);
+    if (!rQuantity.trim() || qty == null || qty <= 0) {
       await appAlert({ message: durApiErrors.invalid_quantity ?? wDict.receipts.fields.quantity });
       return;
     }
@@ -191,8 +192,8 @@ export default function StockMovementsClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           partId,
-          quantity: rQuantity.trim(),
-          unitPrice: rUnitPrice.trim() || null,
+          quantity: decimalStringForStorage(rQuantity) ?? rQuantity.trim(),
+          unitPrice: rUnitPrice.trim() ? decimalStringForStorage(rUnitPrice) : null,
           invoiceNumber: rInvoiceNumber.trim() || null,
           notes: rNotes.trim() || null,
         }),
@@ -238,13 +239,13 @@ export default function StockMovementsClient() {
       await appAlert({ message: durApiErrors.missing_part_id ?? wDict.issues.fields.part });
       return;
     }
-    const qty = parseFloat(iQuantity);
-    if (!iQuantity.trim() || Number.isNaN(qty) || qty <= 0) {
+    const qty = parseDecimalInput(iQuantity);
+    if (!iQuantity.trim() || qty == null || qty <= 0) {
       await appAlert({ message: durApiErrors.invalid_quantity ?? wDict.issues.fields.quantity });
       return;
     }
 
-    const available = parseFloat(selectedCatalogItem?.stockQuantity ?? "0");
+    const available = parseDecimalInput(selectedCatalogItem?.stockQuantity ?? "0") ?? 0;
     if (available < qty) {
       await appAlert({
         message: wDict.issues.insufficientStock
@@ -261,7 +262,7 @@ export default function StockMovementsClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           partId,
-          quantity: iQuantity.trim(),
+          quantity: decimalStringForStorage(iQuantity) ?? iQuantity.trim(),
           workOrderId: iWorkOrderId ? parseInt(iWorkOrderId, 10) : null,
           issuedTo: iIssuedTo ? parseInt(iIssuedTo, 10) : null,
           notes: iNotes.trim() || null,

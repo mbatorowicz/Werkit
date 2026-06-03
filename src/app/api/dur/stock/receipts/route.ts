@@ -1,3 +1,4 @@
+import { parsePositiveDecimalField, normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -37,21 +38,27 @@ export const POST = withApiErrorHandling(
     const body = await parseJsonBody(request);
     const partId =
       typeof body.partId === "number" ? body.partId : parseInt(String(body.partId), 10);
-    const quantity = typeof body.quantity === "string" ? body.quantity : String(body.quantity);
-
+    const qtyParsed = parsePositiveDecimalField(body.quantity);
     if (!partId || Number.isNaN(partId)) {
       return jsonError("missing_part_id", 400);
     }
-    if (!quantity || parseFloat(quantity) <= 0) {
+    if (!qtyParsed.ok) {
       return jsonError("invalid_quantity", 400);
+    }
+
+    let unitPrice: string | null = null;
+    if (body.unitPrice !== null && body.unitPrice !== undefined && String(body.unitPrice).trim() !== "") {
+      unitPrice = normalizeDecimalBodyField(body.unitPrice);
+      if (unitPrice == null) {
+        return jsonError("invalid_price", 400);
+      }
     }
 
     const { StockMovementService } = await import("@/services/dur/StockMovementService");
     const receipt = await StockMovementService.addReceipt(companyId, userId, {
       partId,
-      quantity,
-      unitPrice:
-        body.unitPrice !== null && body.unitPrice !== undefined ? String(body.unitPrice) : null,
+      quantity: qtyParsed.value,
+      unitPrice,
       invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
       notes: typeof body.notes === "string" ? body.notes : null,
     });

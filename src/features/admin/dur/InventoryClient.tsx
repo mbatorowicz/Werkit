@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Search, AlertTriangle, Package } from "lucide-react";
+import { DecimalInput } from "@/components/DecimalInput";
+import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
@@ -67,8 +69,8 @@ export default function InventoryClient({ embedded = false }: Props) {
 
   const handleAdjust = useCallback(async () => {
     if (!adjustingPart) return;
-    const qty = Number(adjustQuantity);
-    if (isNaN(qty) || qty < 0) {
+    const qty = parseDecimalInput(adjustQuantity);
+    if (qty == null || qty < 0) {
       await appAlert({ message: "Nieprawidłowa ilość." });
       return;
     }
@@ -76,7 +78,7 @@ export default function InventoryClient({ embedded = false }: Props) {
     try {
       const body: InventoryAdjustmentInput = {
         partId: adjustingPart.partId,
-        quantity: String(qty),
+        quantity: decimalStringForStorage(adjustQuantity) ?? String(qty),
         notes: adjustNotes || null,
       };
       const res = await fetch("/api/dur/inventory", {
@@ -256,12 +258,9 @@ export default function InventoryClient({ embedded = false }: Props) {
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 {dictionary.dur.warehouse.adjustment.quantityLabel}
               </label>
-              <input
-                type="number"
-                min="0"
-                step="1"
+              <DecimalInput
                 value={adjustQuantity}
-                onChange={(e) => setAdjustQuantity(e.target.value)}
+                onChange={setAdjustQuantity}
                 placeholder={dictionary.dur.warehouse.adjustment.quantityPlaceholder}
                 className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />

@@ -1,3 +1,4 @@
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -53,14 +54,26 @@ export const PUT = withApiErrorHandling(
     if (body.catalogNumber !== undefined) updateData.catalogNumber = String(body.catalogNumber);
     if (body.manufacturer !== undefined) updateData.manufacturer = String(body.manufacturer);
     if (body.unit !== undefined) updateData.unit = String(body.unit);
-    if (body.purchasePrice !== undefined)
-      updateData.purchasePrice =
-        body.purchasePrice !== null && body.purchasePrice !== undefined
-          ? String(body.purchasePrice)
-          : null;
+    if (body.purchasePrice !== undefined) {
+      if (body.purchasePrice === null || String(body.purchasePrice).trim() === "") {
+        updateData.purchasePrice = null;
+      } else {
+        const pp = normalizeDecimalBodyField(body.purchasePrice);
+        if (pp == null) return jsonError("invalid_price", 400);
+        updateData.purchasePrice = pp;
+      }
+    }
     if (body.description !== undefined)
       updateData.description = typeof body.description === "string" ? body.description : null;
-    if (body.minStock !== undefined) updateData.minStock = String(body.minStock);
+    if (body.minStock !== undefined) {
+      if (body.minStock === null || String(body.minStock).trim() === "") {
+        updateData.minStock = "0";
+      } else {
+        const ms = normalizeDecimalBodyField(body.minStock);
+        if (ms == null) return jsonError("invalid_quantity", 400);
+        updateData.minStock = ms;
+      }
+    }
     if (body.location !== undefined) updateData.location = String(body.location);
     if (body.imageUrl !== undefined)
       updateData.imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;

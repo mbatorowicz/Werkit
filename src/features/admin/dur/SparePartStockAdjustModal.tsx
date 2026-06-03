@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { getDictionary } from "@/i18n";
 import type { InventoryAdjustmentInput, SparePart } from "@/types/dur";
@@ -33,8 +35,8 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
 
   const handleSubmit = useCallback(async () => {
     if (!part) return;
-    const qty = Number(quantity);
-    if (!Number.isFinite(qty) || qty < 0) {
+    const qty = parseDecimalInput(quantity);
+    if (qty == null || qty < 0) {
       await appAlert({
         message: durApiErrors.invalid_quantity ?? apiErrors.invalid_payload ?? "Nieprawidłowa ilość.",
       });
@@ -44,7 +46,7 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
     try {
       const body: InventoryAdjustmentInput = {
         partId: part.id,
-        quantity: String(qty),
+        quantity: decimalStringForStorage(quantity) ?? String(qty),
         notes: notes.trim() || null,
       };
       const res = await fetch("/api/dur/inventory", {
@@ -110,12 +112,9 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
           <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
             {adjDict.quantityLabel}
           </label>
-          <input
-            type="number"
-            min={0}
-            step={1}
+          <DecimalInput
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={setQuantity}
             placeholder={adjDict.quantityPlaceholder}
             className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
           />

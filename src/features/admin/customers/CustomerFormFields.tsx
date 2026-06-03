@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin } from "lucide-react";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatDict } from "@/i18n";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 
@@ -90,8 +91,8 @@ export default function CustomerFormFields({
           {form.latitude && form.longitude ? (
             <p className="text-[11px] text-zinc-500">
               {formatDict(dict.pinSaved, {
-                lat: parseFloat(form.latitude).toFixed(5),
-                lng: parseFloat(form.longitude).toFixed(5),
+                lat: (parseDecimalInput(form.latitude) ?? 0).toFixed(5),
+                lng: (parseDecimalInput(form.longitude) ?? 0).toFixed(5),
               })}
             </p>
           ) : null}

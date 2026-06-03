@@ -5,6 +5,7 @@ import { Cog, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import type { AppDictionary } from "@/i18n/types";
 import type { SparePart } from "@/types/dur";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 
 type Dict = AppDictionary["dur"]["spareParts"];
@@ -117,8 +118,8 @@ export function SparePartsTablePanel({
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
               {filteredParts.map((part) => {
-                const stock = Number(part.stockQuantity ?? "0");
-                const minStock = Number(part.minStock ?? "0");
+                const stock = parseDecimalInput(part.stockQuantity ?? "0") ?? 0;
+                const minStock = parseDecimalInput(part.minStock ?? "0") ?? 0;
                 const isLowStock = minStock > 0 && stock < minStock;
                 return (
                 <tr

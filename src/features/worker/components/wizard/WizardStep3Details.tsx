@@ -8,6 +8,7 @@ import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
 import { workerCustomerSearchFieldDict } from "@/components/customers/customerSearchFieldDict";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { DecimalInput } from "@/components/DecimalInput";
 import { isRepairOrderType } from "@/lib/orderType";
 
 type Dict = AppDictionary["worker"]["client"];
@@ -137,11 +138,9 @@ export function WizardStep3Details({
         {selectedCategory?.showQuantity && !isRepair ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
-            <input
-              type="number"
-              step="0.01"
+            <DecimalInput
               value={quantityTons}
-              onChange={(e) => setQuantityTons(e.target.value)}
+              onChange={setQuantityTons}
               placeholder={dict.wizardQuantityPlaceholder}
               className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none"
             />

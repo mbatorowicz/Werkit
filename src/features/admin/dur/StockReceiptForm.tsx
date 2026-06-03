@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import { DecimalInput } from "@/components/DecimalInput";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
 
 interface StockReceiptFormProps {
@@ -74,12 +75,9 @@ export function StockReceiptForm({
         <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {dict.quantity}
         </label>
-        <input
-          type="number"
-          step="0.01"
-          min="0.01"
+        <DecimalInput
           value={rQuantity}
-          onChange={(e) => onQuantityChange(e.target.value)}
+          onChange={onQuantityChange}
           placeholder={dict.quantityPlaceholder}
           className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
         />
@@ -88,11 +86,9 @@ export function StockReceiptForm({
         <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {dict.unitPrice}
         </label>
-        <input
-          type="text"
-          inputMode="decimal"
+        <DecimalInput
           value={rUnitPrice}
-          onChange={(e) => onUnitPriceChange(e.target.value)}
+          onChange={onUnitPriceChange}
           placeholder={dict.unitPricePlaceholder}
           className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
         />

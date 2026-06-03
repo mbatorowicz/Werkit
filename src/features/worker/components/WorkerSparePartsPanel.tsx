@@ -10,6 +10,8 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { isRecord } from "@/lib/narrowApiListRows";
+import { DecimalInput } from "@/components/DecimalInput";
+import { decimalStringForStorage } from "@/lib/decimalInput";
 import { getDictionary } from "@/i18n";
 
 type WorkOrderSparePartRow = {
@@ -124,7 +126,7 @@ export default function WorkerSparePartsPanel({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             partId: partIdNum,
-            quantity: addQuantity || "1",
+            quantity: decimalStringForStorage(addQuantity || "1") ?? "1",
             notes: addNotes || null,
           }),
         },
@@ -234,12 +236,9 @@ export default function WorkerSparePartsPanel({
               <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                 {workerDict.partQuantity}
               </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
+              <DecimalInput
                 value={addQuantity}
-                onChange={(e) => setAddQuantity(e.target.value)}
+                onChange={setAddQuantity}
                 placeholder={workerDict.quantityPlaceholder}
                 className={CONTROL}
               />

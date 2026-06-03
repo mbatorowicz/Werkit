@@ -5,6 +5,7 @@
 import { db } from "@/db";
 import { workOrderSpareParts, spareParts, workOrders, stockIssues } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { StockMovementService } from "@/services/dur/StockMovementService";
 import { StockMovementError } from "@/services/dur/StockMovementError";
 
@@ -173,11 +174,11 @@ export class WorkOrderSparePartService {
     if (!line) return null;
 
     const newQty = data.quantity ?? line.quantity;
-    const oldQty = parseFloat(line.quantity);
-    const nextQty = parseFloat(newQty);
+    const oldQty = parseDecimalInput(line.quantity) ?? 0;
+    const nextQty = parseDecimalInput(newQty) ?? Number.NaN;
     const delta = nextQty - oldQty;
 
-    if (Number.isNaN(nextQty) || nextQty <= 0) {
+    if (!Number.isFinite(nextQty) || nextQty <= 0) {
       throw new StockMovementError("invalid_quantity");
     }
 

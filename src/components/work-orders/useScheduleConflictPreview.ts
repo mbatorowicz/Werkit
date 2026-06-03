@@ -1,5 +1,6 @@
 "use client";
 
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { useEffect, useState } from "react";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 
@@ -63,7 +64,7 @@ export function useScheduleConflictPreview(params: {
     const hasSchedule = Boolean(dueDate && expectedDurationHours.trim());
     let duration = 0;
     if (hasSchedule) {
-      duration = parseFloat(expectedDurationHours);
+      duration = parseDecimalInput(expectedDurationHours) ?? Number.NaN;
       if (!Number.isFinite(duration) || duration <= 0) {
         queueMicrotask(() => {
           setConflicts([]);

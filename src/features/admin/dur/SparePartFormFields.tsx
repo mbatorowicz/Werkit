@@ -2,6 +2,7 @@
 
 import type { SparePartFormState } from "./sparePartFormTypes";
 import { CategoryIdChipPicker } from "./CategoryIdChipPicker";
+import { DecimalInput } from "@/components/DecimalInput";
 import type { SparePartCategory } from "@/types/dur";
 import type { ResourceGroupOption } from "@/features/admin/dur/useResourceGroups";
 
@@ -119,10 +120,9 @@ export function SparePartFormFields({
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
               {dict.fields.purchasePrice}
             </label>
-            <input
-              type="text"
+            <DecimalInput
               value={formState.purchasePrice}
-              onChange={(e) => updateField("purchasePrice", e.target.value)}
+              onChange={(v) => updateField("purchasePrice", v)}
               placeholder={dict.fields.purchasePricePlaceholder}
               className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
             />
@@ -136,10 +136,9 @@ export function SparePartFormFields({
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
             {dict.fields.minStock}
           </label>
-          <input
-            type="text"
+          <DecimalInput
             value={formState.minStock}
-            onChange={(e) => updateField("minStock", e.target.value)}
+            onChange={(v) => updateField("minStock", v)}
             className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
           <p className="mt-1 text-[10px] text-zinc-500">{dict.fields.minStockHint}</p>

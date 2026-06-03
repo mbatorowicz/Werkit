@@ -1,7 +1,15 @@
-/** Parsowanie pól `numeric` / JSON: string lub liczba. */
+import { parseDecimalInput } from "@/lib/decimalInput";
+
+function finiteCoord(value: unknown): number {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return parseDecimalInput(value) ?? Number.NaN;
+  return Number.NaN;
+}
+
+/** Parsowanie pól `numeric` / JSON: string lub liczba (, i .). */
 export function finiteLatLng(lat: unknown, lng: unknown): { lat: number; lng: number } | null {
-  const a = typeof lat === "number" ? lat : typeof lat === "string" ? parseFloat(lat) : Number.NaN;
-  const b = typeof lng === "number" ? lng : typeof lng === "string" ? parseFloat(lng) : Number.NaN;
+  const a = finiteCoord(lat);
+  const b = finiteCoord(lng);
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
   return { lat: a, lng: b };
 }
@@ -22,7 +30,7 @@ export function gpsTimestampFromRow(row: {
 
 export function headingDegreesFromUnknown(v: unknown): number | undefined {
   if (v === null || v === undefined) return undefined;
-  const h = typeof v === "number" ? v : typeof v === "string" ? parseFloat(v) : Number.NaN;
+  const h = finiteCoord(v);
   if (!Number.isFinite(h)) return undefined;
   return h;
 }

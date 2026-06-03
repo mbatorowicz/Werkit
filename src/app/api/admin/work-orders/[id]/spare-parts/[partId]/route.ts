@@ -2,6 +2,7 @@
 // API: Pojedyncza część w zleceniu naprawy (admin) — PATCH / DELETE
 // ============================================================
 
+import { normalizeDecimalBodyField, parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
@@ -40,13 +41,22 @@ export const PATCH = withApiErrorHandling(
     if (!belongs) return jsonError("not_found", 404);
 
     const body = await parseJsonBody(request);
-    const quantity = typeof body.quantity === "string" ? body.quantity : undefined;
-    const unitPrice =
-      body.unitPrice !== undefined
-        ? typeof body.unitPrice === "string"
-          ? body.unitPrice
-          : null
-        : undefined;
+    let quantity: string | undefined;
+    if (body.quantity !== undefined) {
+      const q = parsePositiveDecimalField(body.quantity);
+      if (!q.ok) return jsonError("invalid_quantity", 400);
+      quantity = q.value;
+    }
+    let unitPrice: string | null | undefined;
+    if (body.unitPrice !== undefined) {
+      if (body.unitPrice === null || String(body.unitPrice).trim() === "") {
+        unitPrice = null;
+      } else {
+        const p = normalizeDecimalBodyField(body.unitPrice);
+        if (p == null) return jsonError("invalid_price", 400);
+        unitPrice = p;
+      }
+    }
     const notes =
       body.notes !== undefined ? (typeof body.notes === "string" ? body.notes : null) : undefined;
 
