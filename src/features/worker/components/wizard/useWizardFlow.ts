@@ -136,7 +136,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     [machines, selectedCategory]
   );
 
-  const handleStart = useCallback(async () => {
+  const handleSave = useCallback(async () => {
     if (hasScheduleConflicts) return;
     setIsLoading(true);
     try {
@@ -189,26 +189,8 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
         return;
       }
 
-      const loc = await getCurrentPositionOnce();
-      const acceptRes = await fetchWithDeviceTelemetry(
-        `Worker wizard: accept order POST ${orderId}`,
-        `/api/worker/work-orders/${orderId}/accept`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(loc ? { latitude: loc.lat, longitude: loc.lng } : {}),
-        },
-        { category: "orders" }
-      );
-
-      if (acceptRes.ok) {
-        router.replace("/worker");
-      } else {
-        const body = await parseJsonUnknown(acceptRes);
-        const code = readApiErrorString(body);
-        await appAlert({ message: appDialogApiMessage(apiErrors, code, dict.errAcceptOrder) });
-        setIsLoading(false);
-      }
+      await appAlert({ message: dict.wizardOrderSaved });
+      router.replace("/worker/wizard");
     } catch {
       await appAlert({ message: dict.errNetwork });
       setIsLoading(false);
@@ -218,8 +200,8 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     appAlert,
     categoryId,
     customerId,
-    dict.errAcceptOrder,
     dict.errNetwork,
+    dict.wizardOrderSaved,
     dueDate,
     expectedDurationHours,
     hasScheduleConflicts,
@@ -298,7 +280,7 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     userId,
     selectedCategory,
     availableMachines,
-    handleStart,
+    handleSave,
     handleAcceptOrder,
     canCreateCustomers,
     handleCustomerCreated,

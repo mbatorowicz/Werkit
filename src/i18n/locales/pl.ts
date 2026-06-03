@@ -927,7 +927,8 @@ export const pl = {
       wizardStep4ScheduleTitle: "Termin pracy",
       wizardStep4ScheduleSubtitle: "Ustaw planowany czas i termin — sprawdzimy dostępność.",
       wizardStep5Title: "Wszystko gotowe",
-      wizardStep5Subtitle: "Podsumowanie nowego zlecenia. Sprawdź, czy wszystko się zgadza.",
+      wizardStep5Subtitle:
+        "Zapisz zlecenie — rozpoczniesz je z listy oczekujących, gdy nadejdzie termin.",
       wizardNoMachines: "Brak zasobów w rejestrze. Zgłoś problem dyspozytorowi.",
       wizardMaterialLabel: "Jaki materiał?",
       wizardMaterialPlaceholder: "Wybierz z listy...",
@@ -949,7 +950,9 @@ export const pl = {
       wizardBack: "Wróć",
       wizardBackToType: "Wróć do wyboru kategorii",
       wizardNext: "Dalej",
-      wizardStartWork: "Start Pracy",
+      wizardSaveOrder: "Zapisz",
+      wizardOrderSaved:
+        "Zlecenie zapisane. Rozpocznij je z listy oczekujących, gdy będziesz gotowy.",
       wizardFixData: "Popraw Dane",
       wizardPendingOrders: "Oczekujące zlecenia",
       requiresPhoto: "Wymaga min. 1 zdjęcia",

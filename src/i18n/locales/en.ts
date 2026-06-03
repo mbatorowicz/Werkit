@@ -920,7 +920,8 @@ export const en: AppDictionary = {
       wizardStep4ScheduleTitle: "Work schedule",
       wizardStep4ScheduleSubtitle: "Set planned duration and due time — we'll check availability.",
       wizardStep5Title: "All ready",
-      wizardStep5Subtitle: "New order summary. Check if everything is correct.",
+      wizardStep5Subtitle:
+        "Save the order — start it from the pending list when it is time to work.",
       wizardNoMachines: "No resources in the registry. Report the problem to the dispatcher.",
       wizardMaterialLabel: "Which material?",
       wizardMaterialPlaceholder: "Select from list...",
@@ -942,7 +943,9 @@ export const en: AppDictionary = {
       wizardBack: "Back",
       wizardBackToType: "Back to category selection",
       wizardNext: "Next",
-      wizardStartWork: "Start Work",
+      wizardSaveOrder: "Save",
+      wizardOrderSaved:
+        "Order saved. Start it from the pending list when you are ready.",
       wizardFixData: "Fix Data",
       wizardPendingOrders: "Pending orders",
       requiresPhoto: "Requires at least 1 photo",

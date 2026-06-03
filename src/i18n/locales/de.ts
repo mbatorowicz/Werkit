@@ -943,7 +943,7 @@ export const de: AppDictionary = {
         "Legen Sie die geplante Dauer und Frist fest — wir prüfen die Verfügbarkeit.",
       wizardStep5Title: "Alles bereit",
       wizardStep5Subtitle:
-        "Zusammenfassung des neuen Auftrags. Überprüfen Sie, ob alles korrekt ist.",
+        "Auftrag speichern — starten Sie ihn aus der Warteliste, wenn die Zeit gekommen ist.",
       wizardNoMachines: "Keine Ressourcen im Register. Melden Sie das Problem dem Disponenten.",
       wizardMaterialLabel: "Welches Material?",
       wizardMaterialPlaceholder: "Aus Liste auswählen...",
@@ -965,7 +965,9 @@ export const de: AppDictionary = {
       wizardBack: "Zurück",
       wizardBackToType: "Zurück zur Kategorieauswahl",
       wizardNext: "Weiter",
-      wizardStartWork: "Arbeit starten",
+      wizardSaveOrder: "Speichern",
+      wizardOrderSaved:
+        "Auftrag gespeichert. Starten Sie ihn aus der Warteliste, wenn Sie bereit sind.",
       wizardFixData: "Daten korrigieren",
       wizardPendingOrders: "Ausstehende Aufträge",
       requiresPhoto: "Erfordert mind. 1 Foto",

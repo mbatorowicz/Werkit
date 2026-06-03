@@ -97,7 +97,7 @@ export default function WizardClient({
             expectedDurationHours={flow.expectedDurationHours}
             hasScheduleConflicts={flow.hasScheduleConflicts}
             isLoading={flow.isLoading}
-            onStart={flow.handleStart}
+            onSave={flow.handleSave}
             setStep={flow.setStep}
           />
         )}

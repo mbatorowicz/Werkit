@@ -20,7 +20,7 @@ type Props = {
   expectedDurationHours: string;
   hasScheduleConflicts: boolean;
   isLoading: boolean;
-  onStart: () => void;
+  onSave: () => void;
   setStep: (s: number) => void;
 };
 
@@ -38,7 +38,7 @@ export function WizardStep4Summary({
   expectedDurationHours,
   hasScheduleConflicts,
   isLoading,
-  onStart,
+  onSave,
   setStep,
 }: Props) {
   return (
@@ -95,10 +95,10 @@ export function WizardStep4Summary({
       <button
         type="button"
         disabled={isLoading || hasScheduleConflicts}
-        onClick={onStart}
-        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-lg font-bold text-lg uppercase tracking-wider flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
+        onClick={onSave}
+        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-lg font-bold text-lg flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
       >
-        {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : dict.wizardStartWork}
+        {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : dict.wizardSaveOrder}
       </button>
 
       <button
