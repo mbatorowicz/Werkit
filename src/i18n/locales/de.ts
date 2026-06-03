@@ -1083,6 +1083,7 @@ export const de: AppDictionary = {
       listTitle: "Arbeitsverlauf",
       listEmpty: "Sie haben noch keine abgeschlossenen Sitzungen.",
       sessionCompletedBadge: "Abgeschlossen",
+      openSessionDetail: "Route, Fotos und Notizen →",
       backToHistory: "Zurück zum Verlauf",
       routeAndEventsTitle: "Aufgezeichnete Route und Ereignisse",
       noGpsForSession: "Für diesen Auftrag wurden keine GPS-Daten aufgezeichnet.",

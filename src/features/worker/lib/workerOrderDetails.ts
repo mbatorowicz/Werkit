@@ -23,6 +23,9 @@ export type WorkerOrderDetailsData = {
   timeLabel?: string | null;
   orderedBy?: string | null;
   priority?: WorkOrderPriority | null;
+  /** Link do widoku trasy / galerii (lista historii). */
+  historyDetailHref?: string | null;
+  historyDetailLinkLabel?: string | null;
 };
 
 export function workerOrderDetailsFromWorkOrder(
@@ -50,8 +53,31 @@ export function workerOrderDetailsFromWorkOrder(
   };
 }
 
+type SessionDetailsSource = {
+  id: number;
+  workOrderId?: number | null;
+  categoryName: string | null;
+  categoryColor?: string | null;
+  orderType?: Session["orderType"];
+  resourceName?: string | null;
+  materialName?: string | null;
+  quantityTons?: number | null;
+  customerFirstName?: string | null;
+  customerLastName?: string | null;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
+  taskDescription?: string | null;
+  repairDescription?: string | null;
+  categoryShowMaterial?: boolean | null;
+  categoryShowCustomer?: boolean | null;
+  categoryShowQuantity?: boolean | null;
+  categoryShowTaskDescription?: boolean | null;
+  startTime: string;
+  endTime?: string | null;
+};
+
 export function workerOrderDetailsFromSession(
-  session: Session,
+  session: SessionDetailsSource,
   tonsSuffix: string,
   dict: { noCategoryName: string }
 ): WorkerOrderDetailsData {
@@ -71,10 +97,10 @@ export function workerOrderDetailsFromSession(
       customerName,
       taskDescription: session.taskDescription ?? null,
       repairDescription: session.repairDescription ?? null,
-      categoryShowMaterial: session.categoryShowMaterial,
-      categoryShowCustomer: session.categoryShowCustomer,
-      categoryShowQuantity: session.categoryShowQuantity,
-      categoryShowTaskDescription: session.categoryShowTaskDescription,
+      categoryShowMaterial: session.categoryShowMaterial ?? undefined,
+      categoryShowCustomer: session.categoryShowCustomer ?? undefined,
+      categoryShowQuantity: session.categoryShowQuantity ?? undefined,
+      categoryShowTaskDescription: session.categoryShowTaskDescription ?? undefined,
     },
     tonsSuffix
   ).fieldVisibility;
@@ -96,7 +122,9 @@ export function workerOrderDetailsFromSession(
       repairDescription: session.repairDescription,
     }),
     dateLabel: formatUiDateOnly(session.startTime),
-    timeLabel: `${formatUiTimeHm(session.startTime)} – …`,
+    timeLabel: session.endTime
+      ? `${formatUiTimeHm(session.startTime)} – ${formatUiTimeHm(session.endTime)}`
+      : `${formatUiTimeHm(session.startTime)} – …`,
     priority: null,
   };
 }

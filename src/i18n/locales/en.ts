@@ -1057,6 +1057,7 @@ export const en: AppDictionary = {
       listTitle: "Work history",
       listEmpty: "You don’t have any completed sessions yet.",
       sessionCompletedBadge: "Completed",
+      openSessionDetail: "Route, photos and notes →",
       backToHistory: "Back to history",
       routeAndEventsTitle: "Recorded route and events",
       noGpsForSession: "No GPS data was recorded for this job.",

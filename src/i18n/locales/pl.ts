@@ -1068,6 +1068,7 @@ export const pl = {
       listTitle: "Historia pracy",
       listEmpty: "Nie masz jeszcze żadnych zakończonych sesji.",
       sessionCompletedBadge: "Zakończono",
+      openSessionDetail: "Trasa, zdjęcia i notatki →",
       backToHistory: "Wróć do historii",
       routeAndEventsTitle: "Zapisana trasa i zdarzenia",
       noGpsForSession: "Brak zapisanych danych GPS dla tego zlecenia.",

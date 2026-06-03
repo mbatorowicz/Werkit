@@ -1,19 +1,12 @@
-import { CheckCircle2 } from "lucide-react";
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
-
+import { getDictionary } from "@/i18n";
+import { narrowOrderType } from "@/lib/orderType";
+import type { WorkerHistoryListSession } from "@/features/worker/components/WorkerHistoryList";
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { WorkerHistoryList } from "@/features/worker/components/WorkerHistoryList";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
-function asDate(v: unknown): Date | null {
-  if (!v) return null;
-  if (v instanceof Date) return v;
-  const d = new Date(String(v));
-  return Number.isNaN(d.getTime()) ? null : d;
-}
 async function getUserId() {
   const token = (await cookies()).get("auth_token")?.value;
   if (!token) return null;
@@ -48,46 +41,44 @@ export default async function HistoryPage() {
           <p className="text-zinc-500 text-sm">{h.listEmpty}</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {sessions.map((s) => {
-            const endD = asDate(s.endTime);
-            const st = asDate(s.startTime);
-            const en = asDate(s.endTime);
-            return (
-              <Link
-                href={`/worker/history/${s.id}`}
-                key={s.id}
-                className="block bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 hover:border-emerald-500 transition-colors cursor-pointer group shadow-sm hover:shadow-md"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">
-                    {h.sessionCompletedBadge}
-                  </span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-auto group-hover:text-emerald-600 transition-colors">
-                    {endD ? formatUiDateOnly(endD) : ""}
-                  </span>
-                </div>
-                <OrderLabelCard
-                  tone="done"
-                  orderNo={s.workOrderId ? `#${s.workOrderId}` : `#${s.id}`}
-                  mode={s.categoryName || workerClient.noCategoryName}
-                  modeColor={s.categoryColor ?? null}
-                  machine={s.resourceName || "—"}
-                  material={s.materialName}
-                  quantity={s.quantityTons ? `${s.quantityTons}t` : null}
-                  customer={s.customerLastName || null}
-                  description={s.taskDescription}
-                  dateLabel={st ? formatUiDateOnly(st) : "—"}
-                  timeLabel={`${st ? formatUiTimeHm(st) : "—"} – ${en ? formatUiTimeHm(en) : "—"}`}
-                  className="mt-2"
-                  attachmentPhotos={Boolean(s.hasPhotos)}
-                  attachmentNotes={Boolean(s.hasNotes)}
-                />
-              </Link>
-            );
-          })}
-        </div>
+        <WorkerHistoryList
+          sessions={sessions.map(
+            (s): WorkerHistoryListSession => ({
+              id: s.id,
+              workOrderId: s.workOrderId,
+              categoryName: s.categoryName ?? null,
+              categoryColor: s.categoryColor,
+              categoryShowMaterial: s.categoryShowMaterial,
+              categoryShowCustomer: s.categoryShowCustomer,
+              categoryShowQuantity: s.categoryShowQuantity,
+              categoryShowTaskDescription: s.categoryShowTaskDescription,
+              startTime:
+                s.startTime instanceof Date ? s.startTime.toISOString() : String(s.startTime),
+              endTime: s.endTime
+                ? s.endTime instanceof Date
+                  ? s.endTime.toISOString()
+                  : String(s.endTime)
+                : null,
+              taskDescription: s.taskDescription,
+              repairDescription: s.repairDescription,
+              orderType: narrowOrderType(s.orderType),
+              resourceName: s.resourceName,
+              materialName: s.materialName,
+              quantityTons:
+                s.quantityTons != null && s.quantityTons !== ""
+                  ? Number(s.quantityTons)
+                  : null,
+              customerFirstName: s.customerFirstName,
+              customerLastName: s.customerLastName,
+              customerPhone: s.customerPhone,
+              customerAddress: s.customerAddress,
+              hasPhotos: s.hasPhotos,
+              hasNotes: s.hasNotes,
+            })
+          )}
+          historyLabels={h}
+          workerClient={workerClient}
+        />
       )}
     </div>
   );

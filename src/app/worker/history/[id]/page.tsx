@@ -9,6 +9,11 @@ import { notFound } from "next/navigation";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import {
+  categoryFlagsFromWorkOrderRow,
+  orderLabelDescriptionText,
+  resolveOrderLabelFieldVisibility,
+} from "@/lib/orderLabelFieldVisibility";
 import { TimelineGalleryClient } from "./TimelineGalleryClient";
 import { displayPathFromRawGpsRows } from "@/lib/gps";
 
@@ -117,14 +122,31 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 mb-6 shadow-sm">
         <OrderLabelCard
           tone="done"
+          layout="full"
           orderNo={sessionData.workOrderId ? `#${sessionData.workOrderId}` : `#${sessionData.id}`}
           mode={sessionData.categoryName || workerClient.noCategoryName}
           modeColor={sessionData.categoryColor ?? null}
           machine={sessionData.resourceName || "—"}
           material={sessionData.materialName}
           quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}
-          customer={sessionData.customerLastName || null}
-          description={sessionData.taskDescription}
+          customerFirstName={sessionData.customerFirstName}
+          customerLastName={sessionData.customerLastName}
+          customerPhone={sessionData.customerPhone}
+          customerAddress={sessionData.customerAddress}
+          description={orderLabelDescriptionText({
+            orderType: sessionData.orderType,
+            taskDescription: sessionData.taskDescription,
+            repairDescription: sessionData.repairDescription,
+          })}
+          fieldVisibility={resolveOrderLabelFieldVisibility({
+            orderType: sessionData.orderType,
+            ...categoryFlagsFromWorkOrderRow({
+              categoryShowMaterial: sessionData.categoryShowMaterial ?? undefined,
+              categoryShowCustomer: sessionData.categoryShowCustomer ?? undefined,
+              categoryShowQuantity: sessionData.categoryShowQuantity ?? undefined,
+              categoryShowTaskDescription: sessionData.categoryShowTaskDescription ?? undefined,
+            }),
+          })}
           dateLabel={st ? formatUiDateOnly(st) : "—"}
           timeLabel={`${st ? formatUiTimeHm(st) : "—"} – ${en ? formatUiTimeHm(en) : "—"}`}
           attachmentPhotos={photos.length > 0}

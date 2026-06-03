@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
@@ -111,6 +112,16 @@ export function WorkerOrderDetailsModal({
             {fieldLabels.orderedBy}{" "}
             <span className="font-medium text-zinc-600 dark:text-zinc-300">{data.orderedBy}</span>
           </p>
+        ) : null}
+
+        {data.historyDetailHref && data.historyDetailLinkLabel ? (
+          <Link
+            href={data.historyDetailHref}
+            onClick={onClose}
+            className="mt-2 block rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-center text-sm font-semibold text-emerald-800 transition-colors hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20"
+          >
+            {data.historyDetailLinkLabel}
+          </Link>
         ) : null}
       </div>
     </AdminModalShell>
