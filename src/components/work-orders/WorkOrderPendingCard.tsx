@@ -19,6 +19,8 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkOrder } from "@/types/worker";
+import { useWorkerOrderDetailsModal } from "@/features/worker/hooks/useWorkerOrderDetailsModal";
+import { workerOrderDetailsFromWorkOrder } from "@/features/worker/lib/workerOrderDetails";
 
 type WorkerDict = AppDictionary["worker"]["client"];
 
@@ -44,6 +46,7 @@ export function WorkOrderPendingCard({
   onOrderDeleted?: () => void;
 }) {
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
+  const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
   const apiErrors = getDictionary().apiErrors as Record<string, string>;
   const scheduleDict = getDictionary().workOrdersSchedule;
   const scheduleLabels = buildWorkOrderScheduleFieldLabels(scheduleDict, { mode: "worker" });
@@ -102,6 +105,7 @@ export function WorkOrderPendingCard({
   };
 
   return (
+    <>
     <div className={workOrderPendingListCardClass(order.priority)}>
       {positionLabel ? (
         <div className="flex items-center justify-between gap-2 mb-1">
@@ -140,6 +144,8 @@ export function WorkOrderPendingCard({
         className="bg-white/60 dark:bg-zinc-950/30"
         attachmentPhotos={Boolean(order.hasPhotos)}
         attachmentNotes={Boolean(order.hasNotes)}
+        onCategoryClick={() => openOrderDetails(workerOrderDetailsFromWorkOrder(order, tonsSuffix))}
+        categoryBadgeAriaLabel={dict.orderDetailsOpenCategory}
       />
 
       <ScheduleConflictPanel
@@ -187,5 +193,7 @@ export function WorkOrderPendingCard({
         </button>
       ) : null}
     </div>
+    {orderDetailsModal}
+    </>
   );
 }

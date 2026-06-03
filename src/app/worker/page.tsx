@@ -73,6 +73,7 @@ export default async function WorkerPage() {
         customerLng: rawSession.customerLng ? String(rawSession.customerLng) : null,
         customerFirstName: rawSession.customerFirstName ?? null,
         customerLastName: rawSession.customerLastName ?? null,
+        customerPhone: rawSession.customerPhone ?? null,
       }
     : null;
 

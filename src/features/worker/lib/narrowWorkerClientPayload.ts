@@ -69,6 +69,10 @@ export function narrowSession(v: unknown): Session | null {
       v.customerLastName === null || typeof v.customerLastName === "string"
         ? (v.customerLastName as string | null)
         : undefined,
+    customerPhone:
+      v.customerPhone === null || typeof v.customerPhone === "string"
+        ? (v.customerPhone as string | null)
+        : undefined,
     resourceName:
       v.resourceName === null || typeof v.resourceName === "string"
         ? (v.resourceName as string | null)

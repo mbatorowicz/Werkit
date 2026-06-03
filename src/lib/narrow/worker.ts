@@ -39,6 +39,12 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       r.materialName === null || typeof r.materialName === "string" ? r.materialName : null;
     const customerName =
       r.customerName === null || typeof r.customerName === "string" ? r.customerName : null;
+    const customerPhone =
+      r.customerPhone === null || typeof r.customerPhone === "string" ? r.customerPhone : null;
+    const customerAddress =
+      r.customerAddress === null || typeof r.customerAddress === "string"
+        ? r.customerAddress
+        : null;
     const dueDate = r.dueDate === null || typeof r.dueDate === "string" ? r.dueDate : null;
     out.push({
       id: r.id,
@@ -55,6 +61,8 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       userId,
       materialName,
       customerName,
+      customerPhone,
+      customerAddress,
       priority: narrowPriority(r.priority),
       dueDate,
       createdAt: r.createdAt,

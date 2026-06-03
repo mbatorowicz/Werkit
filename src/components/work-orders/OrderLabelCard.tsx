@@ -93,6 +93,8 @@ export function OrderLabelCard({
   attachmentPhotos,
   attachmentNotes,
   fieldVisibility,
+  onCategoryClick,
+  categoryBadgeAriaLabel,
   className = "",
 }: {
   tone: Tone;
@@ -120,6 +122,9 @@ export function OrderLabelCard({
   timeLabel?: string | null;
   /** Które pola siatki pokazać — z {@link resolveOrderLabelFieldVisibility}. */
   fieldVisibility?: OrderLabelFieldVisibility;
+  /** Otwiera szczegóły zlecenia (np. modal workera) po kliknięciu etykiety kategorii. */
+  onCategoryClick?: () => void;
+  categoryBadgeAriaLabel?: string;
   className?: string;
 }) {
   const cls = toneClasses(tone);
@@ -199,7 +204,12 @@ export function OrderLabelCard({
           >
             {vis.showMode && mode?.trim() ? (
               <div className="flex items-center min-w-0 self-center">
-                <CategoryColorCardBadge label={mode} color={modeColor} />
+                <CategoryColorCardBadge
+                  label={mode}
+                  color={modeColor}
+                  onClick={onCategoryClick}
+                  ariaLabel={categoryBadgeAriaLabel}
+                />
               </div>
             ) : null}
             <LabelItem k={labels.machine} v={machine || "—"} />

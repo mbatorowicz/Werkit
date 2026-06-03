@@ -51,6 +51,8 @@ export function workOrderListSharedSelectFields(creator: WorkOrderCreatorUserAli
     orderType: workOrders.orderType,
     /** Opis naprawy (dla machine_repair). */
     repairDescription: workOrders.repairDescription,
+    customerPhone: customers.phone,
+    customerAddress: customers.defaultAddress,
   };
 }
 

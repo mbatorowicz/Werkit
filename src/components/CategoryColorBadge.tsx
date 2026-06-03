@@ -32,21 +32,48 @@ export function CategoryColorCardBadge({
   label,
   color,
   className = "",
+  onClick,
+  ariaLabel,
 }: {
   label: string;
   color?: string | null;
   className?: string;
+  onClick?: () => void;
+  ariaLabel?: string;
 }) {
   const text = label.trim() || "—";
+  const sharedClass = `${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} ${onClick ? "cursor-pointer hover:brightness-95 active:scale-[0.98] dark:hover:brightness-110" : "cursor-default"} ${className}`.trim();
+  const inner = (
+    <span className="line-clamp-2 max-w-full text-center text-[10px] font-bold leading-[1.15] break-words">
+      {text}
+    </span>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        title={text}
+        aria-label={ariaLabel ?? text}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        className={sharedClass}
+        style={categoryColorBadgeStyle(color)}
+      >
+        {inner}
+      </button>
+    );
+  }
+
   return (
     <span
       title={text}
-      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} cursor-default ${className}`.trim()}
+      className={sharedClass}
       style={categoryColorBadgeStyle(color)}
     >
-      <span className="line-clamp-2 max-w-full text-center text-[10px] font-bold leading-[1.15] break-words">
-        {text}
-      </span>
+      {inner}
     </span>
   );
 }

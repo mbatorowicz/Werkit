@@ -27,6 +27,7 @@ export type Session = {
   workOrderId?: number | null;
   customerFirstName?: string | null;
   customerLastName?: string | null;
+  customerPhone?: string | null;
   resourceName?: string | null;
   /** Grupa maszyn (typ) z przypisanego zasobu — do filtrowania części DUR. */
   resourceGroupId?: number | null;
@@ -56,6 +57,8 @@ export type WorkOrder = {
   userId?: number | null;
   materialName: string | null;
   customerName: string | null;
+  customerPhone?: string | null;
+  customerAddress?: string | null;
   priority: WorkOrderPriority | null;
   dueDate: string | null;
   createdAt: string;

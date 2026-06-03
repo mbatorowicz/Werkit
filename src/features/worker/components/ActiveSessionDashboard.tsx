@@ -16,6 +16,8 @@ import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/Q
 import { ActiveSessionSessionTimer } from "@/features/worker/components/ActiveSessionSessionTimer";
 import { ActiveSessionTimelinePanel } from "@/features/worker/components/ActiveSessionTimelinePanel";
 import WorkerSparePartsPanel from "@/features/worker/components/WorkerSparePartsPanel";
+import { useWorkerOrderDetailsModal } from "@/features/worker/hooks/useWorkerOrderDetailsModal";
+import { workerOrderDetailsFromSession } from "@/features/worker/lib/workerOrderDetails";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
 
@@ -87,6 +89,7 @@ export default function ActiveSessionDashboard({
   onRouteWaypointsChange,
 }: ActiveSessionDashboardProps) {
   const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+  const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
 
   // Derive destination name from session customer info
   const destinationName = useMemo(() => {
@@ -127,8 +130,13 @@ export default function ActiveSessionDashboard({
           timeLabel={`${formatUiTimeHm(session.startTime)} – …`}
           attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}
           attachmentNotes={timelineEvents.some((e) => e.type === "note")}
+          onCategoryClick={() =>
+            openOrderDetails(workerOrderDetailsFromSession(session, tonsSuffix, dict))
+          }
+          categoryBadgeAriaLabel={dict.orderDetailsOpenCategory}
         />
       </div>
+      {orderDetailsModal}
 
       {/* CZĘŚCI ZAMIENNE — tylko dla napraw */}
       <WorkerSparePartsPanel
