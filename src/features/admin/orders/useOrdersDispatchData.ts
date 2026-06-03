@@ -119,7 +119,11 @@ export function useOrdersDispatchData() {
       setMachines(narrowBaseMachines(mac));
       setMaterials(narrowBaseMaterials(mat));
       setMaterialCategories(
-        narrowMaterialCategoryRows(matCats).map((c) => ({ id: c.id, name: c.name }))
+        narrowMaterialCategoryRows(matCats).map((c) => ({
+          id: c.id,
+          name: c.name,
+          color: c.color,
+        }))
       );
       setCustomers(narrowBaseCustomers(cus));
       setCategories(narrowBaseCategories(cats));

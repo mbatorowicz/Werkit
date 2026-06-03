@@ -122,7 +122,11 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
         setMachines(narrowWizardMachines(mac));
         setMaterials(narrowWizardMaterials(mat));
         setMaterialCategories(
-          narrowMaterialCategoryRows(matCats).map((c) => ({ id: c.id, name: c.name }))
+          narrowMaterialCategoryRows(matCats).map((c) => ({
+            id: c.id,
+            name: c.name,
+            color: c.color,
+          }))
         );
         setCustomers(narrowWizardCustomers(cus));
         setOrders(narrowWorkOrders(ord));

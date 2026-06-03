@@ -9,6 +9,7 @@ export type MaterialPickerRow = {
 export type MaterialCategoryRow = {
   id: number;
   name: string;
+  color?: string | null;
 };
 
 export function filterMaterialsByMaterialCategory(

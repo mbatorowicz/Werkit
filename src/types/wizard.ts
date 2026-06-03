@@ -32,7 +32,7 @@ export type WizardMachine = {
 
 export type WizardMaterial = { id: number; name: string; categoryIds?: number[] };
 
-export type WizardMaterialCategory = { id: number; name: string };
+export type WizardMaterialCategory = { id: number; name: string; color?: string | null };
 
 export type WizardCustomer = {
   id: number;

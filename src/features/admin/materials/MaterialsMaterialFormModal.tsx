@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { CategoryColorDot } from "@/components/CategoryColorBadge";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import type { AppDictionary } from "@/i18n/types";
@@ -87,7 +88,10 @@ export function MaterialsMaterialFormModal({
                   }}
                   className="h-4 w-4 rounded text-amber-500"
                 />
-                <span className="truncate text-sm text-zinc-700 dark:text-zinc-300">{c.name}</span>
+                <span className="inline-flex min-w-0 items-center gap-2 truncate text-sm text-zinc-700 dark:text-zinc-300">
+                  <CategoryColorDot color={c.color} />
+                  {c.name}
+                </span>
               </label>
             ))}
           </div>

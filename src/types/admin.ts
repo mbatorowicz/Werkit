@@ -39,6 +39,7 @@ export type UnifiedGanttItem = {
 export type BaseMaterialCategory = {
   id: number;
   name: string;
+  color?: string | null;
 };
 
 export interface OrderFormState {

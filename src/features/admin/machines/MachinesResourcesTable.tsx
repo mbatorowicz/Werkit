@@ -8,6 +8,7 @@ import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
+import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import type { AppDictionary } from "@/i18n/types";
@@ -156,17 +157,7 @@ export function MachinesResourcesTable({
                         <div className="flex flex-wrap gap-1">
                           {mCats.length > 0 ? (
                             mCats.map((c) => (
-                              <span
-                                key={c.id}
-                                className="rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                                style={{
-                                  backgroundColor: `${c.color || "#71717a"}1a`,
-                                  color: c.color || "#71717a",
-                                  borderColor: `${c.color || "#71717a"}33`,
-                                }}
-                              >
-                                {c.name}
-                              </span>
+                              <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
                             ))
                           ) : (
                             <span className="text-xs italic text-zinc-500">
@@ -238,17 +229,7 @@ export function MachinesResourcesTable({
                 {categories
                   .filter((c) => previewMachine.categoryIds?.includes(c.id))
                   .map((c) => (
-                    <span
-                      key={c.id}
-                      className="rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                      style={{
-                        backgroundColor: `${c.color || "#71717a"}1a`,
-                        color: c.color || "#71717a",
-                        borderColor: `${c.color || "#71717a"}33`,
-                      }}
-                    >
-                      {c.name}
-                    </span>
+                    <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
                   ))}
                 {(previewMachine.categoryIds?.length ?? 0) === 0 ? (
                   <span className="italic text-zinc-500">{dict.noCategoryBadge}</span>

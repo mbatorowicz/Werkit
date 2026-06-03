@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
+import { CategoryColorDot, CategoryColorTag } from "@/components/CategoryColorBadge";
 import { filterComboboxOptions } from "@/lib/searchComboboxFilter";
 import {
   filterMaterialsByMaterialCategory,
@@ -18,6 +19,7 @@ import { useFloatingPanelPosition } from "@/hooks/useFloatingPanelPosition";
 type ListOption = {
   id: string;
   label: string;
+  color?: string | null;
   kind: "category" | "material";
 };
 
@@ -89,6 +91,7 @@ export function MaterialCategoryMaterialCombobox({
       return categories.map((c) => ({
         id: toMaterialCategoryOptionId(c.id),
         label: c.name,
+        color: c.color,
         kind: "category" as const,
       }));
     }
@@ -110,6 +113,7 @@ export function MaterialCategoryMaterialCombobox({
       filterComboboxOptions(listOptions, query, (o) => o.label, 50).map((o) => ({
         id: o.id,
         label: o.label,
+        color: o.color,
         kind: o.kind,
       })),
     [listOptions, query]
@@ -231,7 +235,10 @@ export function MaterialCategoryMaterialCombobox({
                     : "text-zinc-900 hover:bg-zinc-50 dark:text-zinc-100 dark:hover:bg-zinc-800"
                 }`}
               >
-                <div className="font-medium">{option.label}</div>
+                <div className="flex items-center gap-2 font-medium">
+                  {option.kind === "category" ? <CategoryColorDot color={option.color} /> : null}
+                  <span className="truncate">{option.label}</span>
+                </div>
               </button>
             </li>
           ))
@@ -250,19 +257,13 @@ export function MaterialCategoryMaterialCombobox({
         }`}
       >
         {selectedCategory ? (
-          <span className="inline-flex max-w-full items-center gap-1 rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-100">
-            <span className="truncate">{selectedCategory.name}</span>
-            <button
-              type="button"
-              tabIndex={-1}
-              disabled={disabled}
-              onClick={clearCategoryTag}
-              className="rounded p-0.5 hover:bg-emerald-200/80 dark:hover:bg-emerald-500/30"
-              aria-label={dict.clearCategory}
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </span>
+          <CategoryColorTag
+            label={selectedCategory.name}
+            color={selectedCategory.color}
+            onClear={clearCategoryTag}
+            clearAriaLabel={dict.clearCategory}
+            disabled={disabled}
+          />
         ) : null}
         <input
           id={id}
