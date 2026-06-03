@@ -1,11 +1,13 @@
 import type { UnifiedGanttItem } from "@/types/admin";
+import { roundDatetimeLocalToStep } from "@/lib/datetimeLocal";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 
 export function formatDueDatetimeLocal(dateString: string | null): string {
   if (!dateString) return "";
   const d = new Date(dateString);
   const offset = d.getTimezoneOffset() * 60000;
-  return new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  const raw = new Date(d.getTime() - offset).toISOString().slice(0, 16);
+  return roundDatetimeLocalToStep(raw);
 }
 
 /** Lista scalona pod Gantt i tabelę dyspozycji — kolejność i filtrowanie w jednym miejscu (SRP). */

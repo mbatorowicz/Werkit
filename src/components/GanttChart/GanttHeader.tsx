@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, User, Truck } from "lucide-react";
+import { DateInput } from "@/components/DateInput";
 
 type Props = {
   groupBy: "WORKER" | "MACHINE";
@@ -78,11 +79,10 @@ export function GanttHeader({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <input
-            type="date"
+          <DateInput
+            variant="compact"
             value={selectedDateStr}
-            onChange={(e) => setSelectedDateStr(e.target.value)}
-            className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-3 py-1.5 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
+            onChange={setSelectedDateStr}
           />
           <button
             onClick={onNextDay}

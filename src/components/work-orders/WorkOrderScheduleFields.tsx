@@ -1,6 +1,8 @@
 "use client";
 
 import { DecimalInput } from "@/components/DecimalInput";
+import { DatetimeLocalInput } from "@/components/DatetimeLocalInput";
+import { dateInputClassName } from "@/components/datetimeFieldStyles";
 
 import { useEffect } from "react";
 import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
@@ -10,11 +12,6 @@ import { useScheduleConflictPreview } from "@/components/work-orders/useSchedule
 const FIELD = "space-y-1.5";
 const LABEL =
   "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
-const CONTROL =
-  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
-const CONTROL_WORKER =
-  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
-
 export type WorkOrderScheduleFieldLabels = ScheduleConflictLabels & {
   expectedDurationLabel: string;
   expectedDurationPlaceholder: string;
@@ -62,7 +59,8 @@ export function WorkOrderScheduleFields({
     status: "idle" | "loading" | "clear" | "conflicts" | "error";
   }) => void;
 }) {
-  const control = controlClassName ?? (mode === "admin" ? CONTROL : CONTROL_WORKER);
+  const control =
+    controlClassName ?? dateInputClassName(mode === "admin" ? "admin" : "worker");
 
   const schedulePreviewEnabled = Boolean(previewEnabled && userId && resourceId);
 
@@ -94,11 +92,11 @@ export function WorkOrderScheduleFields({
         </div>
         <div className={FIELD}>
           <label className={LABEL}>{labels.dueDateOptionalLabel}</label>
-          <input
-            type="datetime-local"
+          <DatetimeLocalInput
+            variant={mode === "admin" ? "admin" : "worker"}
             value={dueDate}
-            onChange={(e) => onDueDateChange(e.target.value)}
-            className={control}
+            onChange={onDueDateChange}
+            className={controlClassName ?? ""}
           />
         </div>
       </div>

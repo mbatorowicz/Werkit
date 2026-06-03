@@ -68,3 +68,21 @@ body {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgb(82 82 91 / 0.65);
 }
+
+/* Natywne pickery daty/czasu — spójny motyw i ikona kalendarza */
+.werkit-datetime-field {
+  color-scheme: light;
+}
+
+.dark .werkit-datetime-field {
+  color-scheme: dark;
+}
+
+.werkit-datetime-field::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+}
+
+.werkit-datetime-field:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
