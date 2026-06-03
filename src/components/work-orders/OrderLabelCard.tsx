@@ -3,6 +3,7 @@ import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { getDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
+import { UI_RADIUS_CARD } from "@/lib/uiRadius";
 
 type Tone = "planned" | "active" | "done";
 type Density = "normal" | "compact";
@@ -117,7 +118,7 @@ export function OrderLabelCard({
 
   return (
     <div
-      className={`rounded-xl border ${cls.border} bg-white dark:bg-zinc-900 shadow-sm overflow-hidden ${className}`}
+      className={`${UI_RADIUS_CARD} border ${cls.border} bg-white dark:bg-zinc-900 shadow-sm overflow-hidden ${className}`}
     >
       <div className="flex">
         {/* Pasek statusu (pełna wysokość wiersza) */}

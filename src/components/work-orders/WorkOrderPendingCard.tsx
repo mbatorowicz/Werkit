@@ -21,6 +21,7 @@ import type { AppDictionary } from "@/i18n/types";
 import type { WorkOrder } from "@/types/worker";
 import { useWorkerOrderDetailsModal } from "@/features/worker/hooks/useWorkerOrderDetailsModal";
 import { workerOrderDetailsFromWorkOrder } from "@/features/worker/lib/workerOrderDetails";
+import { UI_RADIUS_CONTROL } from "@/lib/uiRadius";
 
 type WorkerDict = AppDictionary["worker"]["client"];
 
@@ -166,7 +167,7 @@ export function WorkOrderPendingCard({
         <div className="flex gap-2">
           <Link
             href={`/worker/orders/${order.id}/edit`}
-            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            className={`flex-1 ${UI_RADIUS_CONTROL} border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800`}
           >
             <Pencil className="w-4 h-4" />
             {dict.editOrder}
@@ -174,7 +175,7 @@ export function WorkOrderPendingCard({
           <button
             type="button"
             onClick={() => void handleDelete()}
-            className="rounded-lg border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20"
+            className={`${UI_RADIUS_CONTROL} border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20`}
             title={dict.deleteOrder}
           >
             <Trash2 className="w-4 h-4" />
@@ -186,7 +187,7 @@ export function WorkOrderPendingCard({
         <button
           type="button"
           onClick={() => onStart(order.id)}
-          className="bg-amber-600 hover:bg-amber-500 text-white rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full"
+          className={`bg-amber-600 hover:bg-amber-500 text-white ${UI_RADIUS_CONTROL} py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full`}
         >
           <Play className="w-4 h-4 fill-current" />
           <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>

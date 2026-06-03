@@ -1,4 +1,5 @@
 import type { WorkOrder } from "@/types/worker";
+import { UI_RADIUS_CARD } from "@/lib/uiRadius";
 
 /** Kolejność sortowania: najpilniejsze najwyżej, potem najstarsze utworzone. */
 export const WORK_ORDER_PRIORITY_WEIGHT: Record<string, number> = {
@@ -31,12 +32,12 @@ export function workOrderInteractiveSurfaceClass(priority: string | null): strin
 /** Karta na liście oczekujących na worker dashboardzie. */
 export function workOrderPendingListCardClass(priority: string | null): string {
   if (priority === "URGENT") {
-    return "bg-red-500/10 border-red-500/35 dark:bg-red-500/10 dark:border-red-500/30 rounded-xl p-4 flex flex-col gap-3 border";
+    return `bg-red-500/10 border-red-500/35 dark:bg-red-500/10 dark:border-red-500/30 ${UI_RADIUS_CARD} p-4 flex flex-col gap-3 border`;
   }
   if (priority === "HIGH") {
-    return "bg-orange-500/10 border-orange-500/35 dark:bg-orange-500/10 dark:border-orange-500/30 rounded-xl p-4 flex flex-col gap-3 border";
+    return `bg-orange-500/10 border-orange-500/35 dark:bg-orange-500/10 dark:border-orange-500/30 ${UI_RADIUS_CARD} p-4 flex flex-col gap-3 border`;
   }
-  return "bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-4 flex flex-col gap-3";
+  return `bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 ${UI_RADIUS_CARD} p-4 flex flex-col gap-3`;
 }
 
 /** Kolor nagłówka kategorii na liście / w karcie. */

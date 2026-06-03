@@ -6,6 +6,7 @@ import { WorkOrderPendingCard } from "@/components/work-orders/WorkOrderPendingC
 import { formatDict, formatUiTimeHm } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder, UserData } from "@/types/worker";
+import { UI_RADIUS_CARD, UI_RADIUS_CONTROL } from "@/lib/uiRadius";
 
 interface PendingOrdersListProps {
   workOrders: WorkOrder[];
@@ -51,7 +52,9 @@ export default function PendingOrdersList({
           </h3>
 
           {overdueOrder && (
-            <div className="w-full bg-red-50 dark:bg-red-500/10 border-2 border-red-500 dark:border-red-600 rounded-xl p-3 mb-2 flex items-start gap-3 shadow-sm animate-pulse">
+            <div
+              className={`w-full bg-red-50 dark:bg-red-500/10 border-2 border-red-500 dark:border-red-600 ${UI_RADIUS_CARD} p-3 mb-2 flex items-start gap-3 shadow-sm animate-pulse`}
+            >
               <div className="bg-red-100 dark:bg-red-500/20 p-2 rounded-full shrink-0 mt-0.5">
                 <Clock className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
@@ -67,7 +70,9 @@ export default function PendingOrdersList({
           )}
 
           {upcomingOrder && !overdueOrder && (
-            <div className="w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 rounded-xl p-3 mb-2 flex items-start gap-3 animate-pulse">
+            <div
+              className={`w-full bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-400 dark:border-rose-500 ${UI_RADIUS_CARD} p-3 mb-2 flex items-start gap-3 animate-pulse`}
+            >
               <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0 mt-0.5">
                 <Clock className="w-5 h-5 text-rose-600 dark:text-rose-400" />
               </div>
@@ -107,7 +112,7 @@ export default function PendingOrdersList({
           </div>
           <Link
             href="/worker/wizard"
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
+            className={`w-full bg-emerald-600 hover:bg-emerald-500 text-white ${UI_RADIUS_CONTROL} py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]`}
           >
             <Play className="w-6 h-6 fill-current" />
             <span className="text-lg font-bold uppercase tracking-wider">{dict.defineCustom}</span>

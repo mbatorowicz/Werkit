@@ -129,7 +129,7 @@ export default function WorkerEditOrderClient({
                 type="button"
                 disabled={flow.isLoading}
                 onClick={() => void flow.handleDelete()}
-                className="w-full mt-4 rounded-xl border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-3 px-4 flex items-center justify-center gap-2 text-red-800 dark:text-red-300 font-semibold text-sm uppercase tracking-wider transition-colors hover:bg-red-100 dark:hover:bg-red-500/20 disabled:opacity-50"
+                className="w-full mt-4 rounded-lg border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-3 px-4 flex items-center justify-center gap-2 text-red-800 dark:text-red-300 font-semibold text-sm uppercase tracking-wider transition-colors hover:bg-red-100 dark:hover:bg-red-500/20 disabled:opacity-50"
               >
                 <Trash2 className="w-4 h-4" />
                 {flow.dict.deleteOrder}

@@ -8,6 +8,7 @@ import { formatDict, getDictionary } from "@/i18n";
 import { parseCustomerAddress } from "@/lib/customerAddress";
 import type { WorkerOrderDetailsData } from "@/features/worker/lib/workerOrderDetails";
 import { phoneTelHref } from "@/features/worker/lib/workerOrderDetails";
+import { UI_RADIUS_INNER } from "@/lib/uiRadius";
 
 export function WorkerOrderDetailsModal({
   open,
@@ -28,7 +29,7 @@ export function WorkerOrderDetailsModal({
   const customerName = data.customerName?.trim() ?? "";
   const addressParts = parseCustomerAddress(data.customerAddress);
 
-  const fieldsCard = "rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/50 px-4 py-3";
+  const fieldsCard = `${UI_RADIUS_INNER} border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/50 px-4 py-3`;
 
   return (
     <AdminModalShell

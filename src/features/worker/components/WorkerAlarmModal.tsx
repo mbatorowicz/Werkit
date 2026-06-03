@@ -5,6 +5,7 @@ import { formatDict } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkerActiveAlarm } from "@/features/worker/lib/workerAlarmTypes";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { UI_RADIUS_CONTROL } from "@/lib/uiRadius";
 
 type AlarmDict = AppDictionary["worker"]["alarms"];
 
@@ -36,7 +37,7 @@ export function WorkerAlarmModal({
           <button
             type="button"
             onClick={onOk}
-            className="w-full rounded-xl bg-zinc-900 py-3 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
+            className={`w-full ${UI_RADIUS_CONTROL} bg-zinc-900 py-3 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900`}
           >
             {dict.actionOk}
           </button>
@@ -44,7 +45,7 @@ export function WorkerAlarmModal({
             <button
               type="button"
               onClick={onStart}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-500"
+              className={`flex w-full items-center justify-center gap-2 ${UI_RADIUS_CONTROL} bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-500`}
             >
               <Play className="h-4 w-4" />
               {dict.actionStart}
