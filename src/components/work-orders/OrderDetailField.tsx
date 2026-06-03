@@ -22,8 +22,9 @@ export function OrderDetailField({
           className={
             multiline
               ? "mt-0.5 text-[15px] font-semibold leading-snug text-zinc-900 dark:text-zinc-100 break-words whitespace-pre-wrap"
-              : "mt-0.5 text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 break-words"
+              : "mt-0.5 text-[15px] font-semibold text-zinc-900 dark:text-zinc-100 truncate"
           }
+          title={!multiline ? value : undefined}
         >
           {value}
         </div>

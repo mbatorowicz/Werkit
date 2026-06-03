@@ -160,29 +160,22 @@ export function OrderLabelCard({
 
           {subheader ? <div className={isCompact ? "mb-2" : "mb-3"}>{subheader}</div> : null}
 
+          {vis.showMode && mode?.trim() ? (
+            <div className={`flex items-center min-w-0 ${isCompact ? "mb-1.5" : "mb-2"}`}>
+              <CategoryColorCardBadge
+                label={mode}
+                color={modeColor}
+                onClick={onCategoryClick}
+                ariaLabel={categoryBadgeAriaLabel}
+              />
+            </div>
+          ) : null}
+
           <div
-            className={`grid ${
-              isCompact
-                ? "grid-cols-1 md:grid-cols-4 gap-x-4 gap-y-1.5"
-                : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
+            className={`grid grid-cols-1 ${
+              isCompact ? "gap-y-1.5" : "gap-x-4 gap-y-2 sm:grid-cols-2"
             }`}
           >
-            {vis.showMode && mode?.trim() ? (
-              <div className="flex items-center min-w-0 self-center md:col-span-2">
-                <CategoryColorCardBadge
-                  label={mode}
-                  color={modeColor}
-                  onClick={onCategoryClick}
-                  ariaLabel={categoryBadgeAriaLabel}
-                />
-              </div>
-            ) : null}
-            {showDateTime ? (
-              <OrderDetailField label={labels.date} value={dateLabel?.trim() ? dateLabel : "—"} />
-            ) : null}
-            {showDateTime ? (
-              <OrderDetailField label={labels.time} value={timeLabel?.trim() ? timeLabel : "—"} />
-            ) : null}
             <OrderDetailField label={labels.machine} value={machine || "—"} />
             {vis.showMaterial ? (
               <OrderDetailField
@@ -207,8 +200,14 @@ export function OrderLabelCard({
                 label={labels.description}
                 value={description}
                 multiline
-                className="md:col-span-2"
+                className={isCompact ? undefined : "sm:col-span-2"}
               />
+            ) : null}
+            {showDateTime ? (
+              <OrderDetailField label={labels.date} value={dateLabel?.trim() ? dateLabel : "—"} />
+            ) : null}
+            {showDateTime ? (
+              <OrderDetailField label={labels.time} value={timeLabel?.trim() ? timeLabel : "—"} />
             ) : null}
           </div>
 
