@@ -1,5 +1,7 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
+import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
 import {
   coerceWorkOrderPriority,
   resolveOrderTypeForCategory,
@@ -79,6 +81,9 @@ export const PUT = withApiErrorHandling(
     }
 
     const prio = coerceWorkOrderPriority(priority);
+    const durationStored = normalizeDecimalBodyField(expectedDurationHours);
+    const parsedDuration =
+      durationStored != null ? Number.parseFloat(durationStored) : null;
 
     if (!forceSave) {
       const blockCode = await AdminOrderService.getScheduleSaveBlockCode(
@@ -86,9 +91,7 @@ export const PUT = withApiErrorHandling(
         uidNum,
         resIdNum,
         dueDate ? new Date(dueDate) : null,
-        expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
-          ? parseFloat(String(expectedDurationHours))
-          : null,
+        parsedDuration,
         orderId
       );
       if (blockCode) {
@@ -97,10 +100,9 @@ export const PUT = withApiErrorHandling(
     }
 
     const parsedDueDate = dueDate ? new Date(dueDate) : null;
-    const parsedDuration =
-      expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
-        ? parseFloat(String(expectedDurationHours))
-        : null;
+    if (parsedDueDate && Number.isNaN(parsedDueDate.getTime())) {
+      return jsonError("invalid_payload", 400);
+    }
 
     const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
     const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
@@ -118,10 +120,7 @@ export const PUT = withApiErrorHandling(
         customerId: customerId ? parseInt(String(customerId), 10) : null,
         taskDescription,
         quantityTons: orderQuantityTons,
-        expectedDurationHours:
-          expectedDurationHours !== null && String(expectedDurationHours).trim() !== ""
-            ? String(expectedDurationHours)
-            : null,
+        expectedDurationHours: durationStored,
         priority: prio,
         dueDate: parsedDueDate,
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
@@ -138,7 +137,19 @@ export const PUT = withApiErrorHandling(
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) => {
+      if (isMissingWorkOrderRepairColumns(err)) {
+        console.error("[admin/work-orders] Brak kolumn order_type / repair_* — uruchom migracje.");
+        return jsonError("save_error", 503);
+      }
+      if (err instanceof Error) {
+        console.error("[admin/work-orders] PUT:", err.message);
+      }
+      return null;
+    },
+    defaultErrorCode: "save_error",
+  }
 );
 
 export const DELETE = withApiErrorHandling(

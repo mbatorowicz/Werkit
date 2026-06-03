@@ -24,5 +24,9 @@ describe("orderType", () => {
       materialId: 5,
       quantityTons: "12",
     });
+    expect(normalizeWorkOrderMaterialFields("machine_work", 5, "12,5")).toEqual({
+      materialId: 5,
+      quantityTons: "12.5",
+    });
   });
 });

@@ -228,7 +228,8 @@ export default function OrdersClient() {
             const { materialCategoryId: _materialCategoryId, ...rest } = formData;
             const payload = { ...rest, forceSave: Boolean(options?.forceSave) };
             if (payload.dueDate) {
-              payload.dueDate = new Date(payload.dueDate).toISOString();
+              const due = new Date(payload.dueDate);
+              payload.dueDate = Number.isNaN(due.getTime()) ? "" : due.toISOString();
             }
             const res = await fetchWithDeviceTelemetry(
               editingOrderId

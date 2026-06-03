@@ -16,6 +16,7 @@ import {
 } from "@/lib/workOrderCategoryValidation";
 import { resolveOrderType } from "@/lib/orderType";
 import { parseOrderBody } from "@/lib/parseRouteParams";
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
 import { assertOrderEntitiesBelongToCompany } from "@/lib/tenantContext";
 
@@ -221,11 +222,7 @@ export class WorkerOrderService {
         customerId: payload.customerId ?? null,
         taskDescription: payload.taskDescription ?? null,
         quantityTons: orderQuantityTons,
-        expectedDurationHours:
-          payload.expectedDurationHours != null &&
-          String(payload.expectedDurationHours).trim() !== ""
-            ? String(payload.expectedDurationHours)
-            : null,
+        expectedDurationHours: normalizeDecimalBodyField(payload.expectedDurationHours),
         dueDate: payload.dueDate ?? null,
         lockedUntil:
           payload.dueDate && durationHours != null

@@ -1,5 +1,6 @@
 import type { OrderType } from "@/types/worker";
 import { isRepairOrderType } from "@/lib/orderType";
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 
 /** Dla napraw nie zapisujemy materiału ani ilości w tonach. */
 export function normalizeWorkOrderMaterialFields(
@@ -12,7 +13,6 @@ export function normalizeWorkOrderMaterialFields(
   }
   return {
     materialId,
-    quantityTons:
-      quantityTons !== null && String(quantityTons).trim() !== "" ? String(quantityTons) : null,
+    quantityTons: normalizeDecimalBodyField(quantityTons),
   };
 }
