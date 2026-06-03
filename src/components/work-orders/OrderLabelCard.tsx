@@ -1,5 +1,5 @@
 import { Camera, FileText } from "lucide-react";
-import { CategoryColorAbbrevBadge } from "@/components/CategoryColorBadge";
+import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
 
@@ -199,7 +199,7 @@ export function OrderLabelCard({
           >
             {vis.showMode && mode?.trim() ? (
               <div className="flex items-center min-w-0 self-center">
-                <CategoryColorAbbrevBadge label={mode} color={modeColor} />
+                <CategoryColorCardBadge label={mode} color={modeColor} />
               </div>
             ) : null}
             <LabelItem k={labels.machine} v={machine || "—"} />

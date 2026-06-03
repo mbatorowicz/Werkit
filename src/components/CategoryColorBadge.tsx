@@ -4,7 +4,6 @@ import { X } from "lucide-react";
 import {
   CATEGORY_COLOR_BADGE_BASE_CLASS,
   CATEGORY_COLOR_BADGE_SIZE_CLASS,
-  categoryAbbreviation,
   categoryColorBadgeStyle,
   categoryColorSwatchStyle,
   resolveCategoryColor,
@@ -28,8 +27,8 @@ export function CategoryColorBadge({ label, color, size = "sm", className = "" }
   );
 }
 
-/** Kompaktowy tag kategorii (inicjały); pełna nazwa w `title` przy najechaniu. */
-export function CategoryColorAbbrevBadge({
+/** Tag kategorii na karcie zlecenia — pełna nazwa (do 2 wierszy), bez powiększania pola. */
+export function CategoryColorCardBadge({
   label,
   color,
   className = "",
@@ -38,16 +37,27 @@ export function CategoryColorAbbrevBadge({
   color?: string | null;
   className?: string;
 }) {
-  const abbrev = categoryAbbreviation(label);
+  const text = label.trim() || "—";
   return (
     <span
-      title={label.trim() || undefined}
-      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.abbrev} cursor-default ${className}`.trim()}
+      title={text}
+      className={`${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} cursor-default ${className}`.trim()}
       style={categoryColorBadgeStyle(color)}
     >
-      {abbrev}
+      <span className="line-clamp-2 max-w-full text-center text-[10px] font-bold leading-[1.15] break-words">
+        {text}
+      </span>
     </span>
   );
+}
+
+/** @deprecated Użyj {@link CategoryColorCardBadge} — inicjały na karcie zastąpione pełną nazwą. */
+export function CategoryColorAbbrevBadge(props: {
+  label: string;
+  color?: string | null;
+  className?: string;
+}) {
+  return <CategoryColorCardBadge {...props} />;
 }
 
 type TagProps = {

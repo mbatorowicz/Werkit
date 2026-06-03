@@ -75,7 +75,10 @@ export function categoryColorChipStyle(
 export const CATEGORY_COLOR_BADGE_BASE_CLASS = "rounded-md border font-semibold";
 
 export const CATEGORY_COLOR_BADGE_SIZE_CLASS = {
-  /** Skrót kategorii na karcie zlecenia (~3× względem pierwotnego xs 10px). */
+  /** Pełna nazwa kategorii na karcie zlecenia (stały rozmiar, max 2 linie). */
+  cardCategory:
+    "inline-flex h-8 w-[5.25rem] max-w-[5.25rem] shrink-0 items-center justify-center px-1 py-0.5",
+  /** Skrót inicjałów (legacy / inne widoki). */
   abbrev:
     "inline-flex min-w-[5.25rem] h-8 items-center justify-center px-2 text-[1.875rem] leading-none font-bold uppercase tracking-wide",
   xs: "inline-flex min-w-[1.75rem] items-center justify-center px-1 py-0 text-[10px] font-bold uppercase tracking-wide",
