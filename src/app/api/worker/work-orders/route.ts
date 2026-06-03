@@ -1,23 +1,11 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
+import {
+  WORKER_ORDER_ERROR_CODES,
+  workerOrderErrorStatus,
+} from "@/lib/workerOrderApiErrors";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
-
-/** Kody błędów domenowych (nie surowy komunikat Postgresa). */
-const WORKER_ORDER_ERROR_CODES = new Set([
-  "forbidden",
-  "session_active",
-  "schedule_conflict",
-  "resource_busy",
-  "invalid_category",
-  "missing_fields",
-  "invalid_payload",
-  "invalid_user",
-  "missing_customer",
-  "missing_material",
-  "missing_quantity",
-  "missing_task_description",
-]);
 
 export const dynamic = "force-dynamic";
 
@@ -54,11 +42,11 @@ export const POST = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
-      if (err instanceof Error && err.message === "forbidden") return jsonError("Forbidden", 403);
+      if (err instanceof Error && err.message === "forbidden") {
+        return jsonError("forbidden", 403);
+      }
       if (err instanceof Error && WORKER_ORDER_ERROR_CODES.has(err.message)) {
-        const status =
-          err.message === "schedule_conflict" || err.message === "resource_busy" ? 409 : 400;
-        return jsonError(err.message, status);
+        return jsonError(err.message, workerOrderErrorStatus(err.message));
       }
       if (isMissingWorkOrderRepairColumns(err)) {
         console.error("[worker/work-orders] Brak kolumn order_type / repair_* — uruchom migracje Drizzle.");

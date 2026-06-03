@@ -390,4 +390,65 @@ describe("WorkerOrderService", () => {
       expect(insertMock).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("updateOwnOrder / deleteOwnOrder", () => {
+    it("updateOwnOrder rzuca order_not_found gdy brak zlecenia", async () => {
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => chain),
+        limit: vi.fn(() => resultArray([])),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { WorkerOrderService } = await import("./WorkerOrderService");
+      await expect(
+        WorkerOrderService.updateOwnOrder(1, 1, 99, { categoryId: 1, resourceId: 1 })
+      ).rejects.toThrow("order_not_found");
+    });
+
+    it("updateOwnOrder rzuca forbidden gdy zlecenie nie jest własne", async () => {
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => chain),
+        limit: vi.fn(() =>
+          resultArray([{ id: 1, status: "PENDING", createdById: 2 }])
+        ),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { WorkerOrderService } = await import("./WorkerOrderService");
+      await expect(
+        WorkerOrderService.updateOwnOrder(1, 1, 1, { categoryId: 1, resourceId: 1 })
+      ).rejects.toThrow("forbidden");
+    });
+
+    it("deleteOwnOrder usuwa zlecenie w transakcji", async () => {
+      const assertChain = {
+        from: vi.fn(() => assertChain),
+        where: vi.fn(() => assertChain),
+        limit: vi.fn(() =>
+          resultArray([{ id: 1, status: "PENDING", createdById: 1 }])
+        ),
+      };
+      const userChain = {
+        from: vi.fn(() => userChain),
+        where: vi.fn(() => userChain),
+        limit: vi.fn(() => resultArray([{ canCreateOwnOrders: true }])),
+      };
+      selectMock.mockReturnValueOnce(assertChain).mockReturnValueOnce(userChain);
+
+      const txDeleteWhere = vi.fn().mockResolvedValue(undefined);
+      const txDelete = vi.fn().mockReturnValue({ where: txDeleteWhere });
+      const tx = { delete: txDelete };
+      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
+        await cb(tx);
+      });
+
+      const { WorkerOrderService } = await import("./WorkerOrderService");
+      await WorkerOrderService.deleteOwnOrder(1, 1, 1);
+
+      expect(transactionMock).toHaveBeenCalledTimes(1);
+      expect(txDelete).toHaveBeenCalledTimes(2);
+    });
+  });
 });

@@ -26,7 +26,7 @@ type Props = {
   categoryId: string;
   setCategoryId: (id: string) => void;
   setStep: (s: number) => void;
-  onAcceptOrder: (orderId: number) => void;
+  onAcceptOrder?: (orderId: number) => void;
 };
 
 export function WizardStep1Category({
@@ -53,7 +53,7 @@ export function WizardStep1Category({
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
-      {orders.length > 0 && (
+      {orders.length > 0 && onAcceptOrder ? (
         <div className="mb-8">
           <h2 className="text-xl font-bold text-amber-500 mb-3">{dict.wizardPendingOrders}</h2>
           <div className="space-y-3">
@@ -107,7 +107,7 @@ export function WizardStep1Category({
             ))}
           </div>
         </div>
-      )}
+      ) : null}
 
       <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
         {orders.length > 0 ? dict.wizardTitleOwn : dict.wizardTitle}

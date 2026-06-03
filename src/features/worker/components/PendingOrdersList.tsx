@@ -93,6 +93,8 @@ export default function PendingOrdersList({
               mode="start"
               onStart={requestAcceptOrder}
               acceptError={acceptErrors[order.id]}
+              currentUserId={currentUser?.id ?? null}
+              onOrderDeleted={() => fetchSessionAndPath(false, false)}
             />
           ))}
         </div>

@@ -34,6 +34,7 @@ export const pl = {
     not_pending: "Zlecenie nie jest już oczekujące.",
     no_active_session: "Brak aktywnej sesji.",
     unauthorized: "Brak autoryzacji.",
+    forbidden: "Brak uprawnień do tej operacji.",
     biometric_workers_only: "Logowanie biometryczne jest dostępne tylko dla kont pracownika.",
     biometric_password_required: "Podaj aktualne hasło, aby włączyć biometrię.",
     invalid_payload: "Nieprawidłowe dane formularza.",
@@ -961,6 +962,15 @@ export const pl = {
       wizardSaveOrder: "Zapisz",
       wizardOrderSaved:
         "Zlecenie zapisane. Rozpocznij je z listy oczekujących, gdy będziesz gotowy.",
+      editOrder: "Edytuj",
+      deleteOrder: "Usuń zlecenie",
+      deleteOwnOrderConfirm:
+        "Usunąć to zlecenie? Tej operacji nie cofniesz.",
+      editOrderTitle: "Edycja zlecenia",
+      editOrderSubtitle: "Zlecenie #{id} — zmiany zapiszesz na liście oczekujących.",
+      editOrderSave: "Zapisz zmiany",
+      editOrderSaved: "Zlecenie zaktualizowane.",
+      editOrderDeleted: "Zlecenie usunięte.",
       wizardFixData: "Popraw Dane",
       wizardPendingOrders: "Oczekujące zlecenia",
       requiresPhoto: "Wymaga min. 1 zdjęcia",

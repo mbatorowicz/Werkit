@@ -36,6 +36,7 @@ export const de: AppDictionary = {
     not_pending: "Auftrag ist nicht mehr ausstehend.",
     no_active_session: "Keine aktive Sitzung.",
     unauthorized: "Nicht autorisiert.",
+    forbidden: "Keine Berechtigung für diese Aktion.",
     biometric_workers_only: "Biometrische Anmeldung ist nur für Arbeiterkonten verfügbar.",
     biometric_password_required:
       "Geben Sie Ihr aktuelles Passwort ein, um Biometrie zu aktivieren.",
@@ -976,6 +977,15 @@ export const de: AppDictionary = {
       wizardSaveOrder: "Speichern",
       wizardOrderSaved:
         "Auftrag gespeichert. Starten Sie ihn aus der Warteliste, wenn Sie bereit sind.",
+      editOrder: "Bearbeiten",
+      deleteOrder: "Auftrag löschen",
+      deleteOwnOrderConfirm:
+        "Diesen Auftrag löschen? Dies kann nicht rückgängig gemacht werden.",
+      editOrderTitle: "Auftrag bearbeiten",
+      editOrderSubtitle: "Auftrag #{id} — Änderungen gelten in der Warteliste.",
+      editOrderSave: "Änderungen speichern",
+      editOrderSaved: "Auftrag aktualisiert.",
+      editOrderDeleted: "Auftrag gelöscht.",
       wizardFixData: "Daten korrigieren",
       wizardPendingOrders: "Ausstehende Aufträge",
       requiresPhoto: "Erfordert mind. 1 Foto",

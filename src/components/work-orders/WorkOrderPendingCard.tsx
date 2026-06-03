@@ -1,6 +1,7 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Pencil, Play, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
 import {
   buildScheduleConflictLabels,
@@ -8,6 +9,9 @@ import {
   toDatetimeLocalValue,
 } from "@/components/work-orders/scheduleConflictI18n";
 import { useScheduleConflictPreview } from "@/components/work-orders/useScheduleConflictPreview";
+import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
+import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { workOrderPendingListCardClass } from "@/features/worker/lib/workOrderPresentation";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
@@ -26,6 +30,8 @@ export function WorkOrderPendingCard({
   acceptError,
   positionLabel,
   density = "normal",
+  currentUserId,
+  onOrderDeleted,
 }: {
   order: WorkOrder;
   dict: WorkerDict;
@@ -34,7 +40,11 @@ export function WorkOrderPendingCard({
   acceptError?: string | null;
   positionLabel?: string;
   density?: "normal" | "compact";
+  currentUserId?: number | null;
+  onOrderDeleted?: () => void;
 }) {
+  const { alert: appAlert, confirm: appConfirm } = useAppDialog();
+  const apiErrors = getDictionary().apiErrors as Record<string, string>;
   const scheduleDict = getDictionary().workOrdersSchedule;
   const scheduleLabels = buildWorkOrderScheduleFieldLabels(scheduleDict, { mode: "worker" });
   const conflictLabels = buildScheduleConflictLabels(scheduleDict);
@@ -59,6 +69,35 @@ export function WorkOrderPendingCard({
 
   const blocked = mode === "start" && (hasConflicts || Boolean(acceptError));
   const tonsSuffix = scheduleDict.tons;
+  const isOwnOrder =
+    mode === "start" &&
+    currentUserId != null &&
+    order.createdById != null &&
+    order.createdById === currentUserId;
+
+  const handleDelete = async () => {
+    if (!(await appConfirm({ message: dict.deleteOwnOrderConfirm, variant: "danger" }))) {
+      return;
+    }
+    try {
+      const res = await fetchWithDeviceTelemetry(
+        `Worker: delete own order ${order.id}`,
+        `/api/worker/work-orders/${order.id}`,
+        { method: "DELETE" },
+        { category: "orders" }
+      );
+      if (!res.ok) {
+        const body = await parseJsonUnknown(res);
+        const code = readApiErrorString(body);
+        await appAlert({ message: appDialogApiMessage(apiErrors, code, apiErrors.delete_error) });
+        return;
+      }
+      await appAlert({ message: dict.editOrderDeleted });
+      onOrderDeleted?.();
+    } catch {
+      await appAlert({ message: dict.errNetwork });
+    }
+  };
 
   return (
     <div className={workOrderPendingListCardClass(order.priority)}>
@@ -129,6 +168,26 @@ export function WorkOrderPendingCard({
 
       {acceptError ? (
         <p className="text-xs font-medium text-red-700 dark:text-red-400">{acceptError}</p>
+      ) : null}
+
+      {isOwnOrder ? (
+        <div className="flex gap-2">
+          <Link
+            href={`/worker/orders/${order.id}/edit`}
+            className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+          >
+            <Pencil className="w-4 h-4" />
+            {dict.editOrder}
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleDelete()}
+            className="rounded-lg border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20"
+            title={dict.deleteOrder}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       ) : null}
 
       {mode === "start" && !blocked && onStart ? (

@@ -22,6 +22,7 @@ type Props = {
   hasConflicts: boolean;
   setHasConflicts: (v: boolean) => void;
   setStep: (s: number) => void;
+  excludeOrderId?: number | null;
 };
 
 export function WizardStep4Schedule({
@@ -37,6 +38,7 @@ export function WizardStep4Schedule({
   hasConflicts,
   setHasConflicts,
   setStep,
+  excludeOrderId = null,
 }: Props) {
   const scheduleLabels = buildWorkOrderScheduleFieldLabels(getDictionary().workOrdersSchedule, {
     mode: "worker",
@@ -86,6 +88,7 @@ export function WizardStep4Schedule({
         onExpectedDurationHoursChange={setExpectedDurationHours}
         labels={scheduleLabels}
         onPreviewChange={({ hasConflicts: next }) => setHasConflicts(next)}
+        excludeOrderId={excludeOrderId}
       />
 
       <div className="mt-8 flex items-center justify-between">

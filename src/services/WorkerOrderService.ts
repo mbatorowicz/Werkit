@@ -237,4 +237,174 @@ export class WorkerOrderService {
 
     return inserted.id;
   }
+
+  /** Zlecenie oczekujące utworzone przez tego pracownika (edycja / podgląd formularza). */
+  private static async assertOwnPendingOrder(userId: number, companyId: number, orderId: number) {
+    const [order] = await db
+      .select({
+        id: workOrders.id,
+        status: workOrders.status,
+        createdById: workOrders.createdById,
+      })
+      .from(workOrders)
+      .where(
+        and(
+          eq(workOrders.id, orderId),
+          eq(workOrders.companyId, companyId),
+          eq(workOrders.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (!order) throw new Error("order_not_found");
+    if (order.status !== "PENDING") throw new Error("not_pending");
+    if (order.createdById !== userId) throw new Error("forbidden");
+  }
+
+  static async getOwnPendingOrder(userId: number, companyId: number, orderId: number) {
+    await WorkerOrderService.assertOwnPendingOrder(userId, companyId, orderId);
+
+    const creator = newWorkOrderCreatorUserAlias();
+    const [row] = await applyWorkOrderListJoins(
+      db
+        .select({
+          ...workOrderListSharedSelectFields(creator),
+          customerName: customers.lastName,
+        })
+        .from(workOrders),
+      creator,
+      { joinAssignedWorker: false }
+    )
+      .where(
+        and(
+          eq(workOrders.id, orderId),
+          eq(workOrders.companyId, companyId),
+          eq(workOrders.userId, userId)
+        )
+      )
+      .limit(1);
+
+    if (!row) throw new Error("order_not_found");
+
+    return {
+      ...row,
+      priority: normalizeWorkOrderPriority(row.priority),
+      hasPhotos: Boolean(row.hasPhotos),
+      hasNotes: Boolean(row.hasNotes),
+    };
+  }
+
+  static async updateOwnOrder(
+    userId: number,
+    companyId: number,
+    orderId: number,
+    body: Record<string, unknown>
+  ) {
+    await WorkerOrderService.assertOwnPendingOrder(userId, companyId, orderId);
+
+    const [userRow] = await db
+      .select({ canCreateOwnOrders: users.canCreateOwnOrders })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
+      .limit(1);
+
+    if (!userRow?.canCreateOwnOrders) {
+      throw new Error("forbidden");
+    }
+
+    const parsed = parseOrderBody(body);
+    const payload = {
+      ...parsed,
+      priority: coerceWorkOrderPriority(parsed.priority),
+    };
+
+    await assertOrderEntitiesBelongToCompany(payload, companyId);
+
+    await validateCategoryForOrder(companyId, payload.categoryId, {
+      customerId: payload.customerId,
+      materialId: payload.materialId,
+      quantityTons: payload.quantityTons,
+      taskDescription: payload.taskDescription,
+      repairDescription: payload.repairDescription,
+      orderType: payload.orderType,
+    });
+
+    const { DictionaryService } = await import("@/services/DictionaryService");
+    const categoryRow = await DictionaryService.getResourceCategoryById(
+      companyId,
+      payload.categoryId
+    );
+    const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
+    const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
+      normalizeWorkOrderMaterialFields(
+        orderType,
+        payload.materialId,
+        payload.quantityTons
+      );
+
+    const durationHours = parseDurationHours(payload.expectedDurationHours);
+    await ScheduleConflictService.assertNoScheduleConflict(companyId, {
+      userId,
+      resourceId: payload.resourceId,
+      dueDate: payload.dueDate,
+      durationHours,
+      excludeOrderId: orderId,
+    });
+
+    const prio = coerceWorkOrderPriority(payload.priority);
+
+    await db
+      .update(workOrders)
+      .set({
+        resourceId: payload.resourceId,
+        categoryId: payload.categoryId,
+        materialId: orderMaterialId,
+        customerId: payload.customerId ?? null,
+        taskDescription: payload.taskDescription ?? null,
+        quantityTons: orderQuantityTons,
+        expectedDurationHours: normalizeDecimalBodyField(payload.expectedDurationHours),
+        dueDate: payload.dueDate ?? null,
+        lockedUntil:
+          payload.dueDate && durationHours != null
+            ? computeLockedUntil(payload.dueDate, durationHours)
+            : null,
+        priority: prio,
+        orderType,
+        repairDescription: payload.repairDescription ?? null,
+      })
+      .where(
+        and(
+          eq(workOrders.id, orderId),
+          eq(workOrders.companyId, companyId),
+          eq(workOrders.userId, userId)
+        )
+      );
+  }
+
+  static async deleteOwnOrder(userId: number, companyId: number, orderId: number) {
+    await WorkerOrderService.assertOwnPendingOrder(userId, companyId, orderId);
+
+    const [userRow] = await db
+      .select({ canCreateOwnOrders: users.canCreateOwnOrders })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
+      .limit(1);
+
+    if (!userRow?.canCreateOwnOrders) {
+      throw new Error("forbidden");
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
+      await tx
+        .delete(workOrders)
+        .where(
+          and(
+            eq(workOrders.id, orderId),
+            eq(workOrders.companyId, companyId),
+            eq(workOrders.userId, userId)
+          )
+        );
+    });
+  }
 }

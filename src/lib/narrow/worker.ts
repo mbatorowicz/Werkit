@@ -60,6 +60,9 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
         r.repairDescription === null || typeof r.repairDescription === "string"
           ? (r.repairDescription as string | null)
           : null,
+      createdById: narrowNullableNumber(r.createdById),
+      materialId: narrowNullableNumber(r.materialId),
+      customerId: narrowNullableNumber(r.customerId),
     });
   }
   return out;

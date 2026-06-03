@@ -61,6 +61,10 @@ export type WorkOrder = {
   orderType?: OrderType | null;
   /** Opis naprawy (dla machine_repair). */
   repairDescription?: string | null;
+  /** Kto utworzył zlecenie (edycja/usuwanie tylko gdy === bieżący pracownik). */
+  createdById?: number | null;
+  materialId?: number | null;
+  customerId?: number | null;
 };
 
 /** Część zamienna użyta w zleceniu naprawy (widok dla workera). */
