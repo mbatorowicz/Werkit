@@ -13,8 +13,8 @@ import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvide
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { workOrderPendingListCardClass } from "@/features/worker/lib/workOrderPresentation";
-import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
+import { workOrderOrderLabelCardFields } from "@/lib/orderLabelFieldVisibility";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
@@ -69,6 +69,8 @@ export function WorkOrderPendingCard({
 
   const blocked = mode === "start" && (hasConflicts || Boolean(acceptError));
   const tonsSuffix = scheduleDict.tons;
+  const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
+
   const isOwnOrder =
     mode === "start" &&
     currentUserId != null &&
@@ -110,51 +112,35 @@ export function WorkOrderPendingCard({
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-1">
-        <div className="flex items-start justify-between gap-2">
-          <span className="text-sm font-bold text-amber-900 dark:text-amber-500 flex flex-wrap items-center gap-2 min-w-0">
-            <span
-              className={`bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-400 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-500/30 shrink-0 ${density === "compact" ? "font-mono text-xs" : ""}`}
-            >
-              #{order.id}
-            </span>
-            <CategoryColorBadge
-              label={order.categoryName || dict.noCategoryName}
-              color={order.categoryColor}
-              size="md"
-              className={`max-w-full ${density === "compact" ? "" : "text-base"}`}
-            />
-          </span>
-          {!positionLabel ? (
+      <OrderLabelCard
+        tone="planned"
+        density={density}
+        orderNo={`#${order.id}`}
+        mode={labelFields.mode || dict.noCategoryName}
+        modeColor={labelFields.modeColor}
+        machine={labelFields.machine}
+        material={labelFields.material}
+        quantity={labelFields.quantity}
+        customer={labelFields.customer}
+        description={labelFields.description}
+        fieldVisibility={labelFields.fieldVisibility}
+        badges={
+          !positionLabel ? (
             <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-          ) : null}
-        </div>
-        <div className={positionLabel ? undefined : "mt-2"}>
-          <OrderLabelCard
-            tone="planned"
-            density={density}
-            orderNo={`#${order.id}`}
-            mode={order.categoryName || dict.noCategoryName}
-            modeColor={order.categoryColor}
-            machine={order.resourceName || "—"}
-            material={order.materialName}
-            quantity={order.quantityTons ? `${order.quantityTons}${tonsSuffix}` : null}
-            customer={order.customerName}
-            description={order.taskDescription}
-            orderedBy={order.creatorName ?? null}
-            orderedByLabel={dict.orderedBy}
-            dateLabel={
-              order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
-            }
-            timeLabel={
-              order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
-            }
-            className="bg-white/60 dark:bg-zinc-950/30"
-            attachmentPhotos={Boolean(order.hasPhotos)}
-            attachmentNotes={Boolean(order.hasNotes)}
-          />
-        </div>
-      </div>
+          ) : undefined
+        }
+        orderedBy={order.creatorName ?? null}
+        orderedByLabel={dict.orderedBy}
+        dateLabel={
+          order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
+        }
+        timeLabel={
+          order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
+        }
+        className="bg-white/60 dark:bg-zinc-950/30"
+        attachmentPhotos={Boolean(order.hasPhotos)}
+        attachmentNotes={Boolean(order.hasNotes)}
+      />
 
       <ScheduleConflictPanel
         mode="worker"

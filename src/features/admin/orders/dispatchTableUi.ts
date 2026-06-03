@@ -1,6 +1,12 @@
 import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
+import {
+  categoryFlagsFromWorkOrderRow,
+  orderLabelDescriptionText,
+  resolveOrderLabelFieldVisibility,
+} from "@/lib/orderLabelFieldVisibility";
+import { narrowOrderType } from "@/lib/orderType";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
@@ -85,8 +91,23 @@ export function buildDispatchItemCardCopy(
   ]
     .join(" ")
     .trim();
-  const desc = (item.taskDescription as string) || "";
-  return { orderNo, mode, modeColor, machine, material, qty, customer, desc };
+  const orderType = narrowOrderType(item.orderType);
+  const desc =
+    orderLabelDescriptionText({
+      orderType,
+      taskDescription: (item.taskDescription as string) || null,
+      repairDescription: (item.repairDescription as string) || null,
+    }) ?? "";
+  const fieldVisibility = resolveOrderLabelFieldVisibility({
+    orderType,
+    ...categoryFlagsFromWorkOrderRow({
+      categoryShowMaterial: item.categoryShowMaterial,
+      categoryShowCustomer: item.categoryShowCustomer,
+      categoryShowQuantity: item.categoryShowQuantity,
+      categoryShowTaskDescription: item.categoryShowTaskDescription,
+    }),
+  });
+  return { orderNo, mode, modeColor, machine, material, qty, customer, desc, fieldVisibility };
 }
 
 export function dispatchItemDateTimeLabels(

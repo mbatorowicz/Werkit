@@ -1,6 +1,7 @@
 import { Camera, FileText } from "lucide-react";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
+import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
 
 type Tone = "planned" | "active" | "done";
 type Density = "normal" | "compact";
@@ -91,6 +92,7 @@ export function OrderLabelCard({
   /** Ikony załączników z realizacji zlecenia (sesja: zdjęcia / notatki). */
   attachmentPhotos,
   attachmentNotes,
+  fieldVisibility,
   className = "",
 }: {
   tone: Tone;
@@ -116,19 +118,29 @@ export function OrderLabelCard({
   description?: string | null;
   dateLabel?: string | null;
   timeLabel?: string | null;
+  /** Które pola siatki pokazać — z {@link resolveOrderLabelFieldVisibility}. */
+  fieldVisibility?: OrderLabelFieldVisibility;
   className?: string;
 }) {
   const cls = toneClasses(tone);
   const isCompact = density === "compact";
   const attachDict = getDictionary().worker.client;
   const fieldLabels = getDictionary().admin.orderFields;
+  const vis = fieldVisibility ?? {
+    showMode: true,
+    showMaterial: true,
+    showQuantity: true,
+    showCustomer: true,
+    showDescription: true,
+    descriptionLabel: fieldLabels.description,
+  };
   const labels = {
     mode: fieldLabels.category,
     machine: fieldLabels.resource,
     material: fieldLabels.material,
     quantity: fieldLabels.quantity,
     customer: fieldLabels.customer,
-    description: fieldLabels.description,
+    description: vis.descriptionLabel,
     date: fieldLabels.date,
     time: fieldLabels.time,
   };
@@ -186,27 +198,42 @@ export function OrderLabelCard({
                 : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
             }`}
           >
-            <LabelItem
-              k={labels.mode}
-              v={mode || "—"}
-              valueNode={
-                mode?.trim() ? (
-                  <CategoryColorBadge label={mode} color={modeColor} size="md" className="mt-0.5" />
-                ) : (
-                  undefined
-                )
-              }
-            />
+            {vis.showMode ? (
+              <LabelItem
+                k={labels.mode}
+                v={mode || "—"}
+                valueNode={
+                  mode?.trim() ? (
+                    <CategoryColorBadge
+                      label={mode}
+                      color={modeColor}
+                      size="md"
+                      className="mt-0.5"
+                    />
+                  ) : (
+                    undefined
+                  )
+                }
+              />
+            ) : null}
             <LabelItem k={labels.machine} v={machine || "—"} />
-            <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
-            <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
-            <LabelItem k={labels.customer} v={customer?.trim() ? customer : "—"} />
-            <LabelItem
-              k={labels.description}
-              v={description?.trim() ? description : "—"}
-              multiline
-              className="md:col-span-2"
-            />
+            {vis.showMaterial ? (
+              <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
+            ) : null}
+            {vis.showQuantity ? (
+              <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
+            ) : null}
+            {vis.showCustomer ? (
+              <LabelItem k={labels.customer} v={customer?.trim() ? customer : "—"} />
+            ) : null}
+            {vis.showDescription && description?.trim() ? (
+              <LabelItem
+                k={labels.description}
+                v={description}
+                multiline
+                className="md:col-span-2"
+              />
+            ) : null}
             {showDateTime ? (
               <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
             ) : null}

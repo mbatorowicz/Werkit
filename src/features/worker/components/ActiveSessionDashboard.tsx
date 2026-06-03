@@ -7,6 +7,10 @@ import type { AppDictionary } from "@/i18n/types";
 import { formatDict, formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import {
+  orderLabelDescriptionText,
+  resolveOrderLabelFieldVisibility,
+} from "@/lib/orderLabelFieldVisibility";
 import { QueuedPendingOrdersDuringSession } from "@/features/worker/components/QueuedPendingOrdersDuringSession";
 import { ActiveSessionSessionTimer } from "@/features/worker/components/ActiveSessionSessionTimer";
 import { ActiveSessionTimelinePanel } from "@/features/worker/components/ActiveSessionTimelinePanel";
@@ -109,7 +113,14 @@ export default function ActiveSessionDashboard({
             `${session.customerLastName || ""} ${session.customerFirstName || ""}`.trim() ||
             (session.customerAddress ? session.customerAddress : null)
           }
-          description={session.taskDescription}
+          description={orderLabelDescriptionText({
+            orderType: session.orderType,
+            taskDescription: session.taskDescription,
+            repairDescription: session.repairDescription,
+          })}
+          fieldVisibility={resolveOrderLabelFieldVisibility({
+            orderType: session.orderType,
+          })}
           dateLabel={formatUiDateOnly(session.startTime)}
           timeLabel={`${formatUiTimeHm(session.startTime)} – …`}
           attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}

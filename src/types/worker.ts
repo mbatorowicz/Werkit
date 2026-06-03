@@ -42,6 +42,10 @@ export type WorkOrder = {
   categoryId: number;
   categoryName: string | null;
   categoryColor?: string | null;
+  categoryShowMaterial?: boolean;
+  categoryShowCustomer?: boolean;
+  categoryShowQuantity?: boolean;
+  categoryShowTaskDescription?: boolean;
   taskDescription: string | null;
   resourceName: string | null;
   resourceId?: number | null;

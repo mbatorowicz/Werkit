@@ -489,6 +489,7 @@ export const en: AppDictionary = {
       quantity: "Quantity",
       customer: "Customer",
       description: "Description",
+      repairDescription: "Repair description",
       date: "Date",
       time: "Time",
       orderedBy: "Ordered by:",

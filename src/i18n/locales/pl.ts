@@ -446,6 +446,7 @@ export const pl = {
       quantity: "Ilość",
       customer: "Klient",
       description: "Opis",
+      repairDescription: "Opis naprawy",
       date: "Data",
       time: "Godzina",
       orderedBy: "Zlecił(a):",

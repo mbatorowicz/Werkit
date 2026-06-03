@@ -5,8 +5,7 @@ import { ChevronRight, Truck, Tractor, Wrench } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory } from "@/types/wizard";
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
-import { CategoryColorBadge } from "@/components/CategoryColorBadge";
+import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
 import {
   sortWorkOrdersByPriorityThenCreated,
   workOrderInteractiveSurfaceClass,
@@ -14,6 +13,7 @@ import {
 import { categoryColorSurfaceStyle } from "@/lib/categoryColorStyles";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { workOrderOrderLabelCardFields } from "@/lib/orderLabelFieldVisibility";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 
@@ -57,32 +57,30 @@ export function WizardStep1Category({
         <div className="mb-8">
           <h2 className="text-xl font-bold text-amber-500 mb-3">{dict.wizardPendingOrders}</h2>
           <div className="space-y-3">
-            {sortWorkOrdersByPriorityThenCreated(orders).map((order) => (
-              <button
-                key={order.id}
-                type="button"
-                onClick={() => onAcceptOrder(order.id)}
-                className={`w-full border text-left p-4 rounded-lg transition-all ${workOrderInteractiveSurfaceClass(order.priority)}`}
-              >
-                <div className="flex justify-between items-start mb-1 gap-2">
-                  <CategoryColorBadge
-                    label={order.categoryName || dict.noCategoryName}
-                    color={order.categoryColor}
-                    size="md"
-                  />
-                  <WorkOrderPriorityRibbon priority={order.priority} labels={dict} accentOnly />
-                </div>
-                <div className="mt-2">
+            {sortWorkOrdersByPriorityThenCreated(orders).map((order) => {
+              const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+              const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
+              return (
+                <button
+                  key={order.id}
+                  type="button"
+                  onClick={() => onAcceptOrder(order.id)}
+                  className={`w-full border text-left p-4 rounded-lg transition-all ${workOrderInteractiveSurfaceClass(order.priority)}`}
+                >
                   <OrderLabelCard
                     tone="planned"
                     orderNo={`#${order.id}`}
-                    mode={order.categoryName || dict.noCategoryName}
-                    modeColor={order.categoryColor}
-                    machine={order.resourceName || "—"}
-                    material={order.materialName}
-                    quantity={order.quantityTons ? `${order.quantityTons}t` : null}
-                    customer={order.customerName}
-                    description={order.taskDescription}
+                    mode={labelFields.mode || dict.noCategoryName}
+                    modeColor={labelFields.modeColor}
+                    machine={labelFields.machine}
+                    material={labelFields.material}
+                    quantity={labelFields.quantity}
+                    customer={labelFields.customer}
+                    description={labelFields.description}
+                    fieldVisibility={labelFields.fieldVisibility}
+                    badges={
+                      <WorkOrderPriorityRibbon priority={order.priority} labels={dict} accentOnly />
+                    }
                     orderedBy={order.creatorName ?? null}
                     orderedByLabel={dict.orderedBy}
                     dateLabel={
@@ -99,12 +97,12 @@ export function WizardStep1Category({
                     attachmentPhotos={Boolean(order.hasPhotos)}
                     attachmentNotes={Boolean(order.hasNotes)}
                   />
-                </div>
-                <div className="mt-3 text-amber-500 font-semibold text-sm">
-                  {dict.startTask} &rarr;
-                </div>
-              </button>
-            ))}
+                  <div className="mt-3 text-amber-500 font-semibold text-sm">
+                    {dict.startTask} &rarr;
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : null}

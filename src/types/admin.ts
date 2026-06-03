@@ -23,6 +23,10 @@ export type UnifiedGanttItem = {
   categoryId?: number | null;
   categoryName?: string | null;
   categoryColor?: string | null;
+  categoryShowMaterial?: boolean;
+  categoryShowCustomer?: boolean;
+  categoryShowQuantity?: boolean;
+  categoryShowTaskDescription?: boolean;
   categoryIsStationary?: boolean | null;
   customerId?: number | null;
   materialId?: number | null;
