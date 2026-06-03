@@ -2,6 +2,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { isMissingMaterialCategoriesTables } from "@/lib/postgresMigrationHints";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
+import { DEFAULT_CATEGORY_COLOR } from "@/lib/categoryColorStyles";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +41,7 @@ export const POST = withApiErrorHandling(
     if (!name) {
       return jsonError("missing_name", 400);
     }
-    const color = typeof body.color === "string" ? body.color : "#3f3f46";
+    const color = typeof body.color === "string" ? body.color : DEFAULT_CATEGORY_COLOR;
     const { DictionaryService } = await import("@/services/DictionaryService");
     const { parseHierarchyFields } = await import("@/services/categoryHierarchyValidation");
     const hierarchy = parseHierarchyFields(body as Record<string, unknown>);

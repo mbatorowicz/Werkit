@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { materialCategories } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
+import { DEFAULT_CATEGORY_COLOR } from "@/lib/categoryColorStyles";
 import { filterCategoryLeaves } from "@/lib/categoryTree";
 import {
   CategoryHierarchyError,
@@ -30,7 +31,7 @@ export class MaterialCategoryService {
     await db.insert(materialCategories).values({
       companyId,
       name: (data.name ?? "").trim(),
-      color: data.color || "#3f3f46",
+      color: data.color || DEFAULT_CATEGORY_COLOR,
       parentId: data.parentId ?? null,
       isGroup: data.isGroup ?? false,
       sortOrder: data.sortOrder ?? 0,

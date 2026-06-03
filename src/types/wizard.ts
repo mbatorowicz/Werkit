@@ -20,6 +20,7 @@ export type WizardCategory = {
   isGlobal: boolean;
   /** Z API `/api/categories` — tryb stacjonarny (warsztat / plac). */
   isStationary?: boolean;
+  color?: string | null;
   orderType: OrderType;
 };
 

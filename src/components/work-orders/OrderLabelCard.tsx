@@ -1,4 +1,5 @@
 import { Camera, FileText } from "lucide-react";
+import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
 
 type Tone = "planned" | "active" | "done";
@@ -37,28 +38,32 @@ function LabelItem({
   title,
   multiline,
   className = "",
+  valueNode,
 }: {
   k: string;
   v: string;
   title?: string;
   multiline?: boolean;
   className?: string;
+  valueNode?: React.ReactNode;
 }) {
   return (
     <div className={`min-w-0 ${className}`}>
       <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">
         {k}
       </div>
-      <div
-        className={
-          multiline
-            ? "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold break-words whitespace-pre-wrap leading-snug"
-            : "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate"
-        }
-        title={!multiline ? title : undefined}
-      >
-        {v}
-      </div>
+      {valueNode ?? (
+        <div
+          className={
+            multiline
+              ? "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold break-words whitespace-pre-wrap leading-snug"
+              : "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate"
+          }
+          title={!multiline ? title : undefined}
+        >
+          {v}
+        </div>
+      )}
     </div>
   );
 }
@@ -75,6 +80,7 @@ export function OrderLabelCard({
   density = "normal",
   showDateTime = true,
   mode,
+  modeColor,
   machine,
   material,
   quantity,
@@ -101,6 +107,8 @@ export function OrderLabelCard({
   attachmentPhotos?: boolean;
   attachmentNotes?: boolean;
   mode: string;
+  /** Kolor kategorii zlecenia (`resource_categories.color`). */
+  modeColor?: string | null;
   machine: string;
   material?: string | null;
   quantity?: string | null;
@@ -178,7 +186,17 @@ export function OrderLabelCard({
                 : "grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"
             }`}
           >
-            <LabelItem k={labels.mode} v={mode || "—"} />
+            <LabelItem
+              k={labels.mode}
+              v={mode || "—"}
+              valueNode={
+                mode?.trim() ? (
+                  <CategoryColorBadge label={mode} color={modeColor} size="md" className="mt-0.5" />
+                ) : (
+                  undefined
+                )
+              }
+            />
             <LabelItem k={labels.machine} v={machine || "—"} />
             <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
             <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />

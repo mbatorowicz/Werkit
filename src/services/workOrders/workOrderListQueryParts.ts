@@ -27,6 +27,7 @@ export function workOrderListSharedSelectFields(creator: WorkOrderCreatorUserAli
     categoryId: workOrders.categoryId,
     userId: workOrders.userId,
     categoryName: resourceCategories.name,
+    categoryColor: resourceCategories.color,
     taskDescription: workOrders.taskDescription,
     resourceName: resources.name,
     materialName: materials.name,

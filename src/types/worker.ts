@@ -9,6 +9,7 @@ export type Session = {
   endTime?: string;
   categoryId: number;
   categoryName: string | null;
+  categoryColor?: string | null;
   /** Typ sprzętu „stacjonarny” — bez śledzenia trasy i geofencingu dotarcia. */
   categoryIsStationary?: boolean;
   status: string;
@@ -42,6 +43,7 @@ export type WorkOrder = {
   id: number;
   categoryId: number;
   categoryName: string | null;
+  categoryColor?: string | null;
   taskDescription: string | null;
   resourceName: string | null;
   resourceId?: number | null;

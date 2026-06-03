@@ -4,6 +4,7 @@ import {
   isMissingResourceCategoriesStationaryColumn,
   isMissingResourceCategoriesVisibilityColumns,
 } from "@/lib/postgresMigrationHints";
+import { DEFAULT_CATEGORY_COLOR } from "@/lib/categoryColorStyles";
 import { narrowOrderType } from "@/lib/orderType";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -95,7 +96,7 @@ export const POST = withApiErrorHandling(
       reqTaskDescription: rtd,
       isGlobal: !!isGlobal,
       isStationary: !!isStationary,
-      color: color || "#3f3f46",
+      color: color || DEFAULT_CATEGORY_COLOR,
       orderType,
     });
     return jsonOk({ success: true });

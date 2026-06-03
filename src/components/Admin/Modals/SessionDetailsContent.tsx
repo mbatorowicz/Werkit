@@ -78,6 +78,11 @@ export function SessionDetailsContent({
         orderedBy={item.creatorName ?? item.workerName ?? null}
         orderedByLabel={dict.orderedBy}
         mode={categoryLabel}
+        modeColor={
+          item.categoryColor === null || typeof item.categoryColor === "string"
+            ? item.categoryColor
+            : null
+        }
         machine={machineLabel}
         material={(item.materialName as string) || null}
         quantity={item.quantityTons ? `${item.quantityTons as string}${dict.tons}` : null}

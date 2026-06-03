@@ -6,11 +6,12 @@ import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory } from "@/types/wizard";
 import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import {
   sortWorkOrdersByPriorityThenCreated,
-  workOrderCategoryHeadingClass,
   workOrderInteractiveSurfaceClass,
 } from "@/features/worker/lib/workOrderPresentation";
+import { categoryColorSurfaceStyle } from "@/lib/categoryColorStyles";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
@@ -64,11 +65,11 @@ export function WizardStep1Category({
                 className={`w-full border text-left p-4 rounded-lg transition-all ${workOrderInteractiveSurfaceClass(order.priority)}`}
               >
                 <div className="flex justify-between items-start mb-1 gap-2">
-                  <div
-                    className={`font-bold text-lg ${workOrderCategoryHeadingClass(order.priority)}`}
-                  >
-                    {order.categoryName || dict.noCategoryName}
-                  </div>
+                  <CategoryColorBadge
+                    label={order.categoryName || dict.noCategoryName}
+                    color={order.categoryColor}
+                    size="md"
+                  />
                   <WorkOrderPriorityRibbon priority={order.priority} labels={dict} accentOnly />
                 </div>
                 <div className="mt-2">
@@ -76,6 +77,7 @@ export function WizardStep1Category({
                     tone="planned"
                     orderNo={`#${order.id}`}
                     mode={order.categoryName || dict.noCategoryName}
+                    modeColor={order.categoryColor}
                     machine={order.resourceName || "—"}
                     material={order.materialName}
                     quantity={order.quantityTons ? `${order.quantityTons}t` : null}
@@ -123,7 +125,10 @@ export function WizardStep1Category({
           aria-label={dict.wizardTitle}
         />
         {selectedCategory ? (
-          <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+          <div
+            className="flex items-center gap-3 rounded-lg border px-4 py-3"
+            style={categoryColorSurfaceStyle(selectedCategory.color)}
+          >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f2fbfa] text-emerald-500 dark:bg-zinc-900">
               <SelectedIcon className="h-5 w-5" />
             </div>

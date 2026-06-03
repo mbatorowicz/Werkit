@@ -72,6 +72,7 @@ export default async function HistoryPage() {
                   tone="done"
                   orderNo={s.workOrderId ? `#${s.workOrderId}` : `#${s.id}`}
                   mode={s.categoryName || workerClient.noCategoryName}
+                  modeColor={s.categoryColor ?? null}
                   machine={s.resourceName || "—"}
                   material={s.materialName}
                   quantity={s.quantityTons ? `${s.quantityTons}t` : null}

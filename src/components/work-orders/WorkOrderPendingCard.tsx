@@ -8,10 +8,8 @@ import {
   toDatetimeLocalValue,
 } from "@/components/work-orders/scheduleConflictI18n";
 import { useScheduleConflictPreview } from "@/components/work-orders/useScheduleConflictPreview";
-import {
-  workOrderCategoryHeadingClass,
-  workOrderPendingListCardClass,
-} from "@/features/worker/lib/workOrderPresentation";
+import { workOrderPendingListCardClass } from "@/features/worker/lib/workOrderPresentation";
+import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
@@ -81,11 +79,12 @@ export function WorkOrderPendingCard({
             >
               #{order.id}
             </span>
-            <div
-              className={`${density === "compact" ? "text-xs font-semibold" : "text-lg font-bold"} min-w-0 break-words ${workOrderCategoryHeadingClass(order.priority)}`}
-            >
-              {order.categoryName || dict.noCategoryName}
-            </div>
+            <CategoryColorBadge
+              label={order.categoryName || dict.noCategoryName}
+              color={order.categoryColor}
+              size="md"
+              className={`max-w-full ${density === "compact" ? "" : "text-base"}`}
+            />
           </span>
           {!positionLabel ? (
             <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
@@ -97,6 +96,7 @@ export function WorkOrderPendingCard({
             density={density}
             orderNo={`#${order.id}`}
             mode={order.categoryName || dict.noCategoryName}
+            modeColor={order.categoryColor}
             machine={order.resourceName || "—"}
             material={order.materialName}
             quantity={order.quantityTons ? `${order.quantityTons}${tonsSuffix}` : null}

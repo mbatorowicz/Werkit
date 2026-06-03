@@ -1,4 +1,5 @@
 import { hierarchyFieldsFromRow } from "@/features/admin/categories/categoryHierarchyForm";
+import { DEFAULT_CATEGORY_COLOR, resolveCategoryColorForForm } from "@/lib/categoryColorStyles";
 import type { SparePartCategory } from "@/types/dur";
 
 export type SparePartCategoryFormState = {
@@ -11,7 +12,7 @@ export type SparePartCategoryFormState = {
 
 export const EMPTY_SPARE_PART_CATEGORY_FORM: SparePartCategoryFormState = {
   name: "",
-  color: "#a1a1aa",
+  color: DEFAULT_CATEGORY_COLOR,
   parentId: null,
   isGroup: false,
   sortOrder: 0,
@@ -21,6 +22,6 @@ export function sparePartCategoryToForm(cat: SparePartCategory): SparePartCatego
   return {
     name: cat.name,
     ...hierarchyFieldsFromRow(cat),
-    color: cat.color ?? "#a1a1aa",
+    color: resolveCategoryColorForForm(cat.color),
   };
 }

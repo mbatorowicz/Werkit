@@ -101,6 +101,7 @@ export default function ActiveSessionDashboard({
           tone="active"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
           mode={session.categoryName || dict.noCategoryName}
+          modeColor={session.categoryColor}
           machine={session.resourceName || "—"}
           material={session.materialName}
           quantity={session.quantityTons ? `${session.quantityTons}${tonsSuffix}` : null}

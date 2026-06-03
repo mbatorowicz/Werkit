@@ -3,7 +3,7 @@
 import { Edit2, Package, Trash2 } from "lucide-react";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import type { CatalogMaterialRow as CatalogMaterialRowType } from "@/lib/materialCatalogTree";
-import { resolveCategoryColor } from "@/lib/categoryColorStyles";
+import { CategoryColorDot } from "@/components/CategoryColorBadge";
 
 interface CatalogMaterialRowProps {
   material: CatalogMaterialRowType;
@@ -47,11 +47,9 @@ export default function CatalogMaterialRow({
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="w-5 shrink-0" />
-        <div
-          className="flex h-4 w-4 shrink-0 items-center justify-center rounded shadow-sm"
-          style={{ backgroundColor: resolveCategoryColor(categoryColor) }}
-        >
-          <Package className="h-2.5 w-2.5 text-white/90" />
+        <div className="relative flex h-4 w-4 shrink-0 items-center justify-center rounded shadow-sm">
+          <CategoryColorDot color={categoryColor} className="absolute inset-0 rounded" />
+          <Package className="relative h-2.5 w-2.5 text-white/90" />
         </div>
         <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">
           {material.name}

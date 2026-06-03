@@ -72,6 +72,10 @@ export function buildDispatchItemCardCopy(
 ) {
   const orderNo = `#${item.workOrderId || item.id}`;
   const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
+  const modeColor =
+    item.categoryColor === null || typeof item.categoryColor === "string"
+      ? item.categoryColor
+      : null;
   const machine = ((item.resourceName as string) || ordersDict.noMachine) as string;
   const material = (item.materialName as string) || "";
   const qty = item.quantityTons ? `${item.quantityTons}t` : "";
@@ -82,7 +86,7 @@ export function buildDispatchItemCardCopy(
     .join(" ")
     .trim();
   const desc = (item.taskDescription as string) || "";
-  return { orderNo, mode, machine, material, qty, customer, desc };
+  return { orderNo, mode, modeColor, machine, material, qty, customer, desc };
 }
 
 export function dispatchItemDateTimeLabels(

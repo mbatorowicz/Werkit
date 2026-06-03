@@ -18,6 +18,8 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       continue;
     const categoryName =
       r.categoryName === null || typeof r.categoryName === "string" ? r.categoryName : null;
+    const categoryColor =
+      r.categoryColor === null || typeof r.categoryColor === "string" ? r.categoryColor : null;
     const taskDescription =
       r.taskDescription === null || typeof r.taskDescription === "string"
         ? r.taskDescription
@@ -35,6 +37,7 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       id: r.id,
       categoryId: r.categoryId,
       categoryName,
+      categoryColor,
       taskDescription,
       resourceName,
       resourceId,

@@ -181,7 +181,6 @@ export function SparePartFormFields({
           selectedIds={formState.categoryIds}
           onChange={(ids) => updateField("categoryIds", ids)}
           emptyHint={dict.fields.categoriesPlaceholder}
-          colorVariant="emerald"
         />
       </div>
 

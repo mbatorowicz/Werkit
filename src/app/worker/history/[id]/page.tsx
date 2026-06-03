@@ -119,6 +119,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
           tone="done"
           orderNo={sessionData.workOrderId ? `#${sessionData.workOrderId}` : `#${sessionData.id}`}
           mode={sessionData.categoryName || workerClient.noCategoryName}
+          modeColor={sessionData.categoryColor ?? null}
           machine={sessionData.resourceName || "—"}
           material={sessionData.materialName}
           quantity={sessionData.quantityTons ? `${sessionData.quantityTons}t` : null}

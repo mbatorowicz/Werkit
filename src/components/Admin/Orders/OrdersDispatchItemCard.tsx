@@ -59,7 +59,8 @@ export function OrdersDispatchItemCard({
   const tone = dispatchStatusTone(item.status);
   const isWorking = item.status === "IN_PROGRESS";
   const progress = computeDispatchInProgressPercent(item, liveClockMs);
-  const { orderNo, mode, machine, material, qty, customer, desc } = buildDispatchItemCardCopy(
+  const { orderNo, mode, modeColor, machine, material, qty, customer, desc } =
+    buildDispatchItemCardCopy(
     item,
     dict,
     workerUiLabels
@@ -219,6 +220,7 @@ export function OrdersDispatchItemCard({
       subheader={subheader}
       showDateTime={false}
       mode={mode}
+      modeColor={modeColor}
       machine={machine}
       material={material || "—"}
       quantity={qty || "—"}

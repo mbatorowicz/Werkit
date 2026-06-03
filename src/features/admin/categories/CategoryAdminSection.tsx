@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { CategoryColorPreview } from "@/components/CategoryColorBadge";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { ExpandableCatalogTree } from "@/components/Admin/ExpandableCatalogTree";
@@ -113,15 +114,9 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
               label={shared.isGroupLabel}
               value={previewItem.isGroup ? shared.previewTypeGroup : shared.previewTypeCategory}
             />
-            {!previewItem.isGroup && previewItem.color ? (
+            {!previewItem.isGroup ? (
               <AdminPreviewField label={shared.colorLabel}>
-                <span className="inline-flex items-center gap-2">
-                  <span
-                    className="inline-block h-4 w-4 rounded shadow-sm"
-                    style={{ backgroundColor: previewItem.color }}
-                  />
-                  {previewItem.color}
-                </span>
+                <CategoryColorPreview color={previewItem.color} />
               </AdminPreviewField>
             ) : null}
             <AdminPreviewField label="ID" value={`#${previewItem.id}`} />

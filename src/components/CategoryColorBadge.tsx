@@ -5,6 +5,8 @@ import {
   CATEGORY_COLOR_BADGE_BASE_CLASS,
   CATEGORY_COLOR_BADGE_SIZE_CLASS,
   categoryColorBadgeStyle,
+  categoryColorSwatchStyle,
+  resolveCategoryColor,
 } from "@/lib/categoryColorStyles";
 
 type BadgeProps = {
@@ -73,10 +75,27 @@ export function CategoryColorDot({
   className?: string;
 }) {
   return (
-    <span
-      className={className}
-      style={{ backgroundColor: categoryColorBadgeStyle(color).color }}
-      aria-hidden
-    />
+    <span className={className} style={categoryColorSwatchStyle(color)} aria-hidden />
+  );
+}
+
+/** Podgląd koloru w modalu admina (swatch + hex). */
+export function CategoryColorPreview({
+  color,
+  className = "",
+}: {
+  color?: string | null;
+  className?: string;
+}) {
+  const hex = resolveCategoryColor(color);
+  return (
+    <span className={`inline-flex items-center gap-2 ${className}`.trim()}>
+      <span
+        className="inline-block h-4 w-4 rounded shadow-sm"
+        style={categoryColorSwatchStyle(color)}
+        aria-hidden
+      />
+      <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300">{hex}</span>
+    </span>
   );
 }

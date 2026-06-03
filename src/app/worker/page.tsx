@@ -33,6 +33,10 @@ export default async function WorkerPage() {
     customerName: o.customerName || null,
     categoryId: Number(o.categoryId),
     categoryName: (o.categoryName as string) || null,
+    categoryColor:
+      o.categoryColor === null || typeof o.categoryColor === "string"
+        ? (o.categoryColor as string | null)
+        : null,
     orderType: (o.orderType as "machine_work" | "machine_repair" | null) ?? null,
     repairDescription: (o.repairDescription as string | null) ?? null,
     repairNotes: (o.repairNotes as string | null) ?? null,
@@ -47,6 +51,10 @@ export default async function WorkerPage() {
         status: rawSession.status,
         categoryId: rawSession.categoryId ?? 0,
         categoryName: rawSession.categoryName ?? null,
+        categoryColor:
+          rawSession.categoryColor === null || typeof rawSession.categoryColor === "string"
+            ? rawSession.categoryColor
+            : null,
         categoryIsStationary: Boolean(
           rawSession &&
           typeof rawSession === "object" &&

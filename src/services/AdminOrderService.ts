@@ -110,6 +110,7 @@ export class AdminOrderService {
         status: workSessions.status,
         categoryId: workSessions.categoryId,
         categoryName: resourceCategories.name,
+        categoryColor: resourceCategories.color,
         categoryIsStationary: resourceCategories.isStationary,
         taskDescription: workSessions.taskDescription,
         startTime: workSessions.startTime,

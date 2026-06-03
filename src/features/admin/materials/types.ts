@@ -1,3 +1,5 @@
+import { DEFAULT_CATEGORY_COLOR } from "@/lib/categoryColorStyles";
+
 export type MaterialCategory = {
   id: number;
   name: string;
@@ -19,7 +21,7 @@ export type MaterialItemFormState = { name: string; categoryIds: number[] };
 
 export const EMPTY_CATEGORY_FORM: MaterialCategoryFormState = {
   name: "",
-  color: "#3f3f46",
+  color: DEFAULT_CATEGORY_COLOR,
   parentId: null,
   isGroup: false,
   sortOrder: 0,

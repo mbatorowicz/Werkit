@@ -6,6 +6,7 @@ import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import type { CategoryTreeNode } from "@/lib/categoryTree";
 import type { CatalogMaterialRow as CatalogMaterialRowType } from "@/lib/materialCatalogTree";
 import CatalogMaterialRow from "./CatalogMaterialRow";
+import { CategoryColorDot } from "@/components/CategoryColorBadge";
 import type { CatalogCategoryItem } from "./ExpandableCatalogTree";
 
 interface CatalogTreeNodeProps<T extends CatalogCategoryItem> {
@@ -93,10 +94,7 @@ export default function CatalogTreeNodeComponent<T extends CatalogCategoryItem>(
           {node.isGroup ? (
             <Folder className="h-4 w-4 shrink-0 text-amber-500" />
           ) : (
-            <div
-              className="h-4 w-4 shrink-0 rounded shadow-sm"
-              style={{ backgroundColor: node.color || "#3f3f46" }}
-            />
+            <CategoryColorDot color={node.color} className="h-4 w-4 shrink-0 rounded shadow-sm" />
           )}
           <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">{node.name}</span>
           {node.isGroup ? (
