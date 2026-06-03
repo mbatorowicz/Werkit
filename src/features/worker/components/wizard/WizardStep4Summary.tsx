@@ -3,6 +3,8 @@
 import { ChevronLeft, CheckCircle2, Loader2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
+import { isRepairOrderType } from "@/lib/orderType";
+import { orderLabelDescriptionText } from "@/lib/orderLabelFieldVisibility";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -16,6 +18,8 @@ type Props = {
   customerId: string;
   quantityTons: string;
   resourceId: string;
+  taskDescription: string;
+  repairDescription: string;
   dueDate: string;
   expectedDurationHours: string;
   hasScheduleConflicts: boolean;
@@ -35,6 +39,8 @@ export function WizardStep4Summary({
   customerId,
   quantityTons,
   resourceId,
+  taskDescription,
+  repairDescription,
   dueDate,
   expectedDurationHours,
   hasScheduleConflicts,
@@ -43,6 +49,13 @@ export function WizardStep4Summary({
   setStep,
   saveLabel,
 }: Props) {
+  const isRepair = isRepairOrderType(selectedCategory?.orderType);
+  const summaryDescription = orderLabelDescriptionText({
+    orderType: selectedCategory?.orderType,
+    taskDescription,
+    repairDescription,
+  });
+
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300 flex flex-col items-center">
       <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
@@ -66,23 +79,38 @@ export function WizardStep4Summary({
             {machines.find((m) => m.id.toString() === resourceId)?.name}
           </span>
         </div>
-        {selectedCategory?.showMaterial && (
+        {selectedCategory?.showMaterial && materialId ? (
           <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
             <span className="text-zinc-500 text-sm">{dict.wizardSummaryAggregate}</span>
             <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">
               {materials.find((m) => m.id.toString() === materialId)?.name}
-              {quantityTons ? ` (${quantityTons}t)` : ""}
             </span>
           </div>
-        )}
-        {selectedCategory?.showCustomer && (
+        ) : null}
+        {selectedCategory?.showQuantity && quantityTons ? (
+          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
+            <span className="text-zinc-500 text-sm">{dict.wizardQuantityLabel}</span>
+            <span className="text-zinc-900 dark:text-white font-medium">{quantityTons}t</span>
+          </div>
+        ) : null}
+        {selectedCategory?.showTaskDescription && summaryDescription ? (
+          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3 gap-4">
+            <span className="text-zinc-500 text-sm shrink-0">
+              {isRepair ? dict.repairDescription : dict.wizardDescLabel}
+            </span>
+            <span className="text-zinc-900 dark:text-white font-medium text-right text-sm whitespace-pre-wrap">
+              {summaryDescription}
+            </span>
+          </div>
+        ) : null}
+        {selectedCategory?.showCustomer && customerId ? (
           <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
             <span className="text-zinc-500 text-sm">{dict.wizardSummaryCustomer}</span>
             <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">
               {customers.find((c) => c.id.toString() === customerId)?.lastName}
             </span>
           </div>
-        )}
+        ) : null}
         {(dueDate || expectedDurationHours) && (
           <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
             <span className="text-zinc-500 text-sm">{dict.wizardSummarySchedule}</span>

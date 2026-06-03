@@ -3,7 +3,10 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 export const dynamic = "force-dynamic";
 
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
-import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
+import {
+  buildWorkOrderDescriptionFields,
+  normalizeWorkOrderMaterialFieldsForCategory,
+} from "@/lib/workOrderCategoryFields";
 import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
 import {
   coerceWorkOrderPriority,
@@ -108,9 +111,17 @@ export const POST = withApiErrorHandling(
 
     const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
 
+    const { DictionaryService } = await import("@/services/DictionaryService");
+    const categoryRow = await DictionaryService.getResourceCategoryById(companyId, catIdNum);
+
     const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
-      normalizeWorkOrderMaterialFields(orderType, matIdParsed, quantityTons);
+      normalizeWorkOrderMaterialFieldsForCategory(categoryRow, matIdParsed, quantityTons);
+    const { taskDescription: taskStored, repairDescription: repairStored } =
+      buildWorkOrderDescriptionFields(orderType, categoryRow, {
+        taskDescription,
+        repairDescription,
+      });
 
     await AdminOrderService.createOrder({
       companyId,
@@ -119,7 +130,7 @@ export const POST = withApiErrorHandling(
       categoryId: catIdNum,
       materialId: orderMaterialId,
       customerId: customerId ? parseInt(String(customerId), 10) : null,
-      taskDescription,
+      taskDescription: taskStored,
       status: "PENDING",
       quantityTons: orderQuantityTons,
       expectedDurationHours: durationStored,
@@ -128,7 +139,7 @@ export const POST = withApiErrorHandling(
       lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
       createdById: adminUserId,
       orderType,
-      repairDescription,
+      repairDescription: repairStored,
     });
 
     return jsonOk({ success: true });

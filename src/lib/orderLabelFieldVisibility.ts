@@ -1,13 +1,13 @@
 import { getDictionary } from "@/i18n";
-import type { OrderType } from "@/types/worker";
 import { isRepairOrderType } from "@/lib/orderType";
+import {
+  type CategoryFieldFlags,
+  resolvedCategoryFieldFlags,
+} from "@/lib/workOrderCategoryFields";
+import type { OrderType } from "@/types/worker";
+import type { WorkOrder } from "@/types/worker";
 
-export type OrderLabelCategoryFlags = {
-  showMaterial?: boolean;
-  showCustomer?: boolean;
-  showQuantity?: boolean;
-  showTaskDescription?: boolean;
-};
+export type OrderLabelCategoryFlags = CategoryFieldFlags;
 
 export type OrderLabelFieldVisibility = {
   showMode: boolean;
@@ -18,23 +18,20 @@ export type OrderLabelFieldVisibility = {
   descriptionLabel: string;
 };
 
-/** Które wiersze karty zlecenia pokazać (kategoria + rodzaj machine_repair). */
+/** Widoczność wierszy karty — wyłącznie flagi kategorii (+ etykieta opisu wg rodzaju zlecenia). */
 export function resolveOrderLabelFieldVisibility(input: {
   orderType?: OrderType | string | null;
 } & OrderLabelCategoryFlags): OrderLabelFieldVisibility {
+  const f = resolvedCategoryFieldFlags(input);
   const repair = isRepairOrderType(input.orderType);
   const fieldLabels = getDictionary().admin.orderFields;
-  const sm = input.showMaterial ?? true;
-  const sc = input.showCustomer ?? true;
-  const sq = input.showQuantity ?? true;
-  const std = input.showTaskDescription ?? true;
 
   return {
     showMode: true,
-    showMaterial: !repair && sm,
-    showQuantity: !repair && sq,
-    showCustomer: sc,
-    showDescription: repair ? true : std,
+    showMaterial: f.showMaterial,
+    showQuantity: f.showQuantity,
+    showCustomer: f.showCustomer,
+    showDescription: f.showTaskDescription,
     descriptionLabel: repair ? fieldLabels.repairDescription : fieldLabels.description,
   };
 }
@@ -50,10 +47,20 @@ export function orderLabelDescriptionText(input: {
   return input.taskDescription?.trim() ? input.taskDescription : null;
 }
 
-/** Flagi widoczności z wiersza listy zlecenia (API workera / admina). */
-import type { WorkOrder } from "@/types/worker";
+export function categoryFlagsFromWorkOrderRow(row: {
+  categoryShowMaterial?: boolean;
+  categoryShowCustomer?: boolean;
+  categoryShowQuantity?: boolean;
+  categoryShowTaskDescription?: boolean;
+}): OrderLabelCategoryFlags {
+  return {
+    showMaterial: row.categoryShowMaterial,
+    showCustomer: row.categoryShowCustomer,
+    showQuantity: row.categoryShowQuantity,
+    showTaskDescription: row.categoryShowTaskDescription,
+  };
+}
 
-/** Wspólne props pól treści karty dla wiersza zlecenia workera. */
 export function workOrderOrderLabelCardFields(
   order: Pick<
     WorkOrder,
@@ -86,19 +93,5 @@ export function workOrderOrderLabelCardFields(
     quantity: order.quantityTons ? `${order.quantityTons}${tonsSuffix}` : null,
     customer: order.customerName,
     description: orderLabelDescriptionText(order),
-  };
-}
-
-export function categoryFlagsFromWorkOrderRow(row: {
-  categoryShowMaterial?: boolean;
-  categoryShowCustomer?: boolean;
-  categoryShowQuantity?: boolean;
-  categoryShowTaskDescription?: boolean;
-}): OrderLabelCategoryFlags {
-  return {
-    showMaterial: row.categoryShowMaterial,
-    showCustomer: row.categoryShowCustomer,
-    showQuantity: row.categoryShowQuantity,
-    showTaskDescription: row.categoryShowTaskDescription,
   };
 }

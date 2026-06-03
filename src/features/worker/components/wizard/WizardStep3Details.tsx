@@ -87,11 +87,11 @@ export function WizardStep3Details({
   const isRepair = isRepairOrderType(selectedCategory?.orderType);
 
   const nextDisabled =
-    (selectedCategory?.reqMaterial && !isRepair && !materialId) ||
+    (selectedCategory?.reqMaterial && !materialId) ||
     (selectedCategory?.reqCustomer && !customerId) ||
-    (selectedCategory?.reqQuantity && !isRepair && !quantityTons) ||
-    (selectedCategory?.reqTaskDescription && !isRepair && !taskDescription) ||
-    (isRepair && !repairDescription.trim());
+    (selectedCategory?.reqQuantity && !quantityTons) ||
+    (selectedCategory?.reqTaskDescription &&
+      (isRepair ? !repairDescription.trim() : !taskDescription.trim()));
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
@@ -127,7 +127,7 @@ export function WizardStep3Details({
       </div>
 
       <div className="space-y-5">
-        {selectedCategory?.showMaterial && !isRepair ? (
+        {selectedCategory?.showMaterial ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
             <MaterialCategoryMaterialCombobox
@@ -164,7 +164,7 @@ export function WizardStep3Details({
           />
         ) : null}
 
-        {selectedCategory?.showQuantity && !isRepair ? (
+        {selectedCategory?.showQuantity ? (
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
             <DecimalInput
@@ -176,27 +176,30 @@ export function WizardStep3Details({
           </div>
         ) : null}
 
-        {isRepair ? (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.repairDescription}</label>
-            <textarea
-              required
-              value={repairDescription}
-              onChange={(e) => setRepairDescription(e.target.value)}
-              placeholder={dict.repairDescriptionPlaceholder}
-              className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
-            />
-          </div>
-        ) : !selectedCategory || selectedCategory.showTaskDescription ? (
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
-            <textarea
-              value={taskDescription}
-              onChange={(e) => setTaskDescription(e.target.value)}
-              placeholder={dict.wizardDescPlaceholder}
-              className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
-            />
-          </div>
+        {selectedCategory?.showTaskDescription ? (
+          isRepair ? (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.repairDescription}</label>
+              <textarea
+                required={selectedCategory.reqTaskDescription}
+                value={repairDescription}
+                onChange={(e) => setRepairDescription(e.target.value)}
+                placeholder={dict.repairDescriptionPlaceholder}
+                className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
+              <textarea
+                required={selectedCategory.reqTaskDescription}
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                placeholder={dict.wizardDescPlaceholder}
+                className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+              />
+            </div>
+          )
         ) : null}
       </div>
 

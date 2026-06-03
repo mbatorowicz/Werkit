@@ -1,6 +1,9 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
-import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
+import {
+  buildWorkOrderDescriptionFields,
+  normalizeWorkOrderMaterialFieldsForCategory,
+} from "@/lib/workOrderCategoryFields";
 import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
 import {
   coerceWorkOrderPriority,
@@ -108,7 +111,12 @@ export const PUT = withApiErrorHandling(
 
     const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
-      normalizeWorkOrderMaterialFields(orderType, matIdParsed, quantityTons);
+      normalizeWorkOrderMaterialFieldsForCategory(categoryRow, matIdParsed, quantityTons);
+    const { taskDescription: taskStored, repairDescription: repairStored } =
+      buildWorkOrderDescriptionFields(orderType, categoryRow, {
+        taskDescription,
+        repairDescription,
+      });
 
     try {
       await AdminOrderService.updateOrder(companyId, orderId, {
@@ -117,14 +125,14 @@ export const PUT = withApiErrorHandling(
         categoryId: catIdNum,
         materialId: orderMaterialId,
         customerId: customerId ? parseInt(String(customerId), 10) : null,
-        taskDescription,
+        taskDescription: taskStored,
         quantityTons: orderQuantityTons,
         expectedDurationHours: durationStored,
         priority: prio,
         dueDate: parsedDueDate,
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
         orderType,
-        repairDescription,
+        repairDescription: repairStored,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";

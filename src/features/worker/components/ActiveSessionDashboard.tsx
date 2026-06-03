@@ -8,6 +8,7 @@ import { formatDict, formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import {
+  categoryFlagsFromWorkOrderRow,
   orderLabelDescriptionText,
   resolveOrderLabelFieldVisibility,
 } from "@/lib/orderLabelFieldVisibility";
@@ -120,6 +121,7 @@ export default function ActiveSessionDashboard({
           })}
           fieldVisibility={resolveOrderLabelFieldVisibility({
             orderType: session.orderType,
+            ...categoryFlagsFromWorkOrderRow(session),
           })}
           dateLabel={formatUiDateOnly(session.startTime)}
           timeLabel={`${formatUiTimeHm(session.startTime)} – …`}

@@ -26,6 +26,7 @@ import {
 } from "@/lib/narrowApiListRows";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 import { isRepairOrderType } from "@/lib/orderType";
+import { buildWorkOrderFormPayloadFields } from "@/lib/workOrderCategoryFields";
 
 export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers = false) {
   const router = useRouter();
@@ -174,24 +175,27 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     if (hasScheduleConflicts) return;
     setIsLoading(true);
     try {
-      const isRepair = isRepairOrderType(selectedCategory?.orderType);
       const parsedDue = dueDate ? new Date(dueDate) : null;
       if (dueDate && (!parsedDue || Number.isNaN(parsedDue.getTime()))) {
         await appAlert({ message: apiErrors.invalid_payload ?? apiErrors.save_error });
         setIsLoading(false);
         return;
       }
+      const fieldPayload = buildWorkOrderFormPayloadFields(
+        selectedCategory?.orderType,
+        selectedCategory,
+        {
+          materialId,
+          customerId,
+          quantityTons,
+          taskDescription,
+          repairDescription,
+        }
+      );
       const createPayload: Record<string, unknown> = {
         categoryId: Number(categoryId),
         resourceId: Number(resourceId),
-        materialId:
-          !isRepair && selectedCategory?.showMaterial ? materialId || null : null,
-        customerId: selectedCategory?.showCustomer ? customerId || null : null,
-        quantityTons:
-          !isRepair && selectedCategory?.showQuantity ? quantityTons || null : null,
-        taskDescription:
-          !isRepair && selectedCategory?.showTaskDescription ? taskDescription || null : null,
-        repairDescription: isRepair ? repairDescription.trim() || null : null,
+        ...fieldPayload,
         expectedDurationHours: expectedDurationHours.trim() || null,
         dueDate: parsedDue ? parsedDue.toISOString() : null,
       };

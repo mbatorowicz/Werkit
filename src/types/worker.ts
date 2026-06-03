@@ -10,6 +10,10 @@ export type Session = {
   categoryId: number;
   categoryName: string | null;
   categoryColor?: string | null;
+  categoryShowMaterial?: boolean;
+  categoryShowCustomer?: boolean;
+  categoryShowQuantity?: boolean;
+  categoryShowTaskDescription?: boolean;
   /** Typ sprzętu „stacjonarny” — bez śledzenia trasy i geofencingu dotarcia. */
   categoryIsStationary?: boolean;
   status: string;

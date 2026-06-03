@@ -171,7 +171,9 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
           />
 
           <div className="text-sm text-zinc-700 dark:text-zinc-300">
-            {dict.fieldTaskDescription}
+            {form.orderType === "machine_repair"
+              ? getDictionary().admin.orders.repairDescription
+              : dict.fieldTaskDescription}
           </div>
           <input
             type="checkbox"

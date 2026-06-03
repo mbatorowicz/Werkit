@@ -24,6 +24,7 @@ import {
 } from "@/lib/narrowApiListRows";
 import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 import { isRepairOrderType } from "@/lib/orderType";
+import { buildWorkOrderFormPayloadFields } from "@/lib/workOrderCategoryFields";
 import { formatDueDatetimeLocal } from "@/features/admin/orders/dispatchPlanning";
 
 function inferMaterialCategoryId(
@@ -211,22 +212,24 @@ export function useWorkerEditOrder(
   );
 
   const buildPayload = useCallback(() => {
-    const isRepair = isRepairOrderType(selectedCategory?.orderType);
     const parsedDue = dueDate ? new Date(dueDate) : null;
+    const fieldPayload = buildWorkOrderFormPayloadFields(
+      selectedCategory?.orderType,
+      selectedCategory,
+      {
+        materialId,
+        customerId,
+        quantityTons,
+        taskDescription,
+        repairDescription,
+      }
+    );
     return {
-      isRepair,
       parsedDue,
       body: {
         categoryId: Number(categoryId),
         resourceId: Number(resourceId),
-        materialId:
-          !isRepair && selectedCategory?.showMaterial ? materialId || null : null,
-        customerId: selectedCategory?.showCustomer ? customerId || null : null,
-        quantityTons:
-          !isRepair && selectedCategory?.showQuantity ? quantityTons || null : null,
-        taskDescription:
-          !isRepair && selectedCategory?.showTaskDescription ? taskDescription || null : null,
-        repairDescription: isRepair ? repairDescription.trim() || null : null,
+        ...fieldPayload,
         expectedDurationHours: expectedDurationHours.trim() || null,
         dueDate: parsedDue && !Number.isNaN(parsedDue.getTime()) ? parsedDue.toISOString() : null,
       } as Record<string, unknown>,

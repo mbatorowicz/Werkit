@@ -5,33 +5,29 @@ import {
 } from "./orderLabelFieldVisibility";
 
 describe("resolveOrderLabelFieldVisibility", () => {
-  it("ukrywa materiał i ilość dla machine_repair", () => {
-    const vis = resolveOrderLabelFieldVisibility({
+  it("respektuje flagi kategorii dla naprawy i pracy", () => {
+    const visRepair = resolveOrderLabelFieldVisibility({
       orderType: "machine_repair",
-      showMaterial: true,
-      showQuantity: true,
-      showCustomer: false,
-      showTaskDescription: false,
-    });
-    expect(vis.showMaterial).toBe(false);
-    expect(vis.showQuantity).toBe(false);
-    expect(vis.showCustomer).toBe(false);
-    expect(vis.showDescription).toBe(true);
-    expect(vis.descriptionLabel).toContain("napraw");
-  });
-
-  it("respektuje flagi kategorii dla machine_work", () => {
-    const vis = resolveOrderLabelFieldVisibility({
-      orderType: "machine_work",
       showMaterial: false,
-      showCustomer: true,
       showQuantity: false,
+      showCustomer: false,
       showTaskDescription: true,
     });
-    expect(vis.showMaterial).toBe(false);
-    expect(vis.showQuantity).toBe(false);
-    expect(vis.showCustomer).toBe(true);
-    expect(vis.showDescription).toBe(true);
+    expect(visRepair.showMaterial).toBe(false);
+    expect(visRepair.showQuantity).toBe(false);
+    expect(visRepair.showCustomer).toBe(false);
+    expect(visRepair.showDescription).toBe(true);
+    expect(visRepair.descriptionLabel).toContain("napraw");
+
+    const visWork = resolveOrderLabelFieldVisibility({
+      orderType: "machine_work",
+      showMaterial: true,
+      showCustomer: true,
+      showQuantity: true,
+      showTaskDescription: false,
+    });
+    expect(visWork.showMaterial).toBe(true);
+    expect(visWork.showDescription).toBe(false);
   });
 });
 

@@ -17,7 +17,10 @@ import {
 import { resolveOrderType } from "@/lib/orderType";
 import { parseOrderBody } from "@/lib/parseRouteParams";
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
-import { normalizeWorkOrderMaterialFields } from "@/lib/workOrderTypePayload";
+import {
+  buildWorkOrderDescriptionFields,
+  normalizeWorkOrderMaterialFieldsForCategory,
+} from "@/lib/workOrderCategoryFields";
 import { assertOrderEntitiesBelongToCompany } from "@/lib/tenantContext";
 
 export class WorkerOrderService {
@@ -194,11 +197,13 @@ export class WorkerOrderService {
     );
     const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
-      normalizeWorkOrderMaterialFields(
-        orderType,
+      normalizeWorkOrderMaterialFieldsForCategory(
+        categoryRow,
         payload.materialId,
         payload.quantityTons
       );
+    const { taskDescription: taskStored, repairDescription: repairStored } =
+      buildWorkOrderDescriptionFields(orderType, categoryRow, payload);
 
     const durationHours = parseDurationHours(payload.expectedDurationHours);
     await ScheduleConflictService.assertNoScheduleConflict(companyId, {
@@ -219,7 +224,7 @@ export class WorkerOrderService {
         categoryId: payload.categoryId,
         materialId: orderMaterialId,
         customerId: payload.customerId ?? null,
-        taskDescription: payload.taskDescription ?? null,
+        taskDescription: taskStored,
         quantityTons: orderQuantityTons,
         expectedDurationHours: normalizeDecimalBodyField(payload.expectedDurationHours),
         dueDate: payload.dueDate ?? null,
@@ -231,7 +236,7 @@ export class WorkerOrderService {
         priority: prio,
         createdById: userId,
         orderType,
-        repairDescription: payload.repairDescription ?? null,
+        repairDescription: repairStored,
       })
       .returning({ id: workOrders.id });
 
@@ -336,11 +341,13 @@ export class WorkerOrderService {
     );
     const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
-      normalizeWorkOrderMaterialFields(
-        orderType,
+      normalizeWorkOrderMaterialFieldsForCategory(
+        categoryRow,
         payload.materialId,
         payload.quantityTons
       );
+    const { taskDescription: taskStored, repairDescription: repairStored } =
+      buildWorkOrderDescriptionFields(orderType, categoryRow, payload);
 
     const durationHours = parseDurationHours(payload.expectedDurationHours);
     await ScheduleConflictService.assertNoScheduleConflict(companyId, {
@@ -360,7 +367,7 @@ export class WorkerOrderService {
         categoryId: payload.categoryId,
         materialId: orderMaterialId,
         customerId: payload.customerId ?? null,
-        taskDescription: payload.taskDescription ?? null,
+        taskDescription: taskStored,
         quantityTons: orderQuantityTons,
         expectedDurationHours: normalizeDecimalBodyField(payload.expectedDurationHours),
         dueDate: payload.dueDate ?? null,
@@ -370,7 +377,7 @@ export class WorkerOrderService {
             : null,
         priority: prio,
         orderType,
-        repairDescription: payload.repairDescription ?? null,
+        repairDescription: repairStored,
       })
       .where(
         and(

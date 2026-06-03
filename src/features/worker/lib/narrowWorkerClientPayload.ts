@@ -1,6 +1,7 @@
 import { isRecord } from "@/lib/narrowApiListRows";
 import { coordFromRawGpsRow, type RawGpsCoordinateRow } from "@/lib/gps/pathFromLogRows";
 import type { AppSettings, Coord, Session, UserData } from "@/types/worker";
+import { narrowOrderType } from "@/lib/orderType";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 
 export function narrowSession(v: unknown): Session | null {
@@ -21,6 +22,20 @@ export function narrowSession(v: unknown): Session | null {
     endTime: typeof v.endTime === "string" ? v.endTime : undefined,
     categoryId: v.categoryId,
     categoryName,
+    categoryColor:
+      v.categoryColor === null || typeof v.categoryColor === "string"
+        ? (v.categoryColor as string | null)
+        : undefined,
+    categoryShowMaterial:
+      typeof v.categoryShowMaterial === "boolean" ? v.categoryShowMaterial : undefined,
+    categoryShowCustomer:
+      typeof v.categoryShowCustomer === "boolean" ? v.categoryShowCustomer : undefined,
+    categoryShowQuantity:
+      typeof v.categoryShowQuantity === "boolean" ? v.categoryShowQuantity : undefined,
+    categoryShowTaskDescription:
+      typeof v.categoryShowTaskDescription === "boolean"
+        ? v.categoryShowTaskDescription
+        : undefined,
     categoryIsStationary:
       typeof v.categoryIsStationary === "boolean" ? v.categoryIsStationary : undefined,
     status: v.status,
@@ -75,6 +90,17 @@ export function narrowSession(v: unknown): Session | null {
           ? null
           : undefined,
     routeWaypoints: parseRouteWaypoints(v.routeWaypoints),
+    orderType: v.orderType != null ? narrowOrderType(v.orderType) : undefined,
+    repairDescription:
+      v.repairDescription === null || typeof v.repairDescription === "string"
+        ? (v.repairDescription as string | null)
+        : undefined,
+    resourceGroupId:
+      typeof v.resourceGroupId === "number"
+        ? v.resourceGroupId
+        : v.resourceGroupId === null
+          ? null
+          : undefined,
   };
 }
 

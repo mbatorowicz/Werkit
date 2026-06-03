@@ -27,16 +27,26 @@ describe("validateWorkOrderFieldsAgainstCategory", () => {
     ).toBe("missing_task_description");
   });
 
-  it("machine_repair pomija reqMaterial i reqQuantity", () => {
+  it("machine_repair + reqMaterial wymaga materiału gdy kategoria tak ustawiona", () => {
     expect(
       validateWorkOrderFieldsAgainstCategory(
         {
           ...baseCat,
           reqMaterial: true,
-          reqQuantity: true,
           orderType: "machine_repair",
         },
         { materialId: null, quantityTons: null }
+      )
+    ).toBe("missing_material");
+
+    expect(
+      validateWorkOrderFieldsAgainstCategory(
+        {
+          ...baseCat,
+          reqMaterial: true,
+          orderType: "machine_repair",
+        },
+        { materialId: 1, quantityTons: null }
       )
     ).toBe("ok");
   });

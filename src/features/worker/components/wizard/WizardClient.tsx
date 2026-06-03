@@ -96,6 +96,8 @@ export default function WizardClient({
             customerId={flow.customerId}
             quantityTons={flow.quantityTons}
             resourceId={flow.resourceId}
+            taskDescription={flow.taskDescription}
+            repairDescription={flow.repairDescription}
             dueDate={flow.dueDate}
             expectedDurationHours={flow.expectedDurationHours}
             hasScheduleConflicts={flow.hasScheduleConflicts}

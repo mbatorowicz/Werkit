@@ -22,7 +22,7 @@ export type WorkOrderCategoryValidationPayload = {
 
 /**
  * Sprawdza payload zlecenia względem flag z `resource_categories`.
- * Dla `machine_repair`: materiał/ilość pomijane; wymagany opis → `repairDescription`.
+ * Naprawa i praca: te same `show*` / `req*`; opis → `repairDescription` lub `taskDescription`.
  */
 export function validateWorkOrderFieldsAgainstCategory(
   cat: CategoryRequirementFlags | null | undefined,
@@ -42,18 +42,16 @@ export function validateWorkOrderFieldsAgainstCategory(
   const hasCustomer = payload.customerId != null && String(payload.customerId).trim() !== "";
   if (cat.reqCustomer && !hasCustomer) return "missing_customer";
 
-  if (!isRepair) {
-    const hasMaterial = payload.materialId != null && String(payload.materialId).trim() !== "";
-    if (cat.reqMaterial && !hasMaterial) return "missing_material";
+  const hasMaterial = payload.materialId != null && String(payload.materialId).trim() !== "";
+  if (cat.reqMaterial && !hasMaterial) return "missing_material";
 
-    if (cat.reqQuantity) {
+  if (cat.reqQuantity) {
     const raw = payload.quantityTons;
     const n =
       typeof raw === "number"
         ? raw
         : parseDecimalInput(typeof raw === "string" ? raw : String(raw ?? ""));
     if (n == null || n <= 0) return "missing_quantity";
-    }
   }
 
   if (cat.reqTaskDescription) {

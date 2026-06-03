@@ -208,7 +208,7 @@ export function OrderFormFields({
       </div>
 
       {/* 4. Warunkowe: materiał, klient, ilość */}
-      {selectedCategory?.showMaterial && !isRepair ? (
+      {selectedCategory?.showMaterial ? (
         <div className={FIELD}>
           <label className={LABEL}>{materialLabel}</label>
           <MaterialCategoryMaterialCombobox
@@ -244,7 +244,7 @@ export function OrderFormFields({
         />
       ) : null}
 
-      {selectedCategory?.showQuantity && !isRepair ? (
+      {selectedCategory?.showQuantity ? (
         <div className={FIELD}>
           <label className={LABEL}>{dict.quantityTonsLabel}</label>
           <DecimalInput
@@ -258,10 +258,10 @@ export function OrderFormFields({
       ) : null}
 
       {/* 5. Opis — tylko po wyborze kategorii */}
-      {selectedCategory && selectedCategory.showTaskDescription && !isRepair ? (
+      {selectedCategory?.showTaskDescription ? (
         <div className={FIELD}>
           <label className={LABEL}>
-            {dict.taskDesc}
+            {isRepair ? dict.repairDescription : dict.taskDesc}
             {!selectedCategory.reqTaskDescription ? (
               <span className="ml-1 font-normal normal-case text-zinc-400">
                 {dict.optionalSuffix}
@@ -270,26 +270,20 @@ export function OrderFormFields({
           </label>
           <textarea
             required={selectedCategory.reqTaskDescription}
-            placeholder={dict.taskDescPlaceholder}
-            value={form.taskDescription}
-            onChange={(e) => setForm({ ...form, taskDescription: e.target.value })}
+            placeholder={
+              isRepair ? dict.repairDescriptionPlaceholder : dict.taskDescPlaceholder
+            }
+            value={isRepair ? form.repairDescription : form.taskDescription}
+            onChange={(e) =>
+              isRepair
+                ? setForm({ ...form, repairDescription: e.target.value })
+                : setForm({ ...form, taskDescription: e.target.value })
+            }
             className={TEXTAREA}
           />
-          {!selectedCategory.reqTaskDescription ? (
+          {!selectedCategory.reqTaskDescription && !isRepair ? (
             <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.taskOptionalHint}</p>
           ) : null}
-        </div>
-      ) : null}
-
-      {isRepair ? (
-        <div className={FIELD}>
-          <label className={LABEL}>{dict.repairDescription}</label>
-          <textarea
-            placeholder={dict.repairDescriptionPlaceholder}
-            value={form.repairDescription}
-            onChange={(e) => setForm({ ...form, repairDescription: e.target.value })}
-            className={TEXTAREA}
-          />
         </div>
       ) : null}
 
