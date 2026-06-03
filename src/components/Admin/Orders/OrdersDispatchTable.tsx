@@ -159,37 +159,43 @@ export function OrdersDispatchTable({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DispatchColumn title={dict.pending} count={planned.length}>
           {planned.map((item) => (
-            <div
+            <OrdersDispatchItemCard
               key={`${item._type}-${item.id}`}
-              onClick={() => onRowClick(item)}
-              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-            >
-              <OrdersDispatchItemCard item={item} layout="boardPending" {...cardProps} />
-            </div>
+              item={item}
+              layout="boardPending"
+              onOpenDetails={
+                item._type === "SESSION" || canMutate ? () => onRowClick(item) : undefined
+              }
+              {...cardProps}
+            />
           ))}
         </DispatchColumn>
 
         <DispatchColumn title={archiveDict.inProgress} count={active.length}>
           {active.map((item) => (
-            <div
+            <OrdersDispatchItemCard
               key={`${item._type}-${item.id}`}
-              onClick={() => onRowClick(item)}
-              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-            >
-              <OrdersDispatchItemCard item={item} layout="boardActive" {...cardProps} />
-            </div>
+              item={item}
+              layout="boardActive"
+              onOpenDetails={
+                item._type === "SESSION" || canMutate ? () => onRowClick(item) : undefined
+              }
+              {...cardProps}
+            />
           ))}
         </DispatchColumn>
 
         <DispatchColumn title={archiveDict.completed} count={done.length}>
           {done.map((item) => (
-            <div
+            <OrdersDispatchItemCard
               key={`${item._type}-${item.id}`}
-              onClick={() => onRowClick(item)}
-              className={item._type === "SESSION" || canMutate ? "cursor-pointer" : ""}
-            >
-              <OrdersDispatchItemCard item={item} layout="boardDone" {...cardProps} />
-            </div>
+              item={item}
+              layout="boardDone"
+              onOpenDetails={
+                item._type === "SESSION" || canMutate ? () => onRowClick(item) : undefined
+              }
+              {...cardProps}
+            />
           ))}
         </DispatchColumn>
       </div>

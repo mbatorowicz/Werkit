@@ -43,12 +43,15 @@ export function OrdersDispatchItemCard({
   liveClockMs,
   ordersDict,
   workerUiLabels,
+  onOpenDetails,
 }: {
   item: UnifiedGanttItem;
   layout: DispatchItemCardLayout;
   liveClockMs: number | null;
   ordersDict: OrdersDict;
   workerUiLabels: WorkerClient;
+  /** Tablica Kanban — klik w kartę otwiera podgląd sesji/zlecenia. */
+  onOpenDetails?: () => void;
 }) {
   const dict = ordersDict;
   const tone = dispatchStatusTone(item.status);
@@ -61,6 +64,7 @@ export function OrdersDispatchItemCard({
     workerUiLabels
   );
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
+  const isBoard = layout !== "table";
 
   const showOrderPriority = layout !== "boardDone" && item._type === "ORDER";
 
@@ -189,16 +193,17 @@ export function OrdersDispatchItemCard({
   return (
     <OrderLabelCard
       density="compact"
+      layout={isBoard ? "teaser" : "full"}
       tone={tone}
       orderNo={orderNo}
       title={item.workerName as string}
-      orderedBy={item.creatorName ?? item.workerName ?? null}
+      orderedBy={isBoard ? null : (item.creatorName ?? item.workerName ?? null)}
       orderedByLabel={dict.orderedBy}
       attachmentPhotos={Boolean(item.hasPhotos)}
       attachmentNotes={Boolean(item.hasNotes)}
       badges={badges}
-      subheader={subheader}
-      showDateTime={false}
+      subheader={isBoard ? undefined : subheader}
+      showDateTime={isBoard}
       mode={mode}
       modeColor={modeColor}
       machine={machine}
@@ -209,7 +214,9 @@ export function OrdersDispatchItemCard({
       fieldVisibility={fieldVisibility}
       dateLabel={dateLabel}
       timeLabel={timeLabel || "—"}
-      footer={footer}
+      footer={isBoard ? undefined : footer}
+      onCardClick={isBoard ? onOpenDetails : undefined}
+      cardAriaLabel={workerUiLabels.orderDetailsOpenCategory}
     />
   );
 }
