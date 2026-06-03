@@ -132,7 +132,6 @@ export class AdminOrderService {
         hasNotes: sqlSessionHasNotes(),
         orderType: workSessions.orderType,
         repairDescription: workSessions.repairDescription,
-        repairNotes: workSessions.repairNotes,
       })
       .from(workSessions)
       .leftJoin(users, eq(workSessions.userId, users.id))

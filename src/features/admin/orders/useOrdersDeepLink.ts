@@ -23,7 +23,6 @@ const EMPTY_ORDER_FORM: OrderFormState = {
   forceSave: false,
   orderType: "machine_work",
   repairDescription: "",
-  repairNotes: "",
 };
 
 /**
@@ -79,7 +78,6 @@ export function useOrdersDeepLink({
         orderType: narrowOrderType(item.orderType),
         repairDescription:
           typeof item.repairDescription === "string" ? item.repairDescription : "",
-        repairNotes: typeof item.repairNotes === "string" ? item.repairNotes : "",
       });
       setSelectedDispatchItem(null);
       setIsOrderModalOpen(true);

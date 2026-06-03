@@ -24,12 +24,12 @@ export function isMissingResourceCategoriesVisibilityColumns(err: unknown): bool
   );
 }
 
-/** Migracja 0021 — `order_type`, `repair_description`, `repair_notes` na `work_orders` / `work_sessions`. */
+/** Migracja 0021 — `order_type`, `repair_description` na `work_orders` / `work_sessions`. */
 export function isMissingWorkOrderRepairColumns(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (
     /column .*does not exist/i.test(msg) &&
-    /order_type|repair_description|repair_notes/i.test(msg)
+    /order_type|repair_description/i.test(msg)
   );
 }
 

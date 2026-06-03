@@ -32,7 +32,6 @@ export type ParsedOrderBody = {
   priority: string | null;
   orderType: string | null;
   repairDescription: string | null;
-  repairNotes: string | null;
 };
 
 export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
@@ -64,7 +63,6 @@ export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
   const orderType = typeof body.orderType === "string" ? body.orderType : null;
   const repairDescription =
     typeof body.repairDescription === "string" ? body.repairDescription : null;
-  const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
 
   return {
     categoryId,
@@ -78,6 +76,5 @@ export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
     priority,
     orderType,
     repairDescription,
-    repairNotes,
   };
 }

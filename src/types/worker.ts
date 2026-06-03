@@ -35,8 +35,6 @@ export type Session = {
   orderType?: OrderType | null;
   /** Opis naprawy (dla machine_repair). */
   repairDescription?: string | null;
-  /** Notatki naprawy (dla machine_repair). */
-  repairNotes?: string | null;
 };
 
 export type WorkOrder = {
@@ -63,8 +61,6 @@ export type WorkOrder = {
   orderType?: OrderType | null;
   /** Opis naprawy (dla machine_repair). */
   repairDescription?: string | null;
-  /** Notatki naprawy (dla machine_repair). */
-  repairNotes?: string | null;
 };
 
 /** Część zamienna użyta w zleceniu naprawy (widok dla workera). */

@@ -107,7 +107,6 @@ export const POST = withApiErrorHandling(
     const parsedDuration = durationHoursForBlock;
 
     const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
-    const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
 
     const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
@@ -130,7 +129,6 @@ export const POST = withApiErrorHandling(
       createdById: adminUserId,
       orderType,
       repairDescription,
-      repairNotes,
     });
 
     return jsonOk({ success: true });

@@ -46,8 +46,6 @@ export function workOrderListSharedSelectFields(creator: WorkOrderCreatorUserAli
     orderType: workOrders.orderType,
     /** Opis naprawy (dla machine_repair). */
     repairDescription: workOrders.repairDescription,
-    /** Notatki naprawy (dla machine_repair). */
-    repairNotes: workOrders.repairNotes,
   };
 }
 

@@ -105,7 +105,6 @@ export const PUT = withApiErrorHandling(
     }
 
     const orderType = await resolveOrderTypeForCategory(companyId, catIdNum, body.orderType);
-    const repairNotes = typeof body.repairNotes === "string" ? body.repairNotes : null;
 
     const matIdParsed = materialId ? parseInt(String(materialId), 10) : null;
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
@@ -126,7 +125,6 @@ export const PUT = withApiErrorHandling(
         lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
         orderType,
         repairDescription,
-        repairNotes,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";

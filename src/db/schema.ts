@@ -229,8 +229,6 @@ export const workSessions = pgTable("work_sessions", {
   orderType: varchar("order_type", { length: 50 }).notNull().default("machine_work"),
   /** Opis usterki — tylko dla order_type = 'machine_repair'. */
   repairDescription: text("repair_description"),
-  /** Notatki serwisowe po naprawie — tylko dla order_type = 'machine_repair'. */
-  repairNotes: text("repair_notes"),
 });
 
 export const sessionPhotos = pgTable("session_photos", {
@@ -328,8 +326,6 @@ export const workOrders = pgTable("work_orders", {
   orderType: varchar("order_type", { length: 50 }).notNull().default("machine_work"),
   /** Opis usterki — tylko dla order_type = 'machine_repair'. */
   repairDescription: text("repair_description"),
-  /** Notatki serwisowe po naprawie — tylko dla order_type = 'machine_repair'. */
-  repairNotes: text("repair_notes"),
 });
 
 export const deviceLogs = pgTable("device_logs", {

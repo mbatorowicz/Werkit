@@ -293,21 +293,6 @@ export function OrderFormFields({
         </div>
       ) : null}
 
-      {isRepair && editingOrderId != null ? (
-        <div className={FIELD}>
-          <label className={LABEL}>
-            {dict.repairNotes}
-            <span className="ml-1 font-normal normal-case text-zinc-400">{dict.optionalSuffix}</span>
-          </label>
-          <textarea
-            placeholder={dict.repairNotesPlaceholder}
-            value={form.repairNotes}
-            onChange={(e) => setForm({ ...form, repairNotes: e.target.value })}
-            className={TEXTAREA}
-          />
-        </div>
-      ) : null}
-
       {/* 6. Priorytet */}
       <div className={FIELD}>
         <label className={LABEL}>{dict.priorityLabel}</label>

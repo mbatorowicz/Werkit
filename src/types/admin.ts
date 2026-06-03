@@ -33,7 +33,6 @@ export type UnifiedGanttItem = {
   hasNotes?: boolean | null;
   orderType?: OrderType | string | null;
   repairDescription?: string | null;
-  repairNotes?: string | null;
   [key: string]: unknown;
 };
 
@@ -60,7 +59,6 @@ export interface OrderFormState {
   /** Rodzaj zlecenia — domyślnie z kategorii przy zmianie `categoryId`. */
   orderType: OrderType;
   repairDescription: string;
-  repairNotes: string;
 }
 
 export type BaseWorker = {

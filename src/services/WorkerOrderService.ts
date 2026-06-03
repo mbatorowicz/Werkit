@@ -133,7 +133,6 @@ export class WorkerOrderService {
           status: "IN_PROGRESS",
           orderType: order.orderType,
           repairDescription: order.repairDescription,
-          repairNotes: order.repairNotes,
           ...(startNums
             ? {
                 startLatitude: startNums.lat,
@@ -233,7 +232,6 @@ export class WorkerOrderService {
         createdById: userId,
         orderType,
         repairDescription: payload.repairDescription ?? null,
-        repairNotes: payload.repairNotes ?? null,
       })
       .returning({ id: workOrders.id });
 

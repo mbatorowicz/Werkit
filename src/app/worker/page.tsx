@@ -39,7 +39,6 @@ export default async function WorkerPage() {
         : null,
     orderType: (o.orderType as "machine_work" | "machine_repair" | null) ?? null,
     repairDescription: (o.repairDescription as string | null) ?? null,
-    repairNotes: (o.repairNotes as string | null) ?? null,
   }));
 
   const rawSession = sessionDetails.session;
