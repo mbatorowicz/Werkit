@@ -1,5 +1,6 @@
 import { Camera, FileText } from "lucide-react";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
+import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { getDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
 
@@ -31,42 +32,6 @@ function toneClasses(tone: Tone) {
         bar: "bg-emerald-500/90 dark:bg-emerald-400/90",
       };
   }
-}
-
-function LabelItem({
-  k,
-  v,
-  title,
-  multiline,
-  className = "",
-  valueNode,
-}: {
-  k: string;
-  v: string;
-  title?: string;
-  multiline?: boolean;
-  className?: string;
-  valueNode?: React.ReactNode;
-}) {
-  return (
-    <div className={`min-w-0 ${className}`}>
-      <div className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-tight">
-        {k}
-      </div>
-      {valueNode ?? (
-        <div
-          className={
-            multiline
-              ? "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold break-words whitespace-pre-wrap leading-snug"
-              : "text-zinc-900 dark:text-zinc-100 text-[15px] font-semibold truncate"
-          }
-          title={!multiline ? title : undefined}
-        >
-          {v}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export function OrderLabelCard({
@@ -203,7 +168,7 @@ export function OrderLabelCard({
             }`}
           >
             {vis.showMode && mode?.trim() ? (
-              <div className="flex items-center min-w-0 self-center">
+              <div className="flex items-center min-w-0 self-center md:col-span-2">
                 <CategoryColorCardBadge
                   label={mode}
                   color={modeColor}
@@ -212,29 +177,38 @@ export function OrderLabelCard({
                 />
               </div>
             ) : null}
-            <LabelItem k={labels.machine} v={machine || "—"} />
+            {showDateTime ? (
+              <OrderDetailField label={labels.date} value={dateLabel?.trim() ? dateLabel : "—"} />
+            ) : null}
+            {showDateTime ? (
+              <OrderDetailField label={labels.time} value={timeLabel?.trim() ? timeLabel : "—"} />
+            ) : null}
+            <OrderDetailField label={labels.machine} value={machine || "—"} />
             {vis.showMaterial ? (
-              <LabelItem k={labels.material} v={material?.trim() ? material : "—"} />
+              <OrderDetailField
+                label={labels.material}
+                value={material?.trim() ? material : "—"}
+              />
             ) : null}
             {vis.showQuantity ? (
-              <LabelItem k={labels.quantity} v={quantity?.trim() ? quantity : "—"} />
+              <OrderDetailField
+                label={labels.quantity}
+                value={quantity?.trim() ? quantity : "—"}
+              />
             ) : null}
             {vis.showCustomer ? (
-              <LabelItem k={labels.customer} v={customer?.trim() ? customer : "—"} />
+              <OrderDetailField
+                label={labels.customer}
+                value={customer?.trim() ? customer : "—"}
+              />
             ) : null}
             {vis.showDescription && description?.trim() ? (
-              <LabelItem
-                k={labels.description}
-                v={description}
+              <OrderDetailField
+                label={labels.description}
+                value={description}
                 multiline
                 className="md:col-span-2"
               />
-            ) : null}
-            {showDateTime ? (
-              <LabelItem k={labels.date} v={dateLabel?.trim() ? dateLabel : "—"} />
-            ) : null}
-            {showDateTime ? (
-              <LabelItem k={labels.time} v={timeLabel?.trim() ? timeLabel : "—"} />
             ) : null}
           </div>
 

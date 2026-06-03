@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Package, Plus, MapPin } from "lucide-react";
 import { getDictionary } from "@/i18n";
+import { formatCustomerAddressDisplay } from "@/lib/customerAddress";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
@@ -20,6 +21,7 @@ import CustomerFormFields, {
   emptyCustomerForm,
   type CustomerFormState,
 } from "./CustomerFormFields";
+import { customerFormFromStored, customerFormToApiBody } from "./customerFormApi";
 
 type Customer = AdminCustomerListRow;
 
@@ -88,7 +90,7 @@ export default function CustomersClient() {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(customerFormToApiBody(form)),
         },
         { category: "admin" }
       );
@@ -135,14 +137,16 @@ export default function CustomersClient() {
   const openEditModal = (customer: Customer) => {
     setPreviewCustomer(null);
     setEditId(customer.id);
-    setForm({
-      firstName: customer.firstName || "",
-      lastName: customer.lastName,
-      phone: customer.phone || "",
-      defaultAddress: customer.defaultAddress || "",
-      latitude: customer.latitude || "",
-      longitude: customer.longitude || "",
-    });
+    setForm(
+      customerFormFromStored({
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        phone: customer.phone,
+        defaultAddress: customer.defaultAddress,
+        latitude: customer.latitude,
+        longitude: customer.longitude,
+      })
+    );
     setIsModalOpen(true);
   };
 
@@ -246,9 +250,9 @@ export default function CustomersClient() {
             ) : null}
             <AdminPreviewField label={dict.defaultAddress}>
               {previewCustomer.defaultAddress ? (
-                <span className="flex items-start gap-2">
+                <span className="flex items-start gap-2 whitespace-pre-wrap">
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-                  {previewCustomer.defaultAddress}
+                  {formatCustomerAddressDisplay(previewCustomer.defaultAddress)}
                 </span>
               ) : (
                 <span className="italic text-zinc-500">{dict.noAddress}</span>

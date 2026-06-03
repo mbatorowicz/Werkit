@@ -5,6 +5,7 @@ import type { AdminCustomerListRow } from "@/lib/narrowApiListRows";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { formatCustomerAddressDisplay } from "@/lib/customerAddress";
 
 interface CustomersTableProps {
   customers: AdminCustomerListRow[];
@@ -90,7 +91,9 @@ export default function CustomersTable({
                       {customer.defaultAddress ? (
                         <div className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 text-sm">
                           <MapPin className="w-3.5 h-3.5 text-zinc-500" />
-                          {customer.defaultAddress}
+                          <span className="whitespace-pre-wrap">
+                            {formatCustomerAddressDisplay(customer.defaultAddress)}
+                          </span>
                         </div>
                       ) : (
                         <span className="text-zinc-600 italic text-xs">{dict.noAddress}</span>

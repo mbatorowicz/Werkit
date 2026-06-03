@@ -1,15 +1,30 @@
 "use client";
 
-import { MapPin } from "lucide-react";
-import { parseDecimalInput } from "@/lib/decimalInput";
-import { formatDict } from "@/i18n";
+import dynamic from "next/dynamic";
+import { getDictionary } from "@/i18n";
+import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
+import {
+  customerFormAddressParts,
+  customerFormGeocodeQuery,
+} from "./customerFormApi";
+
+const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
+      {getDictionary().admin.customers.mapLoading}
+    </div>
+  ),
+});
 
 export interface CustomerFormState {
   firstName: string;
   lastName: string;
   phone: string;
-  defaultAddress: string;
+  addressStreet: string;
+  addressCity: string;
+  addressPostalCode: string;
   latitude: string;
   longitude: string;
 }
@@ -18,7 +33,9 @@ export const emptyCustomerForm = (): CustomerFormState => ({
   firstName: "",
   lastName: "",
   phone: "",
-  defaultAddress: "",
+  addressStreet: "",
+  addressCity: "",
+  addressPostalCode: "",
   latitude: "",
   longitude: "",
 });
@@ -37,10 +54,15 @@ export default function CustomerFormFields({
   dict,
 }: CustomerFormFieldsProps) {
   const setForm = (next: Partial<CustomerFormState>) => onFormChange({ ...form, ...next });
+  const addressParts = customerFormAddressParts(form);
+  const geocodeAddress = customerFormGeocodeQuery(form);
+
+  const inputClass =
+    "w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none";
 
   return (
-    <div className="p-6 space-y-5">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="space-y-5 p-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-400">{dict.firstNameLabel}</label>
           <input
@@ -48,7 +70,7 @@ export default function CustomerFormFields({
             placeholder={dict.firstNamePlaceholder}
             value={form.firstName}
             onChange={(e) => setForm({ firstName: e.target.value })}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
+            className={inputClass}
           />
         </div>
         <div className="space-y-2">
@@ -59,7 +81,7 @@ export default function CustomerFormFields({
             placeholder={dict.lastNamePlaceholder}
             value={form.lastName}
             onChange={(e) => setForm({ lastName: e.target.value })}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
+            className={inputClass}
           />
         </div>
       </div>
@@ -71,33 +93,39 @@ export default function CustomerFormFields({
           placeholder={dict.phonePlaceholder}
           value={form.phone}
           onChange={(e) => setForm({ phone: e.target.value })}
-          className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none"
+          className={inputClass}
         />
       </div>
 
-      {form.defaultAddress || (form.latitude && form.longitude) ? (
-        <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-          <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {dict.defaultAddressSummary}
-          </p>
-          {form.defaultAddress ? (
-            <div className="flex items-start gap-2 text-sm text-zinc-800 dark:text-zinc-200">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" />
-              <span>{form.defaultAddress}</span>
-            </div>
-          ) : (
-            <p className="text-sm italic text-zinc-500">{dict.noAddress}</p>
-          )}
-          {form.latitude && form.longitude ? (
-            <p className="text-[11px] text-zinc-500">
-              {formatDict(dict.pinSaved, {
-                lat: (parseDecimalInput(form.latitude) ?? 0).toFixed(5),
-                lng: (parseDecimalInput(form.longitude) ?? 0).toFixed(5),
-              })}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <CustomerAddressFields
+        value={addressParts}
+        onChange={(next) =>
+          setForm({
+            addressStreet: next.street,
+            addressCity: next.city,
+            addressPostalCode: next.postalCode,
+          })
+        }
+        dict={{
+          streetLabel: dict.streetLabel,
+          streetPlaceholder: dict.streetPlaceholder,
+          cityLabel: dict.cityLabel,
+          cityPlaceholder: dict.cityPlaceholder,
+          postalCodeLabel: dict.postalCodeLabel,
+          postalCodePlaceholder: dict.postalCodePlaceholder,
+        }}
+      />
+
+      <div className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+        <label className="text-sm font-medium text-zinc-400">{dict.gpsOnMapLabel}</label>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.mapHint}</p>
+        <CustomerMapPicker
+          lat={form.latitude}
+          lng={form.longitude}
+          address={geocodeAddress}
+          onChange={(lat, lng) => setForm({ latitude: lat, longitude: lng })}
+        />
+      </div>
 
       <p className="text-sm text-zinc-500 dark:text-zinc-400">{dict.locationsEditHint}</p>
 

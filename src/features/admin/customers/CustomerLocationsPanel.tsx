@@ -13,6 +13,12 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
 import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
 import type { CustomerLocationRow } from "@/services/CustomerLocationService";
+import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
+import {
+  customerAddressGeocodeQuery,
+  parseCustomerAddress,
+  serializeCustomerAddress,
+} from "@/lib/customerAddress";
 
 const CustomerRoutePlannerMap = dynamic(
   () => import("@/components/Map/CustomerRoutePlannerMap").then((m) => m.CustomerRoutePlannerMap),
@@ -26,7 +32,9 @@ const CustomerRoutePlannerMap = dynamic(
 
 type LocationForm = {
   label: string;
-  address: string;
+  addressStreet: string;
+  addressCity: string;
+  addressPostalCode: string;
   latitude: string;
   longitude: string;
   isDefault: boolean;
@@ -34,11 +42,30 @@ type LocationForm = {
 
 const emptyForm = (): LocationForm => ({
   label: "",
-  address: "",
+  addressStreet: "",
+  addressCity: "",
+  addressPostalCode: "",
   latitude: "",
   longitude: "",
   isDefault: false,
 });
+
+function locationAddressFromStored(address: string | null | undefined) {
+  const parts = parseCustomerAddress(address);
+  return {
+    addressStreet: parts.street,
+    addressCity: parts.city,
+    addressPostalCode: parts.postalCode,
+  };
+}
+
+function locationAddressParts(form: LocationForm) {
+  return {
+    street: form.addressStreet,
+    city: form.addressCity,
+    postalCode: form.addressPostalCode,
+  };
+}
 
 function isCustomerLocationRow(v: unknown): v is CustomerLocationRow {
   return v !== null && typeof v === "object" && typeof (v as CustomerLocationRow).id === "number";
@@ -111,7 +138,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     setSelectedId(preferred.id);
     setForm({
       label: preferred.label,
-      address: preferred.address ?? "",
+      ...locationAddressFromStored(preferred.address),
       latitude: preferred.latitude,
       longitude: preferred.longitude,
       isDefault: preferred.isDefault,
@@ -131,7 +158,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     setSelectedId(loc.id);
     setForm({
       label: loc.label,
-      address: loc.address ?? "",
+      ...locationAddressFromStored(loc.address),
       latitude: loc.latitude,
       longitude: loc.longitude,
       isDefault: loc.isDefault,
@@ -148,7 +175,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   };
 
   const handleGeocode = async () => {
-    const q = form.address.trim();
+    const q = customerAddressGeocodeQuery(locationAddressParts(form)).trim();
     if (!q) {
       await appAlert({ message: dict.geocodeNeedAddress });
       return;
@@ -189,7 +216,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
     try {
       const payload = {
         label: form.label.trim(),
-        address: form.address || null,
+        address: serializeCustomerAddress(locationAddressParts(form)),
         latitude: form.latitude,
         longitude: form.longitude,
         isDefault: form.isDefault,
@@ -308,12 +335,26 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
             placeholder={dict.locationLabelPlaceholder}
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
           />
-          <input
-            type="text"
-            value={form.address}
-            onChange={(e) => setForm({ ...form, address: e.target.value })}
-            placeholder={dict.addressPlaceholder}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
+          <CustomerAddressFields
+            value={locationAddressParts(form)}
+            onChange={(next) =>
+              setForm({
+                ...form,
+                addressStreet: next.street,
+                addressCity: next.city,
+                addressPostalCode: next.postalCode,
+              })
+            }
+            dict={{
+              streetLabel: dict.streetLabel,
+              streetPlaceholder: dict.streetPlaceholder,
+              cityLabel: dict.cityLabel,
+              cityPlaceholder: dict.cityPlaceholder,
+              postalCodeLabel: dict.postalCodeLabel,
+              postalCodePlaceholder: dict.postalCodePlaceholder,
+            }}
+            inputClass="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
+            compact
           />
           <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <input

@@ -3,8 +3,10 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
+import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatDict, getDictionary } from "@/i18n";
+import { customerAddressGeocodeQuery, serializeCustomerAddress } from "@/lib/customerAddress";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
@@ -46,16 +48,26 @@ export function CustomerInlineCreateForm({
     firstName: "",
     lastName: initialLastName,
     phone: "",
-    defaultAddress: "",
+    addressStreet: "",
+    addressCity: "",
+    addressPostalCode: "",
     latitude: "",
     longitude: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const addressParts = {
+    street: form.addressStreet,
+    city: form.addressCity,
+    postalCode: form.addressPostalCode,
+  };
+  const geocodeAddress = customerAddressGeocodeQuery(addressParts);
+
   const submit = async () => {
     if (!form.lastName.trim()) return;
     setIsSubmitting(true);
     try {
+      const defaultAddress = serializeCustomerAddress(addressParts);
       const res = await fetchWithDeviceTelemetry(
         telemetryCategory === "lifecycle"
           ? "Worker wizard: inline customer POST"
@@ -64,7 +76,14 @@ export function CustomerInlineCreateForm({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify({
+            firstName: form.firstName,
+            lastName: form.lastName,
+            phone: form.phone,
+            defaultAddress,
+            latitude: form.latitude,
+            longitude: form.longitude,
+          }),
         },
         { category: telemetryCategory }
       );
@@ -84,7 +103,6 @@ export function CustomerInlineCreateForm({
         await appAlert({ message: ordersDict.error });
         return;
       }
-      const defaultAddress = form.defaultAddress.trim() || null;
       const phone = form.phone.trim() || null;
       onCreated({
         id: customerId,
@@ -155,18 +173,27 @@ export function CustomerInlineCreateForm({
           className={inputClass}
         />
       </div>
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-          {dict.addressLabel}
-        </label>
-        <input
-          type="text"
-          placeholder={dict.addressPlaceholder}
-          value={form.defaultAddress}
-          onChange={(e) => setForm({ ...form, defaultAddress: e.target.value })}
-          className={inputClass}
-        />
-      </div>
+      <CustomerAddressFields
+        value={addressParts}
+        onChange={(next) =>
+          setForm({
+            ...form,
+            addressStreet: next.street,
+            addressCity: next.city,
+            addressPostalCode: next.postalCode,
+          })
+        }
+        dict={{
+          streetLabel: dict.streetLabel,
+          streetPlaceholder: dict.streetPlaceholder,
+          cityLabel: dict.cityLabel,
+          cityPlaceholder: dict.cityPlaceholder,
+          postalCodeLabel: dict.postalCodeLabel,
+          postalCodePlaceholder: dict.postalCodePlaceholder,
+        }}
+        inputClass={inputClass}
+        compact
+      />
       <div className="space-y-1.5">
         <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {dict.gpsOnMapLabel}
@@ -174,7 +201,7 @@ export function CustomerInlineCreateForm({
         <CustomerMapPicker
           lat={form.latitude}
           lng={form.longitude}
-          address={form.defaultAddress}
+          address={geocodeAddress}
           onChange={(lat, lng) => setForm({ ...form, latitude: lat, longitude: lng })}
         />
         {form.latitude && form.longitude ? (
