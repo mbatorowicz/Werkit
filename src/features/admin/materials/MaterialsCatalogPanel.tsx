@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import type { AppDictionary } from "@/i18n/types";
-import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
-import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
-import { ExpandableCatalogTree } from "@/components/Admin/ExpandableCatalogTree";
-import { getDictionary } from "@/i18n";
+import { CategoryAdminSection } from "@/features/admin/categories/CategoryAdminSection";
+import { MaterialsTable } from "@/features/admin/materials/MaterialsTable";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { getCategoryAdminLabels } from "@/features/admin/categories/labels";
-import { useCategoryAdminCrud } from "@/features/admin/categories/useCategoryAdminCrud";
 import { MaterialCategoryFormModal } from "@/features/admin/materials/MaterialCategoryFormModal";
 import { MaterialsMaterialFormModal } from "@/features/admin/materials/MaterialsMaterialFormModal";
 import { materialCategoryToForm } from "@/features/admin/materials/materialCategoryForm";
@@ -45,21 +41,7 @@ export function MaterialsCatalogPanel({
   canMutate,
   fetchData,
 }: Props) {
-  const labels = getCategoryAdminLabels("materials");
-  const shared = getDictionary().admin.categories.shared;
-  const ui = getDictionary().admin.ui;
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
-  const [previewCategory, setPreviewCategory] = useState<MaterialCategory | null>(null);
-  const [previewMaterial, setPreviewMaterial] = useState<MaterialRow | null>(null);
-
-  const categoryCrud = useCategoryAdminCrud({
-    variant: "materials",
-    apiErrors,
-    apiErrorFallback: machDict.apiError,
-    confirmDeleteMessage: labels.confirmDelete,
-    createEmptyForm: () => ({ ...EMPTY_CATEGORY_FORM }),
-    fetchData,
-  });
 
   const [isMatModalOpen, setIsMatModalOpen] = useState(false);
   const [matEditId, setMatEditId] = useState<number | null>(null);
@@ -119,50 +101,57 @@ export function MaterialsCatalogPanel({
     setIsMatModalOpen(true);
   };
 
+  const openEditMaterial = (material: MaterialRow) => {
+    setMatEditId(material.id);
+    setMatForm({ name: material.name, categoryIds: material.categoryIds ?? [] });
+    setIsMatModalOpen(true);
+  };
+
   return (
     <>
-      <ExpandableCatalogTree
-        title={labels.panelTitle}
-        addCategoryLabel={labels.add}
-        addMaterialLabel={dict.addMaterial}
-        emptyLabel={labels.empty}
-        groupBadge={labels.badgeGroup}
-        treeStatCategories={labels.treeStatCategories}
-        treeStatCategoriesShort={labels.treeStatCategoriesShort}
-        treeStatMaterials={labels.treeStatMaterials}
-        materialBadge={dict.materialBadge}
-        uncategorizedTitle={dict.uncategorizedTitle}
-        categories={categories}
-        materials={materials}
+      <CategoryAdminSection
+        variant="materials"
+        apiErrors={apiErrors}
+        apiErrorFallback={machDict.apiError}
+        items={categories}
         isLoading={isLoading}
         canMutate={canMutate}
-        onAddCategory={categoryCrud.openNew}
-        onAddMaterial={openNewMaterial}
-        onPreviewCategory={(item) => setPreviewCategory(item)}
-        onEditCategory={(item) => {
-          setPreviewCategory(null);
-          categoryCrud.openEdit(item.id, materialCategoryToForm(item));
-        }}
-        onDeleteCategory={categoryCrud.handleDelete}
-        onPreviewMaterial={(material) => setPreviewMaterial(material)}
-        onEditMaterial={(material) => {
-          setPreviewMaterial(null);
-          setMatEditId(material.id);
-          setMatForm({ name: material.name, categoryIds: material.categoryIds ?? [] });
-          setIsMatModalOpen(true);
-        }}
-        onDeleteMaterial={handleMatDelete}
+        fetchData={fetchData}
+        createEmptyForm={() => ({ ...EMPTY_CATEGORY_FORM })}
+        itemToForm={materialCategoryToForm}
+        renderModal={({
+          open,
+          onClose,
+          isEdit,
+          editId,
+          form,
+          setForm,
+          categories: tree,
+          onSubmit,
+        }) => (
+          <MaterialCategoryFormModal
+            open={open}
+            onClose={onClose}
+            isEdit={isEdit}
+            categories={tree}
+            editId={editId}
+            form={form}
+            setForm={setForm}
+            onSubmit={onSubmit}
+          />
+        )}
       />
 
-      <MaterialCategoryFormModal
-        open={categoryCrud.isOpen}
-        onClose={categoryCrud.close}
-        isEdit={categoryCrud.editId != null}
+      <MaterialsTable
+        dict={dict}
+        machDict={machDict}
+        materials={materials}
         categories={categories}
-        editId={categoryCrud.editId}
-        form={categoryCrud.form}
-        setForm={categoryCrud.setForm}
-        onSubmit={categoryCrud.handleSave}
+        isLoading={isLoading}
+        canMutate={canMutate}
+        onAddMaterial={openNewMaterial}
+        onEditMaterial={openEditMaterial}
+        onDeleteMaterial={handleMatDelete}
       />
 
       <MaterialsMaterialFormModal
@@ -177,93 +166,6 @@ export function MaterialsCatalogPanel({
         onSubmit={handleMatSave}
       />
 
-      <AdminPreviewModal
-        open={previewCategory != null}
-        onClose={() => setPreviewCategory(null)}
-        title={ui.previewTitle}
-        canEdit={canMutate}
-        onEdit={
-          previewCategory
-            ? () => {
-                setPreviewCategory(null);
-                categoryCrud.openEdit(previewCategory.id, materialCategoryToForm(previewCategory));
-              }
-            : undefined
-        }
-        editLabel={machDict.editTitle}
-      >
-        {previewCategory ? (
-          <>
-            <AdminPreviewField label={shared.fieldName} value={previewCategory.name} />
-            <AdminPreviewField
-              label={shared.isGroupLabel}
-              value={previewCategory.isGroup ? shared.previewTypeGroup : shared.previewTypeCategory}
-            />
-            {!previewCategory.isGroup && previewCategory.color ? (
-              <AdminPreviewField label={shared.colorLabel}>
-                <span className="inline-flex items-center gap-2">
-                  <span
-                    className="inline-block h-4 w-4 rounded shadow-sm"
-                    style={{ backgroundColor: previewCategory.color }}
-                  />
-                  {previewCategory.color}
-                </span>
-              </AdminPreviewField>
-            ) : null}
-            <AdminPreviewField label="ID" value={`#${previewCategory.id}`} />
-          </>
-        ) : null}
-      </AdminPreviewModal>
-
-      <AdminPreviewModal
-        open={previewMaterial != null}
-        onClose={() => setPreviewMaterial(null)}
-        title={ui.previewTitle}
-        canEdit={canMutate}
-        onEdit={
-          previewMaterial
-            ? () => {
-                setPreviewMaterial(null);
-                setMatEditId(previewMaterial.id);
-                setMatForm({
-                  name: previewMaterial.name,
-                  categoryIds: previewMaterial.categoryIds ?? [],
-                });
-                setIsMatModalOpen(true);
-              }
-            : undefined
-        }
-        editLabel={machDict.editTitle}
-      >
-        {previewMaterial ? (
-          <>
-            <AdminPreviewField label={dict.nameLabel} value={previewMaterial.name} />
-            <AdminPreviewField label="ID" value={`#${previewMaterial.id}`} />
-            <AdminPreviewField label={dict.matCatLabel}>
-              <div className="flex flex-wrap gap-1">
-                {categories
-                  .filter((c) => (previewMaterial.categoryIds ?? []).includes(c.id))
-                  .map((c) => (
-                    <span
-                      key={c.id}
-                      className="rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
-                      style={{
-                        backgroundColor: `${c.color || "#71717a"}1a`,
-                        color: c.color || "#71717a",
-                        borderColor: `${c.color || "#71717a"}33`,
-                      }}
-                    >
-                      {c.name}
-                    </span>
-                  ))}
-                {(previewMaterial.categoryIds?.length ?? 0) === 0 ? (
-                  <span className="italic text-zinc-500">—</span>
-                ) : null}
-              </div>
-            </AdminPreviewField>
-          </>
-        ) : null}
-      </AdminPreviewModal>
     </>
   );
 }

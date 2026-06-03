@@ -633,7 +633,9 @@ export const de: AppDictionary = {
       subtitle: "Zuerst Materialkategorien, dann Bestand — gleiches Layout wie Ressourcen.",
       pageSubtitle: "Materialkategoriebaum und Materialien in der Datenbank.",
       catalogSubtitle:
-        "Baum von Gruppen, Kategorien und Materialien — Knoten erweitern, um Inhalte anzuzeigen.",
+        "Baum von Gruppen und Kategorien — Materialien unten in der Liste hinzufügen und durchsuchen.",
+      listSearchPlaceholder: "Material nach Name oder Kategorie suchen…",
+      listSearchNoResults: "Keine Ergebnisse für diese Suche.",
       materialBadge: "Material",
       uncategorizedTitle: "Ohne zugewiesene Kategorie",
       sectionItemsTitle: "Materialien in der Datenbank",
