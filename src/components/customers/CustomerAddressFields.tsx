@@ -48,22 +48,22 @@ export function CustomerAddressFields({
       </div>
       <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${compact ? "" : "sm:gap-4"}`}>
         <div className={gap}>
-          <label className={labelClass}>{dict.cityLabel}</label>
-          <input
-            type="text"
-            placeholder={dict.cityPlaceholder}
-            value={value.city}
-            onChange={(e) => patch({ city: e.target.value })}
-            className={inputClass}
-          />
-        </div>
-        <div className={gap}>
           <label className={labelClass}>{dict.postalCodeLabel}</label>
           <input
             type="text"
             placeholder={dict.postalCodePlaceholder}
             value={value.postalCode}
             onChange={(e) => patch({ postalCode: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div className={gap}>
+          <label className={labelClass}>{dict.cityLabel}</label>
+          <input
+            type="text"
+            placeholder={dict.cityPlaceholder}
+            value={value.city}
+            onChange={(e) => patch({ city: e.target.value })}
             className={inputClass}
           />
         </div>

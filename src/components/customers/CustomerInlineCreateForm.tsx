@@ -161,18 +161,6 @@ export function CustomerInlineCreateForm({
           />
         </div>
       </div>
-      <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-          {dict.phoneLabel}
-        </label>
-        <input
-          type="tel"
-          placeholder={dict.phonePlaceholder}
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          className={inputClass}
-        />
-      </div>
       <CustomerAddressFields
         value={addressParts}
         onChange={(next) =>
@@ -194,6 +182,18 @@ export function CustomerInlineCreateForm({
         inputClass={inputClass}
         compact
       />
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          {dict.phoneLabel}
+        </label>
+        <input
+          type="tel"
+          placeholder={dict.phonePlaceholder}
+          value={form.phone}
+          onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          className={inputClass}
+        />
+      </div>
       <div className="space-y-1.5">
         <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {dict.gpsOnMapLabel}

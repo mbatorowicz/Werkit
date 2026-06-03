@@ -86,17 +86,6 @@ export default function CustomerFormFields({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
-        <input
-          type="tel"
-          placeholder={dict.phonePlaceholder}
-          value={form.phone}
-          onChange={(e) => setForm({ phone: e.target.value })}
-          className={inputClass}
-        />
-      </div>
-
       <CustomerAddressFields
         value={addressParts}
         onChange={(next) =>
@@ -115,6 +104,17 @@ export default function CustomerFormFields({
           postalCodePlaceholder: dict.postalCodePlaceholder,
         }}
       />
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
+        <input
+          type="tel"
+          placeholder={dict.phonePlaceholder}
+          value={form.phone}
+          onChange={(e) => setForm({ phone: e.target.value })}
+          className={inputClass}
+        />
+      </div>
 
       <div className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
         <label className="text-sm font-medium text-zinc-400">{dict.gpsOnMapLabel}</label>

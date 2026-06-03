@@ -25,10 +25,10 @@ export function customerAddressGeocodeQuery(parts: CustomerAddressParts): string
   return [street, cityLine].filter(Boolean).join(", ");
 }
 
-/** Czytelny podgląd (np. modal, tabela) — linie: ulica, miejscowość, kod. */
+/** Czytelny podgląd (np. modal, tabela) — linie: ulica, kod pocztowy, miejscowość. */
 export function formatCustomerAddressDisplay(raw: string | null | undefined): string {
   const p = parseCustomerAddress(raw);
-  const lines = [p.street, p.city, p.postalCode].filter((x) => x.trim());
+  const lines = [p.street, p.postalCode, p.city].filter((x) => x.trim());
   return lines.length ? lines.join("\n") : "";
 }
 

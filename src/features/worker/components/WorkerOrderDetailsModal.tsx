@@ -83,6 +83,21 @@ export function WorkerOrderDetailsModal({
                 label={fieldLabels.customer}
                 value={customerName || "—"}
               />
+              {addressParts.street.trim() ? (
+                <OrderDetailField
+                  label={customerDict.streetLabel}
+                  value={addressParts.street}
+                />
+              ) : null}
+              {addressParts.postalCode.trim() ? (
+                <OrderDetailField
+                  label={customerDict.postalCodeLabel}
+                  value={addressParts.postalCode}
+                />
+              ) : null}
+              {addressParts.city.trim() ? (
+                <OrderDetailField label={customerDict.cityLabel} value={addressParts.city} />
+              ) : null}
               {phone ? (
                 <OrderDetailField
                   label={customerDict.phoneLabel}
@@ -95,21 +110,6 @@ export function WorkerOrderDetailsModal({
                       {phone}
                     </a>
                   }
-                />
-              ) : null}
-              {addressParts.street.trim() ? (
-                <OrderDetailField
-                  label={customerDict.streetLabel}
-                  value={addressParts.street}
-                />
-              ) : null}
-              {addressParts.city.trim() ? (
-                <OrderDetailField label={customerDict.cityLabel} value={addressParts.city} />
-              ) : null}
-              {addressParts.postalCode.trim() ? (
-                <OrderDetailField
-                  label={customerDict.postalCodeLabel}
-                  value={addressParts.postalCode}
                 />
               ) : null}
             </>

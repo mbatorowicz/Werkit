@@ -33,9 +33,9 @@ describe("customerAddress", () => {
     });
   });
 
-  it("formats display lines", () => {
+  it("formats display lines (ulica, kod, miejscowosc)", () => {
     expect(formatCustomerAddressDisplay("Orzeszowska 21\nMiedzna\n07-106")).toBe(
-      "Orzeszowska 21\nMiedzna\n07-106"
+      "Orzeszowska 21\n07-106\nMiedzna"
     );
   });
 

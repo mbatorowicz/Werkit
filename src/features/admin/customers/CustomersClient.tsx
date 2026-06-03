@@ -43,24 +43,24 @@ function CustomerPreviewFields({
 
   return (
     <>
+      <AdminPreviewField label="ID" value={`#${customer.id}`} />
       <AdminPreviewField label={dict.customerData} value={customerName} />
-      <AdminPreviewField label={dict.phoneLabel} value={customer.phone?.trim() || null} />
       {hasAddress ? (
         <>
           {address.street.trim() ? (
             <AdminPreviewField label={dict.streetLabel} value={address.street} />
           ) : null}
-          {address.city.trim() ? (
-            <AdminPreviewField label={dict.cityLabel} value={address.city} />
-          ) : null}
           {address.postalCode.trim() ? (
             <AdminPreviewField label={dict.postalCodeLabel} value={address.postalCode} />
+          ) : null}
+          {address.city.trim() ? (
+            <AdminPreviewField label={dict.cityLabel} value={address.city} />
           ) : null}
         </>
       ) : (
         <AdminPreviewField label={dict.defaultAddress} value={dict.noAddress} />
       )}
-      <AdminPreviewField label="ID" value={`#${customer.id}`} />
+      <AdminPreviewField label={dict.phoneLabel} value={customer.phone?.trim() || null} />
     </>
   );
 }
