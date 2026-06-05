@@ -20,10 +20,6 @@ export const adminRoutes = {
   logs: "/admin/logs",
   organization: "/admin/organization",
   dur: {
-    resourceGroups: "/admin/dur/resource-groups",
-    /** Legacy — przekierowanie na `warehouse`. */
-    spareParts: "/admin/dur/spare-parts",
-    sparePartCategories: "/admin/dur/spare-part-categories",
     /** Katalog części + przyjęcia/wydania (jedna strona). */
     warehouse: "/admin/dur/warehouse",
   },

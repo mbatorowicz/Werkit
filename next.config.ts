@@ -40,6 +40,19 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  /** Legacy aliasy — query string jest zachowany automatycznie (np. `/admin/orders?open=123`). */
+  async redirects() {
+    return [
+      { source: "/admin/orders", destination: "/admin", permanent: true },
+      { source: "/admin/dur/spare-parts", destination: "/admin/dur/warehouse", permanent: true },
+      {
+        source: "/admin/dur/spare-part-categories",
+        destination: "/admin/dur/warehouse",
+        permanent: true,
+      },
+      { source: "/admin/dur/resource-groups", destination: "/admin/machines", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -8,6 +8,7 @@ import {
   Settings,
   TerminalSquare,
   BarChart3,
+  Building2,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -34,6 +35,12 @@ export function buildAdminNavLinks(
     { kind: "route", href: adminRoutes.reports, icon: BarChart3, label: adminDict.sidebar.reports },
     { kind: "section", label: adminDict.sidebar.fleetAndPeople },
     { kind: "route", href: adminRoutes.users, icon: Users, label: adminDict.sidebar.users },
+    {
+      kind: "route",
+      href: adminRoutes.organization,
+      icon: Building2,
+      label: adminDict.sidebar.organization,
+    },
     { kind: "section", label: adminDict.sidebar.logistics },
     { kind: "route", href: adminRoutes.machines, icon: Wrench, label: adminDict.sidebar.resources },
     {

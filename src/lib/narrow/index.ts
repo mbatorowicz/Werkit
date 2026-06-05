@@ -41,3 +41,13 @@ export {
   narrowMaterialRowRows,
   narrowMaterialCategoryRows,
 } from "./machines";
+
+export {
+  narrowOrganizationDepartments,
+  narrowOrganizationTeams,
+  narrowOrganizationTeamDetail,
+  type OrganizationDepartmentRow,
+  type OrganizationTeamRow,
+  type OrganizationTeamMemberRow,
+  type OrganizationTeamDetail,
+} from "./organization";
