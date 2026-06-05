@@ -37,6 +37,8 @@ type Props = {
     label: string;
     onClick: () => void;
   };
+  /** Wartość oznaczająca „brak wyboru” (np. `COMBO_NONE`) — nie traktowana jak aktywny wybór w polu. */
+  noneId?: string;
 };
 
 export function AdminSearchCombobox({
@@ -52,8 +54,14 @@ export function AdminSearchCombobox({
   inputId,
   "aria-label": ariaLabel,
   emptyAction,
+  noneId,
 }: Props) {
   const dict = getDictionary().admin.ui;
+  const emptyValue = noneId ?? "";
+  const isEmptySelection = useCallback(
+    (v: string) => v === "" || (noneId != null && v === noneId),
+    [noneId]
+  );
   const resolvedNoResults = noResultsLabel ?? dict.noResults;
   const resolvedClear = clearAriaLabel ?? dict.clear;
   const autoId = useId();
@@ -68,10 +76,11 @@ export function AdminSearchCombobox({
 
   useDismissOnOutsidePointer([rootRef, listRef], open, dismissDropdown);
 
-  /** Pusty `value` = brak wyboru (nie mylić z opcją placeholder o `id: ""`). */
+  /** Pusty `value` / `noneId` = brak wyboru (nie mylić z opcją placeholder o `id: ""`). */
   const selected = useMemo(
-    () => (value === "" ? null : (options.find((o) => o.id === value) ?? null)),
-    [options, value]
+    () =>
+      isEmptySelection(value) ? null : (options.find((o) => o.id === value) ?? null),
+    [options, value, isEmptySelection]
   );
 
   const filtered = useMemo(
@@ -107,7 +116,7 @@ export function AdminSearchCombobox({
   };
 
   const clearSelection = () => {
-    onChange("");
+    onChange(emptyValue);
     setQuery("");
     setOpen(true);
   };
@@ -216,7 +225,7 @@ export function AdminSearchCombobox({
             const next = e.target.value;
             setQuery(next);
             if (!open) setOpen(true);
-            if (value) onChange("");
+            if (!isEmptySelection(value)) onChange(emptyValue);
           }}
           onFocus={() => {
             if (disabled) return;
@@ -227,7 +236,7 @@ export function AdminSearchCombobox({
           className={`${INPUT_CLASS} disabled:cursor-not-allowed disabled:opacity-50`}
           autoComplete="off"
         />
-        {value && !disabled ? (
+        {!isEmptySelection(value) && !disabled ? (
           <button
             type="button"
             tabIndex={-1}

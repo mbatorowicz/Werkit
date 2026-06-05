@@ -212,6 +212,7 @@ export default function UserFormFields({
             <AdminSearchCombobox
               options={departmentOptions}
               value={form.departmentId}
+              noneId={COMBO_NONE}
               onChange={(id) =>
                 setForm({
                   departmentId: id,
@@ -230,6 +231,7 @@ export default function UserFormFields({
             <AdminSearchCombobox
               options={teamOptions}
               value={form.teamId}
+              noneId={COMBO_NONE}
               onChange={(id) => setForm({ teamId: id })}
               placeholder={dict.teamPlaceholder}
               aria-label={dict.teamLabel}
@@ -243,6 +245,7 @@ export default function UserFormFields({
             <AdminSearchCombobox
               options={supervisorOptions}
               value={form.reportsToId}
+              noneId={COMBO_NONE}
               onChange={(id) => setForm({ reportsToId: id })}
               placeholder={dict.supervisorPlaceholder}
               aria-label={dict.supervisorLabel}
