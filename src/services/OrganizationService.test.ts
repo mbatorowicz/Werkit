@@ -391,11 +391,22 @@ describe("OrganizationService", () => {
         leaderId: 5,
         sortOrder: 0,
       };
-      const chain = {
-        set: vi.fn(() => chain),
+      const updateChain = {
+        set: vi.fn(() => updateChain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
       };
-      updateMock.mockReturnValue(chain);
+      updateMock.mockReturnValue(updateChain);
+
+      const selectChain = {
+        from: vi.fn(() => selectChain),
+        where: vi.fn(() => resultArray([])),
+      };
+      selectMock.mockReturnValue(selectChain);
+
+      const insertChain = {
+        values: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
+      };
+      insertMock.mockReturnValue(insertChain);
 
       const { OrganizationService } = await import("./OrganizationService");
       const result = await OrganizationService.updateTeam(1, { leaderId: 5 });
@@ -495,10 +506,25 @@ describe("OrganizationService", () => {
 
     it("dodaje czlonka z okreslona rola", async () => {
       const inserted = { id: 2, teamId: 1, userId: 11, role: "leader", joinedAt: new Date() };
-      const chain = {
-        values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
+      insertMock
+        .mockReturnValueOnce({
+          values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
+        })
+        .mockReturnValueOnce({
+          values: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
+        });
+
+      const updateChain = {
+        set: vi.fn(() => updateChain),
+        where: vi.fn(() => ({})),
       };
-      insertMock.mockReturnValue(chain);
+      updateMock.mockReturnValue(updateChain);
+
+      const selectChain = {
+        from: vi.fn(() => selectChain),
+        where: vi.fn(() => resultArray([])),
+      };
+      selectMock.mockReturnValue(selectChain);
 
       const { OrganizationService } = await import("./OrganizationService");
       const result = await OrganizationService.addTeamMember({
@@ -513,12 +539,32 @@ describe("OrganizationService", () => {
 
   describe("updateTeamMember", () => {
     it("aktualizuje role czlonka", async () => {
+      const before = { id: 1, teamId: 1, userId: 10, role: "member", joinedAt: new Date() };
       const updated = { id: 1, teamId: 1, userId: 10, role: "leader", joinedAt: new Date() };
-      const chain = {
-        set: vi.fn(() => chain),
+
+      const selectBeforeChain = {
+        from: vi.fn(() => selectBeforeChain),
+        where: vi.fn(() => ({ limit: vi.fn(() => resultArray([before])) })),
+      };
+      const selectSyncChain = {
+        from: vi.fn(() => selectSyncChain),
+        where: vi.fn(() => resultArray([])),
+      };
+      selectMock.mockReturnValueOnce(selectBeforeChain).mockReturnValueOnce(selectSyncChain);
+
+      const updateMemberChain = {
+        set: vi.fn(() => updateMemberChain),
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([updated])) })),
       };
-      updateMock.mockReturnValue(chain);
+      const updateTeamChain = {
+        set: vi.fn(() => updateTeamChain),
+        where: vi.fn(() => ({})),
+      };
+      updateMock.mockReturnValueOnce(updateMemberChain).mockReturnValueOnce(updateTeamChain);
+
+      insertMock.mockReturnValue({
+        values: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
+      });
 
       const { OrganizationService } = await import("./OrganizationService");
       const result = await OrganizationService.updateTeamMember(1, { role: "leader" });

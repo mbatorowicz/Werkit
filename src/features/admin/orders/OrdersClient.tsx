@@ -26,7 +26,7 @@ import {
 } from "./OrdersMutations";
 
 export default function OrdersClient() {
-  const { canMutate } = useAdminAbility();
+  const { canMutate, canDelegateOrders, delegationScope } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
 
   const dictionary = getDictionary();
@@ -48,7 +48,7 @@ export default function OrdersClient() {
     sessions,
     isLoading,
     fetchData,
-  } = useOrdersDispatchData();
+  } = useOrdersDispatchData(delegationScope);
 
   const {
     isOrderModalOpen,
@@ -60,7 +60,13 @@ export default function OrdersClient() {
     selectedDispatchItem,
     closeSessionDetails,
     onDispatchItemClick,
-  } = useOrdersDeepLink({ canMutate, orders, sessions, materials, isLoading });
+  } = useOrdersDeepLink({
+    canMutate: canDelegateOrders,
+    orders,
+    sessions,
+    materials,
+    isLoading,
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [tableLimit, setTableLimit] = useState(20);
@@ -137,24 +143,27 @@ export default function OrdersClient() {
 
   return (
     <>
-      <div className="mb-4">
-        <AdminCollapsibleSection
-          title={dictionary.admin.categories.workOrders.panelTitle}
-          subtitle={dictionary.admin.categories.workOrders.panelSubtitle}
-          defaultOpen={false}
-        >
-          <OrdersCategoriesPanel
-            machinesDict={machinesDict}
-            apiErrors={apiErrors}
-            canMutate={canMutate}
-          />
-        </AdminCollapsibleSection>
-      </div>
+      {canMutate ? (
+        <div className="mb-4">
+          <AdminCollapsibleSection
+            title={dictionary.admin.categories.workOrders.panelTitle}
+            subtitle={dictionary.admin.categories.workOrders.panelSubtitle}
+            defaultOpen={false}
+          >
+            <OrdersCategoriesPanel
+              machinesDict={machinesDict}
+              apiErrors={apiErrors}
+              canMutate={canMutate}
+            />
+          </AdminCollapsibleSection>
+        </div>
+      ) : null}
 
       <OrdersHeader
         navTitle={navTitle}
         dict={dict}
-        canMutate={canMutate}
+        canMutate={canDelegateOrders}
+        showSettings={canMutate}
         onOpenSettings={(data) => {
           setIsSettingsOpen(true);
           setSettingsData(data);

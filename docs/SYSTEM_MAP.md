@@ -74,6 +74,9 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `spare_part_inventory` | PK `(part_id, company_id)` | **`part_id`**, **`company_id`**, `quantity` (numeric, default 0), `updated_at` | `part_id → spare_parts.id` (cascade); `company_id → companies.id` (cascade) |
 | `stock_receipts` | `id` | **`company_id`**, **`part_id`**, `quantity` (numeric), `unit_price` (numeric), `invoice_number?`, `notes?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `part_id → spare_parts.id` (cascade); `created_by_id → users.id` (set null) |
 | `stock_issues` | `id` | **`company_id`**, **`part_id`**, `quantity` (numeric), **`work_order_id?`**, `notes?`, `created_by_id?`, `created_at` | `company_id → companies.id` (cascade); `part_id → spare_parts.id` (cascade); `work_order_id → work_orders.id` (set null); `created_by_id → users.id` (set null) |
+| `departments` | `name` (per `company_id`) | **`company_id`**, `name`, **`parent_id?`**, **`manager_id?`** (kierownik działu → `users`), `sort_order` | `company_id → companies.id` (cascade); `parent_id` self-ref (set null); `manager_id → users.id` (set null). Migracja **0021**. |
+| `teams` | `name` (per departament) | **`company_id`**, **`department_id`**, `name`, **`leader_id?`** (lider → `users`), `sort_order` | `department_id → departments.id` (cascade); `leader_id → users.id` (set null). |
+| `team_members` | PK `id` | **`team_id`**, **`user_id`**, **`role`** ∈ `leader\|member`, `joined_at` | `team_id → teams.id` (cascade); `user_id → users.id` (cascade). **SSOT lidera:** `teams.leader_id` synchronizowany w `OrganizationService` z wpisem `role='leader'`. |
 
 ### 3.1. Drizzle relations
 
@@ -203,6 +206,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/worker/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu (widok pracownika) |
 | `/api/worker/work-orders/[id]/spare-parts` | POST `{partId, quantity?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części (wydanie z magazynu przez pracownika w trakcie naprawy) |
 | `/api/worker/work-orders/[id]/spare-parts/[partId]` | DELETE | `WorkOrderSparePartService.removePartFromOrder` — usunięcie części ze zlecenia (pracownik) |
+| `/api/worker/delegation-targets` | GET | `DelegationScopeService.getDelegatableWorkers` — aktywni workerzy w zasięgu lidera/kierownika (picker delegacji w workerze) |
+| `/api/worker/delegations` | POST | `WorkerDelegationService.createDelegatedOrder` — tworzy `PENDING` z `created_by_id = actor`; `assertCanDelegateTo` + walidacja kategorii/harmonogramu |
 
 ### 5.3. Platform (superadmin)
 
@@ -221,16 +226,18 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/admin/work-orders` | GET | `AdminOrderService.getActiveWorkOrders` — tylko **`PENDING`** (kolejka dyspozycji) |
-| `/api/admin/work-orders` | POST | Tworzy zlecenie + walidacja kategorii + `AdminOrderService.getScheduleSaveBlockCode` (chyba że `forceSave`). 409: `schedule_conflict` / `resource_busy`. UI: panel inline w `OrderFormModal`. |
+| `/api/admin/work-orders` | POST | `guardDispatchMutation` (admin **lub** lider/kierownik z org) → tworzy zlecenie + `DelegationScopeService.assertCanDelegateTo` na `userId` + walidacja kategorii + konflikt harmonogramu. 403 `forbidden` / `invalid_assignee`. UI: panel inline w `OrderFormModal`. |
 | `/api/admin/work-orders/schedule-conflicts` | GET | Podgląd konfliktów (admin); bez terminu → konflikty `resource_busy` |
-| `/api/admin/work-orders/[id]` | PUT | Edycja (sprawdza `not_pending`); jak POST — konflikt harmonogramu (+ `forceSave`); `guardAdminMutation` |
+| `/api/admin/work-orders/[id]` | PUT | `guardDispatchMutation` + `assertCanDelegateTo` przy zmianie `userId`; `assertOrderEntitiesBelongToCompany`; edycja (sprawdza `not_pending`); konflikt harmonogramu (+ `forceSave`) |
 | `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
 | `/api/admin/work-sessions/[id]` | DELETE | Body JSON `{ password }` → `AdminUserService.verifyPasswordForUserId` (zalogowany admin); potem `deleteArchivedSession`. 400 `admin_password_required`, 401 `invalid_credentials`, 409 `session_still_active` |
 | `/api/admin/work-sessions/[id]/force-complete` | POST | `forceCompleteSession` — ratunek dla zawieszonej `IN_PROGRESS` |
-| `/api/admin/users` | GET | `AdminUserService.getAllUsers` |
+| `/api/admin/users` | GET | `AdminUserService.getAllUsers` + `orgProfile` (skrót badge'y) z `DelegationScopeService.getOrgProfilesForCompany` |
+| `/api/admin/users/delegatable` | GET | `DelegationScopeService.getDelegatableWorkers` — lista do pickera dyspozycji (scoped: tylko podlegli; admin: wszyscy aktywni workerzy) |
+| `/api/admin/users/[id]` | GET | Szczegóły użytkownika + pełny `orgProfile` (`getUserOrgProfile`) |
 | `/api/admin/users` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; `23505 → user_exists` |
 | `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła) |
 | `/api/admin/users/[id]` | DELETE | Usunięcie konta |
@@ -263,6 +270,19 @@ Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Muta
 | `/api/dur/spare-part-categories` | POST | `SparePartCategoryService.addCategory(companyId, body)` — tworzy kategorię (grupę lub liść) |
 | `/api/dur/spare-part-categories/[id]` | PUT | `SparePartCategoryService.updateCategory(companyId, id, body)` — edycja + walidacja hierarchii (`validateHierarchyPatch`) |
 | `/api/dur/spare-part-categories/[id]` | DELETE | `SparePartCategoryService.deleteCategory(companyId, id)` — blokada gdy kategoria ma dzieci |
+
+### 5.7. Organizacja (admin)
+
+| Endpoint | Metoda | Funkcja |
+|---|---|---|
+| `/api/admin/organization/departments` | GET/POST | `OrganizationService.getDepartments` / `createDepartment` |
+| `/api/admin/organization/departments/[id]` | PUT/DELETE | `updateDepartment` / `deleteDepartment` |
+| `/api/admin/organization/teams` | GET/POST | `getTeams` / `createTeam` (sync `leaderId` ↔ `team_members`) |
+| `/api/admin/organization/teams/[id]` | PUT/DELETE | `updateTeam` / `deleteTeam` |
+| `/api/admin/organization/team-members` | POST | `addTeamMember` |
+| `/api/admin/organization/team-members/[id]` | PUT/DELETE | `updateTeamMember` / `removeTeamMember` |
+
+UI: `src/features/admin/organization/OrganizationClient.tsx` — `/admin/organization`.
 
 ---
 
@@ -305,8 +325,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `resolveLockedUntil(dueDate, durationHours)` — `locked_until` przy zapisie zlecenia.
 - `getActiveWorkOrders()` — wyłącznie **`PENDING`** z JOIN-ami pod kolejkę dyspozycji.
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
-- `createOrder(orderData)`.
-- `updateOrder(orderId, updates)` — rzuca `not_found` lub `not_pending`.
+- `createOrder(orderData, { actorUserId, actorRole }?)` — opcjonalnie `DelegationScopeService.assertCanDelegateTo` na `userId`.
+- `updateOrder(orderId, updates, { actorUserId, actorRole }?)` — jak wyżej przy zmianie `userId`; `assertOrderEntitiesBelongToCompany` na update; rzuca `not_found` lub `not_pending`.
 - `deleteOrder(orderId)` — transakcja: kasuje sesje z `work_order_id = orderId`, potem zlecenie.
 
 ### `AdminSessionService`
@@ -382,13 +402,32 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getIssues(companyId)` — lista wydań magazynowych.
 - `addIssue(companyId, payload)` — wydanie części (`{partId, quantity, workOrderId?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
 
+### `OrganizationService` (`src/services/OrganizationService.ts`)
+- CRUD `departments`, `teams`, `team_members` (scoped `companyId`).
+- **Sync lidera:** `teams.leaderId` ↔ wpis `team_members.role='leader'` (`syncTeamLeader`, `applyTeamLeaderFromMember`, `clearTeamLeaderIfMatches`) — wywoływane przy `updateTeam`, `addTeamMember`, `updateTeamMember`, `removeTeamMember`.
+- `getUserTeams(userId)` — zespoły użytkownika z departamentami.
+
+### `DelegationScopeService` (`src/services/DelegationScopeService.ts`)
+- **SSOT zasięgu delegacji zleceń** (pozycja w org, nie osobne `reportsToId`).
+- `getUserOrgProfile(companyId, userId)` → `deptManagerOf[]`, `teamLeaderOf[]`, `teamMemberships[]`, `supervisorChain[]`.
+- `getOrgProfilesForCompany(companyId)` — batch pod listę użytkowników admina.
+- `hasDelegationRights(companyId, userId)` — manager działu lub lider zespołu.
+- `getDelegatableUserIds(companyId, actorUserId, actorRole)` → `'all'` (admin) lub `Set<userId>` aktywnych workerów w zasięgu.
+- `getDelegatableWorkers(...)` — lista `{ id, fullName, orgLabel? }` pod pickery.
+- `assertCanDelegateTo` / `assertHasDelegationRights` — rzuca `forbidden` / `invalid_assignee`.
+- **Reguły:** lider → członkowie swoich zespołów; kierownik działu → członkowie zespołów **bezpośrednio** w zarządzanym dziale (bez rekurencji `parent_id`); suma przy wielu kapeluszach; tylko `role=worker` i `is_active`.
+
+### `WorkerDelegationService` (`src/services/WorkerDelegationService.ts`)
+- `createDelegatedOrder(actorUserId, actorRole, companyId, body)` — INSERT `work_orders` `PENDING`, `created_by_id = actor`; pełna walidacja jak admin (kategoria, tenant, harmonogram, zasięg).
+
 ---
 
 ## 7. Typy domenowe (`src/types/`)
 
 | Plik | Eksporty kluczowe |
 |---|---|
-| `worker.ts` | `WorkOrderPriority`, `Session`, `WorkOrder`, `Coord`, `Note`, `AppSettings`, `UserData`, `TimelineItem`, `InitialWorkerData` (kontrakt SSR → `WorkerClient`) |
+| `worker.ts` | `WorkOrderPriority`, `Session`, `WorkOrder`, `Coord`, `Note`, `AppSettings`, `UserData`, `TimelineItem`, `InitialWorkerData` (`hasDelegationRights?` z SSR `/worker`) |
+| `organization.ts` | `UserOrgProfile`, `DelegatableWorkerRow`, `DepartmentTreeNode`, `TeamWithMembers`, `TeamMemberWithUser` |
 | `admin.ts` | `UnifiedGanttItem` (zmergowany order/session pod Gantt), `OrderFormState` (formularz dyspozycji), `BaseWorker/Machine/Material/Customer/Category`, `ReportActiveSessionRow`, `ReportsDashboardSnapshot` |
 | `wizard.ts` | `WizardCategory` (z `isStationary?`), `WizardMachine`, `WizardMaterial`, `WizardCustomer` |
 | `deviceTelemetry.ts` | `WerkitLogCategory`, typy metadanych logów urządzenia |
@@ -406,6 +445,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `components/shell/*` | Orkiestracja dashboardu workera (`WorkerActiveSessionSection`, `WorkerPendingOrdersSection`, modale, footer). |
 | `components/profile/*` | Ustawienia profilu: powiadomienia, dźwięki alarmów, biometria. |
 | `components/wizard/WizardClient.tsx` | Kreator własnego zlecenia (5 kroków). |
+| `components/delegation/WorkerDelegateOrderModal.tsx` | Delegacja zlecenia do podległego (lider/kierownik); wejście z `WorkerClient` gdy brak sesji i `hasDelegationRights`. |
+| `components/organization/ProfileOrgSection.tsx`, `OrgProfileBadges.tsx` | Badge struktury org (admin users + worker `/worker/profile`). |
 | `components/PendingOrdersList.tsx` | Karty zleceń oczekujących. |
 | `components/ActiveSessionDashboard.tsx` | UI aktywnej sesji (zawiera `WorkerSparePartsPanel` dla napraw). |
 | `components/WorkerSparePartsPanel.tsx` | Panel części zamiennych w aktywnej sesji — przeglądanie, dodawanie i usuwanie części (wydanie z magazynu przez pracownika). Widoczny tylko dla `orderType === 'machine_repair'`. |
@@ -441,7 +482,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 **Orkiestracja stron (`*Client.tsx`)** — `src/features/admin/{orders|users|customers|machines|materials|logs}/` (np. `CustomerMapPicker`, `CustomerLocationsPanel` w `features/admin/customers/`).
 
 **Shell i współdzielone widgety** — `src/components/Admin/**`:
-- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (jedna kolejność pozycji menu; href z `src/lib/appRoutes.ts`), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ legacy `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate}`),
+- `AdminSidebarNav.tsx`, `MobileAdminNav.tsx`, `adminNavLinks.ts` (tryb `scopedViewer`: dyspozycja + raporty + organizacja read-only), `adminNavActive.ts` (aktywna zakładka: `/admin` ≡ legacy `/admin/orders`), `AdminAbilityProvider.tsx` (`useAdminAbility() → {canMutate, canDelegateOrders, delegationScope: 'all'|'scoped'|'none'}`),
 - `AdminModalShell.tsx` — obudowa modali formularzy (`scrollableBody`, `footer`, domyślnie bez zamykania kliknięciem w tło),
 - `AdminSearchCombobox.tsx` — wyszukiwalny combobox (client-side filter, klawiatura, fixed dropdown z-index 200); używany w `OrderFormModal` dla typu zlecenia, pracownika, zasobu, materiału,
 - `AdminPasswordConfirmModal.tsx` — hasło admina przed trwałym usunięciem zakończonej sesji z ewidencji,
@@ -538,6 +579,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/admin/users`, biometria w `AdminUserService`). |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
 | `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za `proxy`. |
+| `requireDispatchMutation.ts` | `guardDispatchMutation()` — admin **lub** viewer/worker z `DelegationScopeService.hasDelegationRights`; używane w `POST/PUT /api/admin/work-orders*`. |
 | `coordsFromRequestBody.ts` | `coordsFromRequestBody(body) → {lat,lng}\|null` (walidacja zakresu), `coordPairToNumericStrings({lat,lng})` (toFixed(8) pod numeric Postgres). |
 | `geolocationOnce.ts` | `getCurrentPositionOnce(timeout=12000)` — jednorazowy odczyt (wizard/end-session). |
 | `gpsManager.ts` | `GPSManager` (klasa statyczna): `localStorage 'werkit_gps_queue'`, `enqueue/flushQueue/getDistance` (Haversine). `flushQueue` używa `keepalive:true` + retry przy `online`. |
@@ -549,6 +591,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
 | `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility`, `narrowInventory`, `narrowStockReceipts`, `narrowStockIssues` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
+| `narrow/organization.ts` | `narrowUserOrgProfile`, `narrowDelegatableWorkers` — profil org użytkownika i lista delegowalnych workerów. |
 | `resolveNeonPostgresUrl.ts` | `resolveNeonPostgresUrl()` + `ensurePostgresUrlForVercelDriver()` — dla skryptów `tsx`, kiedy w `.env.local` jest tylko `DATABASE_URL` (Neon). Patrz `src/db/env.ts`. |
 
 ---
@@ -561,7 +604,7 @@ matcher: ['/admin/:path*', '/worker/:path*', '/login', '/api/:path*']
 
 Klasyfikacja → autoryzacja → role:
 - **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji.
-- **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: tylko `admin`.
+- **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: domyślnie tylko `admin`; **wyjątek:** `POST/PUT /api/admin/work-orders*` (`isAdminDispatchMutation`) — viewer/worker z `hasDelegationRights` (szczegóły w `guardDispatchMutation` w handlerze).
 - **`WORKER_APP_ROLES = ['worker', 'admin']`** — `/worker` i `/api/worker`.
 - **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
 - Nowy publiczny shard API → **dopisz prefix do `SHARED_API_PREFIXES`**, inaczej deny-by-default zakwalifikuje go jako admin API.

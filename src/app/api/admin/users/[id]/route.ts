@@ -3,9 +3,49 @@ import { hashPassword } from "@/lib/passwordCrypto";
 import type { UserUpdatePayload } from "@/services/AdminUserService";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
-import { normalizeAppRole, clampWorkerPermissionsForOrg, workerPermissionsFromBody } from "@/lib/workerUserPermissions";
+import {
+  normalizeAppRole,
+  clampWorkerPermissionsForOrg,
+  workerPermissionsFromBody,
+} from "@/lib/workerUserPermissions";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isGpsModuleEnabled } from "@/types/featureFlags";
+import { DelegationScopeService } from "@/services/DelegationScopeService";
+
+export const dynamic = "force-dynamic";
+
+/** GET /api/admin/users/[id] — użytkownik z profilem organizacyjnym. */
+export const GET = withApiErrorHandling(
+  async (_request: Request, context: { params: Promise<{ id: string }> }) => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+    const { companyId } = scoped.data;
+
+    const params = await context.params;
+    const id = parseInt(params.id, 10);
+    if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
+
+    const { AdminUserService } = await import("@/services/AdminUserService");
+    const user = await AdminUserService.getUserByIdForCompany(id, companyId);
+    if (!user) return jsonError("not_found", 404);
+
+    const orgProfile = await DelegationScopeService.getUserOrgProfile(companyId, id);
+    return jsonOk({
+      id: user.id,
+      fullName: user.fullName,
+      phone: user.phone,
+      usernameEmail: user.usernameEmail,
+      role: user.role,
+      isActive: user.isActive,
+      canCreateOwnOrders: user.canCreateOwnOrders,
+      canEditRoute: user.canEditRoute,
+      canCreateCustomers: user.canCreateCustomers,
+      isDurWorker: user.isDurWorker,
+      orgProfile,
+    });
+  },
+  { defaultErrorCode: "fetch_error" }
+);
 
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {

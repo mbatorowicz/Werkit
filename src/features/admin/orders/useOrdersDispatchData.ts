@@ -23,8 +23,9 @@ import {
   narrowUnifiedGanttItems,
   narrowMaterialCategoryRows,
 } from "@/lib/narrowApiListRows";
+import type { DelegationScope } from "@/components/Admin/AdminAbilityProvider";
 
-export function useOrdersDispatchData() {
+export function useOrdersDispatchData(delegationScope: DelegationScope = "all") {
   const [workers, setWorkers] = useState<BaseWorker[]>([]);
   const [machines, setMachines] = useState<BaseMachine[]>([]);
   const [materials, setMaterials] = useState<BaseMaterial[]>([]);
@@ -41,8 +42,8 @@ export function useOrdersDispatchData() {
       /** `allSettled` — przy padnięciu sieci jeden endpoint nie przerywa reszty; UI dostaje część danych. */
       const settled = await Promise.allSettled([
         fetchWithDeviceTelemetry(
-          "Admin dispatch: users",
-          adminApi.users,
+          delegationScope === "scoped" ? "Admin dispatch: delegatable" : "Admin dispatch: users",
+          delegationScope === "scoped" ? adminApi.usersDelegatable : adminApi.users,
           { cache: "no-store" },
           {
             category: "admin",
@@ -134,7 +135,7 @@ export function useOrdersDispatchData() {
     } finally {
       if (showLoader) setIsLoading(false);
     }
-  }, []);
+  }, [delegationScope]);
 
   useEffect(() => {
     queueMicrotask(() => {

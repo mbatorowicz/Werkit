@@ -18,6 +18,8 @@ import { WorkerClientLoading } from "@/features/worker/components/shell/WorkerCl
 import { WorkerClientModals } from "@/features/worker/components/shell/WorkerClientModals";
 import { WorkerPendingOrdersSection } from "@/features/worker/components/shell/WorkerPendingOrdersSection";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { WorkerDelegateOrderModal } from "@/features/worker/components/delegation/WorkerDelegateOrderModal";
+import { UserPlus } from "lucide-react";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dict = getDictionary().worker.client;
@@ -52,6 +54,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
 
   const [showGpsWarning, setShowGpsWarning] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+  const [delegateModalOpen, setDelegateModalOpen] = useState(false);
+  const hasDelegationRights = initialData?.hasDelegationRights ?? false;
 
   const { requestAcceptOrder, handleEndSession, handleAcceptOrderFromModal } = useWorkerGpsActions({
     location: shell.location,
@@ -91,16 +95,33 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     <div className="flex min-h-[80vh] flex-col items-center justify-start space-y-6 py-4">
       <OfflineBanner />
       {!shell.session ? (
-        <WorkerPendingOrdersSection
-          workOrders={shell.workOrders}
-          overdueOrder={overdueOrder}
-          upcomingOrder={upcomingOrder}
-          currentUser={shell.currentUser}
-          dict={dict}
-          requestAcceptOrder={requestAcceptOrder}
-          fetchSessionAndPath={shell.fetchSessionAndPath}
-          acceptErrors={acceptErrors}
-        />
+        <>
+          {hasDelegationRights ? (
+            <button
+              type="button"
+              onClick={() => setDelegateModalOpen(true)}
+              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
+            >
+              <UserPlus className="h-4 w-4" aria-hidden />
+              {dict.delegateOrderButton}
+            </button>
+          ) : null}
+          <WorkerPendingOrdersSection
+            workOrders={shell.workOrders}
+            overdueOrder={overdueOrder}
+            upcomingOrder={upcomingOrder}
+            currentUser={shell.currentUser}
+            dict={dict}
+            requestAcceptOrder={requestAcceptOrder}
+            fetchSessionAndPath={shell.fetchSessionAndPath}
+            acceptErrors={acceptErrors}
+          />
+          <WorkerDelegateOrderModal
+            open={delegateModalOpen}
+            onClose={() => setDelegateModalOpen(false)}
+            onSuccess={() => shell.fetchSessionAndPath(true, false)}
+          />
+        </>
       ) : (
         <WorkerActiveSessionSection
           session={shell.session}

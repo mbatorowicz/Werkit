@@ -15,6 +15,7 @@ import {
 } from "@/lib/workOrderCategoryValidation";
 import { AdminOrderService } from "@/services/AdminOrderService";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { guardDispatchMutation } from "@/lib/requireDispatchMutation";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -28,10 +29,9 @@ export const GET = withApiErrorHandling(
 
 export const POST = withApiErrorHandling(
   async (request: Request) => {
-    const scoped = await requireCompanyScopedSession();
-    if (!scoped.ok) return scoped.response;
-    const { companyId, session } = scoped.data;
-    const adminUserId = session.userId as number;
+    const auth = await guardDispatchMutation();
+    if (auth instanceof Response) return auth;
+    const { companyId, userId: adminUserId, role: actorRole } = auth;
 
     const body = await parseJsonBody(request);
 
@@ -123,24 +123,27 @@ export const POST = withApiErrorHandling(
         repairDescription,
       });
 
-    await AdminOrderService.createOrder({
-      companyId,
-      userId: uidNum,
-      resourceId: resIdNum,
-      categoryId: catIdNum,
-      materialId: orderMaterialId,
-      customerId: customerId ? parseInt(String(customerId), 10) : null,
-      taskDescription: taskStored,
-      status: "PENDING",
-      quantityTons: orderQuantityTons,
-      expectedDurationHours: durationStored,
-      priority: prio,
-      dueDate: parsedDueDate,
-      lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
-      createdById: adminUserId,
-      orderType,
-      repairDescription: repairStored,
-    });
+    await AdminOrderService.createOrder(
+      {
+        companyId,
+        userId: uidNum,
+        resourceId: resIdNum,
+        categoryId: catIdNum,
+        materialId: orderMaterialId,
+        customerId: customerId ? parseInt(String(customerId), 10) : null,
+        taskDescription: taskStored,
+        status: "PENDING",
+        quantityTons: orderQuantityTons,
+        expectedDurationHours: durationStored,
+        priority: prio,
+        dueDate: parsedDueDate,
+        lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
+        createdById: adminUserId,
+        orderType,
+        repairDescription: repairStored,
+      },
+      { userId: adminUserId, role: actorRole }
+    );
 
     return jsonOk({ success: true });
   },
@@ -151,6 +154,7 @@ export const POST = withApiErrorHandling(
         return jsonError("save_error", 503);
       }
       if (err instanceof Error) {
+        if (err.message === "forbidden") return jsonError("forbidden", 403);
         console.error("[admin/work-orders] POST:", err.message);
       }
       return null;

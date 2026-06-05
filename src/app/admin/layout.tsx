@@ -10,7 +10,11 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
 import { JWT_SECRET } from "@/lib/auth";
-import { AdminAbilityProvider } from "@/components/Admin/AdminAbilityProvider";
+import {
+  AdminAbilityProvider,
+  type DelegationScope,
+} from "@/components/Admin/AdminAbilityProvider";
+import { DelegationScopeService } from "@/services/DelegationScopeService";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
@@ -35,23 +39,34 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   let loggedInUser = null;
   let canMutate = false;
+  let canDelegateOrders = false;
+  let delegationScope: DelegationScope = "none";
   const token = (await cookies()).get("auth_token")?.value;
   if (token) {
     try {
       const verified = await jwtVerify(token, JWT_SECRET);
-      canMutate = verified.payload.role === "admin";
-      if (verified.payload.userId) {
-        const userDb = await AdminUserService.getUserById(verified.payload.userId as number);
+      const role = verified.payload.role as string;
+      canMutate = role === "admin";
+      const userId = verified.payload.userId as number | undefined;
+      if (userId) {
+        const userDb = await AdminUserService.getUserById(userId);
         if (userDb) loggedInUser = userDb.fullName;
+        const hasDelegation = await DelegationScopeService.hasDelegationRights(companyId, userId);
+        canDelegateOrders = canMutate || hasDelegation;
+        delegationScope = canMutate ? "all" : hasDelegation ? "scoped" : "none";
       }
     } catch {
       /* ignore */
     }
   }
 
+  const scopedViewerNav = delegationScope === "scoped" && !canMutate;
+
   return (
     <AdminAbilityProvider
       canMutate={canMutate}
+      canDelegateOrders={canDelegateOrders}
+      delegationScope={delegationScope}
       gpsEnabled={isGpsModuleEnabled(featureFlags)}
       durEnabled={featureFlags.durEnabled}
     >
@@ -74,7 +89,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 {companyName} - {dict.sidebar.logisticsSystem}
               </p>
             </div>
-            <AdminSidebarNav dict={dict} durDict={durDict} durEnabled={featureFlags.durEnabled} />
+            <AdminSidebarNav
+              dict={dict}
+              durDict={durDict}
+              durEnabled={featureFlags.durEnabled}
+              scopedViewer={scopedViewerNav}
+            />
           </div>
           <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
             {loggedInUser && (
@@ -129,6 +149,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 dict={dict}
                 durDict={durDict}
                 durEnabled={featureFlags.durEnabled}
+                scopedViewer={scopedViewerNav}
                 loggedInUser={loggedInUser}
               />
             </div>

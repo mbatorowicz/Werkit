@@ -8,6 +8,50 @@ import { eq, and } from "drizzle-orm";
 import type { DepartmentTreeNode, TeamWithMembers, TeamMemberWithUser } from "@/types/organization";
 
 export class OrganizationService {
+  /** SSOT: `teams.leaderId` — synchronizuje wpis `team_members` z `role='leader'`. */
+  private static async syncTeamLeader(teamId: number, leaderId: number | null) {
+    const members = await db
+      .select({ id: teamMembers.id, userId: teamMembers.userId, role: teamMembers.role })
+      .from(teamMembers)
+      .where(eq(teamMembers.teamId, teamId));
+
+    for (const m of members) {
+      if (m.role === "leader" && m.userId !== leaderId) {
+        await db.update(teamMembers).set({ role: "member" }).where(eq(teamMembers.id, m.id));
+      }
+    }
+
+    if (leaderId == null) return;
+
+    const existing = members.find((m) => m.userId === leaderId);
+    if (existing) {
+      if (existing.role !== "leader") {
+        await db
+          .update(teamMembers)
+          .set({ role: "leader" })
+          .where(eq(teamMembers.id, existing.id));
+      }
+      return;
+    }
+
+    await db.insert(teamMembers).values({
+      teamId,
+      userId: leaderId,
+      role: "leader",
+    });
+  }
+
+  private static async applyTeamLeaderFromMember(teamId: number, userId: number) {
+    await db.update(teams).set({ leaderId: userId }).where(eq(teams.id, teamId));
+    await this.syncTeamLeader(teamId, userId);
+  }
+
+  private static async clearTeamLeaderIfMatches(teamId: number, userId: number) {
+    const [team] = await db.select().from(teams).where(eq(teams.id, teamId)).limit(1);
+    if (team?.leaderId === userId) {
+      await db.update(teams).set({ leaderId: null }).where(eq(teams.id, teamId));
+    }
+  }
   // ==================== DEPARTAMENTY ====================
 
   /**
@@ -187,6 +231,10 @@ export class OrganizationService {
       })
       .returning();
 
+    if (inserted.leaderId) {
+      await this.syncTeamLeader(inserted.id, inserted.leaderId);
+    }
+
     return inserted;
   }
 
@@ -208,6 +256,10 @@ export class OrganizationService {
       })
       .where(eq(teams.id, id))
       .returning();
+
+    if (updated && data.leaderId !== undefined) {
+      await this.syncTeamLeader(id, data.leaderId);
+    }
 
     return updated;
   }
@@ -262,14 +314,19 @@ export class OrganizationService {
    * Dodaje użytkownika do zespołu.
    */
   static async addTeamMember(data: { teamId: number; userId: number; role?: string }) {
+    const role = data.role ?? "member";
     const [inserted] = await db
       .insert(teamMembers)
       .values({
         teamId: data.teamId,
         userId: data.userId,
-        role: data.role ?? "member",
+        role,
       })
       .returning();
+
+    if (role === "leader") {
+      await this.applyTeamLeaderFromMember(data.teamId, data.userId);
+    }
 
     return inserted;
   }
@@ -278,6 +335,8 @@ export class OrganizationService {
    * Aktualizuje rolę członka zespołu.
    */
   static async updateTeamMember(id: number, data: { role?: string }) {
+    const [before] = await db.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
+
     const [updated] = await db
       .update(teamMembers)
       .set({
@@ -285,6 +344,14 @@ export class OrganizationService {
       })
       .where(eq(teamMembers.id, id))
       .returning();
+
+    if (updated && data.role !== undefined && before) {
+      if (data.role === "leader") {
+        await this.applyTeamLeaderFromMember(before.teamId, before.userId);
+      } else if (before.role === "leader") {
+        await this.clearTeamLeaderIfMatches(before.teamId, before.userId);
+      }
+    }
 
     return updated;
   }
@@ -294,6 +361,10 @@ export class OrganizationService {
    */
   static async removeTeamMember(id: number) {
     const [deleted] = await db.delete(teamMembers).where(eq(teamMembers.id, id)).returning();
+
+    if (deleted?.role === "leader") {
+      await this.clearTeamLeaderIfMatches(deleted.teamId, deleted.userId);
+    }
 
     return deleted;
   }

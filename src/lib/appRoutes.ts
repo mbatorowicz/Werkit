@@ -27,6 +27,7 @@ export const adminRoutes = {
 
 export const adminApi = {
   users: "/api/admin/users",
+  usersDelegatable: "/api/admin/users/delegatable",
   user: (id: number) => `/api/admin/users/${id}`,
   settings: "/api/admin/settings",
   workOrders: "/api/admin/work-orders",
@@ -47,6 +48,8 @@ export const adminApi = {
 
 export const workerApi = {
   spareParts: (workOrderId: number) => `/api/worker/work-orders/${workOrderId}/spare-parts`,
+  delegationTargets: "/api/worker/delegation-targets",
+  delegations: "/api/worker/delegations",
 } as const;
 
 export function adminDispatchOpenUrl(workOrderOrSessionId: number): string {

@@ -70,6 +70,7 @@ export interface OrderFormState {
 export type BaseWorker = {
   id: number;
   fullName: string;
+  orgLabel?: string | null;
 };
 
 export type BaseMachine = {

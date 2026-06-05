@@ -15,6 +15,7 @@ import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import UsersTable from "./UsersTable";
 import UserFormFields, { emptyUserForm, type UserFormState } from "./UserFormFields";
 
@@ -33,6 +34,9 @@ export default function UsersClient() {
   const [form, setForm] = useState<UserFormState>(emptyUserForm());
   const dictionary = getDictionary();
   const dict = dictionary.admin.workers;
+  const orgDict = dict.org;
+  const { org: _orgNested, ...workersDict } = dict;
+  const formDict = workersDict as Record<string, string>;
   const pageTitle = dictionary.admin.sidebar.users;
   const ui = dictionary.admin.ui;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
@@ -209,7 +213,12 @@ export default function UsersClient() {
         onPreview={openPreview}
         onEdit={openEdit}
         onDelete={handleDelete}
-        dict={dict}
+        dict={formDict}
+        orgLabels={{
+          deptManager: orgDict.deptManager,
+          teamLeader: orgDict.teamLeader,
+          teamMember: orgDict.teamMember,
+        }}
         roleSubtitle={roleSubtitle}
       />
 
@@ -238,7 +247,7 @@ export default function UsersClient() {
             showPassword={showPassword}
             onFormChange={setForm}
             onTogglePassword={() => setShowPassword((v) => !v)}
-            dict={dict}
+            dict={formDict}
             gpsEnabled={gpsEnabled}
             durEnabled={durEnabled}
           />
@@ -261,6 +270,11 @@ export default function UsersClient() {
             ) : null}
             <AdminPreviewField label={dict.roleLabel} value={roleSubtitle(previewUser.role)} />
             <AdminPreviewField label={dict.loginLabel} value={previewUser.usernameEmail} />
+            {previewUser.orgProfile ? (
+              <div className="pt-2">
+                <ProfileOrgSection profile={previewUser.orgProfile} dict={orgDict} />
+              </div>
+            ) : null}
             {previewUser.role === "worker" ? (
               <>
                 <AdminPreviewField

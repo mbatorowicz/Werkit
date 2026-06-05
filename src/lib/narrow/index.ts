@@ -46,6 +46,8 @@ export {
   narrowOrganizationDepartments,
   narrowOrganizationTeams,
   narrowOrganizationTeamDetail,
+  narrowUserOrgProfile,
+  narrowDelegatableWorkers,
   type OrganizationDepartmentRow,
   type OrganizationTeamRow,
   type OrganizationTeamMemberRow,

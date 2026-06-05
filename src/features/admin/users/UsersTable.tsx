@@ -5,6 +5,7 @@ import type { AdminUserListRow } from "@/lib/narrowApiListRows";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { OrgProfileBadges } from "@/components/organization/OrgProfileBadges";
 
 interface UsersTableProps {
   users: AdminUserListRow[];
@@ -17,6 +18,7 @@ interface UsersTableProps {
   onEdit: (user: AdminUserListRow) => void;
   onDelete: (id: number, name: string) => void;
   dict: Record<string, string>;
+  orgLabels: { deptManager: string; teamLeader: string; teamMember: string };
   roleSubtitle: (role: string) => string;
 }
 
@@ -31,6 +33,7 @@ export default function UsersTable({
   onEdit,
   onDelete,
   dict,
+  orgLabels,
   roleSubtitle,
 }: UsersTableProps) {
   return (
@@ -98,6 +101,11 @@ export default function UsersTable({
                           <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                             {roleSubtitle(user.role)}
                           </div>
+                          <OrgProfileBadges
+                            profile={user.orgProfile}
+                            labels={orgLabels}
+                            className="mt-1.5"
+                          />
                         </div>
                       </div>
                     </td>

@@ -11,6 +11,7 @@ import {
   validateWorkOrderFieldsAgainstCategory,
 } from "@/lib/workOrderCategoryValidation";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { guardDispatchMutation } from "@/lib/requireDispatchMutation";
 import { AdminOrderService } from "@/services/AdminOrderService";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
@@ -18,12 +19,9 @@ export const dynamic = "force-dynamic";
 
 export const PUT = withApiErrorHandling(
   async (request: Request, props: { params: Promise<{ id: string }> }) => {
-    const denied = await guardAdminMutation();
-    if (denied) return denied;
-
-    const scoped = await requireCompanyScopedSession();
-    if (!scoped.ok) return scoped.response;
-    const { companyId } = scoped.data;
+    const auth = await guardDispatchMutation();
+    if (auth instanceof Response) return auth;
+    const { companyId, userId: actorUserId, role: actorRole } = auth;
 
     const params = await props.params;
     const orderId = parseInt(params.id, 10);
@@ -119,25 +117,31 @@ export const PUT = withApiErrorHandling(
       });
 
     try {
-      await AdminOrderService.updateOrder(companyId, orderId, {
-        userId: uidNum,
-        resourceId: resIdNum,
-        categoryId: catIdNum,
-        materialId: orderMaterialId,
-        customerId: customerId ? parseInt(String(customerId), 10) : null,
-        taskDescription: taskStored,
-        quantityTons: orderQuantityTons,
-        expectedDurationHours: durationStored,
-        priority: prio,
-        dueDate: parsedDueDate,
-        lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
-        orderType,
-        repairDescription: repairStored,
-      });
+      await AdminOrderService.updateOrder(
+        companyId,
+        orderId,
+        {
+          userId: uidNum,
+          resourceId: resIdNum,
+          categoryId: catIdNum,
+          materialId: orderMaterialId,
+          customerId: customerId ? parseInt(String(customerId), 10) : null,
+          taskDescription: taskStored,
+          quantityTons: orderQuantityTons,
+          expectedDurationHours: durationStored,
+          priority: prio,
+          dueDate: parsedDueDate,
+          lockedUntil: AdminOrderService.resolveLockedUntil(parsedDueDate, parsedDuration),
+          orderType,
+          repairDescription: repairStored,
+        },
+        { userId: actorUserId, role: actorRole }
+      );
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "";
       if (msg === "not_found") return jsonError("not_found", 404);
       if (msg === "not_pending") return jsonError("not_pending", 404);
+      if (msg === "forbidden") return jsonError("forbidden", 403);
       throw e;
     }
 

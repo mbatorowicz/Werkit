@@ -15,7 +15,13 @@ export function narrowBaseWorkers(rows: unknown[]): BaseWorker[] {
   for (const r of rows) {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.fullName !== "string") continue;
-    out.push({ id: r.id, fullName: r.fullName });
+    const orgLabel =
+      r.orgLabel === null || typeof r.orgLabel === "string" ? (r.orgLabel as string | null) : undefined;
+    out.push({
+      id: r.id,
+      fullName: r.fullName,
+      ...(orgLabel !== undefined ? { orgLabel } : {}),
+    });
   }
   return out;
 }

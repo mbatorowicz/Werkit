@@ -15,8 +15,21 @@ export const GET = withApiErrorHandling(
     const { companyId } = scoped.data;
 
     const { AdminUserService } = await import("@/services/AdminUserService");
-    const allUsers = await AdminUserService.getAllUsers(companyId);
-    return jsonOk(allUsers);
+    const { DelegationScopeService } = await import("@/services/DelegationScopeService");
+    const [allUsers, orgProfiles] = await Promise.all([
+      AdminUserService.getAllUsers(companyId),
+      DelegationScopeService.getOrgProfilesForCompany(companyId),
+    ]);
+    const enriched = allUsers.map((u) => ({
+      ...u,
+      orgProfile: orgProfiles.get(u.id) ?? {
+        deptManagerOf: [],
+        teamLeaderOf: [],
+        teamMemberships: [],
+        supervisorChain: [],
+      },
+    }));
+    return jsonOk(enriched);
   },
   { defaultErrorCode: "fetch_error" }
 );

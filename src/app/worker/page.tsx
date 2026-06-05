@@ -15,9 +15,12 @@ export default async function WorkerPage() {
   const { WorkerOrderService } = await import("@/services/WorkerOrderService");
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
 
-  const [ordersRaw, sessionDetails] = await Promise.all([
+  const { DelegationScopeService } = await import("@/services/DelegationScopeService");
+
+  const [ordersRaw, sessionDetails, hasDelegationRights] = await Promise.all([
     WorkerOrderService.getPendingOrders(userId, companyId),
     WorkerSessionService.getActiveSessionWithDetails(userId, companyId),
+    DelegationScopeService.hasDelegationRights(companyId, userId),
   ]);
 
   const orders = ordersRaw.map((o) => ({
@@ -96,6 +99,7 @@ export default async function WorkerPage() {
       longitude: n.longitude ? String(n.longitude) : null,
       createdAt: new Date(n.createdAt),
     })),
+    hasDelegationRights,
   };
 
   return <WorkerClient initialData={initialData} />;

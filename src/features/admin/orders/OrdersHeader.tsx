@@ -14,6 +14,7 @@ interface OrdersHeaderProps {
     newOrder: string;
   };
   canMutate: boolean;
+  showSettings?: boolean;
   onOpenSettings: (data: unknown) => void;
   onRefresh: () => void;
   onNewOrder: () => void;
@@ -23,6 +24,7 @@ export function OrdersHeader({
   navTitle,
   dict,
   canMutate,
+  showSettings = true,
   onOpenSettings,
   onRefresh,
   onNewOrder,
@@ -35,31 +37,33 @@ export function OrdersHeader({
         </h1>
       </div>
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              const res = await fetchWithDeviceTelemetry(
-                "Admin dispatch: settings GET",
-                adminApi.settings,
-                undefined,
-                {
-                  category: "admin",
+        {showSettings ? (
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const res = await fetchWithDeviceTelemetry(
+                  "Admin dispatch: settings GET",
+                  adminApi.settings,
+                  undefined,
+                  {
+                    category: "admin",
+                  }
+                );
+                if (res.ok) {
+                  const raw = await parseJsonUnknown(res);
+                  if (isRecord(raw)) onOpenSettings(raw);
                 }
-              );
-              if (res.ok) {
-                const raw = await parseJsonUnknown(res);
-                if (isRecord(raw)) onOpenSettings(raw);
+              } catch {
+                /* ignore */
               }
-            } catch {
-              /* ignore */
-            }
-          }}
-          className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
-          title={dict.tooltipSettings}
-        >
-          <Settings className="h-4 w-4" />
-        </button>
+            }}
+            className="rounded-lg border border-zinc-200 bg-white p-2.5 text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+            title={dict.tooltipSettings}
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onRefresh}

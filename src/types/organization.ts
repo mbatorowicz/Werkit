@@ -91,3 +91,30 @@ export type TeamMemberWithUser = TeamMember & {
     usernameEmail: string;
   };
 };
+
+/** Krótki opis pozycji w strukturze (badge w UI). */
+export type OrgPositionRef = {
+  id: number;
+  name: string;
+};
+
+export type TeamMembershipRef = OrgPositionRef & {
+  teamId: number;
+  departmentName: string | null;
+  role: string;
+};
+
+/** Profil organizacyjny użytkownika — pochodny z departments / teams / team_members. */
+export type UserOrgProfile = {
+  deptManagerOf: OrgPositionRef[];
+  teamLeaderOf: OrgPositionRef[];
+  teamMemberships: TeamMembershipRef[];
+  supervisorChain: { userId: number; fullName: string; kind: "team_leader" | "dept_manager" }[];
+};
+
+/** Wiersz pracownika do pickera delegacji. */
+export type DelegatableWorkerRow = {
+  id: number;
+  fullName: string;
+  orgLabel: string | null;
+};

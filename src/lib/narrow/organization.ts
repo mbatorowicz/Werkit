@@ -1,5 +1,6 @@
 /** Zawężacze odpowiedzi API struktury organizacyjnej (`/api/admin/organization/*`). */
 
+import type { DelegatableWorkerRow, UserOrgProfile } from "@/types/organization";
 import { isRecord } from "./shared";
 
 export type OrganizationDepartmentRow = {
@@ -129,4 +130,77 @@ export function narrowOrganizationTeamDetail(value: unknown): OrganizationTeamDe
     isActive: typeof value.isActive === "boolean" ? value.isActive : true,
     members,
   };
+}
+
+function narrowOrgPositionRef(row: unknown): { id: number; name: string } | null {
+  if (!isRecord(row) || typeof row.id !== "number" || typeof row.name !== "string") return null;
+  return { id: row.id, name: row.name };
+}
+
+export function narrowUserOrgProfile(value: unknown): UserOrgProfile | null {
+  if (!isRecord(value)) return null;
+  const deptManagerOf = Array.isArray(value.deptManagerOf)
+    ? value.deptManagerOf.flatMap((r) => {
+        const n = narrowOrgPositionRef(r);
+        return n ? [n] : [];
+      })
+    : [];
+  const teamLeaderOf = Array.isArray(value.teamLeaderOf)
+    ? value.teamLeaderOf.flatMap((r) => {
+        const n = narrowOrgPositionRef(r);
+        return n ? [n] : [];
+      })
+    : [];
+  const teamMemberships = Array.isArray(value.teamMemberships)
+    ? value.teamMemberships.flatMap((r) => {
+        if (!isRecord(r) || typeof r.teamId !== "number" || typeof r.name !== "string") return [];
+        return [
+          {
+            id: typeof r.id === "number" ? r.id : r.teamId,
+            teamId: r.teamId,
+            name: r.name,
+            departmentName:
+              r.departmentName === null || typeof r.departmentName === "string"
+                ? (r.departmentName as string | null)
+                : null,
+            role: typeof r.role === "string" ? r.role : "member",
+          },
+        ];
+      })
+    : [];
+  const supervisorChain = Array.isArray(value.supervisorChain)
+    ? value.supervisorChain.flatMap((r) => {
+        if (
+          !isRecord(r) ||
+          typeof r.userId !== "number" ||
+          typeof r.fullName !== "string" ||
+          (r.kind !== "team_leader" && r.kind !== "dept_manager")
+        ) {
+          return [];
+        }
+        return [
+          {
+            userId: r.userId,
+            fullName: r.fullName,
+            kind: r.kind as "team_leader" | "dept_manager",
+          },
+        ];
+      })
+    : [];
+  return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain };
+}
+
+export function narrowDelegatableWorkers(rows: unknown[]): DelegatableWorkerRow[] {
+  const out: DelegatableWorkerRow[] = [];
+  for (const row of rows) {
+    if (!isRecord(row) || typeof row.id !== "number" || typeof row.fullName !== "string") {
+      continue;
+    }
+    const orgLabel =
+      row.orgLabel === null || typeof row.orgLabel === "string"
+        ? (row.orgLabel as string | null)
+        : null;
+    out.push({ id: row.id, fullName: row.fullName, orgLabel });
+  }
+  return out;
 }

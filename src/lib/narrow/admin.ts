@@ -1,6 +1,8 @@
 /** Zawężacze dla panelu admina – użytkownicy, klienci, elementy Gantta. */
 
 import type { UnifiedGanttItem } from "@/types/admin";
+import type { UserOrgProfile } from "@/types/organization";
+import { narrowUserOrgProfile } from "./organization";
 import { isRecord, narrowStringArray } from "./shared";
 
 /** Wiersz listy użytkowników (`/api/admin/users`) w panelu admin. */
@@ -15,6 +17,7 @@ export type AdminUserListRow = {
   canEditRoute: boolean;
   canCreateCustomers: boolean;
   isDurWorker: boolean;
+  orgProfile?: UserOrgProfile;
 };
 
 export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
@@ -30,6 +33,7 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
       continue;
     }
     const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
+    const orgProfile = r.orgProfile !== undefined ? narrowUserOrgProfile(r.orgProfile) : undefined;
     out.push({
       id: r.id,
       fullName: r.fullName,
@@ -41,6 +45,7 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
       canEditRoute: typeof r.canEditRoute === "boolean" ? r.canEditRoute : false,
       canCreateCustomers: typeof r.canCreateCustomers === "boolean" ? r.canCreateCustomers : false,
       isDurWorker: typeof r.isDurWorker === "boolean" ? r.isDurWorker : false,
+      ...(orgProfile ? { orgProfile } : {}),
     });
   }
   return out;

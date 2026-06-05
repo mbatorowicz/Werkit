@@ -18,6 +18,12 @@ import { sqlSessionHasNotes, sqlSessionHasPhotos } from "@/services/sql/attachme
 import { computeLockedUntil } from "@/lib/scheduleConflict";
 import { ScheduleConflictService } from "@/services/ScheduleConflictService";
 import { assertOrderEntitiesBelongToCompany } from "@/lib/tenantContext";
+import { DelegationScopeService } from "@/services/DelegationScopeService";
+
+export type OrderMutationActor = {
+  userId: number;
+  role: string;
+};
 
 export class AdminOrderService {
   /** Koniec rezerwacji harmonogramu — `null` gdy brak terminu lub czasu trwania. */
@@ -152,12 +158,23 @@ export class AdminOrderService {
       .limit(limitCount);
   }
 
-  static async createOrder(orderData: typeof workOrders.$inferInsert) {
+  static async createOrder(
+    orderData: typeof workOrders.$inferInsert,
+    actor?: OrderMutationActor
+  ) {
     const companyId = orderData.companyId;
     if (companyId == null) throw new Error("missing_company");
 
-    // Cross-tenant validation: verify all referenced entities belong to the same company
     await assertOrderEntitiesBelongToCompany(orderData, companyId);
+
+    if (actor) {
+      await DelegationScopeService.assertCanDelegateTo(
+        companyId,
+        actor.userId,
+        actor.role,
+        orderData.userId
+      );
+    }
 
     await db.insert(workOrders).values(orderData);
   }
@@ -165,7 +182,8 @@ export class AdminOrderService {
   static async updateOrder(
     companyId: number,
     orderId: number,
-    updates: Partial<typeof workOrders.$inferInsert>
+    updates: Partial<typeof workOrders.$inferInsert>,
+    actor?: OrderMutationActor
   ) {
     const existingOrder = await db
       .select()
@@ -174,6 +192,19 @@ export class AdminOrderService {
       .limit(1);
     if (existingOrder.length === 0) throw new Error("not_found");
     if (existingOrder[0].status !== "PENDING") throw new Error("not_pending");
+
+    const merged = { ...existingOrder[0], ...updates };
+    await assertOrderEntitiesBelongToCompany(merged, companyId);
+
+    const targetUserId = updates.userId ?? existingOrder[0].userId;
+    if (actor) {
+      await DelegationScopeService.assertCanDelegateTo(
+        companyId,
+        actor.userId,
+        actor.role,
+        targetUserId
+      );
+    }
 
     await db
       .update(workOrders)

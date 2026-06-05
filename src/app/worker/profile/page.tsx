@@ -4,7 +4,9 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ProfileSettings } from "@/features/worker/components/profile/ProfileSettings";
+import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import { getDictionary } from "@/i18n";
+import { requireServerCompanyId } from "@/lib/serverTenant";
 
 import { JWT_SECRET } from "@/lib/auth";
 async function getUserId() {
@@ -24,7 +26,10 @@ export default async function ProfilePage() {
   if (!userId) return <div>{dict.noAccess}</div>;
 
   const { AdminUserService } = await import("@/services/AdminUserService");
+  const { DelegationScopeService } = await import("@/services/DelegationScopeService");
   const user = await AdminUserService.getUserById(userId);
+  const companyId = await requireServerCompanyId();
+  const orgProfile = await DelegationScopeService.getUserOrgProfile(companyId, userId);
 
   return (
     <div className="py-6 pb-20">
@@ -52,6 +57,8 @@ export default async function ProfilePage() {
       </div>
 
       <div className="space-y-4">
+        <ProfileOrgSection profile={orgProfile} dict={dict.org} />
+
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center">
           <span className="text-zinc-700 dark:text-zinc-300 text-sm font-medium">
             {dict.systemLogin}:

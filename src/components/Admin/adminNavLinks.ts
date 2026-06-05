@@ -21,9 +21,32 @@ export type AdminNavLinkItem =
 export function buildAdminNavLinks(
   adminDict: AppDictionary["admin"],
   durDict: AppDictionary["dur"],
-  options?: { durEnabled?: boolean }
+  options?: { durEnabled?: boolean; scopedViewer?: boolean }
 ): AdminNavLinkItem[] {
   const durEnabled = options?.durEnabled ?? false;
+
+  if (options?.scopedViewer) {
+    return [
+      {
+        kind: "route",
+        href: adminRoutes.dispatch,
+        icon: LayoutDashboard,
+        label: adminDict.sidebar.dispatch,
+      },
+      {
+        kind: "route",
+        href: adminRoutes.reports,
+        icon: BarChart3,
+        label: adminDict.sidebar.reports,
+      },
+      {
+        kind: "route",
+        href: adminRoutes.organization,
+        icon: Building2,
+        label: adminDict.sidebar.organization,
+      },
+    ];
+  }
 
   const links: AdminNavLinkItem[] = [
     {

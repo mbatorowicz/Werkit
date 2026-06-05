@@ -154,4 +154,6 @@ export type InitialWorkerData = {
   settings: AppSettings | null;
   user: UserData | null;
   workOrders: WorkOrder[];
+  /** Lider/kierownik — może delegować zlecenia podległym. */
+  hasDelegationRights?: boolean;
 };

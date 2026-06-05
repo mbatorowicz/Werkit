@@ -10,13 +10,15 @@ export function AdminSidebarNav({
   dict,
   durDict,
   durEnabled = false,
+  scopedViewer = false,
 }: {
   dict: AppDictionary["admin"];
   durDict: AppDictionary["dur"];
   durEnabled?: boolean;
+  scopedViewer?: boolean;
 }) {
   const pathname = usePathname();
-  const links = buildAdminNavLinks(dict, durDict, { durEnabled });
+  const links = buildAdminNavLinks(dict, durDict, { durEnabled, scopedViewer });
 
   return (
     <nav className="p-4 space-y-1.5">

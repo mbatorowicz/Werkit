@@ -24,6 +24,13 @@ function isWorkerSharedCustomerCreate(pathname: string, method: string, role: st
   return role === "worker" && method === "POST" && pathname === "/api/customers";
 }
 
+/** Scoped dyspozycja — viewer/lider mutuje tylko work-orders (weryfikacja w route handlerze). */
+function isAdminDispatchMutation(pathname: string, method: string): boolean {
+  if (method !== "POST" && method !== "PUT") return false;
+  if (pathname === "/api/admin/work-orders") return true;
+  return /^\/api\/admin\/work-orders\/\d+$/.test(pathname);
+}
+
 function loginRedirectForRole(role: string): string {
   if (isSuperadminRole(role)) return "/platform";
   if (role === "worker") return "/worker";
@@ -185,6 +192,10 @@ function authorizeAdminAccess(
     return NextResponse.redirect(new URL("/worker", request.url));
   }
   if (route.isAdminApi && isMutation && role !== "admin") {
+    const pathname = request.nextUrl.pathname;
+    if (isAdminDispatchMutation(pathname, request.method)) {
+      return null;
+    }
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;

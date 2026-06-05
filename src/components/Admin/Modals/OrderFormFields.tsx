@@ -109,7 +109,12 @@ export function OrderFormFields({
   );
 
   const workerOptions: AdminSearchComboboxOption[] = useMemo(
-    () => workers.map((w) => ({ id: String(w.id), label: w.fullName })),
+    () =>
+      workers.map((w) => ({
+        id: String(w.id),
+        label: w.fullName,
+        sublabel: w.orgLabel ?? undefined,
+      })),
     [workers]
   );
 
