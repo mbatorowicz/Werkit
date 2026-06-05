@@ -1,6 +1,13 @@
 /** Zawężacze odpowiedzi API struktury organizacyjnej (`/api/admin/organization/*`). */
 
-import type { DelegatableWorkerRow, UserOrgProfile } from "@/types/organization";
+import type {
+  DelegatableWorkerRow,
+  DepartmentTreeNode,
+  OrganizationTreePayload,
+  TeamMemberWithUser,
+  TeamWithMembers,
+  UserOrgProfile,
+} from "@/types/organization";
 import { isRecord } from "./shared";
 
 export type OrganizationDepartmentRow = {
@@ -195,6 +202,102 @@ export function narrowUserOrgProfile(value: unknown): UserOrgProfile | null {
     }
   }
   return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain, directSupervisor };
+}
+
+function narrowTeamMemberWithUser(row: unknown): TeamMemberWithUser | null {
+  if (!isRecord(row) || typeof row.id !== "number" || typeof row.teamId !== "number") {
+    return null;
+  }
+  if (typeof row.userId !== "number" || typeof row.role !== "string") return null;
+  const user = row.user;
+  if (!isRecord(user) || typeof user.id !== "number" || typeof user.fullName !== "string") {
+    return null;
+  }
+  const usernameEmail =
+    typeof user.usernameEmail === "string" ? user.usernameEmail : "";
+  return {
+    id: row.id,
+    teamId: row.teamId,
+    userId: row.userId,
+    role: row.role,
+    joinedAt: row.joinedAt instanceof Date ? row.joinedAt : new Date(),
+    user: { id: user.id, fullName: user.fullName, usernameEmail },
+  };
+}
+
+function narrowTeamWithMembers(row: unknown): TeamWithMembers | null {
+  if (!isRecord(row) || typeof row.id !== "number" || typeof row.name !== "string") {
+    return null;
+  }
+  if (typeof row.departmentId !== "number") return null;
+  const membersRaw = Array.isArray(row.members) ? row.members : [];
+  const members: TeamMemberWithUser[] = [];
+  for (const m of membersRaw) {
+    const n = narrowTeamMemberWithUser(m);
+    if (n) members.push(n);
+  }
+  return {
+    id: row.id,
+    companyId: typeof row.companyId === "number" ? row.companyId : 0,
+    departmentId: row.departmentId,
+    name: row.name,
+    leaderId: readNullableId(row.leaderId),
+    sortOrder: typeof row.sortOrder === "number" ? row.sortOrder : 0,
+    isActive: typeof row.isActive === "boolean" ? row.isActive : true,
+    createdAt: row.createdAt instanceof Date ? row.createdAt : new Date(),
+    members,
+  };
+}
+
+function narrowDepartmentTreeNode(row: unknown): DepartmentTreeNode | null {
+  if (!isRecord(row) || typeof row.id !== "number" || typeof row.name !== "string") {
+    return null;
+  }
+  const childrenRaw = Array.isArray(row.children) ? row.children : [];
+  const children: DepartmentTreeNode[] = [];
+  for (const c of childrenRaw) {
+    const n = narrowDepartmentTreeNode(c);
+    if (n) children.push(n);
+  }
+  const teamsRaw = Array.isArray(row.teams) ? row.teams : [];
+  const teams: TeamWithMembers[] = [];
+  for (const t of teamsRaw) {
+    const n = narrowTeamWithMembers(t);
+    if (n) teams.push(n);
+  }
+  return {
+    id: row.id,
+    companyId: typeof row.companyId === "number" ? row.companyId : 0,
+    name: row.name,
+    parentId: readNullableId(row.parentId),
+    managerId: readNullableId(row.managerId),
+    sortOrder: typeof row.sortOrder === "number" ? row.sortOrder : 0,
+    isActive: typeof row.isActive === "boolean" ? row.isActive : true,
+    createdAt: row.createdAt instanceof Date ? row.createdAt : new Date(),
+    children,
+    teams,
+  };
+}
+
+export function narrowOrganizationTreePayload(value: unknown): OrganizationTreePayload | null {
+  if (!isRecord(value)) return null;
+  const treeRaw = Array.isArray(value.tree) ? value.tree : [];
+  const tree: DepartmentTreeNode[] = [];
+  for (const n of treeRaw) {
+    const row = narrowDepartmentTreeNode(n);
+    if (row) tree.push(row);
+  }
+  const unassignedRaw = Array.isArray(value.unassignedUsers) ? value.unassignedUsers : [];
+  const unassignedUsers: OrganizationTreePayload["unassignedUsers"] = [];
+  for (const u of unassignedRaw) {
+    if (!isRecord(u) || typeof u.id !== "number" || typeof u.fullName !== "string") continue;
+    unassignedUsers.push({
+      id: u.id,
+      fullName: u.fullName,
+      role: typeof u.role === "string" ? u.role : "worker",
+    });
+  }
+  return { tree, unassignedUsers };
 }
 
 export function narrowDelegatableWorkers(rows: unknown[]): DelegatableWorkerRow[] {

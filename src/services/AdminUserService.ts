@@ -50,6 +50,19 @@ export class AdminUserService {
   }
 
   /** Waliduje opcjonalnego przełożonego (ta sama firma, aktywny, nie sam siebie). */
+  static async resolveTeamIdForCompany(companyId: number, raw: unknown): Promise<number> {
+    const id = typeof raw === "number" ? raw : parseInt(String(raw), 10);
+    if (!Number.isFinite(id) || id < 1) {
+      throw new Error("invalid_team");
+    }
+    const { OrganizationService } = await import("@/services/OrganizationService");
+    const teams = await OrganizationService.getTeams(companyId);
+    if (!teams.some((t) => t.id === id)) {
+      throw new Error("invalid_team");
+    }
+    return id;
+  }
+
   static async resolveReportsToId(
     companyId: number,
     subjectUserId: number | null,
@@ -103,20 +116,24 @@ export class AdminUserService {
     const canCreateCustomers = role === "worker" ? !!payload.canCreateCustomers : false;
     const isDurWorker = role === "worker" ? !!payload.isDurWorker : false;
     const reportsToId = role === "worker" ? (payload.reportsToId ?? null) : null;
-    await db.insert(users).values({
-      companyId,
-      fullName: payload.fullName,
-      phone: payload.phone?.trim() || null,
-      usernameEmail: payload.usernameEmail,
-      passwordHash: payload.passwordHash,
-      role,
-      isActive: true,
-      canCreateOwnOrders,
-      canEditRoute,
-      canCreateCustomers,
-      isDurWorker,
-      reportsToId,
-    });
+    const [created] = await db
+      .insert(users)
+      .values({
+        companyId,
+        fullName: payload.fullName,
+        phone: payload.phone?.trim() || null,
+        usernameEmail: payload.usernameEmail,
+        passwordHash: payload.passwordHash,
+        role,
+        isActive: true,
+        canCreateOwnOrders,
+        canEditRoute,
+        canCreateCustomers,
+        isDurWorker,
+        reportsToId,
+      })
+      .returning({ id: users.id });
+    return created.id;
   }
 
   static async updateUser(

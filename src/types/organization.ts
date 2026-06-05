@@ -114,6 +114,12 @@ export type UserOrgProfile = {
   directSupervisor: { userId: number; fullName: string } | null;
 };
 
+/** Pełne drzewo organizacji + nieprzypisani workerzy (API tree). */
+export type OrganizationTreePayload = {
+  tree: DepartmentTreeNode[];
+  unassignedUsers: { id: number; fullName: string; role: string }[];
+};
+
 /** Wiersz pracownika do pickera delegacji. */
 export type DelegatableWorkerRow = {
   id: number;

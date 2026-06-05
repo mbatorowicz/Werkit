@@ -89,24 +89,42 @@ export const PUT = withApiErrorHandling(
     }
 
     const { AdminUserService } = await import("@/services/AdminUserService");
+    let teamId: number | null | undefined;
     if (normalizedRole === "worker") {
       updateData.reportsToId = await AdminUserService.resolveReportsToId(
         companyId,
         id,
         body.reportsToId
       );
+      if (body.teamId !== undefined) {
+        teamId =
+          body.teamId == null || body.teamId === ""
+            ? null
+            : await AdminUserService.resolveTeamIdForCompany(companyId, body.teamId);
+      }
     } else {
       updateData.reportsToId = null;
+      teamId = null;
     }
 
     await AdminUserService.updateUser(companyId, id, updateData);
+
+    if (teamId !== undefined) {
+      const { OrganizationService } = await import("@/services/OrganizationService");
+      await OrganizationService.replaceUserTeamAssignment(companyId, id, teamId);
+    }
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      err instanceof Error && err.message === "invalid_supervisor"
-        ? jsonError("invalid_supervisor", 400)
-        : null,
+    mapUnknownError: (err) => {
+      if (err instanceof Error && err.message === "invalid_supervisor") {
+        return jsonError("invalid_supervisor", 400);
+      }
+      if (err instanceof Error && err.message === "invalid_team") {
+        return jsonError("invalid_team", 400);
+      }
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );

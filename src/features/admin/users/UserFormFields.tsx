@@ -8,6 +8,9 @@ import {
 import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
 import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
 
+/** Wartość comboboxa „brak wyboru” — nie używać pustego stringa (filtr w AdminSearchCombobox). */
+export const COMBO_NONE = "__none__";
+
 export interface UserFormState {
   fullName: string;
   phone: string;
@@ -18,8 +21,9 @@ export interface UserFormState {
   canEditRoute: boolean;
   canCreateCustomers: boolean;
   isDurWorker: boolean;
-  /** Id przełożonego jako string (pusty = brak). */
   reportsToId: string;
+  departmentId: string;
+  teamId: string;
 }
 
 export const emptyUserForm = (): UserFormState => ({
@@ -28,7 +32,9 @@ export const emptyUserForm = (): UserFormState => ({
   usernameEmail: "",
   password: "",
   role: "worker",
-  reportsToId: "",
+  reportsToId: COMBO_NONE,
+  departmentId: COMBO_NONE,
+  teamId: COMBO_NONE,
   ...WORKER_PERMISSION_DEFAULTS,
 });
 
@@ -47,6 +53,8 @@ interface UserFormFieldsProps {
   /** Gdy false — ukryj checkbox pracownika serwisowego (moduł DUR wyłączony). */
   durEnabled?: boolean;
   supervisorOptions?: AdminSearchComboboxOption[];
+  departmentOptions?: AdminSearchComboboxOption[];
+  teamOptions?: AdminSearchComboboxOption[];
 }
 
 export default function UserFormFields({
@@ -59,6 +67,8 @@ export default function UserFormFields({
   gpsEnabled = true,
   durEnabled = false,
   supervisorOptions = [],
+  departmentOptions = [],
+  teamOptions = [],
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
 
@@ -139,7 +149,9 @@ export default function UserFormFields({
               canEditRoute: role === "worker" && gpsEnabled ? form.canEditRoute : false,
               canCreateCustomers: role === "worker" ? form.canCreateCustomers : false,
               isDurWorker: role === "worker" && durEnabled ? form.isDurWorker : false,
-              reportsToId: role === "worker" ? form.reportsToId : "",
+              reportsToId: role === "worker" ? form.reportsToId : COMBO_NONE,
+              departmentId: role === "worker" ? form.departmentId : COMBO_NONE,
+              teamId: role === "worker" ? form.teamId : COMBO_NONE,
             });
           }}
           className={`${INPUT} py-3 appearance-none`}
@@ -193,6 +205,37 @@ export default function UserFormFields({
 
       {form.role === "worker" ? (
         <>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              {dict.teamDepartmentLabel}
+            </label>
+            <AdminSearchCombobox
+              options={departmentOptions}
+              value={form.departmentId}
+              onChange={(id) =>
+                setForm({
+                  departmentId: id,
+                  teamId: COMBO_NONE,
+                })
+              }
+              placeholder={dict.teamDepartmentPlaceholder}
+              aria-label={dict.teamDepartmentLabel}
+              clearAriaLabel={dict.teamDepartmentClear}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              {dict.teamLabel}
+            </label>
+            <AdminSearchCombobox
+              options={teamOptions}
+              value={form.teamId}
+              onChange={(id) => setForm({ teamId: id })}
+              placeholder={dict.teamPlaceholder}
+              aria-label={dict.teamLabel}
+              clearAriaLabel={dict.teamClear}
+            />
+          </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
               {dict.supervisorLabel}

@@ -4,7 +4,8 @@
 
 import { db } from "@/db";
 import { departments, teams, teamMembers, users } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
+import { buildHierarchyTree } from "@/lib/hierarchyTree";
 import type { DepartmentTreeNode, TeamWithMembers, TeamMemberWithUser } from "@/types/organization";
 
 export class OrganizationService {
@@ -68,42 +69,126 @@ export class OrganizationService {
   /**
    * Pobiera departament jako drzewo (parent → children).
    */
-  static async getDepartmentTree(companyId: number): Promise<DepartmentTreeNode[]> {
-    const allDepts = await this.getDepartments(companyId);
-    const allTeams = await this.getTeams(companyId);
+  /** Wszyscy członkowie zespołów firmy (jedno zapytanie). */
+  static async getAllTeamMembersWithUsers(companyId: number): Promise<TeamMemberWithUser[]> {
+    const rows = await db
+      .select({
+        id: teamMembers.id,
+        teamId: teamMembers.teamId,
+        userId: teamMembers.userId,
+        role: teamMembers.role,
+        joinedAt: teamMembers.joinedAt,
+        user: {
+          id: users.id,
+          fullName: users.fullName,
+          usernameEmail: users.usernameEmail,
+        },
+      })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .innerJoin(users, eq(teamMembers.userId, users.id))
+      .where(eq(teams.companyId, companyId));
 
-    // Zbuduj mapę zespołów z członkami
+    return rows.map((r) => ({
+      id: r.id,
+      teamId: r.teamId,
+      userId: r.userId,
+      role: r.role,
+      joinedAt: r.joinedAt,
+      user: r.user,
+    }));
+  }
+
+  static async getDepartmentTree(companyId: number): Promise<DepartmentTreeNode[]> {
+    const [allDepts, allTeams, allMembers] = await Promise.all([
+      this.getDepartments(companyId),
+      this.getTeams(companyId),
+      this.getAllTeamMembersWithUsers(companyId),
+    ]);
+
+    const membersByTeam = new Map<number, TeamMemberWithUser[]>();
+    for (const m of allMembers) {
+      const bucket = membersByTeam.get(m.teamId);
+      if (bucket) bucket.push(m);
+      else membersByTeam.set(m.teamId, [m]);
+    }
+
     const teamMap = new Map<number, TeamWithMembers>();
     for (const team of allTeams) {
-      const members = await this.getTeamMembersWithUsers(team.id);
-      teamMap.set(team.id, { ...team, members });
+      teamMap.set(team.id, { ...team, members: membersByTeam.get(team.id) ?? [] });
     }
 
-    // Zbuduj drzewo departamentów
-    const nodeMap = new Map<number, DepartmentTreeNode>();
-    const roots: DepartmentTreeNode[] = [];
+    const deptHierarchy = buildHierarchyTree(allDepts);
 
-    for (const dept of allDepts) {
-      nodeMap.set(dept.id, {
-        ...dept,
-        children: [],
+    const attachTeamsAndChildren = (node: (typeof deptHierarchy)[number]): DepartmentTreeNode => {
+      const children = node.children.map(attachTeamsAndChildren);
+      return {
+        ...node,
+        children,
         teams: allTeams
-          .filter((t) => t.departmentId === dept.id)
+          .filter((t) => t.departmentId === node.id)
+          .sort((a, b) => {
+            const so = a.sortOrder - b.sortOrder;
+            if (so !== 0) return so;
+            return a.name.localeCompare(b.name, "pl");
+          })
           .map((t) => teamMap.get(t.id)!)
           .filter((t): t is TeamWithMembers => !!t),
-      });
-    }
+      };
+    };
 
-    for (const [deptId, node] of nodeMap) {
-      const dept = allDepts.find((d) => d.id === deptId)!;
-      if (dept.parentId && nodeMap.has(dept.parentId)) {
-        nodeMap.get(dept.parentId)!.children.push(node);
-      } else {
-        roots.push(node);
-      }
-    }
+    return deptHierarchy.map(attachTeamsAndChildren);
+  }
 
-    return roots;
+  /** Aktywni workerzy bez członkostwa w żadnym zespole firmy. */
+  static async getUnassignedWorkers(companyId: number) {
+    const [allUsers, allMembers] = await Promise.all([
+      db
+        .select({
+          id: users.id,
+          fullName: users.fullName,
+          role: users.role,
+        })
+        .from(users)
+        .where(and(eq(users.companyId, companyId), eq(users.role, "worker"), eq(users.isActive, true))),
+      this.getAllTeamMembersWithUsers(companyId),
+    ]);
+    const assigned = new Set(allMembers.map((m) => m.userId));
+    return allUsers.filter((u) => !assigned.has(u.id));
+  }
+
+  /** Pierwszy zespół użytkownika w firmie (do formularza konta). */
+  static async getUserPrimaryTeamId(companyId: number, userId: number): Promise<number | null> {
+    const [row] = await db
+      .select({ teamId: teamMembers.teamId })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(and(eq(teamMembers.userId, userId), eq(teams.companyId, companyId)))
+      .limit(1);
+    return row?.teamId ?? null;
+  }
+
+  /**
+   * Przypisanie konta do jednego zespołu z formularza (zastępuje wcześniejsze członkostwa w firmie).
+   */
+  static async replaceUserTeamAssignment(
+    companyId: number,
+    userId: number,
+    teamId: number | null
+  ): Promise<void> {
+    const companyTeams = await this.getTeams(companyId);
+    const companyTeamIds = companyTeams.map((t) => t.id);
+    if (companyTeamIds.length > 0) {
+      await db
+        .delete(teamMembers)
+        .where(and(eq(teamMembers.userId, userId), inArray(teamMembers.teamId, companyTeamIds)));
+    }
+    if (teamId == null) return;
+
+    const team = companyTeams.find((t) => t.id === teamId);
+    if (!team) throw new Error("invalid_team");
+
+    await this.addTeamMember({ teamId, userId, role: "member" });
   }
 
   /**

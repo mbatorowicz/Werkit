@@ -67,11 +67,15 @@ export const POST = withApiErrorHandling(
       typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
 
     let reportsToId: number | null = null;
+    let teamId: number | null = null;
     if (normalizedRole === "worker") {
       reportsToId = await AdminUserService.resolveReportsToId(companyId, null, body.reportsToId);
+      if (body.teamId != null && body.teamId !== "") {
+        teamId = await AdminUserService.resolveTeamIdForCompany(companyId, body.teamId);
+      }
     }
 
-    await AdminUserService.createUser(companyId, {
+    const createdUserId = await AdminUserService.createUser(companyId, {
       fullName,
       phone,
       usernameEmail,
@@ -81,12 +85,20 @@ export const POST = withApiErrorHandling(
       reportsToId,
     });
 
+    if (normalizedRole === "worker" && teamId != null) {
+      const { OrganizationService } = await import("@/services/OrganizationService");
+      await OrganizationService.replaceUserTeamAssignment(companyId, createdUserId, teamId);
+    }
+
     return jsonOk({ success: true });
   },
   {
     mapUnknownError: (err) => {
       if (err instanceof Error && err.message === "invalid_supervisor") {
         return jsonError("invalid_supervisor", 400);
+      }
+      if (err instanceof Error && err.message === "invalid_team") {
+        return jsonError("invalid_team", 400);
       }
       if (
         typeof err === "object" &&

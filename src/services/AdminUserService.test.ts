@@ -167,11 +167,12 @@ describe("AdminUserService", () => {
 
   describe("createUser", () => {
     it("tworzy użytkownika z domyślnymi flagami dla roli worker", async () => {
-      const valuesMock = vi.fn().mockResolvedValue(undefined);
+      const returningMock = vi.fn().mockResolvedValue([{ id: 42 }]);
+      const valuesMock = vi.fn().mockReturnValue({ returning: returningMock });
       insertMock.mockReturnValue({ values: valuesMock });
 
       const { AdminUserService } = await import("./AdminUserService");
-      await AdminUserService.createUser(1, {
+      const id = await AdminUserService.createUser(1, {
         fullName: "Nowy Pracownik",
         usernameEmail: "nowy@test.pl",
         passwordHash: "hash123",
@@ -187,10 +188,12 @@ describe("AdminUserService", () => {
           canCreateCustomers: false,
         })
       );
+      expect(id).toBe(42);
     });
 
     it("tworzy admina bez flag worker", async () => {
-      const valuesMock = vi.fn().mockResolvedValue(undefined);
+      const returningMock = vi.fn().mockResolvedValue([{ id: 7 }]);
+      const valuesMock = vi.fn().mockReturnValue({ returning: returningMock });
       insertMock.mockReturnValue({ values: valuesMock });
 
       const { AdminUserService } = await import("./AdminUserService");

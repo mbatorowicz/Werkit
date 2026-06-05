@@ -11,7 +11,10 @@
 
 export const adminRoutes = {
   dispatch: "/admin",
+  /** @deprecated Użyj `people` — przekierowanie zachowane dla starych linków. */
   users: "/admin/users",
+  /** Ludzie, konta i struktura organizacyjna (SSOT UI). */
+  people: "/admin/organization",
   machines: "/admin/machines",
   materials: "/admin/materials",
   customers: "/admin/customers",
@@ -43,6 +46,7 @@ export const adminApi = {
     team: (id: number) => `/api/admin/organization/teams/${id}`,
     teamMembers: "/api/admin/organization/team-members",
     teamMember: (id: number) => `/api/admin/organization/team-members/${id}`,
+    tree: "/api/admin/organization/tree",
   },
 } as const;
 

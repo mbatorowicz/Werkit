@@ -238,8 +238,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/users` | GET | `AdminUserService.getAllUsers` + `orgProfile` (skrót badge'y) z `DelegationScopeService.getOrgProfilesForCompany` |
 | `/api/admin/users/delegatable` | GET | `DelegationScopeService.getDelegatableWorkers` — lista do pickera dyspozycji (scoped: tylko podlegli; admin: wszyscy aktywni workerzy) |
 | `/api/admin/users/[id]` | GET | Szczegóły użytkownika + pełny `orgProfile` (`getUserOrgProfile`) |
-| `/api/admin/users` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; `23505 → user_exists` |
-| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła) |
+| `/api/admin/users` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); `23505 → user_exists`, `invalid_team` |
+| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment` |
 | `/api/admin/users/[id]` | DELETE | Usunięcie konta |
 | `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
 | `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
@@ -281,8 +281,9 @@ Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Muta
 | `/api/admin/organization/teams/[id]` | PUT/DELETE | `updateTeam` / `deleteTeam` |
 | `/api/admin/organization/team-members` | POST | `addTeamMember` |
 | `/api/admin/organization/team-members/[id]` | PUT/DELETE | `updateTeamMember` / `removeTeamMember` |
+| `/api/admin/organization/tree` | GET | `OrganizationService.getDepartmentTree` + `getUnassignedWorkers` — `{ tree, unassignedUsers }` |
 
-UI: `src/features/admin/organization/OrganizationClient.tsx` — `/admin/organization`.
+UI (SSOT): `src/features/admin/organization/PeopleClient.tsx` — `adminRoutes.people` (`/admin/organization`). Drzewo: `OrgHierarchyTree.tsx` (wzorzec jak katalogi: `ListSearchBar`, chevron, badge). Budowa drzewa: `src/lib/hierarchyTree.ts` (generyczny SSOT; `organizationTree.ts` deleguje). `/admin/users` → redirect na `people`. POST/PUT `/api/admin/users` przy workerze: opcjonalne `teamId` → `OrganizationService.replaceUserTeamAssignment` (błąd `invalid_team`).
 
 ---
 
@@ -591,7 +592,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
 | `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility`, `narrowInventory`, `narrowStockReceipts`, `narrowStockIssues` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
-| `narrow/organization.ts` | `narrowUserOrgProfile`, `narrowDelegatableWorkers` — profil org użytkownika i lista delegowalnych workerów. |
+| `narrow/organization.ts` | `narrowUserOrgProfile`, `narrowDelegatableWorkers`, `narrowOrganizationTreePayload` — profil org, delegowalni workerzy, payload drzewa ludzi (`tree` + `unassignedUsers`). |
 | `resolveNeonPostgresUrl.ts` | `resolveNeonPostgresUrl()` + `ensurePostgresUrlForVercelDriver()` — dla skryptów `tsx`, kiedy w `.env.local` jest tylko `DATABASE_URL` (Neon). Patrz `src/db/env.ts`. |
 
 ---
