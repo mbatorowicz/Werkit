@@ -1,6 +1,10 @@
 "use client";
 
 import { Lock, Eye, EyeOff } from "lucide-react";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
 import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
 
@@ -14,6 +18,8 @@ export interface UserFormState {
   canEditRoute: boolean;
   canCreateCustomers: boolean;
   isDurWorker: boolean;
+  /** Id przełożonego jako string (pusty = brak). */
+  reportsToId: string;
 }
 
 export const emptyUserForm = (): UserFormState => ({
@@ -22,6 +28,7 @@ export const emptyUserForm = (): UserFormState => ({
   usernameEmail: "",
   password: "",
   role: "worker",
+  reportsToId: "",
   ...WORKER_PERMISSION_DEFAULTS,
 });
 
@@ -39,6 +46,7 @@ interface UserFormFieldsProps {
   gpsEnabled?: boolean;
   /** Gdy false — ukryj checkbox pracownika serwisowego (moduł DUR wyłączony). */
   durEnabled?: boolean;
+  supervisorOptions?: AdminSearchComboboxOption[];
 }
 
 export default function UserFormFields({
@@ -50,6 +58,7 @@ export default function UserFormFields({
   dict,
   gpsEnabled = true,
   durEnabled = false,
+  supervisorOptions = [],
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
 
@@ -130,6 +139,7 @@ export default function UserFormFields({
               canEditRoute: role === "worker" && gpsEnabled ? form.canEditRoute : false,
               canCreateCustomers: role === "worker" ? form.canCreateCustomers : false,
               isDurWorker: role === "worker" && durEnabled ? form.isDurWorker : false,
+              reportsToId: role === "worker" ? form.reportsToId : "",
             });
           }}
           className={`${INPUT} py-3 appearance-none`}
@@ -181,7 +191,24 @@ export default function UserFormFields({
         </div>
       </div>
 
-      {form.role === "worker" ? <WorkerPermissionToggles toggles={workerToggles} /> : null}
+      {form.role === "worker" ? (
+        <>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              {dict.supervisorLabel}
+            </label>
+            <AdminSearchCombobox
+              options={supervisorOptions}
+              value={form.reportsToId}
+              onChange={(id) => setForm({ reportsToId: id })}
+              placeholder={dict.supervisorPlaceholder}
+              aria-label={dict.supervisorLabel}
+              clearAriaLabel={dict.supervisorClear}
+            />
+          </div>
+          <WorkerPermissionToggles toggles={workerToggles} />
+        </>
+      ) : null}
     </div>
   );
 }

@@ -41,6 +41,7 @@ export const GET = withApiErrorHandling(
       canEditRoute: user.canEditRoute,
       canCreateCustomers: user.canCreateCustomers,
       isDurWorker: user.isDurWorker,
+      reportsToId: user.reportsToId,
       orgProfile,
     });
   },
@@ -88,10 +89,26 @@ export const PUT = withApiErrorHandling(
     }
 
     const { AdminUserService } = await import("@/services/AdminUserService");
+    if (normalizedRole === "worker") {
+      updateData.reportsToId = await AdminUserService.resolveReportsToId(
+        companyId,
+        id,
+        body.reportsToId
+      );
+    } else {
+      updateData.reportsToId = null;
+    }
+
     await AdminUserService.updateUser(companyId, id, updateData);
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) =>
+      err instanceof Error && err.message === "invalid_supervisor"
+        ? jsonError("invalid_supervisor", 400)
+        : null,
+    defaultErrorCode: "save_error",
+  }
 );
 
 export const DELETE = withApiErrorHandling(

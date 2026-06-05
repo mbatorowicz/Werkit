@@ -27,6 +27,7 @@ export const GET = withApiErrorHandling(
         teamLeaderOf: [],
         teamMemberships: [],
         supervisorChain: [],
+        directSupervisor: null,
       },
     }));
     return jsonOk(enriched);
@@ -65,6 +66,11 @@ export const POST = withApiErrorHandling(
     const phone =
       typeof body.phone === "string" && body.phone.trim() !== "" ? body.phone.trim() : null;
 
+    let reportsToId: number | null = null;
+    if (normalizedRole === "worker") {
+      reportsToId = await AdminUserService.resolveReportsToId(companyId, null, body.reportsToId);
+    }
+
     await AdminUserService.createUser(companyId, {
       fullName,
       phone,
@@ -72,18 +78,26 @@ export const POST = withApiErrorHandling(
       passwordHash: hashedPassword,
       role: normalizedRole,
       ...permissions,
+      reportsToId,
     });
 
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      typeof err === "object" &&
-      err !== null &&
-      "code" in err &&
-      (err as { code?: unknown }).code === "23505"
-        ? jsonError("user_exists", 500)
-        : null,
+    mapUnknownError: (err) => {
+      if (err instanceof Error && err.message === "invalid_supervisor") {
+        return jsonError("invalid_supervisor", 400);
+      }
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "code" in err &&
+        (err as { code?: unknown }).code === "23505"
+      ) {
+        return jsonError("user_exists", 500);
+      }
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );

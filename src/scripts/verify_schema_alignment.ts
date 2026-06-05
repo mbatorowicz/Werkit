@@ -34,6 +34,8 @@ async function main() {
       "biometric_login_enabled",
       "can_edit_route",
       "can_create_customers",
+      "is_dur_worker",
+      "reports_to_id",
     ]),
     resource_categories: new Set([
       "id",

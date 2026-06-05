@@ -9,6 +9,7 @@ type OrgDict = {
   supervisorTitle: string;
   supervisorTeamLeader: string;
   supervisorDeptManager: string;
+  supervisorDirect: string;
   noOrg: string;
 };
 
@@ -39,10 +40,16 @@ export function ProfileOrgSection({ profile, dict }: Props) {
       ) : (
         <p className="text-sm text-zinc-500">{dict.noOrg}</p>
       )}
-      {profile.supervisorChain.length > 0 ? (
+      {profile.directSupervisor || profile.supervisorChain.length > 0 ? (
         <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
           <p className="text-xs font-medium text-zinc-500 mb-1.5">{dict.supervisorTitle}</p>
           <ul className="space-y-1 text-sm text-zinc-700 dark:text-zinc-300">
+            {profile.directSupervisor ? (
+              <li>
+                {dict.supervisorDirect}:{" "}
+                <span className="font-medium">{profile.directSupervisor.fullName}</span>
+              </li>
+            ) : null}
             {profile.supervisorChain.map((s) => (
               <li key={`${s.kind}-${s.userId}`}>
                 {s.kind === "team_leader" ? dict.supervisorTeamLeader : dict.supervisorDeptManager}:{" "}

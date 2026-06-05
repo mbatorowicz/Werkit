@@ -187,7 +187,14 @@ export function narrowUserOrgProfile(value: unknown): UserOrgProfile | null {
         ];
       })
     : [];
-  return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain };
+  let directSupervisor: UserOrgProfile["directSupervisor"] = null;
+  if (isRecord(value.directSupervisor)) {
+    const ds = value.directSupervisor;
+    if (typeof ds.userId === "number" && typeof ds.fullName === "string") {
+      directSupervisor = { userId: ds.userId, fullName: ds.fullName };
+    }
+  }
+  return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain, directSupervisor };
 }
 
 export function narrowDelegatableWorkers(rows: unknown[]): DelegatableWorkerRow[] {

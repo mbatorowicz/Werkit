@@ -17,7 +17,10 @@ type CompanyOrgCache = {
     departmentName: string;
     role: string;
   }[];
-  usersById: Map<number, { id: number; fullName: string; role: string; isActive: boolean }>;
+  usersById: Map<
+    number,
+    { id: number; fullName: string; role: string; isActive: boolean; reportsToId: number | null }
+  >;
 };
 
 export class DelegationScopeService {
@@ -58,6 +61,7 @@ export class DelegationScopeService {
           fullName: users.fullName,
           role: users.role,
           isActive: users.isActive,
+          reportsToId: users.reportsToId,
         })
         .from(users)
         .where(eq(users.companyId, companyId)),
@@ -119,7 +123,16 @@ export class DelegationScopeService {
       }
     }
 
-    return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain };
+    const self = cache.usersById.get(userId);
+    let directSupervisor: UserOrgProfile["directSupervisor"] = null;
+    if (self?.reportsToId) {
+      const sup = cache.usersById.get(self.reportsToId);
+      if (sup) {
+        directSupervisor = { userId: sup.id, fullName: sup.fullName };
+      }
+    }
+
+    return { deptManagerOf, teamLeaderOf, teamMemberships, supervisorChain, directSupervisor };
   }
 
   static async getUserOrgProfile(companyId: number, userId: number): Promise<UserOrgProfile> {

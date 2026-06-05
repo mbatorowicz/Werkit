@@ -28,7 +28,14 @@ vi.mock("@/db/schema", () => ({
     leaderId: "leaderId",
   },
   teamMembers: { userId: "userId", teamId: "teamId", role: "role" },
-  users: { id: "id", companyId: "companyId", fullName: "fullName", role: "role", isActive: "isActive" },
+  users: {
+    id: "id",
+    companyId: "companyId",
+    fullName: "fullName",
+    role: "role",
+    isActive: "isActive",
+    reportsToId: "reportsToId",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -75,10 +82,10 @@ describe("DelegationScopeService", () => {
         { userId: 10, teamId: 5, teamName: "Zmiana A", departmentName: "Transport", role: "leader" },
       ],
       [
-        { id: 10, fullName: "Lider", role: "worker", isActive: true },
-        { id: 20, fullName: "Jan", role: "worker", isActive: true },
-        { id: 21, fullName: "Anna", role: "worker", isActive: false },
-        { id: 30, fullName: "Obcy", role: "worker", isActive: true },
+        { id: 10, fullName: "Lider", role: "worker", isActive: true, reportsToId: null },
+        { id: 20, fullName: "Jan", role: "worker", isActive: true, reportsToId: null },
+        { id: 21, fullName: "Anna", role: "worker", isActive: false, reportsToId: null },
+        { id: 30, fullName: "Obcy", role: "worker", isActive: true, reportsToId: null },
       ],
     ]);
 
@@ -102,9 +109,9 @@ describe("DelegationScopeService", () => {
         { userId: 22, teamId: 6, teamName: "Zmiana B", departmentName: "Poddział", role: "member" },
       ],
       [
-        { id: 50, fullName: "Kierownik", role: "viewer", isActive: true },
-        { id: 20, fullName: "Jan", role: "worker", isActive: true },
-        { id: 22, fullName: "Piotr", role: "worker", isActive: true },
+        { id: 50, fullName: "Kierownik", role: "viewer", isActive: true, reportsToId: null },
+        { id: 20, fullName: "Jan", role: "worker", isActive: true, reportsToId: null },
+        { id: 22, fullName: "Piotr", role: "worker", isActive: true, reportsToId: null },
       ],
     ]);
 
@@ -118,7 +125,7 @@ describe("DelegationScopeService", () => {
       [],
       [{ id: 5, name: "Zmiana A", departmentId: 1, leaderId: 10 }],
       [],
-      [{ id: 10, fullName: "Lider", role: "worker", isActive: true }],
+      [{ id: 10, fullName: "Lider", role: "worker", isActive: true, reportsToId: null }],
     ]);
 
     const { DelegationScopeService } = await import("./DelegationScopeService");
@@ -132,7 +139,7 @@ describe("DelegationScopeService", () => {
       [],
       [{ id: 5, name: "Zmiana A", departmentId: 1, leaderId: 10 }],
       [],
-      [{ id: 10, fullName: "Lider", role: "worker", isActive: true }],
+      [{ id: 10, fullName: "Lider", role: "worker", isActive: true, reportsToId: null }],
     ]);
 
     const { DelegationScopeService } = await import("./DelegationScopeService");

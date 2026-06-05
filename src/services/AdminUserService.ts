@@ -17,6 +17,7 @@ export class AdminUserService {
         canEditRoute: users.canEditRoute,
         canCreateCustomers: users.canCreateCustomers,
         isDurWorker: users.isDurWorker,
+        reportsToId: users.reportsToId,
         companyId: users.companyId,
       })
       .from(users)
@@ -48,6 +49,27 @@ export class AdminUserService {
     return userDb[0] || null;
   }
 
+  /** Waliduje opcjonalnego przełożonego (ta sama firma, aktywny, nie sam siebie). */
+  static async resolveReportsToId(
+    companyId: number,
+    subjectUserId: number | null,
+    raw: unknown
+  ): Promise<number | null> {
+    if (raw === null || raw === undefined || raw === "") return null;
+    const id = typeof raw === "number" ? raw : parseInt(String(raw), 10);
+    if (!Number.isFinite(id) || id < 1) {
+      throw new Error("invalid_supervisor");
+    }
+    if (subjectUserId != null && id === subjectUserId) {
+      throw new Error("invalid_supervisor");
+    }
+    const supervisor = await this.getUserByIdForCompany(id, companyId);
+    if (!supervisor?.isActive) {
+      throw new Error("invalid_supervisor");
+    }
+    return id;
+  }
+
   static async getWorkers(companyId: number) {
     return await db
       .select({ id: users.id, fullName: users.fullName })
@@ -67,6 +89,7 @@ export class AdminUserService {
       canEditRoute?: boolean;
       canCreateCustomers?: boolean;
       isDurWorker?: boolean;
+      reportsToId?: number | null;
     }
   ) {
     const role = payload.role || "worker";
@@ -79,6 +102,7 @@ export class AdminUserService {
     const canEditRoute = role === "worker" ? !!payload.canEditRoute : false;
     const canCreateCustomers = role === "worker" ? !!payload.canCreateCustomers : false;
     const isDurWorker = role === "worker" ? !!payload.isDurWorker : false;
+    const reportsToId = role === "worker" ? (payload.reportsToId ?? null) : null;
     await db.insert(users).values({
       companyId,
       fullName: payload.fullName,
@@ -91,6 +115,7 @@ export class AdminUserService {
       canEditRoute,
       canCreateCustomers,
       isDurWorker,
+      reportsToId,
     });
   }
 

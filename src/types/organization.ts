@@ -110,6 +110,8 @@ export type UserOrgProfile = {
   teamLeaderOf: OrgPositionRef[];
   teamMemberships: TeamMembershipRef[];
   supervisorChain: { userId: number; fullName: string; kind: "team_leader" | "dept_manager" }[];
+  /** Przełożony wskazany w profilu konta (`users.reports_to_id`). */
+  directSupervisor: { userId: number; fullName: string } | null;
 };
 
 /** Wiersz pracownika do pickera delegacji. */

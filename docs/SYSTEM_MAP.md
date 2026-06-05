@@ -48,7 +48,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
 | `companies` | `slug` (unique) | `id`, `name`, `is_active`, `created_at` | — (multi-tenant; patrz **0017**) |
-| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id` | `company_id → companies.id` (restrict) |
+| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id`, **`reports_to_id?`** (opcjonalny przełożony — FK self) | `company_id → companies.id` (restrict); `reports_to_id → users.id` (set null). Migracja **0028**. |
 | `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
 | `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |

@@ -49,6 +49,10 @@ export const users = pgTable("users", {
   canCreateCustomers: boolean("can_create_customers").notNull().default(false),
   /** Pracownik DUR (Dział Utrzymania Ruchu) — widzi zlecenia naprawcze i magazyn części. */
   isDurWorker: boolean("is_dur_worker").notNull().default(false),
+  /** Opcjonalny przełożony (linia zarządzania niezależna od struktury działów/zespołów). */
+  reportsToId: integer("reports_to_id").references((): AnyPgColumn => users.id, {
+    onDelete: "set null",
+  }),
 });
 
 export const resourceCategories = pgTable("resource_categories", {
@@ -348,6 +352,12 @@ export const companiesRelations = relations(companies, ({ many }) => ({
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   company: one(companies, { fields: [users.companyId], references: [companies.id] }),
+  reportsTo: one(users, {
+    fields: [users.reportsToId],
+    references: [users.id],
+    relationName: "userReportsTo",
+  }),
+  reportsToSubordinates: many(users, { relationName: "userReportsTo" }),
   workSessions: many(workSessions),
 }));
 

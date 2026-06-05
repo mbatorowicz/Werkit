@@ -17,6 +17,7 @@ import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import UsersTable from "./UsersTable";
+import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import UserFormFields, { emptyUserForm, type UserFormState } from "./UserFormFields";
 
 export default function UsersClient() {
@@ -92,6 +93,26 @@ export default function UsersClient() {
     );
   }, [users, searchQuery, roleSubtitle]);
 
+  const supervisorOptions = useMemo((): AdminSearchComboboxOption[] => {
+    const opts: AdminSearchComboboxOption[] = [
+      { id: "", label: dict.supervisorNone },
+    ];
+    for (const u of users) {
+      if (!u.isActive || u.id === editId) continue;
+      opts.push({
+        id: String(u.id),
+        label: u.fullName,
+        sublabel: roleSubtitle(u.role),
+        searchText: `${u.fullName} ${u.usernameEmail} ${roleSubtitle(u.role)}`,
+      });
+    }
+    return opts.sort((a, b) => {
+      if (a.id === "") return -1;
+      if (b.id === "") return 1;
+      return a.label.localeCompare(b.label, "pl");
+    });
+  }, [users, editId, dict.supervisorNone, roleSubtitle]);
+
   const handleDelete = async (id: number, name: string) => {
     if (!(await appConfirm({ message: `${dict.confirmDelete} ${name}?`, variant: "danger" })))
       return;
@@ -134,6 +155,7 @@ export default function UsersClient() {
       canEditRoute: gpsEnabled ? (u.canEditRoute ?? false) : false,
       canCreateCustomers: u.canCreateCustomers ?? false,
       isDurWorker: durEnabled ? (u.isDurWorker ?? false) : false,
+      reportsToId: u.reportsToId != null ? String(u.reportsToId) : "",
     });
     setIsModalOpen(true);
   };
@@ -152,10 +174,14 @@ export default function UsersClient() {
       const url = editId ? adminApi.user(editId) : adminApi.users;
       const method = editId ? "PUT" : "POST";
 
-      const payload: UserFormState = {
+      const payload = {
         ...form,
         canEditRoute: gpsEnabled ? form.canEditRoute : false,
         isDurWorker: durEnabled ? form.isDurWorker : false,
+        reportsToId:
+          form.role === "worker" && form.reportsToId.trim() !== ""
+            ? parseInt(form.reportsToId, 10)
+            : null,
       };
 
       const res = await fetchWithDeviceTelemetry(
@@ -250,6 +276,7 @@ export default function UsersClient() {
             dict={formDict}
             gpsEnabled={gpsEnabled}
             durEnabled={durEnabled}
+            supervisorOptions={supervisorOptions}
           />
         </form>
       </AdminModalShell>
@@ -270,6 +297,15 @@ export default function UsersClient() {
             ) : null}
             <AdminPreviewField label={dict.roleLabel} value={roleSubtitle(previewUser.role)} />
             <AdminPreviewField label={dict.loginLabel} value={previewUser.usernameEmail} />
+            {previewUser.role === "worker" && previewUser.reportsToId ? (
+              <AdminPreviewField
+                label={dict.supervisorLabel}
+                value={
+                  users.find((u) => u.id === previewUser.reportsToId)?.fullName ??
+                  String(previewUser.reportsToId)
+                }
+              />
+            ) : null}
             {previewUser.orgProfile ? (
               <div className="pt-2">
                 <ProfileOrgSection profile={previewUser.orgProfile} dict={orgDict} />
