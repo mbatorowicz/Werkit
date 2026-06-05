@@ -68,7 +68,11 @@ export function AdminSearchCombobox({
 
   useDismissOnOutsidePointer([rootRef, listRef], open, dismissDropdown);
 
-  const selected = useMemo(() => options.find((o) => o.id === value) ?? null, [options, value]);
+  /** Pusty `value` = brak wyboru (nie mylić z opcją placeholder o `id: ""`). */
+  const selected = useMemo(
+    () => (value === "" ? null : (options.find((o) => o.id === value) ?? null)),
+    [options, value]
+  );
 
   const filtered = useMemo(
     () =>
