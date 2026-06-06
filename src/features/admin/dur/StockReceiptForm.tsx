@@ -1,5 +1,11 @@
 "use client";
 
+import { AdminFormField } from "@/components/Admin/AdminFormField";
+import {
+  INVENTORY_FORM_CONTROL,
+  INVENTORY_FORM_STACK,
+  INVENTORY_FORM_TEXTAREA,
+} from "@/components/Admin/adminInventoryFormStyles";
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { DecimalInput } from "@/components/DecimalInput";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
@@ -54,13 +60,10 @@ export function StockReceiptForm({
         e.preventDefault();
         onSubmit();
       }}
-      className="space-y-4 p-6"
+      className={`${INVENTORY_FORM_STACK} p-6`}
       id="receipt-form"
     >
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.part}
-        </label>
+      <AdminFormField label={dict.part} required>
         <SparePartSearchField
           options={partOptions}
           value={rPartId}
@@ -70,53 +73,46 @@ export function StockReceiptForm({
           required
           aria-label={dict.part}
         />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.quantity}
-        </label>
+      </AdminFormField>
+
+      <AdminFormField label={dict.quantity} required>
         <DecimalInput
           value={rQuantity}
           onChange={onQuantityChange}
           placeholder={dict.quantityPlaceholder}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          className={INVENTORY_FORM_CONTROL}
+          required
         />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.unitPrice}
-        </label>
+      </AdminFormField>
+
+      <AdminFormField label={dict.unitPrice}>
         <DecimalInput
           value={rUnitPrice}
           onChange={onUnitPriceChange}
           placeholder={dict.unitPricePlaceholder}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          className={INVENTORY_FORM_CONTROL}
         />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.invoiceNumber}
-        </label>
+      </AdminFormField>
+
+      <AdminFormField label={dict.invoiceNumber}>
         <input
           type="text"
           value={rInvoiceNumber}
           onChange={(e) => onInvoiceNumberChange(e.target.value)}
           placeholder={dict.invoiceNumberPlaceholder}
-          className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          className={INVENTORY_FORM_CONTROL}
         />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.notes}
-        </label>
+      </AdminFormField>
+
+      <AdminFormField label={dict.notes}>
         <textarea
           value={rNotes}
           onChange={(e) => onNotesChange(e.target.value)}
           placeholder={dict.notesPlaceholder}
-          rows={2}
-          className="w-full resize-none rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          rows={3}
+          className={INVENTORY_FORM_TEXTAREA}
         />
-      </div>
+      </AdminFormField>
     </form>
   );
 }

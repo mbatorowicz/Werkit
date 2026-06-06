@@ -6,8 +6,15 @@ import { formatDict, getDictionary } from "@/i18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { materialsApi } from "@/lib/appRoutes";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
+import { AdminFormField } from "@/components/Admin/AdminFormField";
+import {
+  INVENTORY_FORM_CONTROL,
+  INVENTORY_FORM_STACK,
+  INVENTORY_FORM_TEXTAREA,
+} from "@/components/Admin/adminInventoryFormStyles";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
@@ -34,6 +41,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
   const dictionary = getDictionary();
   const wDict = dictionary.admin.materials.warehouse;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
+  const comboboxCommon = comboboxFeedbackProps(dictionary.admin.orders);
 
   const [tab, setTab] = useState<Tab>("receipts");
   const [receipts, setReceipts] = useState<MaterialStockReceipt[]>([]);
@@ -254,52 +262,67 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
           />
         }
       >
-        <form id="material-stock-form" onSubmit={handleSubmit} className="space-y-4 p-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500">{wDict.fieldMaterial}</label>
+        <form id="material-stock-form" onSubmit={handleSubmit} className={`${INVENTORY_FORM_STACK} p-6`}>
+          <AdminFormField label={wDict.fieldMaterial} required>
             <AdminSearchCombobox
               options={materialOptions}
               value={materialId}
               onChange={setMaterialId}
               placeholder={wDict.fieldMaterialPlaceholder}
               aria-label={wDict.fieldMaterial}
+              required
+              {...comboboxCommon}
             />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500">
-              {selectedMaterial
+          </AdminFormField>
+
+          <AdminFormField
+            label={
+              selectedMaterial
                 ? formatDict(wDict.fieldQuantityWithUnit, {
                     unit: selectedMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
                   })
-                : wDict.fieldQuantity}
-            </label>
-            <DecimalInput value={quantity} onChange={setQuantity} placeholder="0" />
-          </div>
+                : wDict.fieldQuantity
+            }
+            required
+          >
+            <DecimalInput
+              value={quantity}
+              onChange={setQuantity}
+              placeholder="0"
+              className={INVENTORY_FORM_CONTROL}
+              required
+            />
+          </AdminFormField>
+
           {tab === "receipts" ? (
             <>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-500">{wDict.fieldUnitPrice}</label>
-                <DecimalInput value={unitPrice} onChange={setUnitPrice} placeholder="" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-500">{wDict.fieldInvoice}</label>
+              <AdminFormField label={wDict.fieldUnitPrice}>
+                <DecimalInput
+                  value={unitPrice}
+                  onChange={setUnitPrice}
+                  placeholder="0"
+                  className={INVENTORY_FORM_CONTROL}
+                />
+              </AdminFormField>
+              <AdminFormField label={wDict.fieldInvoice}>
                 <input
+                  type="text"
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                  className={INVENTORY_FORM_CONTROL}
                 />
-              </div>
+              </AdminFormField>
             </>
           ) : null}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500">{wDict.fieldNotes}</label>
+
+          <AdminFormField label={wDict.fieldNotes}>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+              rows={3}
+              className={INVENTORY_FORM_TEXTAREA}
             />
-          </div>
+          </AdminFormField>
         </form>
       </AdminModalShell>
     </section>

@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AdminFormField } from "@/components/Admin/AdminFormField";
+import {
+  INVENTORY_FORM_CONTROL,
+  INVENTORY_FORM_STACK,
+  INVENTORY_FORM_TEXTAREA,
+} from "@/components/Admin/adminInventoryFormStyles";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -95,7 +101,7 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
     >
       <form
         id="spare-part-stock-adjust-form"
-        className="space-y-4 p-6"
+        className={`${INVENTORY_FORM_STACK} p-6`}
         onSubmit={(e) => {
           e.preventDefault();
           void handleSubmit();
@@ -108,29 +114,24 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
             {part.stockQuantity ?? "0"} {part.unit}
           </strong>
         </p>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {adjDict.quantityLabel}
-          </label>
+        <AdminFormField label={adjDict.quantityLabel} required>
           <DecimalInput
             value={quantity}
             onChange={setQuantity}
             placeholder={adjDict.quantityPlaceholder}
-            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className={INVENTORY_FORM_CONTROL}
+            required
           />
-        </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-            {adjDict.notesLabel}
-          </label>
+        </AdminFormField>
+        <AdminFormField label={adjDict.notesLabel}>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder={adjDict.notesPlaceholder}
             rows={3}
-            className="w-full resize-none rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className={INVENTORY_FORM_TEXTAREA}
           />
-        </div>
+        </AdminFormField>
       </form>
     </AdminModalShell>
   );
