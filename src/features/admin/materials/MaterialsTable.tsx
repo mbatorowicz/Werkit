@@ -26,6 +26,8 @@ type Props = {
   onAddMaterial: () => void;
   onEditMaterial: (material: MaterialRow) => void;
   onDeleteMaterial: (id: number) => void;
+  onAdjustStock?: (material: MaterialRow) => void;
+  isLowStock?: (material: MaterialRow) => boolean;
 };
 
 export function MaterialsTable({
@@ -38,7 +40,10 @@ export function MaterialsTable({
   onAddMaterial,
   onEditMaterial,
   onDeleteMaterial,
+  onAdjustStock,
+  isLowStock,
 }: Props) {
+  const wDict = dict.warehouse;
   const ui = getDictionary().admin.ui;
   const [previewMaterial, setPreviewMaterial] = useState<MaterialRow | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,6 +97,9 @@ export function MaterialsTable({
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   {machDict.dictCategory}
                 </th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  {wDict.stockColumn}
+                </th>
                 {canMutate ? (
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                     {machDict.management}
@@ -103,7 +111,7 @@ export function MaterialsTable({
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={canMutate ? 3 : 2}
+                    colSpan={canMutate ? 4 : 3}
                     className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
                   >
                     {dict.fetching}
@@ -112,7 +120,7 @@ export function MaterialsTable({
               ) : filteredMaterials.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={canMutate ? 3 : 2}
+                    colSpan={canMutate ? 4 : 3}
                     className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
                   >
                     {searchQuery.trim() ? dict.listSearchNoResults : dict.noMaterials}
@@ -148,9 +156,32 @@ export function MaterialsTable({
                           )}
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                            {material.stockQuantity ?? "0"} {wDict.unit}
+                          </span>
+                          {isLowStock?.(material) ? (
+                            <span className="text-xs font-semibold text-amber-600">{wDict.lowStock}</span>
+                          ) : null}
+                        </div>
+                      </td>
                       {canMutate ? (
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-1">
+                            {onAdjustStock ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  stopRowActionClick(e);
+                                  onAdjustStock(material);
+                                }}
+                                className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400"
+                                title={wDict.adjustStock}
+                              >
+                                {wDict.adjustStock}
+                              </button>
+                            ) : null}
                             <button
                               type="button"
                               onClick={(e) => {

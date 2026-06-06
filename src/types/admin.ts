@@ -90,6 +90,9 @@ export type BaseMaterial = {
   id: number;
   name: string;
   categoryIds?: number[];
+  stockQuantity?: string;
+  minStock?: string | null;
+  location?: string | null;
 };
 
 export type BaseCustomer = {

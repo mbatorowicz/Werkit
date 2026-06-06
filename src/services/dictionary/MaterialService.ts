@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { materials, materialToCategories } from "@/db/schema";
+import { materials, materialToCategories, materialInventory } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { assertMaterialCategoriesAssignable } from "@/services/categoryHierarchyValidation";
 
@@ -10,17 +10,35 @@ export class MaterialService {
       .from(materials)
       .where(eq(materials.companyId, companyId))
       .orderBy(desc(materials.id));
+    const materialIds = new Set(all.map((m) => m.id));
     const links = await db.select().from(materialToCategories);
     const byMaterialId = new Map<number, number[]>();
     for (const l of links) {
+      if (!materialIds.has(l.materialId)) continue;
       const arr = byMaterialId.get(l.materialId) ?? [];
       arr.push(l.categoryId);
       byMaterialId.set(l.materialId, arr);
     }
+
+    const inventoryRows = await db
+      .select({
+        materialId: materialInventory.materialId,
+        quantity: materialInventory.quantity,
+      })
+      .from(materialInventory)
+      .where(eq(materialInventory.companyId, companyId));
+    const stockByMaterialId = new Map<number, string>();
+    for (const row of inventoryRows) {
+      stockByMaterialId.set(row.materialId, String(row.quantity ?? "0"));
+    }
+
     return all.map((m) => ({
       id: m.id,
       name: m.name,
       categoryIds: byMaterialId.get(m.id) ?? [],
+      minStock: m.minStock != null ? String(m.minStock) : null,
+      location: m.location ?? null,
+      stockQuantity: stockByMaterialId.get(m.id) ?? "0",
     }));
   }
 

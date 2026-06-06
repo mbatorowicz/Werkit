@@ -8,6 +8,8 @@ import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvide
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { MaterialCategoryFormModal } from "@/features/admin/materials/MaterialCategoryFormModal";
 import { MaterialsMaterialFormModal } from "@/features/admin/materials/MaterialsMaterialFormModal";
+import { MaterialStockAdjustModal } from "@/features/admin/materials/warehouse/MaterialStockAdjustModal";
+import { parseDecimalInput } from "@/lib/decimalInput";
 import { materialCategoryToForm } from "@/features/admin/materials/materialCategoryForm";
 import {
   EMPTY_CATEGORY_FORM,
@@ -46,6 +48,7 @@ export function MaterialsCatalogPanel({
   const [isMatModalOpen, setIsMatModalOpen] = useState(false);
   const [matEditId, setMatEditId] = useState<number | null>(null);
   const [matForm, setMatForm] = useState<MaterialItemFormState>(() => ({ ...EMPTY_MATERIAL_FORM }));
+  const [adjustMaterial, setAdjustMaterial] = useState<MaterialRow | null>(null);
 
   const handleMatSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +67,16 @@ export function MaterialsCatalogPanel({
         {
           method,
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: matForm.name, categoryIds: matForm.categoryIds }),
+          body: JSON.stringify({
+            name: matForm.name,
+            categoryIds: matForm.categoryIds,
+            ...(matEditId
+              ? {
+                  minStock: matForm.minStock.trim() || null,
+                  location: matForm.location.trim() || null,
+                }
+              : {}),
+          }),
         },
         { category: "admin" }
       );
@@ -103,7 +115,12 @@ export function MaterialsCatalogPanel({
 
   const openEditMaterial = (material: MaterialRow) => {
     setMatEditId(material.id);
-    setMatForm({ name: material.name, categoryIds: material.categoryIds ?? [] });
+    setMatForm({
+      name: material.name,
+      categoryIds: material.categoryIds ?? [],
+      minStock: material.minStock ?? "",
+      location: material.location ?? "",
+    });
     setIsMatModalOpen(true);
   };
 
@@ -152,6 +169,12 @@ export function MaterialsCatalogPanel({
         onAddMaterial={openNewMaterial}
         onEditMaterial={openEditMaterial}
         onDeleteMaterial={handleMatDelete}
+        onAdjustStock={canMutate ? (m) => setAdjustMaterial(m) : undefined}
+        isLowStock={(m) => {
+          const min = parseDecimalInput(m.minStock ?? "");
+          const stock = parseDecimalInput(m.stockQuantity ?? "0") ?? 0;
+          return min != null && min > 0 && stock < min;
+        }}
       />
 
       <MaterialsMaterialFormModal
@@ -166,6 +189,14 @@ export function MaterialsCatalogPanel({
         onSubmit={handleMatSave}
       />
 
+      <MaterialStockAdjustModal
+        open={adjustMaterial != null}
+        material={adjustMaterial}
+        dict={dict.warehouse}
+        apiErrors={apiErrors}
+        onClose={() => setAdjustMaterial(null)}
+        onSaved={() => void fetchData()}
+      />
     </>
   );
 }

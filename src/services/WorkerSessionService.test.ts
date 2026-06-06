@@ -146,6 +146,13 @@ vi.mock("@/services/sql/attachmentExistsSql", () => ({
   sqlSessionHasPhotos: vi.fn(() => "hasPhotos"),
 }));
 
+vi.mock("@/services/materials/WorkSessionMaterialService", () => ({
+  WorkSessionMaterialService: {
+    issueForSessionStart: vi.fn().mockResolvedValue(undefined),
+    returnForSessionIfIssued: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe("WorkerSessionService", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -653,9 +660,13 @@ describe("WorkerSessionService", () => {
       const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
       vi.mocked(ScheduleConflictService.hasActiveResourceSession).mockResolvedValue(false);
 
-      // 6. INSERT sesji z returning
+      // 6. Transakcja: INSERT sesji z returning + ewentualne WZ materiału
       const returningMock = vi.fn().mockResolvedValue([{ id: 1, status: "IN_PROGRESS" }]);
-      insertMock.mockReturnValue({ values: vi.fn().mockReturnValue({ returning: returningMock }) });
+      const txInsert = vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue({ returning: returningMock }),
+      });
+      const tx = { insert: txInsert };
+      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(tx));
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
       const result = await WorkerSessionService.createWizardSession(1, 1, {
@@ -669,7 +680,8 @@ describe("WorkerSessionService", () => {
 
       expect(result).not.toBeNull();
       expect(result.id).toBe(1);
-      expect(insertMock).toHaveBeenCalledTimes(1);
+      expect(transactionMock).toHaveBeenCalledTimes(1);
+      expect(txInsert).toHaveBeenCalledTimes(1);
       expect(returningMock).toHaveBeenCalled();
     });
 

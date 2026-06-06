@@ -8,7 +8,14 @@ export type MaterialCategory = {
   sortOrder: number;
   color?: string | null;
 };
-export type MaterialRow = { id: number; name: string; categoryIds?: number[] };
+export type MaterialRow = {
+  id: number;
+  name: string;
+  categoryIds?: number[];
+  stockQuantity?: string;
+  minStock?: string | null;
+  location?: string | null;
+};
 
 export type MaterialCategoryFormState = {
   name: string;
@@ -17,7 +24,12 @@ export type MaterialCategoryFormState = {
   isGroup: boolean;
   sortOrder: number;
 };
-export type MaterialItemFormState = { name: string; categoryIds: number[] };
+export type MaterialItemFormState = {
+  name: string;
+  categoryIds: number[];
+  minStock: string;
+  location: string;
+};
 
 export const EMPTY_CATEGORY_FORM: MaterialCategoryFormState = {
   name: "",
@@ -26,4 +38,9 @@ export const EMPTY_CATEGORY_FORM: MaterialCategoryFormState = {
   isGroup: false,
   sortOrder: 0,
 };
-export const EMPTY_MATERIAL_FORM: MaterialItemFormState = { name: "", categoryIds: [] };
+export const EMPTY_MATERIAL_FORM: MaterialItemFormState = {
+  name: "",
+  categoryIds: [],
+  minStock: "",
+  location: "",
+};

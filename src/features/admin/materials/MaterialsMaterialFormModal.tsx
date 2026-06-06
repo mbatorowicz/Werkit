@@ -99,6 +99,31 @@ export function MaterialsMaterialFormModal({
             <p className="text-xs text-red-400">{machDict.machCatWarning}</p>
           ) : null}
         </div>
+        {isEdit ? (
+          <>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.minStockLabel}</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder={dict.minStockPlaceholder}
+                value={form.minStock}
+                onChange={(e) => setForm({ ...form, minStock: e.target.value })}
+                className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">{dict.locationLabel}</label>
+              <input
+                type="text"
+                placeholder={dict.locationPlaceholder}
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+              />
+            </div>
+          </>
+        ) : null}
       </form>
     </AdminModalShell>
   );

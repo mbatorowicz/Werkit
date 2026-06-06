@@ -5,6 +5,7 @@ import {
   parseJsonBodyOrEmpty,
   withApiErrorHandling,
 } from "@/lib/apiRoute";
+import { MaterialStockMovementError } from "@/services/materials/MaterialStockMovementError";
 import { WorkerSessionService } from "@/services/WorkerSessionService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { coordsFromRequestBody } from "@/lib/coordsFromRequestBody";
@@ -40,6 +41,7 @@ export const POST = withApiErrorHandling(
         return jsonError("session_active", 400);
       if (err instanceof Error && err.message === "resource_busy")
         return jsonError("resource_busy", 409);
+      if (err instanceof MaterialStockMovementError) return jsonError(err.code, 400);
       return null;
     },
     defaultErrorCode: "save_error",

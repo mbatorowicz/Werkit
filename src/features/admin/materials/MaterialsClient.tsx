@@ -5,6 +5,7 @@ import { HardHat } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { MaterialsCatalogPanel } from "@/features/admin/materials/MaterialsCatalogPanel";
+import { MaterialStockMovementsClient } from "@/features/admin/materials/warehouse/MaterialStockMovementsClient";
 import {
   useMaterialsAdminData,
   type MaterialsAdminAlertContext,
@@ -41,6 +42,7 @@ export default function MaterialsClient() {
           <HardHat className="h-6 w-6 text-emerald-500" />
           {nav.materials}
         </h1>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{dict.pageSubtitleWarehouse}</p>
       </div>
 
       <MaterialsCatalogPanel
@@ -53,6 +55,8 @@ export default function MaterialsClient() {
         canMutate={canMutate}
         fetchData={fetchData}
       />
+
+      <MaterialStockMovementsClient materials={materials} onRefreshMaterials={() => void fetchData()} />
     </>
   );
 }

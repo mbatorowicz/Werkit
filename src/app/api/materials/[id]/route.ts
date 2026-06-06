@@ -1,3 +1,4 @@
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -29,8 +30,22 @@ export const PUT = withApiErrorHandling(
       return jsonError("missing_material_category", 400);
     }
 
+    const minStock =
+      body.minStock != null && String(body.minStock).trim() !== ""
+        ? normalizeDecimalBodyField(body.minStock)
+        : null;
+    const location =
+      typeof body.location === "string" && body.location.trim() !== ""
+        ? body.location.trim()
+        : null;
+
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.updateMaterial(companyId, id, { name }, categoryIds);
+    await DictionaryService.updateMaterial(
+      companyId,
+      id,
+      { name, minStock, location },
+      categoryIds
+    );
 
     return jsonOk({ success: true });
   },

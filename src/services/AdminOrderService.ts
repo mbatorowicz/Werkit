@@ -213,7 +213,7 @@ export class AdminOrderService {
   }
 
   /** Usuwa zlecenie i sesje z `work_order_id` (podrzędne GPS/zdjęcia/notatki — kaskada z sesji). */
-  static async deleteOrder(companyId: number, orderId: number) {
+  static async deleteOrder(companyId: number, orderId: number, actorUserId?: number) {
     const rows = await db
       .select({ id: workOrders.id })
       .from(workOrders)
@@ -222,6 +222,16 @@ export class AdminOrderService {
     if (rows.length === 0) throw new Error("not_found");
 
     await db.transaction(async (tx) => {
+      const { WorkSessionMaterialService } = await import(
+        "@/services/materials/WorkSessionMaterialService"
+      );
+      await WorkSessionMaterialService.returnForOrderSessions(
+        companyId,
+        actorUserId ?? companyId,
+        orderId,
+        tx
+      );
+
       await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
       await tx
         .delete(workOrders)

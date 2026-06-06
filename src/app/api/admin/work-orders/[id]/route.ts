@@ -174,7 +174,11 @@ export const DELETE = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
-    await AdminOrderService.deleteOrder(scoped.data.companyId, orderId);
+    await AdminOrderService.deleteOrder(
+      scoped.data.companyId,
+      orderId,
+      scoped.data.session.userId
+    );
     return jsonOk({ success: true });
   },
   {

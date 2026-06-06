@@ -185,28 +185,50 @@ export class WorkerSessionService {
 
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
-    const newSession = await db
-      .insert(workSessions)
-      .values({
-        companyId,
-        userId,
-        resourceId: resId,
-        categoryId: catId,
-        materialId: matId || null,
-        customerId: custId || null,
-        quantityTons: quantityTons || null,
-        taskDescription: taskDescription || null,
-        status: "IN_PROGRESS",
-        ...(startNums
-          ? {
-              startLatitude: startNums.lat,
-              startLongitude: startNums.lng,
-            }
-          : {}),
-      })
-      .returning();
+    const newSession = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(workSessions)
+        .values({
+          companyId,
+          userId,
+          resourceId: resId,
+          categoryId: catId,
+          materialId: matId || null,
+          customerId: custId || null,
+          quantityTons: quantityTons || null,
+          taskDescription: taskDescription || null,
+          status: "IN_PROGRESS",
+          ...(startNums
+            ? {
+                startLatitude: startNums.lat,
+                startLongitude: startNums.lng,
+              }
+            : {}),
+        })
+        .returning();
 
-    return newSession[0];
+      if (matId && quantityTons) {
+        const { WorkSessionMaterialService } = await import(
+          "@/services/materials/WorkSessionMaterialService"
+        );
+        await WorkSessionMaterialService.issueForSessionStart(
+          companyId,
+          userId,
+          {
+            workSessionId: row.id,
+            workOrderId: null,
+            materialId: matId,
+            quantityTons: String(quantityTons),
+            issuedTo: userId,
+          },
+          tx
+        );
+      }
+
+      return row;
+    });
+
+    return newSession;
   }
 
   /**
@@ -362,8 +384,18 @@ export class WorkerSessionService {
       .limit(1);
     if (!session) throw new Error("no_active_session");
 
-    // Transakcja: UPDATE work_orders + DELETE work_sessions atomowo
+    // Transakcja: zwrot materiału + UPDATE work_orders + DELETE work_sessions atomowo
     await db.transaction(async (tx) => {
+      const { WorkSessionMaterialService } = await import(
+        "@/services/materials/WorkSessionMaterialService"
+      );
+      await WorkSessionMaterialService.returnForSessionIfIssued(
+        companyId,
+        userId,
+        session.id,
+        tx
+      );
+
       if (session.workOrderId !== null) {
         await tx
           .update(workOrders)

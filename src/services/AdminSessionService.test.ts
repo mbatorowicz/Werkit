@@ -38,6 +38,12 @@ vi.mock("@/lib/photoUpload", () => ({
   refreshPhotoUrls: vi.fn((photos: unknown[]) => photos),
 }));
 
+vi.mock("@/services/materials/WorkSessionMaterialService", () => ({
+  WorkSessionMaterialService: {
+    returnForSessionIfIssued: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe("AdminSessionService", () => {
   beforeEach(() => {
     selectMock.mockReset();

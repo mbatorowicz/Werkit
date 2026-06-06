@@ -1,6 +1,7 @@
 import { jsonError, jsonOk, parseJsonBodyOrEmpty, withApiErrorHandling } from "@/lib/apiRoute";
 import { coordsFromRequestBody } from "@/lib/coordsFromRequestBody";
 import { parsePositiveIntFromString } from "@/lib/parseRouteParams";
+import { MaterialStockMovementError } from "@/services/materials/MaterialStockMovementError";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 
@@ -36,6 +37,7 @@ export const POST = withApiErrorHandling(
         return jsonError("schedule_conflict", 409);
       if (err instanceof Error && err.message === "resource_busy")
         return jsonError("resource_busy", 409);
+      if (err instanceof MaterialStockMovementError) return jsonError(err.code, 400);
       return null;
     },
     defaultErrorCode: "save_error",

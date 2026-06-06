@@ -135,6 +135,8 @@ export const materials = pgTable("materials", {
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
+  minStock: numeric("min_stock", { precision: 10, scale: 2 }),
+  location: varchar("location", { length: 255 }),
 });
 
 /** Kategorie materiałów (słownik) — analogicznie do kategorii maszyn. */
@@ -531,6 +533,60 @@ export const workOrderSparePartsRelations = relations(workOrderSpareParts, ({ on
   }),
   part: one(spareParts, { fields: [workOrderSpareParts.partId], references: [spareParts.id] }),
 }));
+
+// ──────────────────────────────────────────────
+// Magazyn materiałów
+// ──────────────────────────────────────────────
+
+export const materialInventory = pgTable("material_inventory", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  materialId: integer("material_id")
+    .notNull()
+    .references(() => materials.id, { onDelete: "cascade" }),
+  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull().default("0"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const materialStockReceipts = pgTable("material_stock_receipts", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  materialId: integer("material_id")
+    .notNull()
+    .references(() => materials.id, { onDelete: "cascade" }),
+  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
+  unitPrice: numeric("unit_price", { precision: 10, scale: 2 }),
+  invoiceNumber: varchar("invoice_number", { length: 255 }),
+  notes: text("notes"),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  workSessionId: integer("work_session_id").references(() => workSessions.id, {
+    onDelete: "set null",
+  }),
+});
+
+export const materialStockIssues = pgTable("material_stock_issues", {
+  id: serial("id").primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  materialId: integer("material_id")
+    .notNull()
+    .references(() => materials.id, { onDelete: "cascade" }),
+  quantity: numeric("quantity", { precision: 10, scale: 2 }).notNull(),
+  workOrderId: integer("work_order_id").references(() => workOrders.id, { onDelete: "set null" }),
+  workSessionId: integer("work_session_id").references(() => workSessions.id, {
+    onDelete: "set null",
+  }),
+  issuedTo: integer("issued_to").references(() => users.id, { onDelete: "set null" }),
+  notes: text("notes"),
+  createdBy: integer("created_by").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 // ──────────────────────────────────────────────
 // DUR — Faza 2: Gospodarka magazynowa

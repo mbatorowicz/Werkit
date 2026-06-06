@@ -52,7 +52,10 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
 | `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
-| `materials` | `id` | **`company_id`**, `name` | `company_id → companies.id` (cascade) |
+| `materials` | `id` | **`company_id`**, `name`, `min_stock` (numeric, default 0), `location?` | `company_id → companies.id` (cascade) |
+| `material_inventory` | PK `(material_id, company_id)` | **`material_id`**, **`company_id`**, `quantity` (numeric, default 0), `updated_at` | `material_id → materials.id` (cascade); `company_id → companies.id` (cascade) |
+| `material_stock_receipts` | `id` | **`company_id`**, **`material_id`**, `quantity` (numeric), `unit_price?` (numeric), `invoice_number?`, `notes?`, `created_by?`, `created_at`, `work_session_id?` (PZ zwrotu) | `company_id → companies.id` (cascade); `material_id → materials.id` (cascade); `work_session_id → work_sessions.id` (set null); UNIQUE `work_session_id` gdy zwrot |
+| `material_stock_issues` | `id` | **`company_id`**, **`material_id`**, `quantity` (numeric), `work_order_id?`, `work_session_id?`, `issued_to?`, `notes?`, `created_by?`, `created_at` | `company_id → companies.id` (cascade); `material_id → materials.id` (cascade); `work_order_id → work_orders.id` (set null); `work_session_id → work_sessions.id` (set null); UNIQUE `work_session_id` (jedno WZ na sesję) |
 | `material_categories` | `id` | **`company_id`**, `name`, **`parent_id`**, … | `company_id → companies.id` (cascade) |
 | `material_to_categories` | PK `(material_id, category_id)` | linki N↔M | cascade z `materials` i `material_categories` |
 | `customers` | `id` | `company_id`, `first_name?`, `last_name`, `default_address?`, `latitude?`, `longitude?` | `company_id → companies.id` (cascade) |
@@ -110,6 +113,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0021 | `0021_order_types_org_feature_flags.sql` | `resource_categories.order_type` (`machine_work` / `machine_repair`), `company_settings.enable_worker_wizard`, `company_settings.enable_worker_order_accept`. |
 | 0022 | `0022_dur_warehouse.sql` | Tabele `work_order_spare_parts`, `spare_part_inventory`, `stock_receipts`, `stock_issues` + indeksy. |
 | 0023 | `0023_feature_flags_dur.sql` | `company_settings.dur_enabled` — feature flag dla modułu DUR (domyślnie `false`). |
+| 0029 | `0029_material_warehouse.sql` | Magazyn materiałów: `material_inventory`, `material_stock_receipts`, `material_stock_issues`; `materials.min_stock`, `materials.location`; UNIQUE na `work_session_id` w issues/receipts (automatyczne WZ/PZ sesji). |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -134,7 +138,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/users` | RSC | `UsersClient` | Konta admin/viewer/worker + flagi uprawnień (`features/admin/users/UsersClient.tsx`) | admin |
 | `/admin/machines` | RSC | `MachinesClient` | Typy zasobów (zwijany blok) + rejestr zasobów (`features/admin/machines/MachinesClient.tsx`) | admin |
 | `/admin/customers` | RSC | `CustomersClient` | Klienci CRUD + lokalizacje + geocode (`features/admin/customers/`) | admin |
-| `/admin/materials` | RSC | `MaterialsClient` | Materiały + kategorie materiałów (`features/admin/materials/MaterialsClient.tsx`) | admin |
+| `/admin/materials` | RSC | `MaterialsClient` | Katalog materiałów + kategorie + **magazyn** (stan, PZ/WZ, korekta; `features/admin/materials/`, `warehouse/MaterialStockMovementsClient.tsx`) | admin |
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
@@ -229,7 +233,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/work-orders` | POST | `guardDispatchMutation` (admin **lub** lider/kierownik z org) → tworzy zlecenie + `DelegationScopeService.assertCanDelegateTo` na `userId` + walidacja kategorii + konflikt harmonogramu. 403 `forbidden` / `invalid_assignee`. UI: panel inline w `OrderFormModal`. |
 | `/api/admin/work-orders/schedule-conflicts` | GET | Podgląd konfliktów (admin); bez terminu → konflikty `resource_busy` |
 | `/api/admin/work-orders/[id]` | PUT | `guardDispatchMutation` + `assertCanDelegateTo` przy zmianie `userId`; `assertOrderEntitiesBelongToCompany`; edycja (sprawdza `not_pending`); konflikt harmonogramu (+ `forceSave`) |
-| `/api/admin/work-orders/[id]` | DELETE | Usuwa zlecenie + sesje pochodne (transakcja) |
+| `/api/admin/work-orders/[id]` | DELETE | `AdminOrderService.deleteOrder` — PZ zwrotów materiału + kasuje sesje i zlecenie (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
@@ -253,7 +257,20 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 Każda trasa w `categories|customers|materials|machines|material-categories` ma ten sam wzorzec: `GET (DictionaryService.get*) `, `POST (DictionaryService.add*)`, `PUT/DELETE` przez `[id]/route.ts`. Mutacje za `guardAdminMutation()`. **`POST /api/customers`** zwraca `{ customerId }` (inline tworzenie w modalu zlecenia). Dodatkowo handlery wykrywają **brakujące migracje** (`isMissingResourcesVehicleColumns`, `isMissingMaterialCategoriesTables`, `isMissingResourceCategoriesStationaryColumn`) → 503 z czytelnym kluczem (`migration_required`, `migration_material_categories`).
 
-**Materiały:** `POST/PUT /api/materials` — ciało `{ name, categoryIds }`; **co najmniej jedna** kategoria (`categoryIds.length ≥ 1`), inaczej **400** `missing_material_category`. Kolumna `materials.type` usunięta migracją **0009** (`DictionaryService.addMaterial(name, categoryIds)`).
+**Materiały:** `POST/PUT /api/materials` — ciało `{ name, categoryIds }`; **co najmniej jedna** kategoria (`categoryIds.length ≥ 1`), inaczej **400** `missing_material_category`. Kolumna `materials.type` usunięta migracją **0009** (`DictionaryService.addMaterial(name, categoryIds)`). `PUT /api/materials/[id]` — dodatkowo `minStock`, `location` (`MaterialService`).
+
+**Magazyn materiałów** (bez feature flag — zawsze włączony; jednostka **t**):
+
+| Endpoint | Metoda | Funkcja |
+|---|---|---|
+| `/api/materials/inventory` | GET | `MaterialInventoryService.getInventory(companyId)` — stan wszystkich materiałów |
+| `/api/materials/inventory` | PUT `{materialId, quantity}` | `MaterialInventoryService.setQuantity` — korekta bezwzględna |
+| `/api/materials/stock/receipts` | GET | `MaterialStockMovementService.getReceipts` |
+| `/api/materials/stock/receipts` | POST `{materialId, quantity, unitPrice?, invoiceNumber?, notes?}` | `MaterialStockMovementService.addReceipt` — ręczne PZ |
+| `/api/materials/stock/issues` | GET | `MaterialStockMovementService.getIssues` |
+| `/api/materials/stock/issues` | POST `{materialId, quantity, workOrderId?, notes?}` | `MaterialStockMovementService.addIssue` — ręczne WZ |
+
+**Automatyczne ruchy magazynowe materiałów** (przy `materialId` + `quantityTons` > 0): **WZ** przy starcie sesji (`WorkerOrderService.acceptOrder`, `WorkerSessionService.createWizardSession` → `WorkSessionMaterialService.issueForSessionStart`); **PZ zwrot** przy cofnięciu (`cancelActiveSession`, `AdminOrderService.deleteOrder`, `AdminSessionService.deleteArchivedSession` → `returnForSessionIfIssued`). Błędy: `MaterialStockMovementError` (`insufficient_stock`, `material_not_found`) — mapowane w API worker accept/session.
 
 ### 5.6. DUR (części zamienne)
 
@@ -304,7 +321,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `WorkerOrderService`
 - `getPendingOrders(userId)` — JOIN: resources, materials, customers, creator (alias users), resource_categories. Sort: dueDate asc → createdAt asc. Mapuje `priority` przez `normalizeWorkOrderPriority`.
 - `createOwnOrder(userId, payload)` — wymaga `canCreateOwnOrders`; INSERT `work_orders` PENDING dla siebie; bez override konfliktów; zwraca `orderId`.
-- `acceptOrder(userId, orderId, startCoord?)` — walidacja harmonogramu (`schedule_conflict`, `resource_busy`, `session_active`); UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS`. Zwraca `sessionId`.
+- `acceptOrder(userId, orderId, startCoord?)` — walidacja harmonogramu (`schedule_conflict`, `resource_busy`, `session_active`); transakcja: UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS` + opcjonalne **WZ materiału** (`WorkSessionMaterialService.issueForSessionStart`). Zwraca `sessionId`.
 
 ### `ScheduleConflictService`
 - `loadCandidates`, `findConflictsForRequest`, `findConflictsForRequestSerialized` — nakładające się zlecenia PENDING/IN_PROGRESS i aktywne sesje dla pracownika/zasobu.
@@ -314,10 +331,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `WorkerSessionService`
 - `getActiveSessionWithDetails(userId)` — sesja IN_PROGRESS + JOIN klient/maszyna/kategoria (z `categoryIsStationary`)/materiał + ustawienia + user (`notificationsEnabled`, `canCreateOwnOrders`) + zdjęcia + notatki.
-- `createWizardSession(userId, payload)` — rzuca `session_active` jeśli już trwa.
+- `createWizardSession(userId, payload)` — transakcja INSERT sesji + opcjonalne WZ materiału; rzuca `session_active` jeśli już trwa.
 - `endActiveSession(userId, endCoord?)` — `no_active_session` jeśli brak.
 - `addNote/updateNote/addPhoto`.
-- `cancelActiveSession(userId)` — jeśli `work_sessions.work_order_id` jest ustawione, **`work_orders.status → PENDING`**; usuwa wiersz sesji (również dla wizarda bez zlecenia).
+- `cancelActiveSession(userId)` — transakcja: **PZ zwrot materiału** (jeśli było WZ) + jeśli `work_order_id` → **`work_orders.status → PENDING`** + DELETE sesji.
 - `getCompletedSessions(userId, limit=20)`, `getSessionHistoryFull(sessionId, userId)` (GPS + notatki + zdjęcia).
 
 ### `AdminOrderService`
@@ -328,12 +345,12 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
 - `createOrder(orderData, { actorUserId, actorRole }?)` — opcjonalnie `DelegationScopeService.assertCanDelegateTo` na `userId`.
 - `updateOrder(orderId, updates, { actorUserId, actorRole }?)` — jak wyżej przy zmianie `userId`; `assertOrderEntitiesBelongToCompany` na update; rzuca `not_found` lub `not_pending`.
-- `deleteOrder(orderId)` — transakcja: kasuje sesje z `work_order_id = orderId`, potem zlecenie.
+- `deleteOrder(companyId, orderId, actorUserId?)` — transakcja: PZ zwrotów materiału dla sesji zlecenia, kasuje sesje, potem zlecenie.
 
 ### `AdminSessionService`
 - `getSessionDetails(sessionId)` — logi GPS, zdjęcia, notatki (sortowane od najnowszych).
 - `forceCompleteSession(sessionId)` — `not_found` / `not_in_progress`; domyka sesję i powiązane **`work_orders.status → COMPLETED`** gdy `work_order_id` jest ustawione.
-- `deleteArchivedSession(sessionId)` — `session_still_active` jeśli w toku; transakcja: kasuje sesję + powiązany `work_order` jeśli istniał.
+- `deleteArchivedSession(companyId, sessionId, actorUserId?)` — `session_still_active` jeśli w toku; transakcja: PZ zwrot materiału + kasuje sesję + powiązany `work_order` jeśli istniał.
 
 ### `DictionaryService`
 - Słowniki + ustawienia, **w tym mapowanie N↔M** dla maszyn (`resource_to_categories`) i materiałów (`material_to_categories`).
@@ -403,6 +420,22 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getIssues(companyId)` — lista wydań magazynowych.
 - `addIssue(companyId, payload)` — wydanie części (`{partId, quantity, workOrderId?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
 
+### `MaterialInventoryService` (`src/services/materials/MaterialInventoryService.ts`)
+- `getInventory(companyId)` — stan magazynowy materiałów (tony).
+- `getMaterialInventory(materialId, companyId)` — stan pojedynczego materiału.
+- `upsertQuantity(materialId, companyId, delta)` — delta na stanie.
+- `setQuantity(materialId, companyId, quantity)` — korekta bezwzględna.
+
+### `MaterialStockMovementService` (`src/services/materials/MaterialStockMovementService.ts`)
+- `getReceipts` / `addReceipt` — ręczne PZ + zwroty sesji (`work_session_id`).
+- `getIssues` / `addIssue` — ręczne WZ.
+- `issueForWorkSession` / `returnForWorkSession` — automatyczne WZ/PZ powiązane z `work_sessions` (idempotentne).
+
+### `WorkSessionMaterialService` (`src/services/materials/WorkSessionMaterialService.ts`)
+- `issueForSessionStart` — WZ przy `acceptOrder` / `createWizardSession` gdy `materialId` + `quantityTons` > 0.
+- `returnForSessionIfIssued` — PZ zwrot przy anulowaniu/usuwaniu sesji (idempotentne).
+- `returnForOrderSessions` — PZ dla wszystkich sesji zlecenia (`deleteOrder`).
+
 ### `OrganizationService` (`src/services/OrganizationService.ts`)
 - CRUD `departments`, `teams`, `team_members` (scoped `companyId`).
 - **Sync lidera:** `teams.leaderId` ↔ wpis `team_members.role='leader'` (`syncTeamLeader`, `applyTeamLeaderFromMember`, `clearTeamLeaderIfMatches`) — wywoływane przy `updateTeam`, `addTeamMember`, `updateTeamMember`, `removeTeamMember`.
@@ -433,6 +466,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `wizard.ts` | `WizardCategory` (z `isStationary?`), `WizardMachine`, `WizardMaterial`, `WizardCustomer` |
 | `deviceTelemetry.ts` | `WerkitLogCategory`, typy metadanych logów urządzenia |
 | `dur.ts` | `SparePartCategory`, `SparePart` (z `categoryIds`, `machineCategoryIds`), `SparePartMachineCompatibility`, `SparePartInput`, `SparePartCategoryInput`, `SparePartCompatibilityInput`, `SparePartInventory`, `StockReceipt`, `StockIssue`, `StockReceiptInput`, `StockIssueInput`, `InventoryAdjustmentInput` |
+| `materials-warehouse.ts` | `MaterialStockReceipt`, `MaterialStockIssue`, `MaterialInventoryRow`, inputy PZ/WZ/korekty |
 
 **Konwencja**: **daty w propsach client → string ISO** (zob. `InitialWorkerData`, `UnifiedGanttItem`). Daty w serwisach na granicy DB → `Date`/`string` z Drizzle.
 
@@ -592,6 +626,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
 | `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility`, `narrowInventory`, `narrowStockReceipts`, `narrowStockIssues` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
+| `narrow/materials-warehouse.ts` | `narrowMaterialStockReceipts`, `narrowMaterialStockIssues` — PZ/WZ magazynu materiałów. |
 | `narrow/organization.ts` | `narrowUserOrgProfile`, `narrowDelegatableWorkers`, `narrowOrganizationTreePayload` — profil org, delegowalni workerzy, payload drzewa ludzi (`tree` + `unassignedUsers`). |
 | `resolveNeonPostgresUrl.ts` | `resolveNeonPostgresUrl()` + `ensurePostgresUrlForVercelDriver()` — dla skryptów `tsx`, kiedy w `.env.local` jest tylko `DATABASE_URL` (Neon). Patrz `src/db/env.ts`. |
 

@@ -65,7 +65,23 @@ export function narrowBaseMaterials(rows: unknown[]): BaseMaterial[] {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.name !== "string") continue;
     const categoryIds = r.categoryIds !== undefined ? narrowNumberArray(r.categoryIds) : undefined;
-    out.push({ id: r.id, name: r.name, categoryIds });
+    const stockQuantity =
+      typeof r.stockQuantity === "string" || typeof r.stockQuantity === "number"
+        ? String(r.stockQuantity)
+        : undefined;
+    const minStock =
+      r.minStock === null
+        ? null
+        : typeof r.minStock === "string" || typeof r.minStock === "number"
+          ? String(r.minStock)
+          : undefined;
+    const location =
+      r.location === null
+        ? null
+        : typeof r.location === "string"
+          ? r.location
+          : undefined;
+    out.push({ id: r.id, name: r.name, categoryIds, stockQuantity, minStock, location });
   }
   return out;
 }

@@ -46,7 +46,7 @@ export const DELETE = withApiErrorHandling(
     const passwordOk = await AdminUserService.verifyPasswordForUserId(userId, password);
     if (!passwordOk) return jsonError("invalid_credentials", 401);
 
-    await AdminSessionService.deleteArchivedSession(companyId, sessionId);
+    await AdminSessionService.deleteArchivedSession(companyId, sessionId, userId);
     return jsonOk({ success: true });
   },
   {

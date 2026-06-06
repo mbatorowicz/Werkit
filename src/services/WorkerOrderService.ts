@@ -145,6 +145,24 @@ export class WorkerOrderService {
         })
         .returning();
 
+      if (order.materialId && order.quantityTons) {
+        const { WorkSessionMaterialService } = await import(
+          "@/services/materials/WorkSessionMaterialService"
+        );
+        await WorkSessionMaterialService.issueForSessionStart(
+          companyId,
+          userId,
+          {
+            workSessionId: newSession.id,
+            workOrderId: order.id,
+            materialId: order.materialId,
+            quantityTons: String(order.quantityTons),
+            issuedTo: userId,
+          },
+          tx
+        );
+      }
+
       return newSession.id;
     });
   }
