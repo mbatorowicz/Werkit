@@ -105,8 +105,11 @@ export const POST = withApiErrorHandling(
     return jsonOk({ id: partId, success: true });
   },
   {
-    mapUnknownError: (err) =>
-      err instanceof CategoryHierarchyError ? jsonError(err.code, 400) : null,
+    mapUnknownError: (err) => {
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      if (err instanceof Error && err.message === "invalid_unit") return jsonError("invalid_unit", 400);
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );

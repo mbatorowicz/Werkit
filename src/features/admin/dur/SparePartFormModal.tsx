@@ -6,6 +6,10 @@ import { SparePartFormFields } from "./SparePartFormFields";
 import type { SparePartFormState } from "./sparePartFormTypes";
 import type { SparePartCategory } from "@/types/dur";
 import type { ResourceGroupOption } from "@/features/admin/dur/useResourceGroups";
+import type { AppDictionary } from "@/i18n/types";
+
+type Dict = AppDictionary["dur"]["spareParts"];
+type SharedDict = AppDictionary["admin"]["shared"];
 
 interface SparePartFormModalProps {
   open: boolean;
@@ -17,37 +21,8 @@ interface SparePartFormModalProps {
   isEditing: boolean;
   partCategories: SparePartCategory[];
   machineGroups: ResourceGroupOption[];
-  dict: {
-    newPart: string;
-    editPart: string;
-    save: string;
-    saving: string;
-    fields: {
-      name: string;
-      namePlaceholder: string;
-      catalogNumber: string;
-      catalogNumberPlaceholder: string;
-      manufacturer: string;
-      manufacturerPlaceholder: string;
-      unit: string;
-      unitPlaceholder: string;
-      purchasePrice: string;
-      purchasePricePlaceholder: string;
-      description: string;
-      descriptionPlaceholder: string;
-      minStock: string;
-      minStockHint: string;
-      location: string;
-      locationPlaceholder: string;
-      isActive: string;
-      isActiveHint: string;
-      categories: string;
-      categoriesPlaceholder: string;
-      machineCategories: string;
-      machineCategoriesHint: string;
-      machineCategoriesPlaceholder: string;
-    };
-  };
+  dict: Dict;
+  sharedDict: SharedDict;
 }
 
 export function SparePartFormModal({
@@ -61,6 +36,7 @@ export function SparePartFormModal({
   partCategories,
   machineGroups,
   dict,
+  sharedDict,
 }: SparePartFormModalProps) {
   const title = isEditing ? dict.editPart : dict.newPart;
   const submitLabel = isSubmitting ? dict.saving : dict.save;
@@ -86,7 +62,7 @@ export function SparePartFormModal({
           e.preventDefault();
           onSubmit();
         }}
-        className="space-y-4 p-6"
+        className="p-6"
       >
         <SparePartFormFields
           formState={formState}
@@ -94,6 +70,7 @@ export function SparePartFormModal({
           isEditing={isEditing}
           partCategories={partCategories}
           machineGroups={machineGroups}
+          sharedDict={sharedDict}
           dict={dict}
         />
       </form>

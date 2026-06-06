@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Package } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { formatDict, getDictionary } from "@/i18n";
+import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { materialsApi } from "@/lib/appRoutes";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
@@ -47,11 +48,24 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
+  const materialById = useMemo(
+    () => new Map(materials.map((m) => [m.id, m])),
+    [materials]
+  );
+
+  const selectedMaterial = useMemo(
+    () => materials.find((m) => String(m.id) === materialId) ?? null,
+    [materials, materialId]
+  );
+
   const materialOptions = useMemo((): AdminSearchComboboxOption[] => {
     return materials.map((m) => ({
       id: String(m.id),
       label: m.name,
-      sublabel: wDict.stockSublabel.replace("{qty}", m.stockQuantity ?? "0"),
+      sublabel: formatDict(wDict.stockSublabel, {
+        qty: m.stockQuantity ?? "0",
+        unit: m.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+      }),
     }));
   }, [materials, wDict.stockSublabel]);
 
@@ -207,7 +221,11 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
                 <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-3 font-medium">{row.materialName ?? row.materialId}</td>
                   <td className="px-4 py-3">
-                    {row.quantity} {wDict.unit}
+                    {formatDict(wDict.stockWithUnit, {
+                      qty: row.quantity,
+                      unit:
+                        materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                    })}
                   </td>
                   <td className="px-4 py-3 text-zinc-500">
                     {new Date(row.createdAt).toLocaleString()}
@@ -248,7 +266,13 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500">{wDict.fieldQuantity}</label>
+            <label className="text-sm font-medium text-zinc-500">
+              {selectedMaterial
+                ? formatDict(wDict.fieldQuantityWithUnit, {
+                    unit: selectedMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                  })
+                : wDict.fieldQuantity}
+            </label>
             <DecimalInput value={quantity} onChange={setQuantity} placeholder="0" />
           </div>
           {tab === "receipts" ? (

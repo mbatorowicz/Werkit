@@ -47,6 +47,7 @@ export default function MaterialsClient() {
 
       <MaterialsCatalogPanel
         dict={dict}
+        sharedDict={dictionary.admin.shared}
         machDict={machDict}
         apiErrors={apiErrors}
         categories={categories}

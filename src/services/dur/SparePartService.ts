@@ -1,5 +1,9 @@
 import { db } from "@/db";
 import {
+  DEFAULT_SPARE_PART_MEASURE_UNIT,
+  normalizeMeasureUnit,
+} from "@/lib/measureUnits";
+import {
   spareParts,
   sparePartToCategories,
   sparePartMachineCompatibility,
@@ -122,6 +126,13 @@ export class SparePartService {
       await assertResourceGroupsAssignable(groupIds, companyId);
     }
 
+    let unit: string = DEFAULT_SPARE_PART_MEASURE_UNIT;
+    if (data.unit !== undefined && data.unit !== null && String(data.unit).trim() !== "") {
+      const normalized = normalizeMeasureUnit(data.unit);
+      if (!normalized) throw new Error("invalid_unit");
+      unit = normalized;
+    }
+
     const res = await db
       .insert(spareParts)
       .values({
@@ -129,7 +140,7 @@ export class SparePartService {
         name: data.name.trim(),
         catalogNumber: data.catalogNumber ?? "",
         manufacturer: data.manufacturer ?? "",
-        unit: data.unit ?? "szt",
+        unit,
         purchasePrice: data.purchasePrice ?? null,
         description: data.description ?? null,
         minStock: data.minStock ?? "0",
@@ -179,7 +190,11 @@ export class SparePartService {
     if (data.name !== undefined) updateData.name = data.name.trim();
     if (data.catalogNumber !== undefined) updateData.catalogNumber = data.catalogNumber;
     if (data.manufacturer !== undefined) updateData.manufacturer = data.manufacturer;
-    if (data.unit !== undefined) updateData.unit = data.unit;
+    if (data.unit !== undefined) {
+      const normalized = normalizeMeasureUnit(data.unit);
+      if (!normalized) throw new Error("invalid_unit");
+      updateData.unit = normalized;
+    }
     if (data.purchasePrice !== undefined) updateData.purchasePrice = data.purchasePrice;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.minStock !== undefined) updateData.minStock = data.minStock;

@@ -1,4 +1,5 @@
 import { DEFAULT_CATEGORY_COLOR } from "@/lib/categoryColorStyles";
+import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 
 export type MaterialCategory = {
   id: number;
@@ -11,6 +12,7 @@ export type MaterialCategory = {
 export type MaterialRow = {
   id: number;
   name: string;
+  unit: string;
   categoryIds?: number[];
   stockQuantity?: string;
   minStock?: string | null;
@@ -27,6 +29,7 @@ export type MaterialCategoryFormState = {
 export type MaterialItemFormState = {
   name: string;
   categoryIds: number[];
+  unit: string;
   minStock: string;
   location: string;
 };
@@ -41,6 +44,7 @@ export const EMPTY_CATEGORY_FORM: MaterialCategoryFormState = {
 export const EMPTY_MATERIAL_FORM: MaterialItemFormState = {
   name: "",
   categoryIds: [],
+  unit: DEFAULT_MATERIAL_MEASURE_UNIT,
   minStock: "",
   location: "",
 };

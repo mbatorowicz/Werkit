@@ -89,6 +89,7 @@ export type BaseMachine = {
 export type BaseMaterial = {
   id: number;
   name: string;
+  unit: string;
   categoryIds?: number[];
   stockQuantity?: string;
   minStock?: string | null;

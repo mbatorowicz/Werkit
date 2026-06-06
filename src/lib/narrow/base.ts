@@ -7,6 +7,7 @@ import type {
   BaseMaterial,
   BaseWorker,
 } from "@/types/admin";
+import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { narrowOrderType } from "@/lib/orderType";
 import { isRecord, narrowNumberArray, narrowStringArray, readBool } from "./shared";
 
@@ -81,7 +82,8 @@ export function narrowBaseMaterials(rows: unknown[]): BaseMaterial[] {
         : typeof r.location === "string"
           ? r.location
           : undefined;
-    out.push({ id: r.id, name: r.name, categoryIds, stockQuantity, minStock, location });
+    const unit = typeof r.unit === "string" ? r.unit : DEFAULT_MATERIAL_MEASURE_UNIT;
+    out.push({ id: r.id, name: r.name, unit, categoryIds, stockQuantity, minStock, location });
   }
   return out;
 }

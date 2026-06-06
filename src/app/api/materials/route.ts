@@ -1,3 +1,5 @@
+import { normalizeDecimalBodyField } from "@/lib/decimalInput";
+import { normalizeMeasureUnit } from "@/lib/measureUnits";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { isMissingMaterialCategoriesTables } from "@/lib/postgresMigrationHints";
@@ -45,10 +47,36 @@ export const POST = withApiErrorHandling(
       return jsonError(!name ? "missing_fields" : "missing_material_category", 400);
     }
 
+    const unitRaw = body.unit;
+    const unit =
+      unitRaw != null && String(unitRaw).trim() !== ""
+        ? normalizeMeasureUnit(unitRaw)
+        : undefined;
+    if (unitRaw != null && String(unitRaw).trim() !== "" && !unit) {
+      return jsonError("invalid_unit", 400);
+    }
+
+    const minStock =
+      body.minStock != null && String(body.minStock).trim() !== ""
+        ? normalizeDecimalBodyField(body.minStock)
+        : null;
+    const location =
+      typeof body.location === "string" && body.location.trim() !== ""
+        ? body.location.trim()
+        : null;
+
     const { DictionaryService } = await import("@/services/DictionaryService");
-    await DictionaryService.addMaterial(companyId, name, categoryIds);
+    await DictionaryService.addMaterial(companyId, name, categoryIds, {
+      ...(unit ? { unit } : {}),
+      minStock,
+      location,
+    });
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) =>
+      err instanceof Error && err.message === "invalid_unit" ? jsonError("invalid_unit", 400) : null,
+    defaultErrorCode: "save_error",
+  }
 );

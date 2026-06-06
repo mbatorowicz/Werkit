@@ -8,7 +8,8 @@ import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
-import { getDictionary } from "@/i18n";
+import { formatDict, getDictionary } from "@/i18n";
+import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import type { AppDictionary } from "@/i18n/types";
 import type { MaterialCategory, MaterialRow } from "./types";
@@ -44,6 +45,7 @@ export function MaterialsTable({
   isLowStock,
 }: Props) {
   const wDict = dict.warehouse;
+  const sharedDict = getDictionary().admin.shared;
   const ui = getDictionary().admin.ui;
   const [previewMaterial, setPreviewMaterial] = useState<MaterialRow | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,6 +100,9 @@ export function MaterialsTable({
                   {machDict.dictCategory}
                 </th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                  {dict.unitColumn}
+                </th>
+                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   {wDict.stockColumn}
                 </th>
                 {canMutate ? (
@@ -111,7 +116,7 @@ export function MaterialsTable({
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={canMutate ? 4 : 3}
+                    colSpan={canMutate ? 5 : 4}
                     className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
                   >
                     {dict.fetching}
@@ -120,7 +125,7 @@ export function MaterialsTable({
               ) : filteredMaterials.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={canMutate ? 4 : 3}
+                    colSpan={canMutate ? 5 : 4}
                     className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
                   >
                     {searchQuery.trim() ? dict.listSearchNoResults : dict.noMaterials}
@@ -156,10 +161,16 @@ export function MaterialsTable({
                           )}
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        {material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                            {material.stockQuantity ?? "0"} {wDict.unit}
+                            {formatDict(wDict.stockWithUnit, {
+                              qty: material.stockQuantity ?? "0",
+                              unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                            })}
                           </span>
                           {isLowStock?.(material) ? (
                             <span className="text-xs font-semibold text-amber-600">{wDict.lowStock}</span>
@@ -248,6 +259,23 @@ export function MaterialsTable({
                 ) : null}
               </div>
             </AdminPreviewField>
+            <AdminPreviewField
+              label={sharedDict.measureUnitLabel}
+              value={previewMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT}
+            />
+            <AdminPreviewField
+              label={wDict.stockColumn}
+              value={formatDict(wDict.stockWithUnit, {
+                qty: previewMaterial.stockQuantity ?? "0",
+                unit: previewMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+              })}
+            />
+            {previewMaterial.minStock ? (
+              <AdminPreviewField label={dict.minStockLabel} value={previewMaterial.minStock} />
+            ) : null}
+            {previewMaterial.location ? (
+              <AdminPreviewField label={dict.locationLabel} value={previewMaterial.location} />
+            ) : null}
           </>
         ) : null}
       </AdminPreviewModal>

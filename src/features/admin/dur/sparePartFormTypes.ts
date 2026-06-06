@@ -1,4 +1,8 @@
 import { decimalStringForStorage } from "@/lib/decimalInput";
+import {
+  DEFAULT_SPARE_PART_MEASURE_UNIT,
+  resolveMeasureUnit,
+} from "@/lib/measureUnits";
 import type { SparePart, SparePartInput } from "@/types/dur";
 
 
@@ -91,7 +95,7 @@ export function sparePartToFormState(part: SparePart): SparePartFormState {
 
     manufacturer: part.manufacturer ?? "",
 
-    unit: part.unit,
+    unit: resolveMeasureUnit(part.unit, DEFAULT_SPARE_PART_MEASURE_UNIT),
 
     purchasePrice: part.purchasePrice ?? "",
 
@@ -121,7 +125,7 @@ export function formStateToSparePartInput(
     name: state.name.trim(),
     catalogNumber: state.catalogNumber.trim() || undefined,
     manufacturer: state.manufacturer.trim() || undefined,
-    unit: state.unit.trim() || "szt.",
+    unit: resolveMeasureUnit(state.unit, DEFAULT_SPARE_PART_MEASURE_UNIT),
     purchasePrice: opts?.omitPurchasePrice
       ? undefined
       : state.purchasePrice.trim()

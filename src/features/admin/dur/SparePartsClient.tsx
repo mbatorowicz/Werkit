@@ -167,6 +167,7 @@ export default function SparePartsClient({ embedded = false }: Props) {
         partCategories={leafCategories}
         machineGroups={machineGroups}
         dict={dict}
+        sharedDict={dictionary.admin.shared}
       />
 
       <SparePartStockAdjustModal

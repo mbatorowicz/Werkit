@@ -135,6 +135,7 @@ export const materials = pgTable("materials", {
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
+  unit: varchar("unit", { length: 50 }).notNull().default("t"),
   minStock: numeric("min_stock", { precision: 10, scale: 2 }),
   location: varchar("location", { length: 255 }),
 });

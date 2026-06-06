@@ -1,4 +1,5 @@
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
+import { normalizeMeasureUnit } from "@/lib/measureUnits";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -39,17 +40,28 @@ export const PUT = withApiErrorHandling(
         ? body.location.trim()
         : null;
 
+    let unit: string | undefined;
+    if (body.unit !== undefined && body.unit !== null) {
+      const normalized = normalizeMeasureUnit(body.unit);
+      if (!normalized) return jsonError("invalid_unit", 400);
+      unit = normalized;
+    }
+
     const { DictionaryService } = await import("@/services/DictionaryService");
     await DictionaryService.updateMaterial(
       companyId,
       id,
-      { name, minStock, location },
+      { name, minStock, location, ...(unit !== undefined ? { unit } : {}) },
       categoryIds
     );
 
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "save_error" }
+  {
+    mapUnknownError: (err) =>
+      err instanceof Error && err.message === "invalid_unit" ? jsonError("invalid_unit", 400) : null,
+    defaultErrorCode: "save_error",
+  }
 );
 
 export const DELETE = withApiErrorHandling(

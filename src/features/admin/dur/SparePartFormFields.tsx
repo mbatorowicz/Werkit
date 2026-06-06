@@ -1,18 +1,29 @@
 "use client";
 
+import { AdminFormField } from "@/components/Admin/AdminFormField";
+import {
+  INVENTORY_FORM_CONTROL,
+  INVENTORY_FORM_GRID_2,
+  INVENTORY_FORM_STACK,
+  INVENTORY_FORM_TEXTAREA,
+} from "@/components/Admin/adminInventoryFormStyles";
+import { MeasureUnitSelect } from "@/components/Admin/MeasureUnitSelect";
 import type { SparePartFormState } from "./sparePartFormTypes";
 import { CategoryIdChipPicker } from "./CategoryIdChipPicker";
 import { DecimalInput } from "@/components/DecimalInput";
 import type { SparePartCategory } from "@/types/dur";
 import type { ResourceGroupOption } from "@/features/admin/dur/useResourceGroups";
+import type { AppDictionary } from "@/i18n/types";
+
+type SharedDict = AppDictionary["admin"]["shared"];
 
 interface SparePartFormFieldsProps {
   formState: SparePartFormState;
   onFormStateChange: (state: SparePartFormState) => void;
-  /** Ukrywa cenę zakupu przy pierwszym dodaniu części do katalogu. */
   isEditing: boolean;
   partCategories: SparePartCategory[];
   machineGroups: ResourceGroupOption[];
+  sharedDict: SharedDict;
   dict: {
     fields: {
       name: string;
@@ -21,14 +32,11 @@ interface SparePartFormFieldsProps {
       catalogNumberPlaceholder: string;
       manufacturer: string;
       manufacturerPlaceholder: string;
-      unit: string;
-      unitPlaceholder: string;
       purchasePrice: string;
       purchasePricePlaceholder: string;
       description: string;
       descriptionPlaceholder: string;
       minStock: string;
-      minStockHint: string;
       location: string;
       locationPlaceholder: string;
       isActive: string;
@@ -48,6 +56,7 @@ export function SparePartFormFields({
   isEditing,
   partCategories,
   machineGroups,
+  sharedDict,
   dict,
 }: SparePartFormFieldsProps) {
   const updateField = <K extends keyof SparePartFormState>(
@@ -58,138 +67,114 @@ export function SparePartFormFields({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Name */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          {dict.fields.name} <span className="text-red-500">*</span>
-        </label>
+    <div className={INVENTORY_FORM_STACK}>
+      <AdminFormField label={dict.fields.name} required htmlFor="spare-part-name">
         <input
+          id="spare-part-name"
           type="text"
           value={formState.name}
           onChange={(e) => updateField("name", e.target.value)}
           placeholder={dict.fields.namePlaceholder}
-          className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+          className={INVENTORY_FORM_CONTROL}
+          required
         />
-      </div>
+      </AdminFormField>
 
-      {/* Catalog number + Manufacturer */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.catalogNumber}
-          </label>
+      <div className={INVENTORY_FORM_GRID_2}>
+        <AdminFormField label={dict.fields.catalogNumber} htmlFor="spare-part-catalog">
           <input
+            id="spare-part-catalog"
             type="text"
             value={formState.catalogNumber}
             onChange={(e) => updateField("catalogNumber", e.target.value)}
             placeholder={dict.fields.catalogNumberPlaceholder}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className={INVENTORY_FORM_CONTROL}
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.manufacturer}
-          </label>
+        </AdminFormField>
+        <AdminFormField label={dict.fields.manufacturer} htmlFor="spare-part-manufacturer">
           <input
+            id="spare-part-manufacturer"
             type="text"
             value={formState.manufacturer}
             onChange={(e) => updateField("manufacturer", e.target.value)}
             placeholder={dict.fields.manufacturerPlaceholder}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className={INVENTORY_FORM_CONTROL}
           />
-        </div>
+        </AdminFormField>
       </div>
 
-      {/* Unit (+ price only when editing) */}
-      <div className={isEditing ? "grid grid-cols-2 gap-4" : undefined}>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.unit}
-          </label>
-          <input
-            type="text"
+      <div className={isEditing ? INVENTORY_FORM_GRID_2 : undefined}>
+        <AdminFormField label={sharedDict.measureUnitLabel} required htmlFor="spare-part-unit">
+          <MeasureUnitSelect
+            id="spare-part-unit"
             value={formState.unit}
-            onChange={(e) => updateField("unit", e.target.value)}
-            placeholder={dict.fields.unitPlaceholder}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            onChange={(unit) => updateField("unit", unit)}
+            unitLabels={sharedDict.measureUnitOptions}
+            required
           />
-        </div>
+        </AdminFormField>
         {isEditing ? (
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-              {dict.fields.purchasePrice}
-            </label>
+          <AdminFormField label={dict.fields.purchasePrice} htmlFor="spare-part-price">
             <DecimalInput
+              id="spare-part-price"
               value={formState.purchasePrice}
               onChange={(v) => updateField("purchasePrice", v)}
               placeholder={dict.fields.purchasePricePlaceholder}
-              className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className={INVENTORY_FORM_CONTROL}
             />
-          </div>
+          </AdminFormField>
         ) : null}
       </div>
 
-      {/* Min stock + Location */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.minStock}
-          </label>
+      <div className={INVENTORY_FORM_GRID_2}>
+        <AdminFormField
+          label={dict.fields.minStock}
+          hint={sharedDict.minStockHint}
+          htmlFor="spare-part-min-stock"
+        >
           <DecimalInput
+            id="spare-part-min-stock"
             value={formState.minStock}
             onChange={(v) => updateField("minStock", v)}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className={INVENTORY_FORM_CONTROL}
           />
-          <p className="mt-1 text-[10px] text-zinc-500">{dict.fields.minStockHint}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            {dict.fields.location}
-          </label>
+        </AdminFormField>
+        <AdminFormField label={dict.fields.location} htmlFor="spare-part-location">
           <input
+            id="spare-part-location"
             type="text"
             value={formState.location}
             onChange={(e) => updateField("location", e.target.value)}
             placeholder={dict.fields.locationPlaceholder}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className={INVENTORY_FORM_CONTROL}
           />
-        </div>
+        </AdminFormField>
       </div>
 
-      {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          {dict.fields.description}
-        </label>
+      <AdminFormField label={dict.fields.description} htmlFor="spare-part-description">
         <textarea
+          id="spare-part-description"
           value={formState.description}
           onChange={(e) => updateField("description", e.target.value)}
           placeholder={dict.fields.descriptionPlaceholder}
           rows={3}
-          className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 resize-none"
+          className={INVENTORY_FORM_TEXTAREA}
         />
-      </div>
+      </AdminFormField>
 
-      {/* Part Categories */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          {dict.fields.categories}
-        </label>
+      <AdminFormField label={dict.fields.categories}>
         <CategoryIdChipPicker
           options={partCategories.filter((c) => !c.isGroup)}
           selectedIds={formState.categoryIds}
           onChange={(ids) => updateField("categoryIds", ids)}
           emptyHint={dict.fields.categoriesPlaceholder}
         />
-      </div>
+      </AdminFormField>
 
-      {/* Machine Groups */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-          {dict.fields.machineCategories}
-        </label>
-        <p className="text-[10px] text-zinc-500 mb-2">{dict.fields.machineCategoriesHint}</p>
+      <AdminFormField
+        label={dict.fields.machineCategories}
+        hint={dict.fields.machineCategoriesHint}
+      >
         <CategoryIdChipPicker
           options={machineGroups}
           selectedIds={formState.resourceGroupIds}
@@ -197,21 +182,20 @@ export function SparePartFormFields({
           emptyHint={dict.fields.machineCategoriesPlaceholder}
           colorVariant="blue"
         />
-      </div>
+      </AdminFormField>
 
-      {/* Active toggle */}
       <div className="flex items-center gap-3">
         <input
           type="checkbox"
           id="isActive"
           checked={formState.isActive}
           onChange={(e) => updateField("isActive", e.target.checked)}
-          className="rounded border-zinc-300 dark:border-zinc-600 text-emerald-500 focus:ring-emerald-500/50"
+          className="rounded border-zinc-300 text-emerald-500 focus:ring-emerald-500/50 dark:border-zinc-600"
         />
         <label htmlFor="isActive" className="text-sm text-zinc-700 dark:text-zinc-300">
           {dict.fields.isActive}
         </label>
-        <span className="text-[10px] text-zinc-500">{dict.fields.isActiveHint}</span>
+        <span className="text-[11px] text-zinc-500">{dict.fields.isActiveHint}</span>
       </div>
     </div>
   );

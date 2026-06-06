@@ -2,6 +2,11 @@ import { db } from "@/db";
 import { materials, materialToCategories, materialInventory } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { assertMaterialCategoriesAssignable } from "@/services/categoryHierarchyValidation";
+import {
+  DEFAULT_MATERIAL_MEASURE_UNIT,
+  normalizeMeasureUnit,
+  resolveMeasureUnit,
+} from "@/lib/measureUnits";
 
 export class MaterialService {
   static async getMaterials(companyId: number) {
@@ -35,6 +40,7 @@ export class MaterialService {
     return all.map((m) => ({
       id: m.id,
       name: m.name,
+      unit: m.unit,
       categoryIds: byMaterialId.get(m.id) ?? [],
       minStock: m.minStock != null ? String(m.minStock) : null,
       location: m.location ?? null,
@@ -42,9 +48,29 @@ export class MaterialService {
     }));
   }
 
-  static async addMaterial(companyId: number, name: string, categoryIds: number[] = []) {
+  static async addMaterial(
+    companyId: number,
+    name: string,
+    categoryIds: number[] = [],
+    opts?: { unit?: string; minStock?: string | null; location?: string | null }
+  ) {
     await assertMaterialCategoriesAssignable(categoryIds, companyId);
-    const res = await db.insert(materials).values({ name, companyId }).returning();
+    let unit: string = DEFAULT_MATERIAL_MEASURE_UNIT;
+    if (opts?.unit !== undefined && opts.unit !== null && String(opts.unit).trim() !== "") {
+      const normalized = normalizeMeasureUnit(opts.unit);
+      if (!normalized) throw new Error("invalid_unit");
+      unit = normalized;
+    }
+    const res = await db
+      .insert(materials)
+      .values({
+        name,
+        companyId,
+        unit,
+        minStock: opts?.minStock ?? null,
+        location: opts?.location ?? null,
+      })
+      .returning();
     const mid = res[0].id;
     if (categoryIds.length > 0) {
       await db
@@ -59,9 +85,15 @@ export class MaterialService {
     data: Partial<typeof materials.$inferInsert>,
     categoryIds?: number[]
   ) {
+    const patch = { ...data };
+    if (patch.unit !== undefined && patch.unit !== null) {
+      const normalized = normalizeMeasureUnit(patch.unit);
+      if (!normalized) throw new Error("invalid_unit");
+      patch.unit = normalized;
+    }
     await db
       .update(materials)
-      .set(data)
+      .set(patch)
       .where(and(eq(materials.id, id), eq(materials.companyId, companyId)));
     if (categoryIds !== undefined) {
       await assertMaterialCategoriesAssignable(categoryIds, companyId);

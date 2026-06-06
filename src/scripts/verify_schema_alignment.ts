@@ -72,7 +72,7 @@ async function main() {
       "description",
       "image_url",
     ]),
-    materials: new Set(["id", "company_id", "name", "min_stock", "location"]),
+    materials: new Set(["id", "company_id", "name", "unit", "min_stock", "location"]),
     material_inventory: new Set([
       "id",
       "company_id",

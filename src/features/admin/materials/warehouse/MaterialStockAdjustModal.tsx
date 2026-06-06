@@ -6,7 +6,10 @@ import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import { formatDict } from "@/i18n";
+import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { materialsApi } from "@/lib/appRoutes";
+import { INVENTORY_FORM_CONTROL, INVENTORY_FORM_FIELD } from "@/components/Admin/adminInventoryFormStyles";
 import type { MaterialRow } from "@/features/admin/materials/types";
 
 type Props = {
@@ -94,11 +97,23 @@ export function MaterialStockAdjustModal({
         className="space-y-4 p-6"
       >
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {dict.adjustHint.replace("{name}", material.name)}
+          {formatDict(dict.adjustHint, {
+            name: material.name,
+            unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+          })}
         </p>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-500">{dict.stockColumn}</label>
-          <DecimalInput value={quantity} onChange={setQuantity} placeholder="0" />
+        <div className={INVENTORY_FORM_FIELD}>
+          <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            {formatDict(dict.fieldQuantityWithUnit, {
+              unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+            })}
+          </label>
+          <DecimalInput
+            value={quantity}
+            onChange={setQuantity}
+            placeholder="0"
+            className={INVENTORY_FORM_CONTROL}
+          />
         </div>
       </form>
     </AdminModalShell>

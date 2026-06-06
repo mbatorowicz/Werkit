@@ -52,7 +52,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
 | `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
-| `materials` | `id` | **`company_id`**, `name`, `min_stock` (numeric, default 0), `location?` | `company_id → companies.id` (cascade) |
+| `materials` | `id` | **`company_id`**, `name`, **`unit`** (varchar, default `t`), `min_stock` (numeric, default 0), `location?` | `company_id → companies.id` (cascade) |
 | `material_inventory` | PK `(material_id, company_id)` | **`material_id`**, **`company_id`**, `quantity` (numeric, default 0), `updated_at` | `material_id → materials.id` (cascade); `company_id → companies.id` (cascade) |
 | `material_stock_receipts` | `id` | **`company_id`**, **`material_id`**, `quantity` (numeric), `unit_price?` (numeric), `invoice_number?`, `notes?`, `created_by?`, `created_at`, `work_session_id?` (PZ zwrotu) | `company_id → companies.id` (cascade); `material_id → materials.id` (cascade); `work_session_id → work_sessions.id` (set null); UNIQUE `work_session_id` gdy zwrot |
 | `material_stock_issues` | `id` | **`company_id`**, **`material_id`**, `quantity` (numeric), `work_order_id?`, `work_session_id?`, `issued_to?`, `notes?`, `created_by?`, `created_at` | `company_id → companies.id` (cascade); `material_id → materials.id` (cascade); `work_order_id → work_orders.id` (set null); `work_session_id → work_sessions.id` (set null); UNIQUE `work_session_id` (jedno WZ na sesję) |
@@ -114,6 +114,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0022 | `0022_dur_warehouse.sql` | Tabele `work_order_spare_parts`, `spare_part_inventory`, `stock_receipts`, `stock_issues` + indeksy. |
 | 0023 | `0023_feature_flags_dur.sql` | `company_settings.dur_enabled` — feature flag dla modułu DUR (domyślnie `false`). |
 | 0029 | `0029_material_warehouse.sql` | Magazyn materiałów: `material_inventory`, `material_stock_receipts`, `material_stock_issues`; `materials.min_stock`, `materials.location`; UNIQUE na `work_session_id` w issues/receipts (automatyczne WZ/PZ sesji). |
+| 0030 | `0030_materials_unit.sql` | `materials.unit` — konfigurowalna jednostka miary (domyślnie `t`). Kanon jednostek: `src/lib/measureUnits.ts` (współdzielone z częściami DUR). |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 

@@ -211,6 +211,13 @@
       "when": 1749081600000,
       "tag": "0029_material_warehouse",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1749168000000,
+      "tag": "0030_materials_unit",
+      "breakpoints": true
     }
   ]
 }

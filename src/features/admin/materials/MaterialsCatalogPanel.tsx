@@ -20,10 +20,12 @@ import {
 } from "@/features/admin/materials/types";
 
 type Dict = AppDictionary["admin"]["materials"];
+type SharedDict = AppDictionary["admin"]["shared"];
 type MachDict = AppDictionary["admin"]["machines"];
 
 type Props = {
   dict: Dict;
+  sharedDict: SharedDict;
   machDict: MachDict;
   apiErrors: Record<string, string>;
   categories: MaterialCategory[];
@@ -35,6 +37,7 @@ type Props = {
 
 export function MaterialsCatalogPanel({
   dict,
+  sharedDict,
   machDict,
   apiErrors,
   categories,
@@ -70,12 +73,9 @@ export function MaterialsCatalogPanel({
           body: JSON.stringify({
             name: matForm.name,
             categoryIds: matForm.categoryIds,
-            ...(matEditId
-              ? {
-                  minStock: matForm.minStock.trim() || null,
-                  location: matForm.location.trim() || null,
-                }
-              : {}),
+            unit: matForm.unit,
+            minStock: matForm.minStock.trim() || null,
+            location: matForm.location.trim() || null,
           }),
         },
         { category: "admin" }
@@ -118,6 +118,7 @@ export function MaterialsCatalogPanel({
     setMatForm({
       name: material.name,
       categoryIds: material.categoryIds ?? [],
+      unit: material.unit,
       minStock: material.minStock ?? "",
       location: material.location ?? "",
     });
@@ -182,6 +183,7 @@ export function MaterialsCatalogPanel({
         onClose={() => setIsMatModalOpen(false)}
         isEdit={matEditId != null}
         dict={dict}
+        sharedDict={sharedDict}
         machDict={machDict}
         categories={categories}
         form={matForm}
