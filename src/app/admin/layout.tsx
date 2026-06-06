@@ -97,7 +97,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               scopedViewer={scopedViewerNav}
             />
           </div>
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+          <div className="flex flex-col gap-2 border-t border-zinc-200 px-4 pb-6 pt-4 dark:border-zinc-800 md:pb-8">
             {loggedInUser && (
               <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
                 <UserIcon className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -154,9 +154,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </header>
 
-          <div className={`flex min-h-0 flex-1 flex-col ${INLINE_SCROLL_PANEL_CLASS}`}>
-            <div className="flex min-h-full flex-1 flex-col">{children}</div>
-            <AdminAppFooter companyName={companyName} />
+          <div className={`min-h-0 flex-1 ${INLINE_SCROLL_PANEL_CLASS}`}>
+            <div className="flex min-h-full flex-col">
+              <div className="flex-1">{children}</div>
+              <AdminAppFooter companyName={companyName} />
+            </div>
           </div>
         </main>
       </div>

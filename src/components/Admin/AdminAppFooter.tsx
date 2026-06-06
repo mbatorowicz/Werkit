@@ -7,7 +7,7 @@ export function AdminAppFooter({ companyName }: { companyName: string }) {
 
   return (
     <footer
-      className="mt-auto shrink-0 border-t border-zinc-200/80 bg-[#f2fbfa]/50 dark:border-zinc-800 dark:bg-zinc-900/50 px-6 pt-10 pb-12 md:pt-12 md:pb-16"
+      className="shrink-0 border-t border-zinc-200/80 bg-[#f2fbfa]/50 px-6 pt-10 pb-12 dark:border-zinc-800 dark:bg-zinc-900/50 md:pt-12 md:pb-16"
       aria-label={dict.ariaLabel}
     >
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 text-center">
