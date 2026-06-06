@@ -128,6 +128,10 @@ export type StockIssue = {
   partCatalogNumber?: string;
   creatorName?: string;
   workOrderLabel?: string;
+  /** Imię i nazwisko pracownika, który pobrał część (JOIN issued_to). */
+  issuedToName?: string;
+  /** Zasób ze zlecenia naprawy (JOIN work_orders → resources). */
+  resourceName?: string;
 };
 
 // ── Inputy ──

@@ -8,6 +8,8 @@ interface StockIssuesTableProps {
     partCatalogNumber?: string;
     creatorName?: string;
     workOrderLabel?: string;
+    issuedToName?: string;
+    resourceName?: string;
   })[];
   dict: {
     table: {
@@ -17,6 +19,7 @@ interface StockIssuesTableProps {
       quantity: string;
       workOrder: string;
       issuedTo: string;
+      resource: string;
       createdBy: string;
       notes: string;
     };
@@ -48,6 +51,9 @@ export function StockIssuesTable({ issues, dict }: StockIssuesTableProps) {
               {dict.table.issuedTo}
             </th>
             <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
+              {dict.table.resource}
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
               {dict.table.createdBy}
             </th>
             <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
@@ -77,7 +83,10 @@ export function StockIssuesTable({ issues, dict }: StockIssuesTableProps) {
                 {iss.workOrderLabel || (iss.workOrderId ? `#${iss.workOrderId}` : "—")}
               </td>
               <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                {iss.issuedTo ? `#${iss.issuedTo}` : "—"}
+                {iss.issuedToName ?? (iss.issuedTo ? `#${iss.issuedTo}` : "—")}
+              </td>
+              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
+                {iss.resourceName ?? "—"}
               </td>
               <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
                 {iss.creatorName || "—"}

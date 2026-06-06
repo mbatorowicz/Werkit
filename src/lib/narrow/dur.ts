@@ -214,6 +214,8 @@ function narrowStockIssueRaw(r: Record<string, unknown>): StockIssue | null {
     partCatalogNumber: readString(r, "partCatalogNumber", undefined),
     creatorName: readString(r, "creatorName", undefined),
     workOrderLabel: readString(r, "workOrderLabel", undefined),
+    issuedToName: readString(r, "issuedToName", undefined),
+    resourceName: readString(r, "resourceName", undefined),
   };
 }
 

@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, Package } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { Plus } from "lucide-react";
+import { ListSearchBar } from "@/components/ListSearchBar";
+import { formatDict, getDictionary } from "@/i18n";
+import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -16,8 +18,6 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { StockReceipt, StockIssue } from "@/types/dur";
 import { StockReceiptForm } from "./StockReceiptForm";
 import { StockIssueForm } from "./StockIssueForm";
-import { StockReceiptsTable } from "./StockReceiptsTable";
-import { StockIssuesTable } from "./StockIssuesTable";
 import { useDurSparePartCatalog } from "@/features/admin/dur/useDurSparePartCatalog";
 import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartComboboxOptions";
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
@@ -30,12 +30,15 @@ export default function StockMovementsClient() {
 
   const dictionary = getDictionary();
   const wDict = dictionary.dur.warehouse;
+  const issuesDict = wDict.issues;
+  const receiptsDict = wDict.receipts;
   const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
   const globalApiErrors = dictionary.apiErrors as Record<string, string>;
 
-  const [tab, setTab] = useState<Tab>("receipts");
+  const [tab, setTab] = useState<Tab>("issues");
   const [receipts, setReceipts] = useState<StockReceipt[]>([]);
   const [issues, setIssues] = useState<StockIssue[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   const { items: catalogItems, isLoading: catalogLoading, fetchCatalog } = useDurSparePartCatalog();
@@ -58,26 +61,27 @@ export default function StockMovementsClient() {
   const [iIssuedTo, setIIssuedTo] = useState("");
   const [iNotes, setINotes] = useState("");
 
+  const partById = useMemo(() => new Map(catalogItems.map((p) => [p.id, p])), [catalogItems]);
+
   const partOptions = useMemo(
     () => durSparePartComboboxOptions(catalogItems, wDict.partStockSublabel),
     [catalogItems, wDict.partStockSublabel]
   );
 
   const fetchData = useCallback(async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const [recRes, issRes] = await Promise.all([
-        fetch("/api/dur/stock/receipts"),
-        fetch("/api/dur/stock/issues"),
+        fetch("/api/dur/stock/receipts", { cache: "no-store" }),
+        fetch("/api/dur/stock/issues", { cache: "no-store" }),
       ]);
-      setReceipts(narrowStockReceipts(await recRes.json()));
-      setIssues(narrowStockIssues(await issRes.json()));
+      setReceipts(narrowStockReceipts(await parseJsonArray(recRes)));
+      setIssues(narrowStockIssues(await parseJsonArray(issRes)));
     } catch {
       setReceipts([]);
       setIssues([]);
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   const fetchRefs = useCallback(async () => {
@@ -126,10 +130,13 @@ export default function StockMovementsClient() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(() => void fetchData());
-  }, [fetchData]);
+    queueMicrotask(() => {
+      void fetchData();
+      void fetchCatalog();
+    });
+  }, [fetchData, fetchCatalog]);
 
-  const openAddModal = useCallback(() => {
+  const openModal = useCallback(() => {
     setRPartId("");
     setRQuantity("");
     setRUnitPrice("");
@@ -152,10 +159,6 @@ export default function StockMovementsClient() {
     queueMicrotask(() => void fetchRefs());
   }, [showModal, tab, fetchRefs]);
 
-  const closeModal = useCallback(() => {
-    setShowModal(false);
-  }, []);
-
   const selectedCatalogItem = useMemo(
     () => catalogItems.find((p) => String(p.id) === (tab === "receipts" ? rPartId : iPartId)),
     [catalogItems, tab, rPartId, iPartId]
@@ -176,12 +179,12 @@ export default function StockMovementsClient() {
   const handleSaveReceipt = useCallback(async () => {
     const partId = parseInt(rPartId, 10);
     if (!partId || Number.isNaN(partId)) {
-      await appAlert({ message: durApiErrors.missing_part_id ?? wDict.receipts.fields.part });
+      await appAlert({ message: durApiErrors.missing_part_id ?? receiptsDict.fields.part });
       return;
     }
     const qty = parseDecimalInput(rQuantity);
     if (!rQuantity.trim() || qty == null || qty <= 0) {
-      await appAlert({ message: durApiErrors.invalid_quantity ?? wDict.receipts.fields.quantity });
+      await appAlert({ message: durApiErrors.invalid_quantity ?? receiptsDict.fields.quantity });
       return;
     }
 
@@ -199,9 +202,10 @@ export default function StockMovementsClient() {
         }),
       });
       if (res.ok) {
-        await appAlert({ message: wDict.receipts.saveSuccess });
-        closeModal();
+        setShowModal(false);
         await fetchData();
+        await fetchCatalog();
+        await appAlert({ message: wDict.saveSuccess });
         return;
       }
       const body = await parseJsonUnknown(res);
@@ -226,29 +230,30 @@ export default function StockMovementsClient() {
     rNotes,
     appAlert,
     durApiErrors,
-    wDict,
-    closeModal,
+    receiptsDict.fields,
     fetchData,
+    fetchCatalog,
     globalApiErrors,
     dictionary.apiErrors.save_error,
+    wDict.saveSuccess,
   ]);
 
   const handleSaveIssue = useCallback(async () => {
     const partId = parseInt(iPartId, 10);
     if (!partId || Number.isNaN(partId)) {
-      await appAlert({ message: durApiErrors.missing_part_id ?? wDict.issues.fields.part });
+      await appAlert({ message: durApiErrors.missing_part_id ?? issuesDict.fields.part });
       return;
     }
     const qty = parseDecimalInput(iQuantity);
     if (!iQuantity.trim() || qty == null || qty <= 0) {
-      await appAlert({ message: durApiErrors.invalid_quantity ?? wDict.issues.fields.quantity });
+      await appAlert({ message: durApiErrors.invalid_quantity ?? issuesDict.fields.quantity });
       return;
     }
 
     const available = parseDecimalInput(selectedCatalogItem?.stockQuantity ?? "0") ?? 0;
     if (available < qty) {
       await appAlert({
-        message: wDict.issues.insufficientStock
+        message: issuesDict.insufficientStock
           .replace("{available}", String(available))
           .replace("{unit}", selectedCatalogItem?.unit ?? "szt"),
       });
@@ -269,16 +274,17 @@ export default function StockMovementsClient() {
         }),
       });
       if (res.ok) {
-        await appAlert({ message: wDict.issues.saveSuccess });
-        closeModal();
+        setShowModal(false);
         await fetchData();
+        await fetchCatalog();
+        await appAlert({ message: wDict.saveSuccess });
         return;
       }
       const body = await parseJsonUnknown(res);
       const code = readApiErrorString(body);
       if (code === "insufficient_stock" && selectedCatalogItem) {
         await appAlert({
-          message: wDict.issues.insufficientStock
+          message: issuesDict.insufficientStock
             .replace("{available}", selectedCatalogItem.stockQuantity)
             .replace("{unit}", selectedCatalogItem.unit),
         });
@@ -305,153 +311,273 @@ export default function StockMovementsClient() {
     selectedCatalogItem,
     appAlert,
     durApiErrors,
-    wDict,
-    closeModal,
+    issuesDict,
     fetchData,
+    fetchCatalog,
     globalApiErrors,
     dictionary.apiErrors.save_error,
+    wDict.saveSuccess,
   ]);
 
-  const currentDict = tab === "receipts" ? wDict.receipts : wDict.issues;
-  const currentData = tab === "receipts" ? receipts : issues;
+  const filteredReceipts = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return receipts;
+    return receipts.filter((row) => {
+      const haystack = [
+        row.partName,
+        row.partCatalogNumber,
+        row.notes,
+        row.invoiceNumber,
+        row.quantity,
+        new Date(row.createdAt).toLocaleString(),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return matchesSearchQuery(haystack, q);
+    });
+  }, [receipts, searchQuery]);
+
+  const filteredIssues = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return issues;
+    return issues.filter((row) => {
+      const haystack = [
+        row.issuedToName,
+        row.resourceName,
+        row.partName,
+        row.partCatalogNumber,
+        row.notes,
+        row.workOrderLabel,
+        row.workOrderId != null ? `#${row.workOrderId}` : null,
+        row.quantity,
+        new Date(row.createdAt).toLocaleString(),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return matchesSearchQuery(haystack, q);
+    });
+  }, [issues, searchQuery]);
+
+  const issueTotalsByPart = useMemo(() => {
+    if (tab !== "issues" || !searchQuery.trim() || filteredIssues.length === 0) return [];
+    const totals = new Map<number, { partName: string; quantity: number; unit: string }>();
+    for (const row of filteredIssues) {
+      const qty = parseDecimalInput(row.quantity) ?? 0;
+      const unit = partById.get(row.partId)?.unit ?? "szt";
+      const existing = totals.get(row.partId);
+      if (existing) {
+        existing.quantity += qty;
+      } else {
+        totals.set(row.partId, {
+          partName: row.partName ?? String(row.partId),
+          quantity: qty,
+          unit,
+        });
+      }
+    }
+    return [...totals.values()].sort((a, b) => a.partName.localeCompare(b.partName, "pl"));
+  }, [tab, searchQuery, filteredIssues, partById]);
+
+  const rows = tab === "receipts" ? filteredReceipts : filteredIssues;
+  const colSpan = tab === "issues" ? 6 : 4;
 
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">
-          {wDict.movementsTitle}
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">{wDict.movementsSubtitle}</p>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{wDict.movementsTitle}</h2>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{wDict.movementsSubtitle}</p>
       </div>
 
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="flex gap-1 border-b border-zinc-200 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={() => setTab("receipts")}
-            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
-              tab === "receipts"
-                ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-            }`}
-          >
-            {wDict.receipts.title}
-          </button>
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setTab("issues")}
-            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`rounded-lg px-4 py-2 text-sm font-medium ${
               tab === "issues"
-                ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
-                : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "bg-emerald-600 text-white"
+                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
             }`}
           >
-            {wDict.issues.title}
+            {wDict.tabIssues}
           </button>
-        </div>
-        {canMutate && (
           <button
             type="button"
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+            onClick={() => setTab("receipts")}
+            className={`rounded-lg px-4 py-2 text-sm font-medium ${
+              tab === "receipts"
+                ? "bg-emerald-600 text-white"
+                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            }`}
+          >
+            {wDict.tabReceipts}
+          </button>
+        </div>
+        {canMutate ? (
+          <button
+            type="button"
+            onClick={openModal}
+            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
           >
             <Plus className="h-4 w-4" />
-            {currentDict.add}
+            {tab === "receipts" ? wDict.addReceipt : wDict.addIssue}
           </button>
-        )}
+        ) : null}
       </div>
 
-      {isLoading ? (
-        <div className="py-12 text-center text-zinc-500">{dictionary.admin.ui.searchNoResults}</div>
-      ) : currentData.length === 0 ? (
-        <div className="py-12 text-center text-zinc-500">
-          <Package className="mx-auto mb-3 h-12 w-12 text-zinc-300 dark:text-zinc-600" />
-          <p>{currentDict.empty}</p>
-        </div>
-      ) : tab === "receipts" ? (
-        <StockReceiptsTable
-          receipts={
-            receipts as (StockReceipt & {
-              partName?: string;
-              partCatalogNumber?: string;
-              creatorName?: string;
-            })[]
-          }
-          dict={wDict.receipts}
-        />
-      ) : (
-        <StockIssuesTable
-          issues={
-            issues as (StockIssue & {
-              partName?: string;
-              partCatalogNumber?: string;
-              creatorName?: string;
-              workOrderLabel?: string;
-            })[]
-          }
-          dict={wDict.issues}
-        />
-      )}
+      <ListSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={wDict.movementsSearchPlaceholder}
+      />
 
-      {showModal && (
-        <AdminModalShell
-          open={showModal}
-          title={currentDict.add}
-          onClose={closeModal}
-          closeOnBackdropClick={false}
-          scrollableBody
-          footer={
-            <FormModalFooter
-              formId={tab === "receipts" ? "receipt-form" : "issue-form"}
-              onCancel={closeModal}
-              submitLabel={
-                isSubmitting ? dictionary.dur.spareParts.saving : dictionary.dur.spareParts.save
-              }
-              isSubmitting={isSubmitting}
-              submitDisabled={tab === "receipts" ? !rPartId : !iPartId}
-            />
-          }
-        >
-          {tab === "receipts" ? (
-            <StockReceiptForm
-              rPartId={rPartId}
-              rQuantity={rQuantity}
-              rUnitPrice={rUnitPrice}
-              rInvoiceNumber={rInvoiceNumber}
-              rNotes={rNotes}
-              partOptions={partOptions}
-              partsLoading={catalogLoading}
-              onPartIdChange={handleReceiptPartChange}
-              onQuantityChange={setRQuantity}
-              onUnitPriceChange={setRUnitPrice}
-              onInvoiceNumberChange={setRInvoiceNumber}
-              onNotesChange={setRNotes}
-              onSubmit={() => void handleSaveReceipt()}
-              dict={wDict.receipts.fields}
-            />
-          ) : (
-            <StockIssueForm
-              iPartId={iPartId}
-              iQuantity={iQuantity}
-              iWorkOrderId={iWorkOrderId}
-              iIssuedTo={iIssuedTo}
-              iNotes={iNotes}
-              partOptions={partOptions}
-              workOrderOptions={workOrderOptions}
-              userOptions={userOptions}
-              partsLoading={catalogLoading}
-              refsLoading={refsLoading}
-              onPartIdChange={setIPartId}
-              onQuantityChange={setIQuantity}
-              onWorkOrderIdChange={setIWorkOrderId}
-              onIssuedToChange={setIIssuedTo}
-              onNotesChange={setINotes}
-              onSubmit={() => void handleSaveIssue()}
-              dict={wDict.issues.fields}
-            />
-          )}
-        </AdminModalShell>
-      )}
+      {issueTotalsByPart.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
+          <p className="mb-2 font-medium text-emerald-900 dark:text-emerald-200">
+            {wDict.movementsFilterSummary}
+          </p>
+          <ul className="space-y-1 text-emerald-800 dark:text-emerald-300">
+            {issueTotalsByPart.map((item) => (
+              <li key={item.partName}>
+                {formatDict(wDict.movementsFilterSummaryLine, {
+                  part: item.partName,
+                  qty: decimalStringForStorage(String(item.quantity)) ?? String(item.quantity),
+                  unit: item.unit,
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+            <tr>
+              {tab === "issues" ? (
+                <>
+                  <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colCollectedBy}</th>
+                  <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colResource}</th>
+                </>
+              ) : null}
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colPart}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colQuantity}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colDate}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colNotes}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
+                  {wDict.loading}
+                </td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
+                  {searchQuery.trim()
+                    ? wDict.movementsSearchNoResults
+                    : tab === "receipts"
+                      ? wDict.emptyReceipts
+                      : wDict.emptyIssues}
+                </td>
+              </tr>
+            ) : tab === "receipts" ? (
+              filteredReceipts.map((row) => (
+                <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
+                  <td className="px-4 py-3">
+                    {formatDict(wDict.stockWithUnit, {
+                      qty: row.quantity,
+                      unit: partById.get(row.partId)?.unit ?? "szt",
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500">
+                    {new Date(row.createdAt).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500">{row.notes ?? "—"}</td>
+                </tr>
+              ))
+            ) : (
+              filteredIssues.map((row) => (
+                <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                  <td className="px-4 py-3 font-medium">{row.issuedToName ?? "—"}</td>
+                  <td className="px-4 py-3">{row.resourceName ?? "—"}</td>
+                  <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
+                  <td className="px-4 py-3">
+                    {formatDict(wDict.stockWithUnit, {
+                      qty: row.quantity,
+                      unit: partById.get(row.partId)?.unit ?? "szt",
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500">
+                    {new Date(row.createdAt).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500">{row.notes ?? "—"}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <AdminModalShell
+        open={showModal && canMutate}
+        onClose={() => setShowModal(false)}
+        title={tab === "receipts" ? wDict.modalReceiptTitle : wDict.modalIssueTitle}
+        closeOnBackdropClick={false}
+        scrollableBody
+        footer={
+          <FormModalFooter
+            formId={tab === "receipts" ? "receipt-form" : "issue-form"}
+            onCancel={() => setShowModal(false)}
+            submitLabel={isSubmitting ? dictionary.dur.spareParts.saving : wDict.save}
+            cancelLabel={wDict.cancel}
+            isSubmitting={isSubmitting}
+            submitDisabled={tab === "receipts" ? !rPartId : !iPartId}
+          />
+        }
+      >
+        {tab === "receipts" ? (
+          <StockReceiptForm
+            rPartId={rPartId}
+            rQuantity={rQuantity}
+            rUnitPrice={rUnitPrice}
+            rInvoiceNumber={rInvoiceNumber}
+            rNotes={rNotes}
+            partOptions={partOptions}
+            partsLoading={catalogLoading}
+            onPartIdChange={handleReceiptPartChange}
+            onQuantityChange={setRQuantity}
+            onUnitPriceChange={setRUnitPrice}
+            onInvoiceNumberChange={setRInvoiceNumber}
+            onNotesChange={setRNotes}
+            onSubmit={() => void handleSaveReceipt()}
+            dict={receiptsDict.fields}
+          />
+        ) : (
+          <StockIssueForm
+            iPartId={iPartId}
+            iQuantity={iQuantity}
+            iWorkOrderId={iWorkOrderId}
+            iIssuedTo={iIssuedTo}
+            iNotes={iNotes}
+            partOptions={partOptions}
+            workOrderOptions={workOrderOptions}
+            userOptions={userOptions}
+            partsLoading={catalogLoading}
+            refsLoading={refsLoading}
+            onPartIdChange={setIPartId}
+            onQuantityChange={setIQuantity}
+            onWorkOrderIdChange={setIWorkOrderId}
+            onIssuedToChange={setIIssuedTo}
+            onNotesChange={setINotes}
+            onSubmit={() => void handleSaveIssue()}
+            dict={issuesDict.fields}
+          />
+        )}
+      </AdminModalShell>
     </>
   );
 }

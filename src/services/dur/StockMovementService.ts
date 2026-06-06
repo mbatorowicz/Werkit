@@ -6,11 +6,15 @@ import {
   spareParts,
   users,
   workOrders,
+  resources,
 } from "@/db/schema";
 import type { StockReceipt, StockIssue, StockReceiptInput, StockIssueInput } from "@/types/dur";
 import { InventoryService } from "./InventoryService";
 import { StockMovementError } from "./StockMovementError";
 import { eq, and, desc } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+
+const recipientUser = alias(users, "stock_issue_recipient");
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "@/db/schema";
 import { parseDecimalInput } from "@/lib/decimalInput";
@@ -68,7 +72,7 @@ export class StockMovementService {
       })
       .from(stockReceipts)
       .innerJoin(spareParts, eq(stockReceipts.partId, spareParts.id))
-      .innerJoin(users, eq(stockReceipts.createdBy, users.id))
+      .leftJoin(users, eq(stockReceipts.createdBy, users.id))
       .where(eq(stockReceipts.companyId, companyId))
       .orderBy(desc(stockReceipts.createdAt));
 
@@ -134,11 +138,15 @@ export class StockMovementService {
         partCatalogNumber: spareParts.catalogNumber,
         creatorName: users.fullName,
         workOrderLabel: workOrders.taskDescription,
+        issuedToName: recipientUser.fullName,
+        resourceName: resources.name,
       })
       .from(stockIssues)
       .innerJoin(spareParts, eq(stockIssues.partId, spareParts.id))
-      .innerJoin(users, eq(stockIssues.createdBy, users.id))
+      .leftJoin(users, eq(stockIssues.createdBy, users.id))
+      .leftJoin(recipientUser, eq(stockIssues.issuedTo, recipientUser.id))
       .leftJoin(workOrders, eq(stockIssues.workOrderId, workOrders.id))
+      .leftJoin(resources, eq(workOrders.resourceId, resources.id))
       .where(eq(stockIssues.companyId, companyId))
       .orderBy(desc(stockIssues.createdAt));
 
@@ -156,6 +164,8 @@ export class StockMovementService {
       partCatalogNumber: r.partCatalogNumber ?? undefined,
       creatorName: r.creatorName ?? undefined,
       workOrderLabel: r.workOrderLabel ?? undefined,
+      issuedToName: r.issuedToName ?? undefined,
+      resourceName: r.resourceName ?? undefined,
     }));
   }
 
