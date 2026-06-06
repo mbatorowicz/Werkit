@@ -147,11 +147,6 @@ export const en: AppDictionary = {
       people: "People & structure",
       logoutSession: "Logout session",
     },
-    footer: {
-      ariaLabel: "Application footer",
-      tagline: "Fleet logistics system",
-      copyright: "© {year} {company} · WERKIT",
-    },
     organization: {
       title: "People & structure",
       subtitle:

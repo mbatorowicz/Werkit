@@ -153,11 +153,6 @@ export const de: AppDictionary = {
       people: "Personal & Struktur",
       logoutSession: "Sitzung abmelden",
     },
-    footer: {
-      ariaLabel: "Fußzeile der Anwendung",
-      tagline: "Logistiksystem für Flotten",
-      copyright: "© {year} {company} · WERKIT",
-    },
     organization: {
       title: "Personal & Struktur",
       subtitle:
