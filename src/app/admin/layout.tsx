@@ -70,7 +70,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       gpsEnabled={isGpsModuleEnabled(featureFlags)}
       durEnabled={featureFlags.durEnabled}
     >
-      <div className="layout-admin flex h-screen bg-[#f2fbfa] dark:bg-zinc-900 overflow-hidden text-zinc-900 dark:text-zinc-100">
+      <div className="layout-admin flex h-[100dvh] overflow-hidden bg-[#f2fbfa] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
         <aside className="w-64 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col justify-between hidden md:flex z-50">
           <div>
             <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-200 dark:border-zinc-800">
@@ -96,7 +96,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               scopedViewer={scopedViewerNav}
             />
           </div>
-          <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 px-4 pb-12 pt-4 dark:border-zinc-800">
+          <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 px-4 pt-4 pb-[calc(1cm+1rem)] dark:border-zinc-800">
             {loggedInUser && (
               <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
                 <UserIcon className="w-4 h-4 text-emerald-500 shrink-0" />

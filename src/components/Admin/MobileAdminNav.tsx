@@ -113,7 +113,7 @@ export function MobileAdminNav({
               })}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4 pb-10 dark:border-zinc-800">
+            <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4 pb-[calc(1cm+1rem)] dark:border-zinc-800">
               {loggedInUser && (
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
                   <Users className="w-4 h-4 text-emerald-500 shrink-0" />
