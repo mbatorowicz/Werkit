@@ -51,12 +51,22 @@ vi.mock("@/db/schema", () => ({
     name: "name",
     catalogNumber: "catalogNumber",
   },
+  workOrders: { id: "id", companyId: "companyId", resourceId: "resourceId" },
+  stockIssues: { id: "id", partId: "partId", issuedTo: "issuedTo", workOrderId: "workOrderId" },
+  stockReceipts: { id: "id", partId: "partId" },
+  sparePartInventory: { companyId: "companyId", partId: "partId", quantity: "quantity" },
+  users: { id: "id", fullName: "fullName" },
+  resources: { id: "id", name: "name" },
 }));
 
 vi.mock("drizzle-orm", () => ({
   eq: (_col: unknown, val: unknown) => val,
   and: (...args: unknown[]) => args,
   desc: (col: unknown) => col,
+}));
+
+vi.mock("drizzle-orm/pg-core", () => ({
+  alias: (table: unknown, name: string) => ({ table, name }),
 }));
 
 describe("WorkOrderSparePartService", () => {

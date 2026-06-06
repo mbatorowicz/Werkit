@@ -16,7 +16,9 @@ vi.mock("@/db/schema", () => ({
   materialStockIssues: { id: "id" },
   materials: { id: "id", name: "name" },
   users: { id: "id", fullName: "fullName" },
-  workOrders: { id: "id", taskDescription: "taskDescription" },
+  workOrders: { id: "id", taskDescription: "taskDescription", customerId: "customerId" },
+  workSessions: { id: "id", customerId: "customerId" },
+  customers: { id: "id", firstName: "firstName", lastName: "lastName" },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -24,6 +26,10 @@ vi.mock("drizzle-orm", () => ({
   and: (...args: unknown[]) => args,
   desc: (c: unknown) => c,
   sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({ strings, values }),
+}));
+
+vi.mock("drizzle-orm/pg-core", () => ({
+  alias: (table: unknown, name: string) => ({ table, name }),
 }));
 
 vi.mock("./MaterialInventoryService", () => ({
