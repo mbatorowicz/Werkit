@@ -19,6 +19,7 @@ import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isGpsModuleEnabled } from "@/types/featureFlags";
+import { AdminAppFooter } from "@/components/Admin/AdminAppFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -114,10 +115,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </aside>
 
-        <main
-          className={`flex-1 flex flex-col min-w-0 bg-white dark:bg-zinc-900 ${INLINE_SCROLL_PANEL_CLASS}`}
-        >
-          <header className="h-16 flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 md:hidden sticky top-0 z-50">
+        <main className="flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-900">
+          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-[#f2fbfa] px-6 dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
             <div className="flex items-center gap-3">
               <AdminMobileBackButton />
               <div className="flex flex-col justify-center">
@@ -155,7 +154,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </header>
 
-          <div className="flex-1 relative">{children}</div>
+          <div className={`flex min-h-0 flex-1 flex-col ${INLINE_SCROLL_PANEL_CLASS}`}>
+            <div className="flex min-h-full flex-1 flex-col">{children}</div>
+            <AdminAppFooter companyName={companyName} />
+          </div>
         </main>
       </div>
     </AdminAbilityProvider>

@@ -148,6 +148,11 @@ export const pl = {
       people: "Ludzie i struktura",
       logoutSession: "Wyloguj sesję",
     },
+    footer: {
+      ariaLabel: "Stopka aplikacji",
+      tagline: "System logistyczny dla floty",
+      copyright: "© {year} {company} · WERKIT",
+    },
     organization: {
       title: "Ludzie i struktura",
       subtitle:
