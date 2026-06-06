@@ -48,6 +48,7 @@ function narrowIssueRaw(r: Record<string, unknown>): MaterialStockIssue | null {
     materialName: readNullableString(r, "materialName") ?? undefined,
     creatorName: readNullableString(r, "creatorName") ?? undefined,
     workOrderLabel: readNullableString(r, "workOrderLabel") ?? undefined,
+    customerName: readNullableString(r, "customerName") ?? undefined,
   };
 }
 

@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Package } from "lucide-react";
+import { ListSearchBar } from "@/components/ListSearchBar";
 import { formatDict, getDictionary } from "@/i18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
+import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { materialsApi } from "@/lib/appRoutes";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminFormField } from "@/components/Admin/AdminFormField";
@@ -43,9 +45,10 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const comboboxCommon = comboboxFeedbackProps(dictionary.admin.orders);
 
-  const [tab, setTab] = useState<Tab>("receipts");
+  const [tab, setTab] = useState<Tab>("issues");
   const [receipts, setReceipts] = useState<MaterialStockReceipt[]>([]);
   const [issues, setIssues] = useState<MaterialStockIssue[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -152,7 +155,64 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
     setIsSubmitting(false);
   }
 
-  const rows = tab === "receipts" ? receipts : issues;
+  const filteredReceipts = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return receipts;
+    return receipts.filter((row) => {
+      const haystack = [
+        row.materialName,
+        row.notes,
+        row.invoiceNumber,
+        row.quantity,
+        new Date(row.createdAt).toLocaleString(),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return matchesSearchQuery(haystack, q);
+    });
+  }, [receipts, searchQuery]);
+
+  const filteredIssues = useMemo(() => {
+    const q = searchQuery.trim();
+    if (!q) return issues;
+    return issues.filter((row) => {
+      const haystack = [
+        row.materialName,
+        row.customerName,
+        row.notes,
+        row.workOrderLabel,
+        row.workOrderId != null ? `#${row.workOrderId}` : null,
+        row.quantity,
+        new Date(row.createdAt).toLocaleString(),
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return matchesSearchQuery(haystack, q);
+    });
+  }, [issues, searchQuery]);
+
+  const issueTotalsByMaterial = useMemo(() => {
+    if (tab !== "issues" || !searchQuery.trim() || filteredIssues.length === 0) return [];
+    const totals = new Map<number, { materialName: string; quantity: number; unit: string }>();
+    for (const row of filteredIssues) {
+      const qty = parseDecimalInput(row.quantity) ?? 0;
+      const unit = materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT;
+      const existing = totals.get(row.materialId);
+      if (existing) {
+        existing.quantity += qty;
+      } else {
+        totals.set(row.materialId, {
+          materialName: row.materialName ?? String(row.materialId),
+          quantity: qty,
+          unit,
+        });
+      }
+    }
+    return [...totals.values()].sort((a, b) => a.materialName.localeCompare(b.materialName, "pl"));
+  }, [tab, searchQuery, filteredIssues, materialById]);
+
+  const rows = tab === "receipts" ? filteredReceipts : filteredIssues;
+  const colSpan = tab === "issues" ? 5 : 4;
 
   return (
     <section className="border-t border-zinc-200 pt-12 dark:border-zinc-800/80">
@@ -179,17 +239,6 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
       <div className="mb-4 flex gap-2">
         <button
           type="button"
-          onClick={() => setTab("receipts")}
-          className={`rounded-lg px-4 py-2 text-sm font-medium ${
-            tab === "receipts"
-              ? "bg-emerald-600 text-white"
-              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-          }`}
-        >
-          {wDict.tabReceipts}
-        </button>
-        <button
-          type="button"
           onClick={() => setTab("issues")}
           className={`rounded-lg px-4 py-2 text-sm font-medium ${
             tab === "issues"
@@ -199,12 +248,51 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
         >
           {wDict.tabIssues}
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("receipts")}
+          className={`rounded-lg px-4 py-2 text-sm font-medium ${
+            tab === "receipts"
+              ? "bg-emerald-600 text-white"
+              : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+          }`}
+        >
+          {wDict.tabReceipts}
+        </button>
       </div>
+
+      <ListSearchBar
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={wDict.movementsSearchPlaceholder}
+      />
+
+      {issueTotalsByMaterial.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
+          <p className="mb-2 font-medium text-emerald-900 dark:text-emerald-200">
+            {wDict.movementsFilterSummary}
+          </p>
+          <ul className="space-y-1 text-emerald-800 dark:text-emerald-300">
+            {issueTotalsByMaterial.map((item) => (
+              <li key={item.materialName}>
+                {formatDict(wDict.movementsFilterSummaryLine, {
+                  material: item.materialName,
+                  qty: decimalStringForStorage(String(item.quantity)) ?? String(item.quantity),
+                  unit: item.unit,
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
             <tr>
+              {tab === "issues" ? (
+                <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colCustomer}</th>
+              ) : null}
               <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colMaterial}</th>
               <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colQuantity}</th>
               <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colDate}</th>
@@ -214,19 +302,28 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
                   {wDict.loading}
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-zinc-500">
-                  {tab === "receipts" ? wDict.emptyReceipts : wDict.emptyIssues}
+                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
+                  {searchQuery.trim()
+                    ? wDict.movementsSearchNoResults
+                    : tab === "receipts"
+                      ? wDict.emptyReceipts
+                      : wDict.emptyIssues}
                 </td>
               </tr>
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
+                  {tab === "issues" ? (
+                    <td className="px-4 py-3 font-medium">
+                      {"customerName" in row && row.customerName ? row.customerName : "—"}
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3 font-medium">{row.materialName ?? row.materialId}</td>
                   <td className="px-4 py-3">
                     {formatDict(wDict.stockWithUnit, {

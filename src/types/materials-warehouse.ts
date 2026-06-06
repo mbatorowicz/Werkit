@@ -38,6 +38,7 @@ export type MaterialStockIssue = {
   materialName?: string;
   creatorName?: string;
   workOrderLabel?: string;
+  customerName?: string;
 };
 
 export type MaterialStockReceiptInput = {

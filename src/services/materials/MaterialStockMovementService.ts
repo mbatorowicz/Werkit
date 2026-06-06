@@ -6,7 +6,10 @@ import {
   materials,
   users,
   workOrders,
+  workSessions,
+  customers,
 } from "@/db/schema";
+import { formatCustomerLabel } from "@/lib/customerSearch";
 import type {
   MaterialStockReceipt,
   MaterialStockIssue,
@@ -16,9 +19,13 @@ import type {
 import { MaterialInventoryService } from "./MaterialInventoryService";
 import { MaterialStockMovementError } from "./MaterialStockMovementError";
 import { eq, and, desc } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "@/db/schema";
 import { parseDecimalInput } from "@/lib/decimalInput";
+
+const orderCustomer = alias(customers, "order_customer");
+const sessionCustomer = alias(customers, "session_customer");
 
 type DbClient = NodePgDatabase<typeof schema>;
 
@@ -149,29 +156,52 @@ export class MaterialStockMovementService {
         materialName: materials.name,
         creatorName: users.fullName,
         workOrderLabel: workOrders.taskDescription,
+        orderCustomerFirstName: orderCustomer.firstName,
+        orderCustomerLastName: orderCustomer.lastName,
+        sessionCustomerFirstName: sessionCustomer.firstName,
+        sessionCustomerLastName: sessionCustomer.lastName,
       })
       .from(materialStockIssues)
       .innerJoin(materials, eq(materialStockIssues.materialId, materials.id))
       .leftJoin(users, eq(materialStockIssues.createdBy, users.id))
       .leftJoin(workOrders, eq(materialStockIssues.workOrderId, workOrders.id))
+      .leftJoin(orderCustomer, eq(workOrders.customerId, orderCustomer.id))
+      .leftJoin(workSessions, eq(materialStockIssues.workSessionId, workSessions.id))
+      .leftJoin(sessionCustomer, eq(workSessions.customerId, sessionCustomer.id))
       .where(eq(materialStockIssues.companyId, companyId))
       .orderBy(desc(materialStockIssues.createdAt));
 
-    return rows.map((r) => ({
-      id: r.id,
-      companyId: r.companyId,
-      materialId: r.materialId,
-      quantity: String(r.quantity),
-      workOrderId: r.workOrderId,
-      workSessionId: r.workSessionId,
-      issuedTo: r.issuedTo,
-      notes: r.notes,
-      createdBy: r.createdBy,
-      createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
-      materialName: r.materialName ?? undefined,
-      creatorName: r.creatorName ?? undefined,
-      workOrderLabel: r.workOrderLabel ?? undefined,
-    }));
+    return rows.map((r) => {
+      const customerName = r.orderCustomerLastName
+        ? formatCustomerLabel({
+            firstName: r.orderCustomerFirstName,
+            lastName: r.orderCustomerLastName,
+          })
+        : r.sessionCustomerLastName
+          ? formatCustomerLabel({
+              firstName: r.sessionCustomerFirstName,
+              lastName: r.sessionCustomerLastName,
+            })
+          : undefined;
+      const resolvedCustomerName = customerName || undefined;
+
+      return {
+        id: r.id,
+        companyId: r.companyId,
+        materialId: r.materialId,
+        quantity: String(r.quantity),
+        workOrderId: r.workOrderId,
+        workSessionId: r.workSessionId,
+        issuedTo: r.issuedTo,
+        notes: r.notes,
+        createdBy: r.createdBy,
+        createdAt: r.createdAt?.toISOString?.() ?? String(r.createdAt),
+        materialName: r.materialName ?? undefined,
+        creatorName: r.creatorName ?? undefined,
+        workOrderLabel: r.workOrderLabel ?? undefined,
+        customerName: resolvedCustomerName,
+      };
+    });
   }
 
   static async addIssue(
