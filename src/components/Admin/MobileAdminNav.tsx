@@ -49,7 +49,7 @@ export function MobileAdminNav({
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu} />
-          <div className="relative w-72 max-w-[80vw] h-full bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 flex flex-col animate-in slide-in-from-left duration-200">
+          <div className="relative flex h-full w-72 max-w-[80vw] flex-col bg-white pb-[1.5cm] box-border dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 animate-in slide-in-from-left duration-200">
             <div className="h-[72px] flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
               <div>
                 <div className="flex items-center gap-2">
@@ -113,7 +113,7 @@ export function MobileAdminNav({
               })}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4 pb-[calc(1cm+1rem)] dark:border-zinc-800">
+            <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4 dark:border-zinc-800">
               {loggedInUser && (
                 <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
                   <Users className="w-4 h-4 text-emerald-500 shrink-0" />

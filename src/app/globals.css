@@ -28,6 +28,12 @@
     --app-top-bar-height: 0px;
     --app-bottom-bar-height: 0px;
   }
+
+  /* Odstęp dolnej sekcji sidebara od krawędzi okna / paska Windows */
+  .layout-admin > aside {
+    box-sizing: border-box;
+    padding-bottom: 1.5cm;
+  }
 }
 
 @theme inline {
