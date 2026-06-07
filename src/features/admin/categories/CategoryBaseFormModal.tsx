@@ -4,11 +4,9 @@ import type { ReactNode } from "react";
 import { CategoryHierarchyFields } from "@/components/Admin/CategoryHierarchyFields";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INPUT_BASE } from "@/lib/uiTokens";
 import type { CategoryHierarchyRow } from "@/lib/categoryTree";
 import type { CategoryAdminLabels, CategoryHierarchyFormFields } from "./types";
-
-const INPUT_CLASS =
-  "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-amber-500 focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
 
 type Props<TForm extends CategoryHierarchyFormFields> = {
   formId: string;
@@ -16,7 +14,6 @@ type Props<TForm extends CategoryHierarchyFormFields> = {
   onClose: () => void;
   isEdit: boolean;
   labels: CategoryAdminLabels;
-  submitClassName: string;
   form: TForm;
   setForm: React.Dispatch<React.SetStateAction<TForm>>;
   categories: CategoryHierarchyRow[];
@@ -31,7 +28,6 @@ export function CategoryBaseFormModal<TForm extends CategoryHierarchyFormFields>
   onClose,
   isEdit,
   labels,
-  submitClassName,
   form,
   setForm,
   categories,
@@ -49,12 +45,7 @@ export function CategoryBaseFormModal<TForm extends CategoryHierarchyFormFields>
       scrollableBody
       closeOnBackdropClick={false}
       footer={
-        <FormModalFooter
-          formId={formId}
-          onCancel={onClose}
-          submitLabel={labels.save}
-          submitClassName={submitClassName}
-        />
+        <FormModalFooter formId={formId} onCancel={onClose} submitLabel={labels.save} />
       }
     >
       <form id={formId} onSubmit={onSubmit} className="space-y-4 p-6">
@@ -64,7 +55,7 @@ export function CategoryBaseFormModal<TForm extends CategoryHierarchyFormFields>
           placeholder={labels.namePlaceholder}
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className={INPUT_CLASS}
+          className={INPUT_BASE}
         />
 
         <CategoryHierarchyFields
@@ -78,7 +69,7 @@ export function CategoryBaseFormModal<TForm extends CategoryHierarchyFormFields>
           onSortOrderChange={(sortOrder) => setForm({ ...form, sortOrder })}
         />
 
-        {!form.isGroup ? children : null}
+        {children}
       </form>
     </AdminModalShell>
   );

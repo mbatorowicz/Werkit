@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../lib/uiButtons.ts";
+@source "../lib/uiTokens.ts";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

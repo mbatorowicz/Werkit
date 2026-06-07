@@ -6,6 +6,7 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatCompanyAddressQuery } from "@/lib/map/companyBaseLocation";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import { INPUT_BASE } from "@/lib/uiTokens";
 import type { SettingsSnapshot } from "./SettingsForm";
 
 const SettingsMap = dynamic(() => import("@/components/Map/SettingsMap"), {
@@ -96,7 +97,7 @@ export function SettingsCompanySection({
             placeholder={dict.legalNamePlaceholder}
             value={name ?? ""}
             onChange={(e) => updateField("companyName", e.target.value)}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+            className={INPUT_BASE}
           />
         </div>
 

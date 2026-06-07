@@ -13,6 +13,8 @@ import { matchesCustomerSearch } from "@/lib/customerSearch";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CustomerInlineCreateForm } from "@/components/customers/CustomerInlineCreateForm";
@@ -198,7 +200,7 @@ export default function CustomersClient() {
         {canMutate && (
           <button
             onClick={openNewModal}
-            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 py-2.5 text-sm font-semibold rounded-lg hover:bg-zinc-800 dark:hover:bg-white transition shadow-sm flex items-center gap-2"
+            className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="w-4 h-4" /> {dict.addCustomer}
           </button>

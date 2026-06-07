@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
+import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { INLINE_SCROLL_PANEL_CLASS, touchScrollStyle } from "@/components/scrollPanelStyles";
 import type { DepartmentTreeNode } from "@/types/organization";
@@ -329,7 +331,7 @@ export function OrgHierarchyTree({
             <button
               type="button"
               onClick={onAddAccount}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-2 text-sm font-semibold text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
+              className={cn("inline-flex items-center gap-1.5", BTN_PRIMARY_COMPACT_SM)}
             >
               <UserPlus className="h-4 w-4" />
               {labels.addAccount}

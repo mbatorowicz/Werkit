@@ -3,6 +3,8 @@
 import { Map, Plus, RefreshCw, Settings } from "lucide-react";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { adminApi } from "@/lib/appRoutes";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import { parseJsonUnknown } from "@/lib/parseApiJson";
 import { isRecord } from "@/lib/narrowApiListRows";
 
@@ -76,7 +78,7 @@ export function OrdersHeader({
           <button
             type="button"
             onClick={onNewOrder}
-            className="flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+            className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" /> {dict.newOrder}
           </button>

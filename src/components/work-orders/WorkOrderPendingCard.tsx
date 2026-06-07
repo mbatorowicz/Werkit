@@ -22,6 +22,8 @@ import type { WorkOrder } from "@/types/worker";
 import { useWorkerOrderDetailsModal } from "@/features/worker/hooks/useWorkerOrderDetailsModal";
 import { workerOrderDetailsFromWorkOrder } from "@/features/worker/lib/workerOrderDetails";
 import { UI_RADIUS_CONTROL } from "@/lib/uiRadius";
+import { BTN_PRIMARY } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 type WorkerDict = AppDictionary["worker"]["client"];
 
@@ -189,7 +191,7 @@ export function WorkOrderPendingCard({
         <button
           type="button"
           onClick={() => onStart(order.id)}
-          className={`bg-amber-600 hover:bg-amber-500 text-white ${UI_RADIUS_CONTROL} py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full`}
+          className={cn(BTN_PRIMARY, UI_RADIUS_CONTROL, "py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full")}
         >
           <Play className="w-4 h-4 fill-current" />
           <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
-import { getDictionary } from "@/i18n";
+import { BTN_DANGER_FULL } from "@/lib/uiButtons";
+import { useDictionary } from "@/components/LocaleProvider";
 
 const FORM_ID = "admin-password-confirm-form";
 
@@ -26,7 +27,7 @@ export function AdminPasswordConfirmModal({
   isSubmitting?: boolean;
   error?: string | null;
 }) {
-  const uiDict = getDictionary().admin.ui;
+  const uiDict = useDictionary().admin.ui;
   const [password, setPassword] = useState("");
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export function AdminPasswordConfirmModal({
           submitLabel={confirmLabel}
           isSubmitting={isSubmitting}
           submitDisabled={!password.trim()}
-          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-500 transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
+          submitClassName={BTN_DANGER_FULL}
         />
       }
     >

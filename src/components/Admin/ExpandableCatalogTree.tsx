@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Layers, Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
+import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import { getDictionary } from "@/i18n";
 import { formatDict } from "@/i18n/format";
 import { filterCatalogTree } from "@/lib/filterCatalogTree";
@@ -196,7 +198,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
             <button
               type="button"
               onClick={onAddCategory}
-              className="flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT_SM)}
             >
               <Plus className="h-4 w-4" /> {addCategoryLabel}
             </button>

@@ -11,6 +11,8 @@ import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
 import { getDictionary } from "@/i18n";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import type { AppDictionary } from "@/i18n/types";
 import type { MachinesCategory, MachinesResource } from "./types";
 
@@ -67,7 +69,7 @@ export function MachinesResourcesTable({
           <button
             type="button"
             onClick={onAddResource}
-            className="flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+            className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" />
             {dict.addResource}

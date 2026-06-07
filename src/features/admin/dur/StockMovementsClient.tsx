@@ -15,6 +15,8 @@ import { narrowUnifiedGanttItems } from "@/lib/narrow/admin";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 import type { StockReceipt, StockIssue } from "@/types/dur";
 import { StockReceiptForm } from "./StockReceiptForm";
 import { StockIssueForm } from "./StockIssueForm";
@@ -417,7 +419,7 @@ export default function StockMovementsClient() {
           <button
             type="button"
             onClick={openModal}
-            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
+            className={cn("inline-flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" />
             {tab === "receipts" ? wDict.addReceipt : wDict.addIssue}

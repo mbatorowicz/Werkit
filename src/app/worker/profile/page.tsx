@@ -7,6 +7,8 @@ import { ProfileSettings } from "@/features/worker/components/profile/ProfileSet
 import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import { getDictionary } from "@/i18n";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { BTN_PRIMARY } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 import { JWT_SECRET } from "@/lib/auth";
 async function getUserId() {
@@ -71,7 +73,7 @@ export default async function ProfilePage() {
         {user?.role === "admin" && (
           <Link
             href="/admin"
-            className="w-full flex items-center justify-center gap-3 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors font-medium mt-4 shadow-sm"
+            className={cn("w-full flex items-center justify-center gap-3 p-5 mt-4 shadow-sm", BTN_PRIMARY)}
           >
             <Settings className="w-5 h-5" />
             {dict.goToAdminPanel}

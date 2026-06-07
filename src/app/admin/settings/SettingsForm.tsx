@@ -10,6 +10,8 @@ import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { SettingsCompanySection } from "@/app/admin/settings/SettingsCompanySection";
 import { SettingsOrdersSection } from "@/app/admin/settings/SettingsOrdersSection";
+import { BTN_PRIMARY } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 export type SettingsSnapshot = {
   id?: number;
@@ -172,7 +174,7 @@ export default function SettingsForm({
               type="button"
               onClick={() => void handleSave()}
               disabled={saveStatus === "SAVING"}
-              className="bg-amber-600 text-white font-bold px-8 py-3 rounded-lg hover:bg-amber-500 transition shadow-sm active:scale-95"
+              className={cn(BTN_PRIMARY, "px-8 py-3 shadow-sm active:scale-95")}
             >
               {saveStatus === "SAVING" ? dict.saving : dict.saveBtn}
             </button>

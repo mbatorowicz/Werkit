@@ -61,7 +61,6 @@ export function MaterialsMaterialFormModal({
           formId="admin-material-form"
           onCancel={onClose}
           submitLabel={dict.saveFleet}
-          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-amber-600 text-white text-sm font-bold hover:bg-amber-500 transition flex items-center justify-center min-w-[7rem]"
         />
       }
     >

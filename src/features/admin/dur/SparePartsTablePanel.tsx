@@ -7,6 +7,8 @@ import type { AppDictionary } from "@/i18n/types";
 import type { SparePart } from "@/types/dur";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 type Dict = AppDictionary["dur"]["spareParts"];
 
@@ -58,7 +60,7 @@ export function SparePartsTablePanel({
           <button
             type="button"
             onClick={onAddPart}
-            className="flex items-center gap-2 rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+            className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" />
             {dict.newPart}

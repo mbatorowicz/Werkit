@@ -5,6 +5,8 @@ import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocati
 import type { AppDictionary } from "@/i18n/types";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooterActions } from "@/components/FormModalFooter";
+import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 type WorkerClientDict = AppDictionary["worker"]["client"];
 
@@ -48,7 +50,7 @@ export default function GpsWarningModal({
                 await backgroundGeolocation.openSettings();
               }
             }}
-            className="w-full rounded-lg bg-amber-600 py-3 text-sm font-bold text-white transition hover:bg-amber-500"
+            className={cn("w-full py-3", BTN_SECONDARY)}
           >
             {dict.gpsOpenPhoneSettings}
           </button>
@@ -62,7 +64,7 @@ export default function GpsWarningModal({
                 setPendingOrderId(null);
               }
             }}
-            className="w-full rounded-lg bg-zinc-100 py-3 text-sm font-bold text-zinc-700 transition hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            className={cn("w-full py-3", BTN_PRIMARY)}
           >
             {dict.gpsUnderstandAlwaysSet}
           </button>

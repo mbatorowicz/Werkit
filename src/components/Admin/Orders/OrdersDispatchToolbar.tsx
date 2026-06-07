@@ -48,7 +48,7 @@ export function OrdersDispatchToolbar({
           onClick={() => onViewModeChange("board")}
           className={`px-3 py-2 text-sm font-semibold transition ${
             viewMode === "board"
-              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+              ? "bg-emerald-600 text-white dark:bg-emerald-500"
               : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           }`}
         >
@@ -59,7 +59,7 @@ export function OrdersDispatchToolbar({
           onClick={() => onViewModeChange("table")}
           className={`px-3 py-2 text-sm font-semibold transition border-l border-zinc-200 dark:border-zinc-700 ${
             viewMode === "table"
-              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+              ? "bg-emerald-600 text-white dark:bg-emerald-500"
               : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
           }`}
         >

@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { getDictionary } from "@/i18n";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { useDictionary } from "@/components/LocaleProvider";
 
 type Props = {
   open: boolean;
@@ -25,7 +26,7 @@ export function AdminPreviewModal({
   editLabel,
   maxWidthClass = "max-w-lg",
 }: Props) {
-  const ui = getDictionary().admin.ui;
+  const ui = useDictionary().admin.ui;
 
   return (
     <AdminModalShell
@@ -48,7 +49,7 @@ export function AdminPreviewModal({
             <button
               type="button"
               onClick={onEdit}
-              className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              className={BTN_PRIMARY_COMPACT}
             >
               {editLabel ?? ui.previewEdit}
             </button>

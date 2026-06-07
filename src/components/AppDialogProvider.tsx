@@ -11,6 +11,8 @@ import {
 } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { useDictionary } from "@/components/LocaleProvider";
+import { BTN_PRIMARY, BTN_SECONDARY, BTN_DANGER } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 export type AppConfirmOptions = {
   title?: string;
@@ -112,16 +114,14 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => closeConfirm(false)}
-                className="w-full rounded-lg border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800 sm:w-auto"
+                className={cn("w-full sm:w-auto", BTN_SECONDARY)}
               >
                 {confirmOpts.cancelLabel ?? ui.modalCancel}
               </button>
               <button
                 type="button"
                 onClick={() => closeConfirm(true)}
-                className={`w-full rounded-lg px-6 py-2.5 text-sm font-bold text-white transition sm:w-auto ${
-                  danger ? "bg-red-600 hover:bg-red-500" : "bg-emerald-600 hover:bg-emerald-500"
-                }`}
+                className={cn("w-full sm:w-auto", danger ? BTN_DANGER : BTN_PRIMARY)}
               >
                 {confirmOpts.confirmLabel ?? ui.dialogConfirm}
               </button>
@@ -147,7 +147,7 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={closeAlert}
-              className="ml-auto w-full rounded-lg bg-zinc-900 px-6 py-2.5 text-sm font-bold text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white sm:w-auto"
+              className={cn("ml-auto w-full sm:w-auto", BTN_PRIMARY)}
             >
               {alertOpts.okLabel ?? ui.dialogOk}
             </button>

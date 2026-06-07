@@ -37,7 +37,6 @@ export function MaterialCategoryFormModal({
       onClose={onClose}
       isEdit={isEdit}
       labels={labels}
-      submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-zinc-900 dark:text-zinc-900 text-sm font-semibold hover:bg-zinc-800 dark:hover:bg-white transition flex items-center justify-center min-w-[7rem]"
       form={form}
       setForm={setForm}
       categories={categories}

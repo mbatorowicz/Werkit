@@ -5,7 +5,8 @@ import { formatDict } from "@/i18n/format";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkerActiveAlarm } from "@/features/worker/lib/workerAlarmTypes";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { UI_RADIUS_CONTROL } from "@/lib/uiRadius";
+import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
 
 type AlarmDict = AppDictionary["worker"]["alarms"];
 
@@ -37,7 +38,7 @@ export function WorkerAlarmModal({
           <button
             type="button"
             onClick={onOk}
-            className={`w-full ${UI_RADIUS_CONTROL} bg-zinc-900 py-3 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900`}
+            className={cn("w-full py-3", BTN_PRIMARY)}
           >
             {dict.actionOk}
           </button>
@@ -45,7 +46,7 @@ export function WorkerAlarmModal({
             <button
               type="button"
               onClick={onStart}
-              className={`flex w-full items-center justify-center gap-2 ${UI_RADIUS_CONTROL} bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-500`}
+              className={cn("flex w-full items-center justify-center gap-2 py-3", BTN_PRIMARY)}
             >
               <Play className="h-4 w-4" />
               {dict.actionStart}
@@ -62,7 +63,7 @@ export function WorkerAlarmModal({
                     key={minutes}
                     type="button"
                     onClick={() => onSnooze(minutes)}
-                    className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    className={cn("rounded-lg px-4 py-2 text-sm font-medium", BTN_SECONDARY)}
                   >
                     {formatDict(dict.actionSnooze, { minutes })}
                   </button>

@@ -51,7 +51,6 @@ export default function NotesModal({
           onCancel={close}
           submitLabel={editingNoteId ? dict.update : dict.saveNote}
           isSubmitting={isSubmittingNote}
-          submitClassName="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-500 transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]"
         />
       }
     >

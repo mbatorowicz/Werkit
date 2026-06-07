@@ -20,6 +20,7 @@ import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INPUT_BASE } from "@/lib/uiTokens";
 import UserFormFields, {
   COMBO_NONE,
   emptyUserForm,
@@ -486,7 +487,7 @@ export default function PeopleClient() {
                 value={deptName}
                 onChange={(e) => setDeptName(e.target.value)}
                 placeholder={dict.departmentNamePlaceholder}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               />
             </label>
             <label className="block space-y-1 text-sm">
@@ -494,7 +495,7 @@ export default function PeopleClient() {
               <select
                 value={deptParentId ?? ""}
                 onChange={(e) => setDeptParentId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               >
                 <option value="">{dict.parentDepartmentNone}</option>
                 {departments
@@ -541,7 +542,7 @@ export default function PeopleClient() {
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
                 placeholder={dict.teamNamePlaceholder}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               />
             </label>
             <label className="block space-y-1 text-sm">
@@ -549,7 +550,7 @@ export default function PeopleClient() {
               <select
                 value={teamLeaderId ?? ""}
                 onChange={(e) => setTeamLeaderId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               >
                 <option value="">—</option>
                 {workerUsers.map((u) => (
@@ -593,7 +594,7 @@ export default function PeopleClient() {
               <select
                 value={memberUserId ?? ""}
                 onChange={(e) => setMemberUserId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               >
                 <option value="">—</option>
                 {workerUsers.map((u) => (
@@ -608,7 +609,7 @@ export default function PeopleClient() {
               <select
                 value={memberRole}
                 onChange={(e) => setMemberRole(e.target.value)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950"
+                className={INPUT_BASE}
               >
                 <option value="leader">{dict.roleLeader}</option>
                 <option value="member">{dict.roleMember}</option>
