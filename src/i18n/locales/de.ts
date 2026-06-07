@@ -4,12 +4,54 @@ export const de: AppDictionary = {
   localeSwitcher: {
     label: "Sprache ändern",
   },
+  common: {
+    actions: {
+      save: "Speichern",
+      cancel: "Abbrechen",
+      saveChanges: "Änderungen speichern",
+      delete: "Löschen",
+      edit: "Bearbeiten",
+      add: "Hinzufügen",
+      back: "Zurück",
+      retry: "Erneut versuchen",
+      goToLogin: "Zur Anmeldung",
+    },
+    loading: {
+      default: "Laden…",
+      fetching: "Abrufen…",
+      map: "Karte wird geladen…",
+    },
+    search: {
+      noResults: "Keine Ergebnisse",
+      noResultsForQuery: "Keine Ergebnisse für diese Suche.",
+    },
+    errors: {
+      generic: "Ein Fehler ist aufgetreten.",
+      network: "Keine Verbindung. Bitte erneut versuchen.",
+      save: "Fehler beim Speichern.",
+      fetch: "Fehler beim Abrufen der Daten.",
+      routeFetch: "Route konnte nicht abgerufen werden.",
+      pageLoad: "Ladefehler",
+      pageLoadHint: "Seite aktualisieren oder erneut anmelden.",
+      noDetails: "Keine Fehlerdetails.",
+    },
+    map: {
+      loading: "Karte wird geladen…",
+    },
+    theme: {
+      toggle: "Design wechseln",
+    },
+    gantt: {
+      from: "Von:",
+      to: "Bis:",
+    },
+  },
   apiErrors: {
     fetch_error: "Fehler beim Abrufen der Daten vom Server.",
     migration_required:
-      "Datenbankschema ist nicht synchron. Für Ressourcenkategorien (Sichtbarkeit): npm run db:napraw-kategorie-widocznosc — oder npm run db:napraw-wszystko / SQL aus drizzle/.",
+      "Datenbank muss aktualisiert werden. Wenden Sie sich an den Systemadministrator.",
     migration_material_categories:
-      "Materialkategorie-Tabellen fehlen (Migration 0005). Ausführen: npm run db:napraw-slowniki-baza oder SQL aus drizzle/0005_material_categories.sql.",
+      "Wörterbuchdaten fehlen. Wenden Sie sich an den Systemadministrator.",
     missing_material_category: "Wählen Sie mindestens eine Materialkategorie aus.",
     category_exists: "Eine Kategorie mit diesem Namen existiert wahrscheinlich bereits.",
     category_in_use: "Kategorie wird bereits verwendet oder ein anderer Fehler ist aufgetreten.",
@@ -103,12 +145,15 @@ export const de: AppDictionary = {
     submit: "Anmelden",
     biometricLogin: "Mit Fingerabdruck oder Gesicht anmelden",
     biometricDivider: "oder mit Passwort fortfahren",
-    systemLogin: "Anmeldesystem",
-    subtitle: "Kommando- und Logistikpanel",
-    usernameLabel: "Admin-Login",
-    usernamePlaceholder: "Login",
+    systemLogin: "Anmeldung",
+    subtitle: "Logistikpanel",
+    usernameLabel: "Login",
+    usernamePlaceholder: "login",
     passwordLabel: "Passwort",
     passwordPlaceholder: "••••••••",
+    biometricPromptReason: "Identität bestätigen, um sich anzumelden",
+    biometricPromptTitle: "Werkit",
+    biometricPromptSubtitle: "Biometrische Anmeldung",
   },
   admin: {
     shared: {
@@ -892,7 +937,7 @@ export const de: AppDictionary = {
       refresh: "Aktualisieren",
       emptyFiltered: "Keine Protokolle entsprechen den ausgewählten Filtern.",
       exportJson: "JSON exportieren",
-      exportJsonHint: "Bis zu {max} neueste Zeilen aus der Tabelle device_logs herunterladen.",
+      exportJsonHint: "Bis zu {max} neueste Geräte-Logeinträge herunterladen.",
       exportJsonLoading: "Herunterladen…",
       exportJsonError: "Export-Download fehlgeschlagen.",
       exportJsonFileName: "werkit-device-logs-{stamp}.json",
@@ -985,7 +1030,7 @@ export const de: AppDictionary = {
       defineCustom: "Eigenen definieren",
       timeElapsed: "Verstrichene Zeit",
       gpsSignal: "GPS-Signal",
-      connOk: "VERBINDUNG OK",
+      connOk: "Verbunden",
       searching: "SUCHE...",
       error: "FEHLER",
       timeOverrunWarn:
@@ -1294,6 +1339,7 @@ export const de: AppDictionary = {
     organizationName: "Organisationsname",
     organizationNamePlaceholder: "z.B. MusterLogistik GmbH",
     organizationSlug: "Kennung",
+    organizationSlugPlaceholder: "z. B. logistik-firma",
     adminSection: "Organisationsadministrator",
     adminName: "Vollständiger Name",
     adminEmail: "E-Mail (Login)",

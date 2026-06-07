@@ -6,7 +6,12 @@ import { Loader2, Fingerprint } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { getDictionary } from "@/i18n";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
+import { useDictionary } from "@/components/LocaleProvider";
+import { BTN_LOGIN_SUBMIT } from "@/lib/uiButtons";
+import { FIELD_LABEL, PAGE_SUBTITLE } from "@/lib/uiTypography";
+import { INPUT_BASE, SURFACE_CARD, SURFACE_MINT } from "@/lib/uiTokens";
+import { cn } from "@/lib/cn";
 import {
   fetchCredentialsWithBiometricPrompt,
   hasSavedBiometricCredentials,
@@ -15,7 +20,7 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const dict = getDictionary();
+  const dict = useDictionary();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [bioOffered, setBioOffered] = useState(false);
@@ -32,11 +37,21 @@ export default function LoginPage() {
     };
   }, []);
 
+  const resolveApiError = (code?: string) => {
+    const apiErrors = dict.apiErrors as Record<string, string>;
+    return (code && apiErrors[code]) || code || dict.common.errors.generic;
+  };
+
   const handleBiometricLogin = async () => {
     setLoading(true);
     setError("");
     try {
-      const creds = await fetchCredentialsWithBiometricPrompt();
+      const creds = await fetchCredentialsWithBiometricPrompt({
+        reason: dict.login.biometricPromptReason,
+        title: dict.login.biometricPromptTitle,
+        subtitle: dict.login.biometricPromptSubtitle,
+        cancel: dict.common.actions.cancel,
+      });
       if (!creds) {
         setLoading(false);
         return;
@@ -60,11 +75,10 @@ export default function LoginPage() {
         router.refresh();
         router.replace(data.user?.role === "admin" ? "/admin" : "/worker");
       } else {
-        const apiErrors = dict.apiErrors as Record<string, string>;
-        setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
+        setError(resolveApiError(data.error));
       }
     } catch {
-      setError("Brak połączenia z Vercel API. Spróbuj ponownie.");
+      setError(dict.common.errors.network);
     } finally {
       setLoading(false);
     }
@@ -98,22 +112,33 @@ export default function LoginPage() {
         router.refresh();
         router.replace(data.user?.role === "admin" ? "/admin" : "/worker");
       } else {
-        const apiErrors = dict.apiErrors as Record<string, string>;
-        setError(apiErrors[data.error ?? ""] || data.error || "Wystąpił błąd krytyczny");
+        setError(resolveApiError(data.error));
       }
     } catch {
-      setError("Brak połączenia z Vercel API. Spróbuj ponownie.");
+      setError(dict.common.errors.network);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f2fbfa] dark:bg-zinc-900 flex flex-col justify-center items-center p-4 selection:bg-zinc-800 relative">
-      <div className="absolute top-4 right-4">
+    <div
+      className={cn(
+        "min-h-screen flex flex-col justify-center items-center p-4 selection:bg-zinc-800 relative",
+        SURFACE_MINT
+      )}
+    >
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LocaleSwitcher />
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-md bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8">
+      <div
+        className={cn(
+          "w-full max-w-md border rounded-lg shadow-[0_0_40px_-15px_rgba(0,0,0,0.5)] p-8",
+          SURFACE_CARD,
+          "border-zinc-200 dark:border-zinc-700"
+        )}
+      >
         <div className="mb-8 text-center pt-2">
           <div className="flex items-center justify-center gap-2 mb-4">
             <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
@@ -126,7 +151,7 @@ export default function LoginPage() {
           <h2 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 tracking-tight">
             {dict.login.systemLogin}
           </h2>
-          <p className="text-zinc-500 mt-1 text-sm">{dict.login.subtitle}</p>
+          <p className={cn(PAGE_SUBTITLE, "mt-1")}>{dict.login.subtitle}</p>
         </div>
 
         {error && (
@@ -160,10 +185,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
-            <label
-              className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1"
-              htmlFor="username"
-            >
+            <label className={FIELD_LABEL} htmlFor="username">
               {dict.login.usernameLabel}
             </label>
             <input
@@ -171,16 +193,13 @@ export default function LoginPage() {
               name="usernameEmail"
               type="text"
               required
-              className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all placeholder-zinc-700"
+              className={cn(INPUT_BASE, "py-3.5 placeholder-zinc-500")}
               placeholder={dict.login.usernamePlaceholder}
               autoComplete="username"
             />
           </div>
           <div className="space-y-1.5">
-            <label
-              className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 ml-1"
-              htmlFor="password"
-            >
+            <label className={FIELD_LABEL} htmlFor="password">
               {dict.login.passwordLabel}
             </label>
             <input
@@ -188,17 +207,13 @@ export default function LoginPage() {
               name="password"
               type="password"
               required
-              className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600 transition-all placeholder-zinc-700"
+              className={cn(INPUT_BASE, "py-3.5 placeholder-zinc-500")}
               placeholder={dict.login.passwordPlaceholder}
               autoComplete="current-password"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-white text-white dark:text-zinc-900 font-medium rounded-lg px-4 py-3.5 mt-2 transition-all flex justify-center items-center disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} className={cn(BTN_LOGIN_SUBMIT, "mt-2")}>
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : dict.login.submit}
           </button>
         </form>

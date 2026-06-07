@@ -72,7 +72,7 @@ export function PlatformCompanyForm({
           <input
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            placeholder="margaz"
+            placeholder={dict.organizationSlugPlaceholder}
             className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
           />
         </label>

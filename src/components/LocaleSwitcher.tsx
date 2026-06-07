@@ -1,25 +1,30 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useLocale } from "@/hooks/useLocale";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/components/LocaleProvider";
+import { INPUT_BASE } from "@/lib/uiTokens";
 
 /**
- * Przełącznik języka i strefy czasowej.
- * Używany w shellu admina / workera.
- * Zapisuje wybór do cookies (werkit_locale, werkit_timezone).
+ * Przełącznik języka.
+ * Zapisuje wybór do cookies (werkit_locale) i odświeża SSR z nowym locale.
  */
 export function LocaleSwitcher() {
+  const router = useRouter();
   const { locale, localeLabel, setLocale, supportedLocales } = useLocale();
-  const localeSwitcherLabel = getDictionary(locale).localeSwitcher.label;
+  const dict = useDictionary();
 
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="text-muted-foreground hidden sm:inline">{localeLabel}</span>
+      <span className="text-zinc-500 dark:text-zinc-400 hidden sm:inline">{localeLabel}</span>
       <select
         value={locale}
-        onChange={(e) => setLocale(e.target.value as typeof locale)}
-        className="rounded border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-600 dark:bg-zinc-800"
-        aria-label={localeSwitcherLabel}
+        onChange={(e) => {
+          setLocale(e.target.value as typeof locale);
+          router.refresh();
+        }}
+        className={`${INPUT_BASE} w-auto min-h-0 py-1.5 px-2 text-xs`}
+        aria-label={dict.localeSwitcher.label}
       >
         {supportedLocales.map((l) => (
           <option key={l.value} value={l.value}>

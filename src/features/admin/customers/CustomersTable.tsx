@@ -106,7 +106,7 @@ export default function CustomersTable({
                               stopRowActionClick(e);
                               onEdit(customer);
                             }}
-                            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-indigo-400 hover:bg-indigo-400/10 rounded-lg transition"
+                            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 rounded-lg transition"
                             title={machinesDict.editTitle}
                           >
                             <Edit2 className="w-4 h-4" />

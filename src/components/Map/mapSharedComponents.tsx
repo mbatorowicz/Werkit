@@ -119,13 +119,13 @@ export function WaypointControls({
             e.stopPropagation();
             onNavigate();
           }}
-          className={`flex items-center justify-center ${size} rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 bg-white/90 dark:bg-zinc-800/90 text-indigo-600 dark:text-indigo-400 hover:bg-white dark:hover:bg-zinc-700 transition active:scale-95 backdrop-blur-sm`}
+          className={`flex items-center justify-center ${size} rounded-lg shadow-lg border border-zinc-200 dark:border-zinc-700 bg-white/90 dark:bg-zinc-800/90 text-emerald-600 dark:text-emerald-400 hover:bg-white dark:hover:bg-zinc-700 transition active:scale-95 backdrop-blur-sm`}
           aria-label={dict.openGoogleMaps}
           title={dict.openGoogleMaps}
         >
           <Navigation className={iconSize} />
           <ExternalLink
-            className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-indigo-300`}
+            className={`${compact ? "h-2.5 w-2.5" : "h-3 w-3"} ml-0.5 text-emerald-300`}
           />
         </button>
       ) : null}

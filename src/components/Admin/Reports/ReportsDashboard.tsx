@@ -70,7 +70,7 @@ export function ReportsDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <ReportStatCard
           icon={Users}
-          iconWrapClass="bg-indigo-500/10 text-indigo-500 dark:text-indigo-400"
+          iconWrapClass="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400"
           title={r.workersWithAssignedOrders}
           value={snapshot.workersWithPendingOrders}
         />

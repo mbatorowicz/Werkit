@@ -1,11 +1,13 @@
 import { User as UserIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { MobileAdminNav } from "@/components/Admin/MobileAdminNav";
 import { AdminSidebarNav } from "@/components/Admin/AdminSidebarNav";
 import { AdminMobileBackButton } from "@/components/Admin/AdminMobileBackButton";
 import { LogoutButton } from "@/components/LogoutButton";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 
@@ -23,7 +25,7 @@ import { isGpsModuleEnabled } from "@/types/featureFlags";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const fullDict = getDictionary();
+  const fullDict = getDictionary(await getServerLocale());
   const dict = fullDict.admin;
   const durDict = fullDict.dur;
 
@@ -104,6 +106,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </div>
             )}
             <div className="flex items-center justify-between gap-2">
+              <LocaleSwitcher />
               <LogoutButton
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
                 iconClass="w-4 h-4"

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/components/LocaleProvider";
 import { formatCustomerLabel } from "@/lib/customerSearch";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
@@ -21,8 +21,13 @@ type GanttProps = {
 
 export default function GanttChart({ workers, machines, unifiedItems, onItemClick }: GanttProps) {
   const [groupBy, setGroupBy] = useState<"WORKER" | "MACHINE">("WORKER");
-  const dict = getDictionary().admin.gantt;
-  const fields = getDictionary().admin.orderFields;
+  const fullDict = useDictionary();
+  const dict = {
+    ...fullDict.admin.gantt,
+    hourFrom: fullDict.common.gantt.from,
+    hourTo: fullDict.common.gantt.to,
+  };
+  const fields = fullDict.admin.orderFields;
 
   const formatItemTooltip = (
     item: UnifiedGanttItem,

@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { CapacitorBackButton } from "@/components/CapacitorBackButton";
 import { AppDialogProvider } from "@/components/AppDialogProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { LocaleProvider } from "@/components/LocaleProvider";
+import { getServerLocale } from "@/lib/localeCookies";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,24 +39,28 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getServerLocale();
+
   return (
     <html
-      lang="pl"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AppDialogProvider>
-            <CapacitorBackButton />
-            <ServiceWorkerRegister />
-            {children}
-          </AppDialogProvider>
+          <LocaleProvider locale={locale}>
+            <AppDialogProvider>
+              <CapacitorBackButton />
+              <ServiceWorkerRegister />
+              {children}
+            </AppDialogProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

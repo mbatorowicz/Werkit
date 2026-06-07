@@ -389,7 +389,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
               type="button"
               disabled={saving}
               onClick={() => void saveLocation()}
-              className="flex-1 bg-indigo-600 text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
             >
               {saving ? dict.locationSaving : dict.locationSave}
             </button>

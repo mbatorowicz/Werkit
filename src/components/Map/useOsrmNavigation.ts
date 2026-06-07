@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { useDictionary } from "@/components/LocaleProvider";
 import {
   projectOsrmPublicRouteGeometryProvider,
   type RouteGeometryProvider,
@@ -180,6 +181,7 @@ export function useOsrmNavigation(
   waypoints: RouteLngLat[] = [],
   options: UseOsrmNavigationOptions = {}
 ): NavigationState {
+  const dict = useDictionary();
   const {
     recalculateIntervalMs = 3000,
     routeGeometryProvider = projectOsrmPublicRouteGeometryProvider,
@@ -272,7 +274,7 @@ export function useOsrmNavigation(
         setLoading(false);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to fetch route");
+          setError(dict.common.errors.routeFetch);
           setLoading(false);
         }
       }

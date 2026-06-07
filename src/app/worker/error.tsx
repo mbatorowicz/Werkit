@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
+import { useDictionary } from "@/components/LocaleProvider";
+import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/uiButtons";
 
 export default function WorkerError({
   error,
@@ -10,6 +12,8 @@ export default function WorkerError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const dict = useDictionary();
+
   useEffect(() => {
     console.error("Worker Route Error:", error);
   }, [error]);
@@ -20,17 +24,11 @@ export default function WorkerError({
         <AlertTriangle className="w-12 h-12 text-red-600 dark:text-red-400" />
       </div>
       <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-2">
-        Wystąpił błąd ładowania
+        {dict.common.errors.pageLoad}
       </h2>
       <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 max-w-sm">
-        Niestety, wystąpił problem podczas ładowania panelu pracownika. Spróbuj odświeżyć stronę lub
-        zalogować się ponownie.
+        {dict.common.errors.pageLoadHint}
       </p>
-      <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-lg w-full max-w-md mb-6 overflow-auto text-left">
-        <p className="text-xs font-mono text-red-600 dark:text-red-400 break-words">
-          {error.message || "Brak szczegółów błędu (Error.message is empty)"}
-        </p>
-      </div>
       <div className="flex gap-4">
         <button
           onClick={() => {
@@ -40,15 +38,17 @@ export default function WorkerError({
               reset();
             }
           }}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          className={BTN_PRIMARY}
         >
-          Spróbuj ponownie
+          {dict.common.actions.retry}
         </button>
         <button
-          onClick={() => (window.location.href = "/login")}
-          className="bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-800 dark:text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          onClick={() => {
+            window.location.href = "/login";
+          }}
+          className={BTN_SECONDARY}
         >
-          Wróć do logowania
+          {dict.common.actions.goToLogin}
         </button>
       </div>
     </div>

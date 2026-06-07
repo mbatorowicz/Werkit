@@ -1,11 +1,13 @@
 import { Map, Clock, User, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { LogoutButton } from "@/components/LogoutButton";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
@@ -15,7 +17,7 @@ import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
-  const dict = getDictionary().worker.nav;
+  const dict = getDictionary(await getServerLocale()).worker.nav;
   const { DictionaryService } = await import("@/services/DictionaryService");
   const { AdminUserService } = await import("@/services/AdminUserService");
 
@@ -63,6 +65,7 @@ export default async function WorkerLayout({ children }: { children: React.React
               {userName}
             </span>
           </div>
+          <LocaleSwitcher />
           <ThemeToggle />
           <LogoutButton
             className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { getDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
+import { INPUT_BASE } from "@/lib/uiTokens";
 import {
   customerFormAddressParts,
   customerFormGeocodeQuery,
@@ -57,8 +58,7 @@ export default function CustomerFormFields({
   const addressParts = customerFormAddressParts(form);
   const geocodeAddress = customerFormGeocodeQuery(form);
 
-  const inputClass =
-    "w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition outline-none";
+  const inputClass = INPUT_BASE;
 
   return (
     <div className="space-y-5 p-6">

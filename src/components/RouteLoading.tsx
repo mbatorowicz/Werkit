@@ -1,15 +1,21 @@
+"use client";
+
 import { Loader2 } from "lucide-react";
+import { useDictionary } from "@/components/LocaleProvider";
 
 export function RouteLoading({
-  title = "Ładowanie…",
-  subtitle = "Przechodzę do następnego widoku",
+  title,
+  subtitle,
 }: {
   title?: string;
   subtitle?: string;
 }) {
+  const dict = useDictionary();
+  const resolvedTitle = title ?? dict.common.loading.default;
+  const resolvedSubtitle = subtitle ?? dict.routeLoading.preparingApp;
+
   return (
     <div className="min-h-[60vh] w-full flex items-center justify-center px-6 py-10">
-      {/* top progress bar */}
       <div className="fixed left-0 top-0 z-[200] h-0.5 w-full overflow-hidden bg-transparent">
         <div className="h-full w-1/3 bg-emerald-500 animate-[routebar_0.9s_ease-in-out_infinite]" />
       </div>
@@ -20,8 +26,8 @@ export function RouteLoading({
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
           <div className="min-w-0">
-            <div className="font-semibold text-zinc-900 dark:text-zinc-100">{title}</div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400 truncate">{subtitle}</div>
+            <div className="font-semibold text-zinc-900 dark:text-zinc-100">{resolvedTitle}</div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400 truncate">{resolvedSubtitle}</div>
           </div>
         </div>
 

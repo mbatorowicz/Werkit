@@ -4,6 +4,20 @@ import { NativeBiometric, AccessControl } from "@capgo/capacitor-native-biometri
 /** Klucz „serwera” w Keystore/Keychain — powiązanie z domeną aplikacji. */
 export const WERKIT_BIOMETRIC_SERVER = "com.werkit.app.auth";
 
+export type BiometricPromptLabels = {
+  reason: string;
+  title: string;
+  subtitle: string;
+  cancel: string;
+};
+
+const DEFAULT_BIOMETRIC_LABELS: BiometricPromptLabels = {
+  reason: "Potwierdź tożsamość, aby się zalogować",
+  title: "Werkit",
+  subtitle: "Logowanie biometryczne",
+  cancel: "Anuluj",
+};
+
 export function isNativeBiometricContext(): boolean {
   return typeof window !== "undefined" && Capacitor.isNativePlatform();
 }
@@ -49,17 +63,19 @@ export async function clearBiometricCredentials(): Promise<void> {
   }
 }
 
-export async function fetchCredentialsWithBiometricPrompt(): Promise<{
+export async function fetchCredentialsWithBiometricPrompt(
+  labels: BiometricPromptLabels = DEFAULT_BIOMETRIC_LABELS
+): Promise<{
   username: string;
   password: string;
 } | null> {
   try {
     return await NativeBiometric.getSecureCredentials({
       server: WERKIT_BIOMETRIC_SERVER,
-      reason: "Potwierdź tożsamość, aby zalogować się do Werkit",
-      title: "Werkit",
-      subtitle: "Logowanie biometryczne",
-      negativeButtonText: "Anuluj",
+      reason: labels.reason,
+      title: labels.title,
+      subtitle: labels.subtitle,
+      negativeButtonText: labels.cancel,
     });
   } catch {
     return null;

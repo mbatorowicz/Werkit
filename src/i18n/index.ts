@@ -14,6 +14,7 @@ export type Locale = keyof typeof dictionaries;
 export type { AppDictionary };
 export { formatDict, formatUiDateOnly, formatUiTimeHm, formatUiDateTimeShort } from "./format";
 export { DEFAULT_UI_LOCALE, DEFAULT_UI_TIMEZONE } from "./constants";
+export { useDictionary, useAppLocale, LocaleProvider } from "@/components/LocaleProvider";
 
 /**
  * Zwraca słownik dla podanego locale.

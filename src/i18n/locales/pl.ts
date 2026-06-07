@@ -2,12 +2,54 @@ export const pl = {
   localeSwitcher: {
     label: "Zmień język",
   },
+  common: {
+    actions: {
+      save: "Zapisz",
+      cancel: "Anuluj",
+      saveChanges: "Zapisz zmiany",
+      delete: "Usuń",
+      edit: "Edytuj",
+      add: "Dodaj",
+      back: "Wstecz",
+      retry: "Spróbuj ponownie",
+      goToLogin: "Wróć do logowania",
+    },
+    loading: {
+      default: "Ładowanie…",
+      fetching: "Pobieranie…",
+      map: "Ładowanie mapy…",
+    },
+    search: {
+      noResults: "Brak wyników",
+      noResultsForQuery: "Brak wyników dla tego zapytania.",
+    },
+    errors: {
+      generic: "Wystąpił błąd.",
+      network: "Brak połączenia. Spróbuj ponownie.",
+      save: "Błąd podczas zapisu.",
+      fetch: "Błąd podczas pobierania danych.",
+      routeFetch: "Nie udało się pobrać trasy.",
+      pageLoad: "Wystąpił błąd ładowania",
+      pageLoadHint: "Spróbuj odświeżyć stronę lub zalogować się ponownie.",
+      noDetails: "Brak szczegółów błędu.",
+    },
+    map: {
+      loading: "Ładowanie mapy…",
+    },
+    theme: {
+      toggle: "Zmień motyw",
+    },
+    gantt: {
+      from: "Od:",
+      to: "Do:",
+    },
+  },
   apiErrors: {
     fetch_error: "Błąd podczas pobierania danych z serwera.",
     migration_required:
-      "Baza jest niezsynchronizowana z aplikacją. Dla kategorii zleceń (widoczność pól): npm run db:napraw-kategorie-widocznosc — albo npm run db:napraw-wszystko / SQL z drizzle/.",
+      "Baza wymaga aktualizacji. Skontaktuj się z administratorem systemu.",
     migration_material_categories:
-      "Brakuje tabel kategorii materiałów (migracja 0005). Uruchom: npm run db:napraw-slowniki-baza albo SQL z drizzle/0005_material_categories.sql.",
+      "Brakuje danych słownikowych. Skontaktuj się z administratorem systemu.",
     missing_material_category: "Wybierz co najmniej jedną kategorię materiału.",
     category_exists: "Kategoria o tej nazwie prawdopodobnie już istnieje.",
     category_in_use: "Kategoria jest już w użyciu lub wystąpił inny błąd.",
@@ -98,12 +140,15 @@ export const pl = {
     submit: "Zaloguj",
     biometricLogin: "Zaloguj odciskiem lub twarzą",
     biometricDivider: "lub kontynuuj klasycznie",
-    systemLogin: "System Logowania",
-    subtitle: "Panel dowodzenia i logistyki",
+    systemLogin: "Logowanie",
+    subtitle: "Panel logistyki",
     usernameLabel: "Login administratora",
     usernamePlaceholder: "login",
     passwordLabel: "Hasło",
     passwordPlaceholder: "••••••••",
+    biometricPromptReason: "Potwierdź tożsamość, aby się zalogować",
+    biometricPromptTitle: "Werkit",
+    biometricPromptSubtitle: "Logowanie biometryczne",
   },
   admin: {
     shared: {
@@ -150,8 +195,7 @@ export const pl = {
     },
     organization: {
       title: "Ludzie i struktura",
-      subtitle:
-        "Konta użytkowników, departamenty, zespoły i członkostwa — jedna hierarchia firmy.",
+      subtitle: "Użytkownicy, departamenty i zespoły.",
       treeSearchPlaceholder: "Szukaj po departamencie, zespole lub osobie…",
       treeSearchNoResults: "Brak wyników dla tego zapytania.",
       unassignedTitle: "Nieprzypisani pracownicy",
@@ -879,7 +923,7 @@ export const pl = {
       refresh: "Odśwież",
       emptyFiltered: "Brak logów dla wybranych filtrów.",
       exportJson: "Eksport JSON",
-      exportJsonHint: "Pobierz do {max} najnowszych wpisów z tabeli device_logs.",
+      exportJsonHint: "Pobierz do {max} najnowszych wpisów z logów urządzeń.",
       exportJsonLoading: "Pobieranie…",
       exportJsonError: "Nie udało się pobrać eksportu.",
       exportJsonFileName: "werkit-device-logs-{stamp}.json",
@@ -970,7 +1014,7 @@ export const pl = {
       defineCustom: "Zdefiniuj własne",
       timeElapsed: "Upływ czasu",
       gpsSignal: "Sygnał GPS",
-      connOk: "ŁĄCZENIE OK",
+      connOk: "Połączono",
       searching: "SZUKAM...",
       error: "BŁĄD",
       timeOverrunWarn: "Przekroczono szacowany czas zlecenia. Czy zapomniałeś zakończyć pracę?",
@@ -1277,6 +1321,7 @@ export const pl = {
     organizationName: "Nazwa organizacji",
     organizationNamePlaceholder: "np. Margaz Sp. z o.o.",
     organizationSlug: "Identyfikator",
+    organizationSlugPlaceholder: "np. firma-logistyka",
     adminSection: "Administrator organizacji",
     adminName: "Imię i nazwisko",
     adminEmail: "Adres e-mail (login)",

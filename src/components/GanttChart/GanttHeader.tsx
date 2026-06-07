@@ -49,7 +49,7 @@ export function GanttHeader({
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-zinc-500">Od:</label>
+          <label className="text-xs font-medium text-zinc-500">{dict.hourFrom ?? "Od:"}</label>
           <input
             type="number"
             min="0"
@@ -60,7 +60,7 @@ export function GanttHeader({
             }
             className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
           />
-          <label className="text-xs font-medium text-zinc-500">Do:</label>
+          <label className="text-xs font-medium text-zinc-500">{dict.hourTo ?? "Do:"}</label>
           <input
             type="number"
             min={startHour + 1}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { offlineActionQueue } from "@/lib/offlineActionQueue";
+import { useDictionary } from "@/components/LocaleProvider";
+import { formatDict } from "@/i18n";
 
 /**
  * Banner offline wyświetlany w worker shell gdy brak połączenia.
@@ -10,10 +12,9 @@ import { offlineActionQueue } from "@/lib/offlineActionQueue";
  */
 export function OfflineBanner() {
   const { isOnline } = useOnlineStatus();
+  const dict = useDictionary();
   const [pendingCount, setPendingCount] = useState(0);
 
-  // Polling licznika tylko gdy offline — efekt nie resetuje stanu,
-  // bo banner i tak nie renderuje się gdy isOnline === true.
   useEffect(() => {
     if (isOnline) return;
 
@@ -55,10 +56,10 @@ export function OfflineBanner() {
             d="M18.364 5.636a9 9 0 010 12.728m-2.829-2.829a5 5 0 000-7.07m-4.243 4.243a1 1 0 010-1.414M3 3l18 18"
           />
         </svg>
-        Brak połączenia z internetem
+        {dict.worker.client.offlineBanner}
         {pendingCount > 0 && (
           <span className="ml-1 rounded bg-amber-600/50 px-1.5 py-0.5 text-xs tabular-nums">
-            {pendingCount} operacji oczekuje
+            {formatDict(dict.worker.client.offlinePendingCount, { count: pendingCount })}
           </span>
         )}
       </span>

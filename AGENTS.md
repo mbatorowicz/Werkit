@@ -123,6 +123,22 @@ Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
 
 Design: **zinc / emerald**, motion lekkie (CSS), bez blokowania głównego wątku ciężkimi pętlami w renderze.
 
+### Design tokens (SSOT stylów)
+
+| Plik | Zakres |
+|------|--------|
+| [`src/lib/uiTokens.ts`](./src/lib/uiTokens.ts) | Powierzchnie (`#f2fbfa` mint), focus emerald, `INPUT_BASE` |
+| [`src/lib/uiButtons.ts`](./src/lib/uiButtons.ts) | Primary/secondary/danger — emerald, nie indigo |
+| [`src/lib/uiTable.ts`](./src/lib/uiTable.ts) | Wrapper, nagłówek i komórki tabel |
+| [`src/lib/uiTypography.ts`](./src/lib/uiTypography.ts) | Tytuły stron, sekcji, modali |
+| [`src/lib/uiRadius.ts`](./src/lib/uiRadius.ts) | Zaokrąglenia kart i kontrolek |
+| [`src/lib/cn.ts`](./src/lib/cn.ts) | `cn()` — łączenie klas Tailwind |
+| [`src/components/searchFieldStyles.ts`](./src/components/searchFieldStyles.ts) | Pola wyszukiwania/combobox |
+| [`src/components/datetimeFieldStyles.ts`](./src/components/datetimeFieldStyles.ts) | Pola daty (admin = worker) |
+
+**Zasady:** nie dodawaj ad-hoc kolorów akcentu (indigo) — używaj `uiButtons` / `uiTokens`. Worker i admin mają **ten sam** mint surface. Teksty UI przez **`common.*`** w i18n + `LocaleSwitcher` w shellach; SSR: `getServerLocale()` + `getDictionary(locale)`; client: `useDictionary()`.
+
+
 ### Modale formularzy i komunikaty (SSOT — admin + worker)
 
 | Komponent | Rola |

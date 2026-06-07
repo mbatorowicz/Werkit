@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/components/LocaleProvider";
 
 export type AppConfirmOptions = {
   title?: string;
@@ -57,7 +57,7 @@ export function appDialogApiMessage(
 }
 
 export function AppDialogProvider({ children }: { children: ReactNode }) {
-  const ui = getDictionary().admin.ui;
+  const ui = useDictionary().admin.ui;
   const [state, setState] = useState<DialogState>({ kind: "idle" });
   const resolveRef = useRef<((value: boolean) => void) | null>(null);
   const alertResolveRef = useRef<(() => void) | null>(null);

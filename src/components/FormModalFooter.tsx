@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { BTN_PRIMARY_FULL, BTN_SECONDARY_FULL } from "@/lib/uiButtons";
+import { useDictionary } from "@/components/LocaleProvider";
 
 /** Standardowa stopka modala formularza: Anuluj + Zapisz (opcjonalnie dodatkowe akcje nad rzędem). */
 export function FormModalFooter({
@@ -12,8 +13,8 @@ export function FormModalFooter({
   cancelLabel,
   isSubmitting = false,
   submitDisabled = false,
-  submitClassName = "w-full sm:w-auto px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-500 transition disabled:opacity-50 flex items-center justify-center min-w-[7rem]",
-  cancelClassName = "w-full sm:w-auto px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition",
+  submitClassName = BTN_PRIMARY_FULL,
+  cancelClassName = BTN_SECONDARY_FULL,
   leading,
   hideSubmit = false,
 }: {
@@ -28,7 +29,8 @@ export function FormModalFooter({
   leading?: ReactNode;
   hideSubmit?: boolean;
 }) {
-  const cancel = cancelLabel ?? getDictionary().admin.ui.modalCancel;
+  const dict = useDictionary();
+  const cancel = cancelLabel ?? dict.admin.ui.modalCancel;
 
   return (
     <div className="w-full space-y-2">
@@ -62,7 +64,8 @@ export function FormModalFooterActions({
   cancelLabel?: string;
   children: ReactNode;
 }) {
-  const cancel = cancelLabel ?? getDictionary().admin.ui.modalCancel;
+  const dict = useDictionary();
+  const cancel = cancelLabel ?? dict.admin.ui.modalCancel;
 
   return (
     <div className="flex w-full flex-col gap-2">
@@ -70,7 +73,7 @@ export function FormModalFooterActions({
       <button
         type="button"
         onClick={onCancel}
-        className="w-full px-5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm font-semibold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+        className={`w-full ${BTN_SECONDARY_FULL}`}
       >
         {cancel}
       </button>
