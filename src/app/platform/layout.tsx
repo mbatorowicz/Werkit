@@ -4,7 +4,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/i18n";
-import { getServerLocale } from "@/lib/localeCookies";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { APP_VERSION } from "@/lib/version";
 import { PAGE_TITLE } from "@/lib/uiTypography";
 import { SURFACE_MINT } from "@/lib/uiTokens";

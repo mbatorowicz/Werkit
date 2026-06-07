@@ -7,7 +7,7 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
-import { getServerLocale } from "@/lib/localeCookies";
+import { getServerLocale } from "@/lib/localeCookies.server";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";

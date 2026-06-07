@@ -7,7 +7,7 @@ import { AdminMobileBackButton } from "@/components/Admin/AdminMobileBackButton"
 import { LogoutButton } from "@/components/LogoutButton";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
-import { getServerLocale } from "@/lib/localeCookies";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 

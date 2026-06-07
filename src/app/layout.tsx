@@ -6,7 +6,7 @@ import { CapacitorBackButton } from "@/components/CapacitorBackButton";
 import { AppDialogProvider } from "@/components/AppDialogProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { LocaleProvider } from "@/components/LocaleProvider";
-import { getServerLocale } from "@/lib/localeCookies";
+import { getServerLocale } from "@/lib/localeCookies.server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
