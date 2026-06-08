@@ -20,7 +20,7 @@ export function HelpAccordion({
         className="w-full p-4 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg">{icon}</div>
+          <div className="bg-emerald-100 dark:bg-emerald-500/20 p-2 rounded-lg">{icon}</div>
           <span className="font-bold text-zinc-900 dark:text-zinc-100 text-left">{title}</span>
         </div>
         {isOpen ? (

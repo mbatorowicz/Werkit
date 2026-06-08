@@ -8,6 +8,7 @@ import {
   Settings,
   TerminalSquare,
   BarChart3,
+  BookOpen,
 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { adminRoutes } from "@/lib/appRoutes";
@@ -43,6 +44,12 @@ export function buildAdminNavLinks(
         href: adminRoutes.people,
         icon: Users,
         label: adminDict.sidebar.people,
+      },
+      {
+        kind: "route",
+        href: adminRoutes.help,
+        icon: BookOpen,
+        label: adminDict.sidebar.help,
       },
     ];
   }
@@ -103,6 +110,12 @@ export function buildAdminNavLinks(
       href: adminRoutes.logs,
       icon: TerminalSquare,
       label: adminDict.sidebar.deviceLogs,
+    },
+    {
+      kind: "route",
+      href: adminRoutes.help,
+      icon: BookOpen,
+      label: adminDict.sidebar.help,
     },
   );
 

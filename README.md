@@ -6,6 +6,8 @@ Aplikacja składa się z dwóch głównych środowisk:
 1. **Admin Panel** (Desktop Web) – zaawansowany dashboard dla dyspozytorów i menadżerów.
 2. **Worker PWA** (Mobile/Android) – minimalistyczna, optymalizowana pod kątem wydajności bateria/zasoby aplikacja robocza wspierana przez natywne moduły (Capacitor).
 
+**Instrukcja obsługi (użytkownicy końcowi):** [`docs/USER_MANUAL.md`](docs/USER_MANUAL.md) oraz ekrany w aplikacji: `/worker/help`, `/admin/help`, `/platform/help`.
+
 ---
 
 ## 📖 Spis Treści

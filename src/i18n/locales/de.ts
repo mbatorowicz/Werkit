@@ -1,4 +1,5 @@
 import type { AppDictionary } from "../types";
+import { helpContentPl } from "./helpContent";
 
 export const de: AppDictionary = {
   localeSwitcher: {
@@ -251,6 +252,7 @@ export const de: AppDictionary = {
       companySettings: "Firmeneinstellungen",
       organization: "Organisation",
       people: "Personal & Struktur",
+      help: "Hilfe",
       logoutSession: "Sitzung abmelden",
     },
     organization: {
@@ -983,6 +985,7 @@ export const de: AppDictionary = {
         httpStatus: "HTTP {status}",
       },
     },
+    help: helpContentPl.admin,
   },
   worker: {
     nav: {
@@ -1279,58 +1282,7 @@ export const de: AppDictionary = {
       badgePhoto: "F",
       badgeNote: "N",
     },
-    help: {
-      backToSession: "Zurück zur Sitzung",
-      title: "Bedienungsanleitung",
-      quickContact: "Schnellkontakt zur Basis",
-      contactDesc:
-        "Haben Sie ein Problem mit der Maschine, der Ladung oder der App? Kontaktieren Sie direkt den Disponenten.",
-      callDispatcher: "Disponent anrufen",
-      userManual: "Bedienungsanleitung",
-      startWork: "1. Arbeit beginnen",
-      startWorkDesc1: "Wenn Sie den Reiter ",
-      startWorkDesc2:
-        " öffnen, sehen Sie eine Liste der für Sie vom Disponenten vorbereiteten Aufträge.",
-      redColor: "Rote Farbe:",
-      redColorDesc: "Überfälliger Auftrag. Dieser sollte zuerst erledigt werden!",
-      pinkColor: "Pinke Farbe:",
-      pinkColorDesc: "Bevorstehender Auftrag (z.B. für die nächsten Stunden geplant).",
-      priorities: "Prioritäten:",
-      prioritiesDesc: "Einige Aufträge haben eine hohe Priorität — achten Sie darauf.",
-      startWorkInstruction: "Klicken Sie auf den großen Button ",
-      startWorkInstruction2:
-        ", um die Arbeit zu starten. Ab diesem Moment zeichnet die App Ihre Arbeitszeit und (falls erforderlich) Ihre GPS-Route auf.",
-      notesAndPhotos: "2. Notizen und Fotos auf der Route",
-      notesAndPhotosDesc: "Während des Auftrags erscheinen neue Buttons auf dem Hauptbildschirm:",
-      addNote: "Notiz hinzufügen:",
-      addNoteDesc:
-        "Ermöglicht das Speichern wichtiger Informationen von der Straße (z.B. „Stau“, „Kunde hat Lieferung verweigert“). Die Notiz wird Ihrer aktuellen GPS-Position zugeordnet.",
-      takePhoto: "Foto aufnehmen:",
-      takePhotoDesc:
-        "Öffnet die integrierte Kamera. Dient zur Dokumentation der ausgeführten Arbeit (z.B. Entladung von Material, Ressourcenausfall, Unterschriften auf Dokumenten).",
-      photoWarning:
-        "Wichtig: Bei manchen Aufträgen muss mindestens ein Foto aufgenommen werden, bevor sie abgeschlossen werden können!",
-      gpsTracking: "3. Verfolgung und GPS",
-      gpsTrackingDesc: "Die Anwendung verwendet Satellitensignale, um Ihre Route zu verfolgen.",
-      gpsWait: "Status: Warte auf GPS",
-      gpsWaitDesc:
-        "(Gelb) - das Telefon sucht nach Satelliten. Stellen Sie sicher, dass Sie sich nicht in einer Tiefgarage befinden.",
-      gpsActive: "Status: GPS Aktiv",
-      gpsActiveDesc: "(Grün) - alles funktioniert einwandfrei.",
-      gpsPrivacy: "GPS wird ",
-      gpsPrivacy2: "nur und ausschließlich",
-      gpsPrivacy3:
-        " während eines aktiven Auftrags eingeschaltet (nach Klick auf Start). Wenn Sie auf „Beenden“ klicken, stoppt die App vollständig die Erfassung Ihres Standorts, um Ihren Akku und Ihre Privatsphäre zu schützen.",
-      customOrders: "4. Eigene Aufträge",
-      customOrdersDesc1:
-        "Wenn Sie vom Administrator die entsprechenden Berechtigungen haben, finden Sie unten auf dem Startbildschirm den Button ",
-      customOrdersDesc2: "ODER EIGENEN DEFINIEREN",
-      customOrdersDesc3:
-        ". Damit können Sie selbstständig einen Kunden, eine Ressource und ein Material auswählen und sofort mit der Arbeit beginnen, ohne auf einen Auftrag aus dem Büro zu warten.",
-      emergency: "Notfallverfahren",
-      emergencyDesc:
-        "Im Falle einer Kollision, eines Geräteausfalls oder einer anderen Gefahr stoppen Sie die Maschine sofort an einem sicheren Ort, sichern Sie die Ladung und verwenden Sie den Telefon-Button oben auf dieser Seite, um den Disponenten zu informieren. Machen Sie wenn möglich ein Foto der Situation mit der App.",
-    },
+    help: helpContentPl.worker,
   },
   platform: {
     badge: "Werkit Plattform-Konsole",
@@ -1394,6 +1346,8 @@ export const de: AppDictionary = {
       saveSuccess: "Funktionseinstellungen gespeichert.",
       saveError: "Funktionseinstellungen konnten nicht gespeichert werden.",
     },
+    helpLink: "Hilfe",
+    help: helpContentPl.platform,
   },
   dur: {
     sidebar: {

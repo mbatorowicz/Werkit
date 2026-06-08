@@ -1,5 +1,6 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { platformRoutes } from "@/lib/appRoutes";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
@@ -25,6 +26,8 @@ export default async function PlatformLayout({ children }: { children: React.Rea
           title={dict.title}
           version={APP_VERSION}
           backLabel={common.actions.back}
+          helpHref={platformRoutes.help}
+          helpLabel={dict.helpLink}
         />
       </header>
       <main className="max-w-6xl mx-auto p-6">{children}</main>
@@ -37,11 +40,15 @@ function PlatformHeaderBar({
   title,
   version,
   backLabel,
+  helpHref,
+  helpLabel,
 }: {
   badge: string;
   title: string;
   version: string;
   backLabel: string;
+  helpHref: string;
+  helpLabel: string;
 }) {
   return (
     <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
@@ -62,6 +69,13 @@ function PlatformHeaderBar({
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <Link
+          href={helpHref}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-colors"
+        >
+          <BookOpen className="w-4 h-4" />
+          <span className="hidden sm:inline">{helpLabel}</span>
+        </Link>
         <LocaleSwitcher />
         <ThemeToggle />
         <LogoutButton />

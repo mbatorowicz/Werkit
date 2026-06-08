@@ -21,6 +21,7 @@ export const adminRoutes = {
   reports: "/admin/reports",
   settings: "/admin/settings",
   logs: "/admin/logs",
+  help: "/admin/help",
   organization: "/admin/organization",
   dur: {
     /** Katalog części + przyjęcia/wydania (jedna strona). */
@@ -71,3 +72,8 @@ export const workerApi = {
 export function adminDispatchOpenUrl(workOrderOrSessionId: number): string {
   return `${adminRoutes.dispatch}?open=${workOrderOrSessionId}`;
 }
+
+export const platformRoutes = {
+  home: "/platform",
+  help: "/platform/help",
+} as const;

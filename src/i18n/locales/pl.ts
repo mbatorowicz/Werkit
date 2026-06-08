@@ -1,3 +1,5 @@
+import { helpContentPl } from "./helpContent";
+
 export const pl = {
   localeSwitcher: {
     label: "Zmień język",
@@ -246,6 +248,7 @@ export const pl = {
       companySettings: "Ustawienia Firmy",
       organization: "Organizacja",
       people: "Ludzie i struktura",
+      help: "Pomoc",
       logoutSession: "Wyloguj sesję",
     },
     organization: {
@@ -970,6 +973,7 @@ export const pl = {
         httpStatus: "HTTP {status}",
       },
     },
+    help: helpContentPl.admin,
   },
   worker: {
     nav: {
@@ -1261,59 +1265,7 @@ export const pl = {
       badgePhoto: "Z",
       badgeNote: "N",
     },
-    help: {
-      backToSession: "Powrót do sesji",
-      title: "Instrukcja Obsługi",
-      quickContact: "Szybki kontakt z bazą",
-      contactDesc:
-        "Masz problem z zasobem, ładunkiem lub aplikacją? Skontaktuj się bezpośrednio z biurem.",
-      callDispatcher: "Zadzwoń do dyspozytora",
-      userManual: "Podręcznik Użytkownika",
-      startWork: "1. Rozpoczynanie pracy",
-      startWorkDesc1: "Gdy wejdziesz w zakładkę ",
-      startWorkDesc2: ", zobaczysz listę zleceń przygotowanych dla Ciebie przez dyspozytora.",
-      redColor: "Kolor Czerwony:",
-      redColorDesc: "Zlecenie przeterminowane. Powinno być wykonane w pierwszej kolejności!",
-      pinkColor: "Kolor Różowy:",
-      pinkColorDesc: "Zlecenie zbliżające się (np. zaplanowane na najbliższe godziny).",
-      priorities: "Priorytety:",
-      prioritiesDesc: "Niektóre zlecenia mają przypisany wysoki priorytet - zwracaj na to uwagę.",
-      startWorkInstruction: "Aby rozpocząć pracę, kliknij duży przycisk ",
-      startWorkInstruction2:
-        ". Od tego momentu aplikacja zacznie rejestrować Twój czas pracy oraz (jeśli to wymagane) trasę GPS.",
-      notesAndPhotos: "2. Notatki i Zdjęcia z trasy",
-      notesAndPhotosDesc:
-        "Podczas trwania zlecenia, na ekranie głównym pojawiają się nowe przyciski:",
-      addNote: "Dodaj Notatkę:",
-      addNoteDesc:
-        'Pozwala zapisać ważną informację z drogi (np. "Korek na bramkach", "Klient odmówił przyjęcia"). Notatka jest przypisywana do Twojej obecnej lokalizacji na mapie.',
-      takePhoto: "Zrób Zdjęcie:",
-      takePhotoDesc:
-        "Uruchamia aparat wbudowany w urządzenie. Służy do dokumentowania wykonanej pracy (np. rozładunku materiału, awarii zasobu, podpisów na WZ).",
-      photoWarning:
-        "Ważne: Niektóre zlecenia mogą wymagać zrobienia co najmniej jednego zdjęcia przed możliwością ich zakończenia!",
-      gpsTracking: "3. Śledzenie i GPS",
-      gpsTrackingDesc:
-        "Aplikacja używa sygnału satelitarnego do wyznaczania przebytej przez Ciebie trasy.",
-      gpsWait: "Status: Oczekuję na GPS",
-      gpsWaitDesc:
-        "(Żółty) - telefon szuka satelity. Upewnij się, że nie jesteś w podziemnym garażu.",
-      gpsActive: "Status: GPS Aktywny",
-      gpsActiveDesc: "(Zielony) - wszystko działa prawidłowo.",
-      gpsPrivacy: "GPS jest włączany ",
-      gpsPrivacy2: "tylko i wyłącznie",
-      gpsPrivacy3:
-        ' w momencie aktywnego zlecenia (po kliknięciu Rozpocznij). Gdy klikniesz "Zakończ", aplikacja całkowicie przestaje pobierać dane o Twojej lokalizacji, chroniąc Twoją baterię i prywatność.',
-      customOrders: "4. Zlecenia Własne",
-      customOrdersDesc1:
-        "Jeśli masz włączone uprawnienia od administratora, na dole ekranu powitalnego znajdziesz przycisk ",
-      customOrdersDesc2: "LUB ZDEFINIUJ WŁASNE",
-      customOrdersDesc3:
-        "Pozwala na samodzielny wybór klienta, zasobu i materiału oraz natychmiastowe rozpoczęcie pracy bez czekania na zlecenie z biura.",
-      emergency: "Procedura awaryjna",
-      emergencyDesc:
-        "W przypadku kolizji, awarii zasobu lub innego zagrożenia zatrzymaj pracę w bezpiecznym miejscu, zabezpiecz ładunek i użyj przycisku telefonu u góry ekranu, aby poinformować dyspozytora. Jeśli to możliwe, wykonaj zdjęcie sytuacji w aplikacji.",
-    },
+    help: helpContentPl.worker,
   },
   platform: {
     badge: "Konsola platformy Werkit",
@@ -1378,6 +1330,8 @@ export const pl = {
       saveSuccess: "Zapisano ustawienia funkcji.",
       saveError: "Nie udało się zapisać ustawień.",
     },
+    helpLink: "Pomoc",
+    help: helpContentPl.platform,
   },
   dur: {
     sidebar: {
