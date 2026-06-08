@@ -1,7 +1,18 @@
 "use client";
 
+import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import type { StockReceipt } from "@/types/dur";
+import {
+  TABLE_BODY_ROW,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD_MUTED,
+  TABLE_TD_RIGHT,
+  TABLE_TD_STRONG,
+  TABLE_TH,
+  TABLE_TH_RIGHT,
+} from "@/lib/uiTable";
 
 interface StockReceiptsTableProps {
   receipts: (StockReceipt & {
@@ -26,75 +37,45 @@ interface StockReceiptsTableProps {
 
 export function StockReceiptsTable({ receipts, dict }: StockReceiptsTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
-      <table className="w-full text-sm">
-        <thead className="bg-zinc-50 dark:bg-zinc-800/50">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.date}
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.part}
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.catalogNumber}
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.quantity}
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.unitPrice}
-            </th>
-            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.totalValue}
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.invoiceNumber}
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.createdBy}
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-              {dict.table.notes}
-            </th>
+    <AdminTableShell minWidthClass="min-w-[960px]">
+      <thead className={TABLE_HEAD}>
+        <tr className={TABLE_HEAD_ROW}>
+          <th className={TABLE_TH}>{dict.table.date}</th>
+          <th className={TABLE_TH}>{dict.table.part}</th>
+          <th className={TABLE_TH}>{dict.table.catalogNumber}</th>
+          <th className={TABLE_TH_RIGHT}>{dict.table.quantity}</th>
+          <th className={TABLE_TH_RIGHT}>{dict.table.unitPrice}</th>
+          <th className={TABLE_TH_RIGHT}>{dict.table.totalValue}</th>
+          <th className={TABLE_TH}>{dict.table.invoiceNumber}</th>
+          <th className={TABLE_TH}>{dict.table.createdBy}</th>
+          <th className={TABLE_TH}>{dict.table.notes}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {receipts.map((r) => (
+          <tr key={r.id} className={TABLE_BODY_ROW}>
+            <td className={`${TABLE_TD_MUTED} text-xs`}>
+              {new Date(r.createdAt).toLocaleString()}
+            </td>
+            <td className={TABLE_TD_STRONG}>{r.partName || `#${r.partId}`}</td>
+            <td className={TABLE_TD_MUTED}>{r.partCatalogNumber || "—"}</td>
+            <td className={`${TABLE_TD_RIGHT} font-mono tabular-nums`}>{r.quantity}</td>
+            <td className={`${TABLE_TD_RIGHT} font-mono tabular-nums`}>{r.unitPrice || "—"}</td>
+            <td className={`${TABLE_TD_RIGHT} font-mono tabular-nums`}>
+              {r.unitPrice && r.quantity
+                ? (
+                    (parseDecimalInput(r.unitPrice) ?? 0) * (parseDecimalInput(r.quantity) ?? 0)
+                  ).toFixed(2)
+                : "—"}
+            </td>
+            <td className={TABLE_TD_MUTED}>{r.invoiceNumber || "—"}</td>
+            <td className={TABLE_TD_MUTED}>{r.creatorName || "—"}</td>
+            <td className={`${TABLE_TD_MUTED} max-w-[200px] truncate text-xs`}>
+              {r.notes || "—"}
+            </td>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
-          {receipts.map((r) => (
-            <tr key={r.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-              <td className="px-4 py-3 text-zinc-500 text-xs">
-                {new Date(r.createdAt).toLocaleString()}
-              </td>
-              <td className="px-4 py-3 font-medium text-zinc-900 dark:text-white">
-                {r.partName || `#${r.partId}`}
-              </td>
-              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                {r.partCatalogNumber || "—"}
-              </td>
-              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">
-                {r.quantity}
-              </td>
-              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-600 dark:text-zinc-400">
-                {r.unitPrice || "—"}
-              </td>
-              <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-900 dark:text-white">
-                {r.unitPrice && r.quantity
-                  ? (
-                      (parseDecimalInput(r.unitPrice) ?? 0) * (parseDecimalInput(r.quantity) ?? 0)
-                    ).toFixed(2)
-                  : "—"}
-              </td>
-              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                {r.invoiceNumber || "—"}
-              </td>
-              <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">{r.creatorName || "—"}</td>
-              <td className="px-4 py-3 text-zinc-500 text-xs max-w-[200px] truncate">
-                {r.notes || "—"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </AdminTableShell>
   );
 }

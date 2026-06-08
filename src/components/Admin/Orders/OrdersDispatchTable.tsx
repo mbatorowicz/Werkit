@@ -9,6 +9,13 @@ import type { UnifiedGanttItem } from "@/types/admin";
 import { sortUnifiedDispatchTableRows } from "@/features/admin/orders/dispatchTableUi";
 import { OrdersDispatchItemCard } from "@/components/Admin/Orders/OrdersDispatchItemCard";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import {
+  TABLE_BODY_ROW,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD,
+  TABLE_TH,
+} from "@/lib/uiTable";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
@@ -110,20 +117,18 @@ export function OrdersDispatchTable({
     const pageItems = sortedItems.slice(start, start + Math.max(1, tableLimit));
     return (
       <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b]">
-              <th className="px-6 py-4 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                {dict.workerDate}
-              </th>
+        <table className="w-full border-collapse text-left">
+          <thead className={TABLE_HEAD}>
+            <tr className={TABLE_HEAD_ROW}>
+              <th className={TABLE_TH}>{dict.workerDate}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
+          <tbody>
             {pageItems.map((item) => {
               const canOpen = item._type === "SESSION" || canMutate;
               return (
-                <tr key={`${item._type}-${item.id}`}>
-                  <td className="px-6 py-4">
+                <tr key={`${item._type}-${item.id}`} className={TABLE_BODY_ROW}>
+                  <td className={TABLE_TD}>
                     <OrdersDispatchItemCard
                       item={item}
                       layout="table"

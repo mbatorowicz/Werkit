@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Edit2, HardHat, Plus, Trash2 } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
@@ -14,6 +14,23 @@ import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
+import {
+  TABLE_ACTION_ICON_DELETE,
+  TABLE_ACTION_ICON_EDIT,
+  TABLE_ACTION_LINK,
+  TABLE_ACTIONS,
+  TABLE_CELL_NAME,
+  TABLE_CELL_SUBTITLE,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_ROW_CLICKABLE,
+  TABLE_TD,
+  TABLE_TD_MUTED,
+  TABLE_TD_RIGHT,
+  TABLE_TH,
+  TABLE_TH_RIGHT,
+} from "@/lib/uiTable";
 import type { AppDictionary } from "@/i18n/types";
 import type { MaterialCategory, MaterialRow } from "./types";
 
@@ -92,145 +109,119 @@ export function MaterialsTable({
         placeholder={dict.listSearchPlaceholder}
       />
 
-      <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-          <table className="w-full min-w-[480px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700/50 dark:bg-[#0a0a0b]/80">
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {dict.materialReg}
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {machDict.dictCategory}
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {dict.unitColumn}
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {wh.stockColumn}
-                </th>
-                {canMutate ? (
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    {machDict.management}
-                  </th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/50">
-              {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={canMutate ? 5 : 4}
-                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
-                  >
-                    {dict.fetching}
+      <AdminTableShell minWidthClass="min-w-[480px]">
+        <thead className={TABLE_HEAD}>
+          <tr className={TABLE_HEAD_ROW}>
+            <th className={TABLE_TH}>{dict.materialReg}</th>
+            <th className={TABLE_TH}>{machDict.dictCategory}</th>
+            <th className={TABLE_TH}>{dict.unitColumn}</th>
+            <th className={TABLE_TH}>{wh.stockColumn}</th>
+            {canMutate ? <th className={TABLE_TH_RIGHT}>{machDict.management}</th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
+            <tr>
+              <td colSpan={canMutate ? 5 : 4} className={TABLE_EMPTY_CELL}>
+                {dict.fetching}
+              </td>
+            </tr>
+          ) : filteredMaterials.length === 0 ? (
+            <tr>
+              <td colSpan={canMutate ? 5 : 4} className={TABLE_EMPTY_CELL}>
+                {searchQuery.trim() ? dict.listSearchNoResults : dict.noMaterials}
+              </td>
+            </tr>
+          ) : (
+            filteredMaterials.map((material) => {
+              const mCats = categories.filter((c) => material.categoryIds?.includes(c.id));
+              return (
+                <tr
+                  key={material.id}
+                  onClick={() => setPreviewMaterial(material)}
+                  className={TABLE_ROW_CLICKABLE}
+                >
+                  <td className={TABLE_TD}>
+                    <div className={TABLE_CELL_NAME}>{material.name}</div>
+                    <div className={TABLE_CELL_SUBTITLE}>ID #{material.id}</div>
                   </td>
-                </tr>
-              ) : filteredMaterials.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={canMutate ? 5 : 4}
-                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
-                  >
-                    {searchQuery.trim() ? dict.listSearchNoResults : dict.noMaterials}
+                  <td className={TABLE_TD}>
+                    <div className="flex flex-wrap gap-1">
+                      {mCats.length > 0 ? (
+                        mCats.map((c) => (
+                          <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
+                        ))
+                      ) : (
+                        <span className="text-xs italic text-zinc-500">{machDict.noCategoryBadge}</span>
+                      )}
+                    </div>
                   </td>
-                </tr>
-              ) : (
-                filteredMaterials.map((material) => {
-                  const mCats = categories.filter((c) => material.categoryIds?.includes(c.id));
-                  return (
-                    <tr
-                      key={material.id}
-                      onClick={() => setPreviewMaterial(material)}
-                      className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-zinc-900 dark:text-zinc-200">
-                          {material.name}
-                        </div>
-                        <div className="mt-0.5 text-[11px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                          ID #{material.id}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {mCats.length > 0 ? (
-                            mCats.map((c) => (
-                              <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
-                            ))
-                          ) : (
-                            <span className="text-xs italic text-zinc-500">
-                              {machDict.noCategoryBadge}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                        {material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                            {formatDict(wh.stockWithUnit, {
-                              qty: material.stockQuantity ?? "0",
-                              unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
-                            })}
-                          </span>
-                          {isLowStock?.(material) ? (
-                            <span className="text-xs font-semibold text-amber-600">{wh.lowStock}</span>
-                          ) : null}
-                        </div>
-                      </td>
-                      {canMutate ? (
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-1">
-                            {onAdjustStock ? (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  stopRowActionClick(e);
-                                  onAdjustStock(material);
-                                }}
-                                className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400"
-                                title={wh.adjustStock}
-                              >
-                                {wh.adjustStock}
-                              </button>
-                            ) : null}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                stopRowActionClick(e);
-                                setPreviewMaterial(null);
-                                onEditMaterial(material);
-                              }}
-                              className="rounded-lg p-2 text-zinc-500 transition hover:bg-amber-500/10 hover:text-amber-500 dark:text-zinc-400"
-                              title={machDict.editTitle}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                stopRowActionClick(e);
-                                void onDeleteMaterial(material.id);
-                              }}
-                              className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-500 dark:text-zinc-400"
-                              title={machDict.deleteTitle}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
+                  <td className={TABLE_TD_MUTED}>
+                    {material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT}
+                  </td>
+                  <td className={TABLE_TD}>
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                        {formatDict(wh.stockWithUnit, {
+                          qty: material.stockQuantity ?? "0",
+                          unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                        })}
+                      </span>
+                      {isLowStock?.(material) ? (
+                        <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                          {wh.lowStock}
+                        </span>
                       ) : null}
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    </div>
+                  </td>
+                  {canMutate ? (
+                    <td className={TABLE_TD_RIGHT}>
+                      <div className={TABLE_ACTIONS}>
+                        {onAdjustStock ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              stopRowActionClick(e);
+                              onAdjustStock(material);
+                            }}
+                            className={TABLE_ACTION_LINK}
+                            title={wh.adjustStock}
+                          >
+                            {wh.adjustStock}
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            stopRowActionClick(e);
+                            setPreviewMaterial(null);
+                            onEditMaterial(material);
+                          }}
+                          className={TABLE_ACTION_ICON_EDIT}
+                          title={machDict.editTitle}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            stopRowActionClick(e);
+                            void onDeleteMaterial(material.id);
+                          }}
+                          className={TABLE_ACTION_ICON_DELETE}
+                          title={machDict.deleteTitle}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </AdminTableShell>
 
       <AdminPreviewModal
         open={previewMaterial != null}

@@ -15,8 +15,19 @@ import { narrowUnifiedGanttItems } from "@/lib/narrow/admin";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
+import {
+  TABLE_BODY_ROW,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD,
+  TABLE_TD_MUTED,
+  TABLE_TD_STRONG,
+  TABLE_TH,
+} from "@/lib/uiTable";
 import type { StockReceipt, StockIssue } from "@/types/dur";
 import { StockReceiptForm } from "./StockReceiptForm";
 import { StockIssueForm } from "./StockIssueForm";
@@ -455,77 +466,71 @@ export default function StockMovementsClient() {
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+      <AdminTableShell>
+        <thead className={TABLE_HEAD}>
+          <tr className={TABLE_HEAD_ROW}>
+            {tab === "issues" ? (
+              <>
+                <th className={TABLE_TH}>{dWh.colCollectedBy}</th>
+                <th className={TABLE_TH}>{dWh.colResource}</th>
+              </>
+            ) : null}
+            <th className={TABLE_TH}>{dWh.colPart}</th>
+            <th className={TABLE_TH}>{wh.colQuantity}</th>
+            <th className={TABLE_TH}>{wh.colDate}</th>
+            <th className={TABLE_TH}>{wh.colNotes}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
             <tr>
-              {tab === "issues" ? (
-                <>
-                  <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colCollectedBy}</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colResource}</th>
-                </>
-              ) : null}
-              <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colPart}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colQuantity}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colDate}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colNotes}</th>
+              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
+                {common.loading.default}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {common.loading.default}
+          ) : rows.length === 0 ? (
+            <tr>
+              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
+                {searchQuery.trim()
+                  ? common.search.noResultsForQuery
+                  : tab === "receipts"
+                    ? wh.emptyReceipts
+                    : wh.emptyIssues}
+              </td>
+            </tr>
+          ) : tab === "receipts" ? (
+            filteredReceipts.map((row) => (
+              <tr key={row.id} className={TABLE_BODY_ROW}>
+                <td className={TABLE_TD_STRONG}>{row.partName ?? row.partId}</td>
+                <td className={TABLE_TD}>
+                  {formatDict(wh.stockWithUnit, {
+                    qty: row.quantity,
+                    unit: partById.get(row.partId)?.unit ?? "szt",
+                  })}
                 </td>
+                <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
+                <td className={TABLE_TD_MUTED}>{row.notes ?? "—"}</td>
               </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {searchQuery.trim()
-                    ? common.search.noResultsForQuery
-                    : tab === "receipts"
-                      ? wh.emptyReceipts
-                      : wh.emptyIssues}
+            ))
+          ) : (
+            filteredIssues.map((row) => (
+              <tr key={row.id} className={TABLE_BODY_ROW}>
+                <td className={TABLE_TD_STRONG}>{row.issuedToName ?? "—"}</td>
+                <td className={TABLE_TD}>{row.resourceName ?? "—"}</td>
+                <td className={TABLE_TD_STRONG}>{row.partName ?? row.partId}</td>
+                <td className={TABLE_TD}>
+                  {formatDict(wh.stockWithUnit, {
+                    qty: row.quantity,
+                    unit: partById.get(row.partId)?.unit ?? "szt",
+                  })}
                 </td>
+                <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
+                <td className={TABLE_TD_MUTED}>{row.notes ?? "—"}</td>
               </tr>
-            ) : tab === "receipts" ? (
-              filteredReceipts.map((row) => (
-                <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
-                  <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
-                  <td className="px-4 py-3">
-                    {formatDict(wh.stockWithUnit, {
-                      qty: row.quantity,
-                      unit: partById.get(row.partId)?.unit ?? "szt",
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500">
-                    {new Date(row.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500">{row.notes ?? "—"}</td>
-                </tr>
-              ))
-            ) : (
-              filteredIssues.map((row) => (
-                <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
-                  <td className="px-4 py-3 font-medium">{row.issuedToName ?? "—"}</td>
-                  <td className="px-4 py-3">{row.resourceName ?? "—"}</td>
-                  <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
-                  <td className="px-4 py-3">
-                    {formatDict(wh.stockWithUnit, {
-                      qty: row.quantity,
-                      unit: partById.get(row.partId)?.unit ?? "szt",
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500">
-                    {new Date(row.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500">{row.notes ?? "—"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+            ))
+          )}
+        </tbody>
+      </AdminTableShell>
 
       <AdminModalShell
         open={showModal && canMutate}

@@ -6,6 +6,18 @@ import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import {
+  TABLE_BODY_ROW,
+  TABLE_CELL_NAME,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD,
+  TABLE_TD_RIGHT,
+  TABLE_TH,
+  TABLE_TH_RIGHT,
+  TABLE_WRAPPER,
+} from "@/lib/uiTable";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
 type Props = {
@@ -51,35 +63,34 @@ export function PlatformCompanyTable({
         </h2>
         <p className="text-sm text-zinc-500 mt-0.5">{dict.usageTitle}</p>
       </div>
-      <div
-        className={`${INLINE_SCROLL_X_PANEL_CLASS} rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm`}
-      >
-        <table className="min-w-full text-sm">
-          <thead className="bg-zinc-50 dark:bg-zinc-800/60 text-left text-xs uppercase tracking-wide text-zinc-500">
-            <tr>
-              <th className="px-4 py-3 font-medium">{dict.colOrganization}</th>
-              <th className="px-4 py-3 font-medium">{dict.colIdentifier}</th>
-              <th className="px-4 py-3 font-medium text-right">{dict.colUsers}</th>
-              <th className="px-4 py-3 font-medium text-right">{dict.colWorkers}</th>
-              <th className="px-4 py-3 font-medium text-right">{dict.colSessions30}</th>
-              <th className="px-4 py-3 font-medium text-right">{dict.colPending}</th>
-              <th className="px-4 py-3 font-medium text-right">{dict.colLogs7}</th>
-              <th className="px-4 py-3 font-medium">{dict.colStatus}</th>
-              <th className="px-4 py-3 font-medium">{dict.colActions}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-zinc-500">
-                  {dict.empty}
-                </td>
+      <div className={`${TABLE_WRAPPER} bg-white shadow-sm dark:bg-zinc-900`}>
+        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
+          <table className="min-w-full text-sm">
+            <thead className={TABLE_HEAD}>
+              <tr className={TABLE_HEAD_ROW}>
+                <th className={TABLE_TH}>{dict.colOrganization}</th>
+                <th className={TABLE_TH}>{dict.colIdentifier}</th>
+                <th className={TABLE_TH_RIGHT}>{dict.colUsers}</th>
+                <th className={TABLE_TH_RIGHT}>{dict.colWorkers}</th>
+                <th className={TABLE_TH_RIGHT}>{dict.colSessions30}</th>
+                <th className={TABLE_TH_RIGHT}>{dict.colPending}</th>
+                <th className={TABLE_TH_RIGHT}>{dict.colLogs7}</th>
+                <th className={TABLE_TH}>{dict.colStatus}</th>
+                <th className={TABLE_TH}>{dict.colActions}</th>
               </tr>
-            ) : (
-              rows.map((r) => (
-                <Fragment key={r.companyId}>
-                  <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20">
-                    <td className="px-4 py-3.5">
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className={TABLE_EMPTY_CELL}>
+                    {dict.empty}
+                  </td>
+                </tr>
+              ) : (
+                rows.map((r) => (
+                  <Fragment key={r.companyId}>
+                    <tr className={TABLE_BODY_ROW}>
+                      <td className={TABLE_TD}>
                       {editingId === r.companyId ? (
                         <input
                           value={editName}
@@ -87,12 +98,10 @@ export function PlatformCompanyTable({
                           className="w-full min-w-[140px] rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-2 py-1 text-sm font-medium"
                         />
                       ) : (
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {r.companyName}
-                        </span>
+                        <span className={TABLE_CELL_NAME}>{r.companyName}</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className={TABLE_TD}>
                       {editingId === r.companyId ? (
                         <input
                           value={editSlug}
@@ -105,12 +114,12 @@ export function PlatformCompanyTable({
                         </code>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-right tabular-nums">{r.userCount}</td>
-                    <td className="px-4 py-3.5 text-right tabular-nums">{r.workerCount}</td>
-                    <td className="px-4 py-3.5 text-right tabular-nums">{r.sessionsLast30Days}</td>
-                    <td className="px-4 py-3.5 text-right tabular-nums">{r.pendingOrders}</td>
-                    <td className="px-4 py-3.5 text-right tabular-nums">{r.deviceLogsLast7Days}</td>
-                    <td className="px-4 py-3.5">
+                    <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.userCount}</td>
+                    <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.workerCount}</td>
+                    <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.sessionsLast30Days}</td>
+                    <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.pendingOrders}</td>
+                    <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.deviceLogsLast7Days}</td>
+                    <td className={TABLE_TD}>
                       <button
                         type="button"
                         onClick={() => onToggleActive(r.companyId, r.isActive)}
@@ -124,7 +133,7 @@ export function PlatformCompanyTable({
                         {r.isActive ? dict.statusActive : dict.statusInactive}
                       </button>
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className={TABLE_TD}>
                       <div className="flex items-center gap-2">
                         {editingId === r.companyId ? (
                           <div className="flex gap-2">
@@ -198,6 +207,7 @@ export function PlatformCompanyTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </section>
   );

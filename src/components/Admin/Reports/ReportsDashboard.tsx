@@ -17,6 +17,16 @@ import {
 } from "lucide-react";
 import { ReportStatCard } from "./ReportStatCard";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import {
+  TABLE_BODY_ROW,
+  TABLE_CELL_NAME,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD,
+  TABLE_TD_MUTED,
+  TABLE_TH,
+} from "@/lib/uiTable";
 
 type AdminSlice = AppDictionary["admin"];
 
@@ -136,53 +146,37 @@ export function ReportsDashboard({
             </div>
 
             <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-              <table className="w-full text-left border-collapse min-w-[600px]">
-                <thead>
-                  <tr className="border-b border-zinc-200 dark:border-zinc-700/50 bg-zinc-100/50 dark:bg-[#0a0a0b]/80">
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                      {d.whoAndWhere}
-                    </th>
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                      {d.equipment}
-                    </th>
-                    <th className="px-6 py-3 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                      {d.startTime}
-                    </th>
+              <table className="w-full min-w-[600px] border-collapse text-left">
+                <thead className={TABLE_HEAD}>
+                  <tr className={TABLE_HEAD_ROW}>
+                    <th className={TABLE_TH}>{d.whoAndWhere}</th>
+                    <th className={TABLE_TH}>{d.equipment}</th>
+                    <th className={TABLE_TH}>{d.startTime}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/50">
+                <tbody>
                   {snapshot.activeSessions.map((session) => (
-                    <tr
-                      key={session.id}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-zinc-900 dark:text-zinc-200">
-                          {session.userName}
-                        </div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    <tr key={session.id} className={TABLE_BODY_ROW}>
+                      <td className={TABLE_TD}>
+                        <div className={TABLE_CELL_NAME}>{session.userName}</div>
+                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                           {session.taskDescription || "—"}{" "}
                           {session.quantityTons ? `(${session.quantityTons} t)` : ""}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-amber-600 dark:text-amber-400 font-medium">
+                      <td className={`${TABLE_TD} font-medium text-amber-600 dark:text-amber-400`}>
                         {session.resourceName ?? "—"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-zinc-500">
-                        {formatUiTimeHm(session.startTime)}
-                      </td>
+                      <td className={TABLE_TD_MUTED}>{formatUiTimeHm(session.startTime)}</td>
                     </tr>
                   ))}
-                  {snapshot.activeSessions.length === 0 && (
+                  {snapshot.activeSessions.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={3}
-                        className="px-6 py-8 text-center text-zinc-500 dark:text-zinc-400 text-sm"
-                      >
+                      <td colSpan={3} className={TABLE_EMPTY_CELL}>
                         {d.noActiveSessions}
                       </td>
                     </tr>
-                  )}
+                  ) : null}
                 </tbody>
               </table>
             </div>

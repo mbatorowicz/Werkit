@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Edit2, Plus, Trash2, Truck } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
@@ -13,6 +13,21 @@ import { useDictionary } from "@/i18n";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
+import {
+  TABLE_ACTION_ICON_DELETE,
+  TABLE_ACTION_ICON_EDIT,
+  TABLE_ACTIONS,
+  TABLE_CELL_NAME,
+  TABLE_CELL_SUBTITLE,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_ROW_CLICKABLE,
+  TABLE_TD,
+  TABLE_TD_RIGHT,
+  TABLE_TH,
+  TABLE_TH_RIGHT,
+} from "@/lib/uiTable";
 import type { AppDictionary } from "@/i18n/types";
 import type { MachinesCategory, MachinesResource } from "./types";
 
@@ -83,128 +98,106 @@ export function MachinesResourcesTable({
         placeholder={dict.resourceSearchPlaceholder}
       />
 
-      <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-          <table className="w-full min-w-[600px] border-collapse text-left">
-            <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700/50 dark:bg-[#0a0a0b]/80">
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {dict.resourceColTitle}
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {dict.dictCategory}
-                </th>
-                {canMutate ? (
-                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                    {dict.management}
-                  </th>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-800/50">
-              {isLoading ? (
-                <tr>
-                  <td
-                    colSpan={canMutate ? 3 : 2}
-                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
-                  >
-                    {dict.fetching}
-                  </td>
-                </tr>
-              ) : filteredMachines.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={canMutate ? 3 : 2}
-                    className="px-6 py-12 text-center text-sm text-zinc-500 dark:text-zinc-400"
-                  >
-                    {searchQuery.trim() ? dict.resourceSearchNoResults : dict.noMachines}
-                  </td>
-                </tr>
-              ) : (
-                filteredMachines.map((machine) => {
-                  const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
-                  return (
-                    <tr
-                      key={machine.id}
-                      onClick={() => setPreviewMachine(machine)}
-                      className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/20"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
-                            {machine.imageUrl ? (
-                              <Image
-                                src={machine.imageUrl}
-                                alt={machine.name}
-                                width={48}
-                                height={48}
-                                unoptimized
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <Truck className="h-5 w-5 text-zinc-400" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-zinc-900 dark:text-zinc-200">
-                              {machine.name}
-                            </div>
-                            <div className="mt-0.5 text-[11px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-                              {dict.idReg} #{machine.id}
-                            </div>
-                          </div>
+      <AdminTableShell minWidthClass="min-w-[600px]">
+        <thead className={TABLE_HEAD}>
+          <tr className={TABLE_HEAD_ROW}>
+            <th className={TABLE_TH}>{dict.resourceColTitle}</th>
+            <th className={TABLE_TH}>{dict.dictCategory}</th>
+            {canMutate ? <th className={TABLE_TH_RIGHT}>{dict.management}</th> : null}
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
+            <tr>
+              <td colSpan={canMutate ? 3 : 2} className={TABLE_EMPTY_CELL}>
+                {dict.fetching}
+              </td>
+            </tr>
+          ) : filteredMachines.length === 0 ? (
+            <tr>
+              <td colSpan={canMutate ? 3 : 2} className={TABLE_EMPTY_CELL}>
+                {searchQuery.trim() ? dict.resourceSearchNoResults : dict.noMachines}
+              </td>
+            </tr>
+          ) : (
+            filteredMachines.map((machine) => {
+              const mCats = categories.filter((c) => machine.categoryIds?.includes(c.id));
+              return (
+                <tr
+                  key={machine.id}
+                  onClick={() => setPreviewMachine(machine)}
+                  className={TABLE_ROW_CLICKABLE}
+                >
+                  <td className={TABLE_TD}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800">
+                        {machine.imageUrl ? (
+                          <Image
+                            src={machine.imageUrl}
+                            alt={machine.name}
+                            width={48}
+                            height={48}
+                            unoptimized
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <Truck className="h-5 w-5 text-zinc-400" />
+                        )}
+                      </div>
+                      <div>
+                        <div className={TABLE_CELL_NAME}>{machine.name}</div>
+                        <div className={TABLE_CELL_SUBTITLE}>
+                          {dict.idReg} #{machine.id}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {mCats.length > 0 ? (
-                            mCats.map((c) => (
-                              <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
-                            ))
-                          ) : (
-                            <span className="text-xs italic text-zinc-500">
-                              {dict.noCategoryBadge}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      {canMutate ? (
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                stopRowActionClick(e);
-                                setPreviewMachine(null);
-                                onEditResource(machine);
-                              }}
-                              className="rounded-lg p-2 text-zinc-500 transition hover:bg-amber-500/10 hover:text-amber-500 dark:text-zinc-400"
-                              title={dict.editTitle}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                stopRowActionClick(e);
-                                void onDeleteResource(machine.id);
-                              }}
-                              className="rounded-lg p-2 text-zinc-500 transition hover:bg-red-500/10 hover:text-red-500 dark:text-zinc-400"
-                              title={dict.deleteTitle}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      ) : null}
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className={TABLE_TD}>
+                    <div className="flex flex-wrap gap-1">
+                      {mCats.length > 0 ? (
+                        mCats.map((c) => (
+                          <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
+                        ))
+                      ) : (
+                        <span className="text-xs italic text-zinc-500">{dict.noCategoryBadge}</span>
+                      )}
+                    </div>
+                  </td>
+                  {canMutate ? (
+                    <td className={TABLE_TD_RIGHT}>
+                      <div className={TABLE_ACTIONS}>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            stopRowActionClick(e);
+                            setPreviewMachine(null);
+                            onEditResource(machine);
+                          }}
+                          className={TABLE_ACTION_ICON_EDIT}
+                          title={dict.editTitle}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            stopRowActionClick(e);
+                            void onDeleteResource(machine.id);
+                          }}
+                          className={TABLE_ACTION_ICON_DELETE}
+                          title={dict.deleteTitle}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  ) : null}
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </AdminTableShell>
 
       <AdminPreviewModal
         open={previewMachine != null}

@@ -22,8 +22,19 @@ import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
+import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
+import {
+  TABLE_BODY_ROW,
+  TABLE_EMPTY_CELL,
+  TABLE_HEAD,
+  TABLE_HEAD_ROW,
+  TABLE_TD,
+  TABLE_TD_MUTED,
+  TABLE_TD_STRONG,
+  TABLE_TH,
+} from "@/lib/uiTable";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import {
@@ -291,62 +302,56 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+      <AdminTableShell>
+        <thead className={TABLE_HEAD}>
+          <tr className={TABLE_HEAD_ROW}>
+            {tab === "issues" ? <th className={TABLE_TH}>{matWh.colCustomer}</th> : null}
+            <th className={TABLE_TH}>{matWh.colMaterial}</th>
+            <th className={TABLE_TH}>{wh.colQuantity}</th>
+            <th className={TABLE_TH}>{wh.colDate}</th>
+            <th className={TABLE_TH}>{wh.colNotes}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {isLoading ? (
             <tr>
-              {tab === "issues" ? (
-                <th className="px-4 py-3 font-semibold text-zinc-500">{matWh.colCustomer}</th>
-              ) : null}
-              <th className="px-4 py-3 font-semibold text-zinc-500">{matWh.colMaterial}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colQuantity}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colDate}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colNotes}</th>
+              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
+                {common.loading.default}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {common.loading.default}
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {searchQuery.trim()
-                    ? common.search.noResultsForQuery
-                    : tab === "receipts"
-                      ? wh.emptyReceipts
-                      : wh.emptyIssues}
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
-                  {tab === "issues" ? (
-                    <td className="px-4 py-3 font-medium">
-                      {"customerName" in row && row.customerName ? row.customerName : "—"}
-                    </td>
-                  ) : null}
-                  <td className="px-4 py-3 font-medium">{row.materialName ?? row.materialId}</td>
-                  <td className="px-4 py-3">
-                    {formatDict(wh.stockWithUnit, {
-                      qty: row.quantity,
-                      unit:
-                        materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
-                    })}
+          ) : rows.length === 0 ? (
+            <tr>
+              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
+                {searchQuery.trim()
+                  ? common.search.noResultsForQuery
+                  : tab === "receipts"
+                    ? wh.emptyReceipts
+                    : wh.emptyIssues}
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id} className={TABLE_BODY_ROW}>
+                {tab === "issues" ? (
+                  <td className={TABLE_TD_STRONG}>
+                    {"customerName" in row && row.customerName ? row.customerName : "—"}
                   </td>
-                  <td className="px-4 py-3 text-zinc-500">
-                    {new Date(row.createdAt).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-500">{row.notes ?? "—"}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : null}
+                <td className={TABLE_TD_STRONG}>{row.materialName ?? row.materialId}</td>
+                <td className={TABLE_TD}>
+                  {formatDict(wh.stockWithUnit, {
+                    qty: row.quantity,
+                    unit:
+                      materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                  })}
+                </td>
+                <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
+                <td className={TABLE_TD_MUTED}>{row.notes ?? "—"}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </AdminTableShell>
 
       <AdminModalShell
         open={showModal && canMutate}
