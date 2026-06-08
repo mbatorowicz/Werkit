@@ -98,7 +98,7 @@ export const helpPl = {
         bullets: [
           "Baner informuje o liczbie oczekujących operacji (zakończenie sesji, notatki, zdjęcia, checkpoint).",
           "Nie zamykaj aplikacji na długo po powrocie sieci — poczekaj na synchronizację.",
-          "Kolejka zleceń po sesji — dyspozycja może przygotować kolejne zadania; rozwiń listę, aby zaplanować pracę (nie akceptujesz ich stąd).",
+          "Kolejka zleceń po sesji — kolejne oczekujące zlecenia od dyspozycji (podgląd, bez akceptacji).",
         ],
       },
       {
@@ -162,7 +162,7 @@ export const helpPl = {
     title: "Instrukcja obsługi — panel dyspozytora",
     backLabel: "Powrót do panelu",
     intro:
-      "Panel administratora służy do planowania zleceń, zarządzania zasobami firmy i podglądu pracy w terenie. Poniżej opis modułów w kolejności menu bocznego.",
+      "Panel administratora służy do planowania zleceń, zarządzania zasobami firmy i podglądu pracy w terenie. Opis modułów menu bocznego.",
     userManual: "Podręcznik dyspozytora",
     sections: [
       {
@@ -268,7 +268,7 @@ export const helpPl = {
           "Przyjęcia (PZ) i wydania (WZ) części — z fakturą, ceną lub na zlecenie/pracownika.",
           "Korekta stanu — inwentaryzacja i korekty ręczne z opisem przyczyny.",
           "Kategorie części — osobne drzewo kategorii DUR.",
-          "Części na zleceniu naprawy — sekcja w formularzu zlecenia i panel workera.",
+          "Części na zleceniu naprawy: formularz zlecenia i panel workera.",
         ],
       },
       {

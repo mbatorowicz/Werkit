@@ -56,6 +56,8 @@ export const de: AppDictionary = {
       lowStock: "Niedriger Bestand",
       lowStockAlert: "Niedriger Bestand!",
       lowStockTooltip: "Bestand unter Minimum ({minStock} {unit})",
+      catalogSectionSubtitle:
+        "Katalog mit Lagerbestand. Korrektur in der Tabelle; Zugänge und Abgänge im Bewegungsregister.",
       movementsTitle: "Ein- und Ausgänge",
       tabReceipts: "Eingänge (PZ)",
       tabIssues: "Ausgänge (WZ)",
@@ -257,8 +259,7 @@ export const de: AppDictionary = {
     },
     organization: {
       title: "Personal & Struktur",
-      subtitle:
-        "Benutzerkonten, Abteilungen, Teams und Mitgliedschaften — eine Unternehmenshierarchie.",
+      subtitle: "Benutzer, Abteilungen und Teams.",
       treeSearchPlaceholder: "Nach Abteilung, Team oder Person suchen…",
       treeSearchNoResults: "Keine Ergebnisse für diese Abfrage.",
       unassignedTitle: "Nicht zugewiesene Mitarbeiter",
@@ -377,7 +378,7 @@ export const de: AppDictionary = {
       activeByCategoryTitle: "Live-Sitzungen nach Auftragskategorie",
       uncategorized: "Ohne zugewiesene Auftragskategorie",
       activeEquipmentTitle: "Aktive Geräte im Feld",
-      taskSummaryHint: "Routendetails und Dispositionsbearbeitung — Modul Aufträge.",
+      taskSummaryHint: "Routendetails und Auftragsdisposition.",
       vsPrevMonthUp: "Anstieg zum Vormonat",
       vsPrevMonthDown: "Rückgang zum Vormonat",
       vsPrevMonthFlat: "unverändert zum Vormonat",
@@ -706,10 +707,8 @@ export const de: AppDictionary = {
     },
     machines: {
       fleetTitle: "Betriebsmittel",
-      pageSubtitle: "Ressourcentypen und Register für Fahrzeuge, Geräte und Standorte.",
       sectionVehiclesTitle: "Ressourcenregister",
-      fleetSubtitle:
-        "Registereinträge — Ressourcentyp und Auftragskategorien zuordnen (Auftragskategorien unter Aufträge konfigurieren).",
+      fleetSubtitle: "Ressourcenregister: Typ und Auftragskategorien.",
       registerVehicle: "Ressource hinzufügen",
       addResource: "Ressource hinzufügen",
       resourceColTitle: "Ressource",
@@ -738,7 +737,7 @@ export const de: AppDictionary = {
       resourceGroupLabel: "Ressourcentyp",
       resourceGroupNone: "— kein Typ —",
       resourceGroupHint:
-        "Ressourcentyp (z.B. Modell) zuordnen. Unten ordnen Sie Auftragskategorien zu — getrennte Klassifikation.",
+        "Ressourcentyp (z. B. Modell). Auftragskategorien sind eine separate Klassifikation.",
       machCatLabel: "Auftragskategorien",
       machCatWarning: "Zuerst eine Auftragskategorie unter Aufträge anlegen.",
       saveFleet: "Speichern",
@@ -775,19 +774,14 @@ export const de: AppDictionary = {
       machPhotoRemove: "Foto entfernen",
     },
     materials: {
-      title: "Materialbasis",
-      subtitle: "Zuerst Materialkategorien, dann Bestand — gleiches Layout wie Ressourcen.",
-      pageSubtitle: "Materialkategoriebaum und Materialien in der Datenbank.",
-      catalogSubtitle:
-        "Baum von Gruppen und Kategorien — Materialien unten in der Liste hinzufügen und durchsuchen.",
+      subtitle: "Katalog, Lagerbestand, Zugänge und Abgänge.",
       listSearchPlaceholder: "Material nach Name oder Kategorie suchen…",
       listSearchNoResults: "Keine Ergebnisse für diese Suche.",
       materialBadge: "Material",
       uncategorizedTitle: "Ohne zugewiesene Kategorie",
       sectionItemsTitle: "Materialien in der Datenbank",
       fleetTitle: "Materialien",
-      fleetSubtitle:
-        "Materialien hinzufügen und jeweils mindestens einer Kategorie aus dem obigen Baum zuweisen.",
+      fleetSubtitle: "Materialien mit mindestens einer zugewiesenen Kategorie.",
       registerMaterial: "Material hinzufügen",
       materialReg: "Material / Name",
       addMaterial: "Material hinzufügen",
@@ -804,8 +798,6 @@ export const de: AppDictionary = {
       save: "Änderungen speichern",
       saveFleet: "Material speichern",
       create: "Material hinzufügen",
-      pageSubtitleWarehouse:
-        "Materialkatalog, Lagerbestand sowie Ein- und Ausgänge.",
       unitColumn: "Einh.",
       minStockLabel: "Mindestbestand",
       minStockPlaceholder: "z.B. 50",
@@ -885,7 +877,7 @@ export const de: AppDictionary = {
         "Wählen Sie einen Standort aus der obigen Liste oder fügen Sie einen neuen hinzu.",
       locationNewHeading: "Neuer Standort",
       locationEditHeading: "Standort bearbeiten",
-      locationsEditHint: "Adressen und Routen im Abschnitt Standorte unten festlegen.",
+      locationsEditHint: "Adressen und Routen: Abschnitt Standorte.",
       routePlannerSetDestinationHint:
         "Grüne Markierung — Firmenbasis. Geokodieren, auf Karte klicken oder rote Markierung ziehen, um das Ziel festzulegen.",
       routePlannerHint:
@@ -1023,7 +1015,7 @@ export const de: AppDictionary = {
       pendingOrders: "Ausstehende Aufträge",
       queuedOrdersToggle: "Warteschlange nach dieser Sitzung ({count})",
       queuedOrdersHint:
-        "Die Disposition hat weitere ausstehende Aufträge bereitgestellt — erweitern Sie, um vorauszuplanen. Sie akzeptieren sie hier nicht.",
+        "Weitere ausstehende Aufträge der Disposition (nur Vorschau, keine Annahme).",
       queuedOrdersPosition: "{n}. in der Warteschlange",
       upcomingTerm: "Bevorstehende Frist!",
       orderOverdueTitle: "Auftrag überfällig!",
@@ -1123,16 +1115,14 @@ export const de: AppDictionary = {
       orderAttachmentNotesTitle: "Während der Ausführung wurden Notizen hinzugefügt",
       orderDetailsTitle: "Auftragsdetails #{id}",
       orderDetailsOpenCategory: "Auftragsdetails anzeigen",
-      orderDetailsTeaserHint: "Tippen — alle Details",
+      orderDetailsTeaserHint: "Alle Auftragsdetails.",
       orderDetailsAddress: "Adresse",
       wizardStep3Title: "Auftragsdetails",
       wizardStep3Subtitle: "Füllen Sie die erforderlichen Informationen vor Arbeitsbeginn aus.",
       wizardStep4ScheduleTitle: "Arbeitszeitplan",
-      wizardStep4ScheduleSubtitle:
-        "Legen Sie die geplante Dauer und Frist fest — wir prüfen die Verfügbarkeit.",
+      wizardStep4ScheduleSubtitle: "Geplante Dauer und Frist.",
       wizardStep5Title: "Alles bereit",
-      wizardStep5Subtitle:
-        "Auftrag speichern — starten Sie ihn aus der Warteliste, wenn die Zeit gekommen ist.",
+      wizardStep5Subtitle: "Auftrag landet auf der Warteliste.",
       wizardNoMachines: "Keine Ressourcen im Register. Melden Sie das Problem dem Disponenten.",
       wizardMaterialLabel: "Welches Material?",
       wizardMaterialPlaceholder: "Aus Liste auswählen...",
@@ -1167,7 +1157,7 @@ export const de: AppDictionary = {
       deleteOwnOrderConfirm:
         "Diesen Auftrag löschen? Dies kann nicht rückgängig gemacht werden.",
       editOrderTitle: "Auftrag bearbeiten",
-      editOrderSubtitle: "Auftrag #{id} — Änderungen gelten in der Warteliste.",
+      editOrderSubtitle: "Auftrag #{id}. Änderungen in der Warteliste.",
       editOrderSave: "Änderungen speichern",
       editOrderSaved: "Auftrag aktualisiert.",
       editOrderDeleted: "Auftrag gelöscht.",
@@ -1359,7 +1349,7 @@ export const de: AppDictionary = {
     resourceGroups: {
       title: "Ressourcentypen",
       subtitle:
-        "Ressourcenmodell oder -familie — z.B. Kapselmaschine 02A. Viele gleiche Geräte einem Typ im Ressourcenregister zuordnen.",
+        "Ressourcenmodell oder -familie (z. B. Kapselmaschine 02A). Viele gleiche Geräte — ein Typ im Register.",
       assignHint:
         "Ressource zuordnen: Ressourcen → Ressource bearbeiten → Feld „Ressourcentyp“.",
       loading: "Typen werden geladen…",
@@ -1380,13 +1370,7 @@ export const de: AppDictionary = {
       apiError: "API-Fehler.",
     },
     spareParts: {
-      title: "Ersatzteilkatalog",
-      subtitle: "Teile für Ressourcenreparaturen und Wartung.",
-      pageSubtitle:
-        "Teilekategorien, Katalog und aktueller Lagerbestand — auf einer Seite.",
       sectionCatalogTitle: "Teile im Katalog",
-      sectionCatalogSubtitle:
-        "Katalog mit Lagerbestand. Bestand in der Zeile korrigieren; Zugänge und Abgänge im Abschnitt darunter.",
       fetchError: "Teilekatalog konnte nicht geladen werden.",
       newPart: "Neues Teil",
       editPart: "Teil bearbeiten",
@@ -1480,10 +1464,8 @@ export const de: AppDictionary = {
     },
     warehouse: {
       title: "Teile",
-      subtitle:
-        "Teilekategorien, Katalog, Bestandskorrekturen sowie Zugänge und Abgänge — auf einer Seite.",
-      movementsSubtitle:
-        "Registrierung von Teilezugängen und -abgängen. Mitarbeiter können Teile selbst für Reparaturaufträge entnehmen.",
+      subtitle: "Teilekategorien, Katalog, Bestandskorrekturen, Zugänge und Abgänge.",
+      movementsSubtitle: "Register der Teilezugänge und -abgänge.",
       colCollectedBy: "Entnommen von",
       colResource: "Für Ressource",
       colPart: "Teil",

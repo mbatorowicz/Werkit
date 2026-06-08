@@ -56,6 +56,8 @@ export const en: AppDictionary = {
       lowStock: "Low stock",
       lowStockAlert: "Low stock!",
       lowStockTooltip: "Stock below minimum ({minStock} {unit})",
+      catalogSectionSubtitle:
+        "Catalog with stock levels. Adjust in the table; receipts and issues in the movement register.",
       movementsTitle: "Receipts and issues",
       tabReceipts: "Receipts (PZ)",
       tabIssues: "Issues (WZ)",
@@ -251,8 +253,7 @@ export const en: AppDictionary = {
     },
     organization: {
       title: "People & structure",
-      subtitle:
-        "User accounts, departments, teams and memberships — one company hierarchy.",
+      subtitle: "Users, departments, and teams.",
       treeSearchPlaceholder: "Search by department, team or person…",
       treeSearchNoResults: "No results for this query.",
       unassignedTitle: "Unassigned workers",
@@ -367,7 +368,7 @@ export const en: AppDictionary = {
       activeByCategoryTitle: "Live sessions by order category",
       uncategorized: "No order category assigned",
       activeEquipmentTitle: "Equipment active in the field",
-      taskSummaryHint: "Route details and dispatch edits — Orders module.",
+      taskSummaryHint: "Route details and order dispatch.",
       vsPrevMonthUp: "up vs previous month",
       vsPrevMonthDown: "down vs previous month",
       vsPrevMonthFlat: "flat vs previous month",
@@ -693,10 +694,8 @@ export const en: AppDictionary = {
     },
     machines: {
       fleetTitle: "Operational resources",
-      pageSubtitle: "Resource types and registry of vehicles, equipment, and locations.",
       sectionVehiclesTitle: "Resource registry",
-      fleetSubtitle:
-        "Registry entries — assign a resource type and order categories (configure order categories under Orders).",
+      fleetSubtitle: "Resource registry: type and order categories.",
       registerVehicle: "Add resource",
       addResource: "Add resource",
       resourceColTitle: "Resource",
@@ -725,7 +724,7 @@ export const en: AppDictionary = {
       resourceGroupLabel: "Resource type",
       resourceGroupNone: "— no type —",
       resourceGroupHint:
-        "Assign the resource type (e.g. model). Below you assign order categories — a separate classification.",
+        "Resource type (e.g. model). Order categories are a separate classification.",
       machCatLabel: "Order categories",
       machCatWarning: "Add an order category first under Orders.",
       saveFleet: "Save",
@@ -762,18 +761,14 @@ export const en: AppDictionary = {
       machPhotoRemove: "Remove photo",
     },
     materials: {
-      title: "Materials base",
-      subtitle: "Material categories first, then inventory — same layout as Resources.",
-      pageSubtitle: "Material category tree and materials in the database.",
-      catalogSubtitle:
-        "Tree of groups and categories — add and browse materials in the list below.",
+      subtitle: "Catalog, stock levels, receipts and issues.",
       listSearchPlaceholder: "Search material by name or category…",
       listSearchNoResults: "No results for this query.",
       materialBadge: "Material",
       uncategorizedTitle: "Without assigned category",
       sectionItemsTitle: "Materials in database",
       fleetTitle: "Materials",
-      fleetSubtitle: "Add materials and assign each to at least one category from the tree above.",
+      fleetSubtitle: "Materials with at least one category assigned.",
       registerMaterial: "Add material",
       materialReg: "Material / Name",
       addMaterial: "Add material",
@@ -790,8 +785,6 @@ export const en: AppDictionary = {
       save: "Save changes",
       saveFleet: "Save material",
       create: "Add material",
-      pageSubtitleWarehouse:
-        "Material catalog, warehouse stock, and receipts and issues.",
       unitColumn: "Unit",
       minStockLabel: "Minimum stock",
       minStockPlaceholder: "e.g. 50",
@@ -869,7 +862,7 @@ export const en: AppDictionary = {
       locationSelectPrompt: "Select a location from the list above or add a new one.",
       locationNewHeading: "New location",
       locationEditHeading: "Edit location",
-      locationsEditHint: "Set addresses and routes in the locations section below.",
+      locationsEditHint: "Addresses and routes: locations section.",
       routePlannerSetDestinationHint:
         "Green pin — company base. Geocode, click the map, or drag the red pin to set the destination.",
       routePlannerHint:
@@ -1002,8 +995,7 @@ export const en: AppDictionary = {
       delegateDueDate: "Due date",
       pendingOrders: "Pending orders",
       queuedOrdersToggle: "Queued after this session ({count})",
-      queuedOrdersHint:
-        "Dispatch lined up more pending orders — expand to plan ahead. You do not accept them from here.",
+      queuedOrdersHint: "More pending orders from dispatch (preview only, no acceptance).",
       queuedOrdersPosition: "{n} in queue",
       upcomingTerm: "Upcoming deadline!",
       orderOverdueTitle: "Order overdue!",
@@ -1100,15 +1092,14 @@ export const en: AppDictionary = {
       orderAttachmentNotesTitle: "Notes were added during execution",
       orderDetailsTitle: "Order details #{id}",
       orderDetailsOpenCategory: "Show order details",
-      orderDetailsTeaserHint: "Tap for full details",
+      orderDetailsTeaserHint: "Full order details.",
       orderDetailsAddress: "Address",
       wizardStep3Title: "Order details",
       wizardStep3Subtitle: "Fill in the required information before starting work.",
       wizardStep4ScheduleTitle: "Work schedule",
-      wizardStep4ScheduleSubtitle: "Set planned duration and due time — we'll check availability.",
+      wizardStep4ScheduleSubtitle: "Planned duration and due time.",
       wizardStep5Title: "All ready",
-      wizardStep5Subtitle:
-        "Save the order — start it from the pending list when it is time to work.",
+      wizardStep5Subtitle: "Order goes to the pending list.",
       wizardNoMachines: "No resources in the registry. Report the problem to the dispatcher.",
       wizardMaterialLabel: "Which material?",
       wizardMaterialPlaceholder: "Select from list...",
@@ -1142,7 +1133,7 @@ export const en: AppDictionary = {
       deleteOrder: "Delete order",
       deleteOwnOrderConfirm: "Delete this order? This cannot be undone.",
       editOrderTitle: "Edit order",
-      editOrderSubtitle: "Order #{id} — changes apply on the pending list.",
+      editOrderSubtitle: "Order #{id}. Changes on the pending list.",
       editOrderSave: "Save changes",
       editOrderSaved: "Order updated.",
       editOrderDeleted: "Order deleted.",
@@ -1331,7 +1322,7 @@ export const en: AppDictionary = {
     resourceGroups: {
       title: "Resource types",
       subtitle:
-        "Resource model or family — e.g. capsule filler 02A. Assign many units of the same model to one type in the resource registry.",
+        "Resource model or family (e.g. capsule filler 02A). Many units of one model — one type in the registry.",
       assignHint: "To assign a resource: Resources → edit resource → “Resource type” field.",
       loading: "Loading types…",
       empty: "No types yet. Add a resource type, then assign resources under Resources.",
@@ -1349,12 +1340,7 @@ export const en: AppDictionary = {
       apiError: "API error.",
     },
     spareParts: {
-      title: "Spare Parts Catalog",
-      subtitle: "Parts used in resource repairs and maintenance.",
-      pageSubtitle: "Part categories, catalog items, and current stock levels — on one page.",
       sectionCatalogTitle: "Parts in catalog",
-      sectionCatalogSubtitle:
-        "Catalog with live stock. Adjust stock in each row; receipts and issues in the section below.",
       fetchError: "Could not load the parts catalog.",
       newPart: "New part",
       editPart: "Edit part",
@@ -1447,10 +1433,8 @@ export const en: AppDictionary = {
     },
     warehouse: {
       title: "Parts",
-      subtitle:
-        "Part categories, catalog items, stock adjustments, and receipts/issues — on one page.",
-      movementsSubtitle:
-        "Register of part receipts and issues. Workers can pick parts for a repair order themselves.",
+      subtitle: "Part categories, catalog, stock adjustments, receipts and issues.",
+      movementsSubtitle: "Register of part receipts and issues.",
       colCollectedBy: "Picked up by",
       colResource: "For resource",
       colPart: "Part",

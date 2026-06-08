@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Cog } from "lucide-react";
 import { useDictionary } from "@/i18n";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
@@ -18,12 +17,7 @@ import { SparePartStockAdjustModal } from "@/features/admin/dur/SparePartStockAd
 import { useAppDialog } from "@/components/AppDialogProvider";
 import type { SparePart } from "@/types/dur";
 
-type Props = {
-  /** Bez nagłówka strony (h1) — treść osadzona na stronie Magazyn. */
-  embedded?: boolean;
-};
-
-export default function SparePartsClient({ embedded = false }: Props) {
+export default function SparePartsClient() {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
 
@@ -127,16 +121,6 @@ export default function SparePartsClient({ embedded = false }: Props) {
 
   return (
     <>
-      {!embedded ? (
-        <div className="mb-8">
-          <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-            <Cog className="h-6 w-6 text-emerald-500" />
-            {dict.title}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{dict.pageSubtitle}</p>
-        </div>
-      ) : null}
-
       <SparePartsCategoryPanel
         apiErrors={apiErrors}
         apiErrorFallback={dict.fetchError}

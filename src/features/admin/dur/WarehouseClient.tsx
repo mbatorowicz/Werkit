@@ -18,7 +18,7 @@ export default function WarehouseClient() {
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{dict.subtitle}</p>
       </div>
 
-      <SparePartsClient embedded />
+      <SparePartsClient />
 
       <section className="border-t border-zinc-200 pt-12 dark:border-zinc-800/80">
         <StockMovementsClient />

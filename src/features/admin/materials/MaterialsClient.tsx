@@ -42,7 +42,7 @@ export default function MaterialsClient() {
           <HardHat className="h-6 w-6 text-emerald-500" />
           {nav.materials}
         </h1>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{dict.pageSubtitleWarehouse}</p>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{dict.subtitle}</p>
       </div>
 
       <MaterialsCatalogPanel

@@ -55,6 +55,8 @@ export const pl = {
       lowStock: "Niski stan",
       lowStockAlert: "Niski stan!",
       lowStockTooltip: "Stan magazynowy poniżej minimum ({minStock} {unit})",
+      catalogSectionSubtitle:
+        "Katalog ze stanem magazynowym. Korekta w tabeli; PZ i WZ w rejestrze ruchów.",
       movementsTitle: "Przyjęcia i wydania",
       tabReceipts: "Przyjęcia (PZ)",
       tabIssues: "Wydania (WZ)",
@@ -368,7 +370,7 @@ export const pl = {
       activeByCategoryTitle: "Trwające sesje wg kategorii zlecenia",
       uncategorized: "Bez przypisanej kategorii",
       activeEquipmentTitle: "Aktywne zasoby w terenie",
-      taskSummaryHint: "Szczegóły tras i edycja dyspozycji — moduł Zlecenia.",
+      taskSummaryHint: "Szczegóły tras i dyspozycja zleceń.",
       vsPrevMonthUp: "wzrost vs poprzedni miesiąc",
       vsPrevMonthDown: "spadek vs poprzedni miesiąc",
       vsPrevMonthFlat: "bez zmian vs poprzedni miesiąc",
@@ -695,10 +697,8 @@ export const pl = {
     },
     machines: {
       fleetTitle: "Zasoby operacyjne",
-      pageSubtitle: "Typy zasobów i rejestr pojazdów, urządzeń oraz lokalizacji.",
       sectionVehiclesTitle: "Rejestr zasobów",
-      fleetSubtitle:
-        "Wpisy w rejestrze — przypisz typ zasobu oraz kategorie zleceń (kategorie zleceń konfigurujesz w module Zlecenia).",
+      fleetSubtitle: "Rejestr zasobów: typ i kategorie zleceń.",
       registerVehicle: "Dodaj zasób",
       addResource: "Dodaj zasób",
       resourceColTitle: "Zasób",
@@ -727,7 +727,7 @@ export const pl = {
       resourceGroupLabel: "Typ zasobu",
       resourceGroupNone: "— bez typu —",
       resourceGroupHint:
-        "Przypisz typ zasobu (np. model). Poniżej przypisujesz kategorie zleceń — inna klasyfikacja.",
+        "Typ zasobu (np. model). Kategorie zleceń to osobna klasyfikacja.",
       machCatLabel: "Kategorie zleceń",
       machCatWarning: "Najpierw dodaj kategorię zlecenia w module Zlecenia.",
       saveFleet: "Zapisz",
@@ -764,20 +764,14 @@ export const pl = {
       machPhotoRemove: "Usuń zdjęcie",
     },
     materials: {
-      title: "Baza materiałów",
-      subtitle:
-        "Najpierw kategorie materiałów, potem wpisy w bazie — ten sam układ co w module Zasoby.",
-      pageSubtitle: "Drzewo kategorii materiałów oraz materiały w bazie.",
-      catalogSubtitle:
-        "Drzewo grup i kategorii — materiały dodajesz i przeglądasz w liście poniżej.",
+      subtitle: "Katalog, stan magazynowy, PZ i WZ.",
       listSearchPlaceholder: "Szukaj materiału po nazwie lub kategorii…",
       listSearchNoResults: "Brak wyników dla tego zapytania.",
       materialBadge: "Materiał",
       uncategorizedTitle: "Bez przypisanej kategorii",
       sectionItemsTitle: "Materiały w bazie",
       fleetTitle: "Materiały",
-      fleetSubtitle:
-        "Dodawaj materiały i przypisuj je do co najmniej jednej kategorii z drzewa powyżej.",
+      fleetSubtitle: "Materiały z co najmniej jedną kategorią.",
       registerMaterial: "Dodaj materiał",
       materialReg: "Materiał / Nazwa",
       addMaterial: "Dodaj materiał",
@@ -794,8 +788,6 @@ export const pl = {
       save: "Zapisz zmiany",
       saveFleet: "Zapisz materiał",
       create: "Dodaj materiał",
-      pageSubtitleWarehouse:
-        "Katalog materiałów, stan magazynowy oraz przyjęcia i wydania.",
       unitColumn: "J.m.",
       minStockLabel: "Minimalny stan",
       minStockPlaceholder: "Np. 50",
@@ -873,7 +865,7 @@ export const pl = {
       locationSelectPrompt: "Wybierz lokalizację z listy powyżej lub dodaj nową.",
       locationNewHeading: "Nowa lokalizacja",
       locationEditHeading: "Edycja lokalizacji",
-      locationsEditHint: "Adresy i trasy ustawiasz w sekcji lokalizacji poniżej.",
+      locationsEditHint: "Adresy i trasy: sekcja lokalizacji.",
       routePlannerSetDestinationHint:
         "Zielona pinezka — baza firmy. Użyj geokodowania, kliknij mapę lub przeciągnij czerwoną pinezkę, aby ustawić cel.",
       routePlannerHint:
@@ -1009,7 +1001,7 @@ export const pl = {
       pendingOrders: "Oczekujące zlecenia",
       queuedOrdersToggle: "Kolejka po tej sesji ({count})",
       queuedOrdersHint:
-        "Dyspozycja przygotowała kolejne oczekujące zlecenia — rozwiń, żeby zaplanować pracę. Nie akceptujesz ich z tego widoku.",
+        "Kolejne oczekujące zlecenia od dyspozycji (podgląd, bez akceptacji).",
       queuedOrdersPosition: "{n}. w kolejce",
       upcomingTerm: "Zbliżający się termin!",
       orderOverdueTitle: "Zlecenie opóźnione!",
@@ -1107,15 +1099,14 @@ export const pl = {
       orderAttachmentNotesTitle: "W realizacji były notatki",
       orderDetailsTitle: "Szczegóły zlecenia #{id}",
       orderDetailsOpenCategory: "Pokaż szczegóły zlecenia",
-      orderDetailsTeaserHint: "Kliknij — pełne szczegóły",
+      orderDetailsTeaserHint: "Pełne szczegóły zlecenia.",
       orderDetailsAddress: "Adres",
       wizardStep3Title: "Szczegóły zlecenia",
       wizardStep3Subtitle: "Wypełnij wymagane informacje przed rozpoczęciem pracy.",
       wizardStep4ScheduleTitle: "Termin pracy",
-      wizardStep4ScheduleSubtitle: "Ustaw planowany czas i termin — sprawdzimy dostępność.",
+      wizardStep4ScheduleSubtitle: "Planowany czas i termin zlecenia.",
       wizardStep5Title: "Wszystko gotowe",
-      wizardStep5Subtitle:
-        "Zapisz zlecenie — rozpoczniesz je z listy oczekujących, gdy nadejdzie termin.",
+      wizardStep5Subtitle: "Zlecenie trafia na listę oczekujących.",
       wizardNoMachines: "Brak zasobów w rejestrze. Zgłoś problem dyspozytorowi.",
       wizardMaterialLabel: "Jaki materiał?",
       wizardMaterialPlaceholder: "Wybierz z listy...",
@@ -1150,7 +1141,7 @@ export const pl = {
       deleteOwnOrderConfirm:
         "Usunąć to zlecenie? Tej operacji nie cofniesz.",
       editOrderTitle: "Edycja zlecenia",
-      editOrderSubtitle: "Zlecenie #{id} — zmiany zapiszesz na liście oczekujących.",
+      editOrderSubtitle: "Zlecenie #{id}. Zmiany na liście oczekujących.",
       editOrderSave: "Zapisz zmiany",
       editOrderSaved: "Zlecenie zaktualizowane.",
       editOrderDeleted: "Zlecenie usunięte.",
@@ -1343,7 +1334,7 @@ export const pl = {
     resourceGroups: {
       title: "Typy zasobów",
       subtitle:
-        "Model lub rodzina zasobu — np. kapsułkarka 02A. Wiele egzemplarzy tego samego modelu przypisujesz do jednego typu w rejestrze zasobów.",
+        "Model lub rodzina zasobu (np. kapsułkarka 02A). Wiele egzemplarzy jednego modelu — jeden typ w rejestrze.",
       assignHint:
         "Przypisanie egzemplarza: Zasoby → edycja zasobu → pole „Typ zasobu”.",
       loading: "Ładowanie typów…",
@@ -1362,13 +1353,7 @@ export const pl = {
       apiError: "Błąd API.",
     },
     spareParts: {
-      title: "Magazyn części zamiennych",
-      subtitle: "Katalog części używanych w naprawach i przeglądach zasobów.",
-      pageSubtitle:
-        "Kategorie części, katalog pozycji i bieżący stan magazynowy — na jednej stronie.",
       sectionCatalogTitle: "Części w katalogu",
-      sectionCatalogSubtitle:
-        "Katalog z aktualnym stanem magazynowym. Korektę stanu wykonasz w wierszu; przyjęcia i wydania — w sekcji poniżej.",
       fetchError: "Nie udało się wczytać katalogu części.",
       newPart: "Nowa część",
       editPart: "Edytuj część",
@@ -1461,10 +1446,8 @@ export const pl = {
     },
     warehouse: {
       title: "Części",
-      subtitle:
-        "Kategorie części, katalog pozycji, korekty stanu oraz przyjęcia i wydania — na jednej stronie.",
-      movementsSubtitle:
-        "Rejestr PZ (przyjęć) i WZ (wydań) części z magazynu. Pracownik może samodzielnie pobierać części do zlecenia naprawy.",
+      subtitle: "Kategorie części, katalog, korekty stanu, PZ i WZ.",
+      movementsSubtitle: "Rejestr PZ i WZ części z magazynu.",
       colCollectedBy: "Kto pobrał",
       colResource: "Do jakiego zasobu",
       colPart: "Część",

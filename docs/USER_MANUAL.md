@@ -106,7 +106,7 @@ Lider z delegacją przypisuje zlecenie innemu pracownikowi z ekranu Sesja (praco
 
 Przy braku sieci operacje kolejkują się lokalnie i synchronizują po powrocie internetu. Baner pokazuje liczbę oczekujących operacji.
 
-**Kolejka po sesji** — podgląd kolejnych zleceń od dyspozycji (bez akceptacji z tego widoku).
+**Kolejka po sesji** — kolejne oczekujące zlecenia od dyspozycji (podgląd, bez akceptacji).
 
 ### 8. Alarmy i przypomnienia
 
