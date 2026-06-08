@@ -12,6 +12,7 @@ import { OrdersDispatchToolbar } from "@/components/Admin/Orders/OrdersDispatchT
 import { OrdersDispatchTable } from "@/components/Admin/Orders/OrdersDispatchTable";
 import { OrdersSettingsQuickModal } from "@/components/Admin/Orders/OrdersSettingsQuickModal";
 import type { DispatchViewMode } from "@/components/Admin/Orders/OrdersDispatchToolbar";
+import type { AdminDispatchBootstrap } from "@/types/admin";
 import { useOrdersDeepLink } from "@/features/admin/orders/useOrdersDeepLink";
 import { useOrdersDispatchData } from "@/features/admin/orders/useOrdersDispatchData";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -25,7 +26,11 @@ import {
   handleDeleteArchivedSession,
 } from "./OrdersMutations";
 
-export default function OrdersClient() {
+export default function OrdersClient({
+  initialBootstrap = null,
+}: {
+  initialBootstrap?: AdminDispatchBootstrap | null;
+}) {
   const { canMutate, canDelegateOrders, delegationScope } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
 
@@ -48,7 +53,7 @@ export default function OrdersClient() {
     sessions,
     isLoading,
     fetchData,
-  } = useOrdersDispatchData(delegationScope);
+  } = useOrdersDispatchData(delegationScope, initialBootstrap);
 
   const {
     isOrderModalOpen,

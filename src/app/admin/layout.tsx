@@ -51,9 +51,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       canMutate = role === "admin";
       const userId = verified.payload.userId as number | undefined;
       if (userId) {
-        const userDb = await AdminUserService.getUserById(userId);
+        const [userDb, hasDelegation] = await Promise.all([
+          AdminUserService.getUserById(userId),
+          DelegationScopeService.hasDelegationRights(companyId, userId),
+        ]);
         if (userDb) loggedInUser = userDb.fullName;
-        const hasDelegation = await DelegationScopeService.hasDelegationRights(companyId, userId);
         canDelegateOrders = canMutate || hasDelegation;
         delegationScope = canMutate ? "all" : hasDelegation ? "scoped" : "none";
       }
@@ -100,15 +102,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
           <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 px-4 pt-4 dark:border-zinc-800">
             {loggedInUser && (
-              <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-                <UserIcon className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span className="font-medium truncate">{loggedInUser}</span>
+              <div className="flex flex-col gap-2 rounded-lg bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200">
+                <div className="flex items-center gap-2">
+                  <UserIcon className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <span className="truncate font-medium">{loggedInUser}</span>
+                </div>
+                <LocaleSwitcher variant="embedded" />
               </div>
             )}
             <div className="flex items-center justify-between gap-2">
-              <LocaleSwitcher />
               <LogoutButton
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
                 iconClass="w-4 h-4"
                 text={dict.sidebar.logoutSession}
               />

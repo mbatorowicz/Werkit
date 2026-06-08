@@ -6,6 +6,7 @@ import { getDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { BiometricLoginSettings } from "./BiometricLoginSettings";
 import { ProfileNotificationSoundSettings } from "./ProfileNotificationSoundSettings";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 
 const toggleClass =
   "w-11 h-6 bg-zinc-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 dark:after:border-zinc-600 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 peer-disabled:opacity-50";
@@ -41,6 +42,8 @@ export function ProfileSettings({
 
   return (
     <>
+      <LocaleSwitcher variant="profile" />
+
       <div className="mt-4 flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
         <div className="flex items-center gap-3">
           <div className="rounded-lg bg-emerald-100 p-2 dark:bg-emerald-500/20">

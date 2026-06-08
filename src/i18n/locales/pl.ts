@@ -1,6 +1,8 @@
 export const pl = {
   localeSwitcher: {
     label: "Zmień język",
+    title: "Język",
+    description: "Język interfejsu aplikacji",
   },
   common: {
     actions: {

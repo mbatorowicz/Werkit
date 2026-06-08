@@ -3,6 +3,8 @@ import type { AppDictionary } from "../types";
 export const en: AppDictionary = {
   localeSwitcher: {
     label: "Change language",
+    title: "Language",
+    description: "Application interface language",
   },
   common: {
     actions: {

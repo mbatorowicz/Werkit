@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
+  AdminDispatchBootstrap,
   BaseCategory,
   BaseCustomer,
   BaseMachine,
@@ -10,9 +11,13 @@ import type {
   BaseWorker,
   UnifiedGanttItem,
 } from "@/types/admin";
-import { UI_BACKGROUND_SYNC_INTERVAL_MS } from "@/lib/uiBackgroundSync";
+import {
+  UI_BACKGROUND_SYNC_INTERVAL_MS,
+  UI_DICTIONARY_SYNC_INTERVAL_MS,
+} from "@/lib/uiBackgroundSync";
 import { adminApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { parseJsonUnknown } from "@/lib/parseApiJson";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import {
   narrowBaseCategories,
@@ -23,170 +28,228 @@ import {
   narrowUnifiedGanttItems,
   narrowMaterialCategoryRows,
 } from "@/lib/narrowApiListRows";
+import { isRecord } from "@/lib/narrow/shared";
 import type { DelegationScope } from "@/components/Admin/AdminAbilityProvider";
 
-export function useOrdersDispatchData(delegationScope: DelegationScope = "all") {
-  const [workers, setWorkers] = useState<BaseWorker[]>([]);
-  const [machines, setMachines] = useState<BaseMachine[]>([]);
-  const [materials, setMaterials] = useState<BaseMaterial[]>([]);
-  const [materialCategories, setMaterialCategories] = useState<BaseMaterialCategory[]>([]);
-  const [customers, setCustomers] = useState<BaseCustomer[]>([]);
-  const [categories, setCategories] = useState<BaseCategory[]>([]);
-  const [orders, setOrders] = useState<UnifiedGanttItem[]>([]);
-  const [sessions, setSessions] = useState<UnifiedGanttItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+type FetchDataOptions = {
+  refreshDictionaries?: boolean;
+  refreshArchive?: boolean;
+};
 
-  const fetchData = useCallback(async (showLoader = true) => {
-    if (showLoader) setIsLoading(true);
+function narrowLivePayload(body: unknown): {
+  orders: UnifiedGanttItem[];
+  liveSessions: UnifiedGanttItem[];
+} {
+  if (!isRecord(body)) return { orders: [], liveSessions: [] };
+  return {
+    orders: narrowUnifiedGanttItems(Array.isArray(body.orders) ? body.orders : []),
+    liveSessions: narrowUnifiedGanttItems(
+      Array.isArray(body.liveSessions) ? body.liveSessions : []
+    ),
+  };
+}
+
+function narrowDictionariesPayload(body: unknown): {
+  workers: BaseWorker[];
+  machines: BaseMachine[];
+  materials: BaseMaterial[];
+  materialCategories: BaseMaterialCategory[];
+  customers: BaseCustomer[];
+  categories: BaseCategory[];
+} | null {
+  if (!isRecord(body)) return null;
+  const matCats = narrowMaterialCategoryRows(
+    Array.isArray(body.materialCategories) ? body.materialCategories : []
+  );
+  return {
+    workers: narrowBaseWorkers(Array.isArray(body.workers) ? body.workers : []),
+    machines: narrowBaseMachines(Array.isArray(body.machines) ? body.machines : []),
+    materials: narrowBaseMaterials(Array.isArray(body.materials) ? body.materials : []),
+    materialCategories: matCats.map((c) => ({
+      id: c.id,
+      name: c.name,
+      color: c.color,
+    })),
+    customers: narrowBaseCustomers(Array.isArray(body.customers) ? body.customers : []),
+    categories: narrowBaseCategories(Array.isArray(body.categories) ? body.categories : []),
+  };
+}
+
+export function useOrdersDispatchData(
+  _delegationScope: DelegationScope,
+  initialBootstrap?: AdminDispatchBootstrap | null
+) {
+  const [workers, setWorkers] = useState<BaseWorker[]>(initialBootstrap?.workers ?? []);
+  const [machines, setMachines] = useState<BaseMachine[]>(initialBootstrap?.machines ?? []);
+  const [materials, setMaterials] = useState<BaseMaterial[]>(initialBootstrap?.materials ?? []);
+  const [materialCategories, setMaterialCategories] = useState<BaseMaterialCategory[]>(
+    initialBootstrap?.materialCategories ?? []
+  );
+  const [customers, setCustomers] = useState<BaseCustomer[]>(initialBootstrap?.customers ?? []);
+  const [categories, setCategories] = useState<BaseCategory[]>(initialBootstrap?.categories ?? []);
+  const [orders, setOrders] = useState<UnifiedGanttItem[]>(initialBootstrap?.orders ?? []);
+  const [liveSessions, setLiveSessions] = useState<UnifiedGanttItem[]>(
+    initialBootstrap?.liveSessions ?? []
+  );
+  const [archivedSessions, setArchivedSessions] = useState<UnifiedGanttItem[]>([]);
+  const [isLoading, setIsLoading] = useState(!initialBootstrap);
+
+  const sessions = useMemo(
+    () => [...liveSessions, ...archivedSessions],
+    [liveSessions, archivedSessions]
+  );
+
+  const fetchLive = useCallback(async () => {
     try {
-      /** `allSettled` — przy padnięciu sieci jeden endpoint nie przerywa reszty; UI dostaje część danych. */
-      const settled = await Promise.allSettled([
-        fetchWithDeviceTelemetry(
-          delegationScope === "scoped" ? "Admin dispatch: delegatable" : "Admin dispatch: users",
-          delegationScope === "scoped" ? adminApi.usersDelegatable : adminApi.users,
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: machines",
-          "/api/machines",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: materials",
-          "/api/materials",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: material-categories",
-          "/api/material-categories?leavesOnly=1",
-          { cache: "no-store" },
-          { category: "admin" }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: customers",
-          "/api/customers",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: categories",
-          "/api/categories?leavesOnly=1",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: work-orders",
-          "/api/admin/work-orders",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Admin dispatch: archive",
-          "/api/admin/archive",
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ).then(parseJsonArray),
-      ]);
-      const pick = (i: number): unknown[] => {
-        const r = settled[i];
-        return r?.status === "fulfilled" ? r.value : [];
-      };
-      const wor = pick(0);
-      const mac = pick(1);
-      const mat = pick(2);
-      const matCats = pick(3);
-      const cus = pick(4);
-      const cats = pick(5);
-      const ords = pick(6);
-      const arch = pick(7);
-      setWorkers(narrowBaseWorkers(wor));
-      setMachines(narrowBaseMachines(mac));
-      setMaterials(narrowBaseMaterials(mat));
-      setMaterialCategories(
-        narrowMaterialCategoryRows(matCats).map((c) => ({
-          id: c.id,
-          name: c.name,
-          color: c.color,
-        }))
+      const res = await fetchWithDeviceTelemetry(
+        "Admin dispatch: live",
+        adminApi.dispatch.live,
+        { cache: "no-store" },
+        { category: "admin" }
       );
-      setCustomers(narrowBaseCustomers(cus));
-      setCategories(narrowBaseCategories(cats));
-      setOrders(narrowUnifiedGanttItems(ords));
-      setSessions(narrowUnifiedGanttItems(arch));
+      const body = await parseJsonUnknown(res);
+      const { orders: nextOrders, liveSessions: nextLive } = narrowLivePayload(body);
+      setOrders(nextOrders);
+      setLiveSessions(nextLive);
     } catch {
-      /* sieć / parsowanie — bez crasha UI */
-    } finally {
-      if (showLoader) setIsLoading(false);
+      /* sieć */
     }
-  }, [delegationScope]);
+  }, []);
+
+  const fetchArchive = useCallback(async () => {
+    try {
+      const res = await fetchWithDeviceTelemetry(
+        "Admin dispatch: archive",
+        adminApi.dispatch.archive,
+        { cache: "no-store" },
+        { category: "admin" }
+      );
+      const data = await parseJsonArray(res);
+      setArchivedSessions(narrowUnifiedGanttItems(data));
+    } catch {
+      /* sieć */
+    }
+  }, []);
+
+  const fetchDictionaries = useCallback(async () => {
+    try {
+      const res = await fetchWithDeviceTelemetry(
+        "Admin dispatch: dictionaries",
+        adminApi.dispatch.dictionaries,
+        { cache: "no-store" },
+        { category: "admin" }
+      );
+      const body = await parseJsonUnknown(res);
+      const dicts = narrowDictionariesPayload(body);
+      if (!dicts) return;
+      setWorkers(dicts.workers);
+      setMachines(dicts.machines);
+      setMaterials(dicts.materials);
+      setMaterialCategories(dicts.materialCategories);
+      setCustomers(dicts.customers);
+      setCategories(dicts.categories);
+    } catch {
+      /* sieć */
+    }
+  }, []);
+
+  const fetchData = useCallback(
+    async (showLoader = true, opts?: FetchDataOptions) => {
+      const refreshDictionaries = opts?.refreshDictionaries ?? true;
+      const refreshArchive = opts?.refreshArchive ?? true;
+
+      if (showLoader) setIsLoading(true);
+      try {
+        await fetchLive();
+        const tasks: Promise<void>[] = [];
+        if (refreshDictionaries) tasks.push(fetchDictionaries());
+        if (refreshArchive) tasks.push(fetchArchive());
+        await Promise.all(tasks);
+      } finally {
+        if (showLoader) setIsLoading(false);
+      }
+    },
+    [fetchLive, fetchDictionaries, fetchArchive]
+  );
 
   useEffect(() => {
     queueMicrotask(() => {
-      void fetchData(true);
+      if (initialBootstrap) {
+        void fetchArchive();
+      } else {
+        void fetchData(true);
+      }
     });
+  }, [initialBootstrap, fetchArchive, fetchData]);
 
-    let pollTimer: ReturnType<typeof setInterval> | null = null;
+  useEffect(() => {
+    let liveTimer: ReturnType<typeof setInterval> | null = null;
+    let dictTimer: ReturnType<typeof setInterval> | null = null;
 
-    const stopPolling = () => {
-      if (pollTimer !== null) {
-        clearInterval(pollTimer);
-        pollTimer = null;
+    const stopLive = () => {
+      if (liveTimer !== null) {
+        clearInterval(liveTimer);
+        liveTimer = null;
+      }
+    };
+    const stopDict = () => {
+      if (dictTimer !== null) {
+        clearInterval(dictTimer);
+        dictTimer = null;
       }
     };
 
-    const startPolling = () => {
-      if (pollTimer !== null) return;
-      pollTimer = setInterval(() => {
+    const startLive = () => {
+      if (liveTimer !== null) return;
+      liveTimer = setInterval(() => {
         if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
         queueMicrotask(() => {
-          void fetchData(false);
+          void fetchLive();
         });
       }, UI_BACKGROUND_SYNC_INTERVAL_MS);
+    };
+
+    const startDict = () => {
+      if (dictTimer !== null) return;
+      dictTimer = setInterval(() => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+        queueMicrotask(() => {
+          void fetchDictionaries();
+        });
+      }, UI_DICTIONARY_SYNC_INTERVAL_MS);
     };
 
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         queueMicrotask(() => {
-          void fetchData(false);
+          void fetchLive();
         });
-        startPolling();
+        startLive();
+        startDict();
       } else {
-        stopPolling();
+        stopLive();
+        stopDict();
       }
     };
 
     if (typeof document !== "undefined") {
       if (document.visibilityState === "visible") {
-        startPolling();
+        startLive();
+        startDict();
       }
       document.addEventListener("visibilitychange", onVisibility);
       return () => {
         document.removeEventListener("visibilitychange", onVisibility);
-        stopPolling();
+        stopLive();
+        stopDict();
       };
     }
 
     return () => {
-      stopPolling();
+      stopLive();
+      stopDict();
     };
-  }, [fetchData]);
+  }, [fetchLive, fetchDictionaries]);
 
   return {
     workers,

@@ -35,7 +35,13 @@ export const adminApi = {
   settings: "/api/admin/settings",
   workOrders: "/api/admin/work-orders",
   workOrder: (id: number) => `/api/admin/work-orders/${id}`,
+  /** @deprecated Użyj `dispatchArchive` — zwraca wyłącznie zakończone sesje. */
   archive: "/api/admin/archive",
+  dispatch: {
+    live: "/api/admin/dispatch/live",
+    archive: "/api/admin/dispatch/archive",
+    dictionaries: "/api/admin/dispatch/dictionaries",
+  },
   spareParts: (workOrderId: number) => `/api/admin/work-orders/${workOrderId}/spare-parts`,
   sparePart: (workOrderId: number, partId: number) =>
     `/api/admin/work-orders/${workOrderId}/spare-parts/${partId}`,

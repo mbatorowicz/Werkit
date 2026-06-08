@@ -8,7 +8,7 @@ import {
   customers,
   resourceCategories,
 } from "@/db/schema";
-import { eq, desc, aliasedTable, and } from "drizzle-orm";
+import { eq, desc, aliasedTable, and, type SQL } from "drizzle-orm";
 import {
   applyWorkOrderListJoins,
   newWorkOrderCreatorUserAlias,
@@ -104,11 +104,8 @@ export class AdminOrderService {
       .orderBy(desc(workOrders.createdAt));
   }
 
-  /**
-   * Pobiera historię aktywnych oraz archiwalnych sesji.
-   */
-  static async getArchivedSessions(companyId: number, limitCount = 500) {
-    const creator = aliasedTable(users, "creator");
+  /** Wspólne pola listy sesji (dyspozycja / archiwum). */
+  private static buildSessionListQuery(creator: typeof users) {
     return db
       .select({
         id: workSessions.id,
@@ -152,10 +149,57 @@ export class AdminOrderService {
       .leftJoin(resourceCategories, eq(workSessions.categoryId, resourceCategories.id))
       .leftJoin(resources, eq(workSessions.resourceId, resources.id))
       .leftJoin(materials, eq(workSessions.materialId, materials.id))
-      .leftJoin(customers, eq(workSessions.customerId, customers.id))
-      .where(eq(workSessions.companyId, companyId))
-      .orderBy(desc(workSessions.startTime))
-      .limit(limitCount);
+      .leftJoin(customers, eq(workSessions.customerId, customers.id));
+  }
+
+  private static querySessionsForDispatch(
+    companyId: number,
+    extraWhere: SQL | undefined,
+    limitCount?: number,
+    offsetCount?: number
+  ) {
+    const creator = aliasedTable(users, "creator");
+    const baseWhere = eq(workSessions.companyId, companyId);
+    const filtered = AdminOrderService.buildSessionListQuery(creator).where(
+      extraWhere ? and(baseWhere, extraWhere) : baseWhere
+    );
+    const ordered = filtered.orderBy(desc(workSessions.startTime));
+    if (limitCount != null && offsetCount != null && offsetCount > 0) {
+      return ordered.limit(limitCount).offset(offsetCount);
+    }
+    if (limitCount != null) {
+      return ordered.limit(limitCount);
+    }
+    return ordered;
+  }
+
+  /** Sesje w toku — odświeżane co interwał „live” w dyspozycji. */
+  static async getInProgressSessions(companyId: number) {
+    return AdminOrderService.querySessionsForDispatch(
+      companyId,
+      eq(workSessions.status, "IN_PROGRESS")
+    );
+  }
+
+  /** Zakończone sesje — lazy-load archiwum w dyspozycji. */
+  static async getCompletedArchiveSessions(
+    companyId: number,
+    limitCount = 500,
+    offsetCount = 0
+  ) {
+    return AdminOrderService.querySessionsForDispatch(
+      companyId,
+      eq(workSessions.status, "COMPLETED"),
+      limitCount,
+      offsetCount
+    );
+  }
+
+  /**
+   * @deprecated Użyj {@link getCompletedArchiveSessions} — zwraca wyłącznie zakończone sesje.
+   */
+  static async getArchivedSessions(companyId: number, limitCount = 500) {
+    return AdminOrderService.getCompletedArchiveSessions(companyId, limitCount, 0);
   }
 
   static async createOrder(

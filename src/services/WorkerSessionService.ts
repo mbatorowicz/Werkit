@@ -38,7 +38,7 @@ export class WorkerSessionService {
    * Pobiera aktualną, aktywną sesję pracownika wraz ze zdjęciami, notatkami, ustawieniami firmy i danymi usera.
    */
   static async getActiveSessionWithDetails(userId: number, companyId: number) {
-    const activeSessions = await db
+    const sessionQuery = db
       .select({
         session: workSessions,
         customerAddress: customers.defaultAddress,
@@ -67,14 +67,13 @@ export class WorkerSessionService {
       .where(WorkerSessionService.activeSessionWhere(userId, companyId))
       .limit(1);
 
-    const settingsRows = await db
-      .select()
-      .from(companySettings)
-      .where(eq(companySettings.companyId, companyId))
-      .limit(1);
-    const companySettingsData = settingsRows[0] || null;
+    const [activeSessions, settingsRows, userRows] = await Promise.all([
+      sessionQuery,
+      db.select().from(companySettings).where(eq(companySettings.companyId, companyId)).limit(1),
+      db.select().from(users).where(eq(users.id, userId)).limit(1),
+    ]);
 
-    const userRows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const companySettingsData = settingsRows[0] || null;
     const userData = userRows[0] ? pickWorkerUserFlags(userRows[0]) : null;
 
     if (activeSessions.length === 0) {
@@ -88,21 +87,17 @@ export class WorkerSessionService {
     }
 
     const data = activeSessions[0];
-    const rawPhotos = await db
-      .select()
-      .from(sessionPhotos)
-      .where(eq(sessionPhotos.workSessionId, data.session.id));
-    const photos = await refreshPhotoUrls(rawPhotos);
-    const notes = await db
-      .select()
-      .from(sessionNotes)
-      .where(eq(sessionNotes.workSessionId, data.session.id));
 
-    const resolvedLocation = await CustomerLocationService.resolveForWorkOrder(
-      data.session.workOrderId,
-      data.session.customerId,
-      companyId
-    );
+    const [rawPhotos, notes, resolvedLocation] = await Promise.all([
+      db.select().from(sessionPhotos).where(eq(sessionPhotos.workSessionId, data.session.id)),
+      db.select().from(sessionNotes).where(eq(sessionNotes.workSessionId, data.session.id)),
+      CustomerLocationService.resolveForWorkOrder(
+        data.session.workOrderId,
+        data.session.customerId,
+        companyId
+      ),
+    ]);
+    const photos = await refreshPhotoUrls(rawPhotos);
 
     return {
       session: {

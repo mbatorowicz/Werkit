@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Menu, X, Users } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { LogoutButton } from "@/components/LogoutButton";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
@@ -115,14 +116,17 @@ export function MobileAdminNav({
 
             <div className="flex shrink-0 flex-col gap-2 border-t border-zinc-200 p-4 dark:border-zinc-800">
               {loggedInUser && (
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
-                  <Users className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="font-medium truncate">{loggedInUser}</span>
+                <div className="flex flex-col gap-2 rounded-lg bg-zinc-50 px-3 py-2 text-sm text-zinc-700 dark:bg-zinc-800/50 dark:text-zinc-200">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 shrink-0 text-emerald-500" />
+                    <span className="truncate font-medium">{loggedInUser}</span>
+                  </div>
+                  <LocaleSwitcher variant="embedded" />
                 </div>
               )}
               <div className="flex items-center justify-between gap-2">
                 <LogoutButton
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-zinc-500 dark:text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all font-medium text-sm"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
                   iconClass="w-4 h-4"
                   text={dict.sidebar.logoutSession}
                 />

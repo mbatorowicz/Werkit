@@ -158,3 +158,15 @@ export type ReportsDashboardSnapshot = {
   tonsThisMonth: number;
   topMachinesThisMonth: { name: string; sessionCount: number }[];
 };
+
+/** Dane startowe dyspozycji z SSR (`AdminDispatchService.getBootstrap`). */
+export type AdminDispatchBootstrap = {
+  workers: BaseWorker[];
+  machines: BaseMachine[];
+  materials: BaseMaterial[];
+  materialCategories: BaseMaterialCategory[];
+  customers: BaseCustomer[];
+  categories: BaseCategory[];
+  orders: UnifiedGanttItem[];
+  liveSessions: UnifiedGanttItem[];
+};
