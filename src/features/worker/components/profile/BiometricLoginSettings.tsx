@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Fingerprint } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import {
   biometricHardwareAvailable,
@@ -27,7 +27,9 @@ export function BiometricLoginSettings({
   role: Role;
   initialBiometricLoginEnabled: boolean;
 }) {
-  const dict = getDictionary().worker.profile;
+  const dictionary = useDictionary();
+  const dict = dictionary.worker.profile;
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
   const [enabled, setEnabled] = useState(initialBiometricLoginEnabled);
   const [hardwareOk, setHardwareOk] = useState<boolean | null>(null);
   const [credentialsSaved, setCredentialsSaved] = useState(false);
@@ -94,7 +96,6 @@ export function BiometricLoginSettings({
         { category: "profile" }
       );
       if (!res.ok) {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         const data = (await res.json()) as { error?: string };
         setError(apiErrors[data.error ?? ""] ?? data.error ?? dict.biometricSaveError);
         return;
@@ -125,7 +126,6 @@ export function BiometricLoginSettings({
       );
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         setError(apiErrors[data.error ?? ""] ?? data.error ?? dict.biometricSaveError);
         return;
       }

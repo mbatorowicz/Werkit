@@ -9,7 +9,7 @@ import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
@@ -39,7 +39,7 @@ export function MachinesResourcesTable({
   onEditResource,
   onDeleteResource,
 }: Props) {
-  const ui = getDictionary().admin.ui;
+  const ui = useDictionary().admin.ui;
   const [previewMachine, setPreviewMachine] = useState<MachinesResource | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 

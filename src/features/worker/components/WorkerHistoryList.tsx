@@ -2,7 +2,7 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, useAppLocale, useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import {
   categoryFlagsFromWorkOrderRow,
@@ -57,7 +57,9 @@ export function WorkerHistoryList({
   workerClient: WorkerClient;
 }) {
   const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
-  const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+  const dictionary = useDictionary();
+  const locale = useAppLocale();
+  const tonsSuffix = dictionary.workOrdersSchedule.tons;
 
   return (
     <>
@@ -105,15 +107,18 @@ export function WorkerHistoryList({
                   taskDescription: s.taskDescription,
                   repairDescription: s.repairDescription,
                 })}
-                fieldVisibility={resolveOrderLabelFieldVisibility({
-                  orderType: s.orderType,
-                  ...categoryFlagsFromWorkOrderRow({
-                    categoryShowMaterial: s.categoryShowMaterial ?? undefined,
-                    categoryShowCustomer: s.categoryShowCustomer ?? undefined,
-                    categoryShowQuantity: s.categoryShowQuantity ?? undefined,
-                    categoryShowTaskDescription: s.categoryShowTaskDescription ?? undefined,
-                  }),
-                })}
+                fieldVisibility={resolveOrderLabelFieldVisibility(
+                  {
+                    orderType: s.orderType,
+                    ...categoryFlagsFromWorkOrderRow({
+                      categoryShowMaterial: s.categoryShowMaterial ?? undefined,
+                      categoryShowCustomer: s.categoryShowCustomer ?? undefined,
+                      categoryShowQuantity: s.categoryShowQuantity ?? undefined,
+                      categoryShowTaskDescription: s.categoryShowTaskDescription ?? undefined,
+                    }),
+                  },
+                  locale
+                )}
                 dateLabel={st && !Number.isNaN(st.getTime()) ? formatUiDateOnly(st) : "—"}
                 timeLabel={`${
                   st && !Number.isNaN(st.getTime()) ? formatUiTimeHm(st) : "—"
@@ -122,7 +127,7 @@ export function WorkerHistoryList({
                 attachmentNotes={Boolean(s.hasNotes)}
                 onCardClick={() =>
                   openOrderDetails({
-                    ...workerOrderDetailsFromSession(s, tonsSuffix, workerClient),
+                    ...workerOrderDetailsFromSession(s, tonsSuffix, workerClient, locale),
                     historyDetailHref: `/worker/history/${s.id}`,
                     historyDetailLinkLabel: historyLabels.openSessionDetail,
                   })

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Cog, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import type { AppDictionary } from "@/i18n/types";
+import { formatDict, useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import type { SparePart } from "@/types/dur";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
@@ -33,6 +35,7 @@ export function SparePartsTablePanel({
   onDeletePart,
   onAdjustStock,
 }: Props) {
+  const wh = warehouseCommonLabels(useDictionary());
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredParts = useMemo(() => {
@@ -134,12 +137,13 @@ export function SparePartsTablePanel({
                       {isLowStock ? (
                         <span
                           className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-600 dark:bg-amber-500/10 dark:text-amber-400"
-                          title={dict.lowStockTooltip
-                            .replace("{minStock}", String(part.minStock))
-                            .replace("{unit}", part.unit)}
+                          title={formatDict(wh.lowStockTooltip, {
+                            minStock: String(part.minStock),
+                            unit: part.unit,
+                          })}
                         >
                           <AlertTriangle className="h-3 w-3" />
-                          {dict.lowStock}
+                          {wh.lowStockAlert}
                         </span>
                       ) : null}
                     </div>
@@ -174,9 +178,9 @@ export function SparePartsTablePanel({
                             type="button"
                             onClick={() => onAdjustStock(part)}
                             className="rounded-md px-2 py-1 text-[10px] font-medium text-zinc-600 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                            title={dict.adjustStock}
+                            title={wh.adjustStock}
                           >
-                            {dict.adjustStock}
+                            {wh.adjustStock}
                           </button>
                         ) : null}
                         <button

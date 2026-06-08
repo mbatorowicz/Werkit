@@ -5,7 +5,7 @@ import { ChevronRight, Truck, Tractor, Wrench } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder } from "@/types/worker";
 import type { WizardCategory } from "@/types/wizard";
-import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, useAppLocale, useDictionary } from "@/i18n";
 import {
   sortWorkOrdersByPriorityThenCreated,
   workOrderInteractiveSurfaceClass,
@@ -38,6 +38,9 @@ export function WizardStep1Category({
   setStep,
   onAcceptOrder,
 }: Props) {
+  const dictionary = useDictionary();
+  const locale = useAppLocale();
+  const tonsSuffix = dictionary.workOrdersSchedule.tons;
   const categoryOptions = useMemo(
     () => categories.map((c) => ({ id: String(c.id), label: c.name })),
     [categories]
@@ -58,8 +61,7 @@ export function WizardStep1Category({
           <h2 className="text-xl font-bold text-amber-500 mb-3">{dict.wizardPendingOrders}</h2>
           <div className="space-y-3">
             {sortWorkOrdersByPriorityThenCreated(orders).map((order) => {
-              const tonsSuffix = getDictionary().workOrdersSchedule.tons;
-              const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
+              const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix, locale);
               return (
                 <button
                   key={order.id}

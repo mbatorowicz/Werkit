@@ -1,12 +1,12 @@
 "use client";
 
 import { Package } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import SparePartsClient from "@/features/admin/dur/SparePartsClient";
 import StockMovementsClient from "@/features/admin/dur/StockMovementsClient";
 
 export default function WarehouseClient() {
-  const dict = getDictionary().dur.warehouse;
+  const dict = useDictionary().dur.warehouse;
 
   return (
     <div className="space-y-12">

@@ -5,6 +5,7 @@ import WorkerEditOrderClient from "@/features/worker/components/edit-order/Worke
 import { getUserId } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function WorkerEditOrderPage({ params }: PageProps) {
     redirect("/worker");
   }
 
-  const dict = getDictionary().worker.profile;
+  const dict = getDictionary(await getServerLocale()).worker.profile;
   const userId = await getUserId();
   if (!userId) {
     redirect("/login");

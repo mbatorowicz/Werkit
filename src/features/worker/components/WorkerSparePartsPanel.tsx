@@ -12,7 +12,8 @@ import { parseJsonArray } from "@/lib/parseJsonArray";
 import { isRecord } from "@/lib/narrowApiListRows";
 import { DecimalInput } from "@/components/DecimalInput";
 import { decimalStringForStorage } from "@/lib/decimalInput";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 
 type WorkOrderSparePartRow = {
   id: number;
@@ -47,10 +48,10 @@ export default function WorkerSparePartsPanel({
   durEnabled = false,
   isDurWorker = false,
 }: Props) {
-  const dict = getDictionary();
+  const dict = useDictionary();
   const workerDict = dict.worker.client;
   const durDict = dict.dur.workOrderSpareParts;
-  const wDict = dict.dur.warehouse;
+  const wh = warehouseCommonLabels(dict);
   const durApiErrors = dict.dur.apiErrors as Record<string, string>;
   const apiErrors = dict.apiErrors as Record<string, string>;
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
@@ -109,7 +110,7 @@ export default function WorkerSparePartsPanel({
     });
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
-  const catalogOptions = durSparePartComboboxOptions(catalogItems, wDict.partStockSublabel);
+  const catalogOptions = durSparePartComboboxOptions(catalogItems, wh.stockSublabel);
 
   const handleAddPart = async () => {
     const partIdNum = parseInt(selectedPartId, 10);

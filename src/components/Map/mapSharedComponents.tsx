@@ -6,7 +6,7 @@ import L from "leaflet";
 import { isMapClickBlocked } from "@/lib/map/blockMapClickBriefly";
 import { isLeafletUiClick } from "@/lib/map/isLeafletUiClick";
 import { LocateFixed, Plus, Minus, Navigation, ExternalLink } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Safe area offsets — works on mobile with notches / status bars
@@ -54,7 +54,7 @@ export function WaypointControls({
   /** Mniejsze przyciski (32px) dla CustomerRoutePlannerMap, domyślnie 40px. */
   compact?: boolean;
 }) {
-  const dict = getDictionary().admin.map;
+  const dict = useDictionary().admin.map;
   const isAddMode = waypointMode === "add";
   const isRemoveMode = waypointMode === "remove";
   const size = compact ? "w-8 h-8" : "w-10 h-10";
@@ -158,7 +158,7 @@ export function LocateMeButton({
 }: {
   currentLocation: { lat: number; lng: number };
 }) {
-  const dict = getDictionary().admin.map;
+  const dict = useDictionary().admin.map;
   const map = useMap();
 
   const handleLocate = useCallback(

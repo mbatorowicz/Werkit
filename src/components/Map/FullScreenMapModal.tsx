@@ -5,7 +5,7 @@ import { MapContainer, Marker, Popup, Polyline } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { Coord, TimelineItem } from "@/types/worker";
 import {
   MapInvalidateOnResize,
@@ -65,8 +65,9 @@ export default function FullScreenMapModal({
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
 }: FullScreenMapModalProps) {
-  const dict = getDictionary().admin.map;
-  const customersDict = getDictionary().admin.customers;
+  const dictionary = useDictionary();
+  const dict = dictionary.admin.map;
+  const customersDict = dictionary.admin.customers;
 
   const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);
 

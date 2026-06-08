@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Bell } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { BiometricLoginSettings } from "./BiometricLoginSettings";
 import { ProfileNotificationSoundSettings } from "./ProfileNotificationSoundSettings";
@@ -22,7 +22,7 @@ export function ProfileSettings({
   usernameEmail: string;
   role: "worker" | "admin";
 }) {
-  const profileDict = getDictionary().worker.profile;
+  const profileDict = useDictionary().worker.profile;
   const [enabled, setEnabled] = useState(initialEnabled);
 
   const toggleNotifications = async () => {

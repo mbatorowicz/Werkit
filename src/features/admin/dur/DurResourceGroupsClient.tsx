@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, Layers } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -13,7 +13,7 @@ export default function DurResourceGroupsClient() {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
 
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.dur.resourceGroups;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
 

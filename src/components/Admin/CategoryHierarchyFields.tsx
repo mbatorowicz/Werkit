@@ -1,6 +1,7 @@
 "use client";
 
-import { getDictionary } from "@/i18n";
+import { categorySharedLabels } from "@/lib/categoryI18n";
+import { useDictionary } from "@/i18n";
 import { filterCategoryGroups } from "@/lib/categoryTree";
 
 type Row = {
@@ -32,7 +33,7 @@ export function CategoryHierarchyFields({
   onIsGroupChange,
   onSortOrderChange,
 }: Props) {
-  const g = getDictionary().admin.categories.shared;
+  const g = categorySharedLabels(useDictionary(), "admin");
   const parentOptions = filterCategoryGroups(categories).filter((c) => c.id !== excludeId);
 
   return (

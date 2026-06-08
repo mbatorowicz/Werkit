@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatCompanyAddressQuery } from "@/lib/map/companyBaseLocation";
@@ -42,8 +42,9 @@ export function SettingsCompanySection({
 
   const baseLat = parseDecimalInput(baseLatitude || "0") ?? 0;
   const baseLng = parseDecimalInput(baseLongitude || "0") ?? 0;
-  const dict = getDictionary().admin.settings;
-  const customersDict = getDictionary().admin.customers;
+  const dictionary = useDictionary();
+  const dict = dictionary.admin.settings;
+  const customersDict = dictionary.admin.customers;
   const { alert: appAlert } = useAppDialog();
 
   const handleGeocodeBase = async () => {

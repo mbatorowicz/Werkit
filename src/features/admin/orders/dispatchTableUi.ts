@@ -1,4 +1,4 @@
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, type Locale } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { UnifiedGanttItem } from "@/types/admin";
 import {
@@ -75,7 +75,8 @@ export function sortUnifiedDispatchTableRows(items: UnifiedGanttItem[]): Unified
 export function buildDispatchItemCardCopy(
   item: UnifiedGanttItem,
   ordersDict: OrdersDict,
-  workerUiLabels: WorkerClient
+  workerUiLabels: WorkerClient,
+  locale?: Locale
 ) {
   const orderNo = `#${item.workOrderId || item.id}`;
   const mode = (item.categoryName || workerUiLabels.noCategoryName) as string;
@@ -99,15 +100,18 @@ export function buildDispatchItemCardCopy(
       taskDescription: (item.taskDescription as string) || null,
       repairDescription: (item.repairDescription as string) || null,
     }) ?? "";
-  const fieldVisibility = resolveOrderLabelFieldVisibility({
-    orderType,
-    ...categoryFlagsFromWorkOrderRow({
-      categoryShowMaterial: item.categoryShowMaterial,
-      categoryShowCustomer: item.categoryShowCustomer,
-      categoryShowQuantity: item.categoryShowQuantity,
-      categoryShowTaskDescription: item.categoryShowTaskDescription,
-    }),
-  });
+  const fieldVisibility = resolveOrderLabelFieldVisibility(
+    {
+      orderType,
+      ...categoryFlagsFromWorkOrderRow({
+        categoryShowMaterial: item.categoryShowMaterial,
+        categoryShowCustomer: item.categoryShowCustomer,
+        categoryShowQuantity: item.categoryShowQuantity,
+        categoryShowTaskDescription: item.categoryShowTaskDescription,
+      }),
+    },
+    locale
+  );
   return {
     orderNo,
     mode,

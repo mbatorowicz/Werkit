@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Cog } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import {
   useSparePartsAdminData,
@@ -26,7 +27,7 @@ export default function SparePartsClient({ embedded = false }: Props) {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
 
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.dur.spareParts;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
@@ -176,7 +177,7 @@ export default function SparePartsClient({ embedded = false }: Props) {
         onClose={() => setAdjustingPart(null)}
         onSaved={async () => {
           await fetchData();
-          await appAlert({ message: dictionary.dur.warehouse.adjustment.saveSuccess });
+          await appAlert({ message: warehouseCommonLabels(dictionary).adjustment.saveSuccess });
         }}
       />
     </>

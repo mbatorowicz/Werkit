@@ -6,7 +6,7 @@ import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
 import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import type { WorkerOrderDetailsData } from "@/features/worker/lib/workerOrderDetails";
 import { UI_RADIUS_INNER } from "@/lib/uiRadius";
@@ -20,9 +20,10 @@ export function WorkerOrderDetailsModal({
   onClose: () => void;
   data: WorkerOrderDetailsData | null;
 }) {
-  const dict = getDictionary().worker.client;
-  const fieldLabels = getDictionary().admin.orderFields;
-  const customerDict = getDictionary().admin.customers;
+  const dictionary = useDictionary();
+  const dict = dictionary.worker.client;
+  const fieldLabels = dictionary.admin.orderFields;
+  const customerDict = dictionary.admin.customers;
   if (!data) return null;
 
   const vis = data.fieldVisibility;

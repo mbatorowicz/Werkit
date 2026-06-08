@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
@@ -28,14 +28,16 @@ async function parseJsonList(url: string): Promise<{ rows: unknown[]; errorCode?
 
 export function useMachinesAdminData() {
   const { alert: appAlert } = useAppDialog();
+  const dictionary = useDictionary();
+  const dictMachines = dictionary.admin.machines;
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
   const [machines, setMachines] = useState<MachinesResource[]>([]);
   const [categories, setCategories] = useState<MachinesCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    const dict = getDictionary().admin.machines;
-    const apiErrors = getDictionary().apiErrors as Record<string, string>;
+    const dict = dictMachines;
     try {
       const [mList, cList] = await Promise.all([
         parseJsonList("/api/machines"),
@@ -52,7 +54,7 @@ export function useMachinesAdminData() {
       await appAlert({ message: dict.dbError });
     }
     setIsLoading(false);
-  }, [appAlert]);
+  }, [appAlert, apiErrors, dictMachines]);
 
   return { machines, categories, isLoading, fetchData };
 }

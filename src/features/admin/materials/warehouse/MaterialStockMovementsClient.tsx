@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, Package } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { materialsApi } from "@/lib/appRoutes";
@@ -25,6 +25,7 @@ import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import {
   narrowMaterialStockIssues,
   narrowMaterialStockReceipts,
@@ -42,8 +43,10 @@ type Props = {
 export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: Props) {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
-  const dictionary = getDictionary();
-  const wDict = dictionary.admin.materials.warehouse;
+  const dictionary = useDictionary();
+  const wh = warehouseCommonLabels(dictionary);
+  const matWh = dictionary.admin.materials.warehouse;
+  const common = dictionary.common;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const comboboxCommon = comboboxFeedbackProps(dictionary.admin.orders);
 
@@ -75,12 +78,12 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
     return materials.map((m) => ({
       id: String(m.id),
       label: m.name,
-      sublabel: formatDict(wDict.stockSublabel, {
+      sublabel: formatDict(wh.stockSublabel, {
         qty: m.stockQuantity ?? "0",
         unit: m.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
       }),
     }));
-  }, [materials, wDict.stockSublabel]);
+  }, [materials, wh.stockSublabel]);
 
   const loadMovements = useCallback(async () => {
     setIsLoading(true);
@@ -150,7 +153,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
       setShowModal(false);
       await loadMovements();
       onRefreshMaterials();
-      await appAlert({ message: wDict.saveSuccess });
+      await appAlert({ message: wh.movementSaveSuccess });
     } catch {
       await appAlert({ message: apiErrors.fetch_error });
     }
@@ -222,9 +225,9 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
         <div>
           <h2 className="flex items-center gap-2 text-xl font-semibold text-zinc-900 dark:text-white">
             <Package className="h-6 w-6 text-emerald-500" />
-            {wDict.movementsTitle}
+            {wh.movementsTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{wDict.movementsSubtitle}</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{matWh.movementsSubtitle}</p>
         </div>
         {canMutate ? (
           <button
@@ -233,7 +236,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
             className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" />
-            {tab === "receipts" ? wDict.addReceipt : wDict.addIssue}
+            {tab === "receipts" ? wh.addReceipt : wh.addIssue}
           </button>
         ) : null}
       </div>
@@ -248,7 +251,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
               : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
-          {wDict.tabIssues}
+          {wh.tabIssues}
         </button>
         <button
           type="button"
@@ -259,26 +262,26 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
               : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
           }`}
         >
-          {wDict.tabReceipts}
+          {wh.tabReceipts}
         </button>
       </div>
 
       <ListSearchBar
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder={wDict.movementsSearchPlaceholder}
+        placeholder={matWh.movementsSearchPlaceholder}
       />
 
       {issueTotalsByMaterial.length > 0 ? (
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
           <p className="mb-2 font-medium text-emerald-900 dark:text-emerald-200">
-            {wDict.movementsFilterSummary}
+            {wh.movementsFilterSummary}
           </p>
           <ul className="space-y-1 text-emerald-800 dark:text-emerald-300">
             {issueTotalsByMaterial.map((item) => (
               <li key={item.materialName}>
-                {formatDict(wDict.movementsFilterSummaryLine, {
-                  material: item.materialName,
+                {formatDict(wh.movementsFilterSummaryLine, {
+                  item: item.materialName,
                   qty: decimalStringForStorage(String(item.quantity)) ?? String(item.quantity),
                   unit: item.unit,
                 })}
@@ -293,29 +296,29 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
           <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
             <tr>
               {tab === "issues" ? (
-                <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colCustomer}</th>
+                <th className="px-4 py-3 font-semibold text-zinc-500">{matWh.colCustomer}</th>
               ) : null}
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colMaterial}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colQuantity}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colDate}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colNotes}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{matWh.colMaterial}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colQuantity}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colDate}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colNotes}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
                 <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {wDict.loading}
+                  {common.loading.default}
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
                   {searchQuery.trim()
-                    ? wDict.movementsSearchNoResults
+                    ? common.search.noResultsForQuery
                     : tab === "receipts"
-                      ? wDict.emptyReceipts
-                      : wDict.emptyIssues}
+                      ? wh.emptyReceipts
+                      : wh.emptyIssues}
                 </td>
               </tr>
             ) : (
@@ -328,7 +331,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
                   ) : null}
                   <td className="px-4 py-3 font-medium">{row.materialName ?? row.materialId}</td>
                   <td className="px-4 py-3">
-                    {formatDict(wDict.stockWithUnit, {
+                    {formatDict(wh.stockWithUnit, {
                       qty: row.quantity,
                       unit:
                         materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
@@ -348,7 +351,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
       <AdminModalShell
         open={showModal && canMutate}
         onClose={() => setShowModal(false)}
-        title={tab === "receipts" ? wDict.modalReceiptTitle : wDict.modalIssueTitle}
+        title={tab === "receipts" ? wh.modalReceiptTitle : wh.modalIssueTitle}
         maxWidthClass="max-w-md"
         closeOnBackdropClick={false}
         footer={
@@ -356,19 +359,19 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
             formId="material-stock-form"
             onCancel={() => setShowModal(false)}
             isSubmitting={isSubmitting}
-            submitLabel={wDict.save}
-            cancelLabel={wDict.cancel}
+            submitLabel={common.actions.save}
+            cancelLabel={common.actions.cancel}
           />
         }
       >
         <form id="material-stock-form" onSubmit={handleSubmit} className={`${INVENTORY_FORM_STACK} p-6`}>
-          <AdminFormField label={wDict.fieldMaterial} required>
+          <AdminFormField label={matWh.fieldMaterial} required>
             <AdminSearchCombobox
               options={materialOptions}
               value={materialId}
               onChange={setMaterialId}
-              placeholder={wDict.fieldMaterialPlaceholder}
-              aria-label={wDict.fieldMaterial}
+              placeholder={matWh.fieldMaterialPlaceholder}
+              aria-label={matWh.fieldMaterial}
               required
               {...comboboxCommon}
             />
@@ -377,10 +380,10 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
           <AdminFormField
             label={
               selectedMaterial
-                ? formatDict(wDict.fieldQuantityWithUnit, {
+                ? formatDict(matWh.fieldQuantityWithUnit, {
                     unit: selectedMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
                   })
-                : wDict.fieldQuantity
+                : matWh.fieldQuantity
             }
             required
           >
@@ -395,7 +398,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
 
           {tab === "receipts" ? (
             <>
-              <AdminFormField label={wDict.fieldUnitPrice}>
+              <AdminFormField label={matWh.fieldUnitPrice}>
                 <DecimalInput
                   value={unitPrice}
                   onChange={setUnitPrice}
@@ -403,7 +406,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
                   className={INVENTORY_FORM_CONTROL}
                 />
               </AdminFormField>
-              <AdminFormField label={wDict.fieldInvoice}>
+              <AdminFormField label={matWh.fieldInvoice}>
                 <input
                   type="text"
                   value={invoiceNumber}
@@ -414,7 +417,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
             </>
           ) : null}
 
-          <AdminFormField label={wDict.fieldNotes}>
+          <AdminFormField label={matWh.fieldNotes}>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

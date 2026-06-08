@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { getDictionary, formatDict } from "@/i18n";
+import { useDictionary, formatDict } from "@/i18n";
 import { PlatformCompanyForm } from "@/components/Platform/PlatformCompanyForm";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
 
@@ -13,6 +13,7 @@ type Props = {
 };
 
 export function PlatformDashboard({ initialOverview, dict }: Props) {
+  const apiErrors = useDictionary().apiErrors as Record<string, string>;
   const [rows, setRows] = useState(initialOverview);
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -64,7 +65,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         const code = typeof body.error === "string" ? body.error : "";
         showFeedback(apiErrors[code] ?? dict.createError, true);
         if (code === "slug_exists") await refreshOverview();
@@ -118,7 +118,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         showFeedback(apiErrors[body.error ?? ""] ?? dict.updateError, true);
         return;
       }

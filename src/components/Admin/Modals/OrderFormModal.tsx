@@ -8,7 +8,7 @@ import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { WorkOrderScheduleFields } from "@/components/work-orders/WorkOrderScheduleFields";
 import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { OrderFormFields } from "@/components/Admin/Modals/OrderFormFields";
 import {
@@ -57,6 +57,7 @@ export default function OrderFormModal({
   const [hasConflicts, setHasConflicts] = useState(false);
   const [extraCustomers, setExtraCustomers] = useState<BaseCustomer[]>([]);
   const { confirm: appConfirm } = useAppDialog();
+  const dictionary = useDictionary();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -102,7 +103,7 @@ export default function OrderFormModal({
     await submitForm(false);
   };
 
-  const scheduleLabels = buildWorkOrderScheduleFieldLabels(getDictionary().workOrdersSchedule, {
+  const scheduleLabels = buildWorkOrderScheduleFieldLabels(dictionary.workOrdersSchedule, {
     mode: "admin",
   });
 

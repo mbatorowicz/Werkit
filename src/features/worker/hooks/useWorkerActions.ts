@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { offlineActionQueue } from "@/lib/offlineActionQueue";
@@ -30,7 +30,8 @@ export function useWorkerActions({
   categoryIsStationary = false,
 }: UseWorkerActionsProps) {
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
-  const apiErrors = getDictionary().apiErrors as Record<string, string>;
+  const dictionary = useDictionary();
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
   const [acceptErrors, setAcceptErrors] = useState<Record<number, string>>({});
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [noteText, setNoteText] = useState("");

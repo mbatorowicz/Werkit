@@ -1,4 +1,4 @@
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, type Locale } from "@/i18n";
 import { formatCustomerLabel } from "@/lib/customerSearch";
 import {
   orderLabelDescriptionText,
@@ -30,9 +30,10 @@ export type WorkerOrderDetailsData = {
 
 export function workerOrderDetailsFromWorkOrder(
   order: WorkOrder,
-  tonsSuffix: string
+  tonsSuffix: string,
+  locale?: Locale
 ): WorkerOrderDetailsData {
-  const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
+  const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix, locale);
   const due = order.dueDate?.trim() ? order.dueDate : order.createdAt;
   return {
     orderId: order.id,
@@ -79,7 +80,8 @@ type SessionDetailsSource = {
 export function workerOrderDetailsFromSession(
   session: SessionDetailsSource,
   tonsSuffix: string,
-  dict: { noCategoryName: string }
+  dict: { noCategoryName: string },
+  locale?: Locale
 ): WorkerOrderDetailsData {
   const customerName =
     formatCustomerLabel({
@@ -102,7 +104,8 @@ export function workerOrderDetailsFromSession(
       categoryShowQuantity: session.categoryShowQuantity ?? undefined,
       categoryShowTaskDescription: session.categoryShowTaskDescription ?? undefined,
     },
-    tonsSuffix
+    tonsSuffix,
+    locale
   ).fieldVisibility;
 
   return {

@@ -14,17 +14,30 @@ export type CategoryHierarchyFormFields = {
   sortOrder: number;
 };
 
+/** Etykiety panelu kategorii — wspólne (common) + modułowe rozszerzenia. */
 export type CategoryAdminLabels = {
   panelTitle: string;
-  add: string;
   empty: string;
   confirmDelete: string;
+  namePlaceholder: string;
+  add: string;
+  save: string;
   modalEdit: string;
   modalCreate: string;
-  namePlaceholder: string;
-  save: string;
   badgeGroup: string;
-  treeStatCategories: string;
-  treeStatCategoriesShort: string;
-  treeStatMaterials: string;
+  isGroupLabel: string;
+  isGroupHint: string;
+  parentLabel: string;
+  parentNone: string;
+  sortOrderLabel: string;
+  colorLabel: string;
+  colorHint: string;
+  fieldName: string;
+  previewTypeGroup: string;
+  previewTypeCategory: string;
+  catalogSearchPlaceholder: string;
+  catalogSearchNoResults: string;
+  treeStatCategories?: string;
+  treeStatCategoriesShort?: string;
+  treeStatMaterials?: string;
 };

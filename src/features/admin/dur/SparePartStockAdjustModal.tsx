@@ -12,7 +12,8 @@ import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { useAppDialog } from "@/components/AppDialogProvider";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import type { InventoryAdjustmentInput, SparePart } from "@/types/dur";
 
 type Props = {
@@ -24,8 +25,8 @@ type Props = {
 
 export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Props) {
   const { alert: appAlert } = useAppDialog();
-  const dictionary = getDictionary();
-  const adjDict = dictionary.dur.warehouse.adjustment;
+  const dictionary = useDictionary();
+  const adjDict = warehouseCommonLabels(dictionary).adjustment;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
 

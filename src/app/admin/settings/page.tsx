@@ -3,11 +3,13 @@ import { AppDownloadCard } from "@/components/Admin/AppDownloadCard";
 import { Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { getAndroidAppDownloadInfoAsync } from "@/lib/androidAppDownload";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
+  const dict = getDictionary(await getServerLocale());
   const companyId = await requireServerCompanyId();
   const { DictionaryService } = await import("@/services/DictionaryService");
   const settings = await DictionaryService.getSettings(companyId);
@@ -19,7 +21,7 @@ export default async function SettingsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
           <Settings className="w-6 h-6 text-emerald-500" />{" "}
-          {getDictionary().admin.sidebar.companySettings}
+          {dict.admin.sidebar.companySettings}
         </h1>
       </div>
 

@@ -8,7 +8,8 @@ import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { CategoryColorBadge } from "@/components/CategoryColorBadge";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
@@ -46,9 +47,10 @@ export function MaterialsTable({
   onAdjustStock,
   isLowStock,
 }: Props) {
-  const wDict = dict.warehouse;
-  const sharedDict = getDictionary().admin.shared;
-  const ui = getDictionary().admin.ui;
+  const dictionary = useDictionary();
+  const wh = warehouseCommonLabels(dictionary);
+  const sharedDict = dictionary.admin.shared;
+  const ui = dictionary.admin.ui;
   const [previewMaterial, setPreviewMaterial] = useState<MaterialRow | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -105,7 +107,7 @@ export function MaterialsTable({
                   {dict.unitColumn}
                 </th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                  {wDict.stockColumn}
+                  {wh.stockColumn}
                 </th>
                 {canMutate ? (
                   <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -169,13 +171,13 @@ export function MaterialsTable({
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                            {formatDict(wDict.stockWithUnit, {
+                            {formatDict(wh.stockWithUnit, {
                               qty: material.stockQuantity ?? "0",
                               unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
                             })}
                           </span>
                           {isLowStock?.(material) ? (
-                            <span className="text-xs font-semibold text-amber-600">{wDict.lowStock}</span>
+                            <span className="text-xs font-semibold text-amber-600">{wh.lowStock}</span>
                           ) : null}
                         </div>
                       </td>
@@ -190,9 +192,9 @@ export function MaterialsTable({
                                   onAdjustStock(material);
                                 }}
                                 className="rounded-lg px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-400"
-                                title={wDict.adjustStock}
+                                title={wh.adjustStock}
                               >
-                                {wDict.adjustStock}
+                                {wh.adjustStock}
                               </button>
                             ) : null}
                             <button
@@ -266,8 +268,8 @@ export function MaterialsTable({
               value={previewMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT}
             />
             <AdminPreviewField
-              label={wDict.stockColumn}
-              value={formatDict(wDict.stockWithUnit, {
+              label={wh.stockColumn}
+              value={formatDict(wh.stockWithUnit, {
                 qty: previewMaterial.stockQuantity ?? "0",
                 unit: previewMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
               })}

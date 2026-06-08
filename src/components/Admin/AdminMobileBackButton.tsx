@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 /**
  * Mobile back button for admin panel — uses `router.back()` to navigate
@@ -10,7 +10,7 @@ import { getDictionary } from "@/i18n";
  */
 export function AdminMobileBackButton() {
   const router = useRouter();
-  const dict = getDictionary().admin.ui;
+  const dict = useDictionary().admin.ui;
 
   return (
     <button

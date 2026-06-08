@@ -3,7 +3,7 @@
 import { Loader2, Settings } from "lucide-react";
 import SettingsForm, { type SettingsSnapshot } from "@/app/admin/settings/SettingsForm";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 export function OrdersSettingsQuickModal({
   isOpen,
@@ -16,7 +16,7 @@ export function OrdersSettingsQuickModal({
   settingsData: unknown;
   title: string;
 }) {
-  const uiDict = getDictionary().admin.ui;
+  const uiDict = useDictionary().admin.ui;
 
   return (
     <AdminModalShell

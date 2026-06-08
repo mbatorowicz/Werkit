@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { workerApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.worker.client;
   const ui = dictionary.admin.ui;
   const apiErrors = dictionary.apiErrors as Record<string, string>;

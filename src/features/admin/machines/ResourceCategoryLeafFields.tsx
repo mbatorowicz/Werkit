@@ -2,7 +2,8 @@
 
 import type { AppDictionary } from "@/i18n/types";
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
-import { getDictionary } from "@/i18n";
+import { categorySharedLabels } from "@/lib/categoryI18n";
+import { useDictionary } from "@/i18n";
 import type { OrderType } from "@/types/worker";
 import type { CategoryFormState } from "./types";
 
@@ -15,7 +16,8 @@ type Props = {
 };
 
 export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
-  const shared = getDictionary().admin.categories.shared;
+  const dictionary = useDictionary();
+  const shared = categorySharedLabels(dictionary, "admin");
 
   return (
     <>
@@ -172,7 +174,7 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
 
           <div className="text-sm text-zinc-700 dark:text-zinc-300">
             {form.orderType === "machine_repair"
-              ? getDictionary().admin.orders.repairDescription
+              ? dictionary.admin.orders.repairDescription
               : dict.fieldTaskDescription}
           </div>
           <input

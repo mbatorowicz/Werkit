@@ -6,7 +6,7 @@ import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { parseDecimalInput } from "@/lib/decimalInput";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 function parseCoordString(value: string): number {
   return parseDecimalInput(value) ?? Number.NaN;
@@ -90,7 +90,7 @@ export default function CustomerMapPicker({
   defaultCenter,
   onChange,
 }: CustomerMapPickerProps) {
-  const dict = getDictionary().admin.customers;
+  const dict = useDictionary().admin.customers;
   const [geocodeBusy, setGeocodeBusy] = useState(false);
   const [geocodeMsg, setGeocodeMsg] = useState<string | null>(null);
 

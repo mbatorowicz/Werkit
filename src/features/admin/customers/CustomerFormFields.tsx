@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 import { INPUT_BASE } from "@/lib/uiTokens";
@@ -10,13 +10,18 @@ import {
   customerFormGeocodeQuery,
 } from "./customerFormApi";
 
+function CustomerMapPickerLoading() {
+  const mapLoading = useDictionary().admin.customers.mapLoading;
+  return (
+    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
+      {mapLoading}
+    </div>
+  );
+}
+
 const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
-      {getDictionary().admin.customers.mapLoading}
-    </div>
-  ),
+  loading: () => <CustomerMapPickerLoading />,
 });
 
 export interface CustomerFormState {

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Clock, MapPin, Camera, FileText, X, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { AppDictionary } from "@/i18n/types";
-import { formatDict, formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
+import { formatDict, formatUiDateOnly, formatUiTimeHm, useAppLocale, useDictionary } from "@/i18n";
 import { Session, Coord, AppSettings, TimelineItem, WorkOrder } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { formatCustomerLabel } from "@/lib/customerSearch";
@@ -89,7 +89,9 @@ export default function ActiveSessionDashboard({
   canEditRoute,
   onRouteWaypointsChange,
 }: ActiveSessionDashboardProps) {
-  const tonsSuffix = getDictionary().workOrdersSchedule.tons;
+  const dictionary = useDictionary();
+  const locale = useAppLocale();
+  const tonsSuffix = dictionary.workOrdersSchedule.tons;
   const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
 
   // Derive destination name from session customer info
@@ -114,7 +116,7 @@ export default function ActiveSessionDashboard({
           layout="teaser"
           orderNo={session.workOrderId ? `#${session.workOrderId}` : `#${session.id}`}
           onCardClick={() =>
-            openOrderDetails(workerOrderDetailsFromSession(session, tonsSuffix, dict))
+            openOrderDetails(workerOrderDetailsFromSession(session, tonsSuffix, dict, locale))
           }
           cardAriaLabel={dict.orderDetailsOpenCategory}
           mode={session.categoryName || dict.noCategoryName}
@@ -131,10 +133,13 @@ export default function ActiveSessionDashboard({
             taskDescription: session.taskDescription,
             repairDescription: session.repairDescription,
           })}
-          fieldVisibility={resolveOrderLabelFieldVisibility({
-            orderType: session.orderType,
-            ...categoryFlagsFromWorkOrderRow(session),
-          })}
+          fieldVisibility={resolveOrderLabelFieldVisibility(
+            {
+              orderType: session.orderType,
+              ...categoryFlagsFromWorkOrderRow(session),
+            },
+            locale
+          )}
           dateLabel={formatUiDateOnly(session.startTime)}
           timeLabel={`${formatUiTimeHm(session.startTime)} – …`}
           attachmentPhotos={timelineEvents.some((e) => e.type === "photo")}
@@ -278,7 +283,7 @@ export default function ActiveSessionDashboard({
         isTimelineOpen={isTimelineOpen}
         setIsTimelineOpen={setIsTimelineOpen}
         selectedEventId={selectedEventId}
-        timelineToggleLabel={formatDict(getDictionary().admin.orderFields.timelineToggle, {
+        timelineToggleLabel={formatDict(dictionary.admin.orderFields.timelineToggle, {
           count: timelineEvents.length,
         })}
       />
@@ -345,7 +350,7 @@ export default function ActiveSessionDashboard({
           </div>
           {settings?.requirePhotoToFinish && (
             <span className="text-[9px] font-medium text-white/80 tracking-widest uppercase">
-              {getDictionary().worker.client.requiresPhoto}
+              {dict.requiresPhoto}
             </span>
           )}
         </button>

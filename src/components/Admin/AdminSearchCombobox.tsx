@@ -1,6 +1,6 @@
 "use client";
 
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -56,7 +56,7 @@ export function AdminSearchCombobox({
   emptyAction,
   noneId,
 }: Props) {
-  const dict = getDictionary().admin.ui;
+  const dict = useDictionary().admin.ui;
   const emptyValue = noneId ?? "";
   const isEmptySelection = useCallback(
     (v: string) => v === "" || (noneId != null && v === noneId),

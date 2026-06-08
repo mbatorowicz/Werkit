@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Users } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { adminApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
@@ -42,7 +42,7 @@ const EMPTY_TREE: OrganizationTreePayload = { tree: [], unassignedUsers: [] };
 export default function PeopleClient() {
   const { canMutate, gpsEnabled, durEnabled } = useAdminAbility();
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.organization;
   const workersDict = dictionary.admin.workers;
   const { org: _org, ...workersFlat } = workersDict;
@@ -468,7 +468,7 @@ export default function PeopleClient() {
               formId="admin-org-dept-form"
               onCancel={() => setDeptModal(null)}
               isSubmitting={isSubmitting}
-              submitLabel={dictionary.admin.categories.shared.save}
+              submitLabel={dictionary.common.categories.shared.save}
               cancelLabel={ui.modalCancel}
             />
           }
@@ -523,7 +523,7 @@ export default function PeopleClient() {
               formId="admin-org-team-form"
               onCancel={() => setTeamModal(null)}
               isSubmitting={isSubmitting}
-              submitLabel={dictionary.admin.categories.shared.save}
+              submitLabel={dictionary.common.categories.shared.save}
               cancelLabel={ui.modalCancel}
             />
           }
@@ -576,7 +576,7 @@ export default function PeopleClient() {
               formId="admin-org-member-form"
               onCancel={() => setMemberModalOpen(false)}
               isSubmitting={isSubmitting}
-              submitLabel={dictionary.admin.categories.shared.save}
+              submitLabel={dictionary.common.categories.shared.save}
               cancelLabel={ui.modalCancel}
             />
           }

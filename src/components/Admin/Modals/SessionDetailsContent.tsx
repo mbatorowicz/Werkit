@@ -3,7 +3,7 @@
 import { Map as MapIcon } from "lucide-react";
 import type { TimelineItem } from "@/types/worker";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { getDictionary } from "@/i18n";
+import { useAppLocale, useDictionary } from "@/i18n";
 import { formatUiDateOnly, formatUiTimeHm } from "@/i18n/format";
 import type { UnifiedGanttItem } from "@/types/admin";
 import { buildDispatchItemCardCopy } from "@/features/admin/orders/dispatchTableUi";
@@ -60,11 +60,13 @@ export function SessionDetailsContent({
   onEdit,
   dict,
 }: SessionDetailsContentProps) {
-  const appDict = getDictionary();
+  const locale = useAppLocale();
+  const appDict = useDictionary();
   const cardCopy = buildDispatchItemCardCopy(
     item,
     appDict.admin.orders,
-    appDict.worker.client
+    appDict.worker.client,
+    locale
   );
 
   return (

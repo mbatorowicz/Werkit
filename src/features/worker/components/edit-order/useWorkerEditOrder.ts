@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type {
   WizardCategory,
   WizardCustomer,
@@ -44,8 +44,9 @@ export function useWorkerEditOrder(
 ) {
   const router = useRouter();
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
-  const dict = getDictionary().worker.client;
-  const apiErrors = getDictionary().apiErrors as Record<string, string>;
+  const dictionary = useDictionary();
+  const dict = dictionary.worker.client;
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);

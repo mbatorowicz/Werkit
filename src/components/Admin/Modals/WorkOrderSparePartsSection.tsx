@@ -14,7 +14,8 @@ import { isRecord } from "@/lib/narrowApiListRows";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { DecimalInput } from "@/components/DecimalInput";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 
 // ── Typy lokalne ──
 
@@ -49,9 +50,9 @@ const CONTROL =
  */
 export default function WorkOrderSparePartsSection({ workOrderId, orderType, resourceGroupId }: Props) {
   const { durEnabled } = useAdminAbility();
-  const dict = getDictionary();
+  const dict = useDictionary();
   const durDict = dict.dur.workOrderSpareParts;
-  const wDict = dict.dur.warehouse;
+  const wh = warehouseCommonLabels(dict);
   const adminOrdersDict = dict.admin.orders;
   const apiErrors = dict.apiErrors as Record<string, string>;
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
@@ -194,7 +195,7 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
 
   const catalogOptions: AdminSearchComboboxOption[] = durSparePartComboboxOptions(
     catalogItems,
-    wDict.partStockSublabel
+    wh.stockSublabel
   );
 
   // ── Render ──

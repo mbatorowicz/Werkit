@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 
 /**
@@ -41,7 +41,7 @@ export function AdminModalShell({
 }) {
   if (!open) return null;
 
-  const closeLabel = getDictionary().admin.ui.closeModal;
+  const closeLabel = useDictionary().admin.ui.closeModal;
   const titleClass =
     titleSize === "lg"
       ? "text-lg font-semibold text-zinc-900 dark:text-white"

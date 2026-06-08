@@ -4,7 +4,7 @@ import { Fragment, useState } from "react";
 import { Pencil, Settings } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
@@ -212,6 +212,7 @@ function OrganizationAddAdminForm({
   dict: AppDictionary["platform"];
   onDone: () => Promise<void>;
 }) {
+  const apiErrors = useDictionary().apiErrors as Record<string, string>;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -232,7 +233,6 @@ function OrganizationAddAdminForm({
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         setIsError(true);
         setMsg(apiErrors[body.error ?? ""] ?? dict.createError);
         return;

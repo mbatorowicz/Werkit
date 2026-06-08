@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 import { parseDecimalInput } from "@/lib/decimalInput";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { adminApi } from "@/lib/appRoutes";
@@ -72,7 +72,7 @@ function isCustomerLocationRow(v: unknown): v is CustomerLocationRow {
 }
 
 export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.customers;
   const machinesDict = dictionary.admin.machines;
   const apiErrors = dictionary.apiErrors as Record<string, string>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { InitialWorkerData } from "@/types/worker";
 
 import { useWorkerAlarmSound } from "@/features/worker/hooks/useWorkerAlarmSound";
@@ -22,8 +22,9 @@ import { WorkerDelegateOrderModal } from "@/features/worker/components/delegatio
 import { UserPlus } from "lucide-react";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
-  const dict = getDictionary().worker.client;
-  const alarmsDict = getDictionary().worker.alarms;
+  const dictionary = useDictionary();
+  const dict = dictionary.worker.client;
+  const alarmsDict = dictionary.worker.alarms;
 
   const shell = useWorkerShellState(initialData);
 

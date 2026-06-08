@@ -1,4 +1,4 @@
-import { getDictionary } from "@/i18n";
+import { getDictionary, type Locale } from "@/i18n";
 import { isRepairOrderType } from "@/lib/orderType";
 import {
   type CategoryFieldFlags,
@@ -19,12 +19,15 @@ export type OrderLabelFieldVisibility = {
 };
 
 /** Widoczność wierszy karty — wyłącznie flagi kategorii (+ etykieta opisu wg rodzaju zlecenia). */
-export function resolveOrderLabelFieldVisibility(input: {
-  orderType?: OrderType | string | null;
-} & OrderLabelCategoryFlags): OrderLabelFieldVisibility {
+export function resolveOrderLabelFieldVisibility(
+  input: {
+    orderType?: OrderType | string | null;
+  } & OrderLabelCategoryFlags,
+  locale?: Locale
+): OrderLabelFieldVisibility {
   const f = resolvedCategoryFieldFlags(input);
   const repair = isRepairOrderType(input.orderType);
-  const fieldLabels = getDictionary().admin.orderFields;
+  const fieldLabels = getDictionary(locale).admin.orderFields;
 
   return {
     showMode: true,
@@ -78,12 +81,16 @@ export function workOrderOrderLabelCardFields(
     | "categoryShowQuantity"
     | "categoryShowTaskDescription"
   >,
-  tonsSuffix: string
+  tonsSuffix: string,
+  locale?: Locale
 ) {
-  const fieldVisibility = resolveOrderLabelFieldVisibility({
-    orderType: order.orderType,
-    ...categoryFlagsFromWorkOrderRow(order),
-  });
+  const fieldVisibility = resolveOrderLabelFieldVisibility(
+    {
+      orderType: order.orderType,
+      ...categoryFlagsFromWorkOrderRow(order),
+    },
+    locale
+  );
   return {
     fieldVisibility,
     mode: order.categoryName ?? "",

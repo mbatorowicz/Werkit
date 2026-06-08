@@ -5,7 +5,8 @@ import { Layers, Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
-import { getDictionary } from "@/i18n";
+import { categorySharedLabels } from "@/lib/categoryI18n";
+import { useDictionary } from "@/i18n";
 import { formatDict } from "@/i18n/format";
 import { filterCatalogTree } from "@/lib/filterCatalogTree";
 import {
@@ -93,7 +94,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
     [roots, materialIndex.byCategoryId]
   );
   const showMaterialStats = Boolean(treeStatMaterials);
-  const catalogDict = getDictionary().admin.categories.shared;
+  const catalogDict = categorySharedLabels(useDictionary(), "admin");
   const resolvedSearchPlaceholder = searchPlaceholder ?? catalogDict.catalogSearchPlaceholder;
   const resolvedSearchNoResults = searchNoResults ?? catalogDict.catalogSearchNoResults;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, useAppLocale } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
@@ -32,10 +32,11 @@ export function OrdersDispatchItemCard({
   /** Klik w kartę — podgląd sesji/zlecenia (tablica i tabela). */
   onOpenDetails?: () => void;
 }) {
+  const locale = useAppLocale();
   const dict = ordersDict;
   const tone = dispatchStatusTone(item.status);
   const { orderNo, mode, modeColor, machine, material, qty, customerDisplay, desc, fieldVisibility } =
-    buildDispatchItemCardCopy(item, dict, workerUiLabels);
+    buildDispatchItemCardCopy(item, dict, workerUiLabels, locale);
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
 
   const showOrderPriority = layout !== "boardDone" && item._type === "ORDER";

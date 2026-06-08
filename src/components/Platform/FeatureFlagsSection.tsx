@@ -9,7 +9,7 @@ import {
   isGpsModuleEnabled,
 } from "@/types/featureFlags";
 import type { AppDictionary } from "@/i18n/types";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
 
 type Props = {
@@ -20,6 +20,7 @@ type Props = {
 };
 
 export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) {
+  const apiErrors = useDictionary().apiErrors as Record<string, string>;
   const [flags, setFlags] = useState<FeatureFlags>(DEFAULT_FEATURE_FLAGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,7 +58,6 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
       if (!res.ok) {
         setFlags(rollback);
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        const apiErrors = getDictionary().apiErrors as Record<string, string>;
         setMessage(apiErrors[body.error ?? ""] ?? dict.saveError);
         setMessageIsError(true);
         return;

@@ -5,11 +5,12 @@ import WizardClient from "@/features/worker/components/wizard/WizardClient";
 import { getUserId } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 
 export const dynamic = "force-dynamic";
 
 export default async function WizardPage() {
-  const dict = getDictionary().worker.profile;
+  const dict = getDictionary(await getServerLocale()).worker.profile;
   const userId = await getUserId();
   if (!userId) {
     redirect("/login");

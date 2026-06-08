@@ -1,13 +1,17 @@
-import { getDictionary } from "@/i18n";
+import { getDictionary, type Locale } from "@/i18n";
+import { categorySharedLabels } from "@/lib/categoryI18n";
 import type { CategoryAdminLabels, CategoryAdminVariant } from "./types";
 
-export function getCategoryAdminLabels(variant: CategoryAdminVariant): CategoryAdminLabels {
-  const adminCat = getDictionary().admin.categories;
+export function getCategoryAdminLabels(
+  variant: CategoryAdminVariant,
+  locale?: Locale
+): CategoryAdminLabels {
+  const dict = getDictionary(locale);
+  const adminCat = dict.admin.categories;
   if (variant === "spareParts") {
-    const scope = getDictionary().dur.categories;
+    const scope = dict.dur.categories;
     return {
-      ...adminCat.shared,
-      ...scope.shared,
+      ...categorySharedLabels(dict, "dur"),
       panelTitle: scope.title,
       empty: scope.empty,
       confirmDelete: scope.confirmDelete,
@@ -16,7 +20,7 @@ export function getCategoryAdminLabels(variant: CategoryAdminVariant): CategoryA
   }
   const scope = variant === "workOrders" ? adminCat.workOrders : adminCat.materials;
   return {
-    ...adminCat.shared,
+    ...categorySharedLabels(dict, "admin"),
     panelTitle: scope.panelTitle,
     empty: scope.empty,
     confirmDelete: scope.confirmDelete,

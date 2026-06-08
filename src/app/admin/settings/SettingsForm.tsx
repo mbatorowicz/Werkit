@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { adminApi } from "@/lib/appRoutes";
 import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
@@ -58,7 +58,7 @@ export default function SettingsForm({
   const { canMutate } = useAdminAbility();
   const router = useRouter();
   const { alert: appAlert } = useAppDialog();
-  const dict = getDictionary().admin.settings;
+  const dict = useDictionary().admin.settings;
   const initialBase = resolveCompanyBaseCoords(initialData);
 
   const [settings, setSettings] = useState<SettingsSnapshot>({

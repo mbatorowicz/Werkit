@@ -1,14 +1,16 @@
+"use client";
+
 import { Download, Smartphone } from "lucide-react";
 import type { AndroidAppDownloadInfo } from "@/lib/androidAppDownload";
 import { APP_VERSION } from "@/lib/version";
-import { getDictionary, formatDict, formatUiDateTimeShort } from "@/i18n";
+import { useDictionary, formatDict, formatUiDateTimeShort } from "@/i18n";
 
 type Props = {
   download: AndroidAppDownloadInfo;
 };
 
 export function AppDownloadCard({ download }: Props) {
-  const dict = getDictionary().admin.settings;
+  const dict = useDictionary().admin.settings;
 
   return (
     <section className="mb-8 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">

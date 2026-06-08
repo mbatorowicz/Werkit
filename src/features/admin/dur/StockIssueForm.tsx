@@ -13,7 +13,7 @@ import {
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { DecimalInput } from "@/components/DecimalInput";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 interface StockIssueFormProps {
   iPartId: string;
@@ -65,7 +65,7 @@ export function StockIssueForm({
   onSubmit,
   dict,
 }: StockIssueFormProps) {
-  const comboboxCommon = comboboxFeedbackProps(getDictionary().admin.orders);
+  const comboboxCommon = comboboxFeedbackProps(useDictionary().admin.orders);
 
   return (
     <form

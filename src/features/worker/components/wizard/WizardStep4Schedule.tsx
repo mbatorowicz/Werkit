@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { WorkOrderScheduleFields } from "@/components/work-orders/WorkOrderScheduleFields";
 import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
 
@@ -40,7 +40,8 @@ export function WizardStep4Schedule({
   setStep,
   excludeOrderId = null,
 }: Props) {
-  const scheduleLabels = buildWorkOrderScheduleFieldLabels(getDictionary().workOrdersSchedule, {
+  const dictionary = useDictionary();
+  const scheduleLabels = buildWorkOrderScheduleFieldLabels(dictionary.workOrdersSchedule, {
     mode: "worker",
   });
 

@@ -6,7 +6,8 @@ import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { useAppDialog } from "@/components/AppDialogProvider";
-import { formatDict } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { materialsApi } from "@/lib/appRoutes";
 import { AdminFormField } from "@/components/Admin/AdminFormField";
@@ -16,7 +17,6 @@ import type { MaterialRow } from "@/features/admin/materials/types";
 type Props = {
   open: boolean;
   material: MaterialRow | null;
-  dict: Record<string, string>;
   apiErrors: Record<string, string>;
   onClose: () => void;
   onSaved: () => void;
@@ -25,12 +25,15 @@ type Props = {
 export function MaterialStockAdjustModal({
   open,
   material,
-  dict,
   apiErrors,
   onClose,
   onSaved,
 }: Props) {
   const { alert: appAlert } = useAppDialog();
+  const dictionary = useDictionary();
+  const wh = warehouseCommonLabels(dictionary);
+  const matWh = dictionary.admin.materials.warehouse;
+  const adj = wh.adjustment;
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,7 +46,7 @@ export function MaterialStockAdjustModal({
     if (!material) return;
     const qty = parseDecimalInput(quantity);
     if (qty == null || qty < 0) {
-      await appAlert({ message: apiErrors.invalid_quantity ?? dict.invalidQuantity });
+      await appAlert({ message: apiErrors.invalid_quantity ?? matWh.invalidQuantity });
       return;
     }
     setIsSubmitting(true);
@@ -76,7 +79,7 @@ export function MaterialStockAdjustModal({
     <AdminModalShell
       open={open}
       onClose={onClose}
-      title={dict.adjustTitle}
+      title={adj.modalTitle}
       maxWidthClass="max-w-md"
       closeOnBackdropClick={false}
       footer={
@@ -84,8 +87,8 @@ export function MaterialStockAdjustModal({
           formId="material-stock-adjust-form"
           onCancel={onClose}
           isSubmitting={isSubmitting}
-          submitLabel={dict.adjustSave}
-          cancelLabel={dict.adjustCancel}
+          submitLabel={adj.save}
+          cancelLabel={dictionary.common.actions.cancel}
         />
       }
     >
@@ -98,13 +101,13 @@ export function MaterialStockAdjustModal({
         className={`${INVENTORY_FORM_STACK} p-6`}
       >
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {formatDict(dict.adjustHint, {
+          {formatDict(matWh.adjustHint, {
             name: material.name,
             unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
           })}
         </p>
         <AdminFormField
-          label={formatDict(dict.fieldQuantityWithUnit, {
+          label={formatDict(matWh.fieldQuantityWithUnit, {
             unit: material.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
           })}
           required

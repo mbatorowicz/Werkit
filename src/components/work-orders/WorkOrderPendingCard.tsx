@@ -16,7 +16,7 @@ import { workOrderPendingListCardClass } from "@/features/worker/lib/workOrderPr
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { workOrderOrderLabelCardFields } from "@/lib/orderLabelFieldVisibility";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
-import { formatUiDateOnly, formatUiTimeHm, getDictionary } from "@/i18n";
+import { formatUiDateOnly, formatUiTimeHm, useAppLocale, useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkOrder } from "@/types/worker";
 import { useWorkerOrderDetailsModal } from "@/features/worker/hooks/useWorkerOrderDetailsModal";
@@ -50,8 +50,10 @@ export function WorkOrderPendingCard({
 }) {
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
   const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
-  const apiErrors = getDictionary().apiErrors as Record<string, string>;
-  const scheduleDict = getDictionary().workOrdersSchedule;
+  const dictionary = useDictionary();
+  const locale = useAppLocale();
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
+  const scheduleDict = dictionary.workOrdersSchedule;
   const scheduleLabels = buildWorkOrderScheduleFieldLabels(scheduleDict, { mode: "worker" });
   const conflictLabels = buildScheduleConflictLabels(scheduleDict);
 
@@ -75,8 +77,8 @@ export function WorkOrderPendingCard({
 
   const blocked = mode === "start" && (hasConflicts || Boolean(acceptError));
   const tonsSuffix = scheduleDict.tons;
-  const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix);
-  const orderDetails = () => workerOrderDetailsFromWorkOrder(order, tonsSuffix);
+  const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix, locale);
+  const orderDetails = () => workerOrderDetailsFromWorkOrder(order, tonsSuffix, locale);
 
   const isOwnOrder =
     mode === "start" &&

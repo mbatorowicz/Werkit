@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
@@ -22,6 +22,7 @@ import { StockReceiptForm } from "./StockReceiptForm";
 import { StockIssueForm } from "./StockIssueForm";
 import { useDurSparePartCatalog } from "@/features/admin/dur/useDurSparePartCatalog";
 import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartComboboxOptions";
+import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 
 type Tab = "receipts" | "issues";
@@ -30,10 +31,12 @@ export default function StockMovementsClient() {
   const { canMutate } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
 
-  const dictionary = getDictionary();
-  const wDict = dictionary.dur.warehouse;
-  const issuesDict = wDict.issues;
-  const receiptsDict = wDict.receipts;
+  const dictionary = useDictionary();
+  const wh = warehouseCommonLabels(dictionary);
+  const dWh = dictionary.dur.warehouse;
+  const common = dictionary.common;
+  const issuesDict = dWh.issues;
+  const receiptsDict = dWh.receipts;
   const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
   const globalApiErrors = dictionary.apiErrors as Record<string, string>;
 
@@ -66,8 +69,8 @@ export default function StockMovementsClient() {
   const partById = useMemo(() => new Map(catalogItems.map((p) => [p.id, p])), [catalogItems]);
 
   const partOptions = useMemo(
-    () => durSparePartComboboxOptions(catalogItems, wDict.partStockSublabel),
-    [catalogItems, wDict.partStockSublabel]
+    () => durSparePartComboboxOptions(catalogItems, wh.stockSublabel),
+    [catalogItems, wh.stockSublabel]
   );
 
   const fetchData = useCallback(async () => {
@@ -207,7 +210,7 @@ export default function StockMovementsClient() {
         setShowModal(false);
         await fetchData();
         await fetchCatalog();
-        await appAlert({ message: wDict.saveSuccess });
+        await appAlert({ message: wh.movementSaveSuccess });
         return;
       }
       const body = await parseJsonUnknown(res);
@@ -237,7 +240,7 @@ export default function StockMovementsClient() {
     fetchCatalog,
     globalApiErrors,
     dictionary.apiErrors.save_error,
-    wDict.saveSuccess,
+    wh.movementSaveSuccess,
   ]);
 
   const handleSaveIssue = useCallback(async () => {
@@ -279,7 +282,7 @@ export default function StockMovementsClient() {
         setShowModal(false);
         await fetchData();
         await fetchCatalog();
-        await appAlert({ message: wDict.saveSuccess });
+        await appAlert({ message: wh.movementSaveSuccess });
         return;
       }
       const body = await parseJsonUnknown(res);
@@ -318,7 +321,7 @@ export default function StockMovementsClient() {
     fetchCatalog,
     globalApiErrors,
     dictionary.apiErrors.save_error,
-    wDict.saveSuccess,
+    wh.movementSaveSuccess,
   ]);
 
   const filteredReceipts = useMemo(() => {
@@ -386,8 +389,8 @@ export default function StockMovementsClient() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{wDict.movementsTitle}</h2>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{wDict.movementsSubtitle}</p>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">{wh.movementsTitle}</h2>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{dWh.movementsSubtitle}</p>
       </div>
 
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -401,7 +404,7 @@ export default function StockMovementsClient() {
                 : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
             }`}
           >
-            {wDict.tabIssues}
+            {wh.tabIssues}
           </button>
           <button
             type="button"
@@ -412,7 +415,7 @@ export default function StockMovementsClient() {
                 : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
             }`}
           >
-            {wDict.tabReceipts}
+            {wh.tabReceipts}
           </button>
         </div>
         {canMutate ? (
@@ -422,7 +425,7 @@ export default function StockMovementsClient() {
             className={cn("inline-flex items-center gap-2", BTN_PRIMARY_COMPACT)}
           >
             <Plus className="h-4 w-4" />
-            {tab === "receipts" ? wDict.addReceipt : wDict.addIssue}
+            {tab === "receipts" ? wh.addReceipt : wh.addIssue}
           </button>
         ) : null}
       </div>
@@ -430,19 +433,19 @@ export default function StockMovementsClient() {
       <ListSearchBar
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder={wDict.movementsSearchPlaceholder}
+        placeholder={dWh.movementsSearchPlaceholder}
       />
 
       {issueTotalsByPart.length > 0 ? (
         <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
           <p className="mb-2 font-medium text-emerald-900 dark:text-emerald-200">
-            {wDict.movementsFilterSummary}
+            {wh.movementsFilterSummary}
           </p>
           <ul className="space-y-1 text-emerald-800 dark:text-emerald-300">
             {issueTotalsByPart.map((item) => (
               <li key={item.partName}>
-                {formatDict(wDict.movementsFilterSummaryLine, {
-                  part: item.partName,
+                {formatDict(wh.movementsFilterSummaryLine, {
+                  item: item.partName,
                   qty: decimalStringForStorage(String(item.quantity)) ?? String(item.quantity),
                   unit: item.unit,
                 })}
@@ -458,31 +461,31 @@ export default function StockMovementsClient() {
             <tr>
               {tab === "issues" ? (
                 <>
-                  <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colCollectedBy}</th>
-                  <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colResource}</th>
+                  <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colCollectedBy}</th>
+                  <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colResource}</th>
                 </>
               ) : null}
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colPart}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colQuantity}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colDate}</th>
-              <th className="px-4 py-3 font-semibold text-zinc-500">{wDict.colNotes}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{dWh.colPart}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colQuantity}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colDate}</th>
+              <th className="px-4 py-3 font-semibold text-zinc-500">{wh.colNotes}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
                 <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
-                  {wDict.loading}
+                  {common.loading.default}
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={colSpan} className="px-4 py-8 text-center text-zinc-500">
                   {searchQuery.trim()
-                    ? wDict.movementsSearchNoResults
+                    ? common.search.noResultsForQuery
                     : tab === "receipts"
-                      ? wDict.emptyReceipts
-                      : wDict.emptyIssues}
+                      ? wh.emptyReceipts
+                      : wh.emptyIssues}
                 </td>
               </tr>
             ) : tab === "receipts" ? (
@@ -490,7 +493,7 @@ export default function StockMovementsClient() {
                 <tr key={row.id} className="border-t border-zinc-100 dark:border-zinc-800">
                   <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
                   <td className="px-4 py-3">
-                    {formatDict(wDict.stockWithUnit, {
+                    {formatDict(wh.stockWithUnit, {
                       qty: row.quantity,
                       unit: partById.get(row.partId)?.unit ?? "szt",
                     })}
@@ -508,7 +511,7 @@ export default function StockMovementsClient() {
                   <td className="px-4 py-3">{row.resourceName ?? "—"}</td>
                   <td className="px-4 py-3 font-medium">{row.partName ?? row.partId}</td>
                   <td className="px-4 py-3">
-                    {formatDict(wDict.stockWithUnit, {
+                    {formatDict(wh.stockWithUnit, {
                       qty: row.quantity,
                       unit: partById.get(row.partId)?.unit ?? "szt",
                     })}
@@ -527,15 +530,15 @@ export default function StockMovementsClient() {
       <AdminModalShell
         open={showModal && canMutate}
         onClose={() => setShowModal(false)}
-        title={tab === "receipts" ? wDict.modalReceiptTitle : wDict.modalIssueTitle}
+        title={tab === "receipts" ? wh.modalReceiptTitle : wh.modalIssueTitle}
         closeOnBackdropClick={false}
         scrollableBody
         footer={
           <FormModalFooter
             formId={tab === "receipts" ? "receipt-form" : "issue-form"}
             onCancel={() => setShowModal(false)}
-            submitLabel={isSubmitting ? dictionary.dur.spareParts.saving : wDict.save}
-            cancelLabel={wDict.cancel}
+            submitLabel={isSubmitting ? dictionary.dur.spareParts.saving : common.actions.save}
+            cancelLabel={common.actions.cancel}
             isSubmitting={isSubmitting}
             submitDisabled={tab === "receipts" ? !rPartId : !iPartId}
           />

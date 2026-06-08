@@ -11,12 +11,13 @@ import {
 import Link from "next/link";
 import { HelpAccordion } from "@/components/HelpAccordion";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 
 export const dynamic = "force-dynamic";
 
 export default async function HelpPage() {
-  const dict = getDictionary().worker.help;
+  const dict = getDictionary(await getServerLocale()).worker.help;
   let phone = "112";
 
   try {

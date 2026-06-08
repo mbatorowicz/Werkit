@@ -3,6 +3,7 @@
 import type { AppDictionary } from "@/i18n/types";
 import { CategoryBaseFormModal } from "@/features/admin/categories/CategoryBaseFormModal";
 import { getCategoryAdminLabels } from "@/features/admin/categories/labels";
+import { useAppLocale } from "@/i18n";
 import { ResourceCategoryLeafFields } from "@/features/admin/machines/ResourceCategoryLeafFields";
 import type { CategoryFormState, MachinesCategory } from "./types";
 
@@ -31,7 +32,8 @@ export function ResourceCategoryFormModal({
   setForm,
   onSubmit,
 }: Props) {
-  const labels = getCategoryAdminLabels("workOrders");
+  const locale = useAppLocale();
+  const labels = getCategoryAdminLabels("workOrders", locale);
 
   return (
     <CategoryBaseFormModal

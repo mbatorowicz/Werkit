@@ -1,4 +1,5 @@
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { narrowOrderType } from "@/lib/orderType";
 import type { WorkerHistoryListSession } from "@/features/worker/components/WorkerHistoryList";
 import { JWT_SECRET } from "@/lib/auth";
@@ -21,7 +22,7 @@ async function getUserId() {
 export const dynamic = "force-dynamic";
 
 export default async function HistoryPage() {
-  const dict = getDictionary();
+  const dict = getDictionary(await getServerLocale());
   const h = dict.worker.history;
   const workerClient = dict.worker.client;
 

@@ -5,7 +5,7 @@ import { CategoryColorPreview } from "@/components/CategoryColorBadge";
 import { AdminPreviewField } from "@/components/Admin/AdminPreviewField";
 import { AdminPreviewModal } from "@/components/Admin/AdminPreviewModal";
 import { ExpandableCatalogTree } from "@/components/Admin/ExpandableCatalogTree";
-import { getDictionary } from "@/i18n";
+import { useAppLocale, useDictionary } from "@/i18n";
 import { getCategoryAdminLabels } from "./labels";
 import { useCategoryAdminCrud } from "./useCategoryAdminCrud";
 import type { CategoryAdminTreeItem, CategoryAdminVariant } from "./types";
@@ -46,9 +46,11 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
   stationaryBadge,
   renderModal,
 }: Props<TItem, TForm>) {
-  const labels = getCategoryAdminLabels(variant);
-  const shared = getDictionary().admin.categories.shared;
-  const ui = getDictionary().admin.ui;
+  const locale = useAppLocale();
+  const dictionary = useDictionary();
+  const labels = getCategoryAdminLabels(variant, locale);
+  const shared = labels;
+  const ui = dictionary.admin.ui;
   const [previewItem, setPreviewItem] = useState<TItem | null>(null);
   const crud = useCategoryAdminCrud({
     variant,
@@ -105,7 +107,7 @@ export function CategoryAdminSection<TItem extends CategoryAdminTreeItem, TForm 
               }
             : undefined
         }
-        editLabel={getDictionary().admin.machines.editTitle}
+        editLabel={dictionary.admin.machines.editTitle}
       >
         {previewItem ? (
           <>

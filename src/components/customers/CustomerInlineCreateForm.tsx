@@ -5,20 +5,25 @@ import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { parseDecimalInput } from "@/lib/decimalInput";
-import { formatDict, getDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
 import { customerAddressGeocodeQuery, serializeCustomerAddress } from "@/lib/customerAddress";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import type { BaseCustomer } from "@/types/admin";
 
+function InlineCustomerMapPickerLoading() {
+  const mapLoading = useDictionary().admin.customers.mapLoading;
+  return (
+    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
+      {mapLoading}
+    </div>
+  );
+}
+
 const CustomerMapPicker = dynamic(() => import("@/features/admin/customers/CustomerMapPicker"), {
   ssr: false,
-  loading: () => (
-    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
-      {getDictionary().admin.customers.mapLoading}
-    </div>
-  ),
+  loading: () => <InlineCustomerMapPickerLoading />,
 });
 
 export type CustomerInlineCreateFormProps = {
@@ -38,7 +43,7 @@ export function CustomerInlineCreateForm({
   cancelLabel,
   telemetryCategory = "admin",
 }: CustomerInlineCreateFormProps) {
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.customers;
   const ordersDict = dictionary.admin.orders;
   const apiErrors = dictionary.apiErrors as Record<string, string>;

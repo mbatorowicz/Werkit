@@ -3,7 +3,7 @@
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { CategoryBaseFormModal } from "@/features/admin/categories/CategoryBaseFormModal";
 import { getCategoryAdminLabels } from "@/features/admin/categories/labels";
-import { getDictionary } from "@/i18n";
+import { useAppLocale, useDictionary } from "@/i18n";
 import type { SparePartCategory } from "@/types/dur";
 import type { SparePartCategoryFormState } from "./sparePartCategoryForm";
 
@@ -28,8 +28,10 @@ export function SparePartCategoryFormModal({
   setForm,
   onSubmit,
 }: Props) {
-  const labels = getCategoryAdminLabels("spareParts");
-  const shared = getDictionary().dur.categories.shared;
+  const locale = useAppLocale();
+  const dictionary = useDictionary();
+  const labels = getCategoryAdminLabels("spareParts", locale);
+  const shared = labels;
 
   return (
     <CategoryBaseFormModal

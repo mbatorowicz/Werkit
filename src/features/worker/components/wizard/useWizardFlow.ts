@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { WorkOrder } from "@/types/worker";
 import type {
   WizardCategory,
@@ -31,8 +31,9 @@ import { buildWorkOrderFormPayloadFields } from "@/lib/workOrderCategoryFields";
 export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers = false) {
   const router = useRouter();
   const { alert: appAlert } = useAppDialog();
-  const dict = getDictionary().worker.client;
-  const apiErrors = getDictionary().apiErrors as Record<string, string>;
+  const dictionary = useDictionary();
+  const dict = dictionary.worker.client;
+  const apiErrors = dictionary.apiErrors as Record<string, string>;
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);

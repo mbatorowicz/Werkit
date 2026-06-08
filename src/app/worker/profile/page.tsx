@@ -6,6 +6,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { ProfileSettings } from "@/features/worker/components/profile/ProfileSettings";
 import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import { getDictionary } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { BTN_PRIMARY } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
@@ -23,7 +24,7 @@ async function getUserId() {
 }
 
 export default async function ProfilePage() {
-  const dict = getDictionary().worker.profile;
+  const dict = getDictionary(await getServerLocale()).worker.profile;
   const userId = await getUserId();
   if (!userId) return <div>{dict.noAccess}</div>;
 

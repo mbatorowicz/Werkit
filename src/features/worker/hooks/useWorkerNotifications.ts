@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { getDictionary } from "@/i18n";
+import { useDictionary, type AppDictionary } from "@/i18n";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import type { Session, WorkOrder, AppSettings, UserData } from "@/types/worker";
 import {
@@ -26,9 +26,9 @@ function pickActiveAlarm(
   session: Session | null,
   overdueOrder: WorkOrder | undefined,
   upcomingOrder: WorkOrder | undefined,
-  nowMs: number
+  nowMs: number,
+  alarmsDict: AppDictionary["worker"]["alarms"]
 ): WorkerActiveAlarm | null {
-  const alarmsDict = getDictionary().worker.alarms;
   if (isTimeOverrun && session) {
     return buildTimeOverrunAlarm(alarmsDict, session, nowMs);
   }
@@ -47,6 +47,8 @@ export function useWorkerNotifications(
   settings: AppSettings | null,
   currentUser: UserData | null
 ) {
+  const dictionary = useDictionary();
+  const alarmsDict = dictionary.worker.alarms;
   const [alarmClock, setAlarmClock] = useState(() => Date.now());
   const [alarmSuppressVersion, setAlarmSuppressVersion] = useState(0);
   const lastNativeScheduledRef = useRef<Record<string, number>>({});
@@ -88,8 +90,8 @@ export function useWorkerNotifications(
   );
 
   const candidateAlarm = useMemo(
-    () => pickActiveAlarm(isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock),
-    [isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock]
+    () => pickActiveAlarm(isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock, alarmsDict),
+    [isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock, alarmsDict]
   );
 
   const activeAlarm = useMemo(() => {
@@ -121,7 +123,7 @@ export function useWorkerNotifications(
           );
           return;
         }
-        await scheduleWorkerAlarmNotification(alarm, getDictionary().worker.alarms);
+        await scheduleWorkerAlarmNotification(alarm, alarmsDict);
         lastNativeScheduledRef.current[alarm.alarmKey] = alarmClock;
       } catch (e: unknown) {
         sendRemoteLog(
@@ -132,7 +134,7 @@ export function useWorkerNotifications(
         );
       }
     },
-    [alarmClock]
+    [alarmClock, alarmsDict]
   );
 
   useEffect(() => {

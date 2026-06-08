@@ -8,7 +8,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
 import { useOsrmRouteToDestination } from "@/components/Map/useOsrmRouteToDestination";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import {
   RouteWaypointClickLayer,
   WaypointControls,
@@ -62,7 +62,7 @@ export function CustomerRoutePlannerMap({
   editable?: boolean;
   heightClass?: string;
 }) {
-  const dict = getDictionary().admin.customers;
+  const dict = useDictionary().admin.customers;
   const hasDestination = destination !== null;
 
   const [waypointMode, setWaypointMode] = useState<WaypointMode>(null);

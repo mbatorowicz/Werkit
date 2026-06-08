@@ -5,7 +5,7 @@ import {
   type AdminSearchComboboxOption,
 } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 
 type Props = {
   options: AdminSearchComboboxOption[];
@@ -27,7 +27,7 @@ export function SparePartSearchField({
   required = false,
   "aria-label": ariaLabel,
 }: Props) {
-  const comboboxCommon = comboboxFeedbackProps(getDictionary().admin.orders);
+  const comboboxCommon = comboboxFeedbackProps(useDictionary().admin.orders);
 
   return (
     <AdminSearchCombobox

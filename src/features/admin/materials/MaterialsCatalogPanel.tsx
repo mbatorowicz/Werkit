@@ -194,7 +194,6 @@ export function MaterialsCatalogPanel({
       <MaterialStockAdjustModal
         open={adjustMaterial != null}
         material={adjustMaterial}
-        dict={dict.warehouse}
         apiErrors={apiErrors}
         onClose={() => setAdjustMaterial(null)}
         onSaved={() => void fetchData()}

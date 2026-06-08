@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { Play, Volume2 } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { WorkerAlarmKind } from "@/features/worker/lib/workerAlarmTypes";
 import { previewAlarmSound } from "@/features/worker/lib/workerAlarmSoundPlayer";
 import {
@@ -27,7 +27,7 @@ export function ProfileNotificationSoundSettings({
 }: {
   notificationsEnabled: boolean;
 }) {
-  const profileDict = getDictionary().worker.profile;
+  const profileDict = useDictionary().worker.profile;
   const [settings, setSettings] = useState(() => getNotificationSoundSettings());
   const [previewingKind, setPreviewingKind] = useState<WorkerAlarmKind | null>(null);
 

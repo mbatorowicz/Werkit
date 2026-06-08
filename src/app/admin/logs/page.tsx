@@ -1,13 +1,14 @@
 import LogsClient from "@/features/admin/logs/LogsClient";
 import { getDictionary } from "@/i18n";
 import { DEVICE_LOGS_EXPORT_MAX, DEVICE_LOGS_PAGE_LIMIT } from "@/lib/deviceLogLimits";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLogsPage() {
   const companyId = await requireServerCompanyId();
-  const { sidebar, logs: logsDict } = getDictionary().admin;
+  const { sidebar, logs: logsDict } = getDictionary(await getServerLocale()).admin;
   const { SystemLogService } = await import("@/services/SystemLogService");
   const { AdminUserService } = await import("@/services/AdminUserService");
 

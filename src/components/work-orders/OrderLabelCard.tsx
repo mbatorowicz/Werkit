@@ -1,8 +1,10 @@
+"use client";
+
 import type { KeyboardEvent } from "react";
 import { Camera, FileText } from "lucide-react";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
 import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { OrderLabelFieldVisibility } from "@/lib/orderLabelFieldVisibility";
 import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
 import {
@@ -117,9 +119,10 @@ export function OrderLabelCard({
   const isCompact = density === "compact";
   const isTeaser = layout === "teaser";
   const isClickable = isTeaser && Boolean(onCardClick);
-  const attachDict = getDictionary().worker.client;
-  const fieldLabels = getDictionary().admin.orderFields;
-  const customerDict = getDictionary().admin.customers;
+  const dictionary = useDictionary();
+  const attachDict = dictionary.worker.client;
+  const fieldLabels = dictionary.admin.orderFields;
+  const customerDict = dictionary.admin.customers;
   const customerDisplay =
     customerDisplayProp ??
     buildOrderLabelCustomerDisplay({

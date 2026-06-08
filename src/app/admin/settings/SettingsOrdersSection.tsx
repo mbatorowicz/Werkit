@@ -1,6 +1,6 @@
 "use client";
 
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import type { SettingsSnapshot } from "./SettingsForm";
 
 type Props = {
@@ -17,7 +17,7 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
     requirePhotoToFinish,
     timeOverrunReminder,
   } = settings;
-  const dict = getDictionary().admin.settings;
+  const dict = useDictionary().admin.settings;
 
   return (
     <div

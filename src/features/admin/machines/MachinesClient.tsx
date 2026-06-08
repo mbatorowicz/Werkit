@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Wrench } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminCollapsibleSection } from "@/components/Admin/AdminCollapsibleSection";
 import {
@@ -20,7 +20,7 @@ export default function MachinesClient() {
   const { groups: resourceGroups, fetchGroups } = useResourceGroups();
   const machineFormRef = useRef<MachinesClientMachineFormHandle | null>(null);
 
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.machines;
   const nav = dictionary.admin.sidebar;
   const apiErrors = dictionary.apiErrors as Record<string, string>;

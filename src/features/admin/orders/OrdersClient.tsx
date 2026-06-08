@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import SessionDetailsModal from "@/components/Admin/Modals/SessionDetailsModal";
 import GanttChart from "@/components/GanttChart/GanttChart";
 import OrderFormModal from "@/components/Admin/Modals/OrderFormModal";
@@ -34,7 +34,7 @@ export default function OrdersClient({
   const { canMutate, canDelegateOrders, delegationScope } = useAdminAbility();
   const { alert: appAlert } = useAppDialog();
 
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.orders;
   const machinesDict = dictionary.admin.machines;
   const navTitle = dictionary.admin.sidebar.dispatch;

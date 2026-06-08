@@ -7,6 +7,7 @@ import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { notFound } from "next/navigation";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
+import { getServerLocale } from "@/lib/localeCookies.server";
 import MapWrapper from "./MapWrapper";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import {
@@ -38,7 +39,8 @@ async function getUserId() {
 export const dynamic = "force-dynamic";
 
 export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const dict = getDictionary();
+  const locale = await getServerLocale();
+  const dict = getDictionary(locale);
   const historyLabels = dict.worker.history;
   const workerClient = dict.worker.client;
 
@@ -138,15 +140,18 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
             taskDescription: sessionData.taskDescription,
             repairDescription: sessionData.repairDescription,
           })}
-          fieldVisibility={resolveOrderLabelFieldVisibility({
-            orderType: sessionData.orderType,
-            ...categoryFlagsFromWorkOrderRow({
-              categoryShowMaterial: sessionData.categoryShowMaterial ?? undefined,
-              categoryShowCustomer: sessionData.categoryShowCustomer ?? undefined,
-              categoryShowQuantity: sessionData.categoryShowQuantity ?? undefined,
-              categoryShowTaskDescription: sessionData.categoryShowTaskDescription ?? undefined,
-            }),
-          })}
+          fieldVisibility={resolveOrderLabelFieldVisibility(
+            {
+              orderType: sessionData.orderType,
+              ...categoryFlagsFromWorkOrderRow({
+                categoryShowMaterial: sessionData.categoryShowMaterial ?? undefined,
+                categoryShowCustomer: sessionData.categoryShowCustomer ?? undefined,
+                categoryShowQuantity: sessionData.categoryShowQuantity ?? undefined,
+                categoryShowTaskDescription: sessionData.categoryShowTaskDescription ?? undefined,
+              }),
+            },
+            locale
+          )}
           dateLabel={st ? formatUiDateOnly(st) : "—"}
           timeLabel={`${st ? formatUiTimeHm(st) : "—"} – ${en ? formatUiTimeHm(en) : "—"}`}
           attachmentPhotos={photos.length > 0}

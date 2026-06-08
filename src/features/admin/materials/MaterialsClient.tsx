@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { HardHat } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { MaterialsCatalogPanel } from "@/features/admin/materials/MaterialsCatalogPanel";
 import { MaterialStockMovementsClient } from "@/features/admin/materials/warehouse/MaterialStockMovementsClient";
@@ -14,7 +14,7 @@ import {
 export default function MaterialsClient() {
   const { canMutate } = useAdminAbility();
 
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.materials;
   const nav = dictionary.admin.sidebar;
   const machDict = dictionary.admin.machines;

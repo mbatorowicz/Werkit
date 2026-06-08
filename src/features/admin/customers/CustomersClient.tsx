@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Package, Plus } from "lucide-react";
-import { getDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
 import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -77,7 +77,7 @@ export default function CustomersClient() {
   const [createFormKey, setCreateFormKey] = useState(0);
   const [form, setForm] = useState<CustomerFormState>(emptyCustomerForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const dictionary = getDictionary();
+  const dictionary = useDictionary();
   const dict = dictionary.admin.customers;
   const machinesDict = dictionary.admin.machines;
   const ordersDict = dictionary.admin.orders;
