@@ -39,9 +39,9 @@ export function AdminModalShell({
   /** Warstwa nad mapą Leaflet itd. — worker: `z-[9999]`. */
   zIndexClass?: string;
 }) {
-  if (!open) return null;
-
   const closeLabel = useDictionary().admin.ui.closeModal;
+
+  if (!open) return null;
   const titleClass =
     titleSize === "lg"
       ? "text-lg font-semibold text-zinc-900 dark:text-white"
