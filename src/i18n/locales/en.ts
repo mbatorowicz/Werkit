@@ -1326,7 +1326,7 @@ export const en: AppDictionary = {
       resourceGroups: "Resource types",
       spareParts: "Parts catalog",
       sparePartCategories: "Part categories",
-      warehouse: "Warehouse",
+      warehouse: "Parts",
     },
     resourceGroups: {
       title: "Resource types",
@@ -1446,7 +1446,7 @@ export const en: AppDictionary = {
       removeSuccess: "Link removed.",
     },
     warehouse: {
-      title: "Warehouse",
+      title: "Parts",
       subtitle:
         "Part categories, catalog items, stock adjustments, and receipts/issues — on one page.",
       movementsSubtitle:

@@ -1354,7 +1354,7 @@ export const de: AppDictionary = {
       resourceGroups: "Ressourcentypen",
       spareParts: "Teilekatalog",
       sparePartCategories: "Teilekategorien",
-      warehouse: "Lager",
+      warehouse: "Teile",
     },
     resourceGroups: {
       title: "Ressourcentypen",
@@ -1479,7 +1479,7 @@ export const de: AppDictionary = {
       removeSuccess: "Verknüpfung entfernt.",
     },
     warehouse: {
-      title: "Lager",
+      title: "Teile",
       subtitle:
         "Teilekategorien, Katalog, Bestandskorrekturen sowie Zugänge und Abgänge — auf einer Seite.",
       movementsSubtitle:

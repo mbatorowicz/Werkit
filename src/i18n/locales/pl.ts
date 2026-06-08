@@ -1338,7 +1338,7 @@ export const pl = {
       resourceGroups: "Typy zasobów",
       spareParts: "Katalog części",
       sparePartCategories: "Kategorie części",
-      warehouse: "Magazyn",
+      warehouse: "Części",
     },
     resourceGroups: {
       title: "Typy zasobów",
@@ -1460,7 +1460,7 @@ export const pl = {
       removeSuccess: "Powiązanie usunięte.",
     },
     warehouse: {
-      title: "Magazyn",
+      title: "Części",
       subtitle:
         "Kategorie części, katalog pozycji, korekty stanu oraz przyjęcia i wydania — na jednej stronie.",
       movementsSubtitle:
