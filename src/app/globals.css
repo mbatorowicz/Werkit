@@ -61,7 +61,6 @@ body {
 
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

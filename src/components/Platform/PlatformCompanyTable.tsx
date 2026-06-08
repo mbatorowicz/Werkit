@@ -5,7 +5,6 @@ import { Pencil, Settings } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import {
   TABLE_BODY_ROW,
   TABLE_CELL_NAME,
@@ -64,8 +63,7 @@ export function PlatformCompanyTable({
         <p className="text-sm text-zinc-500 mt-0.5">{dict.usageTitle}</p>
       </div>
       <div className={`${TABLE_WRAPPER} bg-white shadow-sm dark:bg-zinc-900`}>
-        <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-          <table className="min-w-full text-sm">
+        <table className="min-w-full text-sm">
             <thead className={TABLE_HEAD}>
               <tr className={TABLE_HEAD_ROW}>
                 <th className={TABLE_TH}>{dict.colOrganization}</th>
@@ -207,7 +205,6 @@ export function PlatformCompanyTable({
             )}
           </tbody>
         </table>
-        </div>
       </div>
     </section>
   );

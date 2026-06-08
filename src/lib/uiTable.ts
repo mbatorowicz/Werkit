@@ -1,11 +1,12 @@
 import { UI_RADIUS_CARD } from "@/lib/uiRadius";
+import { HORIZONTAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
 import { BORDER_DEFAULT } from "@/lib/uiTokens";
 
 /** Karta tabeli admin (obudowa list / magazyn). */
 export const TABLE_CARD = `flex flex-col overflow-hidden ${UI_RADIUS_CARD} border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900`;
 
-/** Wrapper tabeli — sam scroll + obramowanie (np. platform). */
-export const TABLE_WRAPPER = `overflow-x-auto ${UI_RADIUS_CARD} ${BORDER_DEFAULT}`;
+/** Wrapper tabeli — poziomy scroll + obramowanie (np. platform). */
+export const TABLE_WRAPPER = `${HORIZONTAL_SCROLL_PANEL_CLASS} ${UI_RADIUS_CARD} ${BORDER_DEFAULT}`;
 
 /** Pełna tabela. */
 export const TABLE_BASE = "w-full min-w-0 border-collapse text-left text-sm";

@@ -18,6 +18,7 @@ import {
 } from "@/components/Admin/AdminAbilityProvider";
 import { DelegationScopeService } from "@/services/DelegationScopeService";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { VERTICAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isGpsModuleEnabled } from "@/types/featureFlags";
@@ -76,7 +77,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     >
       <div className="layout-admin flex h-[100svh] max-h-[100dvh] overflow-hidden bg-[#f2fbfa] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
         <aside className="z-50 hidden h-full min-h-0 w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:flex">
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className={`min-h-0 flex-1 ${VERTICAL_SCROLL_PANEL_CLASS}`}>
             <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-200 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
