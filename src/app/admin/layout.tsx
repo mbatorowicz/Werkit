@@ -1,5 +1,4 @@
 import { User as UserIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { MobileAdminNav } from "@/components/Admin/MobileAdminNav";
 import { AdminSidebarNav } from "@/components/Admin/AdminSidebarNav";
@@ -111,14 +110,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 <LocaleSwitcher variant="embedded" />
               </div>
             )}
-            <div className="flex items-center justify-between gap-2">
-              <LogoutButton
-                className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
-                iconClass="w-4 h-4"
-                text={dict.sidebar.logoutSession}
-              />
-              <ThemeToggle />
-            </div>
+            <LogoutButton
+              className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
+              iconClass="w-4 h-4"
+              text={dict.sidebar.logoutSession}
+            />
           </div>
         </aside>
 

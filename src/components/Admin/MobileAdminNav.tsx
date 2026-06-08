@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Menu, X, Users } from "lucide-react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { LogoutButton } from "@/components/LogoutButton";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
@@ -124,14 +123,11 @@ export function MobileAdminNav({
                   <LocaleSwitcher variant="embedded" />
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2">
-                <LogoutButton
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
-                  iconClass="w-4 h-4"
-                  text={dict.sidebar.logoutSession}
-                />
-                <ThemeToggle />
-              </div>
+              <LogoutButton
+                className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
+                iconClass="w-4 h-4"
+                text={dict.sidebar.logoutSession}
+              />
             </div>
           </div>
         </div>
