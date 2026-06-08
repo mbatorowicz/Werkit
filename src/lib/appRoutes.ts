@@ -63,6 +63,14 @@ export const materialsApi = {
   stockIssues: "/api/materials/stock/issues",
 } as const;
 
+export const workerRoutes = {
+  home: "/worker",
+  help: "/worker/help",
+  wizard: "/worker/wizard",
+  history: "/worker/history",
+  profile: "/worker/profile",
+} as const;
+
 export const workerApi = {
   spareParts: (workOrderId: number) => `/api/worker/work-orders/${workOrderId}/spare-parts`,
   delegationTargets: "/api/worker/delegation-targets",

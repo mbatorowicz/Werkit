@@ -10,6 +10,7 @@ import { getServerLocale } from "@/lib/localeCookies.server";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { workerRoutes } from "@/lib/appRoutes";
 export const dynamic = "force-dynamic";
 
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
@@ -99,7 +100,7 @@ export default async function WorkerLayout({ children }: { children: React.React
           <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.profile}</span>
         </Link>
         <Link
-          href="/worker/help"
+          href={workerRoutes.help}
           className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1"
         >
           <HelpCircle className="w-5 h-5" />

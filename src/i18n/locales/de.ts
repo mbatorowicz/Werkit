@@ -1,5 +1,5 @@
 import type { AppDictionary } from "../types";
-import { helpContentPl } from "./helpContent";
+import { getHelpBundle } from "./help";
 
 export const de: AppDictionary = {
   localeSwitcher: {
@@ -985,7 +985,7 @@ export const de: AppDictionary = {
         httpStatus: "HTTP {status}",
       },
     },
-    help: helpContentPl.admin,
+    help: getHelpBundle("de").admin,
   },
   worker: {
     nav: {
@@ -1282,7 +1282,7 @@ export const de: AppDictionary = {
       badgePhoto: "F",
       badgeNote: "N",
     },
-    help: helpContentPl.worker,
+    help: getHelpBundle("de").worker,
   },
   platform: {
     badge: "Werkit Plattform-Konsole",
@@ -1347,7 +1347,7 @@ export const de: AppDictionary = {
       saveError: "Funktionseinstellungen konnten nicht gespeichert werden.",
     },
     helpLink: "Hilfe",
-    help: helpContentPl.platform,
+    help: getHelpBundle("de").platform,
   },
   dur: {
     sidebar: {

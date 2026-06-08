@@ -3,7 +3,7 @@
 Pełny podręcznik użytkownika systemu Werkit (logistyka floty i praca w terenie).
 
 **Wersja w aplikacji:** ekrany `/worker/help`, `/admin/help`, `/platform/help`  
-**Źródło treści:** `src/i18n/locales/helpContent.ts` (PL) — przy zmianach aktualizuj oba miejsca.
+**Źródło treści:** `src/i18n/locales/help/pl.ts` (PL) — przy zmianach aktualizuj oba miejsca.
 
 ---
 
@@ -303,4 +303,4 @@ Alternatywnie: pracownik tworzy **własne zlecenie** (wizard) → od razu aktywn
 
 ---
 
-*Treść zsynchronizowana z i18n `*.help` (PL) — przy zmianach aktualizuj `helpContent.ts` i ten plik.*
+*Treść zsynchronizowana z i18n `*.help` (PL) — przy zmianach aktualizuj `src/i18n/locales/help/pl.ts` i ten plik.*

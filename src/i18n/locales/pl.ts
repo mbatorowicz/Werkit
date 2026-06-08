@@ -1,4 +1,4 @@
-import { helpContentPl } from "./helpContent";
+import { getHelpBundle } from "./help";
 
 export const pl = {
   localeSwitcher: {
@@ -973,7 +973,7 @@ export const pl = {
         httpStatus: "HTTP {status}",
       },
     },
-    help: helpContentPl.admin,
+    help: getHelpBundle("pl").admin,
   },
   worker: {
     nav: {
@@ -1265,7 +1265,7 @@ export const pl = {
       badgePhoto: "Z",
       badgeNote: "N",
     },
-    help: helpContentPl.worker,
+    help: getHelpBundle("pl").worker,
   },
   platform: {
     badge: "Konsola platformy Werkit",
@@ -1331,7 +1331,7 @@ export const pl = {
       saveError: "Nie udało się zapisać ustawień.",
     },
     helpLink: "Pomoc",
-    help: helpContentPl.platform,
+    help: getHelpBundle("pl").platform,
   },
   dur: {
     sidebar: {
