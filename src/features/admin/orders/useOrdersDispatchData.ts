@@ -18,7 +18,6 @@ import {
 import { adminApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonUnknown } from "@/lib/parseApiJson";
-import { parseJsonArray } from "@/lib/parseJsonArray";
 import {
   narrowBaseCategories,
   narrowBaseCustomers,
@@ -35,6 +34,44 @@ type FetchDataOptions = {
   refreshDictionaries?: boolean;
   refreshArchive?: boolean;
 };
+
+type DispatchLivePayload = {
+  orders: UnifiedGanttItem[];
+  liveSessions: UnifiedGanttItem[];
+};
+
+type DispatchDictionariesPayload = {
+  workers: BaseWorker[];
+  machines: BaseMachine[];
+  materials: BaseMaterial[];
+  materialCategories: BaseMaterialCategory[];
+  customers: BaseCustomer[];
+  categories: BaseCategory[];
+};
+
+const DICTIONARY_ARRAY_KEYS = [
+  "workers",
+  "machines",
+  "materials",
+  "materialCategories",
+  "customers",
+  "categories",
+] as const;
+
+function hasLivePayloadArrays(body: unknown): body is Record<string, unknown> {
+  return (
+    isRecord(body) &&
+    Array.isArray(body.orders) &&
+    Array.isArray(body.liveSessions)
+  );
+}
+
+function hasDictionaryPayloadArrays(body: unknown): body is Record<string, unknown> {
+  return (
+    isRecord(body) &&
+    DICTIONARY_ARRAY_KEYS.every((key) => Array.isArray(body[key]))
+  );
+}
 
 function narrowLivePayload(body: unknown): {
   orders: UnifiedGanttItem[];
@@ -75,6 +112,33 @@ function narrowDictionariesPayload(body: unknown): {
   };
 }
 
+export async function parseDispatchLiveResponse(
+  res: Response
+): Promise<DispatchLivePayload | null> {
+  if (!res.ok) return null;
+  const body = await parseJsonUnknown(res);
+  if (!hasLivePayloadArrays(body)) return null;
+  return narrowLivePayload(body);
+}
+
+export async function parseDispatchArchiveResponse(
+  res: Response
+): Promise<UnifiedGanttItem[] | null> {
+  if (!res.ok) return null;
+  const body = await parseJsonUnknown(res);
+  if (!Array.isArray(body)) return null;
+  return narrowUnifiedGanttItems(body);
+}
+
+export async function parseDispatchDictionariesResponse(
+  res: Response
+): Promise<DispatchDictionariesPayload | null> {
+  if (!res.ok) return null;
+  const body = await parseJsonUnknown(res);
+  if (!hasDictionaryPayloadArrays(body)) return null;
+  return narrowDictionariesPayload(body);
+}
+
 export function useOrdersDispatchData(
   _delegationScope: DelegationScope,
   initialBootstrap?: AdminDispatchBootstrap | null
@@ -107,10 +171,10 @@ export function useOrdersDispatchData(
         { cache: "no-store" },
         { category: "admin" }
       );
-      const body = await parseJsonUnknown(res);
-      const { orders: nextOrders, liveSessions: nextLive } = narrowLivePayload(body);
-      setOrders(nextOrders);
-      setLiveSessions(nextLive);
+      const payload = await parseDispatchLiveResponse(res);
+      if (!payload) return;
+      setOrders(payload.orders);
+      setLiveSessions(payload.liveSessions);
     } catch {
       /* sieć */
     }
@@ -124,8 +188,9 @@ export function useOrdersDispatchData(
         { cache: "no-store" },
         { category: "admin" }
       );
-      const data = await parseJsonArray(res);
-      setArchivedSessions(narrowUnifiedGanttItems(data));
+      const payload = await parseDispatchArchiveResponse(res);
+      if (!payload) return;
+      setArchivedSessions(payload);
     } catch {
       /* sieć */
     }
@@ -139,8 +204,7 @@ export function useOrdersDispatchData(
         { cache: "no-store" },
         { category: "admin" }
       );
-      const body = await parseJsonUnknown(res);
-      const dicts = narrowDictionariesPayload(body);
+      const dicts = await parseDispatchDictionariesResponse(res);
       if (!dicts) return;
       setWorkers(dicts.workers);
       setMachines(dicts.machines);
@@ -205,6 +269,7 @@ export function useOrdersDispatchData(
         if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
         queueMicrotask(() => {
           void fetchLive();
+          void fetchArchive();
         });
       }, UI_BACKGROUND_SYNC_INTERVAL_MS);
     };
@@ -223,6 +288,7 @@ export function useOrdersDispatchData(
       if (document.visibilityState === "visible") {
         queueMicrotask(() => {
           void fetchLive();
+          void fetchArchive();
         });
         startLive();
         startDict();
@@ -249,7 +315,7 @@ export function useOrdersDispatchData(
       stopLive();
       stopDict();
     };
-  }, [fetchLive, fetchDictionaries]);
+  }, [fetchLive, fetchArchive, fetchDictionaries]);
 
   return {
     workers,
