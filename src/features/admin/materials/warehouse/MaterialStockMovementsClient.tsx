@@ -1,29 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, Package } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { formatDict, useDictionary } from "@/i18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
-import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { materialsApi } from "@/lib/appRoutes";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { AdminFormField } from "@/components/Admin/AdminFormField";
-import {
-  INVENTORY_FORM_CONTROL,
-  INVENTORY_FORM_STACK,
-  INVENTORY_FORM_TEXTAREA,
-} from "@/components/Admin/adminInventoryFormStyles";
-import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import {
-  AdminSearchCombobox,
-  type AdminSearchComboboxOption,
-} from "@/components/Admin/AdminSearchCombobox";
-import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
-import { DecimalInput } from "@/components/DecimalInput";
-import { FormModalFooter } from "@/components/FormModalFooter";
+import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
-import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
@@ -40,12 +25,9 @@ import {
 } from "@/lib/uiTable";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
-import {
-  narrowMaterialStockIssues,
-  narrowMaterialStockReceipts,
-} from "@/lib/narrow/materials-warehouse";
-import type { MaterialStockIssue, MaterialStockReceipt } from "@/types/materials-warehouse";
 import type { MaterialRow } from "@/features/admin/materials/types";
+import { MaterialStockMovementModal } from "./MaterialStockMovementModal";
+import { useMaterialStockMovements } from "./useMaterialStockMovements";
 
 type Tab = "receipts" | "issues";
 
@@ -62,13 +44,9 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
   const matWh = dictionary.admin.materials.warehouse;
   const common = dictionary.common;
   const apiErrors = dictionary.apiErrors as Record<string, string>;
-  const comboboxCommon = comboboxFeedbackProps(dictionary.admin.orders);
 
   const [tab, setTab] = useState<Tab>("issues");
-  const [receipts, setReceipts] = useState<MaterialStockReceipt[]>([]);
-  const [issues, setIssues] = useState<MaterialStockIssue[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,20 +74,8 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
     }));
   }, [materials, wh.stockSublabel]);
 
-  const loadMovements = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [rRes, iRes] = await Promise.all([
-        fetch(materialsApi.stockReceipts, { cache: "no-store" }),
-        fetch(materialsApi.stockIssues, { cache: "no-store" }),
-      ]);
-      setReceipts(narrowMaterialStockReceipts(await parseJsonArray(rRes)));
-      setIssues(narrowMaterialStockIssues(await parseJsonArray(iRes)));
-    } catch {
-      /* sieć */
-    }
-    setIsLoading(false);
-  }, []);
+  const { isLoading, loadMovements, filteredReceipts, filteredIssues, issueTotalsByMaterial } =
+    useMaterialStockMovements({ tab, searchQuery, materialById });
 
   useEffect(() => {
     queueMicrotask(() => void loadMovements());
@@ -170,62 +136,6 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
     }
     setIsSubmitting(false);
   }
-
-  const filteredReceipts = useMemo(() => {
-    const q = searchQuery.trim();
-    if (!q) return receipts;
-    return receipts.filter((row) => {
-      const haystack = [
-        row.materialName,
-        row.notes,
-        row.invoiceNumber,
-        row.quantity,
-        new Date(row.createdAt).toLocaleString(),
-      ]
-        .filter(Boolean)
-        .join(" ");
-      return matchesSearchQuery(haystack, q);
-    });
-  }, [receipts, searchQuery]);
-
-  const filteredIssues = useMemo(() => {
-    const q = searchQuery.trim();
-    if (!q) return issues;
-    return issues.filter((row) => {
-      const haystack = [
-        row.materialName,
-        row.customerName,
-        row.notes,
-        row.workOrderLabel,
-        row.workOrderId != null ? `#${row.workOrderId}` : null,
-        row.quantity,
-        new Date(row.createdAt).toLocaleString(),
-      ]
-        .filter(Boolean)
-        .join(" ");
-      return matchesSearchQuery(haystack, q);
-    });
-  }, [issues, searchQuery]);
-
-  const issueTotalsByMaterial = useMemo(() => {
-    if (tab !== "issues" || !searchQuery.trim() || filteredIssues.length === 0) return [];
-    const totals = new Map<number, { materialName: string; quantity: number; unit: string }>();
-    for (const row of filteredIssues) {
-      const qty = parseDecimalInput(row.quantity) ?? 0;
-      const unit = materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT;
-      const existing = totals.get(row.materialId);
-      if (existing) {
-        existing.quantity += qty;
-      } else {
-        totals.set(row.materialId, {
-          materialName: row.materialName ?? String(row.materialId),
-          quantity: qty,
-          unit,
-        });
-      }
-    }
-    return [...totals.values()].sort((a, b) => a.materialName.localeCompare(b.materialName, "pl"));
-  }, [tab, searchQuery, filteredIssues, materialById]);
 
   const rows = tab === "receipts" ? filteredReceipts : filteredIssues;
   const colSpan = tab === "issues" ? 5 : 4;
@@ -352,89 +262,25 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
         </tbody>
       </AdminTableShell>
 
-      <AdminModalShell
+      <MaterialStockMovementModal
         open={showModal && canMutate}
+        tab={tab}
+        isSubmitting={isSubmitting}
+        materialOptions={materialOptions}
+        selectedMaterial={selectedMaterial}
+        materialId={materialId}
+        quantity={quantity}
+        unitPrice={unitPrice}
+        invoiceNumber={invoiceNumber}
+        notes={notes}
+        onMaterialIdChange={setMaterialId}
+        onQuantityChange={setQuantity}
+        onUnitPriceChange={setUnitPrice}
+        onInvoiceNumberChange={setInvoiceNumber}
+        onNotesChange={setNotes}
         onClose={() => setShowModal(false)}
-        title={tab === "receipts" ? wh.modalReceiptTitle : wh.modalIssueTitle}
-        maxWidthClass="max-w-md"
-        closeOnBackdropClick={false}
-        footer={
-          <FormModalFooter
-            formId="material-stock-form"
-            onCancel={() => setShowModal(false)}
-            isSubmitting={isSubmitting}
-            submitLabel={common.actions.save}
-            cancelLabel={common.actions.cancel}
-          />
-        }
-      >
-        <form
-          id="material-stock-form"
-          onSubmit={handleSubmit}
-          className={`${INVENTORY_FORM_STACK} p-6`}
-        >
-          <AdminFormField label={matWh.fieldMaterial} required>
-            <AdminSearchCombobox
-              options={materialOptions}
-              value={materialId}
-              onChange={setMaterialId}
-              placeholder={matWh.fieldMaterialPlaceholder}
-              aria-label={matWh.fieldMaterial}
-              required
-              {...comboboxCommon}
-            />
-          </AdminFormField>
-
-          <AdminFormField
-            label={
-              selectedMaterial
-                ? formatDict(matWh.fieldQuantityWithUnit, {
-                    unit: selectedMaterial.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
-                  })
-                : matWh.fieldQuantity
-            }
-            required
-          >
-            <DecimalInput
-              value={quantity}
-              onChange={setQuantity}
-              placeholder="0"
-              className={INVENTORY_FORM_CONTROL}
-              required
-            />
-          </AdminFormField>
-
-          {tab === "receipts" ? (
-            <>
-              <AdminFormField label={matWh.fieldUnitPrice}>
-                <DecimalInput
-                  value={unitPrice}
-                  onChange={setUnitPrice}
-                  placeholder="0"
-                  className={INVENTORY_FORM_CONTROL}
-                />
-              </AdminFormField>
-              <AdminFormField label={matWh.fieldInvoice}>
-                <input
-                  type="text"
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  className={INVENTORY_FORM_CONTROL}
-                />
-              </AdminFormField>
-            </>
-          ) : null}
-
-          <AdminFormField label={matWh.fieldNotes}>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className={INVENTORY_FORM_TEXTAREA}
-            />
-          </AdminFormField>
-        </form>
-      </AdminModalShell>
+        onSubmit={handleSubmit}
+      />
     </section>
   );
 }

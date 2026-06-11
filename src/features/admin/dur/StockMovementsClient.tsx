@@ -4,43 +4,26 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { formatDict, useDictionary } from "@/i18n";
-import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
-import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
-import { narrowStockReceipts, narrowStockIssues } from "@/lib/narrow/dur";
-import { narrowAdminUserRows } from "@/lib/narrow/admin";
-import { narrowUnifiedGanttItems } from "@/lib/narrow/admin";
-import { parseJsonArray } from "@/lib/parseJsonArray";
-import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
-import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
-import { AdminTableShell } from "@/components/Admin/AdminTableShell";
+import { decimalStringForStorage } from "@/lib/decimalInput";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
-import {
-  TABLE_BODY_ROW,
-  TABLE_EMPTY_CELL,
-  TABLE_HEAD,
-  TABLE_HEAD_ROW,
-  TABLE_TD,
-  TABLE_TD_MUTED,
-  TABLE_TD_STRONG,
-  TABLE_TH,
-} from "@/lib/uiTable";
-import type { StockReceipt, StockIssue } from "@/types/dur";
 import { StockReceiptForm } from "./StockReceiptForm";
 import { StockIssueForm } from "./StockIssueForm";
+import { StockMovementsTable } from "./StockMovementsTable";
+import { useStockMovementsData } from "./useStockMovementsData";
+import { useStockMovementRefs } from "./useStockMovementRefs";
+import { useStockMovementForms } from "./useStockMovementForms";
 import { useDurSparePartCatalog } from "@/features/admin/dur/useDurSparePartCatalog";
 import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartComboboxOptions";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
-import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 
 type Tab = "receipts" | "issues";
 
 export default function StockMovementsClient() {
   const { canMutate } = useAdminAbility();
-  const { alert: appAlert } = useAppDialog();
 
   const dictionary = useDictionary();
   const wh = warehouseCommonLabels(dictionary);
@@ -48,34 +31,13 @@ export default function StockMovementsClient() {
   const common = dictionary.common;
   const issuesDict = dWh.issues;
   const receiptsDict = dWh.receipts;
-  const durApiErrors = dictionary.dur.apiErrors as Record<string, string>;
-  const globalApiErrors = dictionary.apiErrors as Record<string, string>;
 
   const [tab, setTab] = useState<Tab>("issues");
-  const [receipts, setReceipts] = useState<StockReceipt[]>([]);
-  const [issues, setIssues] = useState<StockIssue[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
 
   const { items: catalogItems, isLoading: catalogLoading, fetchCatalog } = useDurSparePartCatalog();
-  const [workOrderOptions, setWorkOrderOptions] = useState<AdminSearchComboboxOption[]>([]);
-  const [userOptions, setUserOptions] = useState<AdminSearchComboboxOption[]>([]);
-  const [refsLoading, setRefsLoading] = useState(false);
-
-  const [showModal, setShowModal] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [rPartId, setRPartId] = useState("");
-  const [rQuantity, setRQuantity] = useState("");
-  const [rUnitPrice, setRUnitPrice] = useState("");
-  const [rInvoiceNumber, setRInvoiceNumber] = useState("");
-  const [rNotes, setRNotes] = useState("");
-
-  const [iPartId, setIPartId] = useState("");
-  const [iQuantity, setIQuantity] = useState("");
-  const [iWorkOrderId, setIWorkOrderId] = useState("");
-  const [iIssuedTo, setIIssuedTo] = useState("");
-  const [iNotes, setINotes] = useState("");
+  const { workOrderOptions, userOptions, refsLoading, fetchRefs } = useStockMovementRefs();
 
   const partById = useMemo(() => new Map(catalogItems.map((p) => [p.id, p])), [catalogItems]);
 
@@ -84,66 +46,37 @@ export default function StockMovementsClient() {
     [catalogItems, wh.stockSublabel]
   );
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [recRes, issRes] = await Promise.all([
-        fetch("/api/dur/stock/receipts", { cache: "no-store" }),
-        fetch("/api/dur/stock/issues", { cache: "no-store" }),
-      ]);
-      setReceipts(narrowStockReceipts(await parseJsonArray(recRes)));
-      setIssues(narrowStockIssues(await parseJsonArray(issRes)));
-    } catch {
-      setReceipts([]);
-      setIssues([]);
-    }
-    setIsLoading(false);
-  }, []);
+  const { isLoading, fetchData, filteredReceipts, filteredIssues, issueTotalsByPart } =
+    useStockMovementsData({ tab, searchQuery, partById });
 
-  const fetchRefs = useCallback(async () => {
-    setRefsLoading(true);
-    try {
-      const [ordersRes, usersRes] = await Promise.all([
-        fetch("/api/admin/work-orders"),
-        fetch("/api/admin/users"),
-      ]);
-      const orders = narrowUnifiedGanttItems(await parseJsonArray(ordersRes));
-      const woOpts: AdminSearchComboboxOption[] = [];
-      for (const o of orders) {
-        if (o._type !== "ORDER") continue;
-        const labelParts: string[] = [`#${o.id}`];
-        if (typeof o.resourceName === "string" && o.resourceName) labelParts.push(o.resourceName);
-        const desc =
-          typeof o.taskDescription === "string" && o.taskDescription.trim()
-            ? o.taskDescription.trim().slice(0, 60)
-            : "";
-        if (desc) labelParts.push(desc);
-        woOpts.push({
-          id: String(o.id),
-          label: labelParts.join(" · "),
-          searchText: `${o.id} ${o.resourceName ?? ""} ${o.taskDescription ?? ""}`,
-        });
-      }
-      setWorkOrderOptions(woOpts);
+  const closeModal = useCallback(() => setShowModal(false), []);
 
-      const users = narrowAdminUserRows(await parseJsonArray(usersRes));
-      setUserOptions(
-        users
-          .filter((u) => u.isActive)
-          .map((u) => ({
-            id: String(u.id),
-            label: u.fullName,
-            sublabel: u.usernameEmail,
-            searchText: `${u.fullName} ${u.usernameEmail}`,
-          }))
-      );
-    } catch {
-      setWorkOrderOptions([]);
-      setUserOptions([]);
-    } finally {
-      setRefsLoading(false);
-    }
-  }, []);
+  const {
+    isSubmitting,
+    rPartId,
+    rQuantity,
+    rUnitPrice,
+    rInvoiceNumber,
+    rNotes,
+    setRQuantity,
+    setRUnitPrice,
+    setRInvoiceNumber,
+    setRNotes,
+    iPartId,
+    iQuantity,
+    iWorkOrderId,
+    iIssuedTo,
+    iNotes,
+    setIPartId,
+    setIQuantity,
+    setIWorkOrderId,
+    setIIssuedTo,
+    setINotes,
+    resetForms,
+    handleReceiptPartChange,
+    handleSaveReceipt,
+    handleSaveIssue,
+  } = useStockMovementForms({ tab, catalogItems, fetchData, fetchCatalog, closeModal });
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -153,249 +86,18 @@ export default function StockMovementsClient() {
   }, [fetchData, fetchCatalog]);
 
   const openModal = useCallback(() => {
-    setRPartId("");
-    setRQuantity("");
-    setRUnitPrice("");
-    setRInvoiceNumber("");
-    setRNotes("");
-    setIPartId("");
-    setIQuantity("");
-    setIWorkOrderId("");
-    setIIssuedTo("");
-    setINotes("");
+    resetForms();
     setShowModal(true);
     void fetchCatalog();
     if (tab === "issues") {
       void fetchRefs();
     }
-  }, [fetchCatalog, fetchRefs, tab]);
+  }, [resetForms, fetchCatalog, fetchRefs, tab]);
 
   useEffect(() => {
     if (!showModal || tab !== "issues") return;
     queueMicrotask(() => void fetchRefs());
   }, [showModal, tab, fetchRefs]);
-
-  const selectedCatalogItem = useMemo(
-    () => catalogItems.find((p) => String(p.id) === (tab === "receipts" ? rPartId : iPartId)),
-    [catalogItems, tab, rPartId, iPartId]
-  );
-
-  const handleReceiptPartChange = useCallback(
-    (partId: string) => {
-      setRPartId(partId);
-      if (!partId || rUnitPrice.trim()) return;
-      const item = catalogItems.find((p) => String(p.id) === partId);
-      if (item?.purchasePrice) {
-        setRUnitPrice(item.purchasePrice);
-      }
-    },
-    [catalogItems, rUnitPrice]
-  );
-
-  const handleSaveReceipt = useCallback(async () => {
-    const partId = parseInt(rPartId, 10);
-    if (!partId || Number.isNaN(partId)) {
-      await appAlert({ message: durApiErrors.missing_part_id ?? receiptsDict.fields.part });
-      return;
-    }
-    const qty = parseDecimalInput(rQuantity);
-    if (!rQuantity.trim() || qty == null || qty <= 0) {
-      await appAlert({ message: durApiErrors.invalid_quantity ?? receiptsDict.fields.quantity });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/dur/stock/receipts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          partId,
-          quantity: decimalStringForStorage(rQuantity) ?? rQuantity.trim(),
-          unitPrice: rUnitPrice.trim() ? decimalStringForStorage(rUnitPrice) : null,
-          invoiceNumber: rInvoiceNumber.trim() || null,
-          notes: rNotes.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        setShowModal(false);
-        await fetchData();
-        await fetchCatalog();
-        await appAlert({ message: wh.movementSaveSuccess });
-        return;
-      }
-      const body = await parseJsonUnknown(res);
-      const code = readApiErrorString(body);
-      await appAlert({
-        message: appDialogApiMessage(
-          { ...globalApiErrors, ...durApiErrors },
-          code,
-          dictionary.apiErrors.save_error
-        ),
-      });
-    } catch {
-      await appAlert({ message: dictionary.apiErrors.save_error });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    rPartId,
-    rQuantity,
-    rUnitPrice,
-    rInvoiceNumber,
-    rNotes,
-    appAlert,
-    durApiErrors,
-    receiptsDict.fields,
-    fetchData,
-    fetchCatalog,
-    globalApiErrors,
-    dictionary.apiErrors.save_error,
-    wh.movementSaveSuccess,
-  ]);
-
-  const handleSaveIssue = useCallback(async () => {
-    const partId = parseInt(iPartId, 10);
-    if (!partId || Number.isNaN(partId)) {
-      await appAlert({ message: durApiErrors.missing_part_id ?? issuesDict.fields.part });
-      return;
-    }
-    const qty = parseDecimalInput(iQuantity);
-    if (!iQuantity.trim() || qty == null || qty <= 0) {
-      await appAlert({ message: durApiErrors.invalid_quantity ?? issuesDict.fields.quantity });
-      return;
-    }
-
-    const available = parseDecimalInput(selectedCatalogItem?.stockQuantity ?? "0") ?? 0;
-    if (available < qty) {
-      await appAlert({
-        message: issuesDict.insufficientStock
-          .replace("{available}", String(available))
-          .replace("{unit}", selectedCatalogItem?.unit ?? "szt"),
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await fetch("/api/dur/stock/issues", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          partId,
-          quantity: decimalStringForStorage(iQuantity) ?? iQuantity.trim(),
-          workOrderId: iWorkOrderId ? parseInt(iWorkOrderId, 10) : null,
-          issuedTo: iIssuedTo ? parseInt(iIssuedTo, 10) : null,
-          notes: iNotes.trim() || null,
-        }),
-      });
-      if (res.ok) {
-        setShowModal(false);
-        await fetchData();
-        await fetchCatalog();
-        await appAlert({ message: wh.movementSaveSuccess });
-        return;
-      }
-      const body = await parseJsonUnknown(res);
-      const code = readApiErrorString(body);
-      if (code === "insufficient_stock" && selectedCatalogItem) {
-        await appAlert({
-          message: issuesDict.insufficientStock
-            .replace("{available}", selectedCatalogItem.stockQuantity)
-            .replace("{unit}", selectedCatalogItem.unit),
-        });
-        return;
-      }
-      await appAlert({
-        message: appDialogApiMessage(
-          { ...globalApiErrors, ...durApiErrors },
-          code,
-          dictionary.apiErrors.save_error
-        ),
-      });
-    } catch {
-      await appAlert({ message: dictionary.apiErrors.save_error });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [
-    iPartId,
-    iQuantity,
-    iWorkOrderId,
-    iIssuedTo,
-    iNotes,
-    selectedCatalogItem,
-    appAlert,
-    durApiErrors,
-    issuesDict,
-    fetchData,
-    fetchCatalog,
-    globalApiErrors,
-    dictionary.apiErrors.save_error,
-    wh.movementSaveSuccess,
-  ]);
-
-  const filteredReceipts = useMemo(() => {
-    const q = searchQuery.trim();
-    if (!q) return receipts;
-    return receipts.filter((row) => {
-      const haystack = [
-        row.partName,
-        row.partCatalogNumber,
-        row.notes,
-        row.invoiceNumber,
-        row.quantity,
-        new Date(row.createdAt).toLocaleString(),
-      ]
-        .filter(Boolean)
-        .join(" ");
-      return matchesSearchQuery(haystack, q);
-    });
-  }, [receipts, searchQuery]);
-
-  const filteredIssues = useMemo(() => {
-    const q = searchQuery.trim();
-    if (!q) return issues;
-    return issues.filter((row) => {
-      const haystack = [
-        row.issuedToName,
-        row.resourceName,
-        row.partName,
-        row.partCatalogNumber,
-        row.notes,
-        row.workOrderLabel,
-        row.workOrderId != null ? `#${row.workOrderId}` : null,
-        row.quantity,
-        new Date(row.createdAt).toLocaleString(),
-      ]
-        .filter(Boolean)
-        .join(" ");
-      return matchesSearchQuery(haystack, q);
-    });
-  }, [issues, searchQuery]);
-
-  const issueTotalsByPart = useMemo(() => {
-    if (tab !== "issues" || !searchQuery.trim() || filteredIssues.length === 0) return [];
-    const totals = new Map<number, { partName: string; quantity: number; unit: string }>();
-    for (const row of filteredIssues) {
-      const qty = parseDecimalInput(row.quantity) ?? 0;
-      const unit = partById.get(row.partId)?.unit ?? "szt";
-      const existing = totals.get(row.partId);
-      if (existing) {
-        existing.quantity += qty;
-      } else {
-        totals.set(row.partId, {
-          partName: row.partName ?? String(row.partId),
-          quantity: qty,
-          unit,
-        });
-      }
-    }
-    return [...totals.values()].sort((a, b) => a.partName.localeCompare(b.partName, "pl"));
-  }, [tab, searchQuery, filteredIssues, partById]);
-
-  const rows = tab === "receipts" ? filteredReceipts : filteredIssues;
-  const colSpan = tab === "issues" ? 6 : 4;
 
   return (
     <>
@@ -466,71 +168,14 @@ export default function StockMovementsClient() {
         </div>
       ) : null}
 
-      <AdminTableShell>
-        <thead className={TABLE_HEAD}>
-          <tr className={TABLE_HEAD_ROW}>
-            {tab === "issues" ? (
-              <>
-                <th className={TABLE_TH}>{dWh.colCollectedBy}</th>
-                <th className={TABLE_TH}>{dWh.colResource}</th>
-              </>
-            ) : null}
-            <th className={TABLE_TH}>{dWh.colPart}</th>
-            <th className={TABLE_TH}>{wh.colQuantity}</th>
-            <th className={TABLE_TH}>{wh.colDate}</th>
-            <th className={TABLE_TH}>{wh.colNotes}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading ? (
-            <tr>
-              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
-                {common.loading.default}
-              </td>
-            </tr>
-          ) : rows.length === 0 ? (
-            <tr>
-              <td colSpan={colSpan} className={TABLE_EMPTY_CELL}>
-                {searchQuery.trim()
-                  ? common.search.noResultsForQuery
-                  : tab === "receipts"
-                    ? wh.emptyReceipts
-                    : wh.emptyIssues}
-              </td>
-            </tr>
-          ) : tab === "receipts" ? (
-            filteredReceipts.map((row) => (
-              <tr key={row.id} className={TABLE_BODY_ROW}>
-                <td className={TABLE_TD_STRONG}>{row.partName ?? row.partId}</td>
-                <td className={TABLE_TD}>
-                  {formatDict(wh.stockWithUnit, {
-                    qty: row.quantity,
-                    unit: partById.get(row.partId)?.unit ?? "szt",
-                  })}
-                </td>
-                <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
-                <td className={TABLE_TD_MUTED}>{row.notes ?? "—"}</td>
-              </tr>
-            ))
-          ) : (
-            filteredIssues.map((row) => (
-              <tr key={row.id} className={TABLE_BODY_ROW}>
-                <td className={TABLE_TD_STRONG}>{row.issuedToName ?? "—"}</td>
-                <td className={TABLE_TD}>{row.resourceName ?? "—"}</td>
-                <td className={TABLE_TD_STRONG}>{row.partName ?? row.partId}</td>
-                <td className={TABLE_TD}>
-                  {formatDict(wh.stockWithUnit, {
-                    qty: row.quantity,
-                    unit: partById.get(row.partId)?.unit ?? "szt",
-                  })}
-                </td>
-                <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
-                <td className={TABLE_TD_MUTED}>{row.notes ?? "—"}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </AdminTableShell>
+      <StockMovementsTable
+        tab={tab}
+        isLoading={isLoading}
+        searchQuery={searchQuery}
+        filteredReceipts={filteredReceipts}
+        filteredIssues={filteredIssues}
+        partById={partById}
+      />
 
       <AdminModalShell
         open={showModal && canMutate}

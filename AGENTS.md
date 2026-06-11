@@ -47,7 +47,7 @@ Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pra
 ```
 src/
 ├── app/                    # Trasy Next: page.tsx, layout.tsx, cienkie wrappery; **bez** logiki UI > ~300 linii
-│   ├── api/                # Route Handlery (42 endpointy)
+│   ├── api/                # Route Handlery (75 endpointów)
 │   │   ├── admin/          #   API panelu admina (work-orders, users, sessions, settings, …)
 │   │   ├── worker/         #   API aplikacji pracownika (session, gps, logs, work-orders, …)
 │   │   ├── platform/       #   API superadmin (companies, analytics)
