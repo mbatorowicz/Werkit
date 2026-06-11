@@ -231,8 +231,7 @@ describe("assertResourceGroupsAssignable", () => {
   it("przechodzi gdy wszystkie grupy istnieją", async () => {
     selectMock.mockReturnValue({
       from: () => ({
-        where: () =>
-          Promise.resolve([{ id: 1 }, { id: 2 }]),
+        where: () => Promise.resolve([{ id: 1 }, { id: 2 }]),
       }),
     });
 

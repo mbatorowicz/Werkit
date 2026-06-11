@@ -91,7 +91,11 @@ export function narrowOrganizationTeams(rows: unknown[]): OrganizationTeamRow[] 
 
 function narrowOrganizationTeamMember(row: unknown): OrganizationTeamMemberRow | null {
   if (!isRecord(row)) return null;
-  if (typeof row.id !== "number" || typeof row.userId !== "number" || typeof row.role !== "string") {
+  if (
+    typeof row.id !== "number" ||
+    typeof row.userId !== "number" ||
+    typeof row.role !== "string"
+  ) {
     return null;
   }
   const user = row.user;
@@ -213,8 +217,7 @@ function narrowTeamMemberWithUser(row: unknown): TeamMemberWithUser | null {
   if (!isRecord(user) || typeof user.id !== "number" || typeof user.fullName !== "string") {
     return null;
   }
-  const usernameEmail =
-    typeof user.usernameEmail === "string" ? user.usernameEmail : "";
+  const usernameEmail = typeof user.usernameEmail === "string" ? user.usernameEmail : "";
   return {
     id: row.id,
     teamId: row.teamId,

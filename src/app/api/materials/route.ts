@@ -49,9 +49,7 @@ export const POST = withApiErrorHandling(
 
     const unitRaw = body.unit;
     const unit =
-      unitRaw != null && String(unitRaw).trim() !== ""
-        ? normalizeMeasureUnit(unitRaw)
-        : undefined;
+      unitRaw != null && String(unitRaw).trim() !== "" ? normalizeMeasureUnit(unitRaw) : undefined;
     if (unitRaw != null && String(unitRaw).trim() !== "" && !unit) {
       return jsonError("invalid_unit", 400);
     }
@@ -76,7 +74,9 @@ export const POST = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) =>
-      err instanceof Error && err.message === "invalid_unit" ? jsonError("invalid_unit", 400) : null,
+      err instanceof Error && err.message === "invalid_unit"
+        ? jsonError("invalid_unit", 400)
+        : null,
     defaultErrorCode: "save_error",
   }
 );

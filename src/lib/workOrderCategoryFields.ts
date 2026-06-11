@@ -42,8 +42,7 @@ export function buildWorkOrderDescriptionFields(
     return { taskDescription: null, repairDescription: null };
   }
   if (isRepairOrderType(orderType)) {
-    const d =
-      typeof values.repairDescription === "string" ? values.repairDescription.trim() : "";
+    const d = typeof values.repairDescription === "string" ? values.repairDescription.trim() : "";
     return { taskDescription: null, repairDescription: d || null };
   }
   const d = typeof values.taskDescription === "string" ? values.taskDescription.trim() : "";

@@ -410,9 +410,7 @@ describe("WorkerOrderService", () => {
       const chain = {
         from: vi.fn(() => chain),
         where: vi.fn(() => chain),
-        limit: vi.fn(() =>
-          resultArray([{ id: 1, status: "PENDING", createdById: 2 }])
-        ),
+        limit: vi.fn(() => resultArray([{ id: 1, status: "PENDING", createdById: 2 }])),
       };
       selectMock.mockReturnValue(chain);
 
@@ -426,9 +424,7 @@ describe("WorkerOrderService", () => {
       const assertChain = {
         from: vi.fn(() => assertChain),
         where: vi.fn(() => assertChain),
-        limit: vi.fn(() =>
-          resultArray([{ id: 1, status: "PENDING", createdById: 1 }])
-        ),
+        limit: vi.fn(() => resultArray([{ id: 1, status: "PENDING", createdById: 1 }])),
       };
       const userChain = {
         from: vi.fn(() => userChain),

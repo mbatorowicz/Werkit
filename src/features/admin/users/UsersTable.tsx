@@ -95,11 +95,7 @@ export default function UsersTable({
             </tr>
           ) : (
             filteredUsers.map((user) => (
-              <tr
-                key={user.id}
-                onClick={() => onPreview(user)}
-                className={TABLE_ROW_CLICKABLE}
-              >
+              <tr key={user.id} onClick={() => onPreview(user)} className={TABLE_ROW_CLICKABLE}>
                 <td className={TABLE_TD}>
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100 font-bold text-emerald-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">

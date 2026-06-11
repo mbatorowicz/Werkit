@@ -59,7 +59,9 @@ export const PUT = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) =>
-      err instanceof Error && err.message === "invalid_unit" ? jsonError("invalid_unit", 400) : null,
+      err instanceof Error && err.message === "invalid_unit"
+        ? jsonError("invalid_unit", 400)
+        : null,
     defaultErrorCode: "save_error",
   }
 );

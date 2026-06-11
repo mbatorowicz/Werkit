@@ -100,11 +100,7 @@ export function WorkerOrderDetailsModal({
             />
           ) : null}
           {vis.showDescription && data.description?.trim() ? (
-            <OrderDetailField
-              label={vis.descriptionLabel}
-              value={data.description}
-              multiline
-            />
+            <OrderDetailField label={vis.descriptionLabel} value={data.description} multiline />
           ) : null}
         </div>
 

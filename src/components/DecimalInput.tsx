@@ -3,7 +3,10 @@
 import type { InputHTMLAttributes } from "react";
 import { sanitizeDecimalTyping } from "@/lib/decimalInput";
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "inputMode" | "value" | "onChange"> & {
+type Props = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "type" | "inputMode" | "value" | "onChange"
+> & {
   value: string;
   onChange: (value: string) => void;
 };

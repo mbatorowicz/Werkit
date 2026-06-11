@@ -112,95 +112,99 @@ export function WorkOrderPendingCard({
 
   return (
     <>
-    <div className={workOrderPendingListCardClass(order.priority)}>
-      {positionLabel ? (
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-            {positionLabel}
-          </span>
-          <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-        </div>
-      ) : null}
-
-      <OrderLabelCard
-        tone="planned"
-        layout="teaser"
-        density={density}
-        orderNo={`#${order.id}`}
-        onCardClick={() => openOrderDetails(orderDetails())}
-        cardAriaLabel={dict.orderDetailsOpenCategory}
-        mode={labelFields.mode || dict.noCategoryName}
-        modeColor={labelFields.modeColor}
-        machine={labelFields.machine}
-        material={labelFields.material}
-        quantity={labelFields.quantity}
-        customer={labelFields.customer}
-        description={labelFields.description}
-        fieldVisibility={labelFields.fieldVisibility}
-        badges={
-          !positionLabel ? (
+      <div className={workOrderPendingListCardClass(order.priority)}>
+        {positionLabel ? (
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              {positionLabel}
+            </span>
             <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-          ) : undefined
-        }
-        orderedBy={order.creatorName ?? null}
-        orderedByLabel={dict.orderedBy}
-        dateLabel={
-          order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
-        }
-        timeLabel={
-          order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
-        }
-        className="bg-white/60 dark:bg-zinc-950/30"
-        attachmentPhotos={Boolean(order.hasPhotos)}
-        attachmentNotes={Boolean(order.hasNotes)}
-      />
+          </div>
+        ) : null}
 
-      <ScheduleConflictPanel
-        mode="worker"
-        status={status}
-        conflicts={conflicts}
-        labels={conflictLabels}
-        title={scheduleLabels.scheduleConflictTitle}
-        checkingLabel={scheduleLabels.scheduleConflictChecking}
-        workerBlockedHint={scheduleLabels.scheduleConflictWorkerBlockedHint}
-      />
+        <OrderLabelCard
+          tone="planned"
+          layout="teaser"
+          density={density}
+          orderNo={`#${order.id}`}
+          onCardClick={() => openOrderDetails(orderDetails())}
+          cardAriaLabel={dict.orderDetailsOpenCategory}
+          mode={labelFields.mode || dict.noCategoryName}
+          modeColor={labelFields.modeColor}
+          machine={labelFields.machine}
+          material={labelFields.material}
+          quantity={labelFields.quantity}
+          customer={labelFields.customer}
+          description={labelFields.description}
+          fieldVisibility={labelFields.fieldVisibility}
+          badges={
+            !positionLabel ? (
+              <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
+            ) : undefined
+          }
+          orderedBy={order.creatorName ?? null}
+          orderedByLabel={dict.orderedBy}
+          dateLabel={
+            order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
+          }
+          timeLabel={
+            order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
+          }
+          className="bg-white/60 dark:bg-zinc-950/30"
+          attachmentPhotos={Boolean(order.hasPhotos)}
+          attachmentNotes={Boolean(order.hasNotes)}
+        />
 
-      {acceptError ? (
-        <p className="text-xs font-medium text-red-700 dark:text-red-400">{acceptError}</p>
-      ) : null}
+        <ScheduleConflictPanel
+          mode="worker"
+          status={status}
+          conflicts={conflicts}
+          labels={conflictLabels}
+          title={scheduleLabels.scheduleConflictTitle}
+          checkingLabel={scheduleLabels.scheduleConflictChecking}
+          workerBlockedHint={scheduleLabels.scheduleConflictWorkerBlockedHint}
+        />
 
-      {isOwnOrder ? (
-        <div className="flex gap-2">
-          <Link
-            href={`/worker/orders/${order.id}/edit`}
-            className={`flex-1 ${UI_RADIUS_CONTROL} border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800`}
-          >
-            <Pencil className="w-4 h-4" />
-            {dict.editOrder}
-          </Link>
+        {acceptError ? (
+          <p className="text-xs font-medium text-red-700 dark:text-red-400">{acceptError}</p>
+        ) : null}
+
+        {isOwnOrder ? (
+          <div className="flex gap-2">
+            <Link
+              href={`/worker/orders/${order.id}/edit`}
+              className={`flex-1 ${UI_RADIUS_CONTROL} border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800`}
+            >
+              <Pencil className="w-4 h-4" />
+              {dict.editOrder}
+            </Link>
+            <button
+              type="button"
+              onClick={() => void handleDelete()}
+              className={`${UI_RADIUS_CONTROL} border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20`}
+              title={dict.deleteOrder}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ) : null}
+
+        {mode === "start" && !blocked && onStart ? (
           <button
             type="button"
-            onClick={() => void handleDelete()}
-            className={`${UI_RADIUS_CONTROL} border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20`}
-            title={dict.deleteOrder}
+            onClick={() => onStart(order.id)}
+            className={cn(
+              BTN_PRIMARY,
+              UI_RADIUS_CONTROL,
+              "py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full"
+            )}
           >
-            <Trash2 className="w-4 h-4" />
+            <Play className="w-4 h-4 fill-current" />
+            <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>
           </button>
-        </div>
-      ) : null}
-
-      {mode === "start" && !blocked && onStart ? (
-        <button
-          type="button"
-          onClick={() => onStart(order.id)}
-          className={cn(BTN_PRIMARY, UI_RADIUS_CONTROL, "py-3 px-4 flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm w-full")}
-        >
-          <Play className="w-4 h-4 fill-current" />
-          <span className="text-sm font-bold uppercase tracking-wider">{dict.startTask}</span>
-        </button>
-      ) : null}
-    </div>
-    {orderDetailsModal}
+        ) : null}
+      </div>
+      {orderDetailsModal}
     </>
   );
 }

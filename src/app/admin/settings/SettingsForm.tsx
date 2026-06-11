@@ -80,12 +80,12 @@ export default function SettingsForm({
   const [geocodeBusy, setGeocodeBusy] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("IDLE");
 
-  const updateField = useCallback(<K extends keyof SettingsSnapshot>(
-    field: K,
-    value: SettingsSnapshot[K]
-  ) => {
-    setSettings((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const updateField = useCallback(
+    <K extends keyof SettingsSnapshot>(field: K, value: SettingsSnapshot[K]) => {
+      setSettings((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
     if (!canMutate) return;
@@ -158,11 +158,7 @@ export default function SettingsForm({
         )}
 
         {(mode === "all" || mode === "orders") && (
-          <SettingsOrdersSection
-            settings={settings}
-            updateField={updateField}
-            mode={mode}
-          />
+          <SettingsOrdersSection settings={settings} updateField={updateField} mode={mode} />
         )}
 
         {canMutate && (

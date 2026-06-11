@@ -40,9 +40,7 @@ export function CategoryIdChipPicker({
 
   return (
     <div className={`flex flex-wrap gap-2 overflow-y-auto ${maxHeight}`}>
-      {options.length === 0 && (
-        <p className="text-xs text-zinc-500 italic">{emptyHint}</p>
-      )}
+      {options.length === 0 && <p className="text-xs text-zinc-500 italic">{emptyHint}</p>}
       {options.map((opt) => {
         const selected = selectedIds.includes(opt.id);
         return (

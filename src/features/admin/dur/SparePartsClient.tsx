@@ -34,10 +34,7 @@ export default function SparePartsClient() {
   const { parts, categories, isLoading, fetchData } = useSparePartsAdminData(alertCtxRef);
   const { groups: machineGroups, fetchGroups } = useResourceGroups();
 
-  const leafCategories = useMemo(
-    () => categories.filter((c) => !c.isGroup),
-    [categories]
-  );
+  const leafCategories = useMemo(() => categories.filter((c) => !c.isGroup), [categories]);
 
   const [showModal, setShowModal] = useState(false);
   const [adjustingPart, setAdjustingPart] = useState<SparePart | null>(null);
@@ -66,19 +63,12 @@ export default function SparePartsClient() {
     [appAlert]
   );
 
-  const {
-    formState,
-    setFormState,
-    editingPart,
-    isSubmitting,
-    openCreate,
-    openEdit,
-    save,
-  } = useSparePartForm({
-    onSuccess: handleSaveSuccess,
-    onError: handleSaveError,
-    dict: { saveSuccess: dict.saveSuccess, apiErrors: durApiErrors },
-  });
+  const { formState, setFormState, editingPart, isSubmitting, openCreate, openEdit, save } =
+    useSparePartForm({
+      onSuccess: handleSaveSuccess,
+      onError: handleSaveError,
+      dict: { saveSuccess: dict.saveSuccess, apiErrors: durApiErrors },
+    });
 
   const handleOpenCreate = useCallback(() => {
     openCreate();

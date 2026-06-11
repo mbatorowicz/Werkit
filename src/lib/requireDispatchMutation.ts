@@ -5,9 +5,7 @@ import { DelegationScopeService } from "@/services/DelegationScopeService";
 
 /** Pełny admin lub lider/kierownik z prawem delegowania zleceń. */
 export async function guardDispatchMutation(): Promise<
-  | NextResponse
-  | Response
-  | { ok: true; companyId: number; userId: number; role: string }
+  NextResponse | Response | { ok: true; companyId: number; userId: number; role: string }
 > {
   const session = await getAuthSession();
   if (!session?.userId) {

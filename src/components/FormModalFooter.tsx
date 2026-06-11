@@ -70,11 +70,7 @@ export function FormModalFooterActions({
   return (
     <div className="flex w-full flex-col gap-2">
       {children}
-      <button
-        type="button"
-        onClick={onCancel}
-        className={`w-full ${BTN_SECONDARY_FULL}`}
-      >
+      <button type="button" onClick={onCancel} className={`w-full ${BTN_SECONDARY_FULL}`}>
         {cancel}
       </button>
     </div>

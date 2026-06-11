@@ -77,9 +77,27 @@ describe("DelegationScopeService", () => {
       [{ id: 1, name: "Transport", managerId: null }],
       [{ id: 5, name: "Zmiana A", departmentId: 1, leaderId: 10 }],
       [
-        { userId: 20, teamId: 5, teamName: "Zmiana A", departmentName: "Transport", role: "member" },
-        { userId: 21, teamId: 5, teamName: "Zmiana A", departmentName: "Transport", role: "member" },
-        { userId: 10, teamId: 5, teamName: "Zmiana A", departmentName: "Transport", role: "leader" },
+        {
+          userId: 20,
+          teamId: 5,
+          teamName: "Zmiana A",
+          departmentName: "Transport",
+          role: "member",
+        },
+        {
+          userId: 21,
+          teamId: 5,
+          teamName: "Zmiana A",
+          departmentName: "Transport",
+          role: "member",
+        },
+        {
+          userId: 10,
+          teamId: 5,
+          teamName: "Zmiana A",
+          departmentName: "Transport",
+          role: "leader",
+        },
       ],
       [
         { id: 10, fullName: "Lider", role: "worker", isActive: true, reportsToId: null },
@@ -105,7 +123,13 @@ describe("DelegationScopeService", () => {
         { id: 6, name: "Zmiana B", departmentId: 2, leaderId: 11 },
       ],
       [
-        { userId: 20, teamId: 5, teamName: "Zmiana A", departmentName: "Transport", role: "member" },
+        {
+          userId: 20,
+          teamId: 5,
+          teamName: "Zmiana A",
+          departmentName: "Transport",
+          role: "member",
+        },
         { userId: 22, teamId: 6, teamName: "Zmiana B", departmentName: "Poddział", role: "member" },
       ],
       [
@@ -129,9 +153,9 @@ describe("DelegationScopeService", () => {
     ]);
 
     const { DelegationScopeService } = await import("./DelegationScopeService");
-    await expect(
-      DelegationScopeService.assertCanDelegateTo(1, 10, "worker", 99)
-    ).rejects.toThrow("forbidden");
+    await expect(DelegationScopeService.assertCanDelegateTo(1, 10, "worker", 99)).rejects.toThrow(
+      "forbidden"
+    );
   });
 
   it("hasDelegationRights true dla lidera", async () => {

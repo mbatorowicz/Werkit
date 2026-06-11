@@ -90,7 +90,8 @@ export function useWorkerNotifications(
   );
 
   const candidateAlarm = useMemo(
-    () => pickActiveAlarm(isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock, alarmsDict),
+    () =>
+      pickActiveAlarm(isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock, alarmsDict),
     [isTimeOverrun, session, overdueOrder, upcomingOrder, alarmClock, alarmsDict]
   );
 

@@ -12,7 +12,8 @@ export const TABLE_WRAPPER = `${HORIZONTAL_SCROLL_PANEL_CLASS} ${UI_RADIUS_CARD}
 export const TABLE_BASE = "w-full min-w-0 border-collapse text-left text-sm";
 
 /** Nagłówek kolumn. */
-export const TABLE_HEAD = "border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700/50 dark:bg-zinc-950/80";
+export const TABLE_HEAD =
+  "border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700/50 dark:bg-zinc-950/80";
 
 /** Wiersz nagłówka — etykiety kolumn. */
 export const TABLE_HEAD_ROW =

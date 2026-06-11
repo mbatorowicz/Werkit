@@ -12,9 +12,7 @@ export function HelpGlossary({ glossary }: { glossary: HelpGlossaryType }) {
             {glossary.terms.map((row, index) => (
               <tr
                 key={row.term}
-                className={
-                  index > 0 ? "border-t border-zinc-200 dark:border-zinc-700" : undefined
-                }
+                className={index > 0 ? "border-t border-zinc-200 dark:border-zinc-700" : undefined}
               >
                 <th className="text-left align-top p-4 font-bold text-zinc-900 dark:text-zinc-100 w-1/3">
                   {row.term}

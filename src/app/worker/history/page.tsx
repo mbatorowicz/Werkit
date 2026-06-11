@@ -66,9 +66,7 @@ export default async function HistoryPage() {
               resourceName: s.resourceName,
               materialName: s.materialName,
               quantityTons:
-                s.quantityTons != null && s.quantityTons !== ""
-                  ? Number(s.quantityTons)
-                  : null,
+                s.quantityTons != null && s.quantityTons !== "" ? Number(s.quantityTons) : null,
               customerFirstName: s.customerFirstName,
               customerLastName: s.customerLastName,
               customerPhone: s.customerPhone,

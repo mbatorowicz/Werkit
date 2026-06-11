@@ -64,31 +64,31 @@ export function PlatformCompanyTable({
       </div>
       <div className={`${TABLE_WRAPPER} bg-white shadow-sm dark:bg-zinc-900`}>
         <table className="min-w-full text-sm">
-            <thead className={TABLE_HEAD}>
-              <tr className={TABLE_HEAD_ROW}>
-                <th className={TABLE_TH}>{dict.colOrganization}</th>
-                <th className={TABLE_TH}>{dict.colIdentifier}</th>
-                <th className={TABLE_TH_RIGHT}>{dict.colUsers}</th>
-                <th className={TABLE_TH_RIGHT}>{dict.colWorkers}</th>
-                <th className={TABLE_TH_RIGHT}>{dict.colSessions30}</th>
-                <th className={TABLE_TH_RIGHT}>{dict.colPending}</th>
-                <th className={TABLE_TH_RIGHT}>{dict.colLogs7}</th>
-                <th className={TABLE_TH}>{dict.colStatus}</th>
-                <th className={TABLE_TH}>{dict.colActions}</th>
+          <thead className={TABLE_HEAD}>
+            <tr className={TABLE_HEAD_ROW}>
+              <th className={TABLE_TH}>{dict.colOrganization}</th>
+              <th className={TABLE_TH}>{dict.colIdentifier}</th>
+              <th className={TABLE_TH_RIGHT}>{dict.colUsers}</th>
+              <th className={TABLE_TH_RIGHT}>{dict.colWorkers}</th>
+              <th className={TABLE_TH_RIGHT}>{dict.colSessions30}</th>
+              <th className={TABLE_TH_RIGHT}>{dict.colPending}</th>
+              <th className={TABLE_TH_RIGHT}>{dict.colLogs7}</th>
+              <th className={TABLE_TH}>{dict.colStatus}</th>
+              <th className={TABLE_TH}>{dict.colActions}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={9} className={TABLE_EMPTY_CELL}>
+                  {dict.empty}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className={TABLE_EMPTY_CELL}>
-                    {dict.empty}
-                  </td>
-                </tr>
-              ) : (
-                rows.map((r) => (
-                  <Fragment key={r.companyId}>
-                    <tr className={TABLE_BODY_ROW}>
-                      <td className={TABLE_TD}>
+            ) : (
+              rows.map((r) => (
+                <Fragment key={r.companyId}>
+                  <tr className={TABLE_BODY_ROW}>
+                    <td className={TABLE_TD}>
                       {editingId === r.companyId ? (
                         <input
                           value={editName}
@@ -181,11 +181,7 @@ export function PlatformCompanyTable({
                   {settingsOpenId === r.companyId ? (
                     <tr className="bg-zinc-50/80 dark:bg-zinc-800/30">
                       <td colSpan={9} className="px-4 py-4">
-                        <FeatureFlagsSection
-                          companyId={r.companyId}
-                          dict={dict.settings}
-                          inline
-                        />
+                        <FeatureFlagsSection companyId={r.companyId} dict={dict.settings} inline />
                       </td>
                     </tr>
                   ) : null}

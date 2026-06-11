@@ -141,9 +141,7 @@ export function WizardStep3Details({
               }}
               onMaterialChange={setMaterialId}
               dict={materialPickerDict}
-              placeholder={
-                materialCategoryId ? dict.wizardMaterialPlaceholder : undefined
-              }
+              placeholder={materialCategoryId ? dict.wizardMaterialPlaceholder : undefined}
               required={selectedCategory.reqMaterial}
               aria-label={dict.wizardMaterialLabel}
             />

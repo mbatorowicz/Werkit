@@ -20,8 +20,7 @@ export const GET = withApiErrorHandling(
     const groupIdRaw =
       url.searchParams.get("compatibleWithResourceGroupId") ??
       url.searchParams.get("compatibleWithCategoryId");
-    const compatibleWithResourceGroupId =
-      groupIdRaw != null ? parseInt(groupIdRaw, 10) : undefined;
+    const compatibleWithResourceGroupId = groupIdRaw != null ? parseInt(groupIdRaw, 10) : undefined;
 
     const { SparePartService } = await import("@/services/dur/SparePartService");
     const parts = await SparePartService.getParts(companyId, {
@@ -62,7 +61,9 @@ export const POST = withApiErrorHandling(
 
     const parseIds = (arr: unknown) =>
       Array.isArray(arr)
-        ? arr.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+        ? arr
+            .map((c: string | number) => parseInt(String(c), 10))
+            .filter((n: number) => !Number.isNaN(n))
         : [];
 
     const resourceGroupIds = [
@@ -80,7 +81,11 @@ export const POST = withApiErrorHandling(
       if (purchasePrice == null) return jsonError("invalid_price", 400);
     }
     let minStock: string | undefined;
-    if (body.minStock !== null && body.minStock !== undefined && String(body.minStock).trim() !== "") {
+    if (
+      body.minStock !== null &&
+      body.minStock !== undefined &&
+      String(body.minStock).trim() !== ""
+    ) {
       const ms = normalizeDecimalBodyField(body.minStock);
       if (ms == null) return jsonError("invalid_quantity", 400);
       minStock = ms;
@@ -107,7 +112,8 @@ export const POST = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
-      if (err instanceof Error && err.message === "invalid_unit") return jsonError("invalid_unit", 400);
+      if (err instanceof Error && err.message === "invalid_unit")
+        return jsonError("invalid_unit", 400);
       return null;
     },
     defaultErrorCode: "save_error",

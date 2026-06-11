@@ -165,9 +165,7 @@ export function OrderLabelCard({
       <div className={`w-1.5 shrink-0 ${cls.bar}`} />
 
       <div className={`flex-1 min-w-0 ${isCompact ? "p-2.5" : "p-3"}`}>
-        <div
-          className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}
-        >
+        <div className={`flex items-start justify-between gap-3 ${isCompact ? "mb-1.5" : "mb-2"}`}>
           <div className="min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <div className={`font-mono text-sm font-black ${cls.label}`}>{orderNo}</div>
@@ -186,10 +184,7 @@ export function OrderLabelCard({
                 ) : null}
                 {attachmentNotes ? (
                   <span title={attachDict.orderAttachmentNotesTitle}>
-                    <FileText
-                      className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`}
-                      aria-hidden
-                    />
+                    <FileText className={`${isCompact ? "w-3.5 h-3.5" : "w-4 h-4"}`} aria-hidden />
                   </span>
                 ) : null}
               </div>
@@ -271,16 +266,10 @@ export function OrderLabelCard({
                 />
               ) : null}
               {showDateTime ? (
-                <OrderDetailField
-                  label={labels.date}
-                  value={dateLabel?.trim() ? dateLabel : "—"}
-                />
+                <OrderDetailField label={labels.date} value={dateLabel?.trim() ? dateLabel : "—"} />
               ) : null}
               {showDateTime ? (
-                <OrderDetailField
-                  label={labels.time}
-                  value={timeLabel?.trim() ? timeLabel : "—"}
-                />
+                <OrderDetailField label={labels.time} value={timeLabel?.trim() ? timeLabel : "—"} />
               ) : null}
             </div>
 

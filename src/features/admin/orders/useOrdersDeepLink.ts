@@ -63,10 +63,7 @@ export function useOrdersDeepLink({
         userId: String(item.userId || ""),
         resourceId: String(item.resourceId || ""),
         categoryId: String(item.categoryId || ""),
-        materialCategoryId: inferMaterialCategoryId(
-          String(item.materialId || ""),
-          materials
-        ),
+        materialCategoryId: inferMaterialCategoryId(String(item.materialId || ""), materials),
         materialId: String(item.materialId || ""),
         customerId: String(item.customerId || ""),
         taskDescription: item.taskDescription || "",
@@ -76,8 +73,7 @@ export function useOrdersDeepLink({
         dueDate: formatDueDatetimeLocal(item.dueDate as string | null),
         forceSave: false,
         orderType: narrowOrderType(item.orderType),
-        repairDescription:
-          typeof item.repairDescription === "string" ? item.repairDescription : "",
+        repairDescription: typeof item.repairDescription === "string" ? item.repairDescription : "",
       });
       setSelectedDispatchItem(null);
       setIsOrderModalOpen(true);

@@ -52,21 +52,19 @@ describe("AdminUserService", () => {
 
   describe("getAllUsers", () => {
     it("zwraca listę użytkowników dla companyId z projekcją kolumn", async () => {
-      const orderBy = vi
-        .fn()
-        .mockResolvedValue([
-          {
-            id: 1,
-            fullName: "Jan Kowalski",
-            usernameEmail: "jan@test.pl",
-            role: "worker",
-            isActive: true,
-            canCreateOwnOrders: true,
-            canEditRoute: false,
-            canCreateCustomers: false,
-            companyId: 1,
-          },
-        ]);
+      const orderBy = vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          fullName: "Jan Kowalski",
+          usernameEmail: "jan@test.pl",
+          role: "worker",
+          isActive: true,
+          canCreateOwnOrders: true,
+          canEditRoute: false,
+          canCreateCustomers: false,
+          companyId: 1,
+        },
+      ]);
       const where = vi.fn().mockReturnValue({ orderBy });
       const from = vi.fn().mockReturnValue({ where });
       selectMock.mockReturnValue({ from });

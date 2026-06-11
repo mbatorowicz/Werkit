@@ -37,4 +37,3 @@ export function AdminCollapsibleSection({ title, subtitle, defaultOpen = false, 
     </details>
   );
 }
-

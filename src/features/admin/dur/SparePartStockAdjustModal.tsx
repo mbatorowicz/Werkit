@@ -45,7 +45,8 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
     const qty = parseDecimalInput(quantity);
     if (qty == null || qty < 0) {
       await appAlert({
-        message: durApiErrors.invalid_quantity ?? apiErrors.invalid_payload ?? "Nieprawidłowa ilość.",
+        message:
+          durApiErrors.invalid_quantity ?? apiErrors.invalid_payload ?? "Nieprawidłowa ilość.",
       });
       return;
     }
@@ -110,7 +111,8 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
       >
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           {part.name}
-          {part.catalogNumber ? ` (${part.catalogNumber})` : ""} — {dictionary.dur.warehouse.inventory.quantity}:{" "}
+          {part.catalogNumber ? ` (${part.catalogNumber})` : ""} —{" "}
+          {dictionary.dur.warehouse.inventory.quantity}:{" "}
           <strong>
             {part.stockQuantity ?? "0"} {part.unit}
           </strong>

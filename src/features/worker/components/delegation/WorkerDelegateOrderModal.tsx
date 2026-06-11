@@ -6,11 +6,7 @@ import { workerApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
-import {
-  narrowBaseCategories,
-  narrowBaseMachines,
-  narrowDelegatableWorkers,
-} from "@/lib/narrow";
+import { narrowBaseCategories, narrowBaseMachines, narrowDelegatableWorkers } from "@/lib/narrow";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -28,9 +24,9 @@ export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const { alert: appAlert } = useAppDialog();
 
-  const [targets, setTargets] = useState<{ id: number; fullName: string; orgLabel: string | null }[]>(
-    []
-  );
+  const [targets, setTargets] = useState<
+    { id: number; fullName: string; orgLabel: string | null }[]
+  >([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [machines, setMachines] = useState<{ id: number; name: string; categoryIds?: number[] }[]>(
     []

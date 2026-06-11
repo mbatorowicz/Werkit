@@ -273,9 +273,7 @@ export default function CustomersClient() {
         editLabel={machinesDict.editTitle}
         maxWidthClass="max-w-lg"
       >
-        {previewCustomer ? (
-          <CustomerPreviewFields customer={previewCustomer} dict={dict} />
-        ) : null}
+        {previewCustomer ? <CustomerPreviewFields customer={previewCustomer} dict={dict} /> : null}
       </AdminPreviewModal>
     </>
   );

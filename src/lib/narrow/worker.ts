@@ -20,13 +20,16 @@ export function narrowWorkOrders(rows: unknown[]): WorkOrder[] {
       r.categoryName === null || typeof r.categoryName === "string" ? r.categoryName : null;
     const categoryColor =
       r.categoryColor === null || typeof r.categoryColor === "string" ? r.categoryColor : null;
-    const categoryShowMaterial = typeof r.categoryShowMaterial === "boolean" ? r.categoryShowMaterial : undefined;
+    const categoryShowMaterial =
+      typeof r.categoryShowMaterial === "boolean" ? r.categoryShowMaterial : undefined;
     const categoryShowCustomer =
       typeof r.categoryShowCustomer === "boolean" ? r.categoryShowCustomer : undefined;
     const categoryShowQuantity =
       typeof r.categoryShowQuantity === "boolean" ? r.categoryShowQuantity : undefined;
     const categoryShowTaskDescription =
-      typeof r.categoryShowTaskDescription === "boolean" ? r.categoryShowTaskDescription : undefined;
+      typeof r.categoryShowTaskDescription === "boolean"
+        ? r.categoryShowTaskDescription
+        : undefined;
     const taskDescription =
       r.taskDescription === null || typeof r.taskDescription === "string"
         ? r.taskDescription

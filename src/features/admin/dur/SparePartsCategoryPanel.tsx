@@ -3,10 +3,7 @@
 import { CategoryAdminSection } from "@/features/admin/categories/CategoryAdminSection";
 import type { SparePartCategory } from "@/types/dur";
 import { SparePartCategoryFormModal } from "./SparePartCategoryFormModal";
-import {
-  EMPTY_SPARE_PART_CATEGORY_FORM,
-  sparePartCategoryToForm,
-} from "./sparePartCategoryForm";
+import { EMPTY_SPARE_PART_CATEGORY_FORM, sparePartCategoryToForm } from "./sparePartCategoryForm";
 
 type Props = {
   apiErrors: Record<string, string>;

@@ -37,12 +37,7 @@ async function assertSufficientStock(
   const [row] = await client
     .select({ quantity: sparePartInventory.quantity })
     .from(sparePartInventory)
-    .where(
-      and(
-        eq(sparePartInventory.companyId, companyId),
-        eq(sparePartInventory.partId, partId)
-      )
-    )
+    .where(and(eq(sparePartInventory.companyId, companyId), eq(sparePartInventory.partId, partId)))
     .limit(1);
   const currentQty = row ? (parseDecimalInput(row.quantity) ?? 0) : 0;
   if (currentQty < (parseDecimalInput(quantity) ?? 0)) {

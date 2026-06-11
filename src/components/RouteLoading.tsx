@@ -3,13 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useDictionary } from "@/components/LocaleProvider";
 
-export function RouteLoading({
-  title,
-  subtitle,
-}: {
-  title?: string;
-  subtitle?: string;
-}) {
+export function RouteLoading({ title, subtitle }: { title?: string; subtitle?: string }) {
   const dict = useDictionary();
   const resolvedTitle = title ?? dict.common.loading.default;
   const resolvedSubtitle = subtitle ?? dict.routeLoading.preparingApp;
@@ -27,7 +21,9 @@ export function RouteLoading({
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-zinc-900 dark:text-zinc-100">{resolvedTitle}</div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400 truncate">{resolvedSubtitle}</div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400 truncate">
+              {resolvedSubtitle}
+            </div>
           </div>
         </div>
 

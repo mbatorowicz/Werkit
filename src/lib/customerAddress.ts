@@ -34,9 +34,7 @@ export function formatCustomerAddressDisplay(raw: string | null | undefined): st
 
 export function customerAddressHasParts(parts: CustomerAddressParts): boolean {
   return (
-    Boolean(parts.street.trim()) ||
-    Boolean(parts.city.trim()) ||
-    Boolean(parts.postalCode.trim())
+    Boolean(parts.street.trim()) || Boolean(parts.city.trim()) || Boolean(parts.postalCode.trim())
   );
 }
 
@@ -44,7 +42,10 @@ export function parseCustomerAddress(raw: string | null | undefined): CustomerAd
   const s = raw?.trim() ?? "";
   if (!s) return { street: "", city: "", postalCode: "" };
 
-  const lines = s.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = s
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   if (lines.length >= 3) {
     return {
       street: lines[0],
@@ -56,13 +57,19 @@ export function parseCustomerAddress(raw: string | null | undefined): CustomerAd
     const postalMatch = lines[1].match(PL_POSTAL_RE);
     if (postalMatch) {
       const postalCode = postalMatch[1];
-      const city = lines[1].replace(postalMatch[0], "").replace(/^[,\s]+|[,\s]+$/g, "").trim();
+      const city = lines[1]
+        .replace(postalMatch[0], "")
+        .replace(/^[,\s]+|[,\s]+$/g, "")
+        .trim();
       return { street: lines[0], city, postalCode };
     }
     return { street: lines[0], city: lines[1], postalCode: "" };
   }
 
-  const commaParts = s.split(",").map((p) => p.trim()).filter(Boolean);
+  const commaParts = s
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
   if (commaParts.length >= 2) {
     const last = commaParts[commaParts.length - 1];
     const postalMatch = last.match(PL_POSTAL_RE);
@@ -70,7 +77,8 @@ export function parseCustomerAddress(raw: string | null | undefined): CustomerAd
       const postalCode = postalMatch[1];
       const afterPostal = last.replace(postalMatch[0], "").trim();
       const city = afterPostal || commaParts[commaParts.length - 2] || "";
-      const street = commaParts.slice(0, -1).join(", ").replace(postalMatch[0], "").trim() || commaParts[0];
+      const street =
+        commaParts.slice(0, -1).join(", ").replace(postalMatch[0], "").trim() || commaParts[0];
       if (commaParts.length === 2 && !afterPostal) {
         return { street: commaParts[0], city: "", postalCode };
       }
@@ -86,11 +94,7 @@ export function parseCustomerAddress(raw: string | null | undefined): CustomerAd
   if (inlinePostal && commaParts.length >= 2) {
     const postalCode = inlinePostal[1];
     const street = commaParts[0];
-    const city = commaParts
-      .slice(1)
-      .join(", ")
-      .replace(inlinePostal[0], "")
-      .trim();
+    const city = commaParts.slice(1).join(", ").replace(inlinePostal[0], "").trim();
     return { street, city, postalCode };
   }
 

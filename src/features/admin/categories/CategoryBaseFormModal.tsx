@@ -44,9 +44,7 @@ export function CategoryBaseFormModal<TForm extends CategoryHierarchyFormFields>
       titleSize="sm"
       scrollableBody
       closeOnBackdropClick={false}
-      footer={
-        <FormModalFooter formId={formId} onCancel={onClose} submitLabel={labels.save} />
-      }
+      footer={<FormModalFooter formId={formId} onCancel={onClose} submitLabel={labels.save} />}
     >
       <form id={formId} onSubmit={onSubmit} className="space-y-4 p-6">
         <input

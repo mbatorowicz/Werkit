@@ -74,7 +74,10 @@ export default async function ProfilePage() {
         {user?.role === "admin" && (
           <Link
             href="/admin"
-            className={cn("w-full flex items-center justify-center gap-3 p-5 mt-4 shadow-sm", BTN_PRIMARY)}
+            className={cn(
+              "w-full flex items-center justify-center gap-3 p-5 mt-4 shadow-sm",
+              BTN_PRIMARY
+            )}
           >
             <Settings className="w-5 h-5" />
             {dict.goToAdminPanel}

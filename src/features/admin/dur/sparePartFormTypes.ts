@@ -1,14 +1,8 @@
 import { decimalStringForStorage } from "@/lib/decimalInput";
-import {
-  DEFAULT_SPARE_PART_MEASURE_UNIT,
-  resolveMeasureUnit,
-} from "@/lib/measureUnits";
+import { DEFAULT_SPARE_PART_MEASURE_UNIT, resolveMeasureUnit } from "@/lib/measureUnits";
 import type { SparePart, SparePartInput } from "@/types/dur";
 
-
-
 export type SparePartFormState = {
-
   name: string;
 
   catalogNumber: string;
@@ -30,13 +24,9 @@ export type SparePartFormState = {
   categoryIds: number[];
 
   resourceGroupIds: number[];
-
 };
 
-
-
 export const EMPTY_SPARE_PART_FORM: SparePartFormState = {
-
   name: "",
 
   catalogNumber: "",
@@ -58,37 +48,24 @@ export const EMPTY_SPARE_PART_FORM: SparePartFormState = {
   categoryIds: [],
 
   resourceGroupIds: [],
-
 };
 
-
-
 export function createEmptySparePartForm(): SparePartFormState {
-
   return {
-
     ...EMPTY_SPARE_PART_FORM,
 
     categoryIds: [],
 
     resourceGroupIds: [],
-
   };
-
 }
 
-
-
 export function sparePartToFormState(part: SparePart): SparePartFormState {
-
-  const groupIds =
-
-    part.resourceGroupIds?.length ? part.resourceGroupIds : (part.machineCategoryIds ?? []);
-
-
+  const groupIds = part.resourceGroupIds?.length
+    ? part.resourceGroupIds
+    : (part.machineCategoryIds ?? []);
 
   return {
-
     name: part.name,
 
     catalogNumber: part.catalogNumber ?? "",
@@ -110,12 +87,8 @@ export function sparePartToFormState(part: SparePart): SparePartFormState {
     categoryIds: part.categoryIds ?? [],
 
     resourceGroupIds: groupIds,
-
   };
-
 }
-
-
 
 export function formStateToSparePartInput(
   state: SparePartFormState,
@@ -145,9 +118,5 @@ export function formStateToSparePartInput(
     categoryIds: state.categoryIds,
 
     resourceGroupIds: state.resourceGroupIds,
-
   };
-
 }
-
-

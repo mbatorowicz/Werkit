@@ -132,7 +132,9 @@ export class AdminDispatchService {
   }
 
   /** Słowniki dyspozycji — rzadkie odświeżanie po stronie klienta. */
-  static async getDictionaries(ctx: AdminDispatchContext): Promise<AdminDispatchDictionariesPayload> {
+  static async getDictionaries(
+    ctx: AdminDispatchContext
+  ): Promise<AdminDispatchDictionariesPayload> {
     const { companyId } = ctx;
     const [workers, machines, materials, materialCategories, customers, categories] =
       await Promise.all([

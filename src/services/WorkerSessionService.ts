@@ -203,9 +203,8 @@ export class WorkerSessionService {
         .returning();
 
       if (matId && quantityTons) {
-        const { WorkSessionMaterialService } = await import(
-          "@/services/materials/WorkSessionMaterialService"
-        );
+        const { WorkSessionMaterialService } =
+          await import("@/services/materials/WorkSessionMaterialService");
         await WorkSessionMaterialService.issueForSessionStart(
           companyId,
           userId,
@@ -381,15 +380,9 @@ export class WorkerSessionService {
 
     // Transakcja: zwrot materiału + UPDATE work_orders + DELETE work_sessions atomowo
     await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } = await import(
-        "@/services/materials/WorkSessionMaterialService"
-      );
-      await WorkSessionMaterialService.returnForSessionIfIssued(
-        companyId,
-        userId,
-        session.id,
-        tx
-      );
+      const { WorkSessionMaterialService } =
+        await import("@/services/materials/WorkSessionMaterialService");
+      await WorkSessionMaterialService.returnForSessionIfIssued(companyId, userId, session.id, tx);
 
       if (session.workOrderId !== null) {
         await tx

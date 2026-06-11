@@ -15,6 +15,8 @@ export function buildDepartmentTree(
 }
 
 /** Płaska lista departamentów w kolejności drzewa. */
-export function flattenDepartmentTree(departments: OrganizationDepartmentRow[]): DepartmentTreeEntry[] {
+export function flattenDepartmentTree(
+  departments: OrganizationDepartmentRow[]
+): DepartmentTreeEntry[] {
   return flattenHierarchyTree(buildDepartmentTree(departments));
 }

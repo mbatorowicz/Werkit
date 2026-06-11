@@ -16,11 +16,7 @@ export function useWorkerOrderDetailsModal() {
   }, []);
 
   const orderDetailsModal = (
-    <WorkerOrderDetailsModal
-      open={data !== null}
-      onClose={closeOrderDetails}
-      data={data}
-    />
+    <WorkerOrderDetailsModal open={data !== null} onClose={closeOrderDetails} data={data} />
   );
 
   return { openOrderDetails, closeOrderDetails, orderDetailsModal };

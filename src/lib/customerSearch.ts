@@ -49,7 +49,10 @@ export function formatCustomerDisplayAddress(
 }
 
 export function matchesCustomerSearch(
-  c: Pick<BaseCustomer, "firstName" | "lastName" | "phone" | "defaultAddress" | "locationAddresses">,
+  c: Pick<
+    BaseCustomer,
+    "firstName" | "lastName" | "phone" | "defaultAddress" | "locationAddresses"
+  >,
   query: string
 ): boolean {
   return matchesSearchQuery(buildCustomerSearchText(c), query);

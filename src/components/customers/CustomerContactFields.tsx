@@ -55,9 +55,7 @@ function AddressFields({
         {hasAddress && postal ? (
           <OrderDetailField label={labels.postalCodeLabel} value={postal} />
         ) : null}
-        {hasAddress && city ? (
-          <OrderDetailField label={labels.cityLabel} value={city} />
-        ) : null}
+        {hasAddress && city ? <OrderDetailField label={labels.cityLabel} value={city} /> : null}
       </>
     );
   }
@@ -70,9 +68,7 @@ function AddressFields({
       {hasAddress && postal ? (
         <AdminPreviewField label={labels.postalCodeLabel} value={postal} />
       ) : null}
-      {hasAddress && city ? (
-        <AdminPreviewField label={labels.cityLabel} value={city} />
-      ) : null}
+      {hasAddress && city ? <AdminPreviewField label={labels.cityLabel} value={city} /> : null}
     </>
   );
 }

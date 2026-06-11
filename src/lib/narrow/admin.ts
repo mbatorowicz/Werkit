@@ -33,7 +33,8 @@ export function narrowAdminUserRows(rows: unknown[]): AdminUserListRow[] {
     ) {
       continue;
     }
-    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
+    const phone =
+      r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     const orgProfile = r.orgProfile !== undefined ? narrowUserOrgProfile(r.orgProfile) : undefined;
     out.push({
       id: r.id,
@@ -77,7 +78,8 @@ export function narrowAdminCustomerRows(rows: unknown[]): AdminCustomerListRow[]
       r.firstName === null || typeof r.firstName === "string"
         ? (r.firstName as string | null)
         : null;
-    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
+    const phone =
+      r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     const defaultAddress =
       r.defaultAddress === null || typeof r.defaultAddress === "string"
         ? (r.defaultAddress as string | null)

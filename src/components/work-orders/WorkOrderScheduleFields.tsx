@@ -59,8 +59,7 @@ export function WorkOrderScheduleFields({
     status: "idle" | "loading" | "clear" | "conflicts" | "error";
   }) => void;
 }) {
-  const control =
-    controlClassName ?? dateInputClassName(mode === "admin" ? "admin" : "worker");
+  const control = controlClassName ?? dateInputClassName(mode === "admin" ? "admin" : "worker");
 
   const schedulePreviewEnabled = Boolean(previewEnabled && userId && resourceId);
 

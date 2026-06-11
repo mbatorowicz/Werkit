@@ -70,9 +70,7 @@ export function StockReceiptsTable({ receipts, dict }: StockReceiptsTableProps) 
             </td>
             <td className={TABLE_TD_MUTED}>{r.invoiceNumber || "—"}</td>
             <td className={TABLE_TD_MUTED}>{r.creatorName || "—"}</td>
-            <td className={`${TABLE_TD_MUTED} max-w-[200px] truncate text-xs`}>
-              {r.notes || "—"}
-            </td>
+            <td className={`${TABLE_TD_MUTED} max-w-[200px] truncate text-xs`}>{r.notes || "—"}</td>
           </tr>
         ))}
       </tbody>

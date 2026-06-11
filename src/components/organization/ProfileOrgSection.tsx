@@ -27,7 +27,9 @@ export function ProfileOrgSection({ profile, dict }: Props) {
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 space-y-3">
-      <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{dict.sectionTitle}</h3>
+      <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+        {dict.sectionTitle}
+      </h3>
       {hasBadges ? (
         <OrgProfileBadges
           profile={profile}

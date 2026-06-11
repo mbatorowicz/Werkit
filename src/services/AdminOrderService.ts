@@ -182,11 +182,7 @@ export class AdminOrderService {
   }
 
   /** Zakończone sesje — lazy-load archiwum w dyspozycji. */
-  static async getCompletedArchiveSessions(
-    companyId: number,
-    limitCount = 500,
-    offsetCount = 0
-  ) {
+  static async getCompletedArchiveSessions(companyId: number, limitCount = 500, offsetCount = 0) {
     return AdminOrderService.querySessionsForDispatch(
       companyId,
       eq(workSessions.status, "COMPLETED"),
@@ -202,10 +198,7 @@ export class AdminOrderService {
     return AdminOrderService.getCompletedArchiveSessions(companyId, limitCount, 0);
   }
 
-  static async createOrder(
-    orderData: typeof workOrders.$inferInsert,
-    actor?: OrderMutationActor
-  ) {
+  static async createOrder(orderData: typeof workOrders.$inferInsert, actor?: OrderMutationActor) {
     const companyId = orderData.companyId;
     if (companyId == null) throw new Error("missing_company");
 
@@ -266,9 +259,8 @@ export class AdminOrderService {
     if (rows.length === 0) throw new Error("not_found");
 
     await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } = await import(
-        "@/services/materials/WorkSessionMaterialService"
-      );
+      const { WorkSessionMaterialService } =
+        await import("@/services/materials/WorkSessionMaterialService");
       await WorkSessionMaterialService.returnForOrderSessions(
         companyId,
         actorUserId ?? companyId,

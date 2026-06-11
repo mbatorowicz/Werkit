@@ -295,7 +295,13 @@ export async function proxy(request: NextRequest) {
     const workerAuth = authorizeWorkerAccess(role, route, request);
     if (workerAuth) return workerAuth;
 
-    const sharedApiAuth = authorizeSharedApiAccess(role, pathname, request.method, route, isMutation);
+    const sharedApiAuth = authorizeSharedApiAccess(
+      role,
+      pathname,
+      request.method,
+      route,
+      isMutation
+    );
     if (sharedApiAuth) return sharedApiAuth;
 
     const appDistributionAuth = authorizeAppDistributionAccess(role, route, request.method);

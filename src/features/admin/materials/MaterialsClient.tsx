@@ -57,7 +57,10 @@ export default function MaterialsClient() {
         fetchData={fetchData}
       />
 
-      <MaterialStockMovementsClient materials={materials} onRefreshMaterials={() => void fetchData()} />
+      <MaterialStockMovementsClient
+        materials={materials}
+        onRefreshMaterials={() => void fetchData()}
+      />
     </>
   );
 }

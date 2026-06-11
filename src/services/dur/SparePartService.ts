@@ -1,8 +1,5 @@
 import { db } from "@/db";
-import {
-  DEFAULT_SPARE_PART_MEASURE_UNIT,
-  normalizeMeasureUnit,
-} from "@/lib/measureUnits";
+import { DEFAULT_SPARE_PART_MEASURE_UNIT, normalizeMeasureUnit } from "@/lib/measureUnits";
 import {
   spareParts,
   sparePartToCategories,

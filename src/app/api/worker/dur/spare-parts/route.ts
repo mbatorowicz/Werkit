@@ -16,8 +16,7 @@ export const GET = withApiErrorHandling(
 
     const url = new URL(request.url);
     const groupIdRaw = url.searchParams.get("compatibleWithResourceGroupId");
-    const compatibleWithResourceGroupId =
-      groupIdRaw != null ? parseInt(groupIdRaw, 10) : undefined;
+    const compatibleWithResourceGroupId = groupIdRaw != null ? parseInt(groupIdRaw, 10) : undefined;
 
     const parts = await DurCatalogService.getPartsWithStock(ctx.companyId, {
       compatibleWithResourceGroupId:

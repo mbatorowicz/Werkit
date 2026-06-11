@@ -86,7 +86,9 @@ export const POST = withApiErrorHandling(
           unitPrice,
           notes,
           issuedTo:
-            body.issuedTo != null ? parseInt(String(body.issuedTo), 10) : scoped.data.session.userId,
+            body.issuedTo != null
+              ? parseInt(String(body.issuedTo), 10)
+              : scoped.data.session.userId,
         }
       );
 

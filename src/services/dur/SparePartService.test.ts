@@ -215,8 +215,7 @@ describe("SparePartService", () => {
           from: () => Promise.resolve([]),
         })
         .mockReturnValueOnce({
-          from: () =>
-            Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
+          from: () => Promise.resolve([{ partId: 1, resourceGroupId: 30 }]),
         })
         .mockReturnValueOnce({
           from: () => ({

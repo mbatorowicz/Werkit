@@ -46,10 +46,7 @@ async function assertSufficientStock(
     .select({ quantity: materialInventory.quantity })
     .from(materialInventory)
     .where(
-      and(
-        eq(materialInventory.companyId, companyId),
-        eq(materialInventory.materialId, materialId)
-      )
+      and(eq(materialInventory.companyId, companyId), eq(materialInventory.materialId, materialId))
     )
     .limit(1);
   const currentQty = row ? (parseDecimalInput(String(row.quantity)) ?? 0) : 0;

@@ -15,8 +15,7 @@ vi.mock("@/services/AdminOrderService", () => ({
   AdminOrderService: {
     getActiveWorkOrders: (...args: unknown[]) => getActiveWorkOrdersMock(...args),
     getInProgressSessions: (...args: unknown[]) => getInProgressSessionsMock(...args),
-    getCompletedArchiveSessions: (...args: unknown[]) =>
-      getCompletedArchiveSessionsMock(...args),
+    getCompletedArchiveSessions: (...args: unknown[]) => getCompletedArchiveSessionsMock(...args),
   },
 }));
 

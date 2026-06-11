@@ -128,7 +128,11 @@ export function WizardStep4Summary({
         onClick={onSave}
         className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-lg font-bold text-lg flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]"
       >
-        {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (saveLabel ?? dict.wizardSaveOrder)}
+        {isLoading ? (
+          <Loader2 className="w-6 h-6 animate-spin" />
+        ) : (
+          (saveLabel ?? dict.wizardSaveOrder)
+        )}
       </button>
 
       <button

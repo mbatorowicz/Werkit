@@ -35,8 +35,17 @@ export function OrdersDispatchItemCard({
   const locale = useAppLocale();
   const dict = ordersDict;
   const tone = dispatchStatusTone(item.status);
-  const { orderNo, mode, modeColor, machine, material, qty, customerDisplay, desc, fieldVisibility } =
-    buildDispatchItemCardCopy(item, dict, workerUiLabels, locale);
+  const {
+    orderNo,
+    mode,
+    modeColor,
+    machine,
+    material,
+    qty,
+    customerDisplay,
+    desc,
+    fieldVisibility,
+  } = buildDispatchItemCardCopy(item, dict, workerUiLabels, locale);
   const { dateLabel, timeLabel } = dispatchItemDateTimeLabels(item, layout, liveClockMs);
 
   const showOrderPriority = layout !== "boardDone" && item._type === "ORDER";

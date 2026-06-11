@@ -15,10 +15,7 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
 
   const canMutate = session.role === "admin";
-  const hasDelegation = await DelegationScopeService.hasDelegationRights(
-    companyId,
-    session.userId
-  );
+  const hasDelegation = await DelegationScopeService.hasDelegationRights(companyId, session.userId);
   const scopedWorkers = !canMutate && hasDelegation;
 
   const bootstrap = await AdminDispatchService.getBootstrap({

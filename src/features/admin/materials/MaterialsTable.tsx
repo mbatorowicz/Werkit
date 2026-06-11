@@ -152,7 +152,9 @@ export function MaterialsTable({
                           <CategoryColorBadge key={c.id} label={c.name} color={c.color} />
                         ))
                       ) : (
-                        <span className="text-xs italic text-zinc-500">{machDict.noCategoryBadge}</span>
+                        <span className="text-xs italic text-zinc-500">
+                          {machDict.noCategoryBadge}
+                        </span>
                       )}
                     </div>
                   </td>

@@ -15,7 +15,10 @@ import {
   INVENTORY_FORM_TEXTAREA,
 } from "@/components/Admin/adminInventoryFormStyles";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { AdminSearchCombobox, type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import {
+  AdminSearchCombobox,
+  type AdminSearchComboboxOption,
+} from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
 import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -75,10 +78,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
-  const materialById = useMemo(
-    () => new Map(materials.map((m) => [m.id, m])),
-    [materials]
-  );
+  const materialById = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
 
   const selectedMaterial = useMemo(
     () => materials.find((m) => String(m.id) === materialId) ?? null,
@@ -341,8 +341,7 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
                 <td className={TABLE_TD}>
                   {formatDict(wh.stockWithUnit, {
                     qty: row.quantity,
-                    unit:
-                      materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
+                    unit: materialById.get(row.materialId)?.unit ?? DEFAULT_MATERIAL_MEASURE_UNIT,
                   })}
                 </td>
                 <td className={TABLE_TD_MUTED}>{new Date(row.createdAt).toLocaleString()}</td>
@@ -369,7 +368,11 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
           />
         }
       >
-        <form id="material-stock-form" onSubmit={handleSubmit} className={`${INVENTORY_FORM_STACK} p-6`}>
+        <form
+          id="material-stock-form"
+          onSubmit={handleSubmit}
+          className={`${INVENTORY_FORM_STACK} p-6`}
+        >
           <AdminFormField label={matWh.fieldMaterial} required>
             <AdminSearchCombobox
               options={materialOptions}

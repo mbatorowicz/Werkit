@@ -11,7 +11,10 @@ import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import { DEFAULT_MATERIAL_MEASURE_UNIT } from "@/lib/measureUnits";
 import { materialsApi } from "@/lib/appRoutes";
 import { AdminFormField } from "@/components/Admin/AdminFormField";
-import { INVENTORY_FORM_CONTROL, INVENTORY_FORM_STACK } from "@/components/Admin/adminInventoryFormStyles";
+import {
+  INVENTORY_FORM_CONTROL,
+  INVENTORY_FORM_STACK,
+} from "@/components/Admin/adminInventoryFormStyles";
 import type { MaterialRow } from "@/features/admin/materials/types";
 
 type Props = {
@@ -22,13 +25,7 @@ type Props = {
   onSaved: () => void;
 };
 
-export function MaterialStockAdjustModal({
-  open,
-  material,
-  apiErrors,
-  onClose,
-  onSaved,
-}: Props) {
+export function MaterialStockAdjustModal({ open, material, apiErrors, onClose, onSaved }: Props) {
   const { alert: appAlert } = useAppDialog();
   const dictionary = useDictionary();
   const wh = warehouseCommonLabels(dictionary);

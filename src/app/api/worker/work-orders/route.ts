@@ -1,9 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
-import {
-  WORKER_ORDER_ERROR_CODES,
-  workerOrderErrorStatus,
-} from "@/lib/workerOrderApiErrors";
+import { WORKER_ORDER_ERROR_CODES, workerOrderErrorStatus } from "@/lib/workerOrderApiErrors";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 
@@ -49,7 +46,9 @@ export const POST = withApiErrorHandling(
         return jsonError(err.message, workerOrderErrorStatus(err.message));
       }
       if (isMissingWorkOrderRepairColumns(err)) {
-        console.error("[worker/work-orders] Brak kolumn order_type / repair_* — uruchom migracje Drizzle.");
+        console.error(
+          "[worker/work-orders] Brak kolumn order_type / repair_* — uruchom migracje Drizzle."
+        );
         return jsonError("save_error", 503);
       }
       if (err instanceof Error) {

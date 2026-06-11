@@ -48,7 +48,11 @@ const CONTROL =
  * Sekcja części zamiennych w formularzu zlecenia naprawczego (admin).
  * Widoczna tylko gdy orderType === 'machine_repair' i workOrderId !== null.
  */
-export default function WorkOrderSparePartsSection({ workOrderId, orderType, resourceGroupId }: Props) {
+export default function WorkOrderSparePartsSection({
+  workOrderId,
+  orderType,
+  resourceGroupId,
+}: Props) {
   const { durEnabled } = useAdminAbility();
   const dict = useDictionary();
   const durDict = dict.dur.workOrderSpareParts;
@@ -168,7 +172,12 @@ export default function WorkOrderSparePartsSection({ workOrderId, orderType, res
   // ── Usuwanie części ──
   const handleRemovePart = async (partId: number) => {
     if (!workOrderId) return;
-    if (!(await appConfirm({ message: durDict.returnConfirm ?? durDict.removeConfirm, variant: "danger" }))) {
+    if (
+      !(await appConfirm({
+        message: durDict.returnConfirm ?? durDict.removeConfirm,
+        variant: "danger",
+      }))
+    ) {
       return;
     }
     try {

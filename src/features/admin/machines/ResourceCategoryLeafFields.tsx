@@ -32,8 +32,12 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           {dict.orderTypeTitle}
         </h3>
-        <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">{dict.orderTypeHint}</p>
-        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{dict.orderTypeLabel}</label>
+        <p className="text-[10px] leading-snug text-zinc-500 dark:text-zinc-400">
+          {dict.orderTypeHint}
+        </p>
+        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          {dict.orderTypeLabel}
+        </label>
         <select
           value={form.orderType}
           onChange={(e) => setForm({ ...form, orderType: e.target.value as OrderType })}

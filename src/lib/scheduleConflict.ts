@@ -60,8 +60,7 @@ export function intervalsOverlap(
 
 export function parseDurationHours(value: number | string | null | undefined): number | null {
   if (value == null || String(value).trim() === "") return null;
-  const n =
-    typeof value === "number" ? value : parseDecimalInput(String(value));
+  const n = typeof value === "number" ? value : parseDecimalInput(String(value));
   return n != null && n > 0 ? n : null;
 }
 

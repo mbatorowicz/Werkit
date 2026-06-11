@@ -17,7 +17,9 @@ export function narrowBaseWorkers(rows: unknown[]): BaseWorker[] {
     if (!isRecord(r)) continue;
     if (typeof r.id !== "number" || typeof r.fullName !== "string") continue;
     const orgLabel =
-      r.orgLabel === null || typeof r.orgLabel === "string" ? (r.orgLabel as string | null) : undefined;
+      r.orgLabel === null || typeof r.orgLabel === "string"
+        ? (r.orgLabel as string | null)
+        : undefined;
     out.push({
       id: r.id,
       fullName: r.fullName,
@@ -77,11 +79,7 @@ export function narrowBaseMaterials(rows: unknown[]): BaseMaterial[] {
           ? String(r.minStock)
           : undefined;
     const location =
-      r.location === null
-        ? null
-        : typeof r.location === "string"
-          ? r.location
-          : undefined;
+      r.location === null ? null : typeof r.location === "string" ? r.location : undefined;
     const unit = typeof r.unit === "string" ? r.unit : DEFAULT_MATERIAL_MEASURE_UNIT;
     out.push({ id: r.id, name: r.name, unit, categoryIds, stockQuantity, minStock, location });
   }
@@ -97,7 +95,8 @@ export function narrowBaseCustomers(rows: unknown[]): BaseCustomer[] {
       r.firstName === null || typeof r.firstName === "string"
         ? (r.firstName as string | null)
         : null;
-    const phone = r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
+    const phone =
+      r.phone === null || typeof r.phone === "string" ? (r.phone as string | null) : null;
     const defaultAddress =
       r.defaultAddress === null || typeof r.defaultAddress === "string"
         ? (r.defaultAddress as string | null)

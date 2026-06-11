@@ -15,10 +15,7 @@ export const GET = withApiErrorHandling(
     const actorUserId = session.userId as number;
     const actorRole = session.role as string;
     const canMutate = actorRole === "admin";
-    const hasDelegation = await DelegationScopeService.hasDelegationRights(
-      companyId,
-      actorUserId
-    );
+    const hasDelegation = await DelegationScopeService.hasDelegationRights(companyId, actorUserId);
     const scopedWorkers = !canMutate && hasDelegation;
 
     const data = await AdminDispatchService.getDictionaries({

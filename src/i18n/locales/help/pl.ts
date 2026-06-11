@@ -104,9 +104,7 @@ export const helpPl = {
       {
         id: "alarms",
         title: "8. Alarmy i przypomnienia",
-        paragraphs: [
-          "Aplikacja może ostrzegać dźwiękiem i powiadomieniem o ważnych zdarzeniach.",
-        ],
+        paragraphs: ["Aplikacja może ostrzegać dźwiękiem i powiadomieniem o ważnych zdarzeniach."],
         bullets: [
           "Zlecenie opóźnione — termin startu minął.",
           "Zbliżający się termin — zlecenie zaplanowane na najbliższe godziny.",
@@ -168,9 +166,7 @@ export const helpPl = {
       {
         id: "intro",
         title: "1. Wprowadzenie — role i dostęp",
-        paragraphs: [
-          "Po zalogowaniu trafiasz do panelu zgodnie z rolą konta.",
-        ],
+        paragraphs: ["Po zalogowaniu trafiasz do panelu zgodnie z rolą konta."],
         bullets: [
           "Administrator — pełna edycja: zlecenia, słowniki, ustawienia, logi.",
           "Podgląd (viewer) — ten sam widok, bez możliwości zapisywania i usuwania.",
@@ -223,9 +219,7 @@ export const helpPl = {
       {
         id: "resources",
         title: "5. Zasoby (flota)",
-        paragraphs: [
-          "Rejestr maszyn i urządzeń firmy z kategoriami zasobów.",
-        ],
+        paragraphs: ["Rejestr maszyn i urządzeń firmy z kategoriami zasobów."],
         bullets: [
           "Kategorie zasobów — drzewo grup i liści do klasyfikacji floty.",
           "Typ zasobu (DUR) — model/rodzina maszyny; wiele egzemplarzy może mieć ten sam typ.",
@@ -236,9 +230,7 @@ export const helpPl = {
       {
         id: "materials",
         title: "6. Materiały",
-        paragraphs: [
-          "Katalog materiałów z kategoriami oraz rejestr ruchów magazynowych.",
-        ],
+        paragraphs: ["Katalog materiałów z kategoriami oraz rejestr ruchów magazynowych."],
         bullets: [
           "Kategorie materiałów — hierarchia; liście używane w zleceniach.",
           "Przyjęcia (PZ) i wydania (WZ) materiałów — historia i aktualny stan.",
@@ -248,9 +240,7 @@ export const helpPl = {
       {
         id: "customers",
         title: "7. Klienci",
-        paragraphs: [
-          "Baza kontrahentów z danymi kontaktowymi i domyślnym adresem.",
-        ],
+        paragraphs: ["Baza kontrahentów z danymi kontaktowymi i domyślnym adresem."],
         bullets: [
           "Wyszukiwanie po nazwie i danych kontaktowych.",
           "Klient przypisany do zleceń nie może zostać usunięty.",
@@ -260,9 +250,7 @@ export const helpPl = {
       {
         id: "dur-warehouse",
         title: "8. Magazyn DUR (utrzymanie ruchu)",
-        paragraphs: [
-          "Moduł widoczny, gdy superadmin włączył DUR dla organizacji.",
-        ],
+        paragraphs: ["Moduł widoczny, gdy superadmin włączył DUR dla organizacji."],
         bullets: [
           "Katalog części zamiennych (SKU, kategoria, typ zasobu, stan).",
           "Przyjęcia (PZ) i wydania (WZ) części — z fakturą, ceną lub na zlecenie/pracownika.",
@@ -274,9 +262,7 @@ export const helpPl = {
       {
         id: "settings",
         title: "9. Ustawienia firmy",
-        paragraphs: [
-          "Dane firmy, reguły sesji w aplikacji pracownika oraz pobieranie APK.",
-        ],
+        paragraphs: ["Dane firmy, reguły sesji w aplikacji pracownika oraz pobieranie APK."],
         bullets: [
           "Nazwa, adres, telefon, e-mail — telefon widoczny w Pomocy workera.",
           "Baza GPS firmy — punkt odniesienia dla zasobów warsztatowych.",
@@ -386,9 +372,7 @@ export const helpPl = {
       {
         id: "metrics",
         title: "4. Wskaźniki użycia",
-        paragraphs: [
-          "Kolumny tabeli pomagają monitorować adopcję systemu.",
-        ],
+        paragraphs: ["Kolumny tabeli pomagają monitorować adopcję systemu."],
         bullets: [
           "Konta i pracownicy — liczba użytkowników w organizacji.",
           "Sesje (30 dni) — aktywność terenowa.",

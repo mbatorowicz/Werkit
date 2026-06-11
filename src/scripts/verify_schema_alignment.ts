@@ -73,13 +73,7 @@ async function main() {
       "image_url",
     ]),
     materials: new Set(["id", "company_id", "name", "unit", "min_stock", "location"]),
-    material_inventory: new Set([
-      "id",
-      "company_id",
-      "material_id",
-      "quantity",
-      "updated_at",
-    ]),
+    material_inventory: new Set(["id", "company_id", "material_id", "quantity", "updated_at"]),
     material_stock_receipts: new Set([
       "id",
       "company_id",

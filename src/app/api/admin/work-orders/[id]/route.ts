@@ -83,8 +83,7 @@ export const PUT = withApiErrorHandling(
 
     const prio = coerceWorkOrderPriority(priority);
     const durationStored = normalizeDecimalBodyField(expectedDurationHours);
-    const parsedDuration =
-      durationStored != null ? Number.parseFloat(durationStored) : null;
+    const parsedDuration = durationStored != null ? Number.parseFloat(durationStored) : null;
 
     if (!forceSave) {
       const blockCode = await AdminOrderService.getScheduleSaveBlockCode(
@@ -174,11 +173,7 @@ export const DELETE = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
-    await AdminOrderService.deleteOrder(
-      scoped.data.companyId,
-      orderId,
-      scoped.data.session.userId
-    );
+    await AdminOrderService.deleteOrder(scoped.data.companyId, orderId, scoped.data.session.userId);
     return jsonOk({ success: true });
   },
   {

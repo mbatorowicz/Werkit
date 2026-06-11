@@ -4,11 +4,7 @@ import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import type { HelpPageContent } from "@/types/help";
-import {
-  DEFAULT_HELP_PHONE,
-  DUR_SECTION_BY_SCOPE,
-  type HelpScope,
-} from "@/lib/help/constants";
+import { DEFAULT_HELP_PHONE, DUR_SECTION_BY_SCOPE, type HelpScope } from "@/lib/help/constants";
 
 export type HelpPageViewModel = {
   content: HelpPageContent;

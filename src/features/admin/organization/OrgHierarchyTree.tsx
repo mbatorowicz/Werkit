@@ -1,16 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Building2,
-  ChevronRight,
-  Edit2,
-  Plus,
-  Trash2,
-  User,
-  UserPlus,
-  Users,
-} from "lucide-react";
+import { Building2, ChevronRight, Edit2, Plus, Trash2, User, UserPlus, Users } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { stopRowActionClick } from "@/lib/stopRowActionClick";
 import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
@@ -141,7 +132,9 @@ export function OrgHierarchyTree({
               <span className="w-5 shrink-0" />
             )}
             <Building2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-            <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">{dept.name}</span>
+            <span className="truncate font-medium text-zinc-900 dark:text-zinc-200">
+              {dept.name}
+            </span>
             <span className="shrink-0 rounded bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 dark:bg-zinc-800">
               {labels.deptBadge}
             </span>
@@ -374,38 +367,41 @@ export function OrgHierarchyTree({
                     </span>
                   </div>
                 </div>
-                {unassignedExpanded
-                  ? filteredUnassigned.length === 0
-                    ? (
-                        <p className="px-3 py-2 text-sm text-zinc-500" style={{ marginLeft: "1.25rem" }}>
-                          {labels.unassignedEmpty}
-                        </p>
-                      )
-                    : filteredUnassigned.map((u) => (
-                        <div
-                          key={`unassigned-${u.id}`}
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => onOpenUser(u.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              onOpenUser(u.id);
-                            }
-                          }}
-                          className={`${rowClass} cursor-pointer`}
-                          style={{ marginLeft: "1.25rem" }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="w-5 shrink-0" />
-                            <User className="h-4 w-4 text-zinc-500" />
-                            <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                              {u.fullName}
-                            </span>
-                          </div>
+                {unassignedExpanded ? (
+                  filteredUnassigned.length === 0 ? (
+                    <p
+                      className="px-3 py-2 text-sm text-zinc-500"
+                      style={{ marginLeft: "1.25rem" }}
+                    >
+                      {labels.unassignedEmpty}
+                    </p>
+                  ) : (
+                    filteredUnassigned.map((u) => (
+                      <div
+                        key={`unassigned-${u.id}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onOpenUser(u.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onOpenUser(u.id);
+                          }
+                        }}
+                        className={`${rowClass} cursor-pointer`}
+                        style={{ marginLeft: "1.25rem" }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 shrink-0" />
+                          <User className="h-4 w-4 text-zinc-500" />
+                          <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                            {u.fullName}
+                          </span>
                         </div>
-                      ))
-                  : null}
+                      </div>
+                    ))
+                  )
+                ) : null}
               </div>
             ) : null}
           </div>

@@ -106,10 +106,8 @@ export const en: AppDictionary = {
   },
   apiErrors: {
     fetch_error: "Error while fetching data from server.",
-    migration_required:
-      "Database requires an update. Contact your system administrator.",
-    migration_material_categories:
-      "Dictionary data is missing. Contact your system administrator.",
+    migration_required: "Database requires an update. Contact your system administrator.",
+    migration_material_categories: "Dictionary data is missing. Contact your system administrator.",
     missing_material_category: "Select at least one material category.",
     category_exists: "A category with this name probably already exists.",
     category_in_use: "Category is already in use or another error occurred.",
@@ -308,8 +306,7 @@ export const en: AppDictionary = {
         panelTitle: "Order categories",
         panelSubtitle:
           "Tree of groups and categories: order categories in the field and form fields.",
-        empty:
-          "Add your first category or group (e.g. transport, yard) to configure order forms.",
+        empty: "Add your first category or group (e.g. transport, yard) to configure order forms.",
         confirmDelete: "Delete this entry? It will no longer be assignable to resources or orders.",
         namePlaceholder: "e.g. Transport, service yard",
       },
@@ -460,8 +457,7 @@ export const en: AppDictionary = {
       optionalSuffix: "(optional)",
       taskOptionalHint:
         "You can still leave notes for the operator — not required for this order category.",
-      pickCategoryFirstHint:
-        "Pick an order category first to set the resource and form fields.",
+      pickCategoryFirstHint: "Pick an order category first to set the resource and form fields.",
       taskDesc: "Short order description / notes for the driver",
       taskDescPlaceholder: "e.g. Watch out for muddy terrain at the entrance...",
       save: "Confirm and Send Order",
@@ -1127,8 +1123,7 @@ export const en: AppDictionary = {
       wizardBackToType: "Back to category selection",
       wizardNext: "Next",
       wizardSaveOrder: "Save",
-      wizardOrderSaved:
-        "Order saved. Start it from the pending list when you are ready.",
+      wizardOrderSaved: "Order saved. Start it from the pending list when you are ready.",
       editOrder: "Edit",
       deleteOrder: "Delete order",
       deleteOwnOrderConfirm: "Delete this order? This cannot be undone.",
@@ -1438,8 +1433,7 @@ export const en: AppDictionary = {
       colCollectedBy: "Picked up by",
       colResource: "For resource",
       colPart: "Part",
-      movementsSearchPlaceholder:
-        "Search by person, resource, part, order, notes…",
+      movementsSearchPlaceholder: "Search by person, resource, part, order, notes…",
       inventory: {
         title: "Stock levels",
         searchPlaceholder: "Search by name or catalog no…",
@@ -1516,8 +1510,7 @@ export const en: AppDictionary = {
       part_not_found: "Part not found.",
       category_not_found: "Spare part category not found.",
       part_in_use: "Part is in use in orders and cannot be deleted.",
-      category_in_use:
-        "Spare part category is assigned to catalog items and cannot be deleted.",
+      category_in_use: "Spare part category is assigned to catalog items and cannot be deleted.",
       compatibility_exists: "This link already exists.",
       compatibility_not_found: "Link not found.",
       missing_part_name: "Part name is required.",
@@ -1527,8 +1520,7 @@ export const en: AppDictionary = {
       invalid_stock: "Invalid stock value.",
       invalid_category:
         "Select a spare part category (a leaf in the tree, not an organizational group).",
-      invalid_resource_group:
-        "Selected resource type does not exist (Resources → Resource types).",
+      invalid_resource_group: "Selected resource type does not exist (Resources → Resource types).",
       missing_part_id: "Select a part from the catalog.",
       invalid_quantity: "Enter a positive quantity.",
       insufficient_stock: "Insufficient stock.",

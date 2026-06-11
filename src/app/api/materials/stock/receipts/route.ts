@@ -11,9 +11,8 @@ export const GET = withApiErrorHandling(
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
-    const { MaterialStockMovementService } = await import(
-      "@/services/materials/MaterialStockMovementService"
-    );
+    const { MaterialStockMovementService } =
+      await import("@/services/materials/MaterialStockMovementService");
     const receipts = await MaterialStockMovementService.getReceipts(scoped.data.companyId);
     return jsonOk(receipts);
   },
@@ -44,9 +43,8 @@ export const POST = withApiErrorHandling(
     }
 
     try {
-      const { MaterialStockMovementService } = await import(
-        "@/services/materials/MaterialStockMovementService"
-      );
+      const { MaterialStockMovementService } =
+        await import("@/services/materials/MaterialStockMovementService");
       const receipt = await MaterialStockMovementService.addReceipt(companyId, userId, {
         materialId,
         quantity: qtyParsed.value,

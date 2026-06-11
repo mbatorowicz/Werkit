@@ -80,9 +80,7 @@ export function WizardStep1Category({
                     customer={labelFields.customer}
                     description={labelFields.description}
                     fieldVisibility={labelFields.fieldVisibility}
-                    badges={
-                      <WorkOrderPriorityRibbon priority={order.priority} labels={dict} />
-                    }
+                    badges={<WorkOrderPriorityRibbon priority={order.priority} labels={dict} />}
                     orderedBy={order.creatorName ?? null}
                     orderedByLabel={dict.orderedBy}
                     dateLabel={

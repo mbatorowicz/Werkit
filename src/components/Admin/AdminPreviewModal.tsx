@@ -46,11 +46,7 @@ export function AdminPreviewModal({
             {ui.modalCancel}
           </button>
           {canEdit && onEdit ? (
-            <button
-              type="button"
-              onClick={onEdit}
-              className={BTN_PRIMARY_COMPACT}
-            >
+            <button type="button" onClick={onEdit} className={BTN_PRIMARY_COMPACT}>
               {editLabel ?? ui.previewEdit}
             </button>
           ) : null}

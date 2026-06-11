@@ -226,9 +226,7 @@ export function OrderFormFields({
             }
             onMaterialChange={(materialId) => setForm((prev) => ({ ...prev, materialId }))}
             dict={materialPickerDict}
-            placeholder={
-              form.materialCategoryId ? materialLabel : undefined
-            }
+            placeholder={form.materialCategoryId ? materialLabel : undefined}
             required={selectedCategory.reqMaterial}
             aria-label={materialLabel}
           />
@@ -275,9 +273,7 @@ export function OrderFormFields({
           </label>
           <textarea
             required={selectedCategory.reqTaskDescription}
-            placeholder={
-              isRepair ? dict.repairDescriptionPlaceholder : dict.taskDescPlaceholder
-            }
+            placeholder={isRepair ? dict.repairDescriptionPlaceholder : dict.taskDescPlaceholder}
             value={isRepair ? form.repairDescription : form.taskDescription}
             onChange={(e) =>
               isRepair

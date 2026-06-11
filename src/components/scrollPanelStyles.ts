@@ -1,8 +1,5 @@
 import type { CSSProperties } from "react";
-import {
-  HORIZONTAL_SCROLL_PANEL_CLASS,
-  VERTICAL_SCROLL_PANEL_CLASS,
-} from "@/lib/uiScrollPanels";
+import { HORIZONTAL_SCROLL_PANEL_CLASS, VERTICAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
 
 /** @deprecated Prefer `VERTICAL_SCROLL_PANEL_CLASS` z `@/lib/uiScrollPanels`. */
 export const INLINE_SCROLL_PANEL_CLASS = VERTICAL_SCROLL_PANEL_CLASS;

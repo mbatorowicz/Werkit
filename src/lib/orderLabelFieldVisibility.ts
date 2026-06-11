@@ -1,9 +1,6 @@
 import { getDictionary, type Locale } from "@/i18n";
 import { isRepairOrderType } from "@/lib/orderType";
-import {
-  type CategoryFieldFlags,
-  resolvedCategoryFieldFlags,
-} from "@/lib/workOrderCategoryFields";
+import { type CategoryFieldFlags, resolvedCategoryFieldFlags } from "@/lib/workOrderCategoryFields";
 import type { OrderType } from "@/types/worker";
 import type { WorkOrder } from "@/types/worker";
 

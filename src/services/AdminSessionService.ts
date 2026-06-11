@@ -67,11 +67,7 @@ export class AdminSessionService {
    * Usuwa zakończoną sesję z ewidencji. Jeśli sesja pochodziła ze zlecenia systemowego (`work_order_id`),
    * usuwa też powiązany wiersz `work_orders` (marker „zaakceptowane” po stronie dyspozycji).
    */
-  static async deleteArchivedSession(
-    companyId: number,
-    sessionId: number,
-    actorUserId?: number
-  ) {
+  static async deleteArchivedSession(companyId: number, sessionId: number, actorUserId?: number) {
     const rows = await db
       .select()
       .from(workSessions)
@@ -82,9 +78,8 @@ export class AdminSessionService {
     if (session.status === "IN_PROGRESS") throw new Error("session_still_active");
 
     await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } = await import(
-        "@/services/materials/WorkSessionMaterialService"
-      );
+      const { WorkSessionMaterialService } =
+        await import("@/services/materials/WorkSessionMaterialService");
       await WorkSessionMaterialService.returnForSessionIfIssued(
         companyId,
         actorUserId ?? companyId,

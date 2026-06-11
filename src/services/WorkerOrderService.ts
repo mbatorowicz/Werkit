@@ -146,9 +146,8 @@ export class WorkerOrderService {
         .returning();
 
       if (order.materialId && order.quantityTons) {
-        const { WorkSessionMaterialService } = await import(
-          "@/services/materials/WorkSessionMaterialService"
-        );
+        const { WorkSessionMaterialService } =
+          await import("@/services/materials/WorkSessionMaterialService");
         await WorkSessionMaterialService.issueForSessionStart(
           companyId,
           userId,

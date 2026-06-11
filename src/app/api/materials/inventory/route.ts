@@ -14,9 +14,8 @@ export const GET = withApiErrorHandling(
     const materialIdParam = new URL(request.url).searchParams.get("materialId");
     const materialId = materialIdParam ? parseInt(materialIdParam, 10) : undefined;
 
-    const { MaterialInventoryService } = await import(
-      "@/services/materials/MaterialInventoryService"
-    );
+    const { MaterialInventoryService } =
+      await import("@/services/materials/MaterialInventoryService");
     const inventory = await MaterialInventoryService.getInventory(companyId, {
       materialId: materialId && !Number.isNaN(materialId) ? materialId : undefined,
     });
@@ -45,9 +44,8 @@ export const PUT = withApiErrorHandling(
       return jsonError("invalid_quantity", 400);
     }
 
-    const { MaterialInventoryService } = await import(
-      "@/services/materials/MaterialInventoryService"
-    );
+    const { MaterialInventoryService } =
+      await import("@/services/materials/MaterialInventoryService");
     await MaterialInventoryService.setQuantity(companyId, materialId, quantity);
 
     return jsonOk({ success: true });

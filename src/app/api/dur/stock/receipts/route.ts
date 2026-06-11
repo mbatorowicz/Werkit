@@ -47,7 +47,11 @@ export const POST = withApiErrorHandling(
     }
 
     let unitPrice: string | null = null;
-    if (body.unitPrice !== null && body.unitPrice !== undefined && String(body.unitPrice).trim() !== "") {
+    if (
+      body.unitPrice !== null &&
+      body.unitPrice !== undefined &&
+      String(body.unitPrice).trim() !== ""
+    ) {
       unitPrice = normalizeDecimalBodyField(body.unitPrice);
       if (unitPrice == null) {
         return jsonError("invalid_price", 400);

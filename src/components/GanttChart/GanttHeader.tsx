@@ -79,11 +79,7 @@ export function GanttHeader({
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <DateInput
-            variant="compact"
-            value={selectedDateStr}
-            onChange={setSelectedDateStr}
-          />
+          <DateInput variant="compact" value={selectedDateStr} onChange={setSelectedDateStr} />
           <button
             onClick={onNextDay}
             className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition"

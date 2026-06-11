@@ -43,11 +43,7 @@ export function HelpPageShell({
         </h2>
       )}
 
-      <HelpSectionsList
-        sections={content.sections}
-        scope={scope}
-        excludeIds={excludeSectionIds}
-      />
+      <HelpSectionsList sections={content.sections} scope={scope} excludeIds={excludeSectionIds} />
 
       {content.glossary && <HelpGlossary glossary={content.glossary} />}
 

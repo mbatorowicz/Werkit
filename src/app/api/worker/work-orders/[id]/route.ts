@@ -1,9 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { isMissingWorkOrderRepairColumns } from "@/lib/postgresMigrationHints";
-import {
-  WORKER_ORDER_ERROR_CODES,
-  workerOrderErrorStatus,
-} from "@/lib/workerOrderApiErrors";
+import { WORKER_ORDER_ERROR_CODES, workerOrderErrorStatus } from "@/lib/workerOrderApiErrors";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 
@@ -43,11 +40,7 @@ export const GET = withApiErrorHandling(
     const orderId = parseOrderId(request);
     if (orderId == null) return jsonError("invalid_id", 400);
 
-    const order = await WorkerOrderService.getOwnPendingOrder(
-      ctx.userId,
-      ctx.companyId,
-      orderId
-    );
+    const order = await WorkerOrderService.getOwnPendingOrder(ctx.userId, ctx.companyId, orderId);
     return jsonOk(order);
   },
   {

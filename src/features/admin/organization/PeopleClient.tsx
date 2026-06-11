@@ -166,9 +166,7 @@ export default function PeopleClient() {
       userForm.departmentId && userForm.departmentId !== COMBO_NONE
         ? parseInt(userForm.departmentId, 10)
         : null;
-    const opts: AdminSearchComboboxOption[] = [
-      { id: COMBO_NONE, label: workersDict.teamNone },
-    ];
+    const opts: AdminSearchComboboxOption[] = [{ id: COMBO_NONE, label: workersDict.teamNone }];
     for (const t of teams) {
       if (deptId != null && t.departmentId !== deptId) continue;
       const dept = departments.find((d) => d.id === t.departmentId);
@@ -482,7 +480,9 @@ export default function PeopleClient() {
             className="space-y-4 p-6"
           >
             <label className="block space-y-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{dict.departmentName}</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                {dict.departmentName}
+              </span>
               <input
                 value={deptName}
                 onChange={(e) => setDeptName(e.target.value)}
@@ -491,7 +491,9 @@ export default function PeopleClient() {
               />
             </label>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{dict.parentDepartment}</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                {dict.parentDepartment}
+              </span>
               <select
                 value={deptParentId ?? ""}
                 onChange={(e) => setDeptParentId(e.target.value ? Number(e.target.value) : null)}
@@ -590,7 +592,9 @@ export default function PeopleClient() {
             className="space-y-4 p-6"
           >
             <label className="block space-y-1 text-sm">
-              <span className="font-medium text-zinc-700 dark:text-zinc-300">{dict.selectWorker}</span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                {dict.selectWorker}
+              </span>
               <select
                 value={memberUserId ?? ""}
                 onChange={(e) => setMemberUserId(e.target.value ? Number(e.target.value) : null)}

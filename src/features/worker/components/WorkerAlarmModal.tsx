@@ -35,11 +35,7 @@ export function WorkerAlarmModal({
       scrollableBody={alarm.snoozeOptions.length > 0}
       footer={
         <div className="flex w-full flex-col gap-2">
-          <button
-            type="button"
-            onClick={onOk}
-            className={cn("w-full py-3", BTN_PRIMARY)}
-          >
+          <button type="button" onClick={onOk} className={cn("w-full py-3", BTN_PRIMARY)}>
             {dict.actionOk}
           </button>
           {alarm.canStart && alarm.orderId != null ? (

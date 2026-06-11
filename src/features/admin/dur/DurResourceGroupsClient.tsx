@@ -7,7 +7,10 @@ import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { useAppDialog } from "@/components/AppDialogProvider";
-import { useResourceGroups, type ResourceGroupOption } from "@/features/admin/dur/useResourceGroups";
+import {
+  useResourceGroups,
+  type ResourceGroupOption,
+} from "@/features/admin/dur/useResourceGroups";
 
 export default function DurResourceGroupsClient() {
   const { canMutate } = useAdminAbility();

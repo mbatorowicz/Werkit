@@ -2,7 +2,11 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { hashPassword } from "@/lib/passwordCrypto";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
-import { normalizeAppRole, workerPermissionsFromBody, clampWorkerPermissionsForOrg } from "@/lib/workerUserPermissions";
+import {
+  normalizeAppRole,
+  workerPermissionsFromBody,
+  clampWorkerPermissionsForOrg,
+} from "@/lib/workerUserPermissions";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isGpsModuleEnabled } from "@/types/featureFlags";
 

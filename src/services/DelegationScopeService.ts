@@ -230,8 +230,7 @@ export class DelegationScopeService {
       .map((id) => {
         const u = cache.usersById.get(id);
         if (!u) return null;
-        const profile =
-          profiles?.get(id) ?? this.buildUserOrgProfile(id, cache);
+        const profile = profiles?.get(id) ?? this.buildUserOrgProfile(id, cache);
         return {
           id: u.id,
           fullName: u.fullName,

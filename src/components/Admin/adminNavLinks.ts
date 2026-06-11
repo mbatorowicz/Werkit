@@ -116,7 +116,7 @@ export function buildAdminNavLinks(
       href: adminRoutes.help,
       icon: BookOpen,
       label: adminDict.sidebar.help,
-    },
+    }
   );
 
   return links;

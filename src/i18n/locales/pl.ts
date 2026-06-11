@@ -105,8 +105,7 @@ export const pl = {
   },
   apiErrors: {
     fetch_error: "Błąd podczas pobierania danych z serwera.",
-    migration_required:
-      "Baza wymaga aktualizacji. Skontaktuj się z administratorem systemu.",
+    migration_required: "Baza wymaga aktualizacji. Skontaktuj się z administratorem systemu.",
     migration_material_categories:
       "Brakuje danych słownikowych. Skontaktuj się z administratorem systemu.",
     missing_material_category: "Wybierz co najmniej jedną kategorię materiału.",
@@ -308,8 +307,7 @@ export const pl = {
       },
       workOrders: {
         panelTitle: "Kategorie zleceń",
-        panelSubtitle:
-          "Drzewo grup i kategorii: kategorie zleceń w terenie oraz pola formularza.",
+        panelSubtitle: "Drzewo grup i kategorii: kategorie zleceń w terenie oraz pola formularza.",
         empty:
           "Dodaj pierwszą kategorię lub grupę (np. transport, plac), aby ustawiać formularze zleceń.",
         confirmDelete: "Usunąć ten wpis? Nie przypiszesz go już do nowych zleceń.",
@@ -463,8 +461,7 @@ export const pl = {
       optionalSuffix: "(opcjonalnie)",
       taskOptionalHint:
         "Możesz dopisać uwagi dla operatora — ta kategoria zlecenia nie wymaga opisu.",
-      pickCategoryFirstHint:
-        "Wybierz kategorię zlecenia, aby ustawić zasób i pola formularza.",
+      pickCategoryFirstHint: "Wybierz kategorię zlecenia, aby ustawić zasób i pola formularza.",
       taskDesc: "Krótki opis zlecenia / uwagi dla kierowcy",
       taskDescPlaceholder: "np. Uważaj na grząski teren przy wjeździe...",
       save: "Zatwierdź i Wyślij Zlecenie",
@@ -726,8 +723,7 @@ export const pl = {
         "Uzupełnij pola widoczne dla wybranej kategorii (np. nazwa, nr rej. lub opis).",
       resourceGroupLabel: "Typ zasobu",
       resourceGroupNone: "— bez typu —",
-      resourceGroupHint:
-        "Typ zasobu (np. model). Kategorie zleceń to osobna klasyfikacja.",
+      resourceGroupHint: "Typ zasobu (np. model). Kategorie zleceń to osobna klasyfikacja.",
       machCatLabel: "Kategorie zleceń",
       machCatWarning: "Najpierw dodaj kategorię zlecenia w module Zlecenia.",
       saveFleet: "Zapisz",
@@ -1000,8 +996,7 @@ export const pl = {
       delegateDueDate: "Termin",
       pendingOrders: "Oczekujące zlecenia",
       queuedOrdersToggle: "Kolejka po tej sesji ({count})",
-      queuedOrdersHint:
-        "Kolejne oczekujące zlecenia od dyspozycji (podgląd, bez akceptacji).",
+      queuedOrdersHint: "Kolejne oczekujące zlecenia od dyspozycji (podgląd, bez akceptacji).",
       queuedOrdersPosition: "{n}. w kolejce",
       upcomingTerm: "Zbliżający się termin!",
       orderOverdueTitle: "Zlecenie opóźnione!",
@@ -1138,8 +1133,7 @@ export const pl = {
         "Zlecenie zapisane. Rozpocznij je z listy oczekujących, gdy będziesz gotowy.",
       editOrder: "Edytuj",
       deleteOrder: "Usuń zlecenie",
-      deleteOwnOrderConfirm:
-        "Usunąć to zlecenie? Tej operacji nie cofniesz.",
+      deleteOwnOrderConfirm: "Usunąć to zlecenie? Tej operacji nie cofniesz.",
       editOrderTitle: "Edycja zlecenia",
       editOrderSubtitle: "Zlecenie #{id}. Zmiany na liście oczekujących.",
       editOrderSave: "Zapisz zmiany",
@@ -1335,8 +1329,7 @@ export const pl = {
       title: "Typy zasobów",
       subtitle:
         "Model lub rodzina zasobu (np. kapsułkarka 02A). Wiele egzemplarzy jednego modelu — jeden typ w rejestrze.",
-      assignHint:
-        "Przypisanie egzemplarza: Zasoby → edycja zasobu → pole „Typ zasobu”.",
+      assignHint: "Przypisanie egzemplarza: Zasoby → edycja zasobu → pole „Typ zasobu”.",
       loading: "Ładowanie typów…",
       empty: "Brak typów. Dodaj typ zasobu, potem przypisz zasoby w module Zasoby.",
       add: "Nowy typ",
@@ -1451,8 +1444,7 @@ export const pl = {
       colCollectedBy: "Kto pobrał",
       colResource: "Do jakiego zasobu",
       colPart: "Część",
-      movementsSearchPlaceholder:
-        "Szukaj po osobie, zasobie, części, zleceniu, uwagach…",
+      movementsSearchPlaceholder: "Szukaj po osobie, zasobie, części, zleceniu, uwagach…",
       inventory: {
         title: "Stan magazynu",
         searchPlaceholder: "Szukaj po nazwie, katalogu…",
@@ -1540,8 +1532,7 @@ export const pl = {
       invalid_stock: "Nieprawidłowa wartość stanu magazynowego.",
       invalid_category:
         "Wybierz kategorię części (konkretną pozycję w drzewie, nie grupę organizacyjną).",
-      invalid_resource_group:
-        "Wybrany typ zasobu nie istnieje (Zasoby → typy zasobów).",
+      invalid_resource_group: "Wybrany typ zasobu nie istnieje (Zasoby → typy zasobów).",
       missing_part_id: "Wybierz część z katalogu.",
       invalid_quantity: "Podaj dodatnią ilość.",
       insufficient_stock: "Niewystarczający stan magazynowy.",

@@ -20,11 +20,7 @@ type Props = {
   canMutate: boolean;
 };
 
-export function OrdersCategoriesPanel({
-  machinesDict,
-  apiErrors,
-  canMutate,
-}: Props) {
+export function OrdersCategoriesPanel({ machinesDict, apiErrors, canMutate }: Props) {
   const { alert: appAlert } = useAppDialog();
   const [categories, setCategories] = useState<MachinesCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,4 +91,3 @@ export function OrdersCategoriesPanel({
     />
   );
 }
-

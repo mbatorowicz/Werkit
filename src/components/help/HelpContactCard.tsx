@@ -1,13 +1,7 @@
 import { PhoneCall } from "lucide-react";
 import type { HelpContactBlock } from "@/types/help";
 
-export function HelpContactCard({
-  contact,
-  phone,
-}: {
-  contact: HelpContactBlock;
-  phone: string;
-}) {
+export function HelpContactCard({ contact, phone }: { contact: HelpContactBlock; phone: string }) {
   return (
     <div className="space-y-4 mb-8">
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-2xl p-5 shadow-sm">

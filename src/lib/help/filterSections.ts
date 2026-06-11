@@ -1,10 +1,7 @@
 import type { HelpPageContent, HelpSection } from "@/types/help";
 
 /** Zwraca sekcje pomocy z pominięciem identyfikatorów z listy wykluczeń. */
-export function filterHelpSections(
-  sections: HelpSection[],
-  excludeIds?: string[]
-): HelpSection[] {
+export function filterHelpSections(sections: HelpSection[], excludeIds?: string[]): HelpSection[] {
   if (!excludeIds?.length) return sections;
   const excluded = new Set(excludeIds);
   return sections.filter((section) => !excluded.has(section.id));

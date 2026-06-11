@@ -42,7 +42,8 @@ export function CategoryColorCardBadge({
   ariaLabel?: string;
 }) {
   const text = label.trim() || "—";
-  const sharedClass = `${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} ${onClick ? "cursor-pointer hover:brightness-95 active:scale-[0.98] dark:hover:brightness-110" : "cursor-default"} ${className}`.trim();
+  const sharedClass =
+    `${CATEGORY_COLOR_BADGE_BASE_CLASS} ${CATEGORY_COLOR_BADGE_SIZE_CLASS.cardCategory} ${onClick ? "cursor-pointer hover:brightness-95 active:scale-[0.98] dark:hover:brightness-110" : "cursor-default"} ${className}`.trim();
   const inner = (
     <span className="block min-w-0 w-full truncate text-center text-[10px] font-bold leading-none whitespace-nowrap">
       {text}
@@ -68,11 +69,7 @@ export function CategoryColorCardBadge({
   }
 
   return (
-    <span
-      title={text}
-      className={sharedClass}
-      style={categoryColorBadgeStyle(color)}
-    >
+    <span title={text} className={sharedClass} style={categoryColorBadgeStyle(color)}>
       {inner}
     </span>
   );
@@ -134,9 +131,7 @@ export function CategoryColorDot({
   color?: string | null;
   className?: string;
 }) {
-  return (
-    <span className={className} style={categoryColorSwatchStyle(color)} aria-hidden />
-  );
+  return <span className={className} style={categoryColorSwatchStyle(color)} aria-hidden />;
 }
 
 /** Podgląd koloru w modalu admina (swatch + hex). */

@@ -5,10 +5,7 @@ import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
 import { INPUT_BASE } from "@/lib/uiTokens";
-import {
-  customerFormAddressParts,
-  customerFormGeocodeQuery,
-} from "./customerFormApi";
+import { customerFormAddressParts, customerFormGeocodeQuery } from "./customerFormApi";
 
 function CustomerMapPickerLoading() {
   const mapLoading = useDictionary().admin.customers.mapLoading;

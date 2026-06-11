@@ -74,7 +74,9 @@ export function SparePartsTablePanel({
             <Cog className="h-6 w-6 text-emerald-500" />
             {dict.sectionCatalogTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{wh.catalogSectionSubtitle}</p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            {wh.catalogSectionSubtitle}
+          </p>
         </div>
         {canMutate ? (
           <button

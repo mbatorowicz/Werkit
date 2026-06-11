@@ -27,10 +27,7 @@ export class OrganizationService {
     const existing = members.find((m) => m.userId === leaderId);
     if (existing) {
       if (existing.role !== "leader") {
-        await db
-          .update(teamMembers)
-          .set({ role: "leader" })
-          .where(eq(teamMembers.id, existing.id));
+        await db.update(teamMembers).set({ role: "leader" }).where(eq(teamMembers.id, existing.id));
       }
       return;
     }
@@ -150,7 +147,9 @@ export class OrganizationService {
           role: users.role,
         })
         .from(users)
-        .where(and(eq(users.companyId, companyId), eq(users.role, "worker"), eq(users.isActive, true))),
+        .where(
+          and(eq(users.companyId, companyId), eq(users.role, "worker"), eq(users.isActive, true))
+        ),
       this.getAllTeamMembersWithUsers(companyId),
     ]);
     const assigned = new Set(allMembers.map((m) => m.userId));

@@ -25,16 +25,24 @@ describe("workOrderCategoryFields", () => {
 
   it("buildWorkOrderDescriptionFields mapuje opis wg rodzaju zlecenia", () => {
     expect(
-      buildWorkOrderDescriptionFields("machine_repair", { showTaskDescription: true }, {
-        repairDescription: "Naprawa",
-        taskDescription: "ignorowane",
-      })
+      buildWorkOrderDescriptionFields(
+        "machine_repair",
+        { showTaskDescription: true },
+        {
+          repairDescription: "Naprawa",
+          taskDescription: "ignorowane",
+        }
+      )
     ).toEqual({ taskDescription: null, repairDescription: "Naprawa" });
 
     expect(
-      buildWorkOrderDescriptionFields("machine_work", { showTaskDescription: false }, {
-        taskDescription: "Opis",
-      })
+      buildWorkOrderDescriptionFields(
+        "machine_work",
+        { showTaskDescription: false },
+        {
+          taskDescription: "Opis",
+        }
+      )
     ).toEqual({ taskDescription: null, repairDescription: null });
   });
 });

@@ -101,9 +101,5 @@ export function categoryAbbreviation(name: string, maxLetters = 4): string {
     return letters.slice(0, 2).toUpperCase() || "?";
   }
 
-  return words
-    .map(firstLetter)
-    .join("")
-    .toUpperCase()
-    .slice(0, maxLetters);
+  return words.map(firstLetter).join("").toUpperCase().slice(0, maxLetters);
 }

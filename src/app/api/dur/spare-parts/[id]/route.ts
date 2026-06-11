@@ -87,7 +87,9 @@ export const PUT = withApiErrorHandling(
 
     const parseIds = (arr: unknown) =>
       Array.isArray(arr)
-        ? arr.map((c: string | number) => parseInt(String(c), 10)).filter((n: number) => !Number.isNaN(n))
+        ? arr
+            .map((c: string | number) => parseInt(String(c), 10))
+            .filter((n: number) => !Number.isNaN(n))
         : [];
 
     const resourceGroupIds =
@@ -106,7 +108,8 @@ export const PUT = withApiErrorHandling(
   {
     mapUnknownError: (err) => {
       if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
-      if (err instanceof Error && err.message === "invalid_unit") return jsonError("invalid_unit", 400);
+      if (err instanceof Error && err.message === "invalid_unit")
+        return jsonError("invalid_unit", 400);
       return null;
     },
     defaultErrorCode: "save_error",

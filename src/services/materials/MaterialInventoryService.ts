@@ -61,11 +61,7 @@ export class MaterialInventoryService {
       });
   }
 
-  static async setQuantity(
-    companyId: number,
-    materialId: number,
-    quantity: string
-  ): Promise<void> {
+  static async setQuantity(companyId: number, materialId: number, quantity: string): Promise<void> {
     await db
       .insert(materialInventory)
       .values({

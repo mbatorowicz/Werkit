@@ -58,7 +58,9 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
             step="15"
             min="0"
             value={upcomingOrderReminderMinutes}
-            onChange={(e) => updateField("upcomingOrderReminderMinutes", parseInt(e.target.value, 10))}
+            onChange={(e) =>
+              updateField("upcomingOrderReminderMinutes", parseInt(e.target.value, 10))
+            }
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
           />
         </div>

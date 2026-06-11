@@ -141,8 +141,7 @@ export const de: AppDictionary = {
     biometric_password_required:
       "Geben Sie Ihr aktuelles Passwort ein, um Biometrie zu aktivieren.",
     invalid_payload: "Ungültige Formulardaten.",
-    invalid_team:
-      "Ungültiges Team — wählen Sie ein Team aus der ausgewählten Abteilung.",
+    invalid_team: "Ungültiges Team — wählen Sie ein Team aus der ausgewählten Abteilung.",
     material_not_found: "Material im Firmenkatalog nicht gefunden.",
     invalid_unit: "Ungültige Maßeinheit.",
     invalid_supervisor:
@@ -1154,8 +1153,7 @@ export const de: AppDictionary = {
         "Auftrag gespeichert. Starten Sie ihn aus der Warteliste, wenn Sie bereit sind.",
       editOrder: "Bearbeiten",
       deleteOrder: "Auftrag löschen",
-      deleteOwnOrderConfirm:
-        "Diesen Auftrag löschen? Dies kann nicht rückgängig gemacht werden.",
+      deleteOwnOrderConfirm: "Diesen Auftrag löschen? Dies kann nicht rückgängig gemacht werden.",
       editOrderTitle: "Auftrag bearbeiten",
       editOrderSubtitle: "Auftrag #{id}. Änderungen in der Warteliste.",
       editOrderSave: "Änderungen speichern",
@@ -1350,16 +1348,13 @@ export const de: AppDictionary = {
       title: "Ressourcentypen",
       subtitle:
         "Ressourcenmodell oder -familie (z. B. Kapselmaschine 02A). Viele gleiche Geräte — ein Typ im Register.",
-      assignHint:
-        "Ressource zuordnen: Ressourcen → Ressource bearbeiten → Feld „Ressourcentyp“.",
+      assignHint: "Ressource zuordnen: Ressourcen → Ressource bearbeiten → Feld „Ressourcentyp“.",
       loading: "Typen werden geladen…",
-      empty:
-        "Keine Typen. Ressourcentyp anlegen, dann Ressourcen unter Ressourcen zuordnen.",
+      empty: "Keine Typen. Ressourcentyp anlegen, dann Ressourcen unter Ressourcen zuordnen.",
       add: "Neuer Typ",
       edit: "Typ bearbeiten",
       delete: "Typ löschen",
-      deleteConfirm:
-        "Diesen Ressourcentyp löschen? Ressourcen bleiben ohne zugewiesenen Typ.",
+      deleteConfirm: "Diesen Ressourcentyp löschen? Ressourcen bleiben ohne zugewiesenen Typ.",
       save: "Speichern",
       saving: "Speichern…",
       nameLabel: "Typname",
@@ -1469,8 +1464,7 @@ export const de: AppDictionary = {
       colCollectedBy: "Entnommen von",
       colResource: "Für Ressource",
       colPart: "Teil",
-      movementsSearchPlaceholder:
-        "Suche nach Person, Ressource, Teil, Auftrag, Hinweisen…",
+      movementsSearchPlaceholder: "Suche nach Person, Ressource, Teil, Auftrag, Hinweisen…",
       inventory: {
         title: "Lagerbestand",
         searchPlaceholder: "Suche nach Name oder Katalognr…",

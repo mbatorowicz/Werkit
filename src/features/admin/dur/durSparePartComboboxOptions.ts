@@ -7,9 +7,7 @@ export function durSparePartComboboxOptions(
   stockSublabel: string
 ): AdminSearchComboboxOption[] {
   return items.map((p) => {
-    const stockText = stockSublabel
-      .replace("{qty}", p.stockQuantity)
-      .replace("{unit}", p.unit);
+    const stockText = stockSublabel.replace("{qty}", p.stockQuantity).replace("{unit}", p.unit);
     return {
       id: String(p.id),
       label: p.name,

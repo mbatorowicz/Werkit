@@ -78,8 +78,7 @@ export function AdminSearchCombobox({
 
   /** Pusty `value` / `noneId` = brak wyboru (nie mylić z opcją placeholder o `id: ""`). */
   const selected = useMemo(
-    () =>
-      isEmptySelection(value) ? null : (options.find((o) => o.id === value) ?? null),
+    () => (isEmptySelection(value) ? null : (options.find((o) => o.id === value) ?? null)),
     [options, value, isEmptySelection]
   );
 

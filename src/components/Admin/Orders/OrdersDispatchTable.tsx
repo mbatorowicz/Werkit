@@ -9,13 +9,7 @@ import type { UnifiedGanttItem } from "@/types/admin";
 import { sortUnifiedDispatchTableRows } from "@/features/admin/orders/dispatchTableUi";
 import { OrdersDispatchItemCard } from "@/components/Admin/Orders/OrdersDispatchItemCard";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
-import {
-  TABLE_BODY_ROW,
-  TABLE_HEAD,
-  TABLE_HEAD_ROW,
-  TABLE_TD,
-  TABLE_TH,
-} from "@/lib/uiTable";
+import { TABLE_BODY_ROW, TABLE_HEAD, TABLE_HEAD_ROW, TABLE_TD, TABLE_TH } from "@/lib/uiTable";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];

@@ -150,17 +150,20 @@ export function useWizardFlow(initialUserId?: number, initialCanCreateCustomers 
     };
   }, [initialUserId]);
 
-  const applyCategoryChange = useCallback((id: string) => {
-    const cat = categories.find((c) => String(c.id) === id);
-    const nextRepair = isRepairOrderType(cat?.orderType);
-    setCategoryId(id);
-    setResourceId("");
-    setMaterialCategoryId("");
-    setMaterialId("");
-    if (nextRepair) {
-      setQuantityTons("");
-    }
-  }, [categories]);
+  const applyCategoryChange = useCallback(
+    (id: string) => {
+      const cat = categories.find((c) => String(c.id) === id);
+      const nextRepair = isRepairOrderType(cat?.orderType);
+      setCategoryId(id);
+      setResourceId("");
+      setMaterialCategoryId("");
+      setMaterialId("");
+      if (nextRepair) {
+        setQuantityTons("");
+      }
+    },
+    [categories]
+  );
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id.toString() === categoryId),

@@ -27,26 +27,24 @@ export class WorkerDelegationService {
     body: Record<string, unknown>
   ): Promise<number> {
     if (actorRole !== "admin") {
-      await DelegationScopeService.assertHasDelegationRights(
-        companyId,
-        actorUserId,
-        actorRole
-      );
+      await DelegationScopeService.assertHasDelegationRights(companyId, actorUserId, actorRole);
     }
 
     const userId = parseInt(String(body.userId), 10);
     const resourceId = parseInt(String(body.resourceId), 10);
     const categoryId = parseInt(String(body.categoryId), 10);
-    if (!userId || !resourceId || !categoryId || Number.isNaN(userId) || Number.isNaN(resourceId) || Number.isNaN(categoryId)) {
+    if (
+      !userId ||
+      !resourceId ||
+      !categoryId ||
+      Number.isNaN(userId) ||
+      Number.isNaN(resourceId) ||
+      Number.isNaN(categoryId)
+    ) {
       throw new Error("missing_fields");
     }
 
-    await DelegationScopeService.assertCanDelegateTo(
-      companyId,
-      actorUserId,
-      actorRole,
-      userId
-    );
+    await DelegationScopeService.assertCanDelegateTo(companyId, actorUserId, actorRole, userId);
 
     const materialId = body.materialId ? parseInt(String(body.materialId), 10) : null;
     const customerId = body.customerId ? parseInt(String(body.customerId), 10) : null;
@@ -102,7 +100,11 @@ export class WorkerDelegationService {
       typeof body.orderType === "string" ? body.orderType : undefined
     );
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
-      normalizeWorkOrderMaterialFieldsForCategory(categoryRow, orderPayload.materialId, quantityTons);
+      normalizeWorkOrderMaterialFieldsForCategory(
+        categoryRow,
+        orderPayload.materialId,
+        quantityTons
+      );
     const { taskDescription: taskStored, repairDescription: repairStored } =
       buildWorkOrderDescriptionFields(orderType, categoryRow, {
         taskDescription,
@@ -110,8 +112,7 @@ export class WorkerDelegationService {
       });
 
     const durationStored = normalizeDecimalBodyField(expectedDurationHours);
-    const durationHours =
-      durationStored != null ? Number.parseFloat(durationStored) : null;
+    const durationHours = durationStored != null ? Number.parseFloat(durationStored) : null;
 
     if (!body.forceSave) {
       await ScheduleConflictService.assertNoScheduleConflict(companyId, {
