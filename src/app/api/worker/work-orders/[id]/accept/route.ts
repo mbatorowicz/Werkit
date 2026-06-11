@@ -31,6 +31,8 @@ export const POST = withApiErrorHandling(
     mapUnknownError: (err) => {
       if (err instanceof Error && err.message === "order_not_found")
         return jsonError("order_not_found", 404);
+      if (err instanceof Error && err.message === "not_pending")
+        return jsonError("not_pending", 409);
       if (err instanceof Error && err.message === "session_active")
         return jsonError("session_active", 400);
       if (err instanceof Error && err.message === "schedule_conflict")

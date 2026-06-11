@@ -25,9 +25,9 @@ export const DELETE = withApiErrorHandling(
     const sparePartId = parseInt(partId, 10);
     if (Number.isNaN(workOrderId) || Number.isNaN(sparePartId)) return jsonError("invalid_id", 400);
 
-    // Weryfikacja: zlecenie należy do firmy
-    const orderBelongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(
+    const orderBelongs = await WorkOrderSparePartService.verifyWorkerHasActiveOrderSession(
       workOrderId,
+      ctx.userId,
       ctx.companyId
     );
     if (!orderBelongs) return jsonError("not_found", 404);

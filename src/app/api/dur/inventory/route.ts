@@ -3,6 +3,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { requireDurFeature } from "@/lib/requireDurFeature";
+import { StockMovementError } from "@/services/dur/StockMovementError";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,14 @@ export const PUT = withApiErrorHandling(
     }
 
     const { InventoryService } = await import("@/services/dur/InventoryService");
-    await InventoryService.setQuantity(companyId, partId, quantity);
+    try {
+      await InventoryService.setQuantity(companyId, partId, quantity);
+    } catch (err) {
+      if (err instanceof StockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
 
     return jsonOk({ success: true });
   },

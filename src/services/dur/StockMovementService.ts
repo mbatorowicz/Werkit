@@ -99,6 +99,12 @@ export class StockMovementService {
     client: DbClient = db
   ): Promise<StockReceipt> {
     assertPositiveQuantity(input.quantity);
+    const partOk = await InventoryService.assertPartBelongsToCompany(
+      input.partId,
+      companyId,
+      client
+    );
+    if (!partOk) throw new StockMovementError("part_not_found");
 
     const [row] = await client
       .insert(stockReceipts)
@@ -176,6 +182,12 @@ export class StockMovementService {
     client: DbClient = db
   ): Promise<StockIssue> {
     assertPositiveQuantity(input.quantity);
+    const partOk = await InventoryService.assertPartBelongsToCompany(
+      input.partId,
+      companyId,
+      client
+    );
+    if (!partOk) throw new StockMovementError("part_not_found");
     await assertSufficientStock(companyId, input.partId, input.quantity, client);
 
     const [row] = await client

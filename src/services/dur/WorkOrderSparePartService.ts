@@ -3,7 +3,7 @@
 // ============================================================
 
 import { db } from "@/db";
-import { workOrderSpareParts, spareParts, workOrders, stockIssues } from "@/db/schema";
+import { workOrderSpareParts, spareParts, workOrders, workSessions, stockIssues } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { StockMovementService } from "@/services/dur/StockMovementService";
@@ -28,6 +28,27 @@ export class WorkOrderSparePartService {
       .select({ id: spareParts.id })
       .from(spareParts)
       .where(and(eq(spareParts.id, partId), eq(spareParts.companyId, companyId)))
+      .limit(1);
+
+    return !!row;
+  }
+
+  static async verifyWorkerHasActiveOrderSession(
+    workOrderId: number,
+    userId: number,
+    companyId: number
+  ): Promise<boolean> {
+    const [row] = await db
+      .select({ id: workSessions.id })
+      .from(workSessions)
+      .where(
+        and(
+          eq(workSessions.workOrderId, workOrderId),
+          eq(workSessions.userId, userId),
+          eq(workSessions.companyId, companyId),
+          eq(workSessions.status, "IN_PROGRESS")
+        )
+      )
       .limit(1);
 
     return !!row;

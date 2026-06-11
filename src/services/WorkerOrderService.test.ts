@@ -251,6 +251,31 @@ describe("WorkerOrderService", () => {
       await expect(WorkerOrderService.acceptOrder(1, 1, 1)).rejects.toThrow("session_active");
     });
 
+    it("rzuca not_pending gdy zlecenie nie jest oczekujące", async () => {
+      const orderRow = {
+        id: 1,
+        userId: 1,
+        companyId: 1,
+        status: "COMPLETED",
+        resourceId: 1,
+        customerId: 1,
+        customerLocationId: null,
+        dueDate: null,
+        expectedDurationHours: null,
+        categoryId: 1,
+      };
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => resultArray([orderRow])),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { WorkerOrderService } = await import("./WorkerOrderService");
+      await expect(WorkerOrderService.acceptOrder(1, 1, 1)).rejects.toThrow("not_pending");
+
+      expect(transactionMock).not.toHaveBeenCalled();
+    });
+
     it("wykonuje transakcję przy akceptacji zlecenia", async () => {
       const orderRow = {
         id: 1,
@@ -276,9 +301,11 @@ describe("WorkerOrderService", () => {
       vi.mocked(ScheduleConflictService.hasActiveResourceSession).mockResolvedValue(false);
 
       // Mock transaction - wykonuje callback z tx
-      // tx.update(workOrders).set({...}).where(eq(...))  → where terminalem (Promise<void>)
+      // tx.update(workOrders).set({...}).where(eq(...)).returning()
+      //   → returning terminalem (resultArray)
       // tx.insert(workSessions).values({...}).returning() → returning terminalem (resultArray)
-      const txWhere = vi.fn().mockResolvedValue(undefined);
+      const txUpdateReturning = vi.fn().mockReturnValue(resultArray([{ id: 1 }]));
+      const txWhere = vi.fn().mockReturnValue({ returning: txUpdateReturning });
       const txSet = vi.fn().mockReturnValue({ where: txWhere });
       const txUpdate = vi.fn().mockReturnValue({ set: txSet });
 
@@ -297,9 +324,46 @@ describe("WorkerOrderService", () => {
       expect(txUpdate).toHaveBeenCalled();
       expect(txSet).toHaveBeenCalled();
       expect(txWhere).toHaveBeenCalled();
+      expect(txUpdateReturning).toHaveBeenCalled();
       expect(txInsert).toHaveBeenCalled();
       expect(txValues).toHaveBeenCalled();
       expect(txReturning).toHaveBeenCalled();
+    });
+
+    it("rzuca not_pending gdy transakcyjny update nie znajdzie oczekującego zlecenia", async () => {
+      const orderRow = {
+        id: 1,
+        userId: 1,
+        companyId: 1,
+        status: "PENDING",
+        resourceId: 1,
+        customerId: 1,
+        customerLocationId: null,
+        dueDate: null,
+        expectedDurationHours: null,
+        categoryId: 1,
+      };
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => resultArray([orderRow])),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { ScheduleConflictService } = await import("@/services/ScheduleConflictService");
+      vi.mocked(ScheduleConflictService.hasActiveWorkerSession).mockResolvedValue(false);
+
+      const txUpdateReturning = vi.fn().mockReturnValue(resultArray([]));
+      const txWhere = vi.fn().mockReturnValue({ returning: txUpdateReturning });
+      const txSet = vi.fn().mockReturnValue({ where: txWhere });
+      const txUpdate = vi.fn().mockReturnValue({ set: txSet });
+      const txInsert = vi.fn();
+      const tx = { update: txUpdate, insert: txInsert };
+      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<number>) => cb(tx));
+
+      const { WorkerOrderService } = await import("./WorkerOrderService");
+      await expect(WorkerOrderService.acceptOrder(1, 1, 1)).rejects.toThrow("not_pending");
+
+      expect(txInsert).not.toHaveBeenCalled();
     });
   });
 

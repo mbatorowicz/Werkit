@@ -83,6 +83,7 @@ export class WorkerOrderService {
         )
       );
     if (!order) throw new Error("order_not_found");
+    if (order.status !== "PENDING") throw new Error("not_pending");
 
     if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
       throw new Error("session_active");
@@ -108,7 +109,7 @@ export class WorkerOrderService {
 
     // Transakcja: UPDATE work_orders + INSERT work_sessions atomowo
     return await db.transaction(async (tx) => {
-      await tx
+      const [updatedOrder] = await tx
         .update(workOrders)
         .set({
           status: "IN_PROGRESS",
@@ -117,7 +118,17 @@ export class WorkerOrderService {
             ? { lockedUntil: computeLockedUntil(order.dueDate, durationHours) }
             : {}),
         })
-        .where(eq(workOrders.id, order.id));
+        .where(
+          and(
+            eq(workOrders.id, order.id),
+            eq(workOrders.companyId, companyId),
+            eq(workOrders.userId, userId),
+            eq(workOrders.status, "PENDING")
+          )
+        )
+        .returning({ id: workOrders.id });
+
+      if (!updatedOrder) throw new Error("not_pending");
 
       const [newSession] = await tx
         .insert(workSessions)

@@ -48,10 +48,18 @@ vi.mock("@/db/schema", () => ({
   },
   spareParts: {
     id: "id",
+    companyId: "companyId",
     name: "name",
     catalogNumber: "catalogNumber",
   },
   workOrders: { id: "id", companyId: "companyId", resourceId: "resourceId" },
+  workSessions: {
+    id: "id",
+    workOrderId: "workOrderId",
+    userId: "userId",
+    companyId: "companyId",
+    status: "status",
+  },
   stockIssues: { id: "id", partId: "partId", issuedTo: "issuedTo", workOrderId: "workOrderId" },
   stockReceipts: { id: "id", partId: "partId" },
   sparePartInventory: { companyId: "companyId", partId: "partId", quantity: "quantity" },
@@ -282,6 +290,36 @@ describe("WorkOrderSparePartService", () => {
 
       const { WorkOrderSparePartService } = await import("./WorkOrderSparePartService");
       const result = await WorkOrderSparePartService.assertPartBelongsToOrder(999, 42);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("verifyWorkerHasActiveOrderSession", () => {
+    it("zwraca true dla aktywnej sesji pracownika na zleceniu", async () => {
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => chain),
+        limit: vi.fn(() => resultArray([{ id: 7 }])),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { WorkOrderSparePartService } = await import("./WorkOrderSparePartService");
+      const result = await WorkOrderSparePartService.verifyWorkerHasActiveOrderSession(42, 3, 1);
+
+      expect(result).toBe(true);
+    });
+
+    it("zwraca false gdy pracownik nie ma aktywnej sesji na zleceniu", async () => {
+      const chain = {
+        from: vi.fn(() => chain),
+        where: vi.fn(() => chain),
+        limit: vi.fn(() => resultArray([])),
+      };
+      selectMock.mockReturnValue(chain);
+
+      const { WorkOrderSparePartService } = await import("./WorkOrderSparePartService");
+      const result = await WorkOrderSparePartService.verifyWorkerHasActiveOrderSession(42, 3, 1);
 
       expect(result).toBe(false);
     });

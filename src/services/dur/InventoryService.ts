@@ -4,6 +4,7 @@ import type { SparePartInventory } from "@/types/dur";
 import { eq, and, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "@/db/schema";
+import { StockMovementError } from "./StockMovementError";
 
 type DbClient = NodePgDatabase<typeof schema>;
 
@@ -12,6 +13,20 @@ type DbClient = NodePgDatabase<typeof schema>;
  * Odczyt i korekta stanów — przyjęcia/wydania realizuje StockMovementService.
  */
 export class InventoryService {
+  static async assertPartBelongsToCompany(
+    partId: number,
+    companyId: number,
+    client: DbClient = db
+  ): Promise<boolean> {
+    const [row] = await client
+      .select({ id: spareParts.id })
+      .from(spareParts)
+      .where(and(eq(spareParts.id, partId), eq(spareParts.companyId, companyId)))
+      .limit(1);
+
+    return !!row;
+  }
+
   /**
    * Pobiera stan magazynowy dla firmy, opcjonalnie filtrując po partId.
    */
@@ -68,6 +83,9 @@ export class InventoryService {
     delta: string,
     client: DbClient = db
   ): Promise<void> {
+    const partOk = await this.assertPartBelongsToCompany(partId, companyId, client);
+    if (!partOk) throw new StockMovementError("part_not_found");
+
     await client
       .insert(sparePartInventory)
       .values({
@@ -89,6 +107,9 @@ export class InventoryService {
    * Ustawia bezwzględną ilość (korekta ręczna).
    */
   static async setQuantity(companyId: number, partId: number, quantity: string): Promise<void> {
+    const partOk = await this.assertPartBelongsToCompany(partId, companyId);
+    if (!partOk) throw new StockMovementError("part_not_found");
+
     await db
       .insert(sparePartInventory)
       .values({

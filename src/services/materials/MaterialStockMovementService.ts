@@ -104,6 +104,12 @@ export class MaterialStockMovementService {
     client: DbClient = db
   ): Promise<MaterialStockReceipt> {
     assertPositiveQuantity(input.quantity);
+    const materialOk = await MaterialInventoryService.assertMaterialBelongsToCompany(
+      input.materialId,
+      companyId,
+      client
+    );
+    if (!materialOk) throw new MaterialStockMovementError("material_not_found");
 
     const [row] = await client
       .insert(materialStockReceipts)
@@ -211,6 +217,12 @@ export class MaterialStockMovementService {
     client: DbClient = db
   ): Promise<MaterialStockIssue> {
     assertPositiveQuantity(input.quantity);
+    const materialOk = await MaterialInventoryService.assertMaterialBelongsToCompany(
+      input.materialId,
+      companyId,
+      client
+    );
+    if (!materialOk) throw new MaterialStockMovementError("material_not_found");
     await assertSufficientStock(companyId, input.materialId, input.quantity, client);
 
     const [row] = await client

@@ -3,6 +3,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { requireDurFeature } from "@/lib/requireDurFeature";
+import { StockMovementError } from "@/services/dur/StockMovementError";
 
 export const dynamic = "force-dynamic";
 
@@ -54,16 +55,23 @@ export const POST = withApiErrorHandling(
       }
     }
 
-    const { StockMovementService } = await import("@/services/dur/StockMovementService");
-    const receipt = await StockMovementService.addReceipt(companyId, userId, {
-      partId,
-      quantity: qtyParsed.value,
-      unitPrice,
-      invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
-      notes: typeof body.notes === "string" ? body.notes : null,
-    });
+    try {
+      const { StockMovementService } = await import("@/services/dur/StockMovementService");
+      const receipt = await StockMovementService.addReceipt(companyId, userId, {
+        partId,
+        quantity: qtyParsed.value,
+        unitPrice,
+        invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
+        notes: typeof body.notes === "string" ? body.notes : null,
+      });
 
-    return jsonOk(receipt);
+      return jsonOk(receipt);
+    } catch (err) {
+      if (err instanceof StockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
   },
   { defaultErrorCode: "save_error" }
 );

@@ -2,6 +2,7 @@ import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { MaterialStockMovementError } from "@/services/materials/MaterialStockMovementError";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,14 @@ export const PUT = withApiErrorHandling(
     const { MaterialInventoryService } = await import(
       "@/services/materials/MaterialInventoryService"
     );
-    await MaterialInventoryService.setQuantity(companyId, materialId, quantity);
+    try {
+      await MaterialInventoryService.setQuantity(companyId, materialId, quantity);
+    } catch (err) {
+      if (err instanceof MaterialStockMovementError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
 
     return jsonOk({ success: true });
   },

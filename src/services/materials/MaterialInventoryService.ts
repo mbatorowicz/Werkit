@@ -4,10 +4,25 @@ import type { MaterialInventoryRow } from "@/types/materials-warehouse";
 import { eq, and, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "@/db/schema";
+import { MaterialStockMovementError } from "./MaterialStockMovementError";
 
 type DbClient = NodePgDatabase<typeof schema>;
 
 export class MaterialInventoryService {
+  static async assertMaterialBelongsToCompany(
+    materialId: number,
+    companyId: number,
+    client: DbClient = db
+  ): Promise<boolean> {
+    const [row] = await client
+      .select({ id: materials.id })
+      .from(materials)
+      .where(and(eq(materials.id, materialId), eq(materials.companyId, companyId)))
+      .limit(1);
+
+    return !!row;
+  }
+
   static async getInventory(
     companyId: number,
     opts?: { materialId?: number }
@@ -44,6 +59,9 @@ export class MaterialInventoryService {
     delta: string,
     client: DbClient = db
   ): Promise<void> {
+    const materialOk = await this.assertMaterialBelongsToCompany(materialId, companyId, client);
+    if (!materialOk) throw new MaterialStockMovementError("material_not_found");
+
     await client
       .insert(materialInventory)
       .values({
@@ -66,6 +84,9 @@ export class MaterialInventoryService {
     materialId: number,
     quantity: string
   ): Promise<void> {
+    const materialOk = await this.assertMaterialBelongsToCompany(materialId, companyId);
+    if (!materialOk) throw new MaterialStockMovementError("material_not_found");
+
     await db
       .insert(materialInventory)
       .values({
