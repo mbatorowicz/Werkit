@@ -3,7 +3,7 @@
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { CategoryBaseFormModal } from "@/features/admin/categories/CategoryBaseFormModal";
 import { getCategoryAdminLabels } from "@/features/admin/categories/labels";
-import { useAppLocale, useDictionary } from "@/i18n";
+import { useAppLocale } from "@/i18n";
 import type { MaterialCategory, MaterialCategoryFormState } from "./types";
 
 type Props = {
@@ -28,7 +28,6 @@ export function MaterialCategoryFormModal({
   onSubmit,
 }: Props) {
   const locale = useAppLocale();
-  const dictionary = useDictionary();
   const labels = getCategoryAdminLabels("materials", locale);
   const shared = labels;
 

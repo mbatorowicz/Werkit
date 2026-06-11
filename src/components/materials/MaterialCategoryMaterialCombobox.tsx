@@ -132,9 +132,13 @@ export function MaterialCategoryMaterialCombobox({
         ? dict.searchMaterial
         : dict.chooseCategory);
 
-  useEffect(() => {
+  // Reset podświetlenia przy zmianie zapytania/otwarcia/kategorii — w trakcie renderu.
+  const highlightResetKey = `${query}|${open}|${materialCategoryId}`;
+  const [prevHighlightResetKey, setPrevHighlightResetKey] = useState(highlightResetKey);
+  if (prevHighlightResetKey !== highlightResetKey) {
+    setPrevHighlightResetKey(highlightResetKey);
     setHighlightIndex(0);
-  }, [query, open, materialCategoryId]);
+  }
 
   const displayValue = open
     ? query

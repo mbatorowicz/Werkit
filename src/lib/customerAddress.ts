@@ -76,9 +76,6 @@ export function parseCustomerAddress(raw: string | null | undefined): CustomerAd
     if (postalMatch) {
       const postalCode = postalMatch[1];
       const afterPostal = last.replace(postalMatch[0], "").trim();
-      const city = afterPostal || commaParts[commaParts.length - 2] || "";
-      const street =
-        commaParts.slice(0, -1).join(", ").replace(postalMatch[0], "").trim() || commaParts[0];
       if (commaParts.length === 2 && !afterPostal) {
         return { street: commaParts[0], city: "", postalCode };
       }

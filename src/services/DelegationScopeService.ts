@@ -4,7 +4,7 @@
 
 import { db } from "@/db";
 import { departments, teams, teamMembers, users } from "@/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { DelegatableWorkerRow, UserOrgProfile } from "@/types/organization";
 
 type CompanyOrgCache = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUiDateOnly, formatUiTimeHm, useAppLocale } from "@/i18n";
+import { useAppLocale } from "@/i18n";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { normalizeWorkOrderPriority } from "@/features/worker/lib/workOrderPriority";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";

@@ -272,7 +272,7 @@ export function useOsrmNavigation(
         }
 
         setLoading(false);
-      } catch (err) {
+      } catch {
         if (!cancelled) {
           setError(dict.common.errors.routeFetch);
           setLoading(false);

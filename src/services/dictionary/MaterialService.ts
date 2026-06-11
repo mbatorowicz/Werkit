@@ -2,11 +2,7 @@ import { db } from "@/db";
 import { materials, materialToCategories, materialInventory } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { assertMaterialCategoriesAssignable } from "@/services/categoryHierarchyValidation";
-import {
-  DEFAULT_MATERIAL_MEASURE_UNIT,
-  normalizeMeasureUnit,
-  resolveMeasureUnit,
-} from "@/lib/measureUnits";
+import { DEFAULT_MATERIAL_MEASURE_UNIT, normalizeMeasureUnit } from "@/lib/measureUnits";
 
 export class MaterialService {
   static async getMaterials(companyId: number) {

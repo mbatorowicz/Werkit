@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { DecimalInput } from "@/components/DecimalInput";
 import { FormModalFooter } from "@/components/FormModalFooter";
@@ -34,10 +34,14 @@ export function MaterialStockAdjustModal({ open, material, apiErrors, onClose, o
   const [quantity, setQuantity] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!material) return;
-    setQuantity(material.stockQuantity ?? "0");
-  }, [material]);
+  // Reset formularza przy zmianie materiału — w trakcie renderu, bez kaskady w efekcie.
+  const [prevMaterial, setPrevMaterial] = useState(material);
+  if (material !== prevMaterial) {
+    setPrevMaterial(material);
+    if (material) {
+      setQuantity(material.stockQuantity ?? "0");
+    }
+  }
 
   async function handleSubmit() {
     if (!material) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AdminFormField } from "@/components/Admin/AdminFormField";
 import {
   INVENTORY_FORM_CONTROL,
@@ -34,11 +34,15 @@ export function SparePartStockAdjustModal({ open, part, onClose, onSaved }: Prop
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!part) return;
-    setQuantity(part.stockQuantity ?? "0");
-    setNotes("");
-  }, [part]);
+  // Reset formularza przy zmianie części — w trakcie renderu, bez kaskady w efekcie.
+  const [prevPart, setPrevPart] = useState(part);
+  if (part !== prevPart) {
+    setPrevPart(part);
+    if (part) {
+      setQuantity(part.stockQuantity ?? "0");
+      setNotes("");
+    }
+  }
 
   const handleSubmit = useCallback(async () => {
     if (!part) return;

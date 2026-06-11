@@ -45,6 +45,17 @@ const eslintConfig = defineConfig([
     files: ["src/scripts/**/*.{ts,mts}"],
     rules: {
       "no-console": "off",
+      // Skrypty CLI: długie procedury migracji/raportów są akceptowalne.
+      complexity: "off",
+      "max-lines-per-function": "off",
+    },
+  },
+  {
+    files: ["src/**/*.test.{ts,tsx}"],
+    rules: {
+      // Bloki describe/it są z natury długie — limity nie dotyczą testów.
+      complexity: "off",
+      "max-lines-per-function": "off",
     },
   },
   {

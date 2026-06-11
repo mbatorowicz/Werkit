@@ -27,8 +27,14 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
   const [message, setMessage] = useState<string | null>(null);
   const [messageIsError, setMessageIsError] = useState(false);
 
-  const loadFlags = useCallback(async () => {
+  // Reset ładowania przy zmianie firmy — w trakcie renderu, bez kaskady w efekcie.
+  const [prevCompanyId, setPrevCompanyId] = useState(companyId);
+  if (prevCompanyId !== companyId) {
+    setPrevCompanyId(companyId);
     setLoading(true);
+  }
+
+  const loadFlags = useCallback(async () => {
     try {
       const res = await fetch(`/api/platform/feature-flags/${companyId}`, {
         credentials: "include",
