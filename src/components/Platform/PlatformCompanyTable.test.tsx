@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
-import { plDict, renderWithProviders, stubFetch } from "@/test/renderWithProviders";
+import { plDict, renderWithProviders } from "@/test/renderWithProviders";
 
 const dict = plDict.platform;
 
@@ -22,13 +22,7 @@ const baseRow: CompanyUsageRow = {
 function noopHandlers() {
   return {
     onToggleActive: vi.fn(),
-    onStartEdit: vi.fn(),
-    onCancelEdit: vi.fn(),
-    onSaveEdit: vi.fn(),
-    onSetEditName: vi.fn(),
-    onSetEditSlug: vi.fn(),
-    onRefresh: vi.fn(async () => {}),
-    onToggleSettings: vi.fn(),
+    onShowDetails: vi.fn(),
   };
 }
 
@@ -38,17 +32,7 @@ function renderTable(
 ) {
   const handlers = noopHandlers();
   renderWithProviders(
-    <PlatformCompanyTable
-      rows={rows}
-      dict={dict}
-      editingId={null}
-      editName=""
-      editSlug=""
-      editPending={false}
-      settingsOpenId={null}
-      {...handlers}
-      {...overrides}
-    />
+    <PlatformCompanyTable rows={rows} dict={dict} {...handlers} {...overrides} />
   );
   return handlers;
 }
@@ -89,67 +73,17 @@ describe("PlatformCompanyTable", () => {
     expect(handlers.onToggleActive).toHaveBeenCalledWith(1, true);
   });
 
-  it("klik w Edytuj wywołuje onStartEdit z wierszem firmy", async () => {
+  it("pigułka statusu jest zablokowana ze spinnerem podczas zmiany statusu", () => {
+    renderTable([baseRow], { togglePendingId: 1 });
+    expect(screen.getByRole("button", { name: dict.statusActive })).toBeDisabled();
+  });
+
+  it("klik w Szczegóły wywołuje onShowDetails z wierszem firmy", async () => {
     const user = userEvent.setup();
     const handlers = renderTable([baseRow]);
 
-    await user.click(screen.getByRole("button", { name: dict.editOrganization }));
+    await user.click(screen.getByRole("button", { name: dict.detailsAction }));
 
-    expect(handlers.onStartEdit).toHaveBeenCalledWith(baseRow);
-  });
-
-  it("tryb edycji pokazuje inputy oraz akcje Zapisz/Anuluj", async () => {
-    const user = userEvent.setup();
-    const handlers = renderTable([baseRow], {
-      editingId: 1,
-      editName: "Margaz",
-      editSlug: "margaz",
-    });
-
-    const nameInput = screen.getByDisplayValue("Margaz");
-    await user.type(nameInput, "!");
-    expect(handlers.onSetEditName).toHaveBeenCalledWith("Margaz!");
-
-    await user.click(screen.getByRole("button", { name: dict.saveChanges }));
-    expect(handlers.onSaveEdit).toHaveBeenCalledWith(1);
-
-    await user.click(screen.getByRole("button", { name: dict.cancelEdit }));
-    expect(handlers.onCancelEdit).toHaveBeenCalledTimes(1);
-  });
-
-  it("klik w ikonę ustawień wywołuje onToggleSettings", async () => {
-    const user = userEvent.setup();
-    const handlers = renderTable([baseRow]);
-
-    await user.click(screen.getByTitle(dict.settings.title));
-
-    expect(handlers.onToggleSettings).toHaveBeenCalledWith(1);
-  });
-
-  it("firma bez kont pokazuje formularz dodania admina, który wysyła POST", async () => {
-    const fetchMock = stubFetch([
-      { url: "/api/platform/companies/1/admin", method: "POST", json: { ok: true } },
-    ]);
-    const user = userEvent.setup();
-    const handlers = renderTable([{ ...baseRow, userCount: 0 }]);
-
-    expect(screen.getByText(dict.noAdminYet)).toBeInTheDocument();
-
-    await user.type(screen.getByLabelText(dict.adminName), "Anna Admin");
-    await user.type(screen.getByLabelText(dict.adminEmail), "anna@firma.pl");
-    await user.type(screen.getByLabelText(dict.adminPassword), "tajne123");
-    await user.click(screen.getByRole("button", { name: dict.addAdmin }));
-
-    expect(await screen.findByText(dict.addAdminSuccess)).toBeInTheDocument();
-    await waitFor(() => expect(handlers.onRefresh).toHaveBeenCalled());
-
-    const call = fetchMock.mock.calls.find(([input]) =>
-      String(input).includes("/api/platform/companies/1/admin")
-    );
-    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
-      fullName: "Anna Admin",
-      usernameEmail: "anna@firma.pl",
-      password: "tajne123",
-    });
+    expect(handlers.onShowDetails).toHaveBeenCalledWith(baseRow);
   });
 });

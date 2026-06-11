@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { useDictionary, formatDict } from "@/i18n";
-import { PlatformCompanyForm } from "@/components/Platform/PlatformCompanyForm";
+import { formatDict } from "@/i18n";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { PlatformCompanyCreateModal } from "@/components/Platform/PlatformCompanyCreateModal";
+import { PlatformCompanyDetailsModal } from "@/components/Platform/PlatformCompanyDetailsModal";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
-import { usePlatformCompanyEditing } from "@/components/Platform/usePlatformCompanyEditing";
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -14,22 +16,16 @@ type Props = {
 };
 
 export function PlatformDashboard({ initialOverview, dict }: Props) {
-  const apiErrors = useDictionary().apiErrors as Record<string, string>;
   const [rows, setRows] = useState(initialOverview);
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
   const [messageIsError, setMessageIsError] = useState(false);
-
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [adminName, setAdminName] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-
-  /** Która organizacja ma rozwinięty panel ustawień funkcji. */
-  const [settingsOpenId, setSettingsOpenId] = useState<number | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  /** Id firmy z otwartym panelem szczegółów. */
+  const [detailsId, setDetailsId] = useState<number | null>(null);
   /** Dla której organizacji trwa zmiana statusu aktywności. */
   const [togglePendingId, setTogglePendingId] = useState<number | null>(null);
+
+  const detailsRow = detailsId !== null ? rows.find((r) => r.companyId === detailsId) : undefined;
 
   async function refreshOverview() {
     const res = await fetch("/api/platform/analytics", { credentials: "include" });
@@ -43,59 +39,9 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     setMessageIsError(isError);
   }
 
-  const {
-    editingId,
-    editName,
-    editSlug,
-    editPending,
-    setEditName,
-    setEditSlug,
-    startEdit,
-    cancelEdit,
-    saveEdit,
-  } = usePlatformCompanyEditing({
-    apiErrors,
-    updateErrorLabel: dict.updateError,
-    updateSuccessLabel: dict.updateSuccess,
-    showFeedback,
-    refreshOverview,
-  });
-
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setPending(true);
-    setMessage(null);
-    setMessageIsError(false);
-    try {
-      const res = await fetch("/api/platform/companies", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          slug: slug.trim() || undefined,
-          adminFullName: adminName.trim() || undefined,
-          adminEmail: adminEmail.trim() || undefined,
-          adminPassword: adminPassword.trim() || undefined,
-        }),
-      });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        const code = typeof body.error === "string" ? body.error : "";
-        showFeedback(apiErrors[code] ?? dict.createError, true);
-        if (code === "slug_exists") await refreshOverview();
-        return;
-      }
-      showFeedback(dict.createSuccess, false);
-      setName("");
-      setSlug("");
-      setAdminName("");
-      setAdminEmail("");
-      setAdminPassword("");
-      await refreshOverview();
-    } finally {
-      setPending(false);
-    }
+  async function handleCreated() {
+    showFeedback(dict.createSuccess, false);
+    await refreshOverview();
   }
 
   async function toggleActive(organizationId: number, isActive: boolean) {
@@ -118,54 +64,55 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     }
   }
 
-  function toggleSettings(companyId: number) {
-    setSettingsOpenId((prev) => (prev === companyId ? null : companyId));
-  }
-
   return (
-    <div className="space-y-0">
-      <header className="mb-8">
-        <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
-          {formatDict(dict.totalCount, { count: rows.length })}
-        </p>
+    <div>
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            {dict.registryTitle}
+          </h2>
+          <p className="mt-0.5 text-sm text-zinc-500">
+            {formatDict(dict.totalCount, { count: rows.length })}
+          </p>
+        </div>
+        <button type="button" onClick={() => setCreateOpen(true)} className={BTN_PRIMARY_COMPACT}>
+          <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+          {dict.addOrganization}
+        </button>
       </header>
 
-      <PlatformCompanyForm
-        dict={dict}
-        name={name}
-        setName={setName}
-        slug={slug}
-        setSlug={setSlug}
-        adminName={adminName}
-        setAdminName={setAdminName}
-        adminEmail={adminEmail}
-        setAdminEmail={setAdminEmail}
-        adminPassword={adminPassword}
-        setAdminPassword={setAdminPassword}
-        pending={pending}
-        message={message}
-        messageIsError={messageIsError}
-        onSubmit={handleCreate}
-      />
+      {message && (
+        <p
+          role="status"
+          className={`mb-4 text-sm ${messageIsError ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}
+        >
+          {message}
+        </p>
+      )}
 
       <PlatformCompanyTable
         rows={rows}
         dict={dict}
-        editingId={editingId}
-        editName={editName}
-        editSlug={editSlug}
-        editPending={editPending}
-        settingsOpenId={settingsOpenId}
         togglePendingId={togglePendingId}
         onToggleActive={toggleActive}
-        onStartEdit={startEdit}
-        onCancelEdit={cancelEdit}
-        onSaveEdit={saveEdit}
-        onSetEditName={setEditName}
-        onSetEditSlug={setEditSlug}
-        onRefresh={refreshOverview}
-        onToggleSettings={toggleSettings}
+        onShowDetails={(row) => setDetailsId(row.companyId)}
       />
+
+      <PlatformCompanyCreateModal
+        open={createOpen}
+        dict={dict}
+        onClose={() => setCreateOpen(false)}
+        onCreated={handleCreated}
+      />
+
+      {detailsRow && (
+        <PlatformCompanyDetailsModal
+          row={detailsRow}
+          dict={dict}
+          onClose={() => setDetailsId(null)}
+          onChanged={refreshOverview}
+        />
+      )}
     </div>
   );
 }
