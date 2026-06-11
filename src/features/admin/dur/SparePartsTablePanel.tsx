@@ -1,33 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Cog, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { Cog, Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import type { AppDictionary } from "@/i18n/types";
-import { formatDict, useDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
 import type { SparePart } from "@/types/dur";
-import { parseDecimalInput } from "@/lib/decimalInput";
 import { matchesSearchQuery } from "@/lib/searchComboboxFilter";
 import { AdminTableShell } from "@/components/Admin/AdminTableShell";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
 import {
-  TABLE_ACTION_ICON_DELETE,
-  TABLE_ACTION_ICON_EDIT,
-  TABLE_ACTION_LINK,
-  TABLE_ACTIONS,
   TABLE_EMPTY_CELL,
   TABLE_HEAD,
-  TABLE_BODY_ROW,
   TABLE_HEAD_ROW,
-  TABLE_LOW_STOCK_BADGE,
-  TABLE_TD_MUTED,
-  TABLE_TD_RIGHT,
-  TABLE_TD_STRONG,
   TABLE_TH,
   TABLE_TH_RIGHT,
 } from "@/lib/uiTable";
+import { SparePartsTableRow } from "./SparePartsTableRow";
 
 type Dict = AppDictionary["dur"]["spareParts"];
 
@@ -123,82 +114,17 @@ export function SparePartsTablePanel({
               </td>
             </tr>
           ) : (
-            filteredParts.map((part) => {
-              const stock = parseDecimalInput(part.stockQuantity ?? "0") ?? 0;
-              const minStock = parseDecimalInput(part.minStock ?? "0") ?? 0;
-              const isLowStock = minStock > 0 && stock < minStock;
-              return (
-                <tr key={part.id} className={TABLE_BODY_ROW}>
-                  <td className={TABLE_TD_STRONG}>
-                    <div className="flex items-center gap-2">
-                      {part.name}
-                      {isLowStock ? (
-                        <span
-                          className={TABLE_LOW_STOCK_BADGE}
-                          title={formatDict(wh.lowStockTooltip, {
-                            minStock: String(part.minStock),
-                            unit: part.unit,
-                          })}
-                        >
-                          <AlertTriangle className="h-3 w-3" />
-                          {wh.lowStockAlert}
-                        </span>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className={`${TABLE_TD_MUTED} font-mono text-xs`}>
-                    {part.catalogNumber ?? "—"}
-                  </td>
-                  <td className={TABLE_TD_MUTED}>{part.manufacturer ?? "—"}</td>
-                  <td className={TABLE_TD_MUTED}>{part.unit}</td>
-                  <td
-                    className={cn(
-                      TABLE_TD_RIGHT,
-                      "font-mono tabular-nums",
-                      isLowStock && "font-semibold text-amber-600 dark:text-amber-400"
-                    )}
-                  >
-                    {part.stockQuantity ?? "0"}
-                  </td>
-                  <td className={`${TABLE_TD_RIGHT} font-mono tabular-nums`}>
-                    {minStock > 0 ? part.minStock : "—"}
-                  </td>
-                  <td className={`${TABLE_TD_MUTED} text-xs`}>{part.location ?? "—"}</td>
-                  {canMutate ? (
-                    <td className={TABLE_TD_RIGHT}>
-                      <div className={TABLE_ACTIONS}>
-                        {onAdjustStock ? (
-                          <button
-                            type="button"
-                            onClick={() => onAdjustStock(part)}
-                            className={TABLE_ACTION_LINK}
-                            title={wh.adjustStock}
-                          >
-                            {wh.adjustStock}
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() => onEditPart(part)}
-                          className={TABLE_ACTION_ICON_EDIT}
-                          title={dict.editPart}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onDeletePart(part)}
-                          className={TABLE_ACTION_ICON_DELETE}
-                          title={dict.deletePart}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  ) : null}
-                </tr>
-              );
-            })
+            filteredParts.map((part) => (
+              <SparePartsTableRow
+                key={part.id}
+                part={part}
+                dict={dict}
+                canMutate={canMutate}
+                onEditPart={onEditPart}
+                onDeletePart={onDeletePart}
+                onAdjustStock={onAdjustStock}
+              />
+            ))
           )}
         </tbody>
       </AdminTableShell>

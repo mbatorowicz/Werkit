@@ -1,5 +1,10 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import {
+  parseMachineCategoryIds,
+  parseMachineTextFields,
+  visibleMachineFields,
+} from "@/lib/machineRoutePayload";
 import { isMissingResourcesVehicleColumns } from "@/lib/postgresMigrationHints";
 import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -39,30 +44,21 @@ export const POST = withApiErrorHandling(
     const { companyId } = scoped.data;
 
     const body = await parseJsonBody(request);
-    const brand = typeof body.brand === "string" ? body.brand : "";
-    const model = typeof body.model === "string" ? body.model : "";
-    const registrationNumber =
-      typeof body.registrationNumber === "string" ? body.registrationNumber : "";
-    const description = typeof body.description === "string" ? body.description : "";
-    const categoryIds = body.categoryIds;
+    const fields = parseMachineTextFields(body);
     const imageUrl = body.imageUrl;
 
-    if (!categoryIds || !Array.isArray(categoryIds)) {
-      return jsonError("missing_fields", 400);
-    }
-    const parsedCatIds = categoryIds
-      .map((c: string | number) => parseInt(String(c), 10))
-      .filter((n: number) => Number.isFinite(n) && n > 0);
-    if (parsedCatIds.length === 0) {
+    const parsedCatIds = parseMachineCategoryIds(body.categoryIds);
+    if (!parsedCatIds) {
       return jsonError("missing_fields", 400);
     }
     const { DictionaryService } = await import("@/services/DictionaryService");
     const vis = await DictionaryService.mergeResourceFormVisibility(companyId, parsedCatIds);
+    const visible = visibleMachineFields(vis, fields);
     const name = buildResourceCanonicalName(
-      vis.showResourceName ? brand : "",
-      vis.showResourceName ? model : "",
-      vis.showRegistrationNumber ? registrationNumber : "",
-      vis.showResourceDescription ? description : null
+      visible.brand,
+      visible.model,
+      visible.registrationNumber,
+      visible.description
     );
     if (!name.trim()) {
       return jsonError("missing_fields", 400);
@@ -72,10 +68,7 @@ export const POST = withApiErrorHandling(
       companyId,
       {
         name,
-        brand: vis.showResourceName ? brand : "",
-        model: vis.showResourceName ? model : "",
-        registrationNumber: vis.showRegistrationNumber ? registrationNumber : "",
-        description: vis.showResourceDescription ? description : null,
+        ...visible,
       },
       parsedCatIds,
       typeof imageUrl === "string" || imageUrl === null ? imageUrl : undefined,

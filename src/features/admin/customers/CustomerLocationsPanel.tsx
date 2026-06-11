@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
+import { CustomerLocationChips } from "./CustomerLocationChips";
 import { useCustomerLocations, locationAddressParts } from "./useCustomerLocations";
 
 const CustomerRoutePlannerMap = dynamic(
@@ -60,27 +61,14 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         </button>
       </div>
 
-      {locations.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {locations.map((loc) => (
-            <button
-              key={loc.id}
-              type="button"
-              onClick={() => selectLocation(loc)}
-              className={`text-xs px-3 py-1.5 rounded-full border transition ${
-                selectedId === loc.id && !isDraftOpen
-                  ? "bg-emerald-600 text-white border-emerald-600"
-                  : "border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500"
-              }`}
-            >
-              {loc.label}
-              {loc.isDefault ? ` (${dict.locationDefaultBadge})` : ""}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <p className="text-xs text-zinc-500">{dict.locationsEmpty}</p>
-      )}
+      <CustomerLocationChips
+        locations={locations}
+        selectedId={selectedId}
+        isDraftOpen={isDraftOpen}
+        defaultBadgeLabel={dict.locationDefaultBadge}
+        emptyLabel={dict.locationsEmpty}
+        onSelect={selectLocation}
+      />
 
       {!editorOpen ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400 py-2">{dict.locationSelectPrompt}</p>

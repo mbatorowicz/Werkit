@@ -1,10 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { foldMicroJumpsInPath } from "@/lib/gps";
 import { workerRouteReducer } from "@/features/worker/gps/workerRouteReducer";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { sendRemoteLog } from "@/lib/remoteLogger";
 import { buildWorkerSessionTimeline } from "@/features/worker/lib/workerSessionTimeline";
 import { useWorkerSessionSync } from "@/features/worker/hooks/useWorkerSessionSync";
 import { useWorkerGPS } from "@/features/worker/hooks/useWorkerGPS";
@@ -17,16 +15,8 @@ import type {
   UserData,
   WorkOrder,
 } from "@/types/worker";
-import { parseJsonArray } from "@/lib/parseJsonArray";
-import { parseJsonUnknown } from "@/lib/parseApiJson";
-import { narrowWorkOrders } from "@/lib/narrowApiListRows";
-import {
-  narrowAppSettings,
-  narrowGpsPathLogs,
-  narrowNominatimHits,
-  narrowSession,
-  narrowUserData,
-} from "@/features/worker/lib/narrowWorkerClientPayload";
+import { narrowAppSettings, narrowUserData } from "@/features/worker/lib/narrowWorkerClientPayload";
+import { loadWorkerSessionAndPath } from "@/features/worker/hooks/workerShellSessionLoad";
 
 export function useWorkerShellState(initialData: InitialWorkerData | null) {
   const [timelineEvents, setTimelineEvents] = useState<TimelineItem[]>(() =>
@@ -63,124 +53,19 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
   const fetchSessionAndPath = useCallback(async (showLoader = true, fetchGpsPath = true) => {
     if (showLoader) setIsLoading(true);
-    try {
-      const [resSess, resOrders] = await Promise.all([
-        fetchWithDeviceTelemetry(
-          "Worker: session GET",
-          "/api/worker/session",
-          { cache: "no-store" },
-          {
-            category: "session",
-          }
-        ),
-        fetchWithDeviceTelemetry(
-          "Worker: work-orders GET",
-          "/api/worker/work-orders",
-          { cache: "no-store" },
-          {
-            category: "orders",
-          }
-        ),
-      ]);
-
-      if (!resSess.ok) throw new Error(`Session fetch failed: ${resSess.status}`);
-      if (!resOrders.ok) throw new Error(`Orders fetch failed: ${resOrders.status}`);
-
-      const sessRaw = await parseJsonUnknown(resSess);
-      const ordersRows = await parseJsonArray(resOrders);
-      setWorkOrders(narrowWorkOrders(ordersRows));
-
-      const sessData: Record<string, unknown> =
-        sessRaw !== null && typeof sessRaw === "object" && !Array.isArray(sessRaw)
-          ? (sessRaw as Record<string, unknown>)
-          : {};
-
-      const sessionRowEarly = narrowSession(sessData.session);
-      const stationary = Boolean(sessionRowEarly?.categoryIsStationary);
-      if (stationary) {
-        dispatchRoute({ type: "reset", path: [] });
-        setDestination(null);
-        setDistanceToDestKm(null);
-      }
-
-      if (fetchGpsPath && sessionRowEarly && !stationary) {
-        try {
-          const resPath = await fetchWithDeviceTelemetry(
-            "Worker: gps path GET",
-            "/api/worker/gps",
-            {
-              cache: "no-store",
-            },
-            { category: "gps" }
-          );
-          const pathBody = await parseJsonUnknown(resPath);
-          const logs = narrowGpsPathLogs(pathBody);
-          if (logs.length > 0) {
-            const folded = foldMicroJumpsInPath(logs);
-            dispatchRoute({ type: "reset", path: folded });
-          }
-        } catch {
-          /* ścieżka GPS opcjonalna */
-        }
-      }
-
-      if ("settings" in sessData) {
-        const settingsParsed = narrowAppSettings(sessData.settings);
-        if (settingsParsed !== null) setSettings(settingsParsed);
-      }
-      if ("user" in sessData) {
-        const userParsed = narrowUserData(sessData.user);
-        if (userParsed !== null) setCurrentUser(userParsed);
-      }
-
-      if (sessionRowEarly) {
-        setSession(sessionRowEarly);
-        setTimelineEvents(buildWorkerSessionTimeline(sessData.events, sessData.notes));
-
-        const sessStationary = Boolean(sessionRowEarly.categoryIsStationary);
-        if (!sessStationary) {
-          const s = sessionRowEarly;
-          setRouteWaypoints(Array.isArray(s.routeWaypoints) ? s.routeWaypoints : []);
-          setCustomerLocationId(
-            typeof s.customerLocationId === "number" ? s.customerLocationId : null
-          );
-          if (s.customerLat && s.customerLng) {
-            setDestination({ lat: parseFloat(s.customerLat), lng: parseFloat(s.customerLng) });
-          } else if (s.customerAddress && !destinationRef.current) {
-            try {
-              const geo = await fetchWithDeviceTelemetry(
-                "Worker: Nominatim geocode",
-                `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(s.customerAddress)}`,
-                undefined,
-                { category: "http" }
-              );
-              const geoRows = await parseJsonArray(geo);
-              const hits = narrowNominatimHits(geoRows);
-              if (hits.length > 0) {
-                setDestination({ lat: parseFloat(hits[0].lat), lng: parseFloat(hits[0].lon) });
-              }
-            } catch {
-              /* geokodowanie opcjonalne */
-            }
-          }
-        }
-      } else {
-        setSession(null);
-        setDestination(null);
-        setRouteWaypoints([]);
-        setCustomerLocationId(null);
-        setDistanceToDestKm(null);
-      }
-    } catch (e) {
-      void sendRemoteLog(
-        "ERROR",
-        "WorkerClient fetchSessionAndPath",
-        {
-          error: e instanceof Error ? e.message : String(e),
-        },
-        { category: "session" }
-      );
-    }
+    await loadWorkerSessionAndPath(fetchGpsPath, {
+      destinationRef,
+      dispatchRoute,
+      setWorkOrders,
+      setSession,
+      setTimelineEvents,
+      setSettings,
+      setCurrentUser,
+      setDestination,
+      setRouteWaypoints,
+      setCustomerLocationId,
+      setDistanceToDestKm,
+    });
     if (showLoader) setIsLoading(false);
   }, []);
 

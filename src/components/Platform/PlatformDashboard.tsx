@@ -6,6 +6,7 @@ import type { AppDictionary } from "@/i18n/types";
 import { useDictionary, formatDict } from "@/i18n";
 import { PlatformCompanyForm } from "@/components/Platform/PlatformCompanyForm";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
+import { usePlatformCompanyEditing } from "@/components/Platform/usePlatformCompanyEditing";
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -25,11 +26,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editSlug, setEditSlug] = useState("");
-  const [editPending, setEditPending] = useState(false);
-
   /** Która organizacja ma rozwinięty panel ustawień funkcji. */
   const [settingsOpenId, setSettingsOpenId] = useState<number | null>(null);
 
@@ -44,6 +40,24 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
     setMessage(text);
     setMessageIsError(isError);
   }
+
+  const {
+    editingId,
+    editName,
+    editSlug,
+    editPending,
+    setEditName,
+    setEditSlug,
+    startEdit,
+    cancelEdit,
+    saveEdit,
+  } = usePlatformCompanyEditing({
+    apiErrors,
+    updateErrorLabel: dict.updateError,
+    updateSuccessLabel: dict.updateSuccess,
+    showFeedback,
+    refreshOverview,
+  });
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -90,43 +104,6 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       body: JSON.stringify({ isActive: !isActive }),
     });
     if (res.ok) await refreshOverview();
-  }
-
-  function startEdit(row: CompanyUsageRow) {
-    setEditingId(row.companyId);
-    setEditName(row.companyName);
-    setEditSlug(row.slug);
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditName("");
-    setEditSlug("");
-  }
-
-  async function saveEdit(organizationId: number) {
-    setEditPending(true);
-    try {
-      const res = await fetch(`/api/platform/companies/${organizationId}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName.trim(),
-          slug: editSlug.trim().toLowerCase(),
-        }),
-      });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        showFeedback(apiErrors[body.error ?? ""] ?? dict.updateError, true);
-        return;
-      }
-      showFeedback(dict.updateSuccess, false);
-      cancelEdit();
-      await refreshOverview();
-    } finally {
-      setEditPending(false);
-    }
   }
 
   function toggleSettings(companyId: number) {

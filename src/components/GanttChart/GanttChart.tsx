@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Clock } from "lucide-react";
 import { useDictionary } from "@/components/LocaleProvider";
-import { formatCustomerLabel } from "@/lib/customerSearch";
 
 import { UnifiedGanttItem, BaseWorker, BaseMachine } from "@/types/admin";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
@@ -11,6 +10,11 @@ import { GanttHeader } from "@/components/GanttChart/GanttHeader";
 import { GanttTimeline } from "@/components/GanttChart/GanttTimeline";
 import { GanttRow } from "@/components/GanttChart/GanttRow";
 import { GanttLegend } from "@/components/GanttChart/GanttLegend";
+import {
+  createGanttItemTooltip,
+  ganttRowsAllEmpty,
+  getGanttDimensions,
+} from "@/components/GanttChart/ganttTimeMath";
 
 type GanttProps = {
   workers: BaseWorker[];
@@ -29,32 +33,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
   };
   const fields = fullDict.admin.orderFields;
 
-  const formatItemTooltip = (
-    item: UnifiedGanttItem,
-    opts: {
-      date?: string;
-      time?: string;
-      footer: string;
-    }
-  ) => {
-    const customerName = formatCustomerLabel({
-      firstName: (item.customerFirstName as string) ?? null,
-      lastName: (item.customerLastName as string) ?? null,
-    });
-    return [
-      `#${item.workOrderId || item.id}`,
-      `${fields.category}: ${item.categoryName || "—"}`,
-      `${fields.resource}: ${item.resourceName || "—"}`,
-      `${fields.material}: ${item.materialName || "—"}`,
-      `${fields.quantity}: ${item.quantityTons ? `${item.quantityTons}t` : "—"}`,
-      `${fields.customer}: ${customerName || "—"}`,
-      opts.date ? `${fields.date}: ${opts.date}` : null,
-      opts.time ? `${fields.time}: ${opts.time}` : null,
-      opts.footer,
-    ]
-      .filter(Boolean)
-      .join("\n");
-  };
+  const formatItemTooltip = createGanttItemTooltip(fields);
 
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
     const d = new Date();
@@ -110,35 +89,8 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
     }
   }
 
-  const getDimensions = (start: Date, durationHours: number) => {
-    let itemStartMs = start.getTime();
-    let itemEndMs = itemStartMs + durationHours * 3600000;
-
-    if (itemEndMs <= dStart.getTime() || itemStartMs >= dEnd.getTime()) {
-      return null;
-    }
-
-    if (itemStartMs < dStart.getTime()) {
-      itemStartMs = dStart.getTime();
-    }
-    if (itemEndMs > dEnd.getTime()) {
-      itemEndMs = dEnd.getTime();
-    }
-
-    const visibleDurationHours = (itemEndMs - itemStartMs) / 3600000;
-    if (visibleDurationHours <= 0) return null;
-
-    const visibleStart = new Date(itemStartMs);
-    const startMinsFromStartHour =
-      (visibleStart.getHours() - startHour) * 60 + visibleStart.getMinutes();
-
-    const totalMins = totalHours * 60;
-
-    const left = (startMinsFromStartHour / totalMins) * 100;
-    const width = ((visibleDurationHours * 60) / totalMins) * 100;
-
-    return { left: `${Math.max(0, left)}%`, width: `${Math.min(100 - left, width)}%` };
-  };
+  const getDimensions = (start: Date, durationHours: number) =>
+    getGanttDimensions(start, durationHours, { dStart, dEnd, startHour, totalHours });
 
   const hours = Array.from({ length: totalHours + 1 }).map((_, i) => startHour + i);
 
@@ -207,30 +159,7 @@ export default function GanttChart({ workers, machines, unifiedItems, onItemClic
               />
             ))}
 
-            {rows.every((row) => {
-              return !unifiedItems.some((item) => {
-                const matchesRow =
-                  groupBy === "WORKER" ? item.userId === row.id : item.resourceId === row.id;
-                if (!matchesRow) return false;
-                const tStart = item.startTime
-                  ? new Date(item.startTime)
-                  : item.dueDate
-                    ? new Date(item.dueDate)
-                    : null;
-                if (!tStart) return false;
-                const tEnd = item.endTime
-                  ? new Date(item.endTime as string)
-                  : item.status === "IN_PROGRESS"
-                    ? new Date()
-                    : item.dueDate
-                      ? new Date(
-                          new Date(item.dueDate as string).getTime() +
-                            Number(item.expectedDurationHours || 2) * 3600000
-                        )
-                      : tStart;
-                return tStart <= dEnd && tEnd >= dStart;
-              });
-            }) && (
+            {ganttRowsAllEmpty(rows, unifiedItems, groupBy, dStart, dEnd) && (
               <div className="py-12 flex flex-col items-center justify-center text-zinc-500 dark:text-zinc-400">
                 <Clock className="w-8 h-8 mb-2 opacity-50" />
                 <p className="text-sm">{dict.noOrders}</p>

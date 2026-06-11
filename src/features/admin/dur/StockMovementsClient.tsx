@@ -3,16 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { formatDict, useDictionary } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
-import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { FormModalFooter } from "@/components/FormModalFooter";
-import { decimalStringForStorage } from "@/lib/decimalInput";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
-import { StockReceiptForm } from "./StockReceiptForm";
-import { StockIssueForm } from "./StockIssueForm";
 import { StockMovementsTable } from "./StockMovementsTable";
+import { StockMovementFormsModal } from "./StockMovementFormsModal";
+import { StockIssueTotalsSummary } from "./StockIssueTotalsSummary";
 import { useStockMovementsData } from "./useStockMovementsData";
 import { useStockMovementRefs } from "./useStockMovementRefs";
 import { useStockMovementForms } from "./useStockMovementForms";
@@ -28,9 +25,6 @@ export default function StockMovementsClient() {
   const dictionary = useDictionary();
   const wh = warehouseCommonLabels(dictionary);
   const dWh = dictionary.dur.warehouse;
-  const common = dictionary.common;
-  const issuesDict = dWh.issues;
-  const receiptsDict = dWh.receipts;
 
   const [tab, setTab] = useState<Tab>("issues");
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,32 +45,8 @@ export default function StockMovementsClient() {
 
   const closeModal = useCallback(() => setShowModal(false), []);
 
-  const {
-    isSubmitting,
-    rPartId,
-    rQuantity,
-    rUnitPrice,
-    rInvoiceNumber,
-    rNotes,
-    setRQuantity,
-    setRUnitPrice,
-    setRInvoiceNumber,
-    setRNotes,
-    iPartId,
-    iQuantity,
-    iWorkOrderId,
-    iIssuedTo,
-    iNotes,
-    setIPartId,
-    setIQuantity,
-    setIWorkOrderId,
-    setIIssuedTo,
-    setINotes,
-    resetForms,
-    handleReceiptPartChange,
-    handleSaveReceipt,
-    handleSaveIssue,
-  } = useStockMovementForms({ tab, catalogItems, fetchData, fetchCatalog, closeModal });
+  const forms = useStockMovementForms({ tab, catalogItems, fetchData, fetchCatalog, closeModal });
+  const { resetForms } = forms;
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -149,24 +119,7 @@ export default function StockMovementsClient() {
         placeholder={dWh.movementsSearchPlaceholder}
       />
 
-      {issueTotalsByPart.length > 0 ? (
-        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
-          <p className="mb-2 font-medium text-emerald-900 dark:text-emerald-200">
-            {wh.movementsFilterSummary}
-          </p>
-          <ul className="space-y-1 text-emerald-800 dark:text-emerald-300">
-            {issueTotalsByPart.map((item) => (
-              <li key={item.partName}>
-                {formatDict(wh.movementsFilterSummaryLine, {
-                  item: item.partName,
-                  qty: decimalStringForStorage(String(item.quantity)) ?? String(item.quantity),
-                  unit: item.unit,
-                })}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <StockIssueTotalsSummary items={issueTotalsByPart} />
 
       <StockMovementsTable
         tab={tab}
@@ -177,62 +130,17 @@ export default function StockMovementsClient() {
         partById={partById}
       />
 
-      <AdminModalShell
+      <StockMovementFormsModal
         open={showModal && canMutate}
-        onClose={() => setShowModal(false)}
-        title={tab === "receipts" ? wh.modalReceiptTitle : wh.modalIssueTitle}
-        closeOnBackdropClick={false}
-        scrollableBody
-        footer={
-          <FormModalFooter
-            formId={tab === "receipts" ? "receipt-form" : "issue-form"}
-            onCancel={() => setShowModal(false)}
-            submitLabel={isSubmitting ? dictionary.dur.spareParts.saving : common.actions.save}
-            cancelLabel={common.actions.cancel}
-            isSubmitting={isSubmitting}
-            submitDisabled={tab === "receipts" ? !rPartId : !iPartId}
-          />
-        }
-      >
-        {tab === "receipts" ? (
-          <StockReceiptForm
-            rPartId={rPartId}
-            rQuantity={rQuantity}
-            rUnitPrice={rUnitPrice}
-            rInvoiceNumber={rInvoiceNumber}
-            rNotes={rNotes}
-            partOptions={partOptions}
-            partsLoading={catalogLoading}
-            onPartIdChange={handleReceiptPartChange}
-            onQuantityChange={setRQuantity}
-            onUnitPriceChange={setRUnitPrice}
-            onInvoiceNumberChange={setRInvoiceNumber}
-            onNotesChange={setRNotes}
-            onSubmit={() => void handleSaveReceipt()}
-            dict={receiptsDict.fields}
-          />
-        ) : (
-          <StockIssueForm
-            iPartId={iPartId}
-            iQuantity={iQuantity}
-            iWorkOrderId={iWorkOrderId}
-            iIssuedTo={iIssuedTo}
-            iNotes={iNotes}
-            partOptions={partOptions}
-            workOrderOptions={workOrderOptions}
-            userOptions={userOptions}
-            partsLoading={catalogLoading}
-            refsLoading={refsLoading}
-            onPartIdChange={setIPartId}
-            onQuantityChange={setIQuantity}
-            onWorkOrderIdChange={setIWorkOrderId}
-            onIssuedToChange={setIIssuedTo}
-            onNotesChange={setINotes}
-            onSubmit={() => void handleSaveIssue()}
-            dict={issuesDict.fields}
-          />
-        )}
-      </AdminModalShell>
+        tab={tab}
+        onClose={closeModal}
+        forms={forms}
+        partOptions={partOptions}
+        workOrderOptions={workOrderOptions}
+        userOptions={userOptions}
+        catalogLoading={catalogLoading}
+        refsLoading={refsLoading}
+      />
     </>
   );
 }

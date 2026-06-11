@@ -9,6 +9,31 @@ import { narrowOrderType } from "@/lib/orderType";
 import { CategoryHierarchyError } from "@/services/categoryHierarchyValidation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
+function applyOptionalCategoryFields(
+  body: Record<string, unknown>,
+  updateData: ResourceCategoryUpdateInput
+): void {
+  if (body.showCustomer !== undefined) updateData.showCustomer = !!body.showCustomer;
+  if (body.showMaterial !== undefined) updateData.showMaterial = !!body.showMaterial;
+  if (body.showQuantity !== undefined) updateData.showQuantity = !!body.showQuantity;
+  if (body.showTaskDescription !== undefined)
+    updateData.showTaskDescription = !!body.showTaskDescription;
+  if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
+  if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
+  if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
+  if (body.reqTaskDescription !== undefined)
+    updateData.reqTaskDescription = !!body.reqTaskDescription;
+  if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
+  if (body.isStationary !== undefined) updateData.isStationary = !!body.isStationary;
+  if (body.color !== undefined) updateData.color = body.color as string;
+  if (body.showResourceName !== undefined) updateData.showResourceName = !!body.showResourceName;
+  if (body.showResourceDescription !== undefined)
+    updateData.showResourceDescription = !!body.showResourceDescription;
+  if (body.showRegistrationNumber !== undefined)
+    updateData.showRegistrationNumber = !!body.showRegistrationNumber;
+  if (body.orderType !== undefined) updateData.orderType = narrowOrderType(body.orderType);
+}
+
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
     const denied = await guardAdminMutation();
@@ -36,25 +61,7 @@ export const PUT = withApiErrorHandling(
       isGroup: hierarchy.isGroup,
       sortOrder: hierarchy.sortOrder,
     };
-    if (body.showCustomer !== undefined) updateData.showCustomer = !!body.showCustomer;
-    if (body.showMaterial !== undefined) updateData.showMaterial = !!body.showMaterial;
-    if (body.showQuantity !== undefined) updateData.showQuantity = !!body.showQuantity;
-    if (body.showTaskDescription !== undefined)
-      updateData.showTaskDescription = !!body.showTaskDescription;
-    if (body.reqCustomer !== undefined) updateData.reqCustomer = !!body.reqCustomer;
-    if (body.reqMaterial !== undefined) updateData.reqMaterial = !!body.reqMaterial;
-    if (body.reqQuantity !== undefined) updateData.reqQuantity = !!body.reqQuantity;
-    if (body.reqTaskDescription !== undefined)
-      updateData.reqTaskDescription = !!body.reqTaskDescription;
-    if (body.isGlobal !== undefined) updateData.isGlobal = !!body.isGlobal;
-    if (body.isStationary !== undefined) updateData.isStationary = !!body.isStationary;
-    if (body.color !== undefined) updateData.color = body.color as string;
-    if (body.showResourceName !== undefined) updateData.showResourceName = !!body.showResourceName;
-    if (body.showResourceDescription !== undefined)
-      updateData.showResourceDescription = !!body.showResourceDescription;
-    if (body.showRegistrationNumber !== undefined)
-      updateData.showRegistrationNumber = !!body.showRegistrationNumber;
-    if (body.orderType !== undefined) updateData.orderType = narrowOrderType(body.orderType);
+    applyOptionalCategoryFields(body, updateData);
 
     if (updateData.reqCustomer) updateData.showCustomer = true;
     if (updateData.reqMaterial) updateData.showMaterial = true;

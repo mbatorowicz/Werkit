@@ -1,5 +1,5 @@
-import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { normalizeOptionalDecimalField } from "@/lib/optionalDecimalField";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { requireDurFeature } from "@/lib/requireDurFeature";
@@ -71,25 +71,13 @@ export const POST = withApiErrorHandling(
       ...parseIds(body.machineCategoryIds),
     ];
 
-    let purchasePrice: string | null = null;
-    if (
-      body.purchasePrice !== null &&
-      body.purchasePrice !== undefined &&
-      String(body.purchasePrice).trim() !== ""
-    ) {
-      purchasePrice = normalizeDecimalBodyField(body.purchasePrice);
-      if (purchasePrice == null) return jsonError("invalid_price", 400);
-    }
-    let minStock: string | undefined;
-    if (
-      body.minStock !== null &&
-      body.minStock !== undefined &&
-      String(body.minStock).trim() !== ""
-    ) {
-      const ms = normalizeDecimalBodyField(body.minStock);
-      if (ms == null) return jsonError("invalid_quantity", 400);
-      minStock = ms;
-    }
+    const ppResult = normalizeOptionalDecimalField<null>(body.purchasePrice, null);
+    if (!ppResult.ok) return jsonError("invalid_price", 400);
+    const purchasePrice = ppResult.value;
+
+    const msResult = normalizeOptionalDecimalField<undefined>(body.minStock, undefined);
+    if (!msResult.ok) return jsonError("invalid_quantity", 400);
+    const minStock = msResult.value;
 
     const { SparePartService } = await import("@/services/dur/SparePartService");
     const partId = await SparePartService.addPart(companyId, {

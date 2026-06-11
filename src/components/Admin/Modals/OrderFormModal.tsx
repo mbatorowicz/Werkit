@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
 
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
-import { useAppDialog } from "@/components/AppDialogProvider";
+import { OrderFormDeletePendingButton } from "./OrderFormDeletePendingButton";
 import { WorkOrderScheduleFields } from "@/components/work-orders/WorkOrderScheduleFields";
 import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/scheduleConflictI18n";
 import { useDictionary } from "@/i18n";
@@ -56,7 +55,6 @@ export default function OrderFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasConflicts, setHasConflicts] = useState(false);
   const [extraCustomers, setExtraCustomers] = useState<BaseCustomer[]>([]);
-  const { confirm: appConfirm } = useAppDialog();
   const dictionary = useDictionary();
 
   useEffect(() => {
@@ -126,24 +124,13 @@ export default function OrderFormModal({
           hideSubmit={hasConflicts}
           leading={
             editingOrderId && onDeletePending ? (
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={async () => {
-                  const msg = dict.deletePendingConfirm;
-                  if (!msg || !(await appConfirm({ message: msg, variant: "danger" }))) return;
-                  setIsSubmitting(true);
-                  try {
-                    await onDeletePending();
-                  } finally {
-                    setIsSubmitting(false);
-                  }
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-500/10 py-3 font-semibold text-red-700 transition hover:bg-red-500/15 active:scale-[0.98] disabled:opacity-50 dark:border-red-500/30 dark:text-red-400"
-              >
-                <Trash2 className="h-4 w-4 shrink-0" />
-                {dict.deletePendingOrderLabel}
-              </button>
+              <OrderFormDeletePendingButton
+                isSubmitting={isSubmitting}
+                setIsSubmitting={setIsSubmitting}
+                confirmMessage={dict.deletePendingConfirm}
+                label={dict.deletePendingOrderLabel}
+                onDeletePending={onDeletePending}
+              />
             ) : undefined
           }
         />

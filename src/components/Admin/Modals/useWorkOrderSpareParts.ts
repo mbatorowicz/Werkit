@@ -29,6 +29,28 @@ type UseWorkOrderSparePartsParams = {
   resourceGroupId: number | null;
 };
 
+function narrowWorkOrderSparePartRows(
+  data: unknown[],
+  workOrderId: number
+): WorkOrderSparePartRow[] {
+  const rows: WorkOrderSparePartRow[] = [];
+  for (const item of data) {
+    if (isRecord(item)) {
+      rows.push({
+        id: typeof item.id === "number" ? item.id : 0,
+        workOrderId: typeof item.workOrderId === "number" ? item.workOrderId : workOrderId,
+        partId: typeof item.partId === "number" ? item.partId : 0,
+        partName: typeof item.partName === "string" ? item.partName : "",
+        partSku: typeof item.partSku === "string" ? item.partSku : "",
+        quantity: typeof item.quantity === "string" ? item.quantity : "1",
+        unitPrice: typeof item.unitPrice === "string" ? item.unitPrice : null,
+        notes: typeof item.notes === "string" ? item.notes : null,
+      });
+    }
+  }
+  return rows;
+}
+
 export function useWorkOrderSpareParts({
   workOrderId,
   orderType,
@@ -71,22 +93,7 @@ export function useWorkOrderSpareParts({
       );
       if (!res.ok) return;
       const data = await parseJsonArray(res);
-      const rows: WorkOrderSparePartRow[] = [];
-      for (const item of data) {
-        if (isRecord(item)) {
-          rows.push({
-            id: typeof item.id === "number" ? item.id : 0,
-            workOrderId: typeof item.workOrderId === "number" ? item.workOrderId : workOrderId,
-            partId: typeof item.partId === "number" ? item.partId : 0,
-            partName: typeof item.partName === "string" ? item.partName : "",
-            partSku: typeof item.partSku === "string" ? item.partSku : "",
-            quantity: typeof item.quantity === "string" ? item.quantity : "1",
-            unitPrice: typeof item.unitPrice === "string" ? item.unitPrice : null,
-            notes: typeof item.notes === "string" ? item.notes : null,
-          });
-        }
-      }
-      setParts(rows);
+      setParts(narrowWorkOrderSparePartRows(data, workOrderId));
     } catch {
       /* ignore */
     } finally {

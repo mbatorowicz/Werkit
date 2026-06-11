@@ -31,6 +31,30 @@ interface UsePeopleUserModalArgs {
   setIsSubmitting: (value: boolean) => void;
 }
 
+function userFormFromRow(
+  u: AdminUserListRow,
+  teams: OrganizationTeamRow[],
+  gpsEnabled: boolean,
+  durEnabled: boolean
+): UserFormState {
+  const membership = u.orgProfile?.teamMemberships[0];
+  const team = membership ? teams.find((t) => t.id === membership.teamId) : null;
+  return {
+    fullName: u.fullName,
+    phone: u.phone || "",
+    usernameEmail: u.usernameEmail,
+    role: u.role,
+    password: "",
+    canCreateOwnOrders: u.canCreateOwnOrders ?? true,
+    canEditRoute: gpsEnabled ? (u.canEditRoute ?? false) : false,
+    canCreateCustomers: u.canCreateCustomers ?? false,
+    isDurWorker: durEnabled ? (u.isDurWorker ?? false) : false,
+    reportsToId: u.reportsToId != null ? String(u.reportsToId) : COMBO_NONE,
+    departmentId: team ? String(team.departmentId) : COMBO_NONE,
+    teamId: membership ? String(membership.teamId) : COMBO_NONE,
+  };
+}
+
 export interface PeopleUserModalController {
   userModalOpen: boolean;
   setUserModalOpen: (open: boolean) => void;
@@ -123,22 +147,7 @@ export function usePeopleUserModal({
       const u = users.find((row) => row.id === userId);
       if (!u) return;
       setEditUserId(u.id);
-      const membership = u.orgProfile?.teamMemberships[0];
-      const team = membership ? teams.find((t) => t.id === membership.teamId) : null;
-      setUserForm({
-        fullName: u.fullName,
-        phone: u.phone || "",
-        usernameEmail: u.usernameEmail,
-        role: u.role,
-        password: "",
-        canCreateOwnOrders: u.canCreateOwnOrders ?? true,
-        canEditRoute: gpsEnabled ? (u.canEditRoute ?? false) : false,
-        canCreateCustomers: u.canCreateCustomers ?? false,
-        isDurWorker: durEnabled ? (u.isDurWorker ?? false) : false,
-        reportsToId: u.reportsToId != null ? String(u.reportsToId) : COMBO_NONE,
-        departmentId: team ? String(team.departmentId) : COMBO_NONE,
-        teamId: membership ? String(membership.teamId) : COMBO_NONE,
-      });
+      setUserForm(userFormFromRow(u, teams, gpsEnabled, durEnabled));
     } else {
       setEditUserId(null);
       setUserForm(emptyUserForm());

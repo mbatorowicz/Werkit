@@ -7,6 +7,7 @@ import type { CategoryTreeNode } from "@/lib/categoryTree";
 import type { CatalogMaterialRow as CatalogMaterialRowType } from "@/lib/materialCatalogTree";
 import CatalogMaterialRow from "./CatalogMaterialRow";
 import { CategoryColorDot } from "@/components/CategoryColorBadge";
+import { CatalogTreeNodeStats } from "./CatalogTreeNodeStats";
 import type { CatalogCategoryItem } from "./ExpandableCatalogTree";
 
 interface CatalogTreeNodeProps<T extends CatalogCategoryItem> {
@@ -108,31 +109,12 @@ export default function CatalogTreeNodeComponent<T extends CatalogCategoryItem>(
             </span>
           ) : null}
         </div>
-        {(categoryStatLong || categoryStatShort || materialStat) && (
-          <div className="ml-auto flex shrink-0 items-center gap-2 px-1 text-[11px] tabular-nums leading-tight text-zinc-500 sm:gap-3 sm:text-xs">
-            {categoryStatShort ? (
-              <span className="sm:hidden" title={categoryStatLong ?? categoryStatShort}>
-                {categoryStatShort}
-              </span>
-            ) : null}
-            {categoryStatLong ? (
-              <span className="hidden max-w-[9rem] truncate sm:inline" title={categoryStatLong}>
-                {categoryStatLong}
-              </span>
-            ) : null}
-            {materialStat ? (
-              <span
-                className={
-                  materialCount > 0
-                    ? "font-medium text-amber-800/90 dark:text-amber-300/90"
-                    : "text-zinc-400 dark:text-zinc-500"
-                }
-              >
-                {materialStat}
-              </span>
-            ) : null}
-          </div>
-        )}
+        <CatalogTreeNodeStats
+          categoryStatLong={categoryStatLong}
+          categoryStatShort={categoryStatShort}
+          materialStat={materialStat}
+          materialCount={materialCount}
+        />
         {canMutate ? (
           <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100">
             <button

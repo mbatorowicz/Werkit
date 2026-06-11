@@ -15,6 +15,24 @@ type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
 type WorkerClient = AppDictionary["worker"]["client"];
 
+function DispatchLoadingState({ label }: { label: string }) {
+  return (
+    <div className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">{label}</div>
+  );
+}
+
+function DispatchEmptyState({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div className="px-6 py-16 text-center">
+      <div className="flex flex-col items-center justify-center">
+        <Map className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />
+        <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">{title}</h3>
+        <p className="text-zinc-500 text-sm mt-2 max-w-md">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
 function DispatchColumn({
   title,
   count,
@@ -82,23 +100,11 @@ export function OrdersDispatchTable({
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="px-6 py-12 text-center text-zinc-500 dark:text-zinc-400 text-sm">
-        {dict.fetching}
-      </div>
-    );
+    return <DispatchLoadingState label={dict.fetching} />;
   }
 
   if (unifiedItems.length === 0) {
-    return (
-      <div className="px-6 py-16 text-center">
-        <div className="flex flex-col items-center justify-center">
-          <Map className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mb-4" />
-          <h3 className="text-zinc-900 dark:text-zinc-300 font-medium">{dict.emptyStateTitle}</h3>
-          <p className="text-zinc-500 text-sm mt-2 max-w-md">{dict.emptyStateDesc}</p>
-        </div>
-      </div>
-    );
+    return <DispatchEmptyState title={dict.emptyStateTitle} desc={dict.emptyStateDesc} />;
   }
 
   const plannedAll = unifiedItems.filter((i) => i.status === "PENDING");

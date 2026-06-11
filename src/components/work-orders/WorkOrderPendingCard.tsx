@@ -1,7 +1,6 @@
 "use client";
 
-import { Pencil, Play, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Play } from "lucide-react";
 import { ScheduleConflictPanel } from "@/components/work-orders/ScheduleConflictPanel";
 import {
   buildScheduleConflictLabels,
@@ -16,6 +15,7 @@ import { workOrderPendingListCardClass } from "@/features/worker/lib/workOrderPr
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { workOrderOrderLabelCardFields } from "@/lib/orderLabelFieldVisibility";
 import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
+import { WorkOrderOwnOrderActions } from "@/components/work-orders/WorkOrderOwnOrderActions";
 import { formatUiDateOnly, formatUiTimeHm, useAppLocale, useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WorkOrder } from "@/types/worker";
@@ -27,6 +27,49 @@ import { cn } from "@/lib/cn";
 
 type WorkerDict = AppDictionary["worker"]["client"];
 
+interface WorkOrderPendingCardProps {
+  order: WorkOrder;
+  dict: WorkerDict;
+  mode: "start" | "preview";
+  onStart?: (orderId: number) => void;
+  acceptError?: string | null;
+  positionLabel?: string;
+  density?: "normal" | "compact";
+  currentUserId?: number | null;
+  onOrderDeleted?: () => void;
+}
+
+function conflictPreviewArgs(order: WorkOrder) {
+  return {
+    userId: order.userId != null ? String(order.userId) : "",
+    resourceId: order.resourceId != null ? String(order.resourceId) : "",
+    dueDate: toDatetimeLocalValue(order.dueDate),
+    expectedDurationHours:
+      order.expectedDurationHours != null && order.expectedDurationHours > 0
+        ? String(order.expectedDurationHours)
+        : "",
+  };
+}
+
+function isOwnPendingOrder(
+  mode: "start" | "preview",
+  currentUserId: number | null | undefined,
+  order: WorkOrder
+): boolean {
+  return (
+    mode === "start" &&
+    currentUserId != null &&
+    order.createdById != null &&
+    order.createdById === currentUserId
+  );
+}
+
+function pendingCardDateTime(order: WorkOrder) {
+  return order.dueDate
+    ? { dateLabel: formatUiDateOnly(order.dueDate), timeLabel: formatUiTimeHm(order.dueDate) }
+    : { dateLabel: formatUiDateOnly(order.createdAt), timeLabel: formatUiTimeHm(order.createdAt) };
+}
+
 export function WorkOrderPendingCard({
   order,
   dict,
@@ -37,17 +80,7 @@ export function WorkOrderPendingCard({
   density = "normal",
   currentUserId,
   onOrderDeleted,
-}: {
-  order: WorkOrder;
-  dict: WorkerDict;
-  mode: "start" | "preview";
-  onStart?: (orderId: number) => void;
-  acceptError?: string | null;
-  positionLabel?: string;
-  density?: "normal" | "compact";
-  currentUserId?: number | null;
-  onOrderDeleted?: () => void;
-}) {
+}: WorkOrderPendingCardProps) {
   const { alert: appAlert, confirm: appConfirm } = useAppDialog();
   const { openOrderDetails, orderDetailsModal } = useWorkerOrderDetailsModal();
   const dictionary = useDictionary();
@@ -57,21 +90,15 @@ export function WorkOrderPendingCard({
   const scheduleLabels = buildWorkOrderScheduleFieldLabels(scheduleDict, { mode: "worker" });
   const conflictLabels = buildScheduleConflictLabels(scheduleDict);
 
-  const userId = order.userId != null ? String(order.userId) : "";
-  const resourceId = order.resourceId != null ? String(order.resourceId) : "";
-  const dueDate = toDatetimeLocalValue(order.dueDate);
-  const expectedDurationHours =
-    order.expectedDurationHours != null && order.expectedDurationHours > 0
-      ? String(order.expectedDurationHours)
-      : "";
+  const preview = conflictPreviewArgs(order);
 
   const { status, conflicts, hasConflicts } = useScheduleConflictPreview({
     scope: "worker",
-    enabled: Boolean(userId && resourceId),
-    userId,
-    resourceId,
-    dueDate,
-    expectedDurationHours,
+    enabled: Boolean(preview.userId && preview.resourceId),
+    userId: preview.userId,
+    resourceId: preview.resourceId,
+    dueDate: preview.dueDate,
+    expectedDurationHours: preview.expectedDurationHours,
     excludeOrderId: order.id,
   });
 
@@ -80,11 +107,8 @@ export function WorkOrderPendingCard({
   const labelFields = workOrderOrderLabelCardFields(order, tonsSuffix, locale);
   const orderDetails = () => workerOrderDetailsFromWorkOrder(order, tonsSuffix, locale);
 
-  const isOwnOrder =
-    mode === "start" &&
-    currentUserId != null &&
-    order.createdById != null &&
-    order.createdById === currentUserId;
+  const isOwnOrder = isOwnPendingOrder(mode, currentUserId, order);
+  const { dateLabel, timeLabel } = pendingCardDateTime(order);
 
   const handleDelete = async () => {
     if (!(await appConfirm({ message: dict.deleteOwnOrderConfirm, variant: "danger" }))) {
@@ -144,12 +168,8 @@ export function WorkOrderPendingCard({
           }
           orderedBy={order.creatorName ?? null}
           orderedByLabel={dict.orderedBy}
-          dateLabel={
-            order.dueDate ? formatUiDateOnly(order.dueDate) : formatUiDateOnly(order.createdAt)
-          }
-          timeLabel={
-            order.dueDate ? formatUiTimeHm(order.dueDate) : formatUiTimeHm(order.createdAt)
-          }
+          dateLabel={dateLabel}
+          timeLabel={timeLabel}
           className="bg-white/60 dark:bg-zinc-950/30"
           attachmentPhotos={Boolean(order.hasPhotos)}
           attachmentNotes={Boolean(order.hasNotes)}
@@ -170,23 +190,12 @@ export function WorkOrderPendingCard({
         ) : null}
 
         {isOwnOrder ? (
-          <div className="flex gap-2">
-            <Link
-              href={`/worker/orders/${order.id}/edit`}
-              className={`flex-1 ${UI_RADIUS_CONTROL} border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800`}
-            >
-              <Pencil className="w-4 h-4" />
-              {dict.editOrder}
-            </Link>
-            <button
-              type="button"
-              onClick={() => void handleDelete()}
-              className={`${UI_RADIUS_CONTROL} border border-red-300 dark:border-red-500/40 bg-red-50 dark:bg-red-500/10 py-2.5 px-3 flex items-center justify-center gap-2 text-sm font-semibold text-red-800 dark:text-red-300 transition-colors hover:bg-red-100 dark:hover:bg-red-500/20`}
-              title={dict.deleteOrder}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+          <WorkOrderOwnOrderActions
+            orderId={order.id}
+            editLabel={dict.editOrder}
+            deleteLabel={dict.deleteOrder}
+            onDelete={() => void handleDelete()}
+          />
         ) : null}
 
         {mode === "start" && !blocked && onStart ? (

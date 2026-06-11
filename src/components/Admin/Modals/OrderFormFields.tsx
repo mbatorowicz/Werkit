@@ -1,22 +1,13 @@
 "use client";
 
-import { useMemo, type Dispatch, type SetStateAction } from "react";
-import {
-  AdminSearchCombobox,
-  type AdminSearchComboboxOption,
-} from "@/components/Admin/AdminSearchCombobox";
-import { DecimalInput } from "@/components/DecimalInput";
-import {
-  MaterialCategoryMaterialCombobox,
-  type MaterialCategoryMaterialComboboxDict,
-} from "@/components/materials/MaterialCategoryMaterialCombobox";
-import { CustomerSearchField } from "@/components/customers/CustomerSearchField";
+import type { Dispatch, SetStateAction } from "react";
+import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
-import { buildResourceCanonicalName } from "@/lib/resourceDisplayName";
-import { filterResourcesForCategory } from "@/lib/filterResourcesForCategory";
 import { isRepairOrderType } from "@/lib/orderType";
 import WorkOrderSparePartsSection from "@/components/Admin/Modals/WorkOrderSparePartsSection";
-import type { OrderType } from "@/types/worker";
+import { OrderFormConditionalFields } from "@/components/Admin/Modals/OrderFormConditionalFields";
+import { useOrderFormFieldOptions } from "@/components/Admin/Modals/useOrderFormFieldOptions";
+import { FIELD, LABEL, CONTROL } from "@/components/Admin/Modals/orderFormFieldStyles";
 import type {
   OrderFormState,
   BaseWorker,
@@ -27,13 +18,6 @@ import type {
   BaseCategory,
 } from "@/types/admin";
 import type { AdminOrdersDict } from "@/components/Admin/Modals/OrderFormModal";
-
-const FIELD = "space-y-1.5";
-const LABEL =
-  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
-const CONTROL =
-  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
-const TEXTAREA = `${CONTROL} min-h-[6rem] resize-none py-3`;
 
 type Props = {
   form: OrderFormState;
@@ -65,9 +49,28 @@ export function OrderFormFields({
   setExtraCustomers,
   editingOrderId,
 }: Props) {
-  const selectedCategory = categories.find((c) => String(c.id) === form.categoryId);
-  const orderType: OrderType = form.orderType ?? selectedCategory?.orderType ?? "machine_work";
-  const isRepair = isRepairOrderType(orderType);
+  const {
+    selectedCategory,
+    orderType,
+    isRepair,
+    noMachinesForCategory,
+    resourceGroupId,
+    allCustomers,
+    categoryOptions,
+    workerOptions,
+    machineOptions,
+    materialPickerDict,
+    materialLabel,
+    customerLabel,
+  } = useOrderFormFieldOptions({
+    form,
+    dict,
+    categories,
+    workers,
+    machines,
+    customers,
+    extraCustomers,
+  });
 
   const applyCategoryChange = (categoryId: string) => {
     const cat = categories.find((c) => String(c.id) === categoryId);
@@ -83,80 +86,7 @@ export function OrderFormFields({
     });
   };
 
-  const availableMachines = useMemo(
-    () => filterResourcesForCategory(machines, selectedCategory, { whenNoCategory: false }),
-    [machines, selectedCategory]
-  );
-
-  const noMachinesForCategory = Boolean(selectedCategory) && availableMachines.length === 0;
-
-  const resourceGroupId = useMemo(() => {
-    const rid = form.resourceId ? parseInt(form.resourceId, 10) : NaN;
-    if (Number.isNaN(rid)) return null;
-    const machine = machines.find((m) => m.id === rid);
-    return machine?.resourceGroupId ?? null;
-  }, [form.resourceId, machines]);
-
-  const allCustomers = useMemo(() => {
-    const byId = new Map(customers.map((c) => [c.id, c]));
-    for (const c of extraCustomers) byId.set(c.id, c);
-    return [...byId.values()];
-  }, [customers, extraCustomers]);
-
-  const categoryOptions: AdminSearchComboboxOption[] = useMemo(
-    () => categories.map((c) => ({ id: String(c.id), label: c.name })),
-    [categories]
-  );
-
-  const workerOptions: AdminSearchComboboxOption[] = useMemo(
-    () =>
-      workers.map((w) => ({
-        id: String(w.id),
-        label: w.fullName,
-        sublabel: w.orgLabel ?? undefined,
-      })),
-    [workers]
-  );
-
-  const machineOptions: AdminSearchComboboxOption[] = useMemo(
-    () =>
-      availableMachines.map((m) => {
-        const canonical = buildResourceCanonicalName(
-          m.brand ?? "",
-          m.model ?? "",
-          m.registrationNumber ?? "",
-          m.description
-        );
-        return {
-          id: String(m.id),
-          label: m.name,
-          sublabel: canonical && canonical !== m.name ? canonical : undefined,
-        };
-      }),
-    [availableMachines]
-  );
-
   const comboboxCommon = comboboxFeedbackProps(dict);
-
-  const materialPickerDict: MaterialCategoryMaterialComboboxDict = useMemo(
-    () => ({
-      chooseCategory: dict.materialPickerChooseCategory,
-      searchMaterial: dict.materialPickerSearchMaterial,
-      noCategories: dict.materialPickerNoCategories,
-      noMaterialsInCategory: dict.materialPickerNoMaterialsInCategory,
-      clearCategory: dict.materialPickerClearCategory,
-      clear: dict.searchClear,
-      noResults: dict.searchNoResults,
-    }),
-    [dict]
-  );
-
-  const materialLabel = selectedCategory?.reqMaterial
-    ? dict.chooseMaterialRequired
-    : dict.chooseMaterial;
-  const customerLabel = selectedCategory?.reqCustomer
-    ? dict.chooseCustomerRequired
-    : dict.chooseCustomer;
 
   return (
     <>
@@ -212,81 +142,21 @@ export function OrderFormFields({
         ) : null}
       </div>
 
-      {/* 4. Warunkowe: materiał, klient, ilość */}
-      {selectedCategory?.showMaterial ? (
-        <div className={FIELD}>
-          <label className={LABEL}>{materialLabel}</label>
-          <MaterialCategoryMaterialCombobox
-            categories={materialCategories}
-            materials={materials}
-            materialCategoryId={form.materialCategoryId}
-            materialId={form.materialId}
-            onMaterialCategoryChange={(materialCategoryId) =>
-              setForm((prev) => ({ ...prev, materialCategoryId, materialId: "" }))
-            }
-            onMaterialChange={(materialId) => setForm((prev) => ({ ...prev, materialId }))}
-            dict={materialPickerDict}
-            placeholder={form.materialCategoryId ? materialLabel : undefined}
-            required={selectedCategory.reqMaterial}
-            aria-label={materialLabel}
-          />
-        </div>
-      ) : null}
-
-      {selectedCategory?.showCustomer ? (
-        <CustomerSearchField
-          label={customerLabel}
-          customers={allCustomers}
-          value={form.customerId}
-          onChange={(id) => setForm({ ...form, customerId: id })}
-          onCustomerCreated={(customer) =>
-            setExtraCustomers((prev) => [...prev.filter((c) => c.id !== customer.id), customer])
-          }
-          required={selectedCategory.reqCustomer}
-          dict={dict}
-        />
-      ) : null}
-
-      {selectedCategory?.showQuantity ? (
-        <div className={FIELD}>
-          <label className={LABEL}>{dict.quantityTonsLabel}</label>
-          <DecimalInput
-            required={selectedCategory.reqQuantity}
-            placeholder={dict.quantityTonsPlaceholder}
-            value={form.quantityTons}
-            onChange={(v) => setForm({ ...form, quantityTons: v })}
-            className={CONTROL}
-          />
-        </div>
-      ) : null}
-
-      {/* 5. Opis — tylko po wyborze kategorii */}
-      {selectedCategory?.showTaskDescription ? (
-        <div className={FIELD}>
-          <label className={LABEL}>
-            {isRepair ? dict.repairDescription : dict.taskDesc}
-            {!selectedCategory.reqTaskDescription ? (
-              <span className="ml-1 font-normal normal-case text-zinc-400">
-                {dict.optionalSuffix}
-              </span>
-            ) : null}
-          </label>
-          <textarea
-            required={selectedCategory.reqTaskDescription}
-            placeholder={isRepair ? dict.repairDescriptionPlaceholder : dict.taskDescPlaceholder}
-            value={isRepair ? form.repairDescription : form.taskDescription}
-            onChange={(e) =>
-              isRepair
-                ? setForm({ ...form, repairDescription: e.target.value })
-                : setForm({ ...form, taskDescription: e.target.value })
-            }
-            className={TEXTAREA}
-          />
-          {!selectedCategory.reqTaskDescription && !isRepair ? (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.taskOptionalHint}</p>
-          ) : null}
-        </div>
-      ) : null}
+      {/* 4-5. Warunkowe: materiał, klient, ilość, opis */}
+      <OrderFormConditionalFields
+        form={form}
+        setForm={setForm}
+        dict={dict}
+        selectedCategory={selectedCategory}
+        isRepair={isRepair}
+        materials={materials}
+        materialCategories={materialCategories}
+        allCustomers={allCustomers}
+        setExtraCustomers={setExtraCustomers}
+        materialPickerDict={materialPickerDict}
+        materialLabel={materialLabel}
+        customerLabel={customerLabel}
+      />
 
       {/* 6. Priorytet */}
       <div className={FIELD}>

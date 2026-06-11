@@ -77,18 +77,13 @@ type SessionDetailsSource = {
   endTime?: string | null;
 };
 
-export function workerOrderDetailsFromSession(
+function sessionDetailsFieldVisibility(
   session: SessionDetailsSource,
+  customerName: string | null,
   tonsSuffix: string,
-  dict: { noCategoryName: string },
   locale?: Locale
-): WorkerOrderDetailsData {
-  const customerName =
-    formatCustomerLabel({
-      firstName: session.customerFirstName ?? null,
-      lastName: session.customerLastName ?? null,
-    }) || null;
-  const fieldVisibility = workOrderOrderLabelCardFields(
+): OrderLabelFieldVisibility {
+  return workOrderOrderLabelCardFields(
     {
       orderType: session.orderType ?? null,
       categoryName: session.categoryName ?? null,
@@ -107,6 +102,20 @@ export function workerOrderDetailsFromSession(
     tonsSuffix,
     locale
   ).fieldVisibility;
+}
+
+export function workerOrderDetailsFromSession(
+  session: SessionDetailsSource,
+  tonsSuffix: string,
+  dict: { noCategoryName: string },
+  locale?: Locale
+): WorkerOrderDetailsData {
+  const customerName =
+    formatCustomerLabel({
+      firstName: session.customerFirstName ?? null,
+      lastName: session.customerLastName ?? null,
+    }) || null;
+  const fieldVisibility = sessionDetailsFieldVisibility(session, customerName, tonsSuffix, locale);
 
   return {
     orderId: session.workOrderId ?? session.id,

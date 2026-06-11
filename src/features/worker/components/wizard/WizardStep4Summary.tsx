@@ -5,6 +5,7 @@ import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardCustomer, WizardMachine, WizardMaterial } from "@/types/wizard";
 import { isRepairOrderType } from "@/lib/orderType";
 import { orderLabelDescriptionText } from "@/lib/orderLabelFieldVisibility";
+import { WizardStep4SummaryCard } from "@/features/worker/components/wizard/WizardStep4SummaryCard";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -66,61 +67,21 @@ export function WizardStep4Summary({
       </h2>
       <p className="text-zinc-500 text-sm mb-8 text-center">{dict.wizardStep5Subtitle}</p>
 
-      <div className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 space-y-3 mb-10">
-        <div className="flex justify-between">
-          <span className="text-zinc-500 text-sm">{dict.wizardSummaryType}</span>
-          <span className="text-zinc-900 dark:text-white font-medium">
-            {selectedCategory?.name}
-          </span>
-        </div>
-        <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
-          <span className="text-zinc-500 text-sm">{dict.wizardSummaryMachine}</span>
-          <span className="text-zinc-900 dark:text-white font-medium">
-            {machines.find((m) => m.id.toString() === resourceId)?.name}
-          </span>
-        </div>
-        {selectedCategory?.showMaterial && materialId ? (
-          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
-            <span className="text-zinc-500 text-sm">{dict.wizardSummaryAggregate}</span>
-            <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">
-              {materials.find((m) => m.id.toString() === materialId)?.name}
-            </span>
-          </div>
-        ) : null}
-        {selectedCategory?.showQuantity && quantityTons ? (
-          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
-            <span className="text-zinc-500 text-sm">{dict.wizardQuantityLabel}</span>
-            <span className="text-zinc-900 dark:text-white font-medium">{quantityTons}t</span>
-          </div>
-        ) : null}
-        {selectedCategory?.showTaskDescription && summaryDescription ? (
-          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3 gap-4">
-            <span className="text-zinc-500 text-sm shrink-0">
-              {isRepair ? dict.repairDescription : dict.wizardDescLabel}
-            </span>
-            <span className="text-zinc-900 dark:text-white font-medium text-right text-sm whitespace-pre-wrap">
-              {summaryDescription}
-            </span>
-          </div>
-        ) : null}
-        {selectedCategory?.showCustomer && customerId ? (
-          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
-            <span className="text-zinc-500 text-sm">{dict.wizardSummaryCustomer}</span>
-            <span className="text-zinc-900 dark:text-white font-medium truncate max-w-[150px] text-right">
-              {customers.find((c) => c.id.toString() === customerId)?.lastName}
-            </span>
-          </div>
-        ) : null}
-        {(dueDate || expectedDurationHours) && (
-          <div className="flex justify-between border-t border-zinc-200 dark:border-zinc-700 pt-3">
-            <span className="text-zinc-500 text-sm">{dict.wizardSummarySchedule}</span>
-            <span className="text-zinc-900 dark:text-white font-medium text-right text-sm">
-              {expectedDurationHours ? `${expectedDurationHours}h` : "—"}
-              {dueDate ? ` · ${dueDate.replace("T", " ")}` : ""}
-            </span>
-          </div>
-        )}
-      </div>
+      <WizardStep4SummaryCard
+        dict={dict}
+        selectedCategory={selectedCategory}
+        machines={machines}
+        materials={materials}
+        customers={customers}
+        materialId={materialId}
+        customerId={customerId}
+        quantityTons={quantityTons}
+        resourceId={resourceId}
+        isRepair={isRepair}
+        summaryDescription={summaryDescription}
+        dueDate={dueDate}
+        expectedDurationHours={expectedDurationHours}
+      />
 
       <button
         type="button"

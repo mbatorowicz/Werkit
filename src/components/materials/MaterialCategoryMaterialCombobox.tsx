@@ -1,37 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useId } from "react";
 import { createPortal } from "react-dom";
 import { ChevronDown, X } from "lucide-react";
-import { CategoryColorDot, CategoryColorTag } from "@/components/CategoryColorBadge";
-import { filterComboboxOptions } from "@/lib/searchComboboxFilter";
-import {
-  filterMaterialsByMaterialCategory,
-  parseMaterialCategoryOptionId,
-  toMaterialCategoryOptionId,
-  type MaterialCategoryRow,
-  type MaterialPickerRow,
-} from "@/lib/materialCategoryPicker";
-import { FLOATING_LISTBOX_PANEL_CLASS, touchScrollStyle } from "@/components/scrollPanelStyles";
-import { useDismissOnOutsidePointer } from "@/hooks/useDismissOnOutsidePointer";
-import { useFloatingPanelPosition } from "@/hooks/useFloatingPanelPosition";
+import { CategoryColorTag } from "@/components/CategoryColorBadge";
+import type { MaterialCategoryRow, MaterialPickerRow } from "@/lib/materialCategoryPicker";
+import { MaterialComboboxDropdownList } from "./MaterialComboboxDropdownList";
+import { useMaterialComboboxState } from "./useMaterialComboboxState";
+import type { MaterialCategoryMaterialComboboxDict } from "./useMaterialComboboxState";
 
-type ListOption = {
-  id: string;
-  label: string;
-  color?: string | null;
-  kind: "category" | "material";
-};
-
-export type MaterialCategoryMaterialComboboxDict = {
-  chooseCategory: string;
-  searchMaterial: string;
-  noCategories: string;
-  noMaterialsInCategory: string;
-  clearCategory: string;
-  clear: string;
-  noResults: string;
-};
+export type { MaterialCategoryMaterialComboboxDict };
 
 type Props = {
   categories: MaterialCategoryRow[];
@@ -64,190 +42,50 @@ export function MaterialCategoryMaterialCombobox({
 }: Props) {
   const autoId = useId();
   const id = inputId ?? autoId;
-  const rootRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [highlightIndex, setHighlightIndex] = useState(0);
-  const dropdownStyle = useFloatingPanelPosition(rootRef, open);
-  const dismissDropdown = useCallback(() => setOpen(false), []);
 
-  useDismissOnOutsidePointer([rootRef, listRef], open, dismissDropdown);
-
-  const selectedCategory = useMemo(
-    () => categories.find((c) => String(c.id) === materialCategoryId) ?? null,
-    [categories, materialCategoryId]
-  );
-
-  const selectedMaterial = useMemo(
-    () => materials.find((m) => String(m.id) === materialId) ?? null,
-    [materials, materialId]
-  );
-
-  const categoryStepActive = categories.length > 0 && !materialCategoryId;
-
-  const listOptions: ListOption[] = useMemo(() => {
-    if (categoryStepActive) {
-      return categories.map((c) => ({
-        id: toMaterialCategoryOptionId(c.id),
-        label: c.name,
-        color: c.color,
-        kind: "category" as const,
-      }));
-    }
-    let scoped = materialCategoryId
-      ? filterMaterialsByMaterialCategory(materials, materialCategoryId)
-      : materials;
-    if (materialCategoryId && scoped.length === 0) {
-      scoped = materials;
-    }
-    return scoped.map((m) => ({
-      id: String(m.id),
-      label: m.name,
-      kind: "material" as const,
-    }));
-  }, [categories, categoryStepActive, materialCategoryId, materials]);
-
-  const filtered = useMemo(
-    () =>
-      filterComboboxOptions(listOptions, query, (o) => o.label, 50).map((o) => ({
-        id: o.id,
-        label: o.label,
-        color: o.color,
-        kind: o.kind,
-      })),
-    [listOptions, query]
-  );
-
-  const emptyLabel = categoryStepActive
-    ? dict.noCategories
-    : materialCategoryId
-      ? dict.noMaterialsInCategory
-      : dict.noCategories;
-  const resolvedPlaceholder =
-    placeholder ??
-    (categoryStepActive
-      ? dict.chooseCategory
-      : materialCategoryId
-        ? dict.searchMaterial
-        : dict.chooseCategory);
-
-  // Reset podświetlenia przy zmianie zapytania/otwarcia/kategorii — w trakcie renderu.
-  const highlightResetKey = `${query}|${open}|${materialCategoryId}`;
-  const [prevHighlightResetKey, setPrevHighlightResetKey] = useState(highlightResetKey);
-  if (prevHighlightResetKey !== highlightResetKey) {
-    setPrevHighlightResetKey(highlightResetKey);
-    setHighlightIndex(0);
-  }
-
-  const displayValue = open
-    ? query
-    : (selectedMaterial?.name ?? (selectedCategory && !materialId ? "" : ""));
-
-  const pickOption = (optionId: string) => {
-    const catId = parseMaterialCategoryOptionId(optionId);
-    if (catId != null) {
-      onMaterialCategoryChange(String(catId));
-      onMaterialChange("");
-      setQuery("");
-      setOpen(true);
-      return;
-    }
-    onMaterialChange(optionId);
-    setOpen(false);
-    setQuery("");
-  };
-
-  const clearMaterial = () => {
-    onMaterialChange("");
-    setQuery("");
-    setOpen(true);
-  };
-
-  const clearCategoryTag = () => {
-    onMaterialCategoryChange("");
-    onMaterialChange("");
-    setQuery("");
-    setOpen(true);
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (!open) {
-        setOpen(true);
-        return;
-      }
-      setHighlightIndex((i) => Math.min(i + 1, Math.max(0, filtered.length - 1)));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      if (open && filtered[highlightIndex]) {
-        e.preventDefault();
-        pickOption(filtered[highlightIndex].id);
-      }
-    } else if (e.key === "Escape") {
-      setOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!open || !listRef.current) return;
-    const item = listRef.current.children[highlightIndex] as HTMLElement | undefined;
-    item?.scrollIntoView({ block: "nearest" });
-  }, [highlightIndex, open]);
+  const {
+    rootRef,
+    listRef,
+    open,
+    setOpen,
+    query,
+    setQuery,
+    highlightIndex,
+    dropdownStyle,
+    selectedCategory,
+    selectedMaterial,
+    filtered,
+    emptyLabel,
+    resolvedPlaceholder,
+    displayValue,
+    pickOption,
+    clearMaterial,
+    clearCategoryTag,
+    onKeyDown,
+  } = useMaterialComboboxState({
+    categories,
+    materials,
+    materialCategoryId,
+    materialId,
+    onMaterialCategoryChange,
+    onMaterialChange,
+    dict,
+    placeholder,
+  });
 
   const dropdownList =
     open && !disabled && dropdownStyle ? (
-      <ul
-        id={`${id}-listbox`}
-        ref={listRef}
-        role="listbox"
-        className={FLOATING_LISTBOX_PANEL_CLASS}
-        style={{
-          top: dropdownStyle.top,
-          bottom: dropdownStyle.bottom,
-          left: dropdownStyle.left,
-          width: dropdownStyle.width,
-          ...touchScrollStyle(dropdownStyle.maxHeight),
-        }}
-      >
-        {filtered.length === 0 ? (
-          <li className="px-3 py-2 text-sm text-zinc-500 dark:text-zinc-400">{emptyLabel}</li>
-        ) : (
-          filtered.map((option, index) => (
-            <li
-              key={option.id}
-              role="option"
-              aria-selected={
-                option.kind === "material"
-                  ? materialId === option.id
-                  : materialCategoryId === String(parseMaterialCategoryOptionId(option.id) ?? "")
-              }
-            >
-              <button
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  pickOption(option.id);
-                }}
-                className={`w-full px-3 py-2 text-left text-sm transition ${
-                  index === highlightIndex
-                    ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-500/15 dark:text-emerald-100"
-                    : "text-zinc-900 hover:bg-zinc-50 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                }`}
-              >
-                <div className="flex items-center gap-2 font-medium">
-                  {option.kind === "category" ? <CategoryColorDot color={option.color} /> : null}
-                  <span className="truncate">{option.label}</span>
-                </div>
-              </button>
-            </li>
-          ))
-        )}
-      </ul>
+      <MaterialComboboxDropdownList
+        id={id}
+        listRef={listRef}
+        dropdownStyle={dropdownStyle}
+        filtered={filtered}
+        emptyLabel={emptyLabel}
+        highlightIndex={highlightIndex}
+        materialId={materialId}
+        materialCategoryId={materialCategoryId}
+        onPick={pickOption}
+      />
     ) : null;
 
   return (

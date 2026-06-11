@@ -75,6 +75,80 @@ function narrowDictionariesPayload(body: unknown): {
   };
 }
 
+function useDispatchBackgroundSync(
+  fetchLive: () => Promise<void>,
+  fetchDictionaries: () => Promise<void>
+) {
+  useEffect(() => {
+    let liveTimer: ReturnType<typeof setInterval> | null = null;
+    let dictTimer: ReturnType<typeof setInterval> | null = null;
+
+    const stopLive = () => {
+      if (liveTimer !== null) {
+        clearInterval(liveTimer);
+        liveTimer = null;
+      }
+    };
+    const stopDict = () => {
+      if (dictTimer !== null) {
+        clearInterval(dictTimer);
+        dictTimer = null;
+      }
+    };
+
+    const startLive = () => {
+      if (liveTimer !== null) return;
+      liveTimer = setInterval(() => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+        queueMicrotask(() => {
+          void fetchLive();
+        });
+      }, UI_BACKGROUND_SYNC_INTERVAL_MS);
+    };
+
+    const startDict = () => {
+      if (dictTimer !== null) return;
+      dictTimer = setInterval(() => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+        queueMicrotask(() => {
+          void fetchDictionaries();
+        });
+      }, UI_DICTIONARY_SYNC_INTERVAL_MS);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        queueMicrotask(() => {
+          void fetchLive();
+        });
+        startLive();
+        startDict();
+      } else {
+        stopLive();
+        stopDict();
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      if (document.visibilityState === "visible") {
+        startLive();
+        startDict();
+      }
+      document.addEventListener("visibilitychange", onVisibility);
+      return () => {
+        document.removeEventListener("visibilitychange", onVisibility);
+        stopLive();
+        stopDict();
+      };
+    }
+
+    return () => {
+      stopLive();
+      stopDict();
+    };
+  }, [fetchLive, fetchDictionaries]);
+}
+
 export function useOrdersDispatchData(
   _delegationScope: DelegationScope,
   initialBootstrap?: AdminDispatchBootstrap | null
@@ -182,74 +256,7 @@ export function useOrdersDispatchData(
     });
   }, [initialBootstrap, fetchArchive, fetchData]);
 
-  useEffect(() => {
-    let liveTimer: ReturnType<typeof setInterval> | null = null;
-    let dictTimer: ReturnType<typeof setInterval> | null = null;
-
-    const stopLive = () => {
-      if (liveTimer !== null) {
-        clearInterval(liveTimer);
-        liveTimer = null;
-      }
-    };
-    const stopDict = () => {
-      if (dictTimer !== null) {
-        clearInterval(dictTimer);
-        dictTimer = null;
-      }
-    };
-
-    const startLive = () => {
-      if (liveTimer !== null) return;
-      liveTimer = setInterval(() => {
-        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
-        queueMicrotask(() => {
-          void fetchLive();
-        });
-      }, UI_BACKGROUND_SYNC_INTERVAL_MS);
-    };
-
-    const startDict = () => {
-      if (dictTimer !== null) return;
-      dictTimer = setInterval(() => {
-        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
-        queueMicrotask(() => {
-          void fetchDictionaries();
-        });
-      }, UI_DICTIONARY_SYNC_INTERVAL_MS);
-    };
-
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") {
-        queueMicrotask(() => {
-          void fetchLive();
-        });
-        startLive();
-        startDict();
-      } else {
-        stopLive();
-        stopDict();
-      }
-    };
-
-    if (typeof document !== "undefined") {
-      if (document.visibilityState === "visible") {
-        startLive();
-        startDict();
-      }
-      document.addEventListener("visibilitychange", onVisibility);
-      return () => {
-        document.removeEventListener("visibilitychange", onVisibility);
-        stopLive();
-        stopDict();
-      };
-    }
-
-    return () => {
-      stopLive();
-      stopDict();
-    };
-  }, [fetchLive, fetchDictionaries]);
+  useDispatchBackgroundSync(fetchLive, fetchDictionaries);
 
   return {
     workers,

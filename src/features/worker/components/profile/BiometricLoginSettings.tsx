@@ -3,18 +3,16 @@
 import { useEffect, useState } from "react";
 import { Fingerprint } from "lucide-react";
 import { useDictionary } from "@/i18n";
-import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import {
   biometricHardwareAvailable,
-  clearBiometricCredentials,
   hasSavedBiometricCredentials,
   isNativeBiometricContext,
-  saveBiometricCredentials,
 } from "@/lib/biometricLogin";
-import { AdminModalShell } from "@/components/Admin/AdminModalShell";
-import { FormModalFooter } from "@/components/FormModalFooter";
-
-const BIOMETRIC_FORM_ID = "worker-biometric-pwd-form";
+import { BiometricPasswordModal } from "@/features/worker/components/profile/BiometricPasswordModal";
+import {
+  disableBiometricLogin,
+  enableBiometricLoginWithPassword,
+} from "@/features/worker/components/profile/biometricToggleActions";
 
 type Role = "worker" | "admin";
 
@@ -80,81 +78,25 @@ export function BiometricLoginSettings({
     );
   }
 
-  const toggleOff = async () => {
-    setBusy(true);
-    setError("");
-    try {
-      await clearBiometricCredentials();
-      const res = await fetchWithDeviceTelemetry(
-        "Worker profile: biometric off",
-        "/api/worker/profile",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ biometricLoginEnabled: false }),
-        },
-        { category: "profile" }
-      );
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        setError(apiErrors[data.error ?? ""] ?? data.error ?? dict.biometricSaveError);
-        return;
-      }
-      setEnabled(false);
-      setCredentialsSaved(false);
-    } finally {
-      setBusy(false);
-    }
+  const actionDeps = {
+    apiErrors,
+    saveErrorLabel: dict.biometricSaveError,
+    setBusy,
+    setError,
+    setEnabled,
+    setCredentialsSaved,
   };
 
-  const submitEnableWithPassword = async () => {
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetchWithDeviceTelemetry(
-        "Worker profile: biometric on",
-        "/api/worker/profile",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            biometricLoginEnabled: true,
-            password: pwd,
-          }),
-        },
-        { category: "profile" }
-      );
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(apiErrors[data.error ?? ""] ?? data.error ?? dict.biometricSaveError);
-        return;
-      }
-      try {
-        await saveBiometricCredentials(usernameEmail, pwd);
-      } catch {
-        await fetchWithDeviceTelemetry(
-          "Worker profile: biometric rollback",
-          "/api/worker/profile",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ biometricLoginEnabled: false }),
-          },
-          { category: "profile" }
-        );
-        setError(dict.biometricVaultError);
-        setPwd("");
-        setPwdOpen(false);
-        return;
-      }
-      setEnabled(true);
-      setCredentialsSaved(true);
-      setPwd("");
-      setPwdOpen(false);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const toggleOff = () => disableBiometricLogin(actionDeps);
+
+  const submitEnableWithPassword = () =>
+    enableBiometricLoginWithPassword(actionDeps, {
+      usernameEmail,
+      pwd,
+      vaultErrorLabel: dict.biometricVaultError,
+      setPwd,
+      setPwdOpen,
+    });
 
   const onToggleChange = async () => {
     if (busy) return;
@@ -197,53 +139,19 @@ export function BiometricLoginSettings({
       </div>
       {error && <div className="mt-2 text-sm text-red-500 px-1">{error}</div>}
 
-      <AdminModalShell
+      <BiometricPasswordModal
+        dict={dict}
         open={pwdOpen}
+        busy={busy}
+        pwd={pwd}
+        setPwd={setPwd}
         onClose={() => {
           setPwdOpen(false);
           setPwd("");
           setError("");
         }}
-        title={dict.biometricConfirmTitle}
-        maxWidthClass="max-w-sm"
-        titleSize="lg"
-        zIndexClass="z-[9999]"
-        scrollableBody
-        closeOnBackdropClick={false}
-        footer={
-          <FormModalFooter
-            formId={BIOMETRIC_FORM_ID}
-            onCancel={() => {
-              setPwdOpen(false);
-              setPwd("");
-              setError("");
-            }}
-            cancelLabel={dict.biometricCancel}
-            submitLabel={busy ? "…" : dict.biometricConfirmSave}
-            isSubmitting={busy}
-            submitDisabled={!pwd.trim()}
-          />
-        }
-      >
-        <form
-          id={BIOMETRIC_FORM_ID}
-          className="space-y-4 p-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void submitEnableWithPassword();
-          }}
-        >
-          <p className="text-xs text-zinc-500">{dict.biometricConfirmHint}</p>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={pwd}
-            onChange={(e) => setPwd(e.target.value)}
-            placeholder={dict.biometricPasswordPlaceholder}
-            className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-          />
-        </form>
-      </AdminModalShell>
+        onSubmit={() => void submitEnableWithPassword()}
+      />
     </>
   );
 }

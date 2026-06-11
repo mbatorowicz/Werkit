@@ -2,8 +2,63 @@ import WorkerClient from "./WorkerClient";
 import { InitialWorkerData, Session } from "@/types/worker";
 import { getUserId } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import type { WorkerSessionService as WorkerSessionServiceType } from "@/services/WorkerSessionService";
 
 export const dynamic = "force-dynamic";
+
+type ActiveSessionDetails = Awaited<
+  ReturnType<typeof WorkerSessionServiceType.getActiveSessionWithDetails>
+>;
+type RawSession = NonNullable<ActiveSessionDetails["session"]>;
+
+function mapSessionCustomer(
+  rawSession: RawSession
+): Pick<
+  Session,
+  | "customerAddress"
+  | "customerLat"
+  | "customerLng"
+  | "customerFirstName"
+  | "customerLastName"
+  | "customerPhone"
+> {
+  return {
+    customerAddress: rawSession.customerAddress ?? null,
+    customerLat: rawSession.customerLat ? String(rawSession.customerLat) : null,
+    customerLng: rawSession.customerLng ? String(rawSession.customerLng) : null,
+    customerFirstName: rawSession.customerFirstName ?? null,
+    customerLastName: rawSession.customerLastName ?? null,
+    customerPhone: rawSession.customerPhone ?? null,
+  };
+}
+
+function mapSession(rawSession: RawSession): Session {
+  return {
+    id: rawSession.id,
+    startTime: rawSession.startTime.toISOString(),
+    endTime: rawSession.endTime ? rawSession.endTime.toISOString() : undefined,
+    status: rawSession.status,
+    categoryId: rawSession.categoryId ?? 0,
+    categoryName: rawSession.categoryName ?? null,
+    categoryColor:
+      rawSession.categoryColor === null || typeof rawSession.categoryColor === "string"
+        ? rawSession.categoryColor
+        : null,
+    categoryIsStationary: Boolean(
+      rawSession &&
+      typeof rawSession === "object" &&
+      "categoryIsStationary" in rawSession &&
+      (rawSession as { categoryIsStationary?: boolean }).categoryIsStationary
+    ),
+    workOrderId: rawSession.workOrderId ?? null,
+    resourceName: rawSession.resourceName ?? null,
+    materialName: rawSession.materialName ?? null,
+    taskDescription: rawSession.taskDescription ?? null,
+    quantityTons: rawSession.quantityTons ? parseFloat(rawSession.quantityTons as string) : null,
+    expectedDurationHours: rawSession.expectedDurationHours ?? null,
+    ...mapSessionCustomer(rawSession),
+  };
+}
 
 export default async function WorkerPage() {
   const userId = await getUserId();
@@ -45,40 +100,7 @@ export default async function WorkerPage() {
   }));
 
   const rawSession = sessionDetails.session;
-  const mappedSession: Session | null = rawSession
-    ? {
-        id: rawSession.id,
-        startTime: rawSession.startTime.toISOString(),
-        endTime: rawSession.endTime ? rawSession.endTime.toISOString() : undefined,
-        status: rawSession.status,
-        categoryId: rawSession.categoryId ?? 0,
-        categoryName: rawSession.categoryName ?? null,
-        categoryColor:
-          rawSession.categoryColor === null || typeof rawSession.categoryColor === "string"
-            ? rawSession.categoryColor
-            : null,
-        categoryIsStationary: Boolean(
-          rawSession &&
-          typeof rawSession === "object" &&
-          "categoryIsStationary" in rawSession &&
-          (rawSession as { categoryIsStationary?: boolean }).categoryIsStationary
-        ),
-        workOrderId: rawSession.workOrderId ?? null,
-        resourceName: rawSession.resourceName ?? null,
-        materialName: rawSession.materialName ?? null,
-        taskDescription: rawSession.taskDescription ?? null,
-        quantityTons: rawSession.quantityTons
-          ? parseFloat(rawSession.quantityTons as string)
-          : null,
-        expectedDurationHours: rawSession.expectedDurationHours ?? null,
-        customerAddress: rawSession.customerAddress ?? null,
-        customerLat: rawSession.customerLat ? String(rawSession.customerLat) : null,
-        customerLng: rawSession.customerLng ? String(rawSession.customerLng) : null,
-        customerFirstName: rawSession.customerFirstName ?? null,
-        customerLastName: rawSession.customerLastName ?? null,
-        customerPhone: rawSession.customerPhone ?? null,
-      }
-    : null;
+  const mappedSession: Session | null = rawSession ? mapSession(rawSession) : null;
 
   const initialData: InitialWorkerData = {
     settings: sessionDetails.settings,

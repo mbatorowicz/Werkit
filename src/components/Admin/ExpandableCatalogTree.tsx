@@ -1,13 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Layers, Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
-import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
-import { cn } from "@/lib/cn";
 import { categorySharedLabels } from "@/lib/categoryI18n";
 import { useDictionary } from "@/i18n";
-import { formatDict } from "@/i18n/format";
 import { filterCatalogTree } from "@/lib/filterCatalogTree";
 import {
   buildMaterialCategoryTree,
@@ -15,11 +11,24 @@ import {
   indexMaterialsByCategory,
   type CatalogMaterialRow,
 } from "@/lib/materialCatalogTree";
-import type { CategoryHierarchyRow, CategoryTreeNode } from "@/lib/categoryTree";
-import CatalogTreeNodeComponent from "./CatalogTreeNode";
+import type { CategoryHierarchyRow } from "@/lib/categoryTree";
+import { CatalogTreeHeader } from "./CatalogTreeHeader";
+import { CatalogTreeNodeList } from "./CatalogTreeNodeList";
 import CatalogMaterialRowComponent from "./CatalogMaterialRow";
 
 const EMPTY_CATALOG_MATERIALS: CatalogMaterialRow[] = [];
+
+function toggleExpandedSet(prev: Set<number>, id: number): Set<number> {
+  if (!prev.has(id)) {
+    const next = new Set(prev);
+    next.add(id);
+    return next;
+  }
+  if (prev.size === 1) return new Set<number>();
+  const next = new Set(prev);
+  next.delete(id);
+  return next;
+}
 
 export type CatalogCategoryItem = CategoryHierarchyRow & {
   color?: string | null;
@@ -110,19 +119,7 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   const displayMaterialIndex = filtered.materialsByCategoryId;
   const displayUncategorized = filtered.uncategorized;
 
-  const toggleExpanded = (id: number) => {
-    setExpanded((prev) => {
-      if (!prev.has(id)) {
-        const next = new Set(prev);
-        next.add(id);
-        return next;
-      }
-      if (prev.size === 1) return new Set<number>();
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  };
+  const toggleExpanded = (id: number) => setExpanded((prev) => toggleExpandedSet(prev, id));
 
   const hasContent =
     categories.length > 0 ||
@@ -134,87 +131,41 @@ export function ExpandableCatalogTree<T extends CatalogCategoryItem>({
   const isNodeExpanded = (id: number) =>
     filtered.hasQuery ? filtered.expandIds.has(id) : expanded.has(id);
 
-  const renderCategoryNodes = (nodes: CategoryTreeNode<T>[]): React.ReactNode =>
-    nodes.map((node) => {
-      const childMaterials = displayMaterialIndex.get(node.id) ?? [];
-      const isExpanded = isNodeExpanded(node.id);
-      const stats = branchStats.get(node.id);
-      const isBranch = node.isGroup || (node.children?.length ?? 0) > 0;
-      const categoryCount = stats?.descendantCategoryCount ?? 0;
-      const categoryStatLong =
-        stats && treeStatCategories && isBranch && categoryCount > 0
-          ? formatDict(treeStatCategories, { count: categoryCount })
-          : null;
-      const categoryStatShort =
-        stats && treeStatCategoriesShort && isBranch && categoryCount > 0
-          ? formatDict(treeStatCategoriesShort, { count: categoryCount })
-          : null;
-      const materialCount = stats
-        ? isBranch
-          ? stats.descendantMaterialCount
-          : stats.directMaterialCount
-        : 0;
-      const materialStat =
-        showMaterialStats && treeStatMaterials
-          ? formatDict(treeStatMaterials, { count: materialCount })
-          : null;
-
-      return (
-        <CatalogTreeNodeComponent
-          key={`cat-${node.id}`}
-          node={node}
-          childMaterials={childMaterials}
-          isExpanded={isExpanded}
-          categoryStatLong={categoryStatLong}
-          categoryStatShort={categoryStatShort}
-          materialStat={materialStat}
-          materialCount={materialCount}
-          groupBadge={groupBadge}
-          stationaryBadge={stationaryBadge}
-          materialBadge={materialBadge}
-          canMutate={canMutate}
-          onToggle={toggleExpanded}
-          onPreviewCategory={onPreviewCategory}
-          onEditCategory={onEditCategory}
-          onDeleteCategory={onDeleteCategory}
-          onPreviewMaterial={onPreviewMaterial}
-          onEditMaterial={onEditMaterial}
-          onDeleteMaterial={onDeleteMaterial}
-          renderChildren={() => renderCategoryNodes(node.children)}
-        />
-      );
-    });
+  const renderCategoryNodes = (nodes: typeof displayRoots): React.ReactNode => (
+    <CatalogTreeNodeList
+      nodes={nodes}
+      displayMaterialIndex={displayMaterialIndex}
+      branchStats={branchStats}
+      isNodeExpanded={isNodeExpanded}
+      showMaterialStats={showMaterialStats}
+      treeStatCategories={treeStatCategories}
+      treeStatCategoriesShort={treeStatCategoriesShort}
+      treeStatMaterials={treeStatMaterials}
+      groupBadge={groupBadge}
+      stationaryBadge={stationaryBadge}
+      materialBadge={materialBadge}
+      canMutate={canMutate}
+      onToggle={toggleExpanded}
+      onPreviewCategory={onPreviewCategory}
+      onEditCategory={onEditCategory}
+      onDeleteCategory={onDeleteCategory}
+      onPreviewMaterial={onPreviewMaterial}
+      onEditMaterial={onEditMaterial}
+      onDeleteMaterial={onDeleteMaterial}
+    />
+  );
 
   return (
     <>
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h2 className="flex items-center gap-2 pt-2 text-xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-            <Layers className="h-5 w-5 text-amber-500" /> {title}
-          </h2>
-          {subtitle ? <p className="mt-1 text-sm text-zinc-500">{subtitle}</p> : null}
-        </div>
-        {canMutate ? (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={onAddCategory}
-              className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT_SM)}
-            >
-              <Plus className="h-4 w-4" /> {addCategoryLabel}
-            </button>
-            {onAddMaterial && addMaterialLabel ? (
-              <button
-                type="button"
-                onClick={onAddMaterial}
-                className="flex items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-500/20 dark:border-amber-500/30 dark:text-amber-200"
-              >
-                <Plus className="h-4 w-4" /> {addMaterialLabel}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
+      <CatalogTreeHeader
+        title={title}
+        subtitle={subtitle}
+        addCategoryLabel={addCategoryLabel}
+        addMaterialLabel={addMaterialLabel}
+        canMutate={canMutate}
+        onAddCategory={onAddCategory}
+        onAddMaterial={onAddMaterial}
+      />
 
       <ListSearchBar
         value={searchQuery}

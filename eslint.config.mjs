@@ -28,11 +28,11 @@ const eslintConfig = defineConfig([
           varsIgnorePattern: "^_",
         },
       ],
-      // Code quality guards
-      complexity: ["warn", 15],
+      // Code quality guards — progi dobrane do komponentów React (JSX wydłuża funkcje).
+      complexity: ["warn", 20],
       "max-lines-per-function": [
         "warn",
-        { max: 100, skipBlankLines: true, skipComments: true },
+        { max: 150, skipBlankLines: true, skipComments: true },
       ],
       "no-debugger": "error",
       "no-alert": "error",

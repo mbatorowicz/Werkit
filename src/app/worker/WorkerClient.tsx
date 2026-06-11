@@ -12,14 +12,12 @@ import { useCancelWindow } from "@/features/worker/hooks/useCancelWindow";
 import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
-import { WorkerActiveSessionSection } from "@/features/worker/components/shell/WorkerActiveSessionSection";
+import { WorkerActiveSessionFromShell } from "@/features/worker/components/shell/WorkerActiveSessionFromShell";
 import { WorkerClientFooter } from "@/features/worker/components/shell/WorkerClientFooter";
 import { WorkerClientLoading } from "@/features/worker/components/shell/WorkerClientLoading";
 import { WorkerClientModals } from "@/features/worker/components/shell/WorkerClientModals";
-import { WorkerPendingOrdersSection } from "@/features/worker/components/shell/WorkerPendingOrdersSection";
+import { WorkerIdleSection } from "@/features/worker/components/shell/WorkerIdleSection";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { WorkerDelegateOrderModal } from "@/features/worker/components/delegation/WorkerDelegateOrderModal";
-import { UserPlus } from "lucide-react";
 
 export default function WorkerClient({ initialData }: { initialData: InitialWorkerData | null }) {
   const dictionary = useDictionary();
@@ -96,51 +94,26 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     <div className="flex min-h-[80vh] flex-col items-center justify-start space-y-6 py-4">
       <OfflineBanner />
       {!shell.session ? (
-        <>
-          {hasDelegationRights ? (
-            <button
-              type="button"
-              onClick={() => setDelegateModalOpen(true)}
-              className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-            >
-              <UserPlus className="h-4 w-4" aria-hidden />
-              {dict.delegateOrderButton}
-            </button>
-          ) : null}
-          <WorkerPendingOrdersSection
-            workOrders={shell.workOrders}
-            overdueOrder={overdueOrder}
-            upcomingOrder={upcomingOrder}
-            currentUser={shell.currentUser}
-            dict={dict}
-            requestAcceptOrder={requestAcceptOrder}
-            fetchSessionAndPath={shell.fetchSessionAndPath}
-            acceptErrors={acceptErrors}
-          />
-          <WorkerDelegateOrderModal
-            open={delegateModalOpen}
-            onClose={() => setDelegateModalOpen(false)}
-            onSuccess={() => shell.fetchSessionAndPath(true, false)}
-          />
-        </>
+        <WorkerIdleSection
+          hasDelegationRights={hasDelegationRights}
+          delegateModalOpen={delegateModalOpen}
+          setDelegateModalOpen={setDelegateModalOpen}
+          onDelegateSuccess={() => shell.fetchSessionAndPath(true, false)}
+          workOrders={shell.workOrders}
+          overdueOrder={overdueOrder}
+          upcomingOrder={upcomingOrder}
+          currentUser={shell.currentUser}
+          dict={dict}
+          requestAcceptOrder={requestAcceptOrder}
+          fetchSessionAndPath={shell.fetchSessionAndPath}
+          acceptErrors={acceptErrors}
+        />
       ) : (
-        <WorkerActiveSessionSection
-          session={shell.session}
-          isStationarySession={Boolean(shell.session.categoryIsStationary)}
-          queuedPendingOrders={shell.workOrders}
+        <WorkerActiveSessionFromShell
+          shell={shell}
           dict={dict}
           isTimeOverrun={isTimeOverrun}
-          gpsStatus={shell.gpsStatus}
-          traveledKm={shell.traveledKm}
-          destination={shell.destination}
-          distanceToDestKm={shell.distanceToDestKm}
-          location={shell.location}
-          pathTraveled={shell.pathTraveled}
-          timelineEvents={shell.timelineEvents}
-          isTimelineOpen={shell.isTimelineOpen}
-          setIsTimelineOpen={shell.setIsTimelineOpen}
-          selectedEventId={shell.selectedEventId}
-          setSelectedEventId={shell.setSelectedEventId}
+          isCancelWindowOpen={isCancelWindowOpen}
           setNoteText={setNoteText}
           setEditingNoteId={setEditingNoteId}
           setIsNotesModalOpen={setIsNotesModalOpen}
@@ -148,17 +121,8 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
             handlePhotoUpload(e, shell.location)
           }
           handleCheckpoint={() => handleCheckpoint(shell.location)}
-          isCancelWindowOpen={isCancelWindowOpen}
           handleCancelSession={handleCancelSession}
           handleEndSession={handleEndSession}
-          settings={shell.settings}
-          currentUser={shell.currentUser}
-          setDistanceToDestKm={shell.setDistanceToDestKm}
-          plannedRouteWaypoints={shell.routeWaypoints}
-          canEditRoute={Boolean(shell.currentUser?.canEditRoute)}
-          onRouteWaypointsChange={(next) => {
-            void shell.persistRouteWaypoints(next);
-          }}
         />
       )}
 

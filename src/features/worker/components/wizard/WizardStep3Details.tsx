@@ -18,6 +18,11 @@ import { CustomerSearchField } from "@/components/customers/CustomerSearchField"
 import { workerCustomerSearchFieldDict } from "@/components/customers/customerSearchFieldDict";
 import { DecimalInput } from "@/components/DecimalInput";
 import { isRepairOrderType } from "@/lib/orderType";
+import {
+  isWizardStep3NextDisabled,
+  WizardStep3DescriptionField,
+  WizardStep3SelectionSummary,
+} from "@/features/worker/components/wizard/WizardStep3Fields";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -86,12 +91,15 @@ export function WizardStep3Details({
   const customerSearchDict = workerCustomerSearchFieldDict(dict);
   const isRepair = isRepairOrderType(selectedCategory?.orderType);
 
-  const nextDisabled =
-    (selectedCategory?.reqMaterial && !materialId) ||
-    (selectedCategory?.reqCustomer && !customerId) ||
-    (selectedCategory?.reqQuantity && !quantityTons) ||
-    (selectedCategory?.reqTaskDescription &&
-      (isRepair ? !repairDescription.trim() : !taskDescription.trim()));
+  const nextDisabled = isWizardStep3NextDisabled({
+    selectedCategory,
+    isRepair,
+    materialId,
+    customerId,
+    quantityTons,
+    taskDescription,
+    repairDescription,
+  });
 
   return (
     <div className="animate-in slide-in-from-right-4 fade-in duration-300">
@@ -100,31 +108,13 @@ export function WizardStep3Details({
       </h2>
       <p className="text-zinc-500 text-sm mb-4">{dict.wizardStep3Subtitle}</p>
 
-      <div className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-3 mb-6 space-y-2">
-        <div className="flex justify-between items-center">
-          <div className="text-sm">
-            <span className="text-zinc-500">{dict.wizardSelectedType} </span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {selectedCategory?.name}
-            </span>
-          </div>
-        </div>
-        <div className="flex justify-between items-center border-t border-zinc-200 dark:border-zinc-700 pt-2">
-          <div className="text-sm">
-            <span className="text-zinc-500">{dict.wizardSelectedMachine} </span>
-            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-              {machines.find((m) => m.id.toString() === resourceId)?.name}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setStep(2)}
-            className="text-xs text-zinc-500 underline"
-          >
-            {dict.wizardChangeLink}
-          </button>
-        </div>
-      </div>
+      <WizardStep3SelectionSummary
+        dict={dict}
+        selectedCategory={selectedCategory}
+        machines={machines}
+        resourceId={resourceId}
+        setStep={setStep}
+      />
 
       <div className="space-y-5">
         {selectedCategory?.showMaterial ? (
@@ -175,29 +165,15 @@ export function WizardStep3Details({
         ) : null}
 
         {selectedCategory?.showTaskDescription ? (
-          isRepair ? (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">{dict.repairDescription}</label>
-              <textarea
-                required={selectedCategory.reqTaskDescription}
-                value={repairDescription}
-                onChange={(e) => setRepairDescription(e.target.value)}
-                placeholder={dict.repairDescriptionPlaceholder}
-                className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
-              />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
-              <textarea
-                required={selectedCategory.reqTaskDescription}
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-                placeholder={dict.wizardDescPlaceholder}
-                className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
-              />
-            </div>
-          )
+          <WizardStep3DescriptionField
+            dict={dict}
+            isRepair={isRepair}
+            required={selectedCategory.reqTaskDescription}
+            taskDescription={taskDescription}
+            setTaskDescription={setTaskDescription}
+            repairDescription={repairDescription}
+            setRepairDescription={setRepairDescription}
+          />
         ) : null}
       </div>
 

@@ -125,55 +125,62 @@ export function buildDispatchItemCardCopy(
   };
 }
 
+function boardActiveDateTimeLabels(
+  item: UnifiedGanttItem,
+  liveClockMs: number | null
+): { dateLabel: string; timeLabel: string } {
+  const tStart = item.startTime ? new Date(item.startTime as string) : null;
+  const dateLabel = tStart ? formatUiDateOnly(tStart) : formatUiDateOnly(item.createdAt as string);
+  const timeLabel = tStart
+    ? `${formatUiTimeHm(tStart)} – ${
+        liveClockMs !== null ? formatUiTimeHm(new Date(liveClockMs)) : ""
+      }`
+    : "—";
+  return { dateLabel, timeLabel };
+}
+
+function boardDoneDateTimeLabels(item: UnifiedGanttItem): {
+  dateLabel: string;
+  timeLabel: string;
+} {
+  const tStart = item.startTime ? new Date(item.startTime as string) : null;
+  const tEnd = item.endTime ? new Date(item.endTime as string) : null;
+  const dateLabel = tStart ? formatUiDateOnly(tStart) : formatUiDateOnly(item.createdAt as string);
+  const timeLabel = tStart
+    ? `${formatUiTimeHm(tStart)}${tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""}`
+    : "—";
+  return { dateLabel, timeLabel };
+}
+
+function defaultDispatchStart(item: UnifiedGanttItem): Date | null {
+  if (item.status === "PENDING") {
+    return item.dueDate ? new Date(item.dueDate as string) : new Date(item.createdAt as string);
+  }
+  return item.startTime ? new Date(item.startTime as string) : null;
+}
+
+function defaultDispatchEnd(item: UnifiedGanttItem, liveClockMs: number | null): Date | null {
+  if (item.status === "COMPLETED" && item.endTime) return new Date(item.endTime as string);
+  if (item.status === "IN_PROGRESS" && item.startTime && liveClockMs !== null)
+    return new Date(liveClockMs);
+  if (item.status === "PENDING" && item.dueDate && item.expectedDurationHours)
+    return new Date(
+      new Date(item.dueDate as string).getTime() +
+        Number(item.expectedDurationHours) * 60 * 60 * 1000
+    );
+  return null;
+}
+
 export function dispatchItemDateTimeLabels(
   item: UnifiedGanttItem,
   layout: DispatchItemCardLayout,
   liveClockMs: number | null
 ): { dateLabel: string; timeLabel: string } {
-  if (layout === "boardActive") {
-    const tStart = item.startTime ? new Date(item.startTime as string) : null;
-    const dateLabel = tStart
-      ? formatUiDateOnly(tStart)
-      : formatUiDateOnly(item.createdAt as string);
-    const timeLabel = tStart
-      ? `${formatUiTimeHm(tStart)} – ${
-          liveClockMs !== null ? formatUiTimeHm(new Date(liveClockMs)) : ""
-        }`
-      : "—";
-    return { dateLabel, timeLabel };
-  }
+  if (layout === "boardActive") return boardActiveDateTimeLabels(item, liveClockMs);
+  if (layout === "boardDone") return boardDoneDateTimeLabels(item);
 
-  if (layout === "boardDone") {
-    const tStart = item.startTime ? new Date(item.startTime as string) : null;
-    const tEnd = item.endTime ? new Date(item.endTime as string) : null;
-    const dateLabel = tStart
-      ? formatUiDateOnly(tStart)
-      : formatUiDateOnly(item.createdAt as string);
-    const timeLabel = tStart
-      ? `${formatUiTimeHm(tStart)}${tEnd ? ` – ${formatUiTimeHm(tEnd)}` : ""}`
-      : "—";
-    return { dateLabel, timeLabel };
-  }
-
-  const tStart =
-    item.status === "PENDING"
-      ? item.dueDate
-        ? new Date(item.dueDate as string)
-        : new Date(item.createdAt as string)
-      : item.startTime
-        ? new Date(item.startTime as string)
-        : null;
-  const tEnd =
-    item.status === "COMPLETED" && item.endTime
-      ? new Date(item.endTime as string)
-      : item.status === "IN_PROGRESS" && item.startTime && liveClockMs !== null
-        ? new Date(liveClockMs)
-        : item.status === "PENDING" && item.dueDate && item.expectedDurationHours
-          ? new Date(
-              new Date(item.dueDate as string).getTime() +
-                Number(item.expectedDurationHours) * 60 * 60 * 1000
-            )
-          : null;
+  const tStart = defaultDispatchStart(item);
+  const tEnd = defaultDispatchEnd(item, liveClockMs);
 
   const dateLabel = tStart ? formatUiDateOnly(tStart) : formatUiDateOnly(item.createdAt as string);
   const timeLabel = tStart

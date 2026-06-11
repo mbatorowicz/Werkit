@@ -3,13 +3,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDictionary } from "@/i18n";
 import { workerApi } from "@/lib/appRoutes";
-import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
-import { narrowBaseCategories, narrowBaseMachines, narrowDelegatableWorkers } from "@/lib/narrow";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import {
+  loadWorkerDelegationFormData,
+  WorkerDelegateOrderFormFields,
+  type DelegationCategory,
+  type DelegationMachine,
+  type DelegationTarget,
+} from "@/features/worker/components/delegation/WorkerDelegateOrderFormFields";
 
 type Props = {
   open: boolean;
@@ -24,13 +28,9 @@ export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
   const apiErrors = dictionary.apiErrors as Record<string, string>;
   const { alert: appAlert } = useAppDialog();
 
-  const [targets, setTargets] = useState<
-    { id: number; fullName: string; orgLabel: string | null }[]
-  >([]);
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-  const [machines, setMachines] = useState<{ id: number; name: string; categoryIds?: number[] }[]>(
-    []
-  );
+  const [targets, setTargets] = useState<DelegationTarget[]>([]);
+  const [categories, setCategories] = useState<DelegationCategory[]>([]);
+  const [machines, setMachines] = useState<DelegationMachine[]>([]);
   const [userId, setUserId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [resourceId, setResourceId] = useState("");
@@ -42,29 +42,10 @@ export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [tRes, cRes, mRes] = await Promise.all([
-        fetchWithDeviceTelemetry(
-          "Worker: delegation targets",
-          workerApi.delegationTargets,
-          { cache: "no-store" },
-          { category: "orders" }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Worker: categories",
-          "/api/categories?leavesOnly=1",
-          { cache: "no-store" },
-          { category: "orders" }
-        ).then(parseJsonArray),
-        fetchWithDeviceTelemetry(
-          "Worker: machines",
-          "/api/machines",
-          { cache: "no-store" },
-          { category: "orders" }
-        ).then(parseJsonArray),
-      ]);
-      setTargets(narrowDelegatableWorkers(tRes));
-      setCategories(narrowBaseCategories(cRes).map((c) => ({ id: c.id, name: c.name })));
-      setMachines(narrowBaseMachines(mRes));
+      const data = await loadWorkerDelegationFormData();
+      setTargets(data.targets);
+      setCategories(data.categories);
+      setMachines(data.machines);
     } catch {
       /* sieć */
     }
@@ -120,9 +101,6 @@ export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
     }
   }
 
-  const fieldClass =
-    "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950";
-
   return (
     <AdminModalShell
       open={open}
@@ -146,79 +124,25 @@ export function WorkerDelegateOrderModal({ open, onClose, onSuccess }: Props) {
         {isLoading ? (
           <p className="text-sm text-zinc-500">{dict.loadingWorkerDashboard}</p>
         ) : (
-          <>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">{dict.delegateChooseWorker}</span>
-              <select
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className={fieldClass}
-                required
-              >
-                <option value="">—</option>
-                {targets.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.fullName}
-                    {t.orgLabel ? ` (${t.orgLabel})` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">{dict.delegateChooseCategory}</span>
-              <select
-                value={categoryId}
-                onChange={(e) => {
-                  setCategoryId(e.target.value);
-                  setResourceId("");
-                }}
-                className={fieldClass}
-                required
-              >
-                <option value="">—</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">{dict.delegateChooseMachine}</span>
-              <select
-                value={resourceId}
-                onChange={(e) => setResourceId(e.target.value)}
-                className={fieldClass}
-                required
-                disabled={!categoryId}
-              >
-                <option value="">—</option>
-                {filteredMachines.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">{dict.delegateTaskDescription}</span>
-              <textarea
-                value={taskDescription}
-                onChange={(e) => setTaskDescription(e.target.value)}
-                rows={3}
-                className={fieldClass}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">{dict.delegateDueDate}</span>
-              <input
-                type="datetime-local"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className={fieldClass}
-              />
-            </label>
-          </>
+          <WorkerDelegateOrderFormFields
+            dict={dict}
+            targets={targets}
+            categories={categories}
+            filteredMachines={filteredMachines}
+            userId={userId}
+            setUserId={setUserId}
+            categoryId={categoryId}
+            onCategoryChange={(val) => {
+              setCategoryId(val);
+              setResourceId("");
+            }}
+            resourceId={resourceId}
+            setResourceId={setResourceId}
+            taskDescription={taskDescription}
+            setTaskDescription={setTaskDescription}
+            dueDate={dueDate}
+            setDueDate={setDueDate}
+          />
         )}
       </form>
     </AdminModalShell>

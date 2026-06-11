@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer } from "react-leaflet";
 import { WerkitTileLayer } from "@/components/Map/WerkitTileLayer";
 import { RouteWaypointMarkers } from "@/components/Map/RouteWaypointMarkers";
 import "leaflet/dist/leaflet.css";
@@ -13,13 +13,13 @@ import {
   UserTakeoverOnMapGesture,
   type WaypointMode,
 } from "./mapSharedComponents";
-import { createCurrentLocationIcon, iconDest, iconStart } from "./liveMapIcons";
+import { createCurrentLocationIcon } from "./liveMapIcons";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
 import FullScreenMapModal from "./FullScreenMapModal";
 import { MapControls } from "./MapControls";
-import { EventMarkers } from "./EventMarkers";
-import { FollowPan, FollowPivotCenter, FitContentDebounced } from "./LiveMapBehaviors";
+import { LiveMapMarkers } from "./LiveMapMarkers";
+import { LiveMapFollowBehaviors } from "./LiveMapFollowBehaviors";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -51,6 +51,38 @@ interface LiveMapProps {
   thumbnail?: boolean;
   /** Nazwa celu (np. adres klienta) do wyświetlenia w nawigacji. */
   destinationName?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Tryby widoku — czysta logika wyliczana z propsów i stanu
+// ---------------------------------------------------------------------------
+function computeLiveMapModes(input: {
+  thumbnail: boolean;
+  preferPivotNavigation: boolean;
+  heading: number | null | undefined;
+  showHeadingNeedle: boolean;
+  hasDestination: boolean;
+  hasPath: boolean;
+  hasEvents: boolean;
+  hasRoute: boolean;
+}) {
+  const headingKnown = input.heading !== undefined && input.heading !== null;
+  const navPivotMode = Boolean(input.preferPivotNavigation);
+  // W trybie thumbnail nie pokazujemy igły azymutu na znaczniku — mapa ma być czysta
+  const showNeedleOnMarker = Boolean(
+    !input.thumbnail && navPivotMode && input.showHeadingNeedle && headingKnown
+  );
+
+  // W trybie thumbnail (miniatura) zawsze pokazujemy całą trasę — fitContent wymuszony.
+  // W trybie nawigacji (preferPivotNavigation) bez thumbnail śledzimy pozycję.
+  const hasRouteContent = Boolean(
+    input.hasDestination || input.hasPath || input.hasEvents || input.hasRoute
+  );
+  const fitContentMode = input.thumbnail ? hasRouteContent : !navPivotMode && hasRouteContent;
+
+  const followPanMode = !input.thumbnail && !navPivotMode && !fitContentMode;
+
+  return { headingKnown, navPivotMode, showNeedleOnMarker, fitContentMode, followPanMode };
 }
 
 // ---------------------------------------------------------------------------
@@ -96,21 +128,17 @@ export default function LiveMap({
     [onAddRouteWaypoint]
   );
 
-  const headingKnown = currentLocation.heading !== undefined && currentLocation.heading !== null;
-  const navPivotMode = Boolean(preferPivotNavigation);
-  // W trybie thumbnail nie pokazujemy igły azymutu na znaczniku — mapa ma być czysta
-  const showNeedleOnMarker = Boolean(
-    !thumbnail && navPivotMode && showHeadingNeedle && headingKnown
-  );
-
-  // W trybie thumbnail (miniatura) zawsze pokazujemy całą trasę — fitContent wymuszony.
-  // W trybie nawigacji (preferPivotNavigation) bez thumbnail śledzimy pozycję.
-  const hasRouteContent = Boolean(
-    destination || pathTraveled.length > 0 || events.length > 0 || routeToDest.length > 0
-  );
-  const fitContentMode = thumbnail ? hasRouteContent : !navPivotMode && hasRouteContent;
-
-  const followPanMode = !thumbnail && !navPivotMode && !fitContentMode;
+  const { headingKnown, navPivotMode, showNeedleOnMarker, fitContentMode, followPanMode } =
+    computeLiveMapModes({
+      thumbnail,
+      preferPivotNavigation,
+      heading: currentLocation.heading,
+      showHeadingNeedle,
+      hasDestination: Boolean(destination),
+      hasPath: pathTraveled.length > 0,
+      hasEvents: events.length > 0,
+      hasRoute: routeToDest.length > 0,
+    });
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -173,60 +201,29 @@ export default function LiveMap({
             deleteLabel={customersDict.routeDeleteWaypoint}
           />
 
-          {pathTraveled.length > 0 ? (
-            <Marker position={[pathTraveled[0].lat, pathTraveled[0].lng]} icon={iconStart}>
-              {!thumbnail && <Popup>{dict.startPoint}</Popup>}
-            </Marker>
-          ) : null}
-
-          {/* Trasa — zawsze jako przerywana czerwona linia (podgląd) na miniaturze */}
-          {routeToDest.length > 0 ? (
-            <Polyline
-              positions={routeToDest}
-              color="#ef4444"
-              weight={4}
-              dashArray="5, 10"
-              opacity={0.8}
-            />
-          ) : null}
-
-          <EventMarkers
-            events={events}
+          <LiveMapMarkers
             thumbnail={thumbnail}
+            pathTraveled={pathTraveled}
+            routeToDest={routeToDest}
+            events={events}
             onEventClick={onEventClick}
+            destination={destination}
+            currentLocation={currentLocation}
+            currentMarkerIcon={currentMarkerIcon}
             dict={dict}
           />
 
-          {destination ? (
-            <Marker position={[destination.lat, destination.lng]} icon={iconDest}>
-              {!thumbnail && <Popup>{dict.destination}</Popup>}
-            </Marker>
-          ) : null}
-
-          <Marker position={[currentLocation.lat, currentLocation.lng]} icon={currentMarkerIcon}>
-            {!thumbnail && <Popup>{dict.currentLocation}</Popup>}
-          </Marker>
-
-          <FitContentDebounced
-            enabled={fitContentMode}
+          <LiveMapFollowBehaviors
+            thumbnail={thumbnail}
+            fitContentMode={fitContentMode}
+            navPivotMode={navPivotMode}
+            followPanMode={followPanMode}
+            cameraFollowGps={cameraFollowGps}
             currentLocation={currentLocation}
             pathTraveled={pathTraveled}
             destination={destination}
             routeToDest={routeToDest}
             events={events}
-            animate={!thumbnail}
-          />
-          <FollowPivotCenter
-            lat={currentLocation.lat}
-            lng={currentLocation.lng}
-            active={navPivotMode}
-            followEnabled={cameraFollowGps}
-          />
-          <FollowPan
-            lat={currentLocation.lat}
-            lng={currentLocation.lng}
-            active={followPanMode}
-            followEnabled={cameraFollowGps}
           />
         </MapContainer>
       </div>

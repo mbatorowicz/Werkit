@@ -36,6 +36,33 @@ async function getUserId() {
   }
 }
 
+function resolveDestination(sessionData: {
+  customerLat?: string | null;
+  customerLng?: string | null;
+}): { lat: number; lng: number } | null {
+  if (sessionData.customerLat && sessionData.customerLng) {
+    return {
+      lat: parseFloat(sessionData.customerLat),
+      lng: parseFloat(sessionData.customerLng),
+    };
+  }
+  return null;
+}
+
+function sessionCategoryFlags(sessionData: {
+  categoryShowMaterial?: boolean | null;
+  categoryShowCustomer?: boolean | null;
+  categoryShowQuantity?: boolean | null;
+  categoryShowTaskDescription?: boolean | null;
+}) {
+  return categoryFlagsFromWorkOrderRow({
+    categoryShowMaterial: sessionData.categoryShowMaterial ?? undefined,
+    categoryShowCustomer: sessionData.categoryShowCustomer ?? undefined,
+    categoryShowQuantity: sessionData.categoryShowQuantity ?? undefined,
+    categoryShowTaskDescription: sessionData.categoryShowTaskDescription ?? undefined,
+  });
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function HistoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -100,13 +127,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
       ? pathTraveled[pathTraveled.length - 1]
       : { lat: 52.2297, lng: 21.0122 };
 
-  let destination = null;
-  if (sessionData.customerLat && sessionData.customerLng) {
-    destination = {
-      lat: parseFloat(sessionData.customerLat),
-      lng: parseFloat(sessionData.customerLng),
-    };
-  }
+  const destination = resolveDestination(sessionData);
 
   const st = asDate(sessionData.startTime);
   const en = asDate(sessionData.endTime);
@@ -143,12 +164,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
           fieldVisibility={resolveOrderLabelFieldVisibility(
             {
               orderType: sessionData.orderType,
-              ...categoryFlagsFromWorkOrderRow({
-                categoryShowMaterial: sessionData.categoryShowMaterial ?? undefined,
-                categoryShowCustomer: sessionData.categoryShowCustomer ?? undefined,
-                categoryShowQuantity: sessionData.categoryShowQuantity ?? undefined,
-                categoryShowTaskDescription: sessionData.categoryShowTaskDescription ?? undefined,
-              }),
+              ...sessionCategoryFlags(sessionData),
             },
             locale
           )}

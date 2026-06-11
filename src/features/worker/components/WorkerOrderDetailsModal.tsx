@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { CategoryColorCardBadge } from "@/components/CategoryColorBadge";
-import { CustomerContactFields } from "@/components/customers/CustomerContactFields";
-import { OrderDetailField } from "@/components/work-orders/OrderDetailField";
 import { WorkOrderPriorityRibbon } from "@/components/work-orders";
 import { formatDict, useDictionary } from "@/i18n";
-import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import type { WorkerOrderDetailsData } from "@/features/worker/lib/workerOrderDetails";
-import { UI_RADIUS_INNER } from "@/lib/uiRadius";
+import { WorkerOrderDetailsFields } from "@/features/worker/components/WorkerOrderDetailsFields";
 
 export function WorkerOrderDetailsModal({
   open,
@@ -27,13 +24,6 @@ export function WorkerOrderDetailsModal({
   if (!data) return null;
 
   const vis = data.fieldVisibility;
-  const customerDisplay = buildOrderLabelCustomerDisplay({
-    customerName: data.customerName,
-    customerPhone: data.customerPhone,
-    customerAddress: data.customerAddress,
-  });
-
-  const fieldsCard = `${UI_RADIUS_INNER} border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900/50 px-4 py-3`;
 
   return (
     <AdminModalShell
@@ -62,47 +52,11 @@ export function WorkerOrderDetailsModal({
           </div>
         ) : null}
 
-        <div className={`${fieldsCard} grid grid-cols-1 gap-y-2.5`}>
-          {data.dateLabel ? (
-            <OrderDetailField label={fieldLabels.date} value={data.dateLabel} />
-          ) : null}
-          {data.timeLabel ? (
-            <OrderDetailField label={fieldLabels.time} value={data.timeLabel} />
-          ) : null}
-          <OrderDetailField label={fieldLabels.resource} value={data.resourceName || "—"} />
-          {vis.showMaterial ? (
-            <OrderDetailField
-              label={fieldLabels.material}
-              value={data.materialName?.trim() ? data.materialName : "—"}
-            />
-          ) : null}
-          {vis.showQuantity ? (
-            <OrderDetailField
-              label={fieldLabels.quantity}
-              value={data.quantity?.trim() ? data.quantity : "—"}
-            />
-          ) : null}
-          {vis.showCustomer ? (
-            <CustomerContactFields
-              variant="order"
-              labels={{
-                customer: fieldLabels.customer,
-                streetLabel: customerDict.streetLabel,
-                postalCodeLabel: customerDict.postalCodeLabel,
-                cityLabel: customerDict.cityLabel,
-                phoneLabel: customerDict.phoneLabel,
-              }}
-              customerName={customerDisplay.customerName}
-              phone={customerDisplay.customerPhone}
-              addressParts={customerDisplay.addressParts}
-              showPhoneWhenEmpty={false}
-              phoneAsLink
-            />
-          ) : null}
-          {vis.showDescription && data.description?.trim() ? (
-            <OrderDetailField label={vis.descriptionLabel} value={data.description} multiline />
-          ) : null}
-        </div>
+        <WorkerOrderDetailsFields
+          data={data}
+          fieldLabels={fieldLabels}
+          customerDict={customerDict}
+        />
 
         {data.orderedBy?.trim() ? (
           <p className="px-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">

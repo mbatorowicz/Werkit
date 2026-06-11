@@ -48,6 +48,51 @@ function validateSettings(data: SettingsSnapshot): string | null {
   return null;
 }
 
+function buildInitialCompanyFields(
+  initialData: SettingsSnapshot | null,
+  initialBase: { lat: number; lng: number }
+): Pick<
+  SettingsSnapshot,
+  | "companyName"
+  | "companyAddress"
+  | "zipCode"
+  | "city"
+  | "phone"
+  | "email"
+  | "baseLatitude"
+  | "baseLongitude"
+> {
+  return {
+    companyName: initialData?.companyName || "Werkit ERP",
+    companyAddress: initialData?.companyAddress || "",
+    zipCode: initialData?.zipCode || "",
+    city: initialData?.city || "",
+    phone: initialData?.phone || "",
+    email: initialData?.email || "",
+    baseLatitude: initialBase.lat.toString(),
+    baseLongitude: initialBase.lng.toString(),
+  };
+}
+
+function buildInitialOrderFields(
+  initialData: SettingsSnapshot | null
+): Pick<
+  SettingsSnapshot,
+  | "cancelWindowMinutes"
+  | "requirePhotoToFinish"
+  | "geofenceRadiusMeters"
+  | "timeOverrunReminder"
+  | "upcomingOrderReminderMinutes"
+> {
+  return {
+    cancelWindowMinutes: initialData?.cancelWindowMinutes ?? 5,
+    requirePhotoToFinish: initialData?.requirePhotoToFinish ?? false,
+    geofenceRadiusMeters: initialData?.geofenceRadiusMeters ?? 500,
+    timeOverrunReminder: initialData?.timeOverrunReminder ?? true,
+    upcomingOrderReminderMinutes: initialData?.upcomingOrderReminderMinutes ?? 120,
+  };
+}
+
 export default function SettingsForm({
   initialData,
   mode = "all",
@@ -62,19 +107,8 @@ export default function SettingsForm({
   const initialBase = resolveCompanyBaseCoords(initialData);
 
   const [settings, setSettings] = useState<SettingsSnapshot>({
-    companyName: initialData?.companyName || "Werkit ERP",
-    companyAddress: initialData?.companyAddress || "",
-    zipCode: initialData?.zipCode || "",
-    city: initialData?.city || "",
-    phone: initialData?.phone || "",
-    email: initialData?.email || "",
-    baseLatitude: initialBase.lat.toString(),
-    baseLongitude: initialBase.lng.toString(),
-    cancelWindowMinutes: initialData?.cancelWindowMinutes ?? 5,
-    requirePhotoToFinish: initialData?.requirePhotoToFinish ?? false,
-    geofenceRadiusMeters: initialData?.geofenceRadiusMeters ?? 500,
-    timeOverrunReminder: initialData?.timeOverrunReminder ?? true,
-    upcomingOrderReminderMinutes: initialData?.upcomingOrderReminderMinutes ?? 120,
+    ...buildInitialCompanyFields(initialData, initialBase),
+    ...buildInitialOrderFields(initialData),
   });
 
   const [geocodeBusy, setGeocodeBusy] = useState(false);

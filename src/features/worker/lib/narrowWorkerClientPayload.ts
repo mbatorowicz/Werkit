@@ -4,6 +4,29 @@ import type { AppSettings, Coord, Session, UserData } from "@/types/worker";
 import { narrowOrderType } from "@/lib/orderType";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 
+/** string lub null; inne wartości → null. */
+function stringOrNull(v: unknown): string | null {
+  return v === null || typeof v === "string" ? v : null;
+}
+
+/** string lub null; inne wartości → undefined. */
+function nullableString(v: unknown): string | null | undefined {
+  return v === null || typeof v === "string" ? v : undefined;
+}
+
+function optionalString(v: unknown): string | undefined {
+  return typeof v === "string" ? v : undefined;
+}
+
+function optionalBoolean(v: unknown): boolean | undefined {
+  return typeof v === "boolean" ? v : undefined;
+}
+
+/** number lub null; inne wartości → undefined. */
+function nullableNumber(v: unknown): number | null | undefined {
+  return v === null || typeof v === "number" ? v : undefined;
+}
+
 export function narrowSession(v: unknown): Session | null {
   if (!isRecord(v)) return null;
   if (
@@ -14,97 +37,38 @@ export function narrowSession(v: unknown): Session | null {
   ) {
     return null;
   }
-  const categoryName =
-    v.categoryName === null || typeof v.categoryName === "string" ? v.categoryName : null;
   return {
     id: v.id,
     startTime: v.startTime,
-    endTime: typeof v.endTime === "string" ? v.endTime : undefined,
+    endTime: optionalString(v.endTime),
     categoryId: v.categoryId,
-    categoryName,
-    categoryColor:
-      v.categoryColor === null || typeof v.categoryColor === "string"
-        ? (v.categoryColor as string | null)
-        : undefined,
-    categoryShowMaterial:
-      typeof v.categoryShowMaterial === "boolean" ? v.categoryShowMaterial : undefined,
-    categoryShowCustomer:
-      typeof v.categoryShowCustomer === "boolean" ? v.categoryShowCustomer : undefined,
-    categoryShowQuantity:
-      typeof v.categoryShowQuantity === "boolean" ? v.categoryShowQuantity : undefined,
-    categoryShowTaskDescription:
-      typeof v.categoryShowTaskDescription === "boolean"
-        ? v.categoryShowTaskDescription
-        : undefined,
-    categoryIsStationary:
-      typeof v.categoryIsStationary === "boolean" ? v.categoryIsStationary : undefined,
+    categoryName: stringOrNull(v.categoryName),
+    categoryColor: nullableString(v.categoryColor),
+    categoryShowMaterial: optionalBoolean(v.categoryShowMaterial),
+    categoryShowCustomer: optionalBoolean(v.categoryShowCustomer),
+    categoryShowQuantity: optionalBoolean(v.categoryShowQuantity),
+    categoryShowTaskDescription: optionalBoolean(v.categoryShowTaskDescription),
+    categoryIsStationary: optionalBoolean(v.categoryIsStationary),
     status: v.status,
-    customerAddress:
-      v.customerAddress === null || typeof v.customerAddress === "string"
-        ? (v.customerAddress as string | null)
-        : undefined,
-    customerLat:
-      v.customerLat === null || typeof v.customerLat === "string"
-        ? (v.customerLat as string | null)
-        : undefined,
-    customerLng:
-      v.customerLng === null || typeof v.customerLng === "string"
-        ? (v.customerLng as string | null)
-        : undefined,
-    expectedDurationHours:
-      v.expectedDurationHours === null || typeof v.expectedDurationHours === "string"
-        ? (v.expectedDurationHours as string | null)
-        : undefined,
-    taskDescription:
-      v.taskDescription === null || typeof v.taskDescription === "string"
-        ? (v.taskDescription as string | null)
-        : undefined,
-    workOrderId:
-      typeof v.workOrderId === "number" ? v.workOrderId : v.workOrderId === null ? null : undefined,
-    customerFirstName:
-      v.customerFirstName === null || typeof v.customerFirstName === "string"
-        ? (v.customerFirstName as string | null)
-        : undefined,
-    customerLastName:
-      v.customerLastName === null || typeof v.customerLastName === "string"
-        ? (v.customerLastName as string | null)
-        : undefined,
-    customerPhone:
-      v.customerPhone === null || typeof v.customerPhone === "string"
-        ? (v.customerPhone as string | null)
-        : undefined,
-    resourceName:
-      v.resourceName === null || typeof v.resourceName === "string"
-        ? (v.resourceName as string | null)
-        : undefined,
-    materialName:
-      v.materialName === null || typeof v.materialName === "string"
-        ? (v.materialName as string | null)
-        : undefined,
-    quantityTons:
-      v.quantityTons === null || typeof v.quantityTons === "number"
-        ? (v.quantityTons as number | null)
-        : undefined,
-    hasPhotos: typeof v.hasPhotos === "boolean" ? v.hasPhotos : undefined,
-    hasNotes: typeof v.hasNotes === "boolean" ? v.hasNotes : undefined,
-    customerLocationId:
-      typeof v.customerLocationId === "number"
-        ? v.customerLocationId
-        : v.customerLocationId === null
-          ? null
-          : undefined,
+    customerAddress: nullableString(v.customerAddress),
+    customerLat: nullableString(v.customerLat),
+    customerLng: nullableString(v.customerLng),
+    expectedDurationHours: nullableString(v.expectedDurationHours),
+    taskDescription: nullableString(v.taskDescription),
+    workOrderId: nullableNumber(v.workOrderId),
+    customerFirstName: nullableString(v.customerFirstName),
+    customerLastName: nullableString(v.customerLastName),
+    customerPhone: nullableString(v.customerPhone),
+    resourceName: nullableString(v.resourceName),
+    materialName: nullableString(v.materialName),
+    quantityTons: nullableNumber(v.quantityTons),
+    hasPhotos: optionalBoolean(v.hasPhotos),
+    hasNotes: optionalBoolean(v.hasNotes),
+    customerLocationId: nullableNumber(v.customerLocationId),
     routeWaypoints: parseRouteWaypoints(v.routeWaypoints),
     orderType: v.orderType != null ? narrowOrderType(v.orderType) : undefined,
-    repairDescription:
-      v.repairDescription === null || typeof v.repairDescription === "string"
-        ? (v.repairDescription as string | null)
-        : undefined,
-    resourceGroupId:
-      typeof v.resourceGroupId === "number"
-        ? v.resourceGroupId
-        : v.resourceGroupId === null
-          ? null
-          : undefined,
+    repairDescription: nullableString(v.repairDescription),
+    resourceGroupId: nullableNumber(v.resourceGroupId),
   };
 }
 

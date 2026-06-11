@@ -1,32 +1,10 @@
-import LiveMap from "@/components/Map/LiveMap";
 import type { AppDictionary } from "@/i18n/types";
 import type { ReportsDashboardSnapshot } from "@/types/admin";
-import { formatUiTimeHm } from "@/i18n";
-import {
-  Activity,
-  BarChart3,
-  ClipboardList,
-  HardHat,
-  Layers,
-  MapPin,
-  TrendingDown,
-  TrendingUp,
-  Truck,
-  Users,
-  Warehouse,
-} from "lucide-react";
+import { Activity, BarChart3, ClipboardList, Layers, Users } from "lucide-react";
 import { ReportStatCard } from "./ReportStatCard";
-import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
-import {
-  TABLE_BODY_ROW,
-  TABLE_CELL_NAME,
-  TABLE_EMPTY_CELL,
-  TABLE_HEAD,
-  TABLE_HEAD_ROW,
-  TABLE_TD,
-  TABLE_TD_MUTED,
-  TABLE_TH,
-} from "@/lib/uiTable";
+import { ReportsActiveByCategorySection } from "./ReportsActiveByCategorySection";
+import { ReportsLiveOpsSection } from "./ReportsLiveOpsSection";
+import { ReportsMonthlyPanels } from "./ReportsMonthlyPanels";
 
 type AdminSlice = AppDictionary["admin"];
 
@@ -41,30 +19,6 @@ export function ReportsDashboard({
   const nav = adminDict.sidebar;
   const d = adminDict.dashboard;
   const companyLabel = snapshot.companyName ?? "";
-
-  const maxCat =
-    snapshot.activeSessionsByCategory.length > 0
-      ? Math.max(...snapshot.activeSessionsByCategory.map((c) => c.count), 1)
-      : 1;
-  const maxMach =
-    snapshot.topMachinesThisMonth.length > 0
-      ? Math.max(...snapshot.topMachinesThisMonth.map((m) => m.sessionCount), 1)
-      : 1;
-
-  let trendLabel = r.vsPrevMonthFlat;
-  let TrendIcon = Activity;
-  let trendClass = "text-zinc-500";
-  if (snapshot.monthOverMonthPercent !== null) {
-    if (snapshot.monthOverMonthPercent > 0) {
-      trendLabel = `${snapshot.monthOverMonthPercent}% ${r.vsPrevMonthUp}`;
-      TrendIcon = TrendingUp;
-      trendClass = "text-emerald-600 dark:text-emerald-400";
-    } else if (snapshot.monthOverMonthPercent < 0) {
-      trendLabel = `${Math.abs(snapshot.monthOverMonthPercent)}% ${r.vsPrevMonthDown}`;
-      TrendIcon = TrendingDown;
-      trendClass = "text-rose-600 dark:text-rose-400";
-    }
-  }
 
   return (
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full space-y-8">
@@ -104,185 +58,15 @@ export function ReportsDashboard({
         />
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2 bg-zinc-500/10 rounded-lg">
-            <HardHat className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
-          </div>
-          <h2 className="font-semibold text-zinc-900 dark:text-white">{r.activeByCategoryTitle}</h2>
-        </div>
-        {snapshot.activeSessionsByCategory.length === 0 ? (
-          <p className="text-zinc-500 text-sm">{d.noActiveSessions}</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {snapshot.activeSessionsByCategory.map(({ categoryName, count }) => (
-              <div key={categoryName ?? "__none__"} className="flex items-center gap-3">
-                <Truck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
-                    {categoryName ?? r.uncategorized}
-                  </div>
-                  <div className="mt-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all"
-                      style={{ width: `${Math.max(8, (count / maxCat) * 100)}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-sm font-bold text-zinc-500 tabular-nums">{count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <ReportsActiveByCategorySection
+        reportsDict={r}
+        dashboardDict={d}
+        activeSessionsByCategory={snapshot.activeSessionsByCategory}
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
-              <h2 className="font-semibold text-zinc-900 dark:text-white">
-                {r.activeEquipmentTitle}
-              </h2>
-            </div>
+      <ReportsLiveOpsSection reportsDict={r} dashboardDict={d} snapshot={snapshot} />
 
-            <div className={INLINE_SCROLL_X_PANEL_CLASS}>
-              <table className="w-full min-w-[600px] border-collapse text-left">
-                <thead className={TABLE_HEAD}>
-                  <tr className={TABLE_HEAD_ROW}>
-                    <th className={TABLE_TH}>{d.whoAndWhere}</th>
-                    <th className={TABLE_TH}>{d.equipment}</th>
-                    <th className={TABLE_TH}>{d.startTime}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {snapshot.activeSessions.map((session) => (
-                    <tr key={session.id} className={TABLE_BODY_ROW}>
-                      <td className={TABLE_TD}>
-                        <div className={TABLE_CELL_NAME}>{session.userName}</div>
-                        <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                          {session.taskDescription || "—"}{" "}
-                          {session.quantityTons ? `(${session.quantityTons} t)` : ""}
-                        </div>
-                      </td>
-                      <td className={`${TABLE_TD} font-medium text-amber-600 dark:text-amber-400`}>
-                        {session.resourceName ?? "—"}
-                      </td>
-                      <td className={TABLE_TD_MUTED}>{formatUiTimeHm(session.startTime)}</td>
-                    </tr>
-                  ))}
-                  {snapshot.activeSessions.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className={TABLE_EMPTY_CELL}>
-                        {d.noActiveSessions}
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <div className="xl:col-span-1 min-h-[450px]">
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm min-h-[450px]">
-            <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
-              <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-500" />
-                {(snapshot.companyCity || r.mapFallbackRegion) + " — " + d.liveRadars}
-              </h2>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">
-                {d.detectedProviders}
-              </p>
-            </div>
-            <div className="flex-1 w-full relative min-h-[450px]">
-              <LiveMap
-                currentLocation={{ lat: snapshot.mapLat, lng: snapshot.mapLng }}
-                pathTraveled={[]}
-                destination={null}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-zinc-900 dark:text-white">
-                {d.efficiencyThisMonth}
-              </h2>
-              <p className={`text-xs mt-1 flex items-center gap-1 ${trendClass}`}>
-                <TrendIcon className="w-3.5 h-3.5" />
-                {trendLabel}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-[#f2fbfa] dark:bg-zinc-950 border border-emerald-100 dark:border-zinc-800 rounded-xl">
-              <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
-                {d.completedTasks}
-              </div>
-              <div className="text-3xl font-black text-emerald-600 dark:text-emerald-500">
-                {snapshot.completedSessionsThisMonth}
-              </div>
-              <div className="text-[10px] text-zinc-400 mt-1">{r.completedSessionsLabel}</div>
-            </div>
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl">
-              <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
-                {d.transportedMaterials}
-              </div>
-              <div className="text-3xl font-black text-zinc-900 dark:text-white">
-                {snapshot.tonsThisMonth.toFixed(1)} <span className="text-lg text-zinc-500">t</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-amber-500/10 rounded-lg">
-              <Warehouse className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <h2 className="font-semibold text-zinc-900 dark:text-white">
-                {d.machineUtilization}
-              </h2>
-              <p className="text-xs text-zinc-500 mt-1">{r.topMachinesSubtitle}</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {snapshot.topMachinesThisMonth.length === 0 ? (
-              <p className="text-zinc-500 text-sm italic">{d.noDataThisMonth}</p>
-            ) : (
-              snapshot.topMachinesThisMonth.map(({ name, sessionCount }) => (
-                <div key={name} className="flex items-center gap-4">
-                  <div
-                    className="w-36 truncate text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                    title={name}
-                  >
-                    {name}
-                  </div>
-                  <div className="flex-1 h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-500 rounded-full transition-all"
-                      style={{ width: `${(sessionCount / maxMach) * 100}%` }}
-                    />
-                  </div>
-                  <div className="w-8 text-right text-xs font-bold text-zinc-500 tabular-nums">
-                    {sessionCount}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
+      <ReportsMonthlyPanels reportsDict={r} dashboardDict={d} snapshot={snapshot} />
     </div>
   );
 }

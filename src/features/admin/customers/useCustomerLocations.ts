@@ -1,61 +1,48 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { parseDecimalInput } from "@/lib/decimalInput";
 import { useDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
-import { adminApi } from "@/lib/appRoutes";
-import { parseJsonArray } from "@/lib/parseJsonArray";
 import { parseJsonUnknown, readApiErrorString } from "@/lib/parseApiJson";
 import type { RouteLngLat } from "@/lib/map/routeGeometryProvider";
 import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
 import type { CustomerLocationRow } from "@/services/CustomerLocationService";
+import { customerAddressGeocodeQuery } from "@/lib/customerAddress";
 import {
-  customerAddressGeocodeQuery,
-  parseCustomerAddress,
-  serializeCustomerAddress,
-} from "@/lib/customerAddress";
+  buildLocationPayload,
+  emptyLocationForm,
+  isCustomerLocationRow,
+  locationAddressParts,
+  locationDestination,
+  locationFormFromRow,
+  type LocationForm,
+} from "./customerLocationForm";
+import { fetchLocationsAndRouteOrigin, geocodeCustomerAddress } from "./customerLocationsApi";
 
-export type LocationForm = {
-  label: string;
-  addressStreet: string;
-  addressCity: string;
-  addressPostalCode: string;
-  latitude: string;
-  longitude: string;
-  isDefault: boolean;
-};
+export { locationAddressParts } from "./customerLocationForm";
+export type { LocationForm } from "./customerLocationForm";
 
-const emptyForm = (): LocationForm => ({
-  label: "",
-  addressStreet: "",
-  addressCity: "",
-  addressPostalCode: "",
-  latitude: "",
-  longitude: "",
-  isDefault: false,
-});
-
-function locationAddressFromStored(address: string | null | undefined) {
-  const parts = parseCustomerAddress(address);
-  return {
-    addressStreet: parts.street,
-    addressCity: parts.city,
-    addressPostalCode: parts.postalCode,
-  };
-}
-
-export function locationAddressParts(form: LocationForm) {
-  return {
-    street: form.addressStreet,
-    city: form.addressCity,
-    postalCode: form.addressPostalCode,
-  };
-}
-
-function isCustomerLocationRow(v: unknown): v is CustomerLocationRow {
-  return v !== null && typeof v === "object" && typeof (v as CustomerLocationRow).id === "number";
+function requestSaveLocation(
+  customerId: number,
+  selectedId: number | null,
+  isUpdate: boolean,
+  form: LocationForm,
+  waypoints: RouteLngLat[]
+) {
+  const url = isUpdate
+    ? `/api/customers/${customerId}/locations/${selectedId}`
+    : `/api/customers/${customerId}/locations`;
+  return fetchWithDeviceTelemetry(
+    "Admin: save customer location",
+    url,
+    {
+      method: isUpdate ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildLocationPayload(form, waypoints)),
+    },
+    { category: "admin" }
+  );
 }
 
 export function useCustomerLocations(customerId: number) {
@@ -67,7 +54,7 @@ export function useCustomerLocations(customerId: number) {
   const [locations, setLocations] = useState<CustomerLocationRow[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isDraftOpen, setIsDraftOpen] = useState(false);
-  const [form, setForm] = useState<LocationForm>(emptyForm());
+  const [form, setForm] = useState<LocationForm>(emptyLocationForm());
   const [waypoints, setWaypoints] = useState<RouteLngLat[]>([]);
   const [routeOrigin, setRouteOrigin] = useState<RouteLngLat | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,31 +67,9 @@ export function useCustomerLocations(customerId: number) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [locRes, settingsRes] = await Promise.all([
-        fetchWithDeviceTelemetry(
-          `Admin: customer ${customerId} locations`,
-          `/api/customers/${customerId}/locations`,
-          { cache: "no-store" },
-          { category: "admin" }
-        ),
-        fetchWithDeviceTelemetry(
-          "Admin: settings for route origin",
-          adminApi.settings,
-          { cache: "no-store" },
-          {
-            category: "admin",
-          }
-        ),
-      ]);
-      const locData = await parseJsonArray(locRes);
-      const rows = locData.filter(isCustomerLocationRow);
+      const { rows, routeOrigin: origin } = await fetchLocationsAndRouteOrigin(customerId);
       setLocations(rows);
-      const settingsBody = await parseJsonUnknown(settingsRes);
-      if (settingsBody && typeof settingsBody === "object" && !Array.isArray(settingsBody)) {
-        setRouteOrigin(resolveCompanyBaseCoords(settingsBody as Record<string, unknown>));
-      } else {
-        setRouteOrigin(resolveCompanyBaseCoords(null));
-      }
+      setRouteOrigin(origin);
     } catch {
       setRouteOrigin(resolveCompanyBaseCoords(null));
     }
@@ -123,33 +88,21 @@ export function useCustomerLocations(customerId: number) {
     didAutoSelectRef.current = true;
     setIsDraftOpen(false);
     setSelectedId(preferred.id);
-    setForm({
-      label: preferred.label,
-      ...locationAddressFromStored(preferred.address),
-      latitude: preferred.latitude,
-      longitude: preferred.longitude,
-      isDefault: preferred.isDefault,
-    });
+    setForm(locationFormFromRow(preferred));
     setWaypoints(preferred.routeWaypoints);
   }, [loading, locations]);
 
   const startNewLocation = () => {
     setSelectedId(null);
     setIsDraftOpen(true);
-    setForm(emptyForm());
+    setForm(emptyLocationForm());
     setWaypoints([]);
   };
 
   const selectLocation = (loc: CustomerLocationRow) => {
     setIsDraftOpen(false);
     setSelectedId(loc.id);
-    setForm({
-      label: loc.label,
-      ...locationAddressFromStored(loc.address),
-      latitude: loc.latitude,
-      longitude: loc.longitude,
-      isDefault: loc.isDefault,
-    });
+    setForm(locationFormFromRow(loc));
     setWaypoints(loc.routeWaypoints);
   };
 
@@ -169,27 +122,12 @@ export function useCustomerLocations(customerId: number) {
     }
     setGeocodeBusy(true);
     try {
-      const res = await fetchWithDeviceTelemetry(
-        "Admin: geocode customer location",
-        `/api/geocode?q=${encodeURIComponent(q)}`,
-        { cache: "no-store" },
-        { category: "admin" }
-      );
-      const data = (await res.json()) as {
-        lat?: number | null;
-        lng?: number | null;
-        error?: string;
-      };
-      if (
-        !res.ok ||
-        data.error === "not_found" ||
-        typeof data.lat !== "number" ||
-        typeof data.lng !== "number"
-      ) {
+      const coords = await geocodeCustomerAddress(q);
+      if (!coords) {
         await appAlert({ message: dict.geocodeNoResults });
         return;
       }
-      applyDestination(data.lat, data.lng);
+      applyDestination(coords.lat, coords.lng);
     } catch {
       await appAlert({ message: dict.geocodeError });
     } finally {
@@ -201,25 +139,8 @@ export function useCustomerLocations(customerId: number) {
     if (!form.label.trim() || !form.latitude || !form.longitude) return;
     setSaving(true);
     try {
-      const payload = {
-        label: form.label.trim(),
-        address: serializeCustomerAddress(locationAddressParts(form)),
-        latitude: form.latitude,
-        longitude: form.longitude,
-        isDefault: form.isDefault,
-        routeWaypoints: waypoints,
-      };
       const isUpdate = selectedId !== null && locations.some((l) => l.id === selectedId);
-      const url = isUpdate
-        ? `/api/customers/${customerId}/locations/${selectedId}`
-        : `/api/customers/${customerId}/locations`;
-      const method = isUpdate ? "PUT" : "POST";
-      const res = await fetchWithDeviceTelemetry(
-        "Admin: save customer location",
-        url,
-        { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) },
-        { category: "admin" }
-      );
+      const res = await requestSaveLocation(customerId, selectedId, isUpdate, form, waypoints);
       if (!res.ok) {
         const err = readApiErrorString(await parseJsonUnknown(res));
         await appAlert({ message: appDialogApiMessage(apiErrors, err, machinesDict.apiError) });
@@ -249,20 +170,14 @@ export function useCustomerLocations(customerId: number) {
       if (selectedId === id) {
         setSelectedId(null);
         setIsDraftOpen(false);
-        setForm(emptyForm());
+        setForm(emptyLocationForm());
         setWaypoints([]);
       }
       await load();
     }
   };
 
-  const destination =
-    form.latitude && form.longitude
-      ? {
-          lat: parseDecimalInput(form.latitude) ?? 0,
-          lng: parseDecimalInput(form.longitude) ?? 0,
-        }
-      : null;
+  const destination = locationDestination(form);
 
   return {
     locations,

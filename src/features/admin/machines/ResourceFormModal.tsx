@@ -1,12 +1,11 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import Image from "next/image";
-import { Camera } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
-import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { ResourceFormCategoriesField } from "./ResourceFormCategoriesField";
+import { ResourceFormPhotoField } from "./ResourceFormPhotoField";
 import type { MachineFormState, MachinesCategory } from "./types";
 import type { ResourceFieldVisibility } from "./resourceVisibility";
 
@@ -109,43 +108,12 @@ export function ResourceFormModal({
           </div>
         ) : null}
 
-        <div className="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50/80 p-4 dark:border-zinc-700 dark:bg-zinc-950/40">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {dict.machPhotoLabel}
-          </label>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <div className="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 sm:h-36 sm:w-36">
-              {form.imageUrl ? (
-                <Image
-                  src={form.imageUrl}
-                  alt={dict.machPhotoLabel}
-                  width={144}
-                  height={144}
-                  unoptimized
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <Camera className="h-10 w-10 text-zinc-400" aria-hidden />
-              )}
-            </div>
-            <div className="flex flex-1 flex-col gap-2">
-              <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
-                <Camera className="h-4 w-4 text-emerald-600" />
-                {dict.machPhotoChoose}
-                <input type="file" accept="image/*" className="hidden" onChange={onPhotoPick} />
-              </label>
-              {form.imageUrl ? (
-                <button
-                  type="button"
-                  onClick={() => setForm((prev) => ({ ...prev, imageUrl: null }))}
-                  className="text-sm font-medium text-red-600 hover:underline dark:text-red-400"
-                >
-                  {dict.machPhotoRemove}
-                </button>
-              ) : null}
-            </div>
-          </div>
-        </div>
+        <ResourceFormPhotoField
+          dict={dict}
+          imageUrl={form.imageUrl}
+          onPhotoPick={onPhotoPick}
+          onPhotoRemove={() => setForm((prev) => ({ ...prev, imageUrl: null }))}
+        />
 
         {durEnabled ? (
           <div className="space-y-2">
@@ -173,39 +141,12 @@ export function ResourceFormModal({
           </div>
         ) : null}
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            {dict.machCatLabel}
-          </label>
-          <div className={`grid max-h-48 grid-cols-2 gap-2 pr-1 ${INLINE_SCROLL_PANEL_CLASS}`}>
-            {categories.map((c) => (
-              <label
-                key={c.id}
-                className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-200 p-2 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-              >
-                <input
-                  type="checkbox"
-                  checked={form.categoryIds.includes(c.id)}
-                  onChange={(e) => {
-                    setForm((prev) => {
-                      if (e.target.checked)
-                        return { ...prev, categoryIds: [...prev.categoryIds, c.id] };
-                      return {
-                        ...prev,
-                        categoryIds: prev.categoryIds.filter((cid) => cid !== c.id),
-                      };
-                    });
-                  }}
-                  className="h-4 w-4 rounded text-emerald-600"
-                />
-                <span className="truncate text-sm text-zinc-700 dark:text-zinc-300">{c.name}</span>
-              </label>
-            ))}
-          </div>
-          {categories.length === 0 ? (
-            <p className="text-xs text-red-400">{dict.machCatWarning}</p>
-          ) : null}
-        </div>
+        <ResourceFormCategoriesField
+          dict={dict}
+          categories={categories}
+          form={form}
+          setForm={setForm}
+        />
       </form>
     </AdminModalShell>
   );

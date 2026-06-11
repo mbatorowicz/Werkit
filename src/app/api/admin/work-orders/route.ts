@@ -16,6 +16,7 @@ import {
 import { AdminOrderService } from "@/services/AdminOrderService";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { guardDispatchMutation } from "@/lib/requireDispatchMutation";
+import { parseWorkOrderRequiredIds, parseWorkOrderRoutePayload } from "@/lib/workOrderRoutePayload";
 
 export const GET = withApiErrorHandling(
   async () => {
@@ -34,42 +35,24 @@ export const POST = withApiErrorHandling(
     const { companyId, userId: adminUserId, role: actorRole } = auth;
 
     const body = await parseJsonBody(request);
+    const payload = parseWorkOrderRoutePayload(body);
+    const {
+      materialId,
+      customerId,
+      taskDescription,
+      repairDescription,
+      quantityTons,
+      expectedDurationHours,
+      priority,
+      dueDate,
+      forceSave,
+    } = payload;
 
-    const userId = body.userId;
-    const resourceId = body.resourceId;
-    const categoryId = body.categoryId;
-    const materialId = body.materialId;
-    const customerId = body.customerId;
-    const taskDescription = typeof body.taskDescription === "string" ? body.taskDescription : null;
-    const repairDescription =
-      typeof body.repairDescription === "string" ? body.repairDescription : null;
-    const quantityTons =
-      typeof body.quantityTons === "string" || typeof body.quantityTons === "number"
-        ? body.quantityTons
-        : null;
-    const expectedDurationHours =
-      typeof body.expectedDurationHours === "string" ||
-      typeof body.expectedDurationHours === "number"
-        ? body.expectedDurationHours
-        : null;
-    const priority = body.priority;
-    const dueDate = typeof body.dueDate === "string" ? body.dueDate : null;
-    const forceSave = Boolean(body.forceSave);
-
-    const uidNum = parseInt(String(userId), 10);
-    const resIdNum = parseInt(String(resourceId), 10);
-    const catIdNum = parseInt(String(categoryId), 10);
-
-    if (
-      !userId ||
-      !resourceId ||
-      !categoryId ||
-      Number.isNaN(uidNum) ||
-      Number.isNaN(resIdNum) ||
-      Number.isNaN(catIdNum)
-    ) {
+    const ids = parseWorkOrderRequiredIds(payload);
+    if (!ids) {
       return jsonError("missing_fields", 400);
     }
+    const { uidNum, resIdNum, catIdNum } = ids;
 
     try {
       await validateCategoryForOrder(companyId, catIdNum, {

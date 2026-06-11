@@ -11,23 +11,15 @@ import {
   MapInvalidateOnResize,
   MapInitialView,
   LocateMeButton,
-  openGoogleNavigation,
   RouteWaypointClickLayer,
-  SAFE_TOP,
   WaypointControls,
   type WaypointMode,
 } from "./mapSharedComponents";
-import {
-  createCurrentLocationIcon,
-  iconDest,
-  iconEvent,
-  iconNote,
-  iconPhoto,
-  iconStart,
-} from "./liveMapIcons";
+import { FullScreenMapOverlayButtons } from "./FullScreenMapOverlayButtons";
+import { createCurrentLocationIcon, iconDest, iconStart } from "./liveMapIcons";
+import { FullScreenMapEventMarkers } from "./FullScreenMapEventMarkers";
 import { TraveledPathLayers } from "./TraveledPathLayers";
 import { useOsrmRouteToDestination } from "./useOsrmRouteToDestination";
-import { X, Navigation, ExternalLink } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -127,32 +119,14 @@ export default function FullScreenMapModal({
     >
       {/* Mapa na pełnym ekranie — zajmuje całe dostępne miejsce */}
       <div className="flex-1 w-full relative">
-        {/* Floating close button — prawa strona, nie koliduje z WaypointControls po lewej */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-black/70 backdrop-blur-md px-4 py-2.5 text-sm font-medium text-white shadow-lg border border-white/15 transition hover:bg-black/90 active:scale-95"
-          style={{ top: `calc(${SAFE_TOP} + 8px)` }}
-        >
-          <X className="h-4 w-4" />
-          <span>{dict.closeFullscreen}</span>
-        </button>
-
-        {/* Przycisk "Nawiguj" — otwiera Google Maps z trasą, tylko gdy jest destination */}
-        {destination && (
-          <button
-            type="button"
-            onClick={() =>
-              openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)
-            }
-            className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-emerald-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-emerald-500/30 transition hover:bg-emerald-500 active:scale-95"
-            style={{ top: `calc(${SAFE_TOP} + 60px)` }}
-          >
-            <Navigation className="h-4 w-4" />
-            <span>{dict.navigateTo}</span>
-            <ExternalLink className="h-3.5 w-3.5 text-emerald-200" />
-          </button>
-        )}
+        <FullScreenMapOverlayButtons
+          onClose={onClose}
+          closeLabel={dict.closeFullscreen}
+          navigateLabel={dict.navigateTo}
+          currentLocation={currentLocation}
+          destination={destination}
+          plannedRouteWaypoints={plannedRouteWaypoints}
+        />
 
         {/* Przyciski zarządzania punktami pośrednimi (+ / -) — bez duplikatu nawigacji,
             bo osobny zielony przycisk "Nawiguj" jest po prawej stronie */}
@@ -210,27 +184,12 @@ export default function FullScreenMapModal({
             />
           ) : null}
 
-          {events.map((ev, i) => (
-            <Marker
-              key={ev.id || String(i)}
-              position={[ev.lat, ev.lng]}
-              icon={ev.type === "photo" ? iconPhoto : ev.type === "note" ? iconNote : iconEvent}
-              eventHandlers={{
-                click: () => onEventClick?.(ev.id),
-              }}
-            >
-              <Popup>
-                <div className="flex flex-col gap-2 min-w-[150px] max-w-[250px]">
-                  <p className="font-semibold m-0">
-                    {ev.type === "photo" ? dict.eventPhoto : dict.eventNote}
-                  </p>
-                  {ev.type === "note" ? (
-                    <p className="text-sm italic m-0 break-words">{ev.content}</p>
-                  ) : null}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          <FullScreenMapEventMarkers
+            events={events}
+            photoLabel={dict.eventPhoto}
+            noteLabel={dict.eventNote}
+            onEventClick={onEventClick}
+          />
 
           {destination ? (
             <Marker position={[destination.lat, destination.lng]} icon={iconDest}>

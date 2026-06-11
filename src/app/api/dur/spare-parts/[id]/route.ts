@@ -1,11 +1,27 @@
-import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { normalizeOptionalDecimalField } from "@/lib/optionalDecimalField";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { requireDurFeature } from "@/lib/requireDurFeature";
 import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 
 export const dynamic = "force-dynamic";
+
+function applySparePartSimpleFields(
+  body: Record<string, unknown>,
+  updateData: Record<string, unknown>
+): void {
+  if (body.name !== undefined) updateData.name = String(body.name).trim();
+  if (body.catalogNumber !== undefined) updateData.catalogNumber = String(body.catalogNumber);
+  if (body.manufacturer !== undefined) updateData.manufacturer = String(body.manufacturer);
+  if (body.unit !== undefined) updateData.unit = String(body.unit);
+  if (body.description !== undefined)
+    updateData.description = typeof body.description === "string" ? body.description : null;
+  if (body.location !== undefined) updateData.location = String(body.location);
+  if (body.imageUrl !== undefined)
+    updateData.imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
+  if (body.isActive !== undefined) updateData.isActive = body.isActive === true;
+}
 
 export const GET = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
@@ -50,34 +66,18 @@ export const PUT = withApiErrorHandling(
     const { SparePartService } = await import("@/services/dur/SparePartService");
 
     const updateData: Record<string, unknown> = {};
-    if (body.name !== undefined) updateData.name = String(body.name).trim();
-    if (body.catalogNumber !== undefined) updateData.catalogNumber = String(body.catalogNumber);
-    if (body.manufacturer !== undefined) updateData.manufacturer = String(body.manufacturer);
-    if (body.unit !== undefined) updateData.unit = String(body.unit);
+    applySparePartSimpleFields(body, updateData);
+
     if (body.purchasePrice !== undefined) {
-      if (body.purchasePrice === null || String(body.purchasePrice).trim() === "") {
-        updateData.purchasePrice = null;
-      } else {
-        const pp = normalizeDecimalBodyField(body.purchasePrice);
-        if (pp == null) return jsonError("invalid_price", 400);
-        updateData.purchasePrice = pp;
-      }
+      const pp = normalizeOptionalDecimalField<null>(body.purchasePrice, null);
+      if (!pp.ok) return jsonError("invalid_price", 400);
+      updateData.purchasePrice = pp.value;
     }
-    if (body.description !== undefined)
-      updateData.description = typeof body.description === "string" ? body.description : null;
     if (body.minStock !== undefined) {
-      if (body.minStock === null || String(body.minStock).trim() === "") {
-        updateData.minStock = "0";
-      } else {
-        const ms = normalizeDecimalBodyField(body.minStock);
-        if (ms == null) return jsonError("invalid_quantity", 400);
-        updateData.minStock = ms;
-      }
+      const ms = normalizeOptionalDecimalField(body.minStock, "0");
+      if (!ms.ok) return jsonError("invalid_quantity", 400);
+      updateData.minStock = ms.value;
     }
-    if (body.location !== undefined) updateData.location = String(body.location);
-    if (body.imageUrl !== undefined)
-      updateData.imageUrl = typeof body.imageUrl === "string" ? body.imageUrl : null;
-    if (body.isActive !== undefined) updateData.isActive = body.isActive === true;
 
     const categoryIds: number[] | undefined = Array.isArray(body.categoryIds)
       ? body.categoryIds

@@ -1,42 +1,12 @@
 "use client";
 
 import { Lock, Eye, EyeOff } from "lucide-react";
-import {
-  AdminSearchCombobox,
-  type AdminSearchComboboxOption,
-} from "@/components/Admin/AdminSearchCombobox";
-import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
-import { WORKER_PERMISSION_DEFAULTS } from "@/lib/workerUserPermissions";
+import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import { UserFormWorkerSection } from "./UserFormWorkerSection";
+import { COMBO_NONE, type UserFormState } from "./userFormModel";
 
-/** Wartość comboboxa „brak wyboru” — nie używać pustego stringa (filtr w AdminSearchCombobox). */
-export const COMBO_NONE = "__none__";
-
-export interface UserFormState {
-  fullName: string;
-  phone: string;
-  usernameEmail: string;
-  password: string;
-  role: string;
-  canCreateOwnOrders: boolean;
-  canEditRoute: boolean;
-  canCreateCustomers: boolean;
-  isDurWorker: boolean;
-  reportsToId: string;
-  departmentId: string;
-  teamId: string;
-}
-
-export const emptyUserForm = (): UserFormState => ({
-  fullName: "",
-  phone: "",
-  usernameEmail: "",
-  password: "",
-  role: "worker",
-  reportsToId: COMBO_NONE,
-  departmentId: COMBO_NONE,
-  teamId: COMBO_NONE,
-  ...WORKER_PERMISSION_DEFAULTS,
-});
+export { COMBO_NONE, emptyUserForm } from "./userFormModel";
+export type { UserFormState } from "./userFormModel";
 
 const INPUT =
   "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
@@ -71,40 +41,6 @@ export default function UserFormFields({
   teamOptions = [],
 }: UserFormFieldsProps) {
   const setForm = (next: Partial<UserFormState>) => onFormChange({ ...form, ...next });
-
-  const workerToggles = [
-    {
-      id: "canCreateOwnOrders",
-      checked: form.canCreateOwnOrders,
-      onChange: (checked: boolean) => setForm({ canCreateOwnOrders: checked }),
-      label: dict.canCreateOwnOrdersLabel,
-    },
-  ];
-
-  if (gpsEnabled) {
-    workerToggles.push({
-      id: "canEditRoute",
-      checked: form.canEditRoute,
-      onChange: (checked: boolean) => setForm({ canEditRoute: checked }),
-      label: dict.canEditRouteLabel,
-    });
-  }
-
-  workerToggles.push({
-    id: "canCreateCustomers",
-    checked: form.canCreateCustomers,
-    onChange: (checked: boolean) => setForm({ canCreateCustomers: checked }),
-    label: dict.canCreateCustomersLabel,
-  });
-
-  if (durEnabled) {
-    workerToggles.push({
-      id: "isDurWorker",
-      checked: form.isDurWorker,
-      onChange: (checked: boolean) => setForm({ isDurWorker: checked }),
-      label: dict.isDurWorkerLabel,
-    });
-  }
 
   return (
     <div className="space-y-5 p-6">
@@ -204,56 +140,16 @@ export default function UserFormFields({
       </div>
 
       {form.role === "worker" ? (
-        <>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              {dict.teamDepartmentLabel}
-            </label>
-            <AdminSearchCombobox
-              options={departmentOptions}
-              value={form.departmentId}
-              noneId={COMBO_NONE}
-              onChange={(id) =>
-                setForm({
-                  departmentId: id,
-                  teamId: COMBO_NONE,
-                })
-              }
-              placeholder={dict.teamDepartmentPlaceholder}
-              aria-label={dict.teamDepartmentLabel}
-              clearAriaLabel={dict.teamDepartmentClear}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              {dict.teamLabel}
-            </label>
-            <AdminSearchCombobox
-              options={teamOptions}
-              value={form.teamId}
-              noneId={COMBO_NONE}
-              onChange={(id) => setForm({ teamId: id })}
-              placeholder={dict.teamPlaceholder}
-              aria-label={dict.teamLabel}
-              clearAriaLabel={dict.teamClear}
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-              {dict.supervisorLabel}
-            </label>
-            <AdminSearchCombobox
-              options={supervisorOptions}
-              value={form.reportsToId}
-              noneId={COMBO_NONE}
-              onChange={(id) => setForm({ reportsToId: id })}
-              placeholder={dict.supervisorPlaceholder}
-              aria-label={dict.supervisorLabel}
-              clearAriaLabel={dict.supervisorClear}
-            />
-          </div>
-          <WorkerPermissionToggles toggles={workerToggles} />
-        </>
+        <UserFormWorkerSection
+          form={form}
+          setForm={setForm}
+          dict={dict}
+          gpsEnabled={gpsEnabled}
+          durEnabled={durEnabled}
+          supervisorOptions={supervisorOptions}
+          departmentOptions={departmentOptions}
+          teamOptions={teamOptions}
+        />
       ) : null}
     </div>
   );
