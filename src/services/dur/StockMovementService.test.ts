@@ -30,19 +30,23 @@ vi.mock("drizzle-orm/pg-core", () => ({
   alias: (table: unknown, name: string) => ({ table, name }),
 }));
 
+vi.mock("./InventoryService", () => ({
+  InventoryService: {
+    assertPartBelongsToCompany: vi.fn().mockResolvedValue(true),
+    upsertQuantity: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe("StockMovementService", () => {
   beforeEach(() => {
     selectMock.mockReset();
     insertMock.mockReset();
+    vi.clearAllMocks();
   });
 
   it("addReceipt odrzuca czesc spoza firmy przed insertem", async () => {
-    const selectChain = {
-      from: vi.fn(() => selectChain),
-      where: vi.fn(() => selectChain),
-      limit: vi.fn(() => Promise.resolve([])),
-    };
-    selectMock.mockReturnValue(selectChain);
+    const { InventoryService } = await import("./InventoryService");
+    vi.mocked(InventoryService.assertPartBelongsToCompany).mockResolvedValue(false);
 
     const { StockMovementService } = await import("./StockMovementService");
     await expect(
@@ -53,19 +57,15 @@ describe("StockMovementService", () => {
   });
 
   it("addIssue odrzuca czesc spoza firmy przed sprawdzeniem stanu", async () => {
-    const selectChain = {
-      from: vi.fn(() => selectChain),
-      where: vi.fn(() => selectChain),
-      limit: vi.fn(() => Promise.resolve([])),
-    };
-    selectMock.mockReturnValue(selectChain);
+    const { InventoryService } = await import("./InventoryService");
+    vi.mocked(InventoryService.assertPartBelongsToCompany).mockResolvedValue(false);
 
     const { StockMovementService } = await import("./StockMovementService");
     await expect(
       StockMovementService.addIssue(1, 2, { partId: 99, quantity: "1" })
     ).rejects.toMatchObject({ code: "part_not_found" });
 
-    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).not.toHaveBeenCalled();
     expect(insertMock).not.toHaveBeenCalled();
   });
 });
