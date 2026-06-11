@@ -1,7 +1,10 @@
 "use client";
 
-import { Building2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
+import { cn } from "@/lib/cn";
+import { INPUT_BASE } from "@/lib/uiTokens";
+import { BTN_PRIMARY } from "@/lib/uiButtons";
 
 type Props = {
   dict: AppDictionary["platform"];
@@ -62,7 +65,7 @@ export function PlatformCompanyForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={dict.organizationNamePlaceholder}
-            className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className={cn(INPUT_BASE, "mt-1.5")}
           />
         </label>
         <label className="block text-sm">
@@ -73,7 +76,7 @@ export function PlatformCompanyForm({
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             placeholder={dict.organizationSlugPlaceholder}
-            className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+            className={cn(INPUT_BASE, "mt-1.5 font-mono")}
           />
         </label>
 
@@ -93,15 +96,13 @@ export function PlatformCompanyForm({
         </div>
 
         <div className="md:col-span-2 flex flex-wrap items-center gap-3 pt-1">
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 text-sm font-medium disabled:opacity-60 transition-colors"
-          >
+          <button type="submit" disabled={pending} className={BTN_PRIMARY}>
+            {pending && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
             {dict.submitCreate}
           </button>
           {message && (
             <p
+              role="status"
               className={`text-sm ${messageIsError ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}
             >
               {message}
@@ -137,7 +138,7 @@ function PlatformAdminFields({
         <input
           value={adminName}
           onChange={(e) => setAdminName(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm"
+          className={cn(INPUT_BASE, "mt-1.5")}
         />
       </label>
       <label className="block text-sm">
@@ -146,7 +147,7 @@ function PlatformAdminFields({
           type="email"
           value={adminEmail}
           onChange={(e) => setAdminEmail(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm"
+          className={cn(INPUT_BASE, "mt-1.5")}
         />
       </label>
       <label className="block text-sm md:col-span-2">
@@ -155,7 +156,7 @@ function PlatformAdminFields({
           type="password"
           value={adminPassword}
           onChange={(e) => setAdminPassword(e.target.value)}
-          className="mt-1.5 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-3 py-2.5 text-sm"
+          className={cn(INPUT_BASE, "mt-1.5")}
         />
       </label>
     </div>

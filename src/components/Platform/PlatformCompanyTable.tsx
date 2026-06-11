@@ -20,6 +20,8 @@ type Props = {
   editSlug: string;
   editPending: boolean;
   settingsOpenId: number | null;
+  /** Id firmy w trakcie zmiany statusu aktywności (spinner). */
+  togglePendingId?: number | null;
   onToggleActive: (organizationId: number, isActive: boolean) => void;
   onStartEdit: (row: CompanyUsageRow) => void;
   onCancelEdit: () => void;
@@ -38,6 +40,7 @@ export function PlatformCompanyTable({
   editSlug,
   editPending,
   settingsOpenId,
+  togglePendingId = null,
   onToggleActive,
   onStartEdit,
   onCancelEdit,
@@ -88,6 +91,7 @@ export function PlatformCompanyTable({
                   editSlug={editSlug}
                   editPending={editPending}
                   settingsOpenId={settingsOpenId}
+                  togglePendingId={togglePendingId}
                   onToggleActive={onToggleActive}
                   onStartEdit={onStartEdit}
                   onCancelEdit={onCancelEdit}

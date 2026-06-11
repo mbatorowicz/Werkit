@@ -28,6 +28,8 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
 
   /** Która organizacja ma rozwinięty panel ustawień funkcji. */
   const [settingsOpenId, setSettingsOpenId] = useState<number | null>(null);
+  /** Dla której organizacji trwa zmiana statusu aktywności. */
+  const [togglePendingId, setTogglePendingId] = useState<number | null>(null);
 
   async function refreshOverview() {
     const res = await fetch("/api/platform/analytics", { credentials: "include" });
@@ -97,13 +99,23 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   }
 
   async function toggleActive(organizationId: number, isActive: boolean) {
-    const res = await fetch(`/api/platform/companies/${organizationId}`, {
-      method: "PATCH",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !isActive }),
-    });
-    if (res.ok) await refreshOverview();
+    if (togglePendingId !== null) return;
+    setTogglePendingId(organizationId);
+    try {
+      const res = await fetch(`/api/platform/companies/${organizationId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !isActive }),
+      });
+      if (res.ok) {
+        await refreshOverview();
+      } else {
+        showFeedback(dict.updateError, true);
+      }
+    } finally {
+      setTogglePendingId(null);
+    }
   }
 
   function toggleSettings(companyId: number) {
@@ -144,6 +156,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
         editSlug={editSlug}
         editPending={editPending}
         settingsOpenId={settingsOpenId}
+        togglePendingId={togglePendingId}
         onToggleActive={toggleActive}
         onStartEdit={startEdit}
         onCancelEdit={cancelEdit}

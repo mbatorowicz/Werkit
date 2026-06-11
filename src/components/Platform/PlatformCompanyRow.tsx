@@ -1,10 +1,12 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import { Pencil, Settings } from "lucide-react";
+import { Loader2, Pencil, Settings } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
+import { cn } from "@/lib/cn";
+import { FOCUS_EMERALD } from "@/lib/uiTokens";
 import { TABLE_BODY_ROW, TABLE_CELL_NAME, TABLE_TD, TABLE_TD_RIGHT } from "@/lib/uiTable";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 
@@ -16,6 +18,8 @@ export interface PlatformCompanyRowProps {
   editSlug: string;
   editPending: boolean;
   settingsOpenId: number | null;
+  /** Id firmy, dla której trwa zmiana statusu aktywności (spinner na pigułce). */
+  togglePendingId?: number | null;
   onToggleActive: (organizationId: number, isActive: boolean) => void;
   onStartEdit: (row: CompanyUsageRow) => void;
   onCancelEdit: () => void;
@@ -26,6 +30,11 @@ export interface PlatformCompanyRowProps {
   onToggleSettings: (companyId: number) => void;
 }
 
+const EDIT_INPUT = cn(
+  "w-full rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-2 py-1 text-sm",
+  FOCUS_EMERALD
+);
+
 export function PlatformCompanyRow({
   row: r,
   dict,
@@ -34,6 +43,7 @@ export function PlatformCompanyRow({
   editSlug,
   editPending,
   settingsOpenId,
+  togglePendingId = null,
   onToggleActive,
   onStartEdit,
   onCancelEdit,
@@ -43,6 +53,9 @@ export function PlatformCompanyRow({
   onRefresh,
   onToggleSettings,
 }: PlatformCompanyRowProps) {
+  const togglePending = togglePendingId === r.companyId;
+  const settingsOpen = settingsOpenId === r.companyId;
+
   return (
     <Fragment>
       <tr className={TABLE_BODY_ROW}>
@@ -51,7 +64,7 @@ export function PlatformCompanyRow({
             <input
               value={editName}
               onChange={(e) => onSetEditName(e.target.value)}
-              className="w-full min-w-[140px] rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-2 py-1 text-sm font-medium"
+              className={cn(EDIT_INPUT, "min-w-[140px] font-medium")}
             />
           ) : (
             <span className={TABLE_CELL_NAME}>{r.companyName}</span>
@@ -62,7 +75,7 @@ export function PlatformCompanyRow({
             <input
               value={editSlug}
               onChange={(e) => onSetEditSlug(e.target.value)}
-              className="w-full min-w-[100px] rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-950 px-2 py-1 text-sm font-mono"
+              className={cn(EDIT_INPUT, "min-w-[100px] font-mono")}
             />
           ) : (
             <code className="text-xs text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
@@ -78,33 +91,37 @@ export function PlatformCompanyRow({
         <td className={TABLE_TD}>
           <button
             type="button"
+            disabled={togglePending}
             onClick={() => onToggleActive(r.companyId, r.isActive)}
             title={dict.toggleActive}
-            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
               r.isActive
-                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-                : "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-            }`}
+                ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+            )}
           >
+            {togglePending && <Loader2 className="w-3 h-3 animate-spin" aria-hidden />}
             {r.isActive ? dict.statusActive : dict.statusInactive}
           </button>
         </td>
         <td className={TABLE_TD}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {editingId === r.companyId ? (
               <div className="flex gap-2">
                 <button
                   type="button"
                   disabled={editPending}
                   onClick={() => onSaveEdit(r.companyId)}
-                  className="rounded-md bg-emerald-600 text-white px-2.5 py-1 text-xs font-medium disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60"
                 >
+                  {editPending && <Loader2 className="w-3 h-3 animate-spin" aria-hidden />}
                   {dict.saveChanges}
                 </button>
                 <button
                   type="button"
                   onClick={onCancelEdit}
-                  className="rounded-md border border-zinc-300 dark:border-zinc-600 px-2.5 py-1 text-xs"
+                  className="rounded-md border border-zinc-300 dark:border-zinc-600 px-2.5 py-1 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   {dict.cancelEdit}
                 </button>
@@ -114,7 +131,7 @@ export function PlatformCompanyRow({
                 <button
                   type="button"
                   onClick={() => onStartEdit(r)}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-zinc-600 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-zinc-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-zinc-400 dark:hover:text-emerald-400 dark:hover:bg-emerald-900/20 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" aria-hidden />
                   {dict.editOrganization}
@@ -123,11 +140,13 @@ export function PlatformCompanyRow({
                   type="button"
                   onClick={() => onToggleSettings(r.companyId)}
                   title={dict.settings.title}
-                  className={`inline-flex items-center gap-1 text-xs font-medium transition-colors ${
-                    settingsOpenId === r.companyId
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-400"
-                  }`}
+                  aria-expanded={settingsOpen}
+                  className={cn(
+                    "inline-flex items-center rounded-md p-1.5 transition-colors",
+                    settingsOpen
+                      ? "text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/20"
+                      : "text-zinc-500 hover:text-emerald-700 hover:bg-emerald-50 dark:text-zinc-400 dark:hover:text-emerald-400 dark:hover:bg-emerald-900/20"
+                  )}
                 >
                   <Settings className="w-3.5 h-3.5" aria-hidden />
                 </button>
@@ -136,7 +155,7 @@ export function PlatformCompanyRow({
           </div>
         </td>
       </tr>
-      {settingsOpenId === r.companyId ? (
+      {settingsOpen ? (
         <tr className="bg-zinc-50/80 dark:bg-zinc-800/30">
           <td colSpan={9} className="px-4 py-4">
             <FeatureFlagsSection companyId={r.companyId} dict={dict.settings} inline />
@@ -196,6 +215,11 @@ function OrganizationAddAdminForm({
     }
   }
 
+  const fieldClass = cn(
+    "mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm",
+    FOCUS_EMERALD
+  );
+
   return (
     <form
       onSubmit={submit}
@@ -211,7 +235,7 @@ function OrganizationAddAdminForm({
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+            className={fieldClass}
           />
         </label>
         <label className="text-xs block min-w-[180px]">
@@ -221,7 +245,7 @@ function OrganizationAddAdminForm({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+            className={fieldClass}
           />
         </label>
         <label className="text-xs block min-w-[140px]">
@@ -231,18 +255,22 @@ function OrganizationAddAdminForm({
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-950 px-2 py-1.5 text-sm"
+            className={fieldClass}
           />
         </label>
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 px-4 py-2 text-xs font-medium disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-medium transition-colors disabled:opacity-60"
         >
+          {pending && <Loader2 className="w-3 h-3 animate-spin" aria-hidden />}
           {dict.addAdmin}
         </button>
         {msg && (
-          <p className={`text-xs self-center ${isError ? "text-red-600" : "text-emerald-600"}`}>
+          <p
+            role="status"
+            className={`text-xs self-center ${isError ? "text-red-600" : "text-emerald-600"}`}
+          >
             {msg}
           </p>
         )}
