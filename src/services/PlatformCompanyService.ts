@@ -16,13 +16,22 @@ function slugifyName(name: string): string {
   return base || "firma";
 }
 
-function isPgUniqueViolation(err: unknown): boolean {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    (err as { code?: unknown }).code === "23505"
-  );
+/**
+ * Szuka błędu pg o kodzie 23505 (unique violation) w łańcuchu `cause` —
+ * Drizzle opakowuje błąd drivera w DrizzleQueryError i kod nie jest na wierzchu.
+ */
+function findPgUniqueViolation(err: unknown): { message: string } | null {
+  let current: unknown = err;
+  for (let depth = 0; depth < 5 && typeof current === "object" && current !== null; depth++) {
+    const candidate = current as { code?: unknown; message?: unknown; cause?: unknown };
+    if (candidate.code === "23505") {
+      return {
+        message: typeof candidate.message === "string" ? candidate.message : String(err),
+      };
+    }
+    current = candidate.cause;
+  }
+  return null;
 }
 
 export class PlatformCompanyService {
@@ -151,8 +160,10 @@ export class PlatformCompanyService {
   }
 
   static mapCreateError(err: unknown): "slug_exists" | "user_exists" | null {
-    if (!isPgUniqueViolation(err)) return null;
-    const msg = err instanceof Error ? err.message : String(err);
+    const violation = findPgUniqueViolation(err);
+    if (!violation) return null;
+    const outerMsg = err instanceof Error ? err.message : "";
+    const msg = `${violation.message} ${outerMsg}`;
     if (/users.*username|username_email|unique.*email/i.test(msg)) return "user_exists";
     if (/companies.*slug|slug/i.test(msg)) return "slug_exists";
     return "slug_exists";

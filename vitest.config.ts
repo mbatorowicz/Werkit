@@ -19,6 +19,8 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["src/**/*.test.ts"],
+          // Testy integracyjne (realna baza) tylko przez `npm run test:integration`.
+          exclude: ["**/node_modules/**", "src/**/*.int.test.ts"],
           // Wyłączamy izolację modułów, ponieważ testy używają vi.mock() z dynamicznym importem,
           // co powoduje timeouty w trybie izolacji. Testy działają poprawnie bez izolacji.
           isolate: false,
