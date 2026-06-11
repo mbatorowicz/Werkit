@@ -59,6 +59,7 @@ async function main() {
       "is_global",
       "is_stationary",
       "color",
+      "order_type",
     ]),
     resource_to_categories: new Set(["resource_id", "category_id"]),
     resources: new Set([
@@ -152,6 +153,8 @@ async function main() {
       "start_longitude",
       "end_latitude",
       "end_longitude",
+      "order_type",
+      "repair_description",
     ]),
     session_photos: new Set([
       "id",
@@ -187,6 +190,12 @@ async function main() {
       "geofence_radius_meters",
       "time_overrun_reminder",
       "upcoming_order_reminder_minutes",
+      "gps_tracking_enabled",
+      "map_view_enabled",
+      "geofencing_enabled",
+      "route_planning_enabled",
+      "navigation_enabled",
+      "dur_enabled",
     ]),
     work_orders: new Set([
       "id",
@@ -206,6 +215,8 @@ async function main() {
       "priority",
       "due_date",
       "locked_until",
+      "order_type",
+      "repair_description",
     ]),
     device_logs: new Set([
       "id",
@@ -270,6 +281,36 @@ async function main() {
       "created_at",
       "work_order_spare_part_id",
     ]),
+    work_order_spare_parts: new Set([
+      "id",
+      "work_order_id",
+      "part_id",
+      "quantity",
+      "unit_price",
+      "notes",
+      "created_at",
+    ]),
+    departments: new Set([
+      "id",
+      "company_id",
+      "name",
+      "parent_id",
+      "manager_id",
+      "sort_order",
+      "is_active",
+      "created_at",
+    ]),
+    teams: new Set([
+      "id",
+      "company_id",
+      "department_id",
+      "name",
+      "leader_id",
+      "sort_order",
+      "is_active",
+      "created_at",
+    ]),
+    team_members: new Set(["id", "team_id", "user_id", "role", "joined_at"]),
   };
 
   const { sql } = await import("@vercel/postgres");

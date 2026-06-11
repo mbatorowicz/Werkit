@@ -227,7 +227,8 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 |------|---------|-------|
 | Lint | `npm run lint` | 0 errors wymagane, warnings OK |
 | TypeScript | `npx tsc --noEmit` | strict mode, musi przejść bez błędów |
-| Testy | `npm test` | Vitest, nie wymaga bazy danych |
+| Testy | `npm test` | Vitest (unit + UI), nie wymaga bazy danych |
+| Testy integracyjne | `npm run test:integration` | Vitest na żywej bazie z `.env.local`; poza CI |
 | Build | `npm run build` | wymaga `JWT_SECRET` w env |
 | Dev server | `npm run dev` | Turbopack, start < 1s |
 
@@ -236,4 +237,5 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 - Dev server Next.js 16 używa Turbopack — pierwszy request po starcie kompiluje trasę (może trwać 1–2s).
 - Brak `.env.local` z `JWT_SECRET` powoduje crash proxy (Edge middleware) przy każdym route — upewnij się, że plik istnieje.
 - Testy Vitest (`npm test`) nie potrzebują bazy ani żadnych sekretów — można je uruchomić zawsze.
+- Testy integracyjne (`npm run test:integration`, pliki `*.int.test.ts`) wymagają `DATABASE_URL` / `POSTGRES_URL` w `.env.local`; tworzą i usuwają firmy z prefiksem `__ITEST`.
 - Natywny moduł `bcrypt` może nie skompilować się w niestandardowych kontenerach — `WERKIT_USE_BCRYPTJS=1` to bezpieczny fallback.

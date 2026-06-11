@@ -760,7 +760,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-05-28. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-06-11. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
 
 ---
 
