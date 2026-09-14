@@ -218,7 +218,7 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 
 ## 11. Kiedy czytać ARCHITECTURE.md i roadmap długu
 
-Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–7 zamknięte). Hartowanie sesji JWT, logowania i limitów — **[`plans/security-hardening-2026-09.md`](./plans/security-hardening-2026-09.md)** (fazy S0–S3 zamknięte).
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–7 zamknięte). Hartowanie sesji JWT, logowania i limitów — **[`plans/security-hardening-2026-09.md`](./plans/security-hardening-2026-09.md)** (fazy S0–S3 zamknięte). Izolacja między firmami (IDOR organizacji) — **[`plans/tenant-isolation-2026-09.md`](./plans/tenant-isolation-2026-09.md)** (fazy T0–T3 otwarte).
 
 ---
 

@@ -304,6 +304,17 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 - Logout / 401 / proxy: `clearAuthTokenCookie` (`src/lib/authCookie.ts`) z `Path=/`, `Max-Age=0` i tymi samymi `Secure`/`SameSite` co login (WebView).
 - CSP w `next.config.ts` (`buildContentSecurityPolicy`): Leaflet/CARTO, Nominatim, OSRM, Vercel Blob; `script-src 'unsafe-inline'` udokumentowany (Next.js hydration, bez nonce).
 
+### P-TENANT — izolacja multi-firm (2026-09)
+
+Audyt IDOR między firmami (moduł organizacji, FK grup maszyn). **SSOT faz:** [`plans/tenant-isolation-2026-09.md`](../plans/tenant-isolation-2026-09.md). Status: **otwarty**.
+
+| Faza | Temat |
+|------|--------|
+| T0 | `OrganizationService` + API org: zawsze `companyId`; `guardAdminMutation` |
+| T1 | `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id` |
+| T2 | Testy integracyjne dwóch firm (org + grupa maszyn) |
+| T3 | Wyrocznia loginu, martwy `resolveTenantCompanyId`, listing `resource_to_categories` |
+
 ---
 
 *Ostatnia aktualizacja roadmapu: 2026-09-14.*
