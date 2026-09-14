@@ -3,6 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 import { DEFAULT_FEATURE_FLAGS, type FeatureFlags } from "@/types/featureFlags";
+import { PLAN_PRESET_FLAGS } from "@/lib/companyLifecycle";
 import { plDict, renderWithProviders, stubFetch } from "@/test/renderWithProviders";
 
 const dict = plDict.platform.settings;
@@ -97,7 +98,10 @@ describe("FeatureFlagsSection", () => {
 
     const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
     expect(putCall).toBeDefined();
-    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({ durEnabled: true });
+    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({
+      durEnabled: true,
+      planKey: "custom",
+    });
   });
 
   it("wyłączenie geofence wysyła PUT tylko z geofencingEnabled", async () => {
@@ -114,7 +118,10 @@ describe("FeatureFlagsSection", () => {
     await screen.findByText(dict.saveSuccess);
     expect(tracking).toBeChecked();
     const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
-    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({ geofencingEnabled: false });
+    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({
+      geofencingEnabled: false,
+      planKey: "custom",
+    });
   });
 
   it("przy błędzie PUT wycofuje zmianę flagi i pokazuje komunikat błędu", async () => {
@@ -149,5 +156,24 @@ describe("FeatureFlagsSection", () => {
     await user.click(dur);
 
     expect(await screen.findByText(plDict.apiErrors.save_error)).toBeInTheDocument();
+  });
+
+  it("preset yard wysyła pełny zestaw flag DUR on / GPS off i planKey", async () => {
+    const fetchMock = stubFetch([
+      { url: "/api/platform/feature-flags/5", method: "GET", json: flagsResponse() },
+      { url: "/api/platform/feature-flags/5", method: "PUT", json: { ok: true } },
+    ]);
+    const user = userEvent.setup();
+    renderWithProviders(<FeatureFlagsSection companyId={5} dict={dict} />);
+
+    await screen.findByText(dict.subtitle);
+    await user.click(screen.getByRole("button", { name: dict.planYard }));
+
+    expect(await screen.findByText(dict.saveSuccess)).toBeInTheDocument();
+    const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
+    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({
+      ...PLAN_PRESET_FLAGS.yard,
+      planKey: "yard",
+    });
   });
 });

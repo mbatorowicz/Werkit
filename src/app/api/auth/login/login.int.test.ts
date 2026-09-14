@@ -82,6 +82,14 @@ describe("POST /api/auth/login (S1)", () => {
     await db.update(companies).set({ isActive: true }).where(eq(companies.id, companyId));
   });
 
+  it("firma zarchiwizowana też 401 invalid_credentials", async () => {
+    const { PlatformCompanyService } = await import("@/services/PlatformCompanyService");
+    await PlatformCompanyService.updateCompany(companyId, { lifecycleStatus: "archived" });
+    const archived = await jsonErrorOf(await postLogin(usernameEmail, GOOD_PASSWORD, clientIp));
+    expect(archived).toEqual({ status: 401, error: "invalid_credentials" });
+    await PlatformCompanyService.updateCompany(companyId, { lifecycleStatus: "active" });
+  });
+
   it("6. nieudana próba zwraca 429; sukces czyści limit", async () => {
     const burstIp = `198.51.100.${(Date.now() % 200) + 20}`;
     const burstKey = `${burstIp}:${usernameEmail}`;

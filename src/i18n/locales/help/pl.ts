@@ -354,9 +354,10 @@ export const helpPl = {
           "Tabela organizacji pokazuje wskaźniki użycia i pozwala edytować dane oraz status.",
         ],
         bullets: [
-          "Status aktywna — użytkownicy mogą się logować.",
-          "Status zawieszona — blokada dostępu do organizacji.",
-          "Dodawanie kolejnego administratora do istniejącej organizacji.",
+          "Status aktywna / okres próbny — użytkownicy mogą się logować.",
+          "Status zawieszona — blokada logowania (ten sam komunikat co złe hasło).",
+          "Archiwum — osobny przycisk z potwierdzeniem; dane zostają, konta nie logują się. Lista domyślnie ukrywa zarchiwizowane.",
+          "Dodawanie kolejnego administratora do istniejącej organizacji (nie gdy zawieszona/zarchiwizowana).",
         ],
       },
       {
@@ -366,7 +367,8 @@ export const helpPl = {
           "Każda organizacja może mieć włączone lub wyłączone moduły niezależnie od innych.",
         ],
         bullets: [
-          "Śledzenie GPS, widok mapy, geofencing, planowanie trasy i nawigacja — niezależne przełączniki (wyłączenie geofence nie wyłącza śledzenia).",
+          "Szablony pakietu: Field-ops (GPS on, DUR off), Field-ops + MRO (wszystko on), Plac/warsztat (DUR on, GPS off).",
+          "Śledzenie GPS, widok mapy, geofencing, planowanie trasy i nawigacja — niezależne przełączniki (wyłączenie geofence nie wyłącza śledzenia). Ręczne przełączenie ustawia pakiet „własny”.",
           "Moduł utrzymania ruchu (DUR) — magazyn części, typy zasobów, części na zleceniach napraw.",
           "Zmiany zapisuj osobno dla każdej organizacji — wpływają natychmiast na widoczność menu i zachowanie aplikacji.",
         ],
@@ -393,6 +395,18 @@ export const helpPl = {
           "W panelu firmy widać pasek „Wsparcie platformy”. Zakończ wraca do konsoli /platform.",
           "Aplikacja pracownika (/worker) jest zablokowana nawet przy impersonacji.",
           "Wejście i wyjście są zapisane w dzienniku platformy. Nie używaj zwykłego wylogowania, jeśli chcesz wrócić na konsolę — kliknij Zakończ.",
+        ],
+      },
+      {
+        id: "archive",
+        title: "6. Archiwizacja organizacji",
+        paragraphs: [
+          "Offboarding to archiwum, nie usuwanie. Wiersze firmy, sesji, GPS i magazynu zostają w bazie.",
+        ],
+        bullets: [
+          "W szczegółach, zakładka Dane: przycisk Archiwizuj + potwierdzenie.",
+          "Zawieszenie (toggle w tabeli) i archiwum blokują logowanie tak samo — bez osobnego komunikatu „firma zablokowana”.",
+          "Archiwum nie da się zrobić jednym kliknięciem w tabeli (toggle to tylko aktywna ↔ zawieszona).",
         ],
       },
     ],

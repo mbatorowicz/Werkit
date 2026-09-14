@@ -1,9 +1,30 @@
 import { db } from "@/db";
 import { companies, companySettings, users } from "@/db/schema";
+import {
+  applyIsActiveToggle,
+  canCreateCompanyAdmin,
+  DEFAULT_COMPANY_PLAN_KEY,
+  isCompanyLifecycleStatus,
+  isCompanyPlanKey,
+  lifecycleToIsActive,
+  parseInternalNote,
+  type CompanyLifecycleStatus,
+  type CompanyPlanKey,
+} from "@/lib/companyLifecycle";
 import { findPgUniqueViolation } from "@/lib/pgErrors";
 import { desc, eq } from "drizzle-orm";
 
 export type CompanyRow = typeof companies.$inferSelect;
+
+export type CompanyUpdatePatch = {
+  name?: string;
+  slug?: string;
+  /** Mapuje active/trial ↔ suspended; archived nie rusza. Ignorowane gdy podano `lifecycleStatus`. */
+  isActive?: boolean;
+  lifecycleStatus?: CompanyLifecycleStatus;
+  internalNote?: string | null;
+  planKey?: CompanyPlanKey;
+};
 
 function slugifyName(name: string): string {
   const base = name
@@ -15,6 +36,20 @@ function slugifyName(name: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 90);
   return base || "firma";
+}
+
+function readLifecycle(row: CompanyRow): CompanyLifecycleStatus {
+  return isCompanyLifecycleStatus(row.lifecycleStatus) ? row.lifecycleStatus : "active";
+}
+
+function companyInsertValues(name: string, slug: string) {
+  return {
+    name,
+    slug,
+    isActive: true,
+    lifecycleStatus: "active" as const,
+    planKey: DEFAULT_COMPANY_PLAN_KEY,
+  };
 }
 
 export class PlatformCompanyService {
@@ -37,7 +72,7 @@ export class PlatformCompanyService {
     return db.transaction(async (tx) => {
       const [row] = await tx
         .insert(companies)
-        .values({ name: trimmed, slug, isActive: true })
+        .values(companyInsertValues(trimmed, slug))
         .returning();
 
       await tx.insert(companySettings).values({
@@ -66,7 +101,7 @@ export class PlatformCompanyService {
     return db.transaction(async (tx) => {
       const [row] = await tx
         .insert(companies)
-        .values({ name: trimmed, slug, isActive: true })
+        .values(companyInsertValues(trimmed, slug))
         .returning();
 
       await tx.insert(companySettings).values({
@@ -92,17 +127,31 @@ export class PlatformCompanyService {
     });
   }
 
-  static async updateCompany(
-    id: number,
-    patch: { name?: string; slug?: string; isActive?: boolean }
-  ): Promise<CompanyRow | null> {
+  static async updateCompany(id: number, patch: CompanyUpdatePatch): Promise<CompanyRow | null> {
     const existing = await PlatformCompanyService.getCompanyById(id);
     if (!existing) return null;
 
     const updates: Partial<typeof companies.$inferInsert> = {};
     if (patch.name !== undefined) updates.name = patch.name.trim();
     if (patch.slug !== undefined) updates.slug = patch.slug.trim().toLowerCase();
-    if (patch.isActive !== undefined) updates.isActive = patch.isActive;
+    if (patch.internalNote !== undefined) {
+      updates.internalNote = parseInternalNote(patch.internalNote) ?? null;
+    }
+    if (patch.planKey !== undefined && isCompanyPlanKey(patch.planKey)) {
+      updates.planKey = patch.planKey;
+    }
+
+    if (patch.lifecycleStatus !== undefined) {
+      if (!isCompanyLifecycleStatus(patch.lifecycleStatus)) {
+        throw new Error("invalid_lifecycle");
+      }
+      updates.lifecycleStatus = patch.lifecycleStatus;
+      updates.isActive = lifecycleToIsActive(patch.lifecycleStatus);
+    } else if (patch.isActive !== undefined) {
+      const next = applyIsActiveToggle(readLifecycle(existing), patch.isActive);
+      updates.lifecycleStatus = next.lifecycleStatus;
+      updates.isActive = next.isActive;
+    }
 
     if (Object.keys(updates).length === 0) return existing;
 
@@ -128,6 +177,9 @@ export class PlatformCompanyService {
   ): Promise<number> {
     const company = await PlatformCompanyService.getCompanyById(companyId);
     if (!company) throw new Error("company_not_found");
+    if (!canCreateCompanyAdmin(readLifecycle(company))) {
+      throw new Error("company_inactive");
+    }
 
     const [created] = await db
       .insert(users)

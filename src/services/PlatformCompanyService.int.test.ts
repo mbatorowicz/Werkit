@@ -28,6 +28,8 @@ describe("PlatformCompanyService (integracja z bazą)", () => {
     expect(company.slug).toBe(slug);
     expect(company.name).toBe(`__ITEST firma ${slug}`);
     expect(company.isActive).toBe(true);
+    expect(company.lifecycleStatus).toBe("active");
+    expect(company.planKey).toBe("field_ops");
   });
 
   it("bez sluga generuje slug z nazwy (slugify, polskie znaki diakrytyczne)", async () => {
@@ -104,9 +106,63 @@ describe("PlatformCompanyService (integracja z bazą)", () => {
     });
     expect(updated?.name).toBe(`__ITEST po edycji ${slug}`);
     expect(updated?.isActive).toBe(false);
+    expect(updated?.lifecycleStatus).toBe("suspended");
 
     const fetched = await PlatformCompanyService.getCompanyById(company.id);
     expect(fetched?.isActive).toBe(false);
+    expect(fetched?.lifecycleStatus).toBe("suspended");
+  });
+
+  it("archiwizacja ustawia is_active=false i nie kasuje firmy", async () => {
+    const slug = uniqueTestSlug();
+    const company = await PlatformCompanyService.createCompany(`__ITEST archiwum ${slug}`, slug);
+    createdCompanyIds.push(company.id);
+
+    const archived = await PlatformCompanyService.updateCompany(company.id, {
+      lifecycleStatus: "archived",
+      internalNote: "  offboarding Q3  ",
+    });
+    expect(archived?.lifecycleStatus).toBe("archived");
+    expect(archived?.isActive).toBe(false);
+    expect(archived?.internalNote).toBe("offboarding Q3");
+
+    const stillThere = await PlatformCompanyService.getCompanyById(company.id);
+    expect(stillThere?.id).toBe(company.id);
+    expect(stillThere?.slug).toBe(slug);
+  });
+
+  it("preset yard zapisuje DUR on, GPS off i plan_key", async () => {
+    const { PlatformFeatureFlagService } = await import("@/services/PlatformFeatureFlagService");
+    const { PLAN_PRESET_FLAGS } = await import("@/lib/companyLifecycle");
+    const slug = uniqueTestSlug();
+    const company = await PlatformCompanyService.createCompany(`__ITEST yard ${slug}`, slug);
+    createdCompanyIds.push(company.id);
+
+    const flags = await PlatformFeatureFlagService.updateFlags(company.id, PLAN_PRESET_FLAGS.yard);
+    const updated = await PlatformCompanyService.updateCompany(company.id, { planKey: "yard" });
+
+    expect(flags.durEnabled).toBe(true);
+    expect(flags.gpsTrackingEnabled).toBe(false);
+    expect(flags.mapViewEnabled).toBe(false);
+    expect(flags.geofencingEnabled).toBe(false);
+    expect(flags.routePlanningEnabled).toBe(false);
+    expect(flags.navigationEnabled).toBe(false);
+    expect(updated?.planKey).toBe("yard");
+  });
+
+  it("createCompanyAdmin na zarchiwizowanej firmie zwraca company_inactive", async () => {
+    const slug = uniqueTestSlug();
+    const company = await PlatformCompanyService.createCompany(`__ITEST noadmin ${slug}`, slug);
+    createdCompanyIds.push(company.id);
+    await PlatformCompanyService.updateCompany(company.id, { lifecycleStatus: "archived" });
+
+    await expect(
+      PlatformCompanyService.createCompanyAdmin(company.id, {
+        fullName: "Nowy Admin",
+        usernameEmail: `${uniqueTestSlug()}@itest.local`,
+        passwordHash: "not-a-real-hash",
+      })
+    ).rejects.toThrow("company_inactive");
   });
 
   it("getCompanyById zwraca null dla nieistniejącej firmy", async () => {

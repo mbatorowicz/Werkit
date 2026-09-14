@@ -53,6 +53,9 @@ export const POST = withApiErrorHandling(
       });
       return jsonOk({ success: true });
     } catch (e: unknown) {
+      if (e instanceof Error && e.message === "company_inactive") {
+        return jsonError("company_inactive", 403);
+      }
       const code = PlatformCompanyService.mapCreateError(e);
       if (code === "user_exists") return jsonError("user_exists", 409);
       throw e;

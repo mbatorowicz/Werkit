@@ -26,6 +26,12 @@ export const companies = pgTable("companies", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   isActive: boolean("is_active").notNull().default(true),
+  /** trial | active | suspended | archived — CHECK `companies_lifecycle_status_chk`. `is_active` zawsze z helpera `lifecycleToIsActive`. */
+  lifecycleStatus: varchar("lifecycle_status", { length: 16 }).notNull().default("active"),
+  /** Notatka wsparcia (max 2000 w serwisie). Tylko `/platform`. */
+  internalNote: text("internal_note"),
+  /** field_ops | field_ops_mro | yard | custom — CHECK `companies_plan_key_chk`. NULL = nieustawiony (traktuj jak custom w UI). */
+  planKey: varchar("plan_key", { length: 32 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

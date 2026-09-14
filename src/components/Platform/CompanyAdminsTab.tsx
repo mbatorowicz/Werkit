@@ -102,6 +102,7 @@ export function CompanyAdminsTab({ row, dict, onChanged }: Props) {
         apiErrors={apiErrors}
         msg={msg}
         isError={isError}
+        disabled={!row.isActive}
         onStatusMessage={(text, error) => {
           setMsg(text);
           setIsError(error);
@@ -336,6 +337,7 @@ function AddAdminForm({
   apiErrors,
   msg,
   isError,
+  disabled = false,
   onStatusMessage,
   onCreated,
 }: {
@@ -344,6 +346,7 @@ function AddAdminForm({
   apiErrors: Record<string, string>;
   msg: string | null;
   isError: boolean;
+  disabled?: boolean;
   onStatusMessage: (text: string, error: boolean) => void;
   onCreated: () => Promise<void>;
 }) {
@@ -351,6 +354,14 @@ function AddAdminForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
+
+  if (disabled) {
+    return (
+      <p className={cn(FIELD_HINT, "border-t border-zinc-100 pt-4 dark:border-zinc-800")}>
+        {dict.addAdminInactiveHint}
+      </p>
+    );
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

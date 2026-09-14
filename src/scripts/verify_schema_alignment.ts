@@ -18,7 +18,16 @@ async function main() {
 
   /** Nazwy kolumn w PG muszą odpowiadać definicjom w schema.ts (Drizzle snake_case). */
   const EXPECTED: Record<string, ReadonlySet<string>> = {
-    companies: new Set(["id", "name", "slug", "is_active", "created_at"]),
+    companies: new Set([
+      "id",
+      "name",
+      "slug",
+      "is_active",
+      "lifecycle_status",
+      "internal_note",
+      "plan_key",
+      "created_at",
+    ]),
     users: new Set([
       "id",
       "company_id",

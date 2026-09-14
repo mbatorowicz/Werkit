@@ -6,6 +6,7 @@ import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { formatDict } from "@/i18n";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { filterCompaniesForRegistry } from "@/lib/companyLifecycle";
 import { PlatformCompanyCreateModal } from "@/components/Platform/PlatformCompanyCreateModal";
 import { PlatformCompanyDetailsModal } from "@/components/Platform/PlatformCompanyDetailsModal";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
@@ -24,7 +25,9 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   const [detailsId, setDetailsId] = useState<number | null>(null);
   /** Dla której organizacji trwa zmiana statusu aktywności. */
   const [togglePendingId, setTogglePendingId] = useState<number | null>(null);
+  const [hideArchived, setHideArchived] = useState(true);
 
+  const visibleRows = filterCompaniesForRegistry(rows, hideArchived);
   const detailsRow = detailsId !== null ? rows.find((r) => r.companyId === detailsId) : undefined;
 
   async function refreshOverview() {
@@ -72,13 +75,24 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
             {dict.registryTitle}
           </h2>
           <p className="mt-0.5 text-sm text-zinc-500">
-            {formatDict(dict.totalCount, { count: rows.length })}
+            {formatDict(dict.totalCount, { count: visibleRows.length })}
           </p>
         </div>
-        <button type="button" onClick={() => setCreateOpen(true)} className={BTN_PRIMARY_COMPACT}>
-          <Plus className="mr-1.5 h-4 w-4" aria-hidden />
-          {dict.addOrganization}
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+            <input
+              type="checkbox"
+              checked={hideArchived}
+              onChange={(e) => setHideArchived(e.target.checked)}
+              className="rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+            />
+            {dict.hideArchived}
+          </label>
+          <button type="button" onClick={() => setCreateOpen(true)} className={BTN_PRIMARY_COMPACT}>
+            <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+            {dict.addOrganization}
+          </button>
+        </div>
       </header>
 
       {message && (
@@ -91,7 +105,7 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
       )}
 
       <PlatformCompanyTable
-        rows={rows}
+        rows={visibleRows}
         dict={dict}
         togglePendingId={togglePendingId}
         onToggleActive={toggleActive}

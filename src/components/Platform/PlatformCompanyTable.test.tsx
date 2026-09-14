@@ -12,6 +12,9 @@ const baseRow: CompanyUsageRow = {
   companyName: "Margaz Sp. z o.o.",
   slug: "margaz",
   isActive: true,
+  lifecycleStatus: "active",
+  planKey: "field_ops",
+  internalNote: null,
   userCount: 4,
   workerCount: 3,
   sessionsLast30Days: 17,
@@ -60,8 +63,14 @@ describe("PlatformCompanyTable", () => {
   });
 
   it("firma zawieszona pokazuje status nieaktywny", () => {
-    renderTable([{ ...baseRow, isActive: false }]);
+    renderTable([{ ...baseRow, isActive: false, lifecycleStatus: "suspended" }]);
     expect(screen.getByText(dict.statusInactive)).toBeInTheDocument();
+  });
+
+  it("firma zarchiwizowana pokazuje etykietę bez przycisku toggle", () => {
+    renderTable([{ ...baseRow, isActive: false, lifecycleStatus: "archived" }]);
+    expect(screen.getByText(dict.statusArchived)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: dict.statusArchived })).not.toBeInTheDocument();
   });
 
   it("klik w status wywołuje onToggleActive z id firmy i bieżącym stanem", async () => {

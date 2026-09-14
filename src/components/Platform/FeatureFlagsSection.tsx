@@ -10,12 +10,23 @@ import {
 import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
 import { WorkerPermissionToggles } from "@/components/Admin/WorkerPermissionToggles";
+import { CHIP_IDLE, CHIP_SELECTED } from "@/lib/uiChrome";
+import { cn } from "@/lib/cn";
+import {
+  COMPANY_PLAN_PRESETS,
+  flagsForPlanKey,
+  isCompanyPlanKey,
+  type CompanyPlanKey,
+  type CompanyPlanPreset,
+} from "@/lib/companyLifecycle";
 
 type Props = {
   companyId: number;
   dict: AppDictionary["platform"]["settings"];
   /** Gdy true — render w wierszu tabeli (bez marginesu górnego). */
   inline?: boolean;
+  initialPlanKey?: CompanyPlanKey | null;
+  onChanged?: () => Promise<void>;
 };
 
 type GpsFlagKey = (typeof GPS_FEATURE_FLAG_KEYS)[number];
@@ -26,19 +37,122 @@ function gpsFlagHint(dict: Props["dict"], key: GpsFlagKey): string {
   return typeof hint === "string" ? hint : "";
 }
 
-export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) {
+function presetLabel(dict: Props["dict"], key: CompanyPlanPreset): string {
+  if (key === "field_ops") return dict.planFieldOps;
+  if (key === "field_ops_mro") return dict.planFieldOpsMro;
+  return dict.planYard;
+}
+
+function presetHint(dict: Props["dict"], key: CompanyPlanPreset): string {
+  if (key === "field_ops") return dict.planFieldOpsHint;
+  if (key === "field_ops_mro") return dict.planFieldOpsMroHint;
+  return dict.planYardHint;
+}
+
+function PlanPresetBar({
+  dict,
+  planKey,
+  saving,
+  onApply,
+}: {
+  dict: Props["dict"];
+  planKey: CompanyPlanKey | null;
+  saving: boolean;
+  onApply: (preset: CompanyPlanPreset) => void;
+}) {
+  return (
+    <div className="mb-5">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        {dict.planPresetsTitle}
+      </p>
+      <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">{dict.planPresetsHint}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {COMPANY_PLAN_PRESETS.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            disabled={saving}
+            title={presetHint(dict, preset)}
+            onClick={() => onApply(preset)}
+            className={cn(planKey === preset ? CHIP_SELECTED : CHIP_IDLE, "disabled:opacity-60")}
+          >
+            {presetLabel(dict, preset)}
+          </button>
+        ))}
+        {planKey === "custom" || planKey == null ? (
+          <span className={CHIP_IDLE}>{dict.planCustom}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function FlagToggleGroups({
+  dict,
+  flags,
+  onToggle,
+}: {
+  dict: Props["dict"];
+  flags: FeatureFlags;
+  onToggle: (key: keyof FeatureFlags) => void;
+}) {
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {dict.gpsModuleTitle}
+        </p>
+        <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">{dict.gpsModuleHint}</p>
+        <WorkerPermissionToggles
+          toggles={GPS_FEATURE_FLAG_KEYS.map((key) => ({
+            id: key,
+            checked: flags[key],
+            onChange: () => onToggle(key),
+            label: dict[key],
+            hint: gpsFlagHint(dict, key),
+          }))}
+        />
+      </div>
+      <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          {dict.durModuleTitle}
+        </p>
+        <WorkerPermissionToggles
+          toggles={[
+            {
+              id: "dur-module",
+              checked: flags.durEnabled,
+              onChange: () => onToggle(DUR_FEATURE_FLAG_KEYS[0]),
+              label: dict.durEnabled,
+              hint: dict.durEnabledHint,
+            },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+export function FeatureFlagsSection({
+  companyId,
+  dict,
+  inline = false,
+  initialPlanKey = null,
+  onChanged,
+}: Props) {
   const apiErrors = useDictionary().apiErrors as Record<string, string>;
   const [flags, setFlags] = useState<FeatureFlags>(DEFAULT_FEATURE_FLAGS);
+  const [planKey, setPlanKey] = useState<CompanyPlanKey | null>(initialPlanKey);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [messageIsError, setMessageIsError] = useState(false);
 
-  // Reset ładowania przy zmianie firmy — w trakcie renderu, bez kaskady w efekcie.
   const [prevCompanyId, setPrevCompanyId] = useState(companyId);
   if (prevCompanyId !== companyId) {
     setPrevCompanyId(companyId);
     setLoading(true);
+    setPlanKey(initialPlanKey);
   }
 
   const loadFlags = useCallback(async () => {
@@ -47,8 +161,10 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
         credentials: "include",
       });
       if (!res.ok) return;
-      const data = (await res.json()) as { flags?: FeatureFlags };
+      const data = (await res.json()) as { flags?: FeatureFlags; planKey?: unknown };
       if (data.flags) setFlags(data.flags);
+      if (isCompanyPlanKey(data.planKey)) setPlanKey(data.planKey);
+      else if (data.planKey === null) setPlanKey(null);
     } finally {
       setLoading(false);
     }
@@ -58,7 +174,10 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
     void loadFlags();
   }, [loadFlags]);
 
-  async function persistFlags(patch: Partial<FeatureFlags>, rollback: FeatureFlags) {
+  async function persist(
+    patch: Partial<FeatureFlags> & { planKey: CompanyPlanKey },
+    rollback: { flags: FeatureFlags; planKey: CompanyPlanKey | null }
+  ) {
     setSaving(true);
     setMessage(null);
     try {
@@ -69,16 +188,25 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
         body: JSON.stringify(patch),
       });
       if (!res.ok) {
-        setFlags(rollback);
+        setFlags(rollback.flags);
+        setPlanKey(rollback.planKey);
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         setMessage(apiErrors[body.error ?? ""] ?? dict.saveError);
         setMessageIsError(true);
         return;
       }
+      const body = (await res.json().catch(() => ({}))) as {
+        flags?: FeatureFlags;
+        planKey?: unknown;
+      };
+      if (body.flags) setFlags(body.flags);
+      if (isCompanyPlanKey(body.planKey)) setPlanKey(body.planKey);
       setMessage(dict.saveSuccess);
       setMessageIsError(false);
+      await onChanged?.();
     } catch {
-      setFlags(rollback);
+      setFlags(rollback.flags);
+      setPlanKey(rollback.planKey);
       setMessage(dict.saveError);
       setMessageIsError(true);
     } finally {
@@ -89,9 +217,20 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
   async function toggleFlag(key: keyof FeatureFlags) {
     if (saving) return;
     const newValue = !flags[key];
-    const rollback = flags;
+    const rollback = { flags, planKey };
     setFlags((prev) => ({ ...prev, [key]: newValue }));
-    await persistFlags({ [key]: newValue }, rollback);
+    setPlanKey("custom");
+    await persist({ [key]: newValue, planKey: "custom" }, rollback);
+  }
+
+  async function applyPreset(preset: CompanyPlanPreset) {
+    if (saving) return;
+    const nextFlags = flagsForPlanKey(preset);
+    if (!nextFlags) return;
+    const rollback = { flags, planKey };
+    setFlags(nextFlags);
+    setPlanKey(preset);
+    await persist({ ...nextFlags, planKey: preset }, rollback);
   }
 
   const shellClass = inline
@@ -113,44 +252,14 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
         <p className="mt-0.5 text-xs text-zinc-500">{dict.subtitle}</p>
       </div>
 
-      <div className="space-y-5">
-        <div>
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {dict.gpsModuleTitle}
-          </p>
-          <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">{dict.gpsModuleHint}</p>
-          <WorkerPermissionToggles
-            toggles={GPS_FEATURE_FLAG_KEYS.map((key) => ({
-              id: key,
-              checked: flags[key],
-              onChange: () => {
-                void toggleFlag(key);
-              },
-              label: dict[key],
-              hint: gpsFlagHint(dict, key),
-            }))}
-          />
-        </div>
+      <PlanPresetBar
+        dict={dict}
+        planKey={planKey}
+        saving={saving}
+        onApply={(preset) => void applyPreset(preset)}
+      />
 
-        <div className="border-t border-zinc-100 pt-4 dark:border-zinc-800">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {dict.durModuleTitle}
-          </p>
-          <WorkerPermissionToggles
-            toggles={[
-              {
-                id: "dur-module",
-                checked: flags.durEnabled,
-                onChange: () => {
-                  void toggleFlag(DUR_FEATURE_FLAG_KEYS[0]);
-                },
-                label: dict.durEnabled,
-                hint: dict.durEnabledHint,
-              },
-            ]}
-          />
-        </div>
-      </div>
+      <FlagToggleGroups dict={dict} flags={flags} onToggle={(key) => void toggleFlag(key)} />
 
       {message ? (
         <p className={`mt-3 text-xs ${messageIsError ? "text-red-600" : "text-emerald-600"}`}>

@@ -1,12 +1,21 @@
 import { db } from "@/db";
 import { companies, users, workSessions, workOrders, deviceLogs } from "@/db/schema";
 import { sql, eq, gte, and, count } from "drizzle-orm";
+import {
+  isCompanyLifecycleStatus,
+  isCompanyPlanKey,
+  type CompanyLifecycleStatus,
+  type CompanyPlanKey,
+} from "@/lib/companyLifecycle";
 
 export type CompanyUsageRow = {
   companyId: number;
   companyName: string;
   slug: string;
   isActive: boolean;
+  lifecycleStatus: CompanyLifecycleStatus;
+  planKey: CompanyPlanKey | null;
+  internalNote: string | null;
   userCount: number;
   workerCount: number;
   sessionsLast30Days: number;
@@ -71,6 +80,9 @@ export class PlatformAnalyticsService {
       companyName: c.name,
       slug: c.slug,
       isActive: c.isActive,
+      lifecycleStatus: isCompanyLifecycleStatus(c.lifecycleStatus) ? c.lifecycleStatus : "active",
+      planKey: isCompanyPlanKey(c.planKey) ? c.planKey : null,
+      internalNote: c.internalNote ?? null,
       userCount: usersMap.get(c.id) ?? 0,
       workerCount: workersMap.get(c.id) ?? 0,
       sessionsLast30Days: sessionsMap.get(c.id) ?? 0,

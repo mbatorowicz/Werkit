@@ -246,6 +246,13 @@
       "when": 1749513600000,
       "tag": "0034_platform_audit_last_login",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1749600000000,
+      "tag": "0035_company_lifecycle_plan",
+      "breakpoints": true
     }
   ]
 }

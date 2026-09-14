@@ -47,7 +47,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
-| `companies` | `slug` (unique) | `id`, `name`, `is_active`, `created_at` | — (multi-tenant; patrz **0017**) |
+| `companies` | `slug` (unique) | `id`, `name`, `is_active`, **`lifecycle_status`** ∈ `trial\|active\|suspended\|archived` (CHECK; `is_active` zawsze z `lifecycleToIsActive`), **`internal_note?`**, **`plan_key?`** ∈ `field_ops\|field_ops_mro\|yard\|custom`, `created_at` | — (multi-tenant; patrz **0017**, cykl życia **0035**) |
 | `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id`, **`reports_to_id?`** (opcjonalny przełożony — FK self), **`last_login_at?`** (udane logowanie) | `company_id → companies.id` (restrict); `reports_to_id → users.id` (set null). Migracja **0028**; `last_login_at` — **0034**. |
 | `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
 | `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
@@ -121,6 +121,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0032 | `0032_company_name_default.sql` | Default `company_settings.company_name` → `Werkit`; UPDATE istniejących wierszy z `Werkit ERP`. |
 | 0033 | `0033_login_attempts.sql` | Tabela `login_attempts` (`key` PK, `count`, `reset_at`) — rate limit logowania między instancjami Vercel. |
 | 0034 | `0034_platform_audit_last_login.sql` | `users.last_login_at`; tabela `platform_audit_events` (audyt mutacji panelu platformy). |
+| 0035 | `0035_company_lifecycle_plan.sql` | `companies.lifecycle_status` / `internal_note` / `plan_key`; CHECK + backfill `is_active=false` → `suspended`. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -176,6 +177,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 - `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
 - Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*` (control plane: konta firmy, flagi pakietu, audyt). **Nie** ogląda mapy GPS ani magazynu tenanta.
 - **Impersonacja (PL1):** superadmin wchodzi w `/admin` jako istniejące konto `admin`/`viewer` firmy. Cookie `platform_resume` trzyma JWT superadmina; `auth_token` to JWT celu (TTL 30 min, claim `impersonatorUserId`). Banner w `admin/layout.tsx` — **Zakończ** → `POST /api/platform/impersonation/end` → `/platform`. Czysty superadmin nadal nie wejdzie na `/admin`. `/worker` zablokowany.
+- **Cykl życia (PL2):** `lifecycle_status` + `is_active` zsynchronizowane (`trial`/`active` → login tak; `suspended`/`archived` → nie). Lista ukrywa archived (filtr). Presety pakietu `field_ops` / `field_ops_mro` / `yard` wołają `PUT feature-flags` i ustawiają `plan_key`.
 
 ---
 
@@ -228,13 +230,13 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 |---|---|---|
 | `/api/platform/companies` | GET | `PlatformCompanyService.listCompanies` |
 | `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy; hasło → `passwordPolicy`, 400 `weak_password`); audyt `company.create` |
-| `/api/platform/companies/[id]` | PATCH | `PlatformCompanyService.updateCompany`; audyt `company.update` / `company.activate` / `company.deactivate` |
-| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` (ta sama polityka hasła, 400 `weak_password`); audyt `admin.create` |
+| `/api/platform/companies/[id]` | PATCH | `PlatformCompanyService.updateCompany` (`lifecycleStatus` / `isActive` / notatka / `planKey`); audyt `company.update` / `company.activate` / `company.deactivate` / `company.archive`. `is_active` zawsze z helpera — nie rozjeżdża się ze statusem. |
+| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` (ta sama polityka hasła, 400 `weak_password`); 403 `company_inactive` gdy suspended/archived; audyt `admin.create` |
 | `/api/platform/companies/[id]/users` | GET | `PlatformTenantUserService.listCompanyUsers` — admin+viewer, **bez** `passwordHash` |
 | `/api/platform/companies/[id]/users/[userId]` | PATCH `{ isActive }` | `PlatformTenantUserService.setUserActive`; 409 `last_admin`; audyt `admin.activate` / `admin.deactivate` |
 | `/api/platform/companies/[id]/users/[userId]/password` | POST `{ password }` | reset hasła (`weak_password` 400); **nie** zwraca hash; audyt `admin.reset_password` bez metadata hasła |
-| `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` |
-| `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags`; audyt `flags.update` |
+| `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` + `planKey` z `companies` |
+| `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags` + `plan_key`; preset `yard`/`field_ops`/`field_ops_mro` nadpisuje pełny zestaw flag; ręczny patch → `plan_key=custom`. Audyt `flags.update` z `{ planKey, flags }`. |
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
 | `/api/platform/impersonation` | GET | Status sesji wsparcia `{ active }` — superadmin albo impersonacja (claim `impersonatorUserId`) |
 | `/api/platform/impersonation` | POST `{ companyId, targetUserId, reason? }` | Start: kopia `auth_token` → `platform_resume`, JWT celu 30 min; audyt `impersonation.start`. 403 `company_inactive` / `user_inactive`; 409 `already_impersonating` |
@@ -404,7 +406,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `PlatformCompanyService` / `PlatformAnalyticsService`
 - Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
-- Analityka użycia per firma na `/platform`.
+- `updateCompany`: `lifecycleStatus` ustawia `is_active` przez `lifecycleToIsActive`; toggle `isActive` mapuje active/trial ↔ suspended (archived nie rusza).
+- Analityka użycia per firma na `/platform` (w tym `lifecycleStatus`, `planKey`, `internalNote`). Filtr „ukryj zarchiwizowane” jest w UI (`filterCompaniesForRegistry`).
 
 ### `PlatformTenantUserService` (`src/services/PlatformTenantUserService.ts`)
 - Lista adminów/viewerów firmy (bez `passwordHash`), dezaktywacja z blokadą `last_admin`, reset hasła. **Nie** używa `companyId` z sesji admina firmy — to warstwa control plane.
@@ -662,6 +665,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `photoUpload.ts` / `photoBlobPaths.ts` | Upload Vercel Blob (private + presign). Nowe zdjęcia: `werkit-photos/{companyId}/{sessionId}/`; kasowanie listuje też legacy `werkit-photos/{sessionId}/`. |
 | `passwordCrypto.ts` | `comparePassword` / `hashPassword` / `DUMMY_BCRYPT_HASH` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`**. Dummy hash (stała w kodzie) przy nieistniejącym userze na loginie. |
 | `passwordPolicy.ts` | `PASSWORD_MIN_LENGTH = 6`, `isPasswordPolicyOk` — odrzut `1234` / `123456` / `000000` / `111111` / login==hasło. Call-site: POST/PUT users, POST platform companies (+ admin). Login **nie** woła polityki. |
+| `companyLifecycle.ts` | `lifecycleToIsActive`, `applyIsActiveToggle`, presety `PLAN_PRESET_FLAGS` (`field_ops` / `field_ops_mro` / `yard`), filtr archived. SSOT cyklu życia firmy (PL2). |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
 | `requireAdminMutation.ts` | `guardAdminMutation()` — 401/403 albo `undefined`. Rola **z DB** (żywy principal), druga linia za `proxy`. |
 | `requireDispatchMutation.ts` | `guardDispatchMutation()` — admin **lub** viewer/worker z `DelegationScopeService.hasDelegationRights`; rola z DB. |

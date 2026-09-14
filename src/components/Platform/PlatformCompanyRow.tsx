@@ -5,6 +5,7 @@ import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
 import { cn } from "@/lib/cn";
 import { TABLE_BODY_ROW, TABLE_CELL_NAME, TABLE_TD, TABLE_TD_RIGHT } from "@/lib/uiTable";
+import type { CompanyLifecycleStatus } from "@/lib/companyLifecycle";
 
 export interface PlatformCompanyRowProps {
   row: CompanyUsageRow;
@@ -15,6 +16,13 @@ export interface PlatformCompanyRowProps {
   onShowDetails: (row: CompanyUsageRow) => void;
 }
 
+function lifecycleLabel(dict: AppDictionary["platform"], status: CompanyLifecycleStatus): string {
+  if (status === "trial") return dict.statusTrial;
+  if (status === "archived") return dict.statusArchived;
+  if (status === "suspended") return dict.statusInactive;
+  return dict.statusActive;
+}
+
 export function PlatformCompanyRow({
   row: r,
   dict,
@@ -23,6 +31,14 @@ export function PlatformCompanyRow({
   onShowDetails,
 }: PlatformCompanyRowProps) {
   const togglePending = togglePendingId === r.companyId;
+  const archived = r.lifecycleStatus === "archived";
+  const statusText = lifecycleLabel(dict, r.lifecycleStatus);
+  const statusClass = cn(
+    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
+    r.lifecycleStatus === "active" || r.lifecycleStatus === "trial"
+      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+      : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
+  );
 
   return (
     <tr className={TABLE_BODY_ROW}>
@@ -40,21 +56,20 @@ export function PlatformCompanyRow({
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.pendingOrders}</td>
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.deviceLogsLast7Days}</td>
       <td className={TABLE_TD}>
-        <button
-          type="button"
-          disabled={togglePending}
-          onClick={() => onToggleActive(r.companyId, r.isActive)}
-          title={dict.toggleActive}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
-            r.isActive
-              ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-              : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-          )}
-        >
-          {togglePending && <Loader2 className="w-3 h-3 animate-spin" aria-hidden />}
-          {r.isActive ? dict.statusActive : dict.statusInactive}
-        </button>
+        {archived ? (
+          <span className={statusClass}>{statusText}</span>
+        ) : (
+          <button
+            type="button"
+            disabled={togglePending}
+            onClick={() => onToggleActive(r.companyId, r.isActive)}
+            title={dict.toggleActive}
+            className={statusClass}
+          >
+            {togglePending && <Loader2 className="w-3 h-3 animate-spin" aria-hidden />}
+            {statusText}
+          </button>
+        )}
       </td>
       <td className={TABLE_TD}>
         <button

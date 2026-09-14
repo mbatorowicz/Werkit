@@ -4,13 +4,20 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { useDictionary } from "@/i18n";
+import { formatDict, useDictionary } from "@/i18n";
+import { useAppDialog } from "@/components/AppDialogProvider";
 import { cn } from "@/lib/cn";
-import { FOCUS_EMERALD, INPUT_BASE } from "@/lib/uiTokens";
-import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
+import { INPUT_BASE, SELECT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
+import { FIELD_HINT, FIELD_LABEL } from "@/lib/uiTypography";
+import { BTN_DANGER_SOFT, BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 import { CompanyAdminsTab } from "@/components/Platform/CompanyAdminsTab";
+import {
+  INTERNAL_NOTE_MAX_LENGTH,
+  isCompanyLifecycleStatus,
+  type CompanyLifecycleStatus,
+} from "@/lib/companyLifecycle";
 
 type TabId = "data" | "features" | "admins" | "metrics";
 
@@ -21,6 +28,15 @@ type Props = {
   /** Po każdej udanej zmianie — rodzic odświeża listę firm. */
   onChanged: () => Promise<void>;
 };
+
+const EDITABLE_LIFECYCLES: CompanyLifecycleStatus[] = ["trial", "active", "suspended"];
+
+function lifecycleLabel(dict: AppDictionary["platform"], status: CompanyLifecycleStatus): string {
+  if (status === "trial") return dict.statusTrial;
+  if (status === "archived") return dict.statusArchived;
+  if (status === "suspended") return dict.statusInactive;
+  return dict.statusActive;
+}
 
 /** Panel szczegółów organizacji: dane, flagi funkcji, administratorzy, wskaźniki. */
 export function PlatformCompanyDetailsModal({ row, dict, onClose, onChanged }: Props) {
@@ -67,9 +83,22 @@ export function PlatformCompanyDetailsModal({ row, dict, onClose, onChanged }: P
           ))}
         </div>
         <div className="p-6">
-          {tab === "data" && <CompanyDataTab row={row} dict={dict} onChanged={onChanged} />}
+          {tab === "data" && (
+            <CompanyDataTab
+              key={`${row.companyId}-${row.lifecycleStatus}`}
+              row={row}
+              dict={dict}
+              onChanged={onChanged}
+            />
+          )}
           {tab === "features" && (
-            <FeatureFlagsSection companyId={row.companyId} dict={dict.settings} inline />
+            <FeatureFlagsSection
+              companyId={row.companyId}
+              dict={dict.settings}
+              inline
+              initialPlanKey={row.planKey}
+              onChanged={onChanged}
+            />
           )}
           {tab === "admins" && <CompanyAdminsTab row={row} dict={dict} onChanged={onChanged} />}
           {tab === "metrics" && <CompanyMetricsTab row={row} dict={dict} />}
@@ -89,12 +118,19 @@ function CompanyDataTab({
   onChanged: () => Promise<void>;
 }) {
   const apiErrors = useDictionary().apiErrors as Record<string, string>;
+  const { confirm: appConfirm } = useAppDialog();
   const [name, setName] = useState(row.companyName);
   const [slug, setSlug] = useState(row.slug);
+  const [lifecycleStatus, setLifecycleStatus] = useState<CompanyLifecycleStatus>(
+    row.lifecycleStatus
+  );
+  const [internalNote, setInternalNote] = useState(row.internalNote ?? "");
   const [savePending, setSavePending] = useState(false);
-  const [statusPending, setStatusPending] = useState(false);
+  const [archivePending, setArchivePending] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
+
+  const archived = row.lifecycleStatus === "archived";
 
   async function patchCompany(body: Record<string, unknown>): Promise<boolean> {
     const res = await fetch(`/api/platform/companies/${row.companyId}`, {
@@ -120,28 +156,36 @@ function CompanyDataTab({
     setSavePending(true);
     setMsg(null);
     try {
-      await patchCompany({ name: name.trim(), slug: slug.trim().toLowerCase() });
+      await patchCompany({
+        name: name.trim(),
+        slug: slug.trim().toLowerCase(),
+        lifecycleStatus,
+        internalNote,
+      });
     } finally {
       setSavePending(false);
     }
   }
 
-  async function toggleStatus() {
-    setStatusPending(true);
+  async function archiveCompany() {
+    const confirmed = await appConfirm({
+      message: formatDict(dict.archiveCompanyConfirm, { name: row.companyName }),
+      variant: "danger",
+    });
+    if (!confirmed) return;
+    setArchivePending(true);
     setMsg(null);
     try {
-      await patchCompany({ isActive: !row.isActive });
+      await patchCompany({ lifecycleStatus: "archived" });
     } finally {
-      setStatusPending(false);
+      setArchivePending(false);
     }
   }
 
   return (
     <form onSubmit={saveData} className="space-y-4">
       <label className="block text-sm">
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.organizationName}
-        </span>
+        <span className={FIELD_LABEL}>{dict.organizationName}</span>
         <input
           required
           value={name}
@@ -150,9 +194,7 @@ function CompanyDataTab({
         />
       </label>
       <label className="block text-sm">
-        <span className="font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.organizationSlug}
-        </span>
+        <span className={FIELD_LABEL}>{dict.organizationSlug}</span>
         <input
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
@@ -160,33 +202,56 @@ function CompanyDataTab({
         />
       </label>
 
-      <div className="flex items-center gap-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {dict.colStatus}
-        </span>
-        <button
-          type="button"
-          disabled={statusPending}
-          onClick={() => void toggleStatus()}
-          title={dict.toggleActive}
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors disabled:opacity-60",
-            FOCUS_EMERALD,
-            row.isActive
-              ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-              : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700"
-          )}
+      <label className="block text-sm">
+        <span className={FIELD_LABEL}>{dict.lifecycleLabel}</span>
+        <select
+          value={lifecycleStatus}
+          onChange={(e) => {
+            const next = e.target.value;
+            if (isCompanyLifecycleStatus(next)) setLifecycleStatus(next);
+          }}
+          className={cn(SELECT_BASE, "mt-1.5")}
         >
-          {statusPending && <Loader2 className="h-3 w-3 animate-spin" aria-hidden />}
-          {row.isActive ? dict.statusActive : dict.statusInactive}
-        </button>
-      </div>
+          {(archived
+            ? (["archived", ...EDITABLE_LIFECYCLES] as const)
+            : EDITABLE_LIFECYCLES
+          ).map((status) => (
+            <option key={status} value={status}>
+              {lifecycleLabel(dict, status)}
+            </option>
+          ))}
+        </select>
+        <span className={cn(FIELD_HINT, "mt-1 block")}>{dict.lifecycleHint}</span>
+      </label>
+
+      <label className="block text-sm">
+        <span className={FIELD_LABEL}>{dict.internalNote}</span>
+        <textarea
+          value={internalNote}
+          maxLength={INTERNAL_NOTE_MAX_LENGTH}
+          onChange={(e) => setInternalNote(e.target.value)}
+          placeholder={dict.internalNotePlaceholder}
+          className={cn(TEXTAREA_BASE, "mt-1.5")}
+        />
+        <span className={cn(FIELD_HINT, "mt-1 block")}>{dict.internalNoteHint}</span>
+      </label>
 
       <div className="flex flex-wrap items-center gap-3 pt-1">
         <button type="submit" disabled={savePending} className={BTN_PRIMARY_COMPACT_SM}>
           {savePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
           {dict.saveChanges}
         </button>
+        {!archived ? (
+          <button
+            type="button"
+            disabled={archivePending}
+            onClick={() => void archiveCompany()}
+            className={BTN_DANGER_SOFT}
+          >
+            {archivePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+            {dict.archiveCompany}
+          </button>
+        ) : null}
         {msg && (
           <p
             role="status"

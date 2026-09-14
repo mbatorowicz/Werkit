@@ -13,6 +13,9 @@ const baseRow: CompanyUsageRow = {
   companyName: "Margaz Sp. z o.o.",
   slug: "margaz",
   isActive: true,
+  lifecycleStatus: "active",
+  planKey: "field_ops",
+  internalNote: null,
   userCount: 4,
   workerCount: 3,
   sessionsLast30Days: 17,
@@ -60,21 +63,27 @@ describe("PlatformCompanyDetailsModal", () => {
     await waitFor(() => expect(onChanged).toHaveBeenCalled());
 
     const call = fetchMock.mock.calls.find(([, init]) => init?.method === "PATCH");
-    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ name: "Margaz 2", slug: "margaz" });
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+      name: "Margaz 2",
+      slug: "margaz",
+      lifecycleStatus: "active",
+      internalNote: "",
+    });
   });
 
-  it("zakładka Dane: klik w pigułkę statusu wysyła PATCH isActive", async () => {
+  it("zakładka Dane: archiwizacja po confirm wysyła PATCH lifecycleStatus archived", async () => {
     const fetchMock = stubFetch([
       { url: "/api/platform/companies/7", method: "PATCH", json: { success: true } },
     ]);
     const user = userEvent.setup();
     const { onChanged } = renderModal();
 
-    await user.click(screen.getByRole("button", { name: dict.statusActive }));
+    await user.click(screen.getByRole("button", { name: dict.archiveCompany }));
+    await user.click(screen.getByRole("button", { name: plDict.admin.ui.dialogConfirm }));
 
     await waitFor(() => expect(onChanged).toHaveBeenCalled());
     const call = fetchMock.mock.calls.find(([, init]) => init?.method === "PATCH");
-    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ isActive: false });
+    expect(JSON.parse(String(call?.[1]?.body))).toEqual({ lifecycleStatus: "archived" });
   });
 
   it("zakładka Administratorzy: pokazuje listę kont i wysyła POST nowego admina", async () => {
