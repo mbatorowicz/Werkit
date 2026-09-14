@@ -119,7 +119,9 @@ export default function LiveMap({
     routeWaypoints
   );
   const navEnabled = enableNavigation && preferPivotNavigation;
-  const canEditWaypointsOnMap = Boolean(enableOsrmRoute && editableRoute && onPlannedRouteWaypointsChange);
+  const canEditWaypointsOnMap = Boolean(
+    enableOsrmRoute && editableRoute && onPlannedRouteWaypointsChange
+  );
 
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);

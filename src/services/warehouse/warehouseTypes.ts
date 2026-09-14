@@ -13,12 +13,7 @@ export type WarehouseInventoryStore = {
   kind: WarehouseSkuKind;
   fail: WarehouseFail;
   readQuantity(companyId: number, skuId: number, client: WarehouseDb): Promise<string | null>;
-  applyDelta(
-    companyId: number,
-    skuId: number,
-    delta: string,
-    client: WarehouseDb
-  ): Promise<void>;
+  applyDelta(companyId: number, skuId: number, delta: string, client: WarehouseDb): Promise<void>;
   setQuantity(
     companyId: number,
     skuId: number,

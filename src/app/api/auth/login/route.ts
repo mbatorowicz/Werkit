@@ -3,16 +3,8 @@ import { SignJWT } from "jose";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { comparePassword, DUMMY_BCRYPT_HASH } from "@/lib/passwordCrypto";
-import {
-  AUTH_TOKEN_MAX_AGE_SECONDS,
-  authTokenCookieAttrs,
-  isHttpsRequest,
-} from "@/lib/authCookie";
-import {
-  clearLoginRateLimit,
-  isLoginRateLimited,
-  recordLoginFailure,
-} from "@/lib/serverRateLimit";
+import { AUTH_TOKEN_MAX_AGE_SECONDS, authTokenCookieAttrs, isHttpsRequest } from "@/lib/authCookie";
+import { clearLoginRateLimit, isLoginRateLimited, recordLoginFailure } from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);

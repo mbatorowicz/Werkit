@@ -43,9 +43,11 @@ describe("buildAdminNavLinks", () => {
     expect(logisticsIdx).toBeGreaterThanOrEqual(0);
     expect(systemIdx).toBeGreaterThan(logisticsIdx);
 
-    const logisticsRoutes = items.slice(logisticsIdx + 1, systemIdx).filter(
-      (item): item is Extract<(typeof items)[number], { kind: "route" }> => item.kind === "route"
-    );
+    const logisticsRoutes = items
+      .slice(logisticsIdx + 1, systemIdx)
+      .filter(
+        (item): item is Extract<(typeof items)[number], { kind: "route" }> => item.kind === "route"
+      );
 
     const materialsIdx = logisticsRoutes.findIndex((item) => item.href === adminRoutes.materials);
     const partsIdx = logisticsRoutes.findIndex((item) => item.href === adminRoutes.dur.warehouse);

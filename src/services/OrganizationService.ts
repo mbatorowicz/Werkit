@@ -551,10 +551,7 @@ export class OrganizationService {
 
     if (!existing) return undefined;
 
-    const [deleted] = await db
-      .delete(teamMembers)
-      .where(eq(teamMembers.id, id))
-      .returning();
+    const [deleted] = await db.delete(teamMembers).where(eq(teamMembers.id, id)).returning();
 
     if (deleted?.role === "leader") {
       await this.clearTeamLeaderIfMatches(deleted.teamId, deleted.userId);

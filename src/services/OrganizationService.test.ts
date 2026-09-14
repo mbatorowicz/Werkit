@@ -475,14 +475,12 @@ describe("OrganizationService", () => {
       };
       updateMock.mockReturnValue(updateChain);
 
-      selectMock
-        .mockReturnValueOnce(foundSelect([{ id: 5 }]))
-        .mockReturnValueOnce({
-          from: vi.fn(function (this: unknown) {
-            return this;
-          }),
-          where: vi.fn(() => resultArray([])),
-        });
+      selectMock.mockReturnValueOnce(foundSelect([{ id: 5 }])).mockReturnValueOnce({
+        from: vi.fn(function (this: unknown) {
+          return this;
+        }),
+        where: vi.fn(() => resultArray([])),
+      });
 
       const insertChain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
@@ -673,9 +671,9 @@ describe("OrganizationService", () => {
         .mockReturnValueOnce(foundSelect([]));
 
       const { OrganizationService } = await import("./OrganizationService");
-      await expect(
-        OrganizationService.addTeamMember(1, { teamId: 1, userId: 99 })
-      ).rejects.toThrow("invalid_user");
+      await expect(OrganizationService.addTeamMember(1, { teamId: 1, userId: 99 })).rejects.toThrow(
+        "invalid_user"
+      );
     });
   });
 
@@ -719,9 +717,7 @@ describe("OrganizationService", () => {
   describe("removeTeamMember", () => {
     it("usuwa czlonka z zespolu", async () => {
       const deleted = { id: 1, teamId: 1, userId: 10, role: "member", joinedAt: new Date() };
-      selectMock.mockReturnValue(
-        foundSelect([{ id: 1, teamId: 1, userId: 10, role: "member" }])
-      );
+      selectMock.mockReturnValue(foundSelect([{ id: 1, teamId: 1, userId: 10, role: "member" }]));
       const chain = {
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([deleted])) })),
       };

@@ -129,7 +129,9 @@ export function WizardStep1Category({
             className="flex items-center gap-3 rounded-lg border px-4 py-3"
             style={categoryColorSurfaceStyle(selectedCategory.color)}
           >
-            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SURFACE_MINT_INPUT} text-emerald-500`}>
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SURFACE_MINT_INPUT} text-emerald-500`}
+            >
               <SelectedIcon className="h-5 w-5" />
             </div>
             <div>

@@ -1,10 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import {
-  DEFAULT_ADMIN_GPS_FLAGS,
-  type AdminGpsCapabilityFlags,
-} from "@/types/featureFlags";
+import { DEFAULT_ADMIN_GPS_FLAGS, type AdminGpsCapabilityFlags } from "@/types/featureFlags";
 
 export type DelegationScope = "all" | "scoped" | "none";
 

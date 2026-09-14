@@ -56,11 +56,9 @@ describe("Izolacja tenantów: organizacja + grupa maszyn (T2)", () => {
   });
 
   it("update/delete działu i zespołu firmy B z companyId A nie mutuje B", async () => {
-    const updated = await OrganizationService.updateDepartment(
-      tenantA.companyId,
-      tenantB.deptId,
-      { name: "Hacked" }
-    );
+    const updated = await OrganizationService.updateDepartment(tenantA.companyId, tenantB.deptId, {
+      name: "Hacked",
+    });
     expect(updated).toBeUndefined();
 
     const stillB = await OrganizationService.getDepartment(tenantB.companyId, tenantB.deptId);

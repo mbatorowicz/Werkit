@@ -111,9 +111,7 @@ async function handleLoginPage(
   if (!route.isAuthPage) return null;
 
   const loginToken = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
-  const dropStaleAuth = isAuthCookieClearLoginReason(
-    request.nextUrl.searchParams.get("reason")
-  );
+  const dropStaleAuth = isAuthCookieClearLoginReason(request.nextUrl.searchParams.get("reason"));
 
   if (!loginToken || dropStaleAuth) {
     const res = NextResponse.next();

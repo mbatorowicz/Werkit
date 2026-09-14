@@ -41,11 +41,7 @@ export function serializeWorkerAppSettings(row: unknown): AppSettings | null {
   }
   const r = row as Record<string, unknown>;
   const s: AppSettings = {
-    gpsTrackingEnabled: boolFlag(
-      r,
-      "gpsTrackingEnabled",
-      DEFAULT_FEATURE_FLAGS.gpsTrackingEnabled
-    ),
+    gpsTrackingEnabled: boolFlag(r, "gpsTrackingEnabled", DEFAULT_FEATURE_FLAGS.gpsTrackingEnabled),
     mapViewEnabled: boolFlag(r, "mapViewEnabled", DEFAULT_FEATURE_FLAGS.mapViewEnabled),
     geofencingEnabled: boolFlag(r, "geofencingEnabled", DEFAULT_FEATURE_FLAGS.geofencingEnabled),
     routePlanningEnabled: boolFlag(

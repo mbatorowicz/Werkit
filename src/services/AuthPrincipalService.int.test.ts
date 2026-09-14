@@ -4,7 +4,12 @@ import { db } from "@/db";
 import { companies, users } from "@/db/schema";
 import { requireLivePrincipalOr401 } from "@/lib/livePrincipal";
 import { AuthPrincipalService } from "@/services/AuthPrincipalService";
-import { cleanupTestCompany, createTestCompany, createTestUser, uniqueTestSlug } from "@/test/integrationDb";
+import {
+  cleanupTestCompany,
+  createTestCompany,
+  createTestUser,
+  uniqueTestSlug,
+} from "@/test/integrationDb";
 
 describe("AuthPrincipalService (integracja z bazą)", () => {
   let companyId: number;

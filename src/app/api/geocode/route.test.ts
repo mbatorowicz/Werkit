@@ -70,12 +70,7 @@ describe("GET /api/geocode", () => {
     vi.mocked(requireCompanyScopedSession).mockResolvedValue(scopedOk);
     vi.mocked(GeocodeRateLimitService.isLimited).mockResolvedValue(false);
     vi.mocked(GeocodeRateLimitService.record).mockResolvedValue(1);
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue(
-        jsonOk([{ lat: "52.2297", lon: "21.0122" }])
-      )
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonOk([{ lat: "52.2297", lon: "21.0122" }])));
 
     const res = await GET(new Request("http://localhost/api/geocode?q=warszawa"), undefined);
     expect(res.status).toBe(200);

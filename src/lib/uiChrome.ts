@@ -26,11 +26,7 @@ export const MODAL_HEADER = cn(
   SURFACE_CHROME
 );
 
-export const MODAL_FOOTER = cn(
-  "shrink-0 border-t px-6 py-4",
-  BORDER_DIVIDER,
-  SURFACE_CHROME
-);
+export const MODAL_FOOTER = cn("shrink-0 border-t px-6 py-4", BORDER_DIVIDER, SURFACE_CHROME);
 
 export const MODAL_CLOSE_BTN = cn(
   "rounded-md p-1 transition",

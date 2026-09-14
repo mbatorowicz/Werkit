@@ -40,9 +40,7 @@ export function LoginCardContent({
         <p className={cn(PAGE_SUBTITLE, "mt-1")}>{dict.login.subtitle}</p>
       </div>
 
-      {error && (
-        <div className={cn(ALERT_DANGER, "mb-6 text-center")}>{error}</div>
-      )}
+      {error && <div className={cn(ALERT_DANGER, "mb-6 text-center")}>{error}</div>}
 
       {bioOffered && (
         <>

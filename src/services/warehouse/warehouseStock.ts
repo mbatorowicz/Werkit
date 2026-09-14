@@ -37,9 +37,7 @@ export async function readWarehouseQuantity(
   const [row] = await client
     .select({ quantity: materialInventory.quantity })
     .from(materialInventory)
-    .where(
-      and(eq(materialInventory.companyId, companyId), eq(materialInventory.materialId, skuId))
-    )
+    .where(and(eq(materialInventory.companyId, companyId), eq(materialInventory.materialId, skuId)))
     .limit(1);
   return quantityOrNull(row?.quantity);
 }

@@ -130,7 +130,8 @@ export const de: AppDictionary = {
     customer_in_use: "Kunde ist Aufträgen zugewiesen und kann nicht gelöscht werden.",
     missing_credentials: "Login oder Passwort fehlt.",
     invalid_credentials: "Ungültige Anmeldedaten.",
-    too_many_attempts: "Zu viele fehlgeschlagene Anmeldeversuche. Versuchen Sie es in 15 Minuten erneut.",
+    too_many_attempts:
+      "Zu viele fehlgeschlagene Anmeldeversuche. Versuchen Sie es in 15 Minuten erneut.",
     weak_password:
       "Passwort ist zu schwach. Mindestens 6 Zeichen, keine offensichtlichen PINs (123456, 000000).",
     admin_password_required: "Administrator-Passwort erforderlich.",
@@ -1355,7 +1356,8 @@ export const de: AppDictionary = {
       mapViewEnabled: "Kartenansicht",
       mapViewEnabledHint: "Karte im Admin-Panel und in der Arbeiter-App anzeigen.",
       geofencingEnabled: "Geofencing",
-      geofencingEnabledHint: "Bestätigung „Angekommen“, wenn der Arbeiter außerhalb des Radius ist.",
+      geofencingEnabledHint:
+        "Bestätigung „Angekommen“, wenn der Arbeiter außerhalb des Radius ist.",
       routePlanningEnabled: "Routenplanung",
       routePlanningEnabledHint: "OSRM und Besuchsreihenfolge.",
       navigationEnabled: "Schritt-für-Schritt-Navigation",

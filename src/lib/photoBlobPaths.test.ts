@@ -9,10 +9,7 @@ describe("session photo blob paths", () => {
   });
 
   it("kasowanie listuje nowy i legacy prefiks", () => {
-    expect(sessionPhotoBlobPrefixes(42, 7)).toEqual([
-      "werkit-photos/7/42/",
-      "werkit-photos/42/",
-    ]);
+    expect(sessionPhotoBlobPrefixes(42, 7)).toEqual(["werkit-photos/7/42/", "werkit-photos/42/"]);
   });
 
   it("bez companyId zostaje tylko legacy prefiks", () => {

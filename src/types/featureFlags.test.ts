@@ -59,9 +59,9 @@ describe("featureFlags GPS module", () => {
 
   it("canAssignWorkerRouteEdit wymaga mapy i planowania trasy", () => {
     expect(canAssignWorkerRouteEdit(DEFAULT_FEATURE_FLAGS)).toBe(true);
-    expect(
-      canAssignWorkerRouteEdit({ ...DEFAULT_FEATURE_FLAGS, mapViewEnabled: false })
-    ).toBe(false);
+    expect(canAssignWorkerRouteEdit({ ...DEFAULT_FEATURE_FLAGS, mapViewEnabled: false })).toBe(
+      false
+    );
     expect(
       canAssignWorkerRouteEdit({ ...DEFAULT_FEATURE_FLAGS, routePlanningEnabled: false })
     ).toBe(false);

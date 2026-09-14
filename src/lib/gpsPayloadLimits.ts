@@ -21,7 +21,14 @@ export type NormalizedGpsPoint = {
 };
 
 export function isFiniteGpsCoord(lat: number, lng: number): boolean {
-  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
 }
 
 export function isGpsTimestampInWindow(ts: Date, nowMs: number): boolean {

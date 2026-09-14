@@ -111,11 +111,7 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
           closeOnBackdropClick={false}
           footer={
             <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <UiButton
-                type="button"
-                variant="secondaryFull"
-                onClick={() => closeConfirm(false)}
-              >
+              <UiButton type="button" variant="secondaryFull" onClick={() => closeConfirm(false)}>
                 {confirmOpts.cancelLabel ?? ui.modalCancel}
               </UiButton>
               <UiButton

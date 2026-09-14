@@ -1,8 +1,5 @@
 import { resolveOrderType } from "@/lib/orderType";
-import {
-  resolvedCategoryFieldFlags,
-  type CategoryFieldFlags,
-} from "@/lib/workOrderCategoryFields";
+import { resolvedCategoryFieldFlags, type CategoryFieldFlags } from "@/lib/workOrderCategoryFields";
 import type { OrderType } from "@/types/worker";
 
 /**
@@ -48,7 +45,9 @@ export function narrowGpsPolicy(value: unknown): GpsPolicy | undefined {
 }
 
 /** GPS sesji: kanoniczne `gpsPolicy`, z fallbackiem do legacy `categoryIsStationary`. */
-export function gpsPolicyFromSession(session: SessionGpsPolicySource | null | undefined): GpsPolicy {
+export function gpsPolicyFromSession(
+  session: SessionGpsPolicySource | null | undefined
+): GpsPolicy {
   const explicit = narrowGpsPolicy(session?.gpsPolicy);
   if (explicit) return explicit;
   return resolveGpsPolicy(session?.categoryIsStationary);

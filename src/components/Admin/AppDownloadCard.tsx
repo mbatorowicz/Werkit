@@ -35,11 +35,7 @@ export function AppDownloadCard({ download }: Props) {
         {download.available ? (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <a
-                href={download.href}
-                download={download.fileName}
-                className={BTN_PRIMARY_COMPACT}
-              >
+              <a href={download.href} download={download.fileName} className={BTN_PRIMARY_COMPACT}>
                 <Download className="w-4 h-4 shrink-0" aria-hidden />
                 {dict.appDownloadButton}
               </a>
@@ -67,9 +63,7 @@ export function AppDownloadCard({ download }: Props) {
             ) : null}
           </div>
         ) : (
-          <p className={ALERT_WARNING}>
-            {dict.appDownloadUnavailable}
-          </p>
+          <p className={ALERT_WARNING}>{dict.appDownloadUnavailable}</p>
         )}
       </div>
     </section>

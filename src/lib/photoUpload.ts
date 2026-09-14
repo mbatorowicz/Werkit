@@ -15,10 +15,7 @@
  */
 
 import { put, del, list, issueSignedToken, presignUrl } from "@vercel/blob";
-import {
-  assertValidatedPhotoBytes,
-  parseAndValidatePhotoDataUrl,
-} from "@/lib/photoPayloadLimits";
+import { assertValidatedPhotoBytes, parseAndValidatePhotoDataUrl } from "@/lib/photoPayloadLimits";
 import { sessionPhotoBlobKey, sessionPhotoBlobPrefixes } from "@/lib/photoBlobPaths";
 
 /**

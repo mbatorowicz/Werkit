@@ -93,9 +93,9 @@ describe("ResourceService — tenant resourceGroupId", () => {
       new CategoryHierarchyError("invalid_resource_group")
     );
 
-    await expect(
-      ResourceService.updateResource(1, 10, { resourceGroupId: 99 })
-    ).rejects.toThrow(/invalid_resource_group/);
+    await expect(ResourceService.updateResource(1, 10, { resourceGroupId: 99 })).rejects.toThrow(
+      /invalid_resource_group/
+    );
     expect(updateMock).not.toHaveBeenCalled();
   });
 

@@ -59,7 +59,10 @@ export const POST = withApiErrorHandling(
     const featureFlags = await PlatformFeatureFlagService.getFlags(companyId);
     const permissions = clampWorkerPermissionsForOrg(
       workerPermissionsFromBody(normalizedRole, body),
-      { gpsModuleEnabled: canAssignWorkerRouteEdit(featureFlags), durEnabled: featureFlags.durEnabled }
+      {
+        gpsModuleEnabled: canAssignWorkerRouteEdit(featureFlags),
+        durEnabled: featureFlags.durEnabled,
+      }
     );
 
     if (!fullName || !usernameEmail || !password) {

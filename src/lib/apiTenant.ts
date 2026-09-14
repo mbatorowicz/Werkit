@@ -1,9 +1,6 @@
 import { getAuthSession, type JwtPayload } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
-import {
-  jwtFromLivePrincipal,
-  requireLivePrincipalOr401,
-} from "@/lib/livePrincipal";
+import { jwtFromLivePrincipal, requireLivePrincipalOr401 } from "@/lib/livePrincipal";
 import { isSuperadminRole } from "@/lib/tenantRoles";
 import { isLiveCompanyPrincipal } from "@/services/AuthPrincipalService";
 

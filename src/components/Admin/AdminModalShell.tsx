@@ -79,7 +79,12 @@ export function AdminModalShell({
       <div className={cn(MODAL_PANEL, maxWidthClass, tall && "max-h-[90vh]")}>
         <div className={MODAL_HEADER}>
           <h2 className={titleClass}>{title}</h2>
-          <button type="button" onClick={onClose} className={MODAL_CLOSE_BTN} aria-label={closeLabel}>
+          <button
+            type="button"
+            onClick={onClose}
+            className={MODAL_CLOSE_BTN}
+            aria-label={closeLabel}
+          >
             <X className={iconClass} />
           </button>
         </div>

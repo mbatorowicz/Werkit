@@ -109,10 +109,7 @@ export default async function ProfilePage() {
         />
 
         <LogoutButton
-          className={cn(
-            BTN_DANGER_SOFT,
-            "mt-8 w-full p-5 group"
-          )}
+          className={cn(BTN_DANGER_SOFT, "mt-8 w-full p-5 group")}
           iconClass="w-5 h-5 group-hover:text-red-400 transition-colors"
           text={dict.logout}
         />

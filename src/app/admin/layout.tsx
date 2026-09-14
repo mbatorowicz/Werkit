@@ -18,13 +18,7 @@ import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isAdminGpsEnabled, toAdminGpsFlags } from "@/types/featureFlags";
 import { cn } from "@/lib/cn";
-import {
-  LOGOUT_ROW,
-  SHELL_HEADER,
-  SHELL_SIDEBAR,
-  USER_CHIP,
-  VERSION_BADGE,
-} from "@/lib/uiChrome";
+import { LOGOUT_ROW, SHELL_HEADER, SHELL_SIDEBAR, USER_CHIP, VERSION_BADGE } from "@/lib/uiChrome";
 import { BRAND_WORDMARK } from "@/lib/uiTypography";
 import { SURFACE_APP, SURFACE_CARD, TEXT_MUTED } from "@/lib/uiTokens";
 
@@ -102,7 +96,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </aside>
 
-        <main className={`flex min-w-0 flex-1 flex-col ${SURFACE_CARD} ${INLINE_SCROLL_PANEL_CLASS}`}>
+        <main
+          className={`flex min-w-0 flex-1 flex-col ${SURFACE_CARD} ${INLINE_SCROLL_PANEL_CLASS}`}
+        >
           <header className={cn(SHELL_HEADER, "px-6 md:hidden")}>
             <div className="flex items-center gap-3">
               <AdminMobileBackButton />
@@ -111,7 +107,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
                   <span className={`text-[9px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
                 </div>
-                <p className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}>
+                <p
+                  className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
+                >
                   {companyName}
                 </p>
               </div>

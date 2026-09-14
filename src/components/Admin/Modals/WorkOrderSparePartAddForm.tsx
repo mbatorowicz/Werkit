@@ -44,9 +44,7 @@ export function WorkOrderSparePartAddForm({
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-3">
       <div>
-        <label className={FIELD_LABEL_COMPACT}>
-          {durDict.fields.part}
-        </label>
+        <label className={FIELD_LABEL_COMPACT}>{durDict.fields.part}</label>
         <SparePartSearchField
           options={catalogOptions}
           value={selectedPartId}
@@ -59,9 +57,7 @@ export function WorkOrderSparePartAddForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={FIELD_LABEL_COMPACT}>
-            {durDict.fields.quantity}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{durDict.fields.quantity}</label>
           <DecimalInput
             value={addQuantity}
             onChange={onAddQuantityChange}
@@ -70,9 +66,7 @@ export function WorkOrderSparePartAddForm({
           />
         </div>
         <div>
-          <label className={FIELD_LABEL_COMPACT}>
-            {durDict.fields.unitPrice}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{durDict.fields.unitPrice}</label>
           <DecimalInput
             value={addUnitPrice}
             onChange={onAddUnitPriceChange}
@@ -83,9 +77,7 @@ export function WorkOrderSparePartAddForm({
       </div>
 
       <div>
-        <label className={FIELD_LABEL_COMPACT}>
-          {durDict.fields.notes}
-        </label>
+        <label className={FIELD_LABEL_COMPACT}>{durDict.fields.notes}</label>
         <input
           type="text"
           value={addNotes}

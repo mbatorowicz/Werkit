@@ -76,9 +76,7 @@ export function AdminPasswordConfirmModal({
       >
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{description}</p>
         <div>
-          <label className={cn(FIELD_LABEL_COMPACT, "mb-1.5")}>
-            {uiDict.adminPasswordLabel}
-          </label>
+          <label className={cn(FIELD_LABEL_COMPACT, "mb-1.5")}>{uiDict.adminPasswordLabel}</label>
           <input
             type="password"
             autoComplete="current-password"

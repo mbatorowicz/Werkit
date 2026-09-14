@@ -12,7 +12,10 @@ export default async function DashboardPage() {
   const companyId = principal.companyId;
 
   const canMutate = principal.role === "admin";
-  const hasDelegation = await DelegationScopeService.hasDelegationRights(companyId, principal.userId);
+  const hasDelegation = await DelegationScopeService.hasDelegationRights(
+    companyId,
+    principal.userId
+  );
   const scopedWorkers = !canMutate && hasDelegation;
 
   const bootstrap = await AdminDispatchService.getBootstrap({

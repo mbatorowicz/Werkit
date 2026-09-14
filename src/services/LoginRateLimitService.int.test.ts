@@ -2,10 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { loginAttempts } from "@/db/schema";
-import {
-  LoginRateLimitService,
-  MAX_LOGIN_ATTEMPTS,
-} from "@/services/LoginRateLimitService";
+import { LoginRateLimitService, MAX_LOGIN_ATTEMPTS } from "@/services/LoginRateLimitService";
 
 describe("LoginRateLimitService (Postgres)", () => {
   const key = `__itest-login-limit:${Date.now()}`;

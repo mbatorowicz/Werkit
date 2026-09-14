@@ -66,9 +66,7 @@ export function CustomerInlineCreateForm({
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label className={FIELD_LABEL_COMPACT}>
-            {dict.firstNameLabel}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{dict.firstNameLabel}</label>
           <input
             type="text"
             placeholder={dict.firstNamePlaceholder}
@@ -78,9 +76,7 @@ export function CustomerInlineCreateForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className={FIELD_LABEL_COMPACT}>
-            {dict.lastNameLabel}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{dict.lastNameLabel}</label>
           <input
             required
             type="text"
@@ -113,9 +109,7 @@ export function CustomerInlineCreateForm({
         compact
       />
       <div className="space-y-1.5">
-        <label className={FIELD_LABEL_COMPACT}>
-          {dict.phoneLabel}
-        </label>
+        <label className={FIELD_LABEL_COMPACT}>{dict.phoneLabel}</label>
         <input
           type="tel"
           placeholder={dict.phonePlaceholder}
@@ -125,9 +119,7 @@ export function CustomerInlineCreateForm({
         />
       </div>
       <div className="space-y-1.5">
-        <label className={FIELD_LABEL_COMPACT}>
-          {dict.gpsOnMapLabel}
-        </label>
+        <label className={FIELD_LABEL_COMPACT}>{dict.gpsOnMapLabel}</label>
         <CustomerMapPicker
           lat={form.latitude}
           lng={form.longitude}
@@ -144,12 +136,7 @@ export function CustomerInlineCreateForm({
         ) : null}
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <UiButton
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
+        <UiButton type="button" variant="secondary" onClick={onCancel} disabled={isSubmitting}>
           {cancelLabel ?? dictionary.admin.ui.modalCancel}
         </UiButton>
         <UiButton

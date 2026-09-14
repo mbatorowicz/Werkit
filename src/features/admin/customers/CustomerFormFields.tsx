@@ -10,9 +10,7 @@ import { customerFormAddressParts, customerFormGeocodeQuery } from "./customerFo
 
 function CustomerMapPickerLoading() {
   const mapLoading = useDictionary().admin.customers.mapLoading;
-  return (
-    <div className={`${PLACEHOLDER_BLOCK} h-[200px]`}>{mapLoading}</div>
-  );
+  return <div className={`${PLACEHOLDER_BLOCK} h-[200px]`}>{mapLoading}</div>;
 }
 
 const CustomerMapPicker = dynamic(() => import("./CustomerMapPicker"), {

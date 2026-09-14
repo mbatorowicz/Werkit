@@ -76,9 +76,7 @@ export function CustomerSearchField({
 
   return (
     <div className="space-y-1.5">
-      <label className={FIELD_LABEL_COMPACT}>
-        {label}
-      </label>
+      <label className={FIELD_LABEL_COMPACT}>{label}</label>
       <AdminSearchCombobox
         options={options}
         value={value}

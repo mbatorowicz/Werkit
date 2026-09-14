@@ -13,9 +13,7 @@ import type { SettingsSnapshot } from "./SettingsForm";
 
 const SettingsMap = dynamic(() => import("@/components/Map/SettingsMap"), {
   ssr: false,
-  loading: () => (
-    <div className={`${PLACEHOLDER_BLOCK} h-[280px] animate-pulse`} />
-  ),
+  loading: () => <div className={`${PLACEHOLDER_BLOCK} h-[280px] animate-pulse`} />,
 });
 
 type Props = {

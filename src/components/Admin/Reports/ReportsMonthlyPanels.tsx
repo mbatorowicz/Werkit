@@ -59,7 +59,12 @@ export function ReportsMonthlyPanels({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className={cn("rounded-xl border border-emerald-100 p-4 dark:border-zinc-800", SURFACE_MINT)}>
+          <div
+            className={cn(
+              "rounded-xl border border-emerald-100 p-4 dark:border-zinc-800",
+              SURFACE_MINT
+            )}
+          >
             <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
               {d.completedTasks}
             </div>

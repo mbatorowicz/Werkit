@@ -36,7 +36,12 @@ export function FormModalFooter({
     <div className="w-full space-y-2">
       {leading ? <div className="flex flex-col gap-2 pb-1">{leading}</div> : null}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:items-center">
-        <UiButton type="button" variant="secondaryFull" onClick={onCancel} className={cancelClassName}>
+        <UiButton
+          type="button"
+          variant="secondaryFull"
+          onClick={onCancel}
+          className={cancelClassName}
+        >
           {cancel}
         </UiButton>
         {!hideSubmit ? (

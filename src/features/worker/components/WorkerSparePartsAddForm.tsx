@@ -39,9 +39,7 @@ export function WorkerSparePartsAddForm({
   return (
     <div className="mb-3 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
       <div>
-        <label className={FIELD_LABEL_COMPACT}>
-          {workerDict.choosePart}
-        </label>
+        <label className={FIELD_LABEL_COMPACT}>{workerDict.choosePart}</label>
         <SparePartSearchField
           options={catalogOptions}
           value={selectedPartId}
@@ -54,9 +52,7 @@ export function WorkerSparePartsAddForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={FIELD_LABEL_COMPACT}>
-            {workerDict.partQuantity}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{workerDict.partQuantity}</label>
           <DecimalInput
             value={addQuantity}
             onChange={setAddQuantity}
@@ -65,9 +61,7 @@ export function WorkerSparePartsAddForm({
           />
         </div>
         <div>
-          <label className={FIELD_LABEL_COMPACT}>
-            {workerDict.partNotes}
-          </label>
+          <label className={FIELD_LABEL_COMPACT}>{workerDict.partNotes}</label>
           <input
             type="text"
             value={addNotes}

@@ -129,7 +129,8 @@ export const pl = {
     missing_credentials: "Brak loginu lub hasła.",
     invalid_credentials: "Nieprawidłowe dane logowania.",
     too_many_attempts: "Zbyt wiele nieudanych prób logowania. Spróbuj ponownie za 15 minut.",
-    weak_password: "Hasło jest za słabe. Użyj co najmniej 6 znaków i unikaj oczywistych PIN-ów (123456, 000000).",
+    weak_password:
+      "Hasło jest za słabe. Użyj co najmniej 6 znaków i unikaj oczywistych PIN-ów (123456, 000000).",
     admin_password_required: "Wymagane hasło administratora.",
     account_blocked: "Konto zostało zablokowane.",
     server_error: "Wewnętrzny Błąd Serwera.",
@@ -170,7 +171,8 @@ export const pl = {
     feature_disabled:
       "Ta funkcja jest wyłączona dla Twojej organizacji. Skontaktuj się z administratorem.",
     payload_too_large: "Zbyt dużo danych w jednym żądaniu. Zmniejsz liczbę punktów GPS.",
-    invalid_photo_data: "Nieprawidłowe lub zbyt duże zdjęcie. Dozwolone: JPEG, PNG, WebP (maks. 4 MB).",
+    invalid_photo_data:
+      "Nieprawidłowe lub zbyt duże zdjęcie. Dozwolone: JPEG, PNG, WebP (maks. 4 MB).",
     too_many_logs: "Zbyt wiele logów z urządzenia. Spróbuj ponownie za chwilę.",
     too_many_geocode: "Zbyt wiele zapytań o adres. Spróbuj ponownie za chwilę.",
     note_too_long: "Notatka jest za długa (maks. 4000 znaków).",
@@ -695,7 +697,8 @@ export const pl = {
       passwordLabelEdit: "Nowy PIN",
       passwordPlaceholderNew: "min. 6 znaków",
       passwordPlaceholderEdit: "bez zmian — zostaw puste",
-      passwordHint: "Minimum 6 znaków. Unikaj oczywistych PIN-ów (123456, 000000) i hasła równego loginowi.",
+      passwordHint:
+        "Minimum 6 znaków. Unikaj oczywistych PIN-ów (123456, 000000) i hasła równego loginowi.",
       passwordEditHint:
         "Przy edycji konta puste pole PIN oznacza brak zmiany. Wpisz nowy PIN tylko wtedy, gdy chcesz go zmienić.",
       accountCreateHint:

@@ -81,28 +81,28 @@ export function ReportsLiveOpsSection({
       </div>
 
       {showMap ? (
-      <div className="xl:col-span-1 min-h-[450px]">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm min-h-[450px]">
-          <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
-            <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-500" />
-              {(snapshot.companyCity || r.mapFallbackRegion) + " — " + d.liveRadars}
-            </h2>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">
-              {d.detectedProviders}
-            </p>
-          </div>
-          <div className="flex-1 w-full relative min-h-[450px]">
-            <LiveMap
-              currentLocation={{ lat: snapshot.mapLat, lng: snapshot.mapLng }}
-              pathTraveled={[]}
-              destination={null}
-              enableOsrmRoute={gpsFlags.routePlanningEnabled}
-              enableNavigation={gpsFlags.navigationEnabled}
-            />
+        <div className="xl:col-span-1 min-h-[450px]">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm min-h-[450px]">
+            <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
+              <h2 className="font-semibold text-zinc-900 dark:text-white drop-shadow-md flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-emerald-500" />
+                {(snapshot.companyCity || r.mapFallbackRegion) + " — " + d.liveRadars}
+              </h2>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 drop-shadow-md">
+                {d.detectedProviders}
+              </p>
+            </div>
+            <div className="flex-1 w-full relative min-h-[450px]">
+              <LiveMap
+                currentLocation={{ lat: snapshot.mapLat, lng: snapshot.mapLng }}
+                pathTraveled={[]}
+                destination={null}
+                enableOsrmRoute={gpsFlags.routePlanningEnabled}
+                enableNavigation={gpsFlags.navigationEnabled}
+              />
+            </div>
           </div>
         </div>
-      </div>
       ) : null}
     </div>
   );
