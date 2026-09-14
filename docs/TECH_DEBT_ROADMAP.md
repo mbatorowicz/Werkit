@@ -115,7 +115,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | done |
 | P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | done |
 | P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | done |
-| P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | open |
+| P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | done |
 | P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | open |
 | P-SEC-2 | Limity GPS / zdjęć / `device_logs` | open |
 | P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | open |
@@ -276,6 +276,12 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 | S1 | Polityka hasła/PIN, jeden kod `invalid_credentials`, limit logowań w DB |
 | S2 | Cap GPS, allowlista zdjęć, throttle `device_logs` |
 | S3 | Auth w `/api/geocode`, ochrona last-admin, CSP, spójny logout cookie |
+
+#### P-SEC-0 — co zrobiono
+
+- [`AuthPrincipalService`](../src/services/AuthPrincipalService.ts) + [`livePrincipal.ts`](../src/lib/livePrincipal.ts): user/`isActive`, rola i `companyId` z DB, `companies.isActive` (superadmin bez firmy).
+- Podpięte w `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`, `guardAdminMutation` / `guardDispatchMutation` / `guardCustomerCreate`, layouty admin/worker/platform, login (nieaktywna firma → `invalid_credentials`).
+- `/login?reason=session` kasuje cookie w `proxy.ts` (jak `tenant`) — unik pętli JWT.
 
 ---
 

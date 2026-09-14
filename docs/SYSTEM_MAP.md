@@ -187,7 +187,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 | Endpoint | Metoda | Body / opis | Response |
 |---|---|---|---|
-| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_payload\|missing_credentials`; 401 `invalid_credentials`; 403 `account_blocked`; 503 `service_unavailable` (DB); 500 `server_error`. |
+| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_payload\|missing_credentials`; 401 `invalid_credentials` (także **nieaktywna firma** — bez osobnego `company_blocked`); 403 `account_blocked` (nieaktywny user — do S1); 503 `service_unavailable` (DB); 500 `server_error`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
 | `/api/auth/logout` | POST | brak | 200 + delete cookie |
 
 ### 5.2. Worker
@@ -310,6 +310,10 @@ UI (SSOT): `src/features/admin/organization/PeopleClient.tsx` — `adminRoutes.p
 ## 6. Warstwa serwisów (`src/services/*`)
 
 Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwis żyje od `import { db } from '@/db'`.
+
+### `AuthPrincipalService`
+- `resolve(session)` — żywy principal z DB: user istnieje i `isActive`, rola z wiersza (nie z JWT), `companyId` z `users.company_id` (JWT może się różnić). Dla ról firmowych: firma istnieje i `companies.isActive`. Superadmin bez firmy — bez odczytu `companies`. Porażka → `null` (API: 401 + kasowanie cookie).
+- Helpery: `src/lib/livePrincipal.ts` (`assertLivePrincipal`, `requireLivePrincipalOr401`, layout `requireLiveCompanyPrincipalOrRedirect` / `requireLiveSuperadminOrRedirect`).
 
 ### `AdminUserService`
 - `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
@@ -615,11 +619,13 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 | Plik | Co |
 |---|---|
-| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Brak `JWT_SECRET`** → rzuca `Error('JWT_SECRET is not set')`. **Na produkcji wymagane!** |
+| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Tylko podpis JWT** — nie sprawdza `isActive`. Żywy principal: `AuthPrincipalService` + `livePrincipal.ts`. **Brak `JWT_SECRET`** → rzuca `Error`. **Na produkcji wymagane!** |
+| `livePrincipal.ts` | `assertLivePrincipal`, 401 + `auth_token` `Path=/` `Max-Age=0`, redirect layoutów `/login?reason=session`. |
+| `apiTenant.ts` / `apiPlatform.ts` | `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession` — po JWT rewalidacja DB; `session.role` i `companyId` z principal. |
 | `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/admin/users`, biometria w `AdminUserService`). |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
-| `requireAdminMutation.ts` | `guardAdminMutation()` — zwraca `NextResponse 401/403` lub `undefined`. Druga linia obrony za `proxy`. |
-| `requireDispatchMutation.ts` | `guardDispatchMutation()` — admin **lub** viewer/worker z `DelegationScopeService.hasDelegationRights`; używane w `POST/PUT /api/admin/work-orders*`. |
+| `requireAdminMutation.ts` | `guardAdminMutation()` — 401/403 albo `undefined`. Rola **z DB** (żywy principal), druga linia za `proxy`. |
+| `requireDispatchMutation.ts` | `guardDispatchMutation()` — admin **lub** viewer/worker z `DelegationScopeService.hasDelegationRights`; rola z DB. |
 | `coordsFromRequestBody.ts` | `coordsFromRequestBody(body) → {lat,lng}\|null` (walidacja zakresu), `coordPairToNumericStrings({lat,lng})` (toFixed(8) pod numeric Postgres). |
 | `geolocationOnce.ts` | `getCurrentPositionOnce(timeout=12000)` — jednorazowy odczyt (wizard/end-session). |
 | `gpsManager.ts` | `GPSManager` (klasa statyczna): kolejka w IndexedDB (`werkit_gps_db` / `gps_queue`), `enqueue/flushQueue/getDistance` (Haversine). `flushQueue` używa `keepalive:true`; przy `403` / `feature_disabled` czyści kolejkę i **nie** retry’uje; inne błędy — retry przy `online`. |
@@ -647,13 +653,13 @@ matcher: ['/admin/:path*', '/worker/:path*', '/login', '/api/:path*']
 ```
 
 Klasyfikacja → autoryzacja → role:
-- **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji.
+- **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji. Wyjątek: `?reason=tenant` **lub** `?reason=session` (`isAuthCookieClearLoginReason`) → kasuje cookie i pokazuje formularz (martwy principal / brak tenanta — inaczej pętla z JWT).
 - **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: domyślnie tylko `admin`; **wyjątek:** `POST/PUT /api/admin/work-orders*` (`isAdminDispatchMutation`) — viewer/worker z `hasDelegationRights` (szczegóły w `guardDispatchMutation` w handlerze).
 - **`WORKER_APP_ROLES = ['worker', 'admin']`** — `/worker` i `/api/worker`.
 - **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
 - Nowy publiczny shard API → **dopisz prefix do `SHARED_API_PREFIXES`**, inaczej deny-by-default zakwalifikuje go jako admin API.
 
-Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Niepoprawny token → wyczyszczenie cookie + redirect/`401`.
+Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Niepoprawny token → wyczyszczenie cookie + redirect/`401`. Edge **nie** czyta DB — martwe konto odpada w Node (`AuthPrincipalService`).
 
 ---
 

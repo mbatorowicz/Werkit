@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { getAndroidAppDownloadInfoAsync } from "@/lib/androidAppDownload";
-import { isSuperadminRole } from "@/lib/tenantContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,11 +10,9 @@ const INFO_ROLES = new Set(["admin", "viewer", "worker"]);
 
 /** Metadane dostępnego APK (wersja, sync z web, build debug/release). */
 export async function GET() {
-  const session = await getAuthSession();
-  if (!session) {
-    return jsonError("Unauthorized", 401);
-  }
-  if (isSuperadminRole(session.role) || !INFO_ROLES.has(session.role)) {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  if (!INFO_ROLES.has(scoped.data.session.role)) {
     return jsonError("Forbidden", 403);
   }
 

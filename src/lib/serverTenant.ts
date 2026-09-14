@@ -1,15 +1,7 @@
-import { redirect } from "next/navigation";
-import { getAuthSession } from "@/lib/auth";
-import { isSuperadminRole, resolveTenantCompanyId } from "@/lib/tenantContext";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 
-/** Kontekst firmy dla Server Components (admin / worker). */
+/** Kontekst firmy dla Server Components (admin / worker) — żywy principal z DB. */
 export async function requireServerCompanyId(): Promise<number> {
-  const session = await getAuthSession();
-  if (!session) redirect("/login");
-  if (isSuperadminRole(session.role)) redirect("/platform");
-  try {
-    return await resolveTenantCompanyId(session);
-  } catch {
-    redirect("/login?reason=tenant");
-  }
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  return principal.companyId;
 }

@@ -111,7 +111,7 @@ src/
 Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
 
 Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
-`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`, jądro `services/warehouse/`.
+`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AuthPrincipalService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`, jądro `services/warehouse/`.
 
 **Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
 
@@ -222,7 +222,7 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–7 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, niezależne flagi GPS (`isGpsModuleEnabled` = śledzenie, nie AND pięciu), jądro magazynu `services/warehouse/` (dwa adaptery SKU, bez scalania tabel), polityka kategorii `lib/categoryPolicy.ts` (`gpsPolicy` / `orderKind` / `fieldVisibility`), moduł DUR — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–7 alignmentu 2026-09), żywy principal `AuthPrincipalService` + `livePrincipal.ts` (P-SEC-0), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, niezależne flagi GPS (`isGpsModuleEnabled` = śledzenie, nie AND pięciu), jądro magazynu `services/warehouse/` (dwa adaptery SKU, bez scalania tabel), polityka kategorii `lib/categoryPolicy.ts` (`gpsPolicy` / `orderKind` / `fieldVisibility`), moduł DUR — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 

@@ -1,14 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import {
   getAndroidAppDownloadInfoAsync,
   resolveLocalAndroidApkPath,
   resolveRemoteAndroidApkUrl,
 } from "@/lib/androidAppDownload";
 import { fetchGithubReleaseApkBytes, resolveGithubReleaseApkConfig } from "@/lib/githubReleaseApk";
-import { isSuperadminRole } from "@/lib/tenantContext";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,11 +29,9 @@ function apkResponse(bytes: Uint8Array, fileName: string): NextResponse {
 
 /** Pobranie APK — jeden build z GitHub Actions, wspólny dla wszystkich firm. */
 export async function GET() {
-  const session = await getAuthSession();
-  if (!session) {
-    return jsonError("Unauthorized", 401);
-  }
-  if (isSuperadminRole(session.role) || !DOWNLOAD_ROLES.has(session.role)) {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped.response;
+  if (!DOWNLOAD_ROLES.has(scoped.data.session.role)) {
     return jsonError("Forbidden", 403);
   }
 

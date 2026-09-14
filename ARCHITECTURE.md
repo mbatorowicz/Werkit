@@ -94,6 +94,7 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `AdminOrderService` | Lista/edycja zleceń w panelu |
 | `AdminSessionService` | Sesje / archiwum w zakresie admin |
 | `AdminUserService` | Pracownicy / konta |
+| `AuthPrincipalService` | Żywy principal: user + `companies.isActive`, rola/firma z DB (nie z JWT) |
 | `DictionaryService` | Kategorie, maszyny, materiały, klienci — słowniki |
 | `AdminReportService` | Raporty |
 | `SystemLogService` | Agregacja `device_logs` |

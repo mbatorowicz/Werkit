@@ -60,6 +60,14 @@ export const POST = withApiErrorHandling(
       return jsonError("invalid_credentials", 401);
     }
 
+    if (user.companyId != null) {
+      const { PlatformCompanyService } = await import("@/services/PlatformCompanyService");
+      const company = await PlatformCompanyService.getCompanyById(user.companyId);
+      if (!company?.isActive) {
+        return jsonError("invalid_credentials", 401);
+      }
+    }
+
     // Udane logowanie — czyścimy licznik prób
     clearLoginRateLimit(rateLimitKey);
 

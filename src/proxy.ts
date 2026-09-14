@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
-import { isCompanyScopedRole, isSuperadminRole } from "@/lib/tenantRoles";
+import {
+  isAuthCookieClearLoginReason,
+  isCompanyScopedRole,
+  isSuperadminRole,
+} from "@/lib/tenantRoles";
 
 // --- CONFIGURATION ---
 const SHARED_API_PREFIXES = [
@@ -106,11 +110,13 @@ async function handleLoginPage(
   if (!route.isAuthPage) return null;
 
   const loginToken = request.cookies.get("auth_token")?.value;
-  const tenantRefresh = request.nextUrl.searchParams.get("reason") === "tenant";
+  const dropStaleAuth = isAuthCookieClearLoginReason(
+    request.nextUrl.searchParams.get("reason")
+  );
 
-  if (!loginToken || tenantRefresh) {
+  if (!loginToken || dropStaleAuth) {
     const res = NextResponse.next();
-    if (tenantRefresh) res.cookies.delete("auth_token");
+    if (dropStaleAuth) res.cookies.delete("auth_token");
     return res;
   }
 

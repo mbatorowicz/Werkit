@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LocaleSwitcher } from "@/components/LocaleSwitcher";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
+import { requireLiveSuperadminOrRedirect } from "@/lib/livePrincipal";
 import { APP_VERSION } from "@/lib/version";
 import { PAGE_TITLE } from "@/lib/uiTypography";
 import { SURFACE_MINT } from "@/lib/uiTokens";
@@ -14,6 +15,7 @@ import { cn } from "@/lib/cn";
 export const dynamic = "force-dynamic";
 
 export default async function PlatformLayout({ children }: { children: React.ReactNode }) {
+  await requireLiveSuperadminOrRedirect();
   const locale = await getServerLocale();
   const dict = getDictionary(locale).platform;
   const common = getDictionary(locale).common;

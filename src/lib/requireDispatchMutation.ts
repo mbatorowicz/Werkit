@@ -1,47 +1,30 @@
 import { NextResponse } from "next/server";
-import { getAuthSession } from "@/lib/auth";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { DelegationScopeService } from "@/services/DelegationScopeService";
 
-/** Pełny admin lub lider/kierownik z prawem delegowania zleceń. */
+/** Pełny admin lub lider/kierownik z prawem delegowania zleceń — rola z DB. */
 export async function guardDispatchMutation(): Promise<
   NextResponse | Response | { ok: true; companyId: number; userId: number; role: string }
 > {
-  const session = await getAuthSession();
-  if (!session?.userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (session.role === "admin") {
-    const scoped = await requireCompanyScopedSession();
-    if (!scoped.ok) return scoped.response;
-    return {
-      ok: true,
-      companyId: scoped.data.companyId,
-      userId: session.userId,
-      role: session.role,
-    };
-  }
-
-  if (session.role !== "viewer" && session.role !== "worker") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   const scoped = await requireCompanyScopedSession();
   if (!scoped.ok) return scoped.response;
 
-  const hasRights = await DelegationScopeService.hasDelegationRights(
-    scoped.data.companyId,
-    session.userId
-  );
+  const { companyId, session } = scoped.data;
+  const role = session.role;
+  const userId = session.userId;
+
+  if (role === "admin") {
+    return { ok: true, companyId, userId, role };
+  }
+
+  if (role !== "viewer" && role !== "worker") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const hasRights = await DelegationScopeService.hasDelegationRights(companyId, userId);
   if (!hasRights) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  return {
-    ok: true,
-    companyId: scoped.data.companyId,
-    userId: session.userId,
-    role: session.role,
-  };
+  return { ok: true, companyId, userId, role };
 }

@@ -1,6 +1,11 @@
 import { getAuthSession, type JwtPayload } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
-import { isSuperadminRole, resolveTenantCompanyId } from "@/lib/tenantContext";
+import {
+  jwtFromLivePrincipal,
+  requireLivePrincipalOr401,
+} from "@/lib/livePrincipal";
+import { isSuperadminRole } from "@/lib/tenantRoles";
+import { isLiveCompanyPrincipal } from "@/services/AuthPrincipalService";
 
 export type CompanyScopedSession = {
   session: JwtPayload;
@@ -12,34 +17,37 @@ export async function requireWorkerCompanySession(): Promise<
   | { ok: false; response: Response }
 > {
   const session = await getAuthSession();
-  if (!session?.userId) {
-    return { ok: false, response: jsonError("Unauthorized", 401) };
-  }
-  try {
-    return {
-      ok: true,
-      userId: session.userId,
-      companyId: await resolveTenantCompanyId(session),
-      session,
-    };
-  } catch {
+  const live = await requireLivePrincipalOr401(session);
+  if (!live.ok) return live;
+
+  if (isSuperadminRole(live.principal.role) || !isLiveCompanyPrincipal(live.principal)) {
     return { ok: false, response: jsonError("Forbidden", 403) };
   }
+
+  return {
+    ok: true,
+    userId: live.principal.userId,
+    companyId: live.principal.companyId,
+    session: jwtFromLivePrincipal(live.principal),
+  };
 }
 
 export async function requireCompanyScopedSession(): Promise<
   { ok: true; data: CompanyScopedSession } | { ok: false; response: Response }
 > {
   const session = await getAuthSession();
-  if (!session) {
-    return { ok: false, response: jsonError("Unauthorized", 401) };
-  }
-  if (isSuperadminRole(session.role)) {
+  const live = await requireLivePrincipalOr401(session);
+  if (!live.ok) return live;
+
+  if (isSuperadminRole(live.principal.role) || !isLiveCompanyPrincipal(live.principal)) {
     return { ok: false, response: jsonError("Forbidden", 403) };
   }
-  try {
-    return { ok: true, data: { session, companyId: await resolveTenantCompanyId(session) } };
-  } catch {
-    return { ok: false, response: jsonError("Forbidden", 403) };
-  }
+
+  return {
+    ok: true,
+    data: {
+      session: jwtFromLivePrincipal(live.principal),
+      companyId: live.principal.companyId,
+    },
+  };
 }

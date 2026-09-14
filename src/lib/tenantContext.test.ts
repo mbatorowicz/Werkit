@@ -10,6 +10,7 @@ import {
   isSuperadminRole,
   TenantContextError,
 } from "@/lib/tenantContext";
+import { isAuthCookieClearLoginReason } from "@/lib/tenantRoles";
 
 describe("tenantContext", () => {
   it("rozpoznaje superadmina", () => {
@@ -36,5 +37,12 @@ describe("tenantContext", () => {
     expect(() => getTenantCompanyId({ userId: 1, role: "superadmin", companyId: 1 })).toThrow(
       TenantContextError
     );
+  });
+
+  it("isAuthCookieClearLoginReason czyści cookie przy tenant i session", () => {
+    expect(isAuthCookieClearLoginReason("tenant")).toBe(true);
+    expect(isAuthCookieClearLoginReason("session")).toBe(true);
+    expect(isAuthCookieClearLoginReason(null)).toBe(false);
+    expect(isAuthCookieClearLoginReason("other")).toBe(false);
   });
 });

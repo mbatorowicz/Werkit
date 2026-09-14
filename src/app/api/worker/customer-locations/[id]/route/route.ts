@@ -1,24 +1,18 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
-import { getAuthSession } from "@/lib/auth";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
+import { requireWorkerCompanySession } from "@/lib/apiTenant";
 import { AdminUserService } from "@/services/AdminUserService";
 import { CustomerLocationService } from "@/services/CustomerLocationService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { resolveTenantCompanyId } from "@/lib/tenantContext";
 
 export const PUT = withApiErrorHandling(
   async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
-    const session = await getAuthSession();
-    if (!session?.userId) return jsonError("unauthorized", 401);
+    const sessionResult = await requireWorkerCompanySession();
+    if (!sessionResult.ok) return sessionResult.response;
 
-    if (!(await AdminUserService.userCanEditRoute(session.userId))) {
-      return jsonError("forbidden", 403);
-    }
+    const { userId, companyId } = sessionResult;
 
-    let companyId: number;
-    try {
-      companyId = await resolveTenantCompanyId(session);
-    } catch {
+    if (!(await AdminUserService.userCanEditRoute(userId))) {
       return jsonError("forbidden", 403);
     }
 

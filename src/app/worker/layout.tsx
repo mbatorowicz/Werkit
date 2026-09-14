@@ -2,14 +2,11 @@ import { Map, Clock, User, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LogoutButton } from "@/components/LogoutButton";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
 
-import { JWT_SECRET } from "@/lib/auth";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { DEFAULT_COMPANY_NAME } from "@/lib/productName";
 import { workerRoutes } from "@/lib/appRoutes";
 export const dynamic = "force-dynamic";
@@ -33,24 +30,11 @@ export default async function WorkerLayout({ children }: { children: React.React
   const dict = fullDict.worker.nav;
   const unknownWorker = fullDict.worker.profile.roleWorker;
   const { DictionaryService } = await import("@/services/DictionaryService");
-  const { AdminUserService } = await import("@/services/AdminUserService");
 
-  const companyId = await requireServerCompanyId();
-  const settings = await DictionaryService.getSettings(companyId);
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const settings = await DictionaryService.getSettings(principal.companyId);
   const companyName = settings[0]?.companyName || DEFAULT_COMPANY_NAME;
-
-  let userName = unknownWorker;
-  try {
-    const token = (await cookies()).get("auth_token")?.value;
-    if (token) {
-      const verified = await jwtVerify(token, JWT_SECRET);
-      const userId = verified.payload.userId as number;
-      const userRec = await AdminUserService.getUserById(userId);
-      if (userRec) {
-        userName = userRec.fullName;
-      }
-    }
-  } catch {}
+  const userName = principal.fullName.trim() ? principal.fullName : unknownWorker;
 
   return (
     <div className={`layout-worker flex h-[100dvh] flex-col overflow-hidden ${SURFACE_APP}`}>

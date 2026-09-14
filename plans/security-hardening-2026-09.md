@@ -1,6 +1,6 @@
 # Plan hartowania bezpieczeństwa — sesja, logowanie, limity
 
-> **Status:** otwarty (2026-09-14).  
+> **Status:** w toku (2026-09-14). S0 zrobione; S1–S3 otwarte.  
 > **Źródło:** audyt podatności (czat „Przegląd podatności Werkit”).  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-SEC-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1).
@@ -173,7 +173,7 @@ Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; przy m
 
 ## Checklista
 
-- [ ] **S0** — `assertLivePrincipal` w API + layoutach; login honoruje `companies.isActive`
+- [x] **S0** — `assertLivePrincipal` w API + layoutach; login honoruje `companies.isActive`
 - [ ] **S1** — polityka 6+ znaków; jeden 401; dummy bcrypt; limit w Postgres
 - [ ] **S2** — GPS cap + bbox; foto 4 MiB + allowlista; throttle logów
 - [ ] **S3** — geocode auth; deleteUser; logout cookie; CSP

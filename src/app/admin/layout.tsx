@@ -7,10 +7,6 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { APP_VERSION } from "@/lib/version";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-
-import { JWT_SECRET } from "@/lib/auth";
 import {
   AdminAbilityProvider,
   type DelegationScope,
@@ -18,7 +14,7 @@ import {
 import { DelegationScopeService } from "@/services/DelegationScopeService";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { VERTICAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isAdminGpsEnabled, toAdminGpsFlags } from "@/types/featureFlags";
 import { cn } from "@/lib/cn";
@@ -40,39 +36,20 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const durDict = fullDict.dur;
 
   const { DictionaryService } = await import("@/services/DictionaryService");
-  const { AdminUserService } = await import("@/services/AdminUserService");
 
-  const companyId = await requireServerCompanyId();
-  const [settings, featureFlags] = await Promise.all([
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const companyId = principal.companyId;
+  const [settings, featureFlags, hasDelegation] = await Promise.all([
     DictionaryService.getSettings(companyId),
     PlatformFeatureFlagService.getFlags(companyId),
+    DelegationScopeService.hasDelegationRights(companyId, principal.userId),
   ]);
   const companyName = settings[0]?.companyName || dict.sidebar.defaultCompany;
 
-  let loggedInUser = null;
-  let canMutate = false;
-  let canDelegateOrders = false;
-  let delegationScope: DelegationScope = "none";
-  const token = (await cookies()).get("auth_token")?.value;
-  if (token) {
-    try {
-      const verified = await jwtVerify(token, JWT_SECRET);
-      const role = verified.payload.role as string;
-      canMutate = role === "admin";
-      const userId = verified.payload.userId as number | undefined;
-      if (userId) {
-        const [userDb, hasDelegation] = await Promise.all([
-          AdminUserService.getUserById(userId),
-          DelegationScopeService.hasDelegationRights(companyId, userId),
-        ]);
-        if (userDb) loggedInUser = userDb.fullName;
-        canDelegateOrders = canMutate || hasDelegation;
-        delegationScope = canMutate ? "all" : hasDelegation ? "scoped" : "none";
-      }
-    } catch {
-      /* ignore */
-    }
-  }
+  const loggedInUser = principal.fullName;
+  const canMutate = principal.role === "admin";
+  const canDelegateOrders = canMutate || hasDelegation;
+  const delegationScope: DelegationScope = canMutate ? "all" : hasDelegation ? "scoped" : "none";
 
   const scopedViewerNav = delegationScope === "scoped" && !canMutate;
 
