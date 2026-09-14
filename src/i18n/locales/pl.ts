@@ -239,7 +239,7 @@ export const pl = {
       deviceLogs: "Logi urządzeń",
       fleetAndPeople: "Organizacja",
       machinesAndWorkshop: "Zasoby operacyjne",
-      logistics: "Zasoby i kontrahenci",
+      logistics: "Logistyka",
       ordersAndDispatch: "Utrzymanie ruchu",
       materialsBase: "Baza materiałów",
       customersAndAddresses: "Klienci i Adresy",
@@ -1331,7 +1331,7 @@ export const pl = {
       resourceGroups: "Typy zasobów",
       spareParts: "Katalog części",
       sparePartCategories: "Kategorie części",
-      warehouse: "Części",
+      warehouse: "Części zamienne",
     },
     resourceGroups: {
       title: "Typy zasobów",
@@ -1446,7 +1446,7 @@ export const pl = {
       removeSuccess: "Powiązanie usunięte.",
     },
     warehouse: {
-      title: "Części",
+      title: "Części zamienne",
       subtitle: "Kategorie części, katalog, korekty stanu, PZ i WZ.",
       movementsSubtitle: "Rejestr PZ i WZ części z magazynu.",
       colCollectedBy: "Kto pobrał",

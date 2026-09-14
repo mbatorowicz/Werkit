@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–2 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–3 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
 
 ---
 
@@ -110,7 +110,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-0 | Kontrakt produktu: field-ops + MRO, dwa SKU, GPS w sesji (bez PM) | done |
 | P-ALIGN-1 | GPS: `gpsTrackingEnabled` → watcher + 403 bez pętli retry | done |
 | P-ALIGN-2 | `resource_groups` bez `requireDurFeature` | done |
-| P-ALIGN-3 | Dwa magazyny obok siebie w sidebarze | open |
+| P-ALIGN-3 | Dwa magazyny obok siebie w sidebarze | done |
 | P-ALIGN-4 | Niezależne flagi GPS (nie AND pięciu) | open |
 | P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | open |
 | P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | open |
@@ -229,6 +229,13 @@ Program po audycie v1.9.4. **SSOT faz:** [`plans/architecture-alignment-2026-09.
 - `MachinesClient` zawsze ładuje grupy i pokazuje blok typów; pole „Typ zasobu” w formularzu egzemplarza nie zależy od `durEnabled`.
 - Magazyn części (`/admin/dur/warehouse`, sidebar, `/api/dur/*`, BOM na zleceniu) nadal za `durEnabled`.
 - Testy: formularz zasobu, `MachinesClient` bez DUR, nav bez linku magazynu.
+
+#### P-ALIGN-3 — co zrobiono
+
+- `buildAdminNavLinks`: materiały i części zamienne jako rodzeństwo w sekcji Logistyka; brak nagłówka `ordersAndDispatch` nad magazynem DUR.
+- Etykieta sidebar/strony: „Części zamienne”; ikona `Boxes` (klienci zostają przy `Package`).
+- URL `/admin/dur/warehouse` bez zmian. Pomoc admina: magazyny obok siebie (Materiały → Części zamienne → Klienci).
+- Testy: kolejność linków, brak osobnej sekcji DUR, inna ikona niż klienci.
 
 ---
 

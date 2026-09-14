@@ -5,6 +5,7 @@ import {
   Wrench,
   HardHat,
   Package,
+  Boxes,
   Settings,
   TerminalSquare,
   BarChart3,
@@ -54,7 +55,7 @@ export function buildAdminNavLinks(
     ];
   }
 
-  const links: AdminNavLinkItem[] = [
+  return [
     {
       kind: "route",
       href: adminRoutes.dispatch,
@@ -77,27 +78,22 @@ export function buildAdminNavLinks(
       icon: HardHat,
       label: adminDict.sidebar.materials,
     },
+    ...(durEnabled
+      ? [
+          {
+            kind: "route" as const,
+            href: adminRoutes.dur.warehouse,
+            icon: Boxes,
+            label: durDict.sidebar.warehouse,
+          },
+        ]
+      : []),
     {
       kind: "route",
       href: adminRoutes.customers,
       icon: Package,
       label: adminDict.sidebar.customers,
     },
-  ];
-
-  if (durEnabled) {
-    links.push(
-      { kind: "section", label: adminDict.sidebar.ordersAndDispatch },
-      {
-        kind: "route",
-        href: adminRoutes.dur.warehouse,
-        icon: Package,
-        label: durDict.sidebar.warehouse,
-      }
-    );
-  }
-
-  links.push(
     { kind: "section", label: adminDict.sidebar.system },
     {
       kind: "route",
@@ -116,8 +112,6 @@ export function buildAdminNavLinks(
       href: adminRoutes.help,
       icon: BookOpen,
       label: adminDict.sidebar.help,
-    }
-  );
-
-  return links;
+    },
+  ];
 }

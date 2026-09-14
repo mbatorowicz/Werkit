@@ -238,25 +238,27 @@ export const helpPl = {
         ],
       },
       {
-        id: "customers",
-        title: "7. Klienci",
-        paragraphs: ["Baza kontrahentów z danymi kontaktowymi i domyślnym adresem."],
-        bullets: [
-          "Wyszukiwanie po nazwie i danych kontaktowych.",
-          "Klient przypisany do zleceń nie może zostać usunięty.",
-          "Lokalizacje klienta używane przy planowaniu trasy i geofencingu.",
-        ],
-      },
-      {
         id: "dur-warehouse",
-        title: "8. Magazyn DUR (utrzymanie ruchu)",
-        paragraphs: ["Moduł widoczny, gdy superadmin włączył DUR dla organizacji."],
+        title: "7. Części zamienne",
+        paragraphs: [
+          "Drugi magazyn — obok materiałów. Widoczny, gdy superadmin włączył DUR dla organizacji.",
+        ],
         bullets: [
           "Katalog części zamiennych (SKU, kategoria, typ zasobu, stan).",
           "Przyjęcia (PZ) i wydania (WZ) części — z fakturą, ceną lub na zlecenie/pracownika.",
           "Korekta stanu — inwentaryzacja i korekty ręczne z opisem przyczyny.",
           "Kategorie części — osobne drzewo kategorii DUR.",
           "Części na zleceniu naprawy: formularz zlecenia i panel workera.",
+        ],
+      },
+      {
+        id: "customers",
+        title: "8. Klienci",
+        paragraphs: ["Baza kontrahentów z danymi kontaktowymi i domyślnym adresem."],
+        bullets: [
+          "Wyszukiwanie po nazwie i danych kontaktowych.",
+          "Klient przypisany do zleceń nie może zostać usunięty.",
+          "Lokalizacje klienta używane przy planowaniu trasy i geofencingu.",
         ],
       },
       {

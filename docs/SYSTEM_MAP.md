@@ -143,7 +143,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/reports` | RSC | `ReportsDashboard` | SSR: `AdminReportService.getDashboardSnapshot` → `components/Admin/Reports/ReportsDashboard.tsx` | admin |
 | `/admin/settings` | RSC | `SettingsForm` | Ustawienia firmy (tenant) (`admin/settings/SettingsForm.tsx`) | admin |
 | `/admin/logs` | RSC | `LogsClient` | Logi urządzeń (`features/admin/logs/LogsClient.tsx`; filtrowane po `companyId`) | admin |
-| `/admin/dur/warehouse` | RSC | `WarehouseClient` | Magazyn: kategorie + katalog (`SparePartsClient` embedded) + przyjęcia/wydania (`StockMovementsClient`) | admin |
+| `/admin/dur/warehouse` | RSC | `WarehouseClient` | Części zamienne: kategorie + katalog (`SparePartsClient` embedded) + przyjęcia/wydania (`StockMovementsClient`) | admin |
 | `/admin/dur/spare-parts` | RSC | redirect → `warehouse` | Legacy URL | admin |
 | `/admin/dur/spare-part-categories` | RSC | redirect → `warehouse` | Legacy URL — kategorie na stronie Magazyn | admin |
 | `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
@@ -157,7 +157,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar **DUR** (tylko gdy `durEnabled`): `/admin/dur/warehouse` (Magazyn — katalog części + przyjęcia/wydania). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines` **zawsze** (nie za DUR). Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
+- Sidebar: materiały zawsze; **części zamienne** (`/admin/dur/warehouse`) tylko gdy `durEnabled` — oba linki jako rodzeństwo w sekcji Logistyka (ikona `Boxes`, nie `Package` jak klienci). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines` **zawsze** (nie za DUR). Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -760,7 +760,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–2 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–3 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

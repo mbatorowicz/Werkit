@@ -243,7 +243,7 @@ export const de: AppDictionary = {
       deviceLogs: "Geräteprotokolle",
       fleetAndPeople: "Organisation",
       machinesAndWorkshop: "Betriebsmittel",
-      logistics: "Ressourcen & Kontakte",
+      logistics: "Logistik",
       ordersAndDispatch: "Instandhaltung",
       materialsBase: "Materialbasis",
       customersAndAddresses: "Kunden & Adressen",
@@ -1350,7 +1350,7 @@ export const de: AppDictionary = {
       resourceGroups: "Ressourcentypen",
       spareParts: "Teilekatalog",
       sparePartCategories: "Teilekategorien",
-      warehouse: "Teile",
+      warehouse: "Ersatzteile",
     },
     resourceGroups: {
       title: "Ressourcentypen",
@@ -1466,7 +1466,7 @@ export const de: AppDictionary = {
       removeSuccess: "Verknüpfung entfernt.",
     },
     warehouse: {
-      title: "Teile",
+      title: "Ersatzteile",
       subtitle: "Teilekategorien, Katalog, Bestandskorrekturen, Zugänge und Abgänge.",
       movementsSubtitle: "Register der Teilezugänge und -abgänge.",
       colCollectedBy: "Entnommen von",

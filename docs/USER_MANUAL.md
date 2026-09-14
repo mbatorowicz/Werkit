@@ -178,13 +178,13 @@ Rejestr maszyn, kategorie zasobów, typy zasobów (DUR).
 
 Katalog, kategorie, PZ/WZ, alert niskiego stanu.
 
-### 7. Klienci
+### 7. Części zamienne
+
+*(Gdy moduł DUR włączony)* Drugi magazyn obok materiałów: katalog części, PZ/WZ, korekty stanu, części na zleceniach napraw. URL `/admin/dur/warehouse` bez zmian.
+
+### 8. Klienci
 
 CRUD kontrahentów i lokalizacji.
-
-### 8. Magazyn DUR
-
-*(Gdy moduł włączony)* Katalog części, PZ/WZ, korekty stanu, części na zleceniach napraw.
 
 ### 9. Ustawienia firmy
 
