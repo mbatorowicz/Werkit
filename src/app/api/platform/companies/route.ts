@@ -2,6 +2,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { requireSuperadminSession } from "@/lib/apiPlatform";
 import { PlatformCompanyService } from "@/services/PlatformCompanyService";
 import { hashPassword } from "@/lib/passwordCrypto";
+import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -40,6 +41,9 @@ export const POST = withApiErrorHandling(
 
     let passwordHash: string | null = null;
     if (wantsAdmin) {
+      if (!isPasswordPolicyOk(adminPassword, adminEmail)) {
+        return jsonError("weak_password", 400);
+      }
       passwordHash = await hashPassword(adminPassword, 10);
     }
 

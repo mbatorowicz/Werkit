@@ -127,6 +127,8 @@ export const pl = {
     customer_in_use: "Klient jest przypisany do zleceń i nie może zostać usunięty.",
     missing_credentials: "Brak loginu lub hasła.",
     invalid_credentials: "Nieprawidłowe dane logowania.",
+    too_many_attempts: "Zbyt wiele nieudanych prób logowania. Spróbuj ponownie za 15 minut.",
+    weak_password: "Hasło jest za słabe. Użyj co najmniej 6 znaków i unikaj oczywistych PIN-ów (123456, 000000).",
     admin_password_required: "Wymagane hasło administratora.",
     account_blocked: "Konto zostało zablokowane.",
     server_error: "Wewnętrzny Błąd Serwera.",
@@ -682,8 +684,9 @@ export const pl = {
       loginPlaceholder: "janek_k",
       passwordLabelNew: "Hasło (PIN)",
       passwordLabelEdit: "Nowy PIN",
-      passwordPlaceholderNew: "1234",
+      passwordPlaceholderNew: "min. 6 znaków",
       passwordPlaceholderEdit: "bez zmian — zostaw puste",
+      passwordHint: "Minimum 6 znaków. Unikaj oczywistych PIN-ów (123456, 000000) i hasła równego loginowi.",
       passwordEditHint:
         "Przy edycji konta puste pole PIN oznacza brak zmiany. Wpisz nowy PIN tylko wtedy, gdy chcesz go zmienić.",
       accountCreateHint:
@@ -1285,6 +1288,7 @@ export const pl = {
     adminName: "Imię i nazwisko",
     adminEmail: "Adres e-mail (login)",
     adminPassword: "Hasło początkowe",
+    adminPasswordHint: "Minimum 6 znaków. Unikaj oczywistych PIN-ów (123456, 000000).",
     submitCreate: "Utwórz organizację",
     createSuccess: "Organizacja została zarejestrowana.",
     createError: "Nie udało się zarejestrować organizacji.",

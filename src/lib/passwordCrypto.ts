@@ -38,6 +38,14 @@ function getImpl(): Promise<Impl> {
   return implPromise;
 }
 
+/**
+ * Stały hash bcrypt (cost 10) — compare przy nieistniejącym userze,
+ * żeby czas odpowiedzi nie zdradzał enumeracji kont. Nie z env.
+ * Wynik compare jest ignorowany (login i tak zwraca invalid_credentials).
+ */
+export const DUMMY_BCRYPT_HASH =
+  "$2b$10$P9JmMGPi901GGc.K0lHIn.I/xotaz9Kec69FwHWR1HpLQsAbgJ9iS";
+
 export async function comparePassword(plain: string, hash: string): Promise<boolean> {
   return (await getImpl()).compare(plain, hash);
 }

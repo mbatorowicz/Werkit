@@ -80,6 +80,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `departments` | `name` (per `company_id`) | **`company_id`**, `name`, **`parent_id?`**, **`manager_id?`** (kierownik działu → `users`), `sort_order` | `company_id → companies.id` (cascade); `parent_id` self-ref (set null); `manager_id → users.id` (set null). Migracja **0021**. |
 | `teams` | `name` (per departament) | **`company_id`**, **`department_id`**, `name`, **`leader_id?`** (lider → `users`), `sort_order` | `department_id → departments.id` (cascade); `leader_id → users.id` (set null). |
 | `team_members` | PK `id` | **`team_id`**, **`user_id`**, **`role`** ∈ `leader\|member`, `joined_at` | `team_id → teams.id` (cascade); `user_id → users.id` (cascade). **SSOT lidera:** `teams.leader_id` synchronizowany w `OrganizationService` z wpisem `role='leader'`. |
+| `login_attempts` | PK `key` (text) | `count`, `reset_at` | Brak FK. Rate limit logowania 5/15 min (S1). `key` = pierwszy hop `X-Forwarded-For` + `:` + znormalizowany login. Migracja **0033**. |
 
 ### 3.1. Drizzle relations
 
@@ -117,6 +118,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0030 | `0030_materials_unit.sql` | `materials.unit` — konfigurowalna jednostka miary (domyślnie `t`). Kanon jednostek: `src/lib/measureUnits.ts` (współdzielone z częściami DUR). |
 | 0031 | `0031_dispatch_performance_indexes.sql` | Indeksy `work_sessions(company_id, start_time)` pod archiwum dyspozycji. |
 | 0032 | `0032_company_name_default.sql` | Default `company_settings.company_name` → `Werkit`; UPDATE istniejących wierszy z `Werkit ERP`. |
+| 0033 | `0033_login_attempts.sql` | Tabela `login_attempts` (`key` PK, `count`, `reset_at`) — rate limit logowania między instancjami Vercel. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -187,7 +189,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 | Endpoint | Metoda | Body / opis | Response |
 |---|---|---|---|
-| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_payload\|missing_credentials`; 401 `invalid_credentials` (także **nieaktywna firma** — bez osobnego `company_blocked`); 403 `account_blocked` (nieaktywny user — do S1); 503 `service_unavailable` (DB); 500 `server_error`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
+| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_json\|missing_credentials`; **401 `invalid_credentials`** (brak usera, złe hasło, `users.isActive=false`, `companies.isActive=false` — **bez** `account_blocked` / `company_blocked`); 429 `too_many_attempts` (5 nieudanych / 15 min, tabela `login_attempts`); 503 `service_unavailable` (DB); 500 `server_error`. Przy nieistniejącym userze `comparePassword` ze stałym dummy hashem bcrypt (timing). Login **nie** zwraca `weak_password`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
 | `/api/auth/logout` | POST | brak | 200 + delete cookie |
 
 ### 5.2. Worker
@@ -221,9 +223,9 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/platform/companies` | GET | `PlatformCompanyService.listCompanies` |
-| `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy) |
+| `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy; hasło → `passwordPolicy`, 400 `weak_password`) |
 | `/api/platform/companies/[id]` | PUT | `PlatformCompanyService.updateCompany` |
-| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` |
+| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` (ta sama polityka hasła, 400 `weak_password`) |
 | `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` |
 | `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags` |
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
@@ -245,8 +247,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/users` | GET | `AdminUserService.getAllUsers` + `orgProfile` (skrót badge'y) z `DelegationScopeService.getOrgProfilesForCompany` |
 | `/api/admin/users/delegatable` | GET | `DelegationScopeService.getDelegatableWorkers` — lista do pickera dyspozycji (scoped: tylko podlegli; admin: wszyscy aktywni workerzy) |
 | `/api/admin/users/[id]` | GET | Szczegóły użytkownika + pełny `orgProfile` (`getUserOrgProfile`) |
-| `/api/admin/users` | POST | Rejestracja konta + `bcrypt.hash(password, 10)`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); `23505 → user_exists`, `invalid_team` |
-| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment` |
+| `/api/admin/users` | POST | Rejestracja konta + polityka hasła (`passwordPolicy`, min. 6, bez trywialnych PIN-ów) + `hashPassword`; 400 `weak_password`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); `23505 → user_exists`, `invalid_team` |
+| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła; zmiana hasła → ta sama polityka, 400 `weak_password`); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment` |
 | `/api/admin/users/[id]` | DELETE | Usunięcie konta |
 | `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
 | `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
@@ -314,6 +316,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `AuthPrincipalService`
 - `resolve(session)` — żywy principal z DB: user istnieje i `isActive`, rola z wiersza (nie z JWT), `companyId` z `users.company_id` (JWT może się różnić). Dla ról firmowych: firma istnieje i `companies.isActive`. Superadmin bez firmy — bez odczytu `companies`. Porażka → `null` (API: 401 + kasowanie cookie).
 - Helpery: `src/lib/livePrincipal.ts` (`assertLivePrincipal`, `requireLivePrincipalOr401`, layout `requireLiveCompanyPrincipalOrRedirect` / `requireLiveSuperadminOrRedirect`).
+
+### `LoginRateLimitService`
+- `isLimited(key)` / `recordFailure(key)` / `clear(key)` — tabela `login_attempts`. 5 nieudanych / 15 min; sukces logowania kasuje wiersz. Cienki wrapper: `src/lib/serverRateLimit.ts` (komentarz: XFF poza Vercel jest spoofowalny).
 
 ### `AdminUserService`
 - `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
@@ -622,7 +627,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Tylko podpis JWT** — nie sprawdza `isActive`. Żywy principal: `AuthPrincipalService` + `livePrincipal.ts`. **Brak `JWT_SECRET`** → rzuca `Error`. **Na produkcji wymagane!** |
 | `livePrincipal.ts` | `assertLivePrincipal`, 401 + `auth_token` `Path=/` `Max-Age=0`, redirect layoutów `/login?reason=session`. |
 | `apiTenant.ts` / `apiPlatform.ts` | `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession` — po JWT rewalidacja DB; `session.role` i `companyId` z principal. |
-| `passwordCrypto.ts` | `comparePassword` / `hashPassword` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`** (login + `/api/admin/users`, biometria w `AdminUserService`). |
+| `passwordCrypto.ts` | `comparePassword` / `hashPassword` / `DUMMY_BCRYPT_HASH` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`**. Dummy hash (stała w kodzie) przy nieistniejącym userze na loginie. |
+| `passwordPolicy.ts` | `PASSWORD_MIN_LENGTH = 6`, `isPasswordPolicyOk` — odrzut `1234` / `123456` / `000000` / `111111` / login==hasło. Call-site: POST/PUT users, POST platform companies (+ admin). Login **nie** woła polityki. |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
 | `requireAdminMutation.ts` | `guardAdminMutation()` — 401/403 albo `undefined`. Rola **z DB** (żywy principal), druga linia za `proxy`. |
 | `requireDispatchMutation.ts` | `guardDispatchMutation()` — admin **lub** viewer/worker z `DelegationScopeService.hasDelegationRights`; rola z DB. |
@@ -674,7 +680,7 @@ Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capaci
 Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | Slot | Co tam jest |
 |---|---|
-| `apiErrors` | Mapa `kod → komunikat`. **Kluczowe** dla `/login` i wszystkich JSON-owych odpowiedzi z błędem (`error: 'xxx'`). Zawiera m.in. `feature_disabled` (403 gdy moduł GPS/DUR wyłączony dla organizacji). |
+| `apiErrors` | Mapa `kod → komunikat`. **Kluczowe** dla `/login` i wszystkich JSON-owych odpowiedzi z błędem (`error: 'xxx'`). Zawiera m.in. `feature_disabled` (403 gdy moduł GPS/DUR wyłączony dla organizacji), `weak_password`, `too_many_attempts`. Login **nie** zwraca `account_blocked`. |
 | `workOrdersSchedule` | **SSOT** pól terminu/czasu i tekstów konfliktów harmonogramu (admin + worker); helper: `scheduleConflictI18n.ts`. |
 | `login` | `submit`, `biometricLogin`, `biometricDivider` |
 | `admin.sidebar` | Etykiety nawigacji admin |

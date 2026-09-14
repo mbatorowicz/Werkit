@@ -124,4 +124,13 @@ describe("UserFormFields", () => {
     rerender(<UserFormFields {...props} showPassword />);
     expect(screen.getByRole("button", { name: dict.passwordHide })).toBeInTheDocument();
   });
+
+  it("pole PIN wymaga min. 6 znaków, nie sugeruje 1234 i pokazuje hint", () => {
+    renderWithProviders(<UserFormFields {...makeProps()} />);
+
+    const input = screen.getByPlaceholderText(dict.passwordPlaceholderNew);
+    expect(input).toHaveAttribute("minLength", "6");
+    expect(input).not.toHaveAttribute("placeholder", "1234");
+    expect(screen.getByText(dict.passwordHint)).toBeInTheDocument();
+  });
 });

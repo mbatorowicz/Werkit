@@ -7,6 +7,8 @@ import type { AppDictionary } from "@/i18n/types";
 import { useDictionary, formatDict } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { FOCUS_EMERALD, INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_HINT } from "@/lib/uiTypography";
+import { PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
 import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
@@ -279,11 +281,13 @@ function CompanyAdminsTab({
           <input
             required
             type="password"
+            minLength={PASSWORD_MIN_LENGTH}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className={cn(INPUT_BASE, "mt-1.5")}
           />
         </label>
+        <p className={FIELD_HINT}>{dict.adminPasswordHint}</p>
         <div className="flex flex-wrap items-center gap-3">
           <button type="submit" disabled={pending} className={BTN_PRIMARY_COMPACT_SM}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}

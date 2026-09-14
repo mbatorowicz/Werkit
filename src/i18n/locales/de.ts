@@ -129,6 +129,9 @@ export const de: AppDictionary = {
     customer_in_use: "Kunde ist Aufträgen zugewiesen und kann nicht gelöscht werden.",
     missing_credentials: "Login oder Passwort fehlt.",
     invalid_credentials: "Ungültige Anmeldedaten.",
+    too_many_attempts: "Zu viele fehlgeschlagene Anmeldeversuche. Versuchen Sie es in 15 Minuten erneut.",
+    weak_password:
+      "Passwort ist zu schwach. Mindestens 6 Zeichen, keine offensichtlichen PINs (123456, 000000).",
     admin_password_required: "Administrator-Passwort erforderlich.",
     account_blocked: "Konto wurde gesperrt.",
     server_error: "Interner Serverfehler.",
@@ -694,8 +697,10 @@ export const de: AppDictionary = {
       loginPlaceholder: "max_m",
       passwordLabelNew: "Passwort (PIN)",
       passwordLabelEdit: "Neue PIN",
-      passwordPlaceholderNew: "1234",
+      passwordPlaceholderNew: "min. 6 Zeichen",
       passwordPlaceholderEdit: "unverändert — leer lassen",
+      passwordHint:
+        "Mindestens 6 Zeichen. Keine offensichtlichen PINs (123456, 000000) und kein Passwort gleich dem Login.",
       passwordEditHint:
         "Lassen Sie das PIN-Feld beim Bearbeiten leer, um die aktuelle PIN beizubehalten. Geben Sie nur dann eine neue PIN ein, wenn Sie sie ändern möchten.",
       accountCreateHint:
@@ -1305,6 +1310,7 @@ export const de: AppDictionary = {
     adminName: "Vollständiger Name",
     adminEmail: "E-Mail (Login)",
     adminPassword: "Anfangspasswort",
+    adminPasswordHint: "Mindestens 6 Zeichen. Keine offensichtlichen PINs (123456, 000000).",
     submitCreate: "Organisation erstellen",
     createSuccess: "Organisation wurde registriert.",
     createError: "Organisation konnte nicht registriert werden.",

@@ -4,6 +4,8 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { cn } from "@/lib/cn";
 import { INPUT_BASE, SELECT_BASE } from "@/lib/uiTokens";
+import { FIELD_HINT } from "@/lib/uiTypography";
+import { PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
 import { UserFormWorkerSection } from "./UserFormWorkerSection";
 import { COMBO_NONE, type UserFormState } from "./userFormModel";
 
@@ -119,6 +121,7 @@ export default function UserFormFields({
             <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input
               required={!editId}
+              minLength={PASSWORD_MIN_LENGTH}
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
               placeholder={editId ? dict.passwordPlaceholderEdit : dict.passwordPlaceholderNew}
@@ -135,6 +138,7 @@ export default function UserFormFields({
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
+          {dict.passwordHint ? <p className={FIELD_HINT}>{dict.passwordHint}</p> : null}
         </div>
       </div>
 

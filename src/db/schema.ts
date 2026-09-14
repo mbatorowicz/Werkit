@@ -717,6 +717,16 @@ export const teamMembers = pgTable("team_members", {
   joinedAt: timestamp("joined_at").notNull().defaultNow(),
 });
 
+/**
+ * Próby logowania (S1) — limit 5/15 min współdzielony między instancjami Vercel.
+ * `key` = pierwszy hop X-Forwarded-For + ":" + znormalizowany login.
+ */
+export const loginAttempts = pgTable("login_attempts", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(0),
+  resetAt: timestamp("reset_at").notNull(),
+});
+
 // Relacje organizacji
 export const departmentsRelations = relations(departments, ({ one, many }) => ({
   company: one(companies, { fields: [departments.companyId], references: [companies.id] }),

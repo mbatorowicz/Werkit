@@ -2,6 +2,7 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { requireSuperadminSession } from "@/lib/apiPlatform";
 import { PlatformCompanyService } from "@/services/PlatformCompanyService";
 import { hashPassword } from "@/lib/passwordCrypto";
+import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 import { parsePositiveIntFromString } from "@/lib/parseRouteParams";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,10 @@ export const POST = withApiErrorHandling(
 
     if (!fullName || !usernameEmail || !password.trim()) {
       return jsonError("missing_fields", 400);
+    }
+
+    if (!isPasswordPolicyOk(password, usernameEmail)) {
+      return jsonError("weak_password", 400);
     }
 
     const passwordHash = await hashPassword(password, 10);

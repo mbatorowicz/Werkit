@@ -127,6 +127,9 @@ export const en: AppDictionary = {
     customer_in_use: "Customer is assigned to orders and cannot be deleted.",
     missing_credentials: "Missing login or password.",
     invalid_credentials: "Invalid login credentials.",
+    too_many_attempts: "Too many failed login attempts. Try again in 15 minutes.",
+    weak_password:
+      "Password is too weak. Use at least 6 characters and avoid obvious PINs (123456, 000000).",
     admin_password_required: "Administrator password is required.",
     account_blocked: "Account has been blocked.",
     server_error: "Internal Server Error.",
@@ -678,8 +681,10 @@ export const en: AppDictionary = {
       loginPlaceholder: "john_d",
       passwordLabelNew: "Password (PIN)",
       passwordLabelEdit: "New PIN",
-      passwordPlaceholderNew: "1234",
+      passwordPlaceholderNew: "min. 6 characters",
       passwordPlaceholderEdit: "unchanged — leave blank",
+      passwordHint:
+        "At least 6 characters. Avoid obvious PINs (123456, 000000) and using the login as the password.",
       passwordEditHint:
         "When editing, leave the PIN field blank to keep the current PIN. Enter a new PIN only if you want to change it.",
       accountCreateHint:
@@ -1274,6 +1279,7 @@ export const en: AppDictionary = {
     adminName: "Full name",
     adminEmail: "Email (login)",
     adminPassword: "Initial password",
+    adminPasswordHint: "At least 6 characters. Avoid obvious PINs (123456, 000000).",
     submitCreate: "Create organization",
     createSuccess: "Organization has been registered.",
     createError: "Could not register the organization.",

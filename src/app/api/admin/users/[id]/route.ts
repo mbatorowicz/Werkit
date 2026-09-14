@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { hashPassword } from "@/lib/passwordCrypto";
+import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 import type { UserUpdatePayload } from "@/services/AdminUserService";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
@@ -85,6 +86,11 @@ export const PUT = withApiErrorHandling(
     updateData.isDurWorker = flags.isDurWorker;
 
     if (typeof body.password === "string" && body.password.trim() !== "") {
+      const usernameForPolicy =
+        typeof body.usernameEmail === "string" ? body.usernameEmail : updateData.usernameEmail;
+      if (!isPasswordPolicyOk(body.password, usernameForPolicy)) {
+        return jsonError("weak_password", 400);
+      }
       updateData.passwordHash = await hashPassword(body.password, 10);
     }
 

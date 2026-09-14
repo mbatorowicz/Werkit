@@ -232,6 +232,13 @@
       "when": 1749340800000,
       "tag": "0032_company_name_default",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1749427200000,
+      "tag": "0033_login_attempts",
+      "breakpoints": true
     }
   ]
 }

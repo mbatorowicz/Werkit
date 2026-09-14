@@ -2,8 +2,12 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { SignJWT } from "jose";
 
 import { JWT_SECRET } from "@/lib/auth";
-import { comparePassword } from "@/lib/passwordCrypto";
-import { isLoginRateLimited, clearLoginRateLimit } from "@/lib/serverRateLimit";
+import { comparePassword, DUMMY_BCRYPT_HASH } from "@/lib/passwordCrypto";
+import {
+  clearLoginRateLimit,
+  isLoginRateLimited,
+  recordLoginFailure,
+} from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   const msg = err instanceof Error ? `${err.name} ${err.message}` : String(err);
@@ -14,6 +18,33 @@ function isLikelyDatabaseOrInfraError(err: unknown): boolean {
   );
 }
 
+/**
+ * Jeden wynik porażki (null) dla: brak usera, złe hasło, nieaktywny user, nieaktywna firma.
+ * Ghost user i tak przechodzi przez compare z dummy hashem (timing).
+ */
+async function authenticateLoginCredentials(usernameEmail: string, password: string) {
+  const { AdminUserService } = await import("@/services/AdminUserService");
+  const user = await AdminUserService.getUserByUsername(usernameEmail);
+  const hashToCompare = user?.passwordHash ?? DUMMY_BCRYPT_HASH;
+
+  let isPasswordValid = false;
+  try {
+    isPasswordValid = await comparePassword(password, hashToCompare);
+  } catch {
+    isPasswordValid = false;
+  }
+
+  if (!user || !user.isActive || !isPasswordValid) return null;
+
+  if (user.companyId != null) {
+    const { PlatformCompanyService } = await import("@/services/PlatformCompanyService");
+    const company = await PlatformCompanyService.getCompanyById(user.companyId);
+    if (!company?.isActive) return null;
+  }
+
+  return user;
+}
+
 export const POST = withApiErrorHandling(
   async (req: Request) => {
     const url = new URL(req.url);
@@ -21,7 +52,8 @@ export const POST = withApiErrorHandling(
     const isHttps = forwardedProto === "https" || url.protocol === "https:";
     const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
 
-    // Rate limiting: klucz = IP + username (jeśli podany)
+    // Na Vercel pierwszy hop XFF jest wiarygodny; poza Vercel nagłówek jest spoofowalny
+    // (throttle, nie autoryzacja). Zob. komentarz w serverRateLimit.ts.
     const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const body = await parseJsonBody(req);
     const u = body.usernameEmail;
@@ -30,7 +62,7 @@ export const POST = withApiErrorHandling(
     const password = typeof p === "string" ? p : "";
 
     const rateLimitKey = `${clientIp}:${usernameEmail || "anon"}`;
-    if (isLoginRateLimited(rateLimitKey)) {
+    if (await isLoginRateLimited(rateLimitKey)) {
       return jsonError("too_many_attempts", 429);
     }
 
@@ -38,38 +70,13 @@ export const POST = withApiErrorHandling(
       return jsonError("missing_credentials", 400);
     }
 
-    const { AdminUserService } = await import("@/services/AdminUserService");
-    const user = await AdminUserService.getUserByUsername(usernameEmail);
-
+    const user = await authenticateLoginCredentials(usernameEmail, password);
     if (!user) {
+      await recordLoginFailure(rateLimitKey);
       return jsonError("invalid_credentials", 401);
     }
 
-    if (!user.isActive) {
-      return jsonError("account_blocked", 403);
-    }
-
-    let isPasswordValid = false;
-    try {
-      isPasswordValid = await comparePassword(password, user.passwordHash);
-    } catch {
-      return jsonError("invalid_credentials", 401);
-    }
-
-    if (!isPasswordValid) {
-      return jsonError("invalid_credentials", 401);
-    }
-
-    if (user.companyId != null) {
-      const { PlatformCompanyService } = await import("@/services/PlatformCompanyService");
-      const company = await PlatformCompanyService.getCompanyById(user.companyId);
-      if (!company?.isActive) {
-        return jsonError("invalid_credentials", 401);
-      }
-    }
-
-    // Udane logowanie — czyścimy licznik prób
-    clearLoginRateLimit(rateLimitKey);
+    await clearLoginRateLimit(rateLimitKey);
 
     const jwt = await new SignJWT({
       userId: user.id,

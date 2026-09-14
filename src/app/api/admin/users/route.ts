@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { hashPassword } from "@/lib/passwordCrypto";
+import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import {
@@ -62,6 +63,10 @@ export const POST = withApiErrorHandling(
 
     if (!fullName || !usernameEmail || !password) {
       return jsonError("missing_fields", 400);
+    }
+
+    if (!isPasswordPolicyOk(password, usernameEmail)) {
+      return jsonError("weak_password", 400);
     }
 
     const { AdminUserService } = await import("@/services/AdminUserService");

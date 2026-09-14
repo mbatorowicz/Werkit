@@ -116,7 +116,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | done |
 | P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | done |
 | P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | done |
-| P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | open |
+| P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | done |
 | P-SEC-2 | Limity GPS / zdjęć / `device_logs` | open |
 | P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | open |
 
@@ -282,6 +282,13 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 - [`AuthPrincipalService`](../src/services/AuthPrincipalService.ts) + [`livePrincipal.ts`](../src/lib/livePrincipal.ts): user/`isActive`, rola i `companyId` z DB, `companies.isActive` (superadmin bez firmy).
 - Podpięte w `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`, `guardAdminMutation` / `guardDispatchMutation` / `guardCustomerCreate`, layouty admin/worker/platform, login (nieaktywna firma → `invalid_credentials`).
 - `/login?reason=session` kasuje cookie w `proxy.ts` (jak `tenant`) — unik pętli JWT.
+
+#### P-SEC-1 — co zrobiono
+
+- [`passwordPolicy.ts`](../src/lib/passwordPolicy.ts): min. 6 znaków; odrzut `1234` / `123456` / `000000` / `111111` / login==hasło. API: POST/PUT `/api/admin/users`, POST `/api/platform/companies` (+ `[id]/admin`). Login nie zwraca `weak_password`.
+- Login: zawsze **401 `invalid_credentials`** (brak usera, złe hasło, nieaktywny user/firma). Dummy bcrypt przy ghost userze. 429 `too_many_attempts` bez zmian.
+- [`LoginRateLimitService`](../src/services/LoginRateLimitService.ts) + migracja **0033** `login_attempts`. `serverRateLimit.ts` = cienki wrapper (XFF poza Vercel spoofowalny).
+- UI: `UserFormFields` `minLength={6}`, placeholder bez `1234`, hint `admin.workers.passwordHint` (formularz ludzi); analogicznie platform create/add-admin.
 
 ---
 

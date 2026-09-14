@@ -5,6 +5,8 @@ import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_HINT } from "@/lib/uiTypography";
+import { PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 
@@ -144,11 +146,13 @@ export function PlatformCompanyCreateModal({ open, dict, onClose, onCreated }: P
               <span className="text-zinc-600 dark:text-zinc-400">{dict.adminPassword}</span>
               <input
                 type="password"
+                minLength={PASSWORD_MIN_LENGTH}
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 className={cn(INPUT_BASE, "mt-1.5")}
               />
             </label>
+            <p className={cn(FIELD_HINT, "md:col-span-2")}>{dict.adminPasswordHint}</p>
           </div>
         </div>
 

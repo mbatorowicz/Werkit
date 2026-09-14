@@ -311,6 +311,7 @@ async function main() {
       "created_at",
     ]),
     team_members: new Set(["id", "team_id", "user_id", "role", "joined_at"]),
+    login_attempts: new Set(["key", "count", "reset_at"]),
   };
 
   const { sql } = await import("@vercel/postgres");
