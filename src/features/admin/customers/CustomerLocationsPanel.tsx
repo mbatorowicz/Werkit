@@ -4,6 +4,9 @@ import dynamic from "next/dynamic";
 import { Plus, Trash2 } from "lucide-react";
 import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
+import { UiButton } from "@/components/UiButton";
+import { LINK_ACCENT } from "@/lib/uiChrome";
+import { CARD_NESTED, INPUT_BASE } from "@/lib/uiTokens";
 import { CustomerLocationChips } from "./CustomerLocationChips";
 import { useCustomerLocations, locationAddressParts } from "./useCustomerLocations";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
@@ -54,11 +57,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
         <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
           {dict.locationsTitle}
         </h3>
-        <button
-          type="button"
-          onClick={startNewLocation}
-          className="text-xs flex items-center gap-1 text-emerald-600 font-medium"
-        >
+        <button type="button" onClick={startNewLocation} className={LINK_ACCENT}>
           <Plus className="w-3.5 h-3.5" />
           {dict.locationAdd}
         </button>
@@ -76,7 +75,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
       {!editorOpen ? (
         <p className="text-sm text-zinc-500 dark:text-zinc-400 py-2">{dict.locationSelectPrompt}</p>
       ) : (
-        <div className="space-y-3 rounded-lg border border-zinc-200 dark:border-zinc-700 p-4 bg-zinc-50/80 dark:bg-zinc-950/40">
+        <div className={CARD_NESTED}>
           <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
             {isDraftOpen && selectedId === null
               ? dict.locationNewHeading
@@ -87,7 +86,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
             value={form.label}
             onChange={(e) => setForm({ ...form, label: e.target.value })}
             placeholder={dict.locationLabelPlaceholder}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
+            className={INPUT_BASE}
           />
           <CustomerAddressFields
             value={locationAddressParts(form)}
@@ -107,7 +106,7 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
               postalCodeLabel: dict.postalCodeLabel,
               postalCodePlaceholder: dict.postalCodePlaceholder,
             }}
-            inputClass="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm"
+            inputClass={INPUT_BASE}
             compact
           />
           <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -119,14 +118,14 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
             />
             {dict.locationDefaultCheckbox}
           </label>
-          <button
+          <UiButton
             type="button"
+            variant="primaryCompactSm"
             onClick={() => void handleGeocode()}
             disabled={geocodeBusy}
-            className="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 transition"
           >
             {geocodeBusy ? dict.geocodeLoading : dict.geocodeBtn}
-          </button>
+          </UiButton>
           {showRouteMap && routeOrigin ? (
             <CustomerRoutePlannerMap
               routeOrigin={routeOrigin}
@@ -139,14 +138,15 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
             />
           ) : null}
           <div className="flex gap-2 pt-1">
-            <button
+            <UiButton
               type="button"
+              variant="primary"
+              className="flex-1"
               disabled={saving}
               onClick={() => void saveLocation()}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
             >
               {saving ? dict.locationSaving : dict.locationSave}
-            </button>
+            </UiButton>
             {selectedId ? (
               <button
                 type="button"

@@ -2,14 +2,13 @@
 
 import { Lock, Eye, EyeOff } from "lucide-react";
 import type { AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
+import { cn } from "@/lib/cn";
+import { INPUT_BASE, SELECT_BASE } from "@/lib/uiTokens";
 import { UserFormWorkerSection } from "./UserFormWorkerSection";
 import { COMBO_NONE, type UserFormState } from "./userFormModel";
 
 export { COMBO_NONE, emptyUserForm } from "./userFormModel";
 export type { UserFormState } from "./userFormModel";
-
-const INPUT =
-  "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
 
 interface UserFormFieldsProps {
   form: UserFormState;
@@ -54,7 +53,7 @@ export default function UserFormFields({
           placeholder={dict.fullNamePlaceholder}
           value={form.fullName}
           onChange={(e) => setForm({ fullName: e.target.value })}
-          className={INPUT}
+          className={INPUT_BASE}
         />
       </div>
 
@@ -67,7 +66,7 @@ export default function UserFormFields({
           placeholder={dict.phonePlaceholder}
           value={form.phone}
           onChange={(e) => setForm({ phone: e.target.value })}
-          className={INPUT}
+          className={INPUT_BASE}
         />
       </div>
 
@@ -90,7 +89,7 @@ export default function UserFormFields({
               teamId: role === "worker" ? form.teamId : COMBO_NONE,
             });
           }}
-          className={`${INPUT} py-3 appearance-none`}
+          className={SELECT_BASE}
         >
           <option value="worker">{dict.roleWorker}</option>
           <option value="admin">{dict.roleAdmin}</option>
@@ -109,7 +108,7 @@ export default function UserFormFields({
             placeholder={dict.loginPlaceholder}
             value={form.usernameEmail}
             onChange={(e) => setForm({ usernameEmail: e.target.value.toLowerCase() })}
-            className={INPUT}
+            className={INPUT_BASE}
           />
         </div>
         <div className="space-y-2">
@@ -125,7 +124,7 @@ export default function UserFormFields({
               placeholder={editId ? dict.passwordPlaceholderEdit : dict.passwordPlaceholderNew}
               value={form.password}
               onChange={(e) => setForm({ password: e.target.value })}
-              className={`${INPUT} py-2.5 pl-10 pr-11`}
+              className={cn(INPUT_BASE, "pl-10 pr-11")}
             />
             <button
               type="button"

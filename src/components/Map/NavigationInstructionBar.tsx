@@ -85,7 +85,7 @@ export default function NavigationInstructionBar({
           className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
             isArrive
               ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
-              : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+              : "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
           }`}
         >
           <ManeuverIcon

@@ -1,6 +1,8 @@
 "use client";
 
 import type { CustomerLocationRow } from "@/services/CustomerLocationService";
+import { CHIP_IDLE, CHIP_SELECTED } from "@/lib/uiChrome";
+import { cn } from "@/lib/cn";
 
 interface CustomerLocationChipsProps {
   locations: CustomerLocationRow[];
@@ -30,11 +32,7 @@ export function CustomerLocationChips({
           key={loc.id}
           type="button"
           onClick={() => onSelect(loc)}
-          className={`text-xs px-3 py-1.5 rounded-full border transition ${
-            selectedId === loc.id && !isDraftOpen
-              ? "bg-emerald-600 text-white border-emerald-600"
-              : "border-zinc-300 dark:border-zinc-600 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500"
-          }`}
+          className={cn(selectedId === loc.id && !isDraftOpen ? CHIP_SELECTED : CHIP_IDLE)}
         >
           {loc.label}
           {loc.isDefault ? ` (${defaultBadgeLabel})` : ""}

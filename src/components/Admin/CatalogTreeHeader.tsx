@@ -1,8 +1,7 @@
 "use client";
 
 import { Layers, Plus } from "lucide-react";
-import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
-import { cn } from "@/lib/cn";
+import { UiButton } from "@/components/UiButton";
 
 export interface CatalogTreeHeaderProps {
   title: string;
@@ -33,13 +32,9 @@ export function CatalogTreeHeader({
       </div>
       {canMutate ? (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onAddCategory}
-            className={cn("flex items-center gap-2", BTN_PRIMARY_COMPACT_SM)}
-          >
+          <UiButton type="button" variant="primaryCompactSm" onClick={onAddCategory}>
             <Plus className="h-4 w-4" /> {addCategoryLabel}
-          </button>
+          </UiButton>
           {onAddMaterial && addMaterialLabel ? (
             <button
               type="button"

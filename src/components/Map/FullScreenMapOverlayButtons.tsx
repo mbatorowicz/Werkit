@@ -2,6 +2,8 @@
 
 import { X, Navigation, ExternalLink } from "lucide-react";
 import { openGoogleNavigation, SAFE_TOP } from "./mapSharedComponents";
+import { cn } from "@/lib/cn";
+import { BTN_MAP_PILL } from "@/lib/uiButtons";
 
 export interface FullScreenMapOverlayButtonsProps {
   onClose: () => void;
@@ -38,7 +40,10 @@ export function FullScreenMapOverlayButtons({
         <button
           type="button"
           onClick={() => openGoogleNavigation(destination, currentLocation, plannedRouteWaypoints)}
-          className="absolute right-4 z-[1001] flex items-center gap-2 rounded-full bg-emerald-600/90 backdrop-blur-md px-5 py-3 text-sm font-semibold text-white shadow-lg border border-emerald-500/30 transition hover:bg-emerald-500 active:scale-95"
+          className={cn(
+            BTN_MAP_PILL,
+            "absolute right-4 z-[1001] px-5 py-3 text-sm font-semibold backdrop-blur-md"
+          )}
           style={{ top: `calc(${SAFE_TOP} + 60px)` }}
         >
           <Navigation className="h-4 w-4" />

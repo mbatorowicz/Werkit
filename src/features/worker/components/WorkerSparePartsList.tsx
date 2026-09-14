@@ -2,6 +2,7 @@
 
 import { Trash2 } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
+import { useDictionary } from "@/i18n";
 import type { WorkOrderSparePartRow } from "@/features/worker/components/useWorkerSparePartsActions";
 
 export function WorkerSparePartsList({
@@ -15,8 +16,10 @@ export function WorkerSparePartsList({
   workerDict: AppDictionary["worker"]["client"];
   onReturnPart: (lineId: number) => void;
 }) {
+  const loadingLabel = useDictionary().common.loading.default;
+
   if (isLoading) {
-    return <p className="text-xs text-zinc-500 dark:text-zinc-400">Wczytywanie…</p>;
+    return <p className="text-xs text-zinc-500 dark:text-zinc-400">{loadingLabel}</p>;
   }
   if (parts.length === 0) {
     return <p className="text-xs text-zinc-500 dark:text-zinc-400">{workerDict.noSpareParts}</p>;

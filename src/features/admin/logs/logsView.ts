@@ -109,15 +109,4 @@ export function hasMetadataPayload(metadata: Record<string, unknown> | null | un
   return Object.keys(metadata).length > 0;
 }
 
-export function getLevelColor(level: string): string {
-  switch (level) {
-    case "ERROR":
-      return "text-red-500 bg-red-500/10 border-red-500/20";
-    case "WARN":
-      return "text-amber-500 bg-amber-500/10 border-amber-500/20";
-    case "DEBUG":
-      return "text-blue-500 bg-blue-500/10 border-blue-500/20";
-    default:
-      return "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-  }
-}
+export { logLevelColorClass as getLevelColor } from "@/lib/uiStatus";

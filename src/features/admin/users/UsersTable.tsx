@@ -108,7 +108,7 @@ export default function UsersTable({
                           <Shield className="h-3.5 w-3.5 text-amber-500" />
                         ) : null}
                         {user.role === "viewer" ? (
-                          <Eye className="h-3.5 w-3.5 text-sky-500" />
+                          <Eye className="h-3.5 w-3.5 text-emerald-500" />
                         ) : null}
                       </div>
                       <div className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">

@@ -3,6 +3,9 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import type { AppDictionary } from "@/i18n/types";
+import { cn } from "@/lib/cn";
+import { TAB_ACTIVE, TAB_IDLE } from "@/lib/uiChrome";
+import { SELECT_BASE } from "@/lib/uiTokens";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 export type DispatchViewMode = "board" | "table";
@@ -33,7 +36,7 @@ export function OrdersDispatchToolbar({
   const sizes = [10, 20, 50, 100] as const;
 
   return (
-    <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 flex flex-wrap items-center gap-4 bg-zinc-50 dark:bg-[#0a0a0b]">
+    <div className="flex flex-wrap items-center gap-4 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/80">
       <div className="flex-1 max-w-sm min-w-[200px]">
         <ListSearchBar
           value={searchQuery}
@@ -46,22 +49,17 @@ export function OrdersDispatchToolbar({
         <button
           type="button"
           onClick={() => onViewModeChange("board")}
-          className={`px-3 py-2 text-sm font-semibold transition ${
-            viewMode === "board"
-              ? "bg-emerald-600 text-white dark:bg-emerald-500"
-              : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
+          className={viewMode === "board" ? TAB_ACTIVE : TAB_IDLE}
         >
           Board
         </button>
         <button
           type="button"
           onClick={() => onViewModeChange("table")}
-          className={`px-3 py-2 text-sm font-semibold transition border-l border-zinc-200 dark:border-zinc-700 ${
-            viewMode === "table"
-              ? "bg-emerald-600 text-white dark:bg-emerald-500"
-              : "text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          }`}
+          className={cn(
+            viewMode === "table" ? TAB_ACTIVE : TAB_IDLE,
+            "border-l border-zinc-200 dark:border-zinc-700"
+          )}
         >
           Tabela
         </button>
@@ -94,7 +92,7 @@ export function OrdersDispatchToolbar({
       <select
         value={tableLimit}
         onChange={(e) => onTableLimitChange(Number(e.target.value))}
-        className="bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-200 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition outline-none"
+        className={cn(SELECT_BASE, "w-auto")}
       >
         {sizes.map((n) => (
           <option key={n} value={n}>{`${n} ${dict.tableResultsSuffix}`}</option>

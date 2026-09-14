@@ -7,6 +7,7 @@ import { AppDialogProvider } from "@/components/AppDialogProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { getServerLocale } from "@/lib/localeCookies.server";
+import { getDictionary } from "@/i18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,17 +28,20 @@ const metadataBaseUrl =
   process.env.NEXT_PUBLIC_APP_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-export const metadata: Metadata = {
-  metadataBase: new URL(metadataBaseUrl),
-  title: "Werkit",
-  description: "Zarządzanie operacjami i flotą",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Werkit",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const app = getDictionary(await getServerLocale()).common.app;
+  return {
+    metadataBase: new URL(metadataBaseUrl),
+    title: app.name,
+    description: app.description,
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: app.name,
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

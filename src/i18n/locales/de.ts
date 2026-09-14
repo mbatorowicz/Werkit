@@ -8,6 +8,10 @@ export const de: AppDictionary = {
     description: "Sprache der Anwendungsoberfläche",
   },
   common: {
+    app: {
+      name: "Werkit",
+      description: "Außendienst und MRO — Personen, Ressourcen, Lager und GPS in der Sitzung.",
+    },
     actions: {
       save: "Speichern",
       cancel: "Abbrechen",
@@ -432,6 +436,7 @@ export const de: AppDictionary = {
       repairDescriptionPlaceholder: "z.B. Lagerwechsel, Motoreinstellung...",
       spareParts: "Ersatzteile",
       addSparePart: "Teil hinzufügen",
+      saveBeforeSpareParts: "Auftrag speichern, bevor Teile hinzugefügt werden.",
       removeSparePart: "Entfernen",
       noSpareParts: "Keine Ersatzteile in diesem Auftrag.",
       partName: "Teilname",
@@ -1037,6 +1042,8 @@ export const de: AppDictionary = {
       defineCustom: "Eigenen definieren",
       timeElapsed: "Verstrichene Zeit",
       gpsSignal: "GPS-Signal",
+      gpsSessionOnlyHint:
+        "GPS ist nur während des Auftrags aktiv und schaltet sich nach „Beenden“ aus.",
       connOk: "Verbunden",
       searching: "SUCHE...",
       error: "FEHLER",
@@ -1174,6 +1181,7 @@ export const de: AppDictionary = {
       returnPartSuccess: "Teil ins Lager zurückgegeben.",
       insufficientStock: "Nicht genügend Lagerbestand.",
       noSpareParts: "Keine Ersatzteile in diesem Auftrag.",
+      saveOrderBeforeSpareParts: "Der Auftrag wurde noch nicht gespeichert.",
       partName: "Teilname",
       partQuantity: "Menge",
       partNotes: "Hinweise",

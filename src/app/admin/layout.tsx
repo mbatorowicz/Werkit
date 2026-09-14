@@ -21,6 +21,16 @@ import { VERTICAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isAdminGpsEnabled, toAdminGpsFlags } from "@/types/featureFlags";
+import { cn } from "@/lib/cn";
+import {
+  LOGOUT_ROW,
+  SHELL_HEADER,
+  SHELL_SIDEBAR,
+  USER_CHIP,
+  VERSION_BADGE,
+} from "@/lib/uiChrome";
+import { BRAND_WORDMARK } from "@/lib/uiTypography";
+import { SURFACE_APP, SURFACE_CARD, TEXT_MUTED } from "@/lib/uiTokens";
 
 export const dynamic = "force-dynamic";
 
@@ -75,20 +85,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       gpsFlags={toAdminGpsFlags(featureFlags)}
       durEnabled={featureFlags.durEnabled}
     >
-      <div className="layout-admin flex h-[100svh] max-h-[100dvh] overflow-hidden bg-[#f2fbfa] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-        <aside className="z-50 hidden h-full min-h-0 w-64 flex-col border-r border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900 md:flex">
+      <div className={`layout-admin flex h-[100svh] max-h-[100dvh] overflow-hidden ${SURFACE_APP}`}>
+        <aside className={SHELL_SIDEBAR}>
           <div className={`min-h-0 flex-1 ${VERTICAL_SCROLL_PANEL_CLASS}`}>
-            <div className="h-[72px] flex flex-col justify-center px-6 border-b border-zinc-200 dark:border-zinc-800">
+            <div className="flex h-[72px] flex-col justify-center border-b border-zinc-200 px-6 dark:border-zinc-800">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
-                  WERKIT
-                </h1>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
-                  v{APP_VERSION}
-                </span>
+                <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
+                <span className={`text-[10px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
               </div>
               <p
-                className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-full"
+                className={`mt-0.5 max-w-full truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
                 title={companyName}
               >
                 {companyName} - {dict.sidebar.logisticsSystem}
@@ -112,38 +118,32 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </div>
             )}
             <LogoutButton
-              className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
+              className={LOGOUT_ROW}
               iconClass="w-4 h-4"
               text={dict.sidebar.logoutSession}
             />
           </div>
         </aside>
 
-        <main
-          className={`flex min-w-0 flex-1 flex-col bg-white dark:bg-zinc-900 ${INLINE_SCROLL_PANEL_CLASS}`}
-        >
-          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-[#f2fbfa] px-6 dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
+        <main className={`flex min-w-0 flex-1 flex-col ${SURFACE_CARD} ${INLINE_SCROLL_PANEL_CLASS}`}>
+          <header className={cn(SHELL_HEADER, "px-6 md:hidden")}>
             <div className="flex items-center gap-3">
               <AdminMobileBackButton />
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
-                    WERKIT
-                  </h1>
-                  <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
-                    v{APP_VERSION}
-                  </span>
+                  <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
+                  <span className={`text-[9px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
                 </div>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]">
+                <p className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}>
                   {companyName}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {loggedInUser && (
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full border border-zinc-200 dark:border-zinc-700">
-                  <UserIcon className="w-3 h-3 text-emerald-500 shrink-0" />
-                  <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate max-w-[100px]">
+                <div className={USER_CHIP}>
+                  <UserIcon className="h-3 w-3 shrink-0 text-emerald-500" />
+                  <span className="max-w-[100px] truncate text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
                     {loggedInUser}
                   </span>
                 </div>

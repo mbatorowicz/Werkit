@@ -7,6 +7,10 @@ export const pl = {
     description: "Język interfejsu aplikacji",
   },
   common: {
+    app: {
+      name: "Werkit",
+      description: "Dyspozycja terenowa i MRO — ludzie, zasoby, magazyny i GPS w sesji.",
+    },
     actions: {
       save: "Zapisz",
       cancel: "Anuluj",
@@ -422,6 +426,7 @@ export const pl = {
       repairDescriptionPlaceholder: "Np. wymiana łożyska, regulacja silnika...",
       spareParts: "Części zamienne",
       addSparePart: "Dodaj część",
+      saveBeforeSpareParts: "Zapisz zlecenie przed dodaniem części.",
       removeSparePart: "Usuń część",
       noSpareParts: "Brak części przypisanych do tego zlecenia.",
       partName: "Nazwa części",
@@ -1019,6 +1024,8 @@ export const pl = {
       defineCustom: "Zdefiniuj własne",
       timeElapsed: "Upływ czasu",
       gpsSignal: "Sygnał GPS",
+      gpsSessionOnlyHint:
+        "GPS jest aktywny tylko w trakcie zlecenia i wyłączy się po naciśnięciu Zakończ.",
       connOk: "Połączono",
       searching: "SZUKAM...",
       error: "BŁĄD",
@@ -1154,6 +1161,7 @@ export const pl = {
       returnPartSuccess: "Część zwrócona do magazynu.",
       insufficientStock: "Niewystarczający stan magazynowy.",
       noSpareParts: "Brak części w tym zleceniu.",
+      saveOrderBeforeSpareParts: "Zlecenie nie zostało jeszcze zapisane.",
       partName: "Nazwa części",
       partQuantity: "Ilość",
       partNotes: "Uwagi",

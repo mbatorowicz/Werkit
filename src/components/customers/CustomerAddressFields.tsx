@@ -2,6 +2,7 @@
 
 import type { CustomerAddressParts } from "@/lib/customerAddress";
 import { INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL, FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 
 const defaultInputClass = INPUT_BASE;
 
@@ -27,9 +28,7 @@ export function CustomerAddressFields({
   inputClass = defaultInputClass,
   compact = false,
 }: Props) {
-  const labelClass = compact
-    ? "text-xs font-semibold uppercase tracking-wide text-zinc-500"
-    : "text-sm font-medium text-zinc-400";
+  const labelClass = compact ? FIELD_LABEL_COMPACT : FIELD_LABEL;
   const gap = compact ? "space-y-1.5" : "space-y-2";
 
   const patch = (part: Partial<CustomerAddressParts>) => onChange({ ...value, ...part });

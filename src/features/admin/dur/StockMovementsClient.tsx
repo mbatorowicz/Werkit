@@ -7,6 +7,7 @@ import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
 import { cn } from "@/lib/cn";
+import { TAB_ACTIVE, TAB_IDLE } from "@/lib/uiChrome";
 import { StockMovementsTable } from "./StockMovementsTable";
 import { StockMovementFormsModal } from "./StockMovementFormsModal";
 import { StockIssueTotalsSummary } from "./StockIssueTotalsSummary";
@@ -81,22 +82,14 @@ export default function StockMovementsClient() {
           <button
             type="button"
             onClick={() => setTab("issues")}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${
-              tab === "issues"
-                ? "bg-emerald-600 text-white"
-                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-            }`}
+            className={tab === "issues" ? TAB_ACTIVE : TAB_IDLE}
           >
             {wh.tabIssues}
           </button>
           <button
             type="button"
             onClick={() => setTab("receipts")}
-            className={`rounded-lg px-4 py-2 text-sm font-medium ${
-              tab === "receipts"
-                ? "bg-emerald-600 text-white"
-                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-            }`}
+            className={tab === "receipts" ? TAB_ACTIVE : TAB_IDLE}
           >
             {wh.tabReceipts}
           </button>

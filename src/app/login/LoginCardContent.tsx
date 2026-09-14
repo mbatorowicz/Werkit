@@ -3,9 +3,11 @@
 import { Loader2, Fingerprint } from "lucide-react";
 import { APP_VERSION } from "@/lib/version";
 import { useDictionary } from "@/components/LocaleProvider";
-import { BTN_LOGIN_SUBMIT } from "@/lib/uiButtons";
+import { BTN_LOGIN_SUBMIT, BTN_SOFT_PRIMARY } from "@/lib/uiButtons";
+import { BRAND_WORDMARK_LG } from "@/lib/uiTypography";
 import { FIELD_LABEL, PAGE_SUBTITLE } from "@/lib/uiTypography";
 import { INPUT_BASE } from "@/lib/uiTokens";
+import { ALERT_DANGER, VERSION_BADGE } from "@/lib/uiChrome";
 import { cn } from "@/lib/cn";
 
 type Props = {
@@ -29,12 +31,8 @@ export function LoginCardContent({
     <>
       <div className="mb-8 text-center pt-2">
         <div className="flex items-center justify-center gap-2 mb-4">
-          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
-            WERKIT
-          </h1>
-          <span className="text-[11px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded font-mono font-bold mt-1">
-            v{APP_VERSION}
-          </span>
+          <h1 className={BRAND_WORDMARK_LG}>{dict.common.app.name.toUpperCase()}</h1>
+          <span className={cn("mt-1 text-[11px]", VERSION_BADGE)}>v{APP_VERSION}</span>
         </div>
         <h2 className="text-lg font-medium text-zinc-700 dark:text-zinc-300 tracking-tight">
           {dict.login.systemLogin}
@@ -43,9 +41,7 @@ export function LoginCardContent({
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg text-center">
-          {error}
-        </div>
+        <div className={cn(ALERT_DANGER, "mb-6 text-center")}>{error}</div>
       )}
 
       {bioOffered && (
@@ -54,7 +50,7 @@ export function LoginCardContent({
             type="button"
             disabled={loading}
             onClick={onBiometricLogin}
-            className="w-full mb-6 flex justify-center items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/15 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-medium rounded-lg px-4 py-3.5 transition-all disabled:opacity-50"
+            className={cn(BTN_SOFT_PRIMARY, "mb-6")}
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />

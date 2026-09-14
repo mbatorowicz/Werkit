@@ -9,6 +9,9 @@ import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { useDictionary } from "@/i18n";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
+import { LINK_ACCENT } from "@/lib/uiChrome";
+import { CARD_PADDED } from "@/lib/uiTokens";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 import { WorkerSparePartsAddForm } from "@/features/worker/components/WorkerSparePartsAddForm";
 import { WorkerSparePartsList } from "@/features/worker/components/WorkerSparePartsList";
 import {
@@ -25,8 +28,7 @@ type Props = {
   isDurWorker?: boolean;
 };
 
-const LABEL =
-  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const LABEL = FIELD_LABEL_COMPACT;
 
 /**
  * Panel części zamiennych dla aktywnej sesji pracownika.
@@ -114,18 +116,14 @@ export default function WorkerSparePartsPanel({
   if (!durEnabled || !isDurWorker || !isRepair) return null;
 
   return (
-    <div className="w-full rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800/80">
+    <div className={CARD_PADDED}>
       <div className="mb-3 flex items-center justify-between">
         <label className={LABEL}>
           <Package className="-mt-0.5 mr-1 inline-block h-3.5 w-3.5" />
           {workerDict.spareParts}
         </label>
         {hasOrderId && !showAddForm && (
-          <button
-            type="button"
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1 text-xs font-semibold text-emerald-600 transition hover:text-emerald-500"
-          >
+          <button type="button" onClick={() => setShowAddForm(true)} className={LINK_ACCENT}>
             <Plus className="h-3 w-3" />
             {workerDict.addSparePart}
           </button>
@@ -134,7 +132,7 @@ export default function WorkerSparePartsPanel({
 
       {!hasOrderId && (
         <p className="text-xs italic text-zinc-500 dark:text-zinc-400">
-          Zlecenie nie zostało jeszcze zapisane.
+          {workerDict.saveOrderBeforeSpareParts}
         </p>
       )}
 

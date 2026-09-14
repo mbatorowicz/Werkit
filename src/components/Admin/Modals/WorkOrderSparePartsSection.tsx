@@ -6,6 +6,8 @@ import { durSparePartComboboxOptions } from "@/features/admin/dur/durSparePartCo
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useDictionary } from "@/i18n";
 import { warehouseCommonLabels } from "@/lib/warehouseI18n";
+import { LINK_ACCENT } from "@/lib/uiChrome";
+import { FIELD_LABEL_COMPACT, FIELD_STACK } from "@/lib/uiTypography";
 import { WorkOrderSparePartAddForm } from "./WorkOrderSparePartAddForm";
 import { WorkOrderSparePartsTable } from "./WorkOrderSparePartsTable";
 import { useWorkOrderSpareParts } from "./useWorkOrderSpareParts";
@@ -18,9 +20,7 @@ type Props = {
   resourceGroupId: number | null;
 };
 
-const FIELD = "space-y-1.5";
-const LABEL =
-  "block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400";
+const LABEL = FIELD_LABEL_COMPACT;
 
 /**
  * Sekcja części zamiennych w formularzu zlecenia naprawczego (admin).
@@ -66,18 +66,14 @@ export default function WorkOrderSparePartsSection({
   if (!durEnabled || !isRepair) return null;
 
   return (
-    <div className={FIELD}>
+    <div className={FIELD_STACK}>
       <div className="flex items-center justify-between">
         <label className={LABEL}>
           <Package className="inline-block h-3.5 w-3.5 mr-1 -mt-0.5" />
           {adminOrdersDict.spareParts}
         </label>
         {hasOrderId && !showAddForm && (
-          <button
-            type="button"
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-500 transition"
-          >
+          <button type="button" onClick={() => setShowAddForm(true)} className={LINK_ACCENT}>
             <Plus className="h-3 w-3" />
             {adminOrdersDict.addSparePart}
           </button>
@@ -87,7 +83,7 @@ export default function WorkOrderSparePartsSection({
       {/* Komunikat gdy brak ID zlecenia (przed zapisem) */}
       {!hasOrderId && (
         <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-          Zapisz zlecenie przed dodaniem części.
+          {adminOrdersDict.saveBeforeSpareParts}
         </p>
       )}
 
@@ -117,7 +113,7 @@ export default function WorkOrderSparePartsSection({
 
       {/* Lista części */}
       {isLoading ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">Wczytywanie...</p>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.common.loading.default}</p>
       ) : parts.length === 0 ? (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">{durDict.empty}</p>
       ) : (

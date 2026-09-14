@@ -6,6 +6,7 @@ import { buildWorkOrderScheduleFieldLabels } from "@/components/work-orders/sche
 import { useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
+import { UiButton } from "@/components/UiButton";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -100,14 +101,14 @@ export function WizardStep4Schedule({
         >
           <ChevronLeft className="w-4 h-4" /> {dict.wizardBack}
         </button>
-        <button
+        <UiButton
           type="button"
+          variant="primaryLg"
           disabled={hasConflicts}
           onClick={() => setStep(5)}
-          className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
         >
           {dict.wizardNext} <ChevronRight className="w-5 h-5" />
-        </button>
+        </UiButton>
       </div>
     </div>
   );

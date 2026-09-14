@@ -3,6 +3,7 @@
 import type { AppDictionary } from "@/i18n/types";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { INPUT_BASE } from "@/lib/uiTokens";
 
 const BIOMETRIC_FORM_ID = "worker-biometric-pwd-form";
 
@@ -59,7 +60,7 @@ export function BiometricPasswordModal({
           value={pwd}
           onChange={(e) => setPwd(e.target.value)}
           placeholder={dict.biometricPasswordPlaceholder}
-          className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+          className={INPUT_BASE}
         />
       </form>
     </AdminModalShell>

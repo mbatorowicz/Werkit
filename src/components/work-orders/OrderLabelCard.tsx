@@ -7,39 +7,14 @@ import {
   buildOrderLabelCustomerDisplay,
   type OrderLabelCustomerDisplay,
 } from "@/lib/orderLabelCustomerDisplay";
-import { UI_RADIUS_CARD } from "@/lib/uiRadius";
+import { cn } from "@/lib/cn";
+import { CARD } from "@/lib/uiTokens";
+import { uiStatusToneClasses } from "@/lib/uiStatus";
 import { OrderLabelCardBody } from "@/components/work-orders/OrderLabelCardBody";
 
 type Tone = "planned" | "active" | "done";
 type Density = "normal" | "compact";
 type Layout = "full" | "teaser";
-
-function toneClasses(tone: Tone) {
-  switch (tone) {
-    case "planned":
-      return {
-        pill: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20",
-        label: "text-amber-700 dark:text-amber-400",
-        border: "border-amber-200 dark:border-amber-500/20",
-        bar: "bg-amber-500/90 dark:bg-amber-400/90",
-      };
-    case "active":
-      return {
-        pill: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20",
-        label: "text-blue-700 dark:text-blue-400",
-        border: "border-blue-200 dark:border-blue-500/20",
-        bar: "bg-blue-500/90 dark:bg-blue-400/90",
-      };
-    case "done":
-    default:
-      return {
-        pill: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20",
-        label: "text-emerald-700 dark:text-emerald-400",
-        border: "border-emerald-200 dark:border-emerald-500/20",
-        bar: "bg-emerald-500/90 dark:bg-emerald-400/90",
-      };
-  }
-}
 
 interface OrderLabelCardProps {
   tone: Tone;
@@ -114,7 +89,7 @@ export function OrderLabelCard({
   cardAriaLabel,
   className = "",
 }: OrderLabelCardProps) {
-  const cls = toneClasses(tone);
+  const cls = uiStatusToneClasses(tone);
   const isCompact = density === "compact";
   const isTeaser = layout === "teaser";
   const isClickable = isTeaser && Boolean(onCardClick);
@@ -197,11 +172,14 @@ export function OrderLabelCard({
     />
   );
 
-  const shellClass =
-    `${UI_RADIUS_CARD} border ${cls.border} bg-white dark:bg-zinc-900 shadow-sm overflow-hidden ${className}` +
-    (isClickable
-      ? " w-full text-left cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/80 active:scale-[0.99]"
-      : "");
+  const shellClass = cn(
+    CARD,
+    cls.border,
+    "overflow-hidden",
+    className,
+    isClickable &&
+      "w-full cursor-pointer text-left transition-colors hover:bg-zinc-50 active:scale-[0.99] dark:hover:bg-zinc-800/80"
+  );
 
   const handleCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!onCardClick) return;

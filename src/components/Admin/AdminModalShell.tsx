@@ -4,6 +4,16 @@ import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { useDictionary } from "@/i18n";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { cn } from "@/lib/cn";
+import {
+  MODAL_CLOSE_BTN,
+  MODAL_FOOTER,
+  MODAL_HEADER,
+  MODAL_PANEL,
+  OVERLAY_BACKDROP,
+  OVERLAY_HOST,
+} from "@/lib/uiChrome";
+import { MODAL_TITLE, MODAL_TITLE_SM } from "@/lib/uiTypography";
 
 /**
  * Standardowy modal admin (tło + panel + nagłówek z zamknięciem).
@@ -42,50 +52,34 @@ export function AdminModalShell({
   const closeLabel = useDictionary().admin.ui.closeModal;
 
   if (!open) return null;
-  const titleClass =
-    titleSize === "lg"
-      ? "text-lg font-semibold text-zinc-900 dark:text-white"
-      : "text-base font-semibold text-zinc-900 dark:text-white";
+  const titleClass = titleSize === "lg" ? MODAL_TITLE : MODAL_TITLE_SM;
   const iconClass = titleSize === "lg" ? "h-5 w-5" : "h-4 w-4";
+  const tall = scrollableBody || footer != null;
 
-  const body =
-    scrollableBody || footer != null ? (
-      <div className="flex min-h-0 flex-1 flex-col">
-        {scrollableBody ? (
-          <div className={`min-h-0 flex-1 ${INLINE_SCROLL_PANEL_CLASS}`}>{children}</div>
-        ) : (
-          children
-        )}
-        {footer != null ? (
-          <div
-            className={`shrink-0 border-t border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/90 ${footerClassName ?? ""}`}
-          >
-            {footer}
-          </div>
-        ) : null}
-      </div>
-    ) : (
-      children
-    );
+  const body = tall ? (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {scrollableBody ? (
+        <div className={`min-h-0 flex-1 ${INLINE_SCROLL_PANEL_CLASS}`}>{children}</div>
+      ) : (
+        children
+      )}
+      {footer != null ? <div className={cn(MODAL_FOOTER, footerClassName)}>{footer}</div> : null}
+    </div>
+  ) : (
+    children
+  );
 
   return (
-    <div className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4`}>
+    <div className={cn(OVERLAY_HOST, zIndexClass)}>
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className={OVERLAY_BACKDROP}
         onClick={closeOnBackdropClick ? onClose : undefined}
         aria-hidden
       />
-      <div
-        className={`relative z-10 flex w-full ${maxWidthClass} flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 dark:border-zinc-700 dark:bg-zinc-900 ${scrollableBody || footer != null ? "max-h-[90vh]" : ""}`}
-      >
-        <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4 dark:border-zinc-700 dark:bg-[#0a0a0b]/80">
+      <div className={cn(MODAL_PANEL, maxWidthClass, tall && "max-h-[90vh]")}>
+        <div className={MODAL_HEADER}>
           <h2 className={titleClass}>{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-zinc-500 transition hover:text-zinc-900 dark:hover:text-white"
-            aria-label={closeLabel}
-          >
+          <button type="button" onClick={onClose} className={MODAL_CLOSE_BTN} aria-label={closeLabel}>
             <X className={iconClass} />
           </button>
         </div>

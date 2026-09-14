@@ -40,12 +40,11 @@ export function categoryColorSurfaceStyle(color: string | null | undefined): CSS
   };
 }
 
-export type CategoryColorChipVariant = "emerald" | "blue";
+export type CategoryColorChipVariant = "emerald";
 
 const CHIP_VARIANT_SELECTED: Record<CategoryColorChipVariant, string> = {
   emerald:
     "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300",
-  blue: "bg-blue-50 dark:bg-blue-500/10 border-blue-300 dark:border-blue-500/30 text-blue-700 dark:text-blue-300",
 };
 
 /** Klasy chipa wyboru kategorii — z kolorem słownika lub fallbackiem wariantu UI. */

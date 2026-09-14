@@ -1,6 +1,8 @@
 "use client";
 
 import { Maximize2 } from "lucide-react";
+import { cn } from "@/lib/cn";
+import { BTN_MAP_PILL } from "@/lib/uiButtons";
 
 interface MapControlsProps {
   thumbnail: boolean;
@@ -55,7 +57,7 @@ export function MapControls({
         <button
           type="button"
           onClick={onResumeFollow}
-          className="absolute bottom-6 left-4 z-[1000] bg-emerald-600 text-white px-4 py-2 rounded-full shadow-lg font-medium text-xs border border-emerald-500 transition active:scale-95 hover:bg-emerald-500"
+          className={cn(BTN_MAP_PILL, "absolute bottom-6 left-4 z-[1000]")}
         >
           {dict.followResume}
         </button>

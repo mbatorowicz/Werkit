@@ -4,6 +4,10 @@ import { Download, Smartphone } from "lucide-react";
 import type { AndroidAppDownloadInfo } from "@/lib/androidAppDownload";
 import { APP_VERSION } from "@/lib/version";
 import { useDictionary, formatDict, formatUiDateTimeShort } from "@/i18n";
+import { cn } from "@/lib/cn";
+import { BTN_PRIMARY_COMPACT } from "@/lib/uiButtons";
+import { ACCENT_ICON_WRAP, ALERT_WARNING } from "@/lib/uiChrome";
+import { CARD } from "@/lib/uiTokens";
 
 type Props = {
   download: AndroidAppDownloadInfo;
@@ -13,9 +17,9 @@ export function AppDownloadCard({ download }: Props) {
   const dict = useDictionary().admin.settings;
 
   return (
-    <section className="mb-8 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+    <section className={cn(CARD, "mb-8 overflow-hidden")}>
       <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50/80 dark:bg-zinc-950/50 flex items-start gap-3">
-        <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400 shrink-0">
+        <div className={ACCENT_ICON_WRAP}>
           <Smartphone className="w-5 h-5" aria-hidden />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -34,7 +38,7 @@ export function AppDownloadCard({ download }: Props) {
               <a
                 href={download.href}
                 download={download.fileName}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 text-sm font-medium transition-colors"
+                className={BTN_PRIMARY_COMPACT}
               >
                 <Download className="w-4 h-4 shrink-0" aria-hidden />
                 {dict.appDownloadButton}
@@ -54,7 +58,7 @@ export function AppDownloadCard({ download }: Props) {
               </div>
             </div>
             {!download.inSync ? (
-              <p className="text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-lg px-4 py-3">
+              <p className={ALERT_WARNING}>
                 {formatDict(dict.appDownloadVersionMismatch, {
                   webVersion: download.webPackageVersion,
                   apkVersion: download.apkVersion ?? "—",
@@ -63,7 +67,7 @@ export function AppDownloadCard({ download }: Props) {
             ) : null}
           </div>
         ) : (
-          <p className="text-sm text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-lg px-4 py-3">
+          <p className={ALERT_WARNING}>
             {dict.appDownloadUnavailable}
           </p>
         )}

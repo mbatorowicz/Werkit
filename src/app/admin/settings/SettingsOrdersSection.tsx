@@ -1,6 +1,8 @@
 "use client";
 
 import { useDictionary } from "@/i18n";
+import { CONTROL_ROW, INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 import type { SettingsSnapshot } from "./SettingsForm";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
@@ -33,30 +35,30 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.cancelWindowLabel}</label>
+          <label className={FIELD_LABEL}>{dict.cancelWindowLabel}</label>
           <input
             type="number"
             min="0"
             value={cancelWindowMinutes}
             onChange={(e) => updateField("cancelWindowMinutes", parseInt(e.target.value, 10))}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
+            className={INPUT_BASE}
           />
         </div>
         {gpsFlags.geofencingEnabled ? (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.geofenceLabel}</label>
+            <label className={FIELD_LABEL}>{dict.geofenceLabel}</label>
             <input
               type="number"
               step="100"
               min="0"
               value={geofenceRadiusMeters}
               onChange={(e) => updateField("geofenceRadiusMeters", parseInt(e.target.value, 10))}
-              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
+              className={INPUT_BASE}
             />
           </div>
         ) : null}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.reminderLabel}</label>
+          <label className={FIELD_LABEL}>{dict.reminderLabel}</label>
           <input
             type="number"
             step="15"
@@ -65,13 +67,13 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
             onChange={(e) =>
               updateField("upcomingOrderReminderMinutes", parseInt(e.target.value, 10))
             }
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
+            className={INPUT_BASE}
           />
         </div>
       </div>
 
       <div className="space-y-4 pt-4">
-        <label className="flex items-center gap-3 cursor-pointer p-3 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+        <label className={CONTROL_ROW}>
           <input
             type="checkbox"
             checked={requirePhotoToFinish}
@@ -86,7 +88,7 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
           </div>
         </label>
 
-        <label className="flex items-center gap-3 cursor-pointer p-3 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg">
+        <label className={CONTROL_ROW}>
           <input
             type="checkbox"
             checked={timeOverrunReminder}

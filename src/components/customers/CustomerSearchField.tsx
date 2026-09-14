@@ -14,6 +14,7 @@ import {
   matchesCustomerSearch,
 } from "@/lib/customerSearch";
 import type { BaseCustomer } from "@/types/admin";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 
 export type CustomerSearchFieldDict = {
   searchPlaceholder: string;
@@ -75,7 +76,7 @@ export function CustomerSearchField({
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+      <label className={FIELD_LABEL_COMPACT}>
         {label}
       </label>
       <AdminSearchCombobox

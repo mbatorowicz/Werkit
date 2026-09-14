@@ -180,7 +180,7 @@ export function SparePartFormFields({
           selectedIds={formState.resourceGroupIds}
           onChange={(ids) => updateField("resourceGroupIds", ids)}
           emptyHint={dict.fields.machineCategoriesPlaceholder}
-          colorVariant="blue"
+          colorVariant="emerald"
         />
       </AdminFormField>
 

@@ -23,7 +23,7 @@ export function GanttTimeline({
 }: Props) {
   return (
     <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-30">
-      <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-zinc-50 dark:bg-[#0a0a0b] flex items-center sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
+      <div className="sticky left-0 z-40 flex w-40 shrink-0 items-center border-r border-zinc-200 bg-zinc-50 p-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:border-zinc-700 dark:bg-zinc-950/80 dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)] md:w-48">
         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
           {groupBy === "WORKER" ? dict.groupByWorker : dict.groupByResource}
         </span>

@@ -6,6 +6,10 @@ import { CustomerAddressFields } from "@/components/customers/CustomerAddressFie
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { formatDict, useDictionary } from "@/i18n";
 import { useCustomerInlineCreate } from "@/components/customers/useCustomerInlineCreate";
+import { UiButton } from "@/components/UiButton";
+import { cn } from "@/lib/cn";
+import { CARD_NESTED, INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 import type { BaseCustomer } from "@/types/admin";
 
 function InlineCustomerMapPickerLoading() {
@@ -45,14 +49,13 @@ export function CustomerInlineCreateForm({
   const { form, setForm, isSubmitting, addressParts, geocodeAddress, submit } =
     useCustomerInlineCreate({ initialLastName, telemetryCategory, onCreated });
 
-  const inputClass =
-    "w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white";
+  const inputClass = INPUT_BASE;
 
   return (
     <div
       role="group"
       aria-label={dict.modalCreateTitle}
-      className="mt-3 space-y-4 rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-500/30 dark:bg-emerald-500/5"
+      className={cn(CARD_NESTED, "mt-3 space-y-4")}
       onKeyDown={(e) => {
         if (e.key === "Enter" && (e.target as HTMLElement).tagName !== "TEXTAREA") {
           e.preventDefault();
@@ -63,7 +66,7 @@ export function CustomerInlineCreateForm({
     >
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          <label className={FIELD_LABEL_COMPACT}>
             {dict.firstNameLabel}
           </label>
           <input
@@ -75,7 +78,7 @@ export function CustomerInlineCreateForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          <label className={FIELD_LABEL_COMPACT}>
             {dict.lastNameLabel}
           </label>
           <input
@@ -110,7 +113,7 @@ export function CustomerInlineCreateForm({
         compact
       />
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <label className={FIELD_LABEL_COMPACT}>
           {dict.phoneLabel}
         </label>
         <input
@@ -122,7 +125,7 @@ export function CustomerInlineCreateForm({
         />
       </div>
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <label className={FIELD_LABEL_COMPACT}>
           {dict.gpsOnMapLabel}
         </label>
         <CustomerMapPicker
@@ -141,23 +144,23 @@ export function CustomerInlineCreateForm({
         ) : null}
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <button
+        <UiButton
           type="button"
+          variant="secondary"
           onClick={onCancel}
           disabled={isSubmitting}
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
           {cancelLabel ?? dictionary.admin.ui.modalCancel}
-        </button>
-        <button
+        </UiButton>
+        <UiButton
           type="button"
+          variant="primary"
           disabled={isSubmitting}
           onClick={() => void submit()}
-          className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
         >
           {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {submitLabel ?? dict.create}
-        </button>
+        </UiButton>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ import type { ChangeEvent } from "react";
 import type { AppDictionary } from "@/i18n/types";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { cn } from "@/lib/cn";
+import { INPUT_BASE, SELECT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 import { ResourceFormCategoriesField } from "./ResourceFormCategoriesField";
 import { ResourceFormPhotoField } from "./ResourceFormPhotoField";
 import type { MachineFormState, MachinesCategory } from "./types";
@@ -67,27 +70,27 @@ export function ResourceFormModal({
           >
             {resourceVis.showResourceName ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">{dict.machNameLabel}</label>
+                <label className={FIELD_LABEL}>{dict.machNameLabel}</label>
                 <input
                   type="text"
                   autoComplete="off"
                   placeholder={dict.machNamePlaceholder}
                   value={form.resourceName}
                   onChange={(e) => setForm({ ...form, resourceName: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  className={INPUT_BASE}
                 />
               </div>
             ) : null}
             {resourceVis.showRegistrationNumber ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-zinc-400">{dict.machRegLabel}</label>
+                <label className={FIELD_LABEL}>{dict.machRegLabel}</label>
                 <input
                   type="text"
                   autoComplete="off"
                   placeholder={dict.machRegPlaceholder}
                   value={form.registrationNumber}
                   onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })}
-                  className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 uppercase tracking-wide text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                  className={cn(INPUT_BASE, "uppercase tracking-wide")}
                 />
               </div>
             ) : null}
@@ -95,13 +98,13 @@ export function ResourceFormModal({
         )}
         {resourceVis.showResourceDescription ? (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.machDescLabel}</label>
+            <label className={FIELD_LABEL}>{dict.machDescLabel}</label>
             <textarea
               rows={3}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder={dict.machDescPlaceholder}
-              className="min-h-[88px] w-full resize-y rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+              className={TEXTAREA_BASE}
             />
           </div>
         ) : null}
@@ -114,10 +117,7 @@ export function ResourceFormModal({
         />
 
         <div className="space-y-2">
-          <label
-            htmlFor="admin-resource-group"
-            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-          >
+          <label htmlFor="admin-resource-group" className={FIELD_LABEL}>
             {dict.resourceGroupLabel}
           </label>
           <select
@@ -129,7 +129,7 @@ export function ResourceFormModal({
                 resourceGroupId: e.target.value ? Number(e.target.value) : null,
               })
             }
-            className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm"
+            className={SELECT_BASE}
           >
             <option value="">{dict.resourceGroupNone}</option>
             {resourceGroups.map((g) => (

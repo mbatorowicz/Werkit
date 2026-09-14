@@ -11,8 +11,8 @@ import {
 } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { useDictionary } from "@/components/LocaleProvider";
-import { BTN_PRIMARY, BTN_SECONDARY, BTN_DANGER } from "@/lib/uiButtons";
-import { cn } from "@/lib/cn";
+import { UiButton } from "@/components/UiButton";
+import { MODAL_BODY_TEXT } from "@/lib/uiChrome";
 
 export type AppConfirmOptions = {
   title?: string;
@@ -111,26 +111,24 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
           closeOnBackdropClick={false}
           footer={
             <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button
+              <UiButton
                 type="button"
+                variant="secondaryFull"
                 onClick={() => closeConfirm(false)}
-                className={cn("w-full sm:w-auto", BTN_SECONDARY)}
               >
                 {confirmOpts.cancelLabel ?? ui.modalCancel}
-              </button>
-              <button
+              </UiButton>
+              <UiButton
                 type="button"
+                variant={danger ? "dangerFull" : "primaryFull"}
                 onClick={() => closeConfirm(true)}
-                className={cn("w-full sm:w-auto", danger ? BTN_DANGER : BTN_PRIMARY)}
               >
                 {confirmOpts.confirmLabel ?? ui.dialogConfirm}
-              </button>
+              </UiButton>
             </div>
           }
         >
-          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {confirmOpts.message}
-          </p>
+          <p className={MODAL_BODY_TEXT}>{confirmOpts.message}</p>
         </AdminModalShell>
       ) : null}
 
@@ -144,18 +142,12 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
           zIndexClass="z-[10000]"
           closeOnBackdropClick={false}
           footer={
-            <button
-              type="button"
-              onClick={closeAlert}
-              className={cn("ml-auto w-full sm:w-auto", BTN_PRIMARY)}
-            >
+            <UiButton type="button" variant="primaryFull" className="ml-auto" onClick={closeAlert}>
               {alertOpts.okLabel ?? ui.dialogOk}
-            </button>
+            </UiButton>
           }
         >
-          <p className="p-6 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {alertOpts.message}
-          </p>
+          <p className={MODAL_BODY_TEXT}>{alertOpts.message}</p>
         </AdminModalShell>
       ) : null}
     </AppDialogContext.Provider>

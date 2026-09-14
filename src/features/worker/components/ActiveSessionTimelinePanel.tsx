@@ -4,6 +4,9 @@ import { Camera, ChevronDown, ChevronUp, Clock, FileText } from "lucide-react";
 import Image from "next/image";
 import { formatUiTimeHm } from "@/i18n";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { CARD } from "@/lib/uiTokens";
+import { TIMELINE_ICON_NOTE, TIMELINE_ICON_PHOTO, TIMELINE_SELECTED } from "@/lib/uiChrome";
+import { cn } from "@/lib/cn";
 import type { TimelineItem } from "@/types/worker";
 
 type Props = {
@@ -55,27 +58,25 @@ export function ActiveSessionTimelinePanel({
 
       {isTimelineOpen && (
         <div
-          className={`mt-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 max-h-[300px] flex flex-col gap-4 shadow-inner relative scroll-smooth ${INLINE_SCROLL_PANEL_CLASS}`}
+          className={`mt-2 flex max-h-[300px] flex-col gap-4 p-4 shadow-inner relative scroll-smooth ${CARD} ${INLINE_SCROLL_PANEL_CLASS}`}
         >
           {timelineEvents.map((item, index) => (
             <div
               key={item.id}
               id={item.id}
-              className={`flex gap-3 relative ${
-                selectedEventId === item.id
-                  ? "bg-blue-50 dark:bg-blue-500/10 p-2 -mx-2 rounded-lg"
-                  : ""
-              } transition-all`}
+              className={cn(
+                "relative flex gap-3 transition-all",
+                selectedEventId === item.id && TIMELINE_SELECTED
+              )}
             >
               {index < timelineEvents.length - 1 && (
                 <div className="absolute left-[11px] top-6 bottom-[-16px] w-[2px] bg-zinc-200 dark:bg-zinc-700" />
               )}
               <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ${
-                  item.type === "photo"
-                    ? "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
-                    : "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
-                }`}
+                className={cn(
+                  "z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                  item.type === "photo" ? TIMELINE_ICON_PHOTO : TIMELINE_ICON_NOTE
+                )}
               >
                 {item.type === "photo" ? (
                   <Camera className="w-3 h-3" />

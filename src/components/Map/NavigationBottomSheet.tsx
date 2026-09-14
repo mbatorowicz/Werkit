@@ -85,7 +85,7 @@ export default function NavigationBottomSheet({
               key={`nav-step-${idx}`}
               className={`flex items-start gap-3 py-2.5 border-l-2 pl-4 relative ${
                 isCurrent
-                  ? "border-blue-500 dark:border-blue-400"
+                  ? "border-emerald-500 dark:border-emerald-400"
                   : isPast
                     ? "border-zinc-200 dark:border-zinc-700"
                     : "border-zinc-200 dark:border-zinc-700"
@@ -95,7 +95,7 @@ export default function NavigationBottomSheet({
               <div
                 className={`absolute -left-[9px] top-3 w-4 h-4 rounded-full border-2 ${
                   isCurrent
-                    ? "bg-blue-500 border-blue-500 dark:bg-blue-400 dark:border-blue-400"
+                    ? "bg-emerald-500 border-emerald-500 dark:bg-emerald-400 dark:border-emerald-400"
                     : isPast
                       ? "bg-zinc-300 dark:bg-zinc-600 border-zinc-300 dark:border-zinc-600"
                       : "bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600"
@@ -108,7 +108,7 @@ export default function NavigationBottomSheet({
                   isArrive
                     ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400"
                     : isCurrent
-                      ? "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 ring-2 ring-blue-300 dark:ring-blue-700"
+                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-300 dark:ring-emerald-700"
                       : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
                 }`}
               >
@@ -120,7 +120,7 @@ export default function NavigationBottomSheet({
                 <p
                   className={`text-sm font-medium truncate ${
                     isCurrent
-                      ? "text-blue-700 dark:text-blue-300"
+                      ? "text-emerald-700 dark:text-emerald-300"
                       : isPast
                         ? "text-zinc-400 dark:text-zinc-500"
                         : "text-zinc-800 dark:text-zinc-200"
@@ -142,7 +142,7 @@ export default function NavigationBottomSheet({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition mt-1"
+            className="w-full flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 rounded-lg transition mt-1"
           >
             <ChevronDown className="h-4 w-4" />
             Show all {instructions.length} instructions

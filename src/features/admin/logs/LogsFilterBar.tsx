@@ -3,6 +3,8 @@
 import { RefreshCcw, Download } from "lucide-react";
 import type { WerkitLogCategory } from "@/types/deviceTelemetry";
 import { LOG_CATEGORIES, type LogsDict } from "./logsView";
+import { cn } from "@/lib/cn";
+import { SELECT_BASE } from "@/lib/uiTokens";
 
 interface LogsFilterBarProps {
   workers: { id: number; fullName: string }[];
@@ -41,7 +43,7 @@ export function LogsFilterBar({
           onChange={(e) =>
             onFilterUserIdChange(e.target.value === "ALL" ? "ALL" : Number(e.target.value))
           }
-          className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500"
+          className={cn(SELECT_BASE, "w-auto min-h-0 py-1.5")}
         >
           <option value="ALL">{logsDict.filterAllWorkers}</option>
           {workers.map((w) => (
@@ -53,7 +55,7 @@ export function LogsFilterBar({
         <select
           value={filterLevel}
           onChange={(e) => onFilterLevelChange(e.target.value)}
-          className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500"
+          className={cn(SELECT_BASE, "w-auto min-h-0 py-1.5")}
         >
           <option value="ALL">{logsDict.filterAllLevels}</option>
           <option value="INFO">{logsDict.logLevelLabels.INFO}</option>
@@ -68,7 +70,7 @@ export function LogsFilterBar({
               e.target.value === "ALL" ? "ALL" : (e.target.value as WerkitLogCategory)
             )
           }
-          className="text-sm border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 py-1.5 px-3 focus:ring-emerald-500 focus:border-emerald-500 max-w-[11rem]"
+          className={cn(SELECT_BASE, "w-auto min-h-0 max-w-[11rem] py-1.5")}
         >
           <option value="ALL">{logsDict.filterAllCategories}</option>
           {LOG_CATEGORIES.map((c) => (

@@ -139,10 +139,12 @@ Design: **zinc / emerald**, motion lekkie (CSS), bez blokowania głównego wątk
 
 | Plik | Zakres |
 |------|--------|
-| [`src/lib/uiTokens.ts`](./src/lib/uiTokens.ts) | Powierzchnie (`#f2fbfa` mint), focus emerald, `INPUT_BASE` |
-| [`src/lib/uiButtons.ts`](./src/lib/uiButtons.ts) | Primary/secondary/danger — emerald, nie indigo |
+| [`src/lib/uiTokens.ts`](./src/lib/uiTokens.ts) | Powierzchnie mint, karty, `INPUT_BASE` / `SELECT_BASE` / `TEXTAREA_BASE` |
+| [`src/lib/uiButtons.ts`](./src/lib/uiButtons.ts) + [`UiButton`](./src/components/UiButton.tsx) | Primary / secondary / danger / CTA — emerald, nie indigo |
+| [`src/lib/uiChrome.ts`](./src/lib/uiChrome.ts) | Modal, overlay, nav, chipy, alerty, wordmark chrome |
+| [`src/lib/uiTypography.ts`](./src/lib/uiTypography.ts) | Tytuły, etykiety pól, wordmark |
+| [`src/lib/uiStatus.ts`](./src/lib/uiStatus.ts) | Status zlecenia (planned/active/done), poziomy logów, GPS dots |
 | [`src/lib/uiTable.ts`](./src/lib/uiTable.ts) | Wrapper, nagłówek i komórki tabel |
-| [`src/lib/uiTypography.ts`](./src/lib/uiTypography.ts) | Tytuły stron, sekcji, modali |
 | [`src/lib/uiRadius.ts`](./src/lib/uiRadius.ts) | Zaokrąglenia kart i kontrolek |
 | [`src/lib/cn.ts`](./src/lib/cn.ts) | `cn()` — łączenie klas Tailwind |
 | [`src/components/searchFieldStyles.ts`](./src/components/searchFieldStyles.ts) | Pola wyszukiwania/combobox |

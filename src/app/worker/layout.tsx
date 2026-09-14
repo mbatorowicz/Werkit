@@ -16,9 +16,22 @@ export const dynamic = "force-dynamic";
 
 import { GlobalErrorHandler } from "@/components/GlobalErrorHandler";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import {
+  ICON_BTN_GHOST,
+  NAV_ITEM,
+  NAV_ITEM_LABEL,
+  SHELL_FOOTER_NAV,
+  SHELL_HEADER,
+  USER_CHIP,
+  VERSION_BADGE,
+} from "@/lib/uiChrome";
+import { BRAND_WORDMARK } from "@/lib/uiTypography";
+import { SURFACE_APP, TEXT_MUTED } from "@/lib/uiTokens";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
-  const dict = getDictionary(await getServerLocale()).worker.nav;
+  const fullDict = getDictionary(await getServerLocale());
+  const dict = fullDict.worker.nav;
+  const unknownWorker = fullDict.worker.profile.roleWorker;
   const { DictionaryService } = await import("@/services/DictionaryService");
   const { AdminUserService } = await import("@/services/AdminUserService");
 
@@ -26,7 +39,7 @@ export default async function WorkerLayout({ children }: { children: React.React
   const settings = await DictionaryService.getSettings(companyId);
   const companyName = settings[0]?.companyName || DEFAULT_COMPANY_NAME;
 
-  let userName = "Pracownik";
+  let userName = unknownWorker;
   try {
     const token = (await cookies()).get("auth_token")?.value;
     if (token) {
@@ -40,72 +53,53 @@ export default async function WorkerLayout({ children }: { children: React.React
   } catch {}
 
   return (
-    <div className="layout-worker flex flex-col h-[100dvh] overflow-hidden bg-[#f2fbfa] dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
+    <div className={`layout-worker flex h-[100dvh] flex-col overflow-hidden ${SURFACE_APP}`}>
       <GlobalErrorHandler />
-      <header className="h-16 flex items-center justify-between px-4 border-b border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 sticky top-0 z-50">
+      <header className={SHELL_HEADER}>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
-              WERKIT
-            </h1>
-            <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
-              v{APP_VERSION}
-            </span>
+            <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
+            <span className={`text-[9px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
           </div>
           <p
-            className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase truncate max-w-[200px]"
+            className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
             title={companyName}
           >
             {companyName}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="mr-1 flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-2 py-1 dark:border-zinc-700 dark:bg-zinc-800 sm:mr-2">
+          <div className={`mr-1 sm:mr-2 ${USER_CHIP}`}>
             <User className="h-3 w-3 text-emerald-500" />
             <span className="max-w-[120px] truncate text-[10px] font-bold text-zinc-700 dark:text-zinc-300">
               {userName}
             </span>
           </div>
           <ThemeToggle />
-          <LogoutButton
-            className="p-2 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            iconClass="w-5 h-5"
-          />
+          <LogoutButton className={ICON_BTN_GHOST} iconClass="w-5 h-5" />
         </div>
       </header>
 
-      <main className={`flex-1 w-full max-w-md mx-auto p-4 ${INLINE_SCROLL_PANEL_CLASS}`}>
+      <main className={`mx-auto w-full max-w-md flex-1 p-4 ${INLINE_SCROLL_PANEL_CLASS}`}>
         {children}
       </main>
 
-      <nav className="h-16 border-t border-zinc-200 dark:border-zinc-700/50 bg-white dark:bg-zinc-900 flex items-center justify-around sticky bottom-0 z-50 pb-safe">
-        <Link
-          href="/worker"
-          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors flex-1 h-full gap-1"
-        >
-          <Clock className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.session}</span>
+      <nav className={SHELL_FOOTER_NAV}>
+        <Link href="/worker" className={NAV_ITEM}>
+          <Clock className="h-5 w-5" />
+          <span className={NAV_ITEM_LABEL}>{dict.session}</span>
         </Link>
-        <Link
-          href="/worker/history"
-          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-amber-500 transition-colors flex-1 h-full gap-1"
-        >
-          <Map className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.history}</span>
+        <Link href="/worker/history" className={NAV_ITEM}>
+          <Map className="h-5 w-5" />
+          <span className={NAV_ITEM_LABEL}>{dict.history}</span>
         </Link>
-        <Link
-          href="/worker/profile"
-          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors flex-1 h-full gap-1"
-        >
-          <User className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.profile}</span>
+        <Link href="/worker/profile" className={NAV_ITEM}>
+          <User className="h-5 w-5" />
+          <span className={NAV_ITEM_LABEL}>{dict.profile}</span>
         </Link>
-        <Link
-          href={workerRoutes.help}
-          className="flex flex-col items-center justify-center text-zinc-600 dark:text-zinc-400 hover:text-blue-500 transition-colors flex-1 h-full gap-1"
-        >
-          <HelpCircle className="w-5 h-5" />
-          <span className="text-[10px] font-semibold uppercase tracking-wider">{dict.help}</span>
+        <Link href={workerRoutes.help} className={NAV_ITEM}>
+          <HelpCircle className="h-5 w-5" />
+          <span className={NAV_ITEM_LABEL}>{dict.help}</span>
         </Link>
       </nav>
     </div>

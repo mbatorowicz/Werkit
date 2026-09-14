@@ -76,7 +76,7 @@ export function TimelineGalleryClient({
                 className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ${
                   isPhoto
                     ? "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400"
-                    : "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400"
+                    : "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
                 }`}
               >
                 {isPhoto ? (

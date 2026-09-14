@@ -5,6 +5,8 @@ import { formatUiTimeHm } from "@/i18n";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { cn } from "@/lib/cn";
+import { TEXTAREA_BASE } from "@/lib/uiTokens";
 
 const FORM_ID = "worker-note-form";
 
@@ -69,7 +71,7 @@ export default function NotesModal({
           <textarea
             value={noteText}
             onChange={(e) => setNoteText(e.target.value)}
-            className="h-24 w-full resize-none rounded-lg border border-zinc-300 bg-white p-3 text-sm text-zinc-900 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+            className={cn(TEXTAREA_BASE, "h-24 resize-none")}
             placeholder={dict.typeNotes}
           />
         </div>

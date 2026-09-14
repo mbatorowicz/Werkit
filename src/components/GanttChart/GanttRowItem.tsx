@@ -7,6 +7,8 @@ import {
   computeGanttItemBars,
   type GanttBarDimensions,
 } from "@/components/GanttChart/ganttTimeMath";
+import { cn } from "@/lib/cn";
+import { uiStatusToneClasses } from "@/lib/uiStatus";
 
 export interface GanttRowItemProps {
   item: UnifiedGanttItem;
@@ -30,6 +32,8 @@ export function GanttRowItem({
     item,
     getDimensions
   );
+  const inProgressFill = uiStatusToneClasses("active").fill;
+  const doneFill = uiStatusToneClasses("done").fill;
 
   if (!plannedDims && !actualDims) return null;
 
@@ -61,7 +65,10 @@ export function GanttRowItem({
       )}
       {actualDims && (
         <div
-          className={`absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition ${item.status === "IN_PROGRESS" ? "bg-blue-500 dark:bg-blue-600 animate-pulse" : "bg-emerald-500 dark:bg-emerald-600"}`}
+          className={cn(
+            "absolute top-2.5 bottom-2.5 rounded shadow-sm flex items-center px-2 overflow-hidden cursor-pointer hover:z-20 hover:scale-[1.02] transition",
+            item.status === "IN_PROGRESS" ? cn(inProgressFill, "animate-pulse") : doneFill
+          )}
           style={{ left: actualDims.left, width: actualDims.width }}
           title={formatItemTooltip(item, {
             date: actualStart ? formatUiDateOnly(actualStart) : "—",

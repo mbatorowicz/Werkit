@@ -23,6 +23,9 @@ import {
   WizardStep3DescriptionField,
   WizardStep3SelectionSummary,
 } from "@/features/worker/components/wizard/WizardStep3Fields";
+import { UiButton } from "@/components/UiButton";
+import { INPUT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -119,7 +122,7 @@ export function WizardStep3Details({
       <div className="space-y-5">
         {selectedCategory?.showMaterial ? (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.wizardMaterialLabel}</label>
+            <label className={FIELD_LABEL}>{dict.wizardMaterialLabel}</label>
             <MaterialCategoryMaterialCombobox
               categories={materialCategories}
               materials={materials}
@@ -154,12 +157,12 @@ export function WizardStep3Details({
 
         {selectedCategory?.showQuantity ? (
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-400">{dict.wizardQuantityLabel}</label>
+            <label className={FIELD_LABEL}>{dict.wizardQuantityLabel}</label>
             <DecimalInput
               value={quantityTons}
               onChange={setQuantityTons}
               placeholder={dict.wizardQuantityPlaceholder}
-              className="w-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+              className={INPUT_BASE}
             />
           </div>
         ) : null}
@@ -185,14 +188,14 @@ export function WizardStep3Details({
         >
           <ChevronLeft className="w-4 h-4" /> {dict.wizardBack}
         </button>
-        <button
+        <UiButton
           type="button"
+          variant="primaryLg"
           disabled={nextDisabled}
           onClick={() => setStep(4)}
-          className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center gap-2"
         >
           {dict.wizardNext} <ChevronRight className="h-5 w-5" />
-        </button>
+        </UiButton>
       </div>
     </div>
   );

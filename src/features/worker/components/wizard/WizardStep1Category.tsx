@@ -16,6 +16,8 @@ import { OrderLabelCard } from "@/components/work-orders/OrderLabelCard";
 import { workOrderOrderLabelCardFields } from "@/lib/orderLabelFieldVisibility";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { UiButton } from "@/components/UiButton";
+import { SURFACE_MINT_INPUT } from "@/lib/uiTokens";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -127,7 +129,7 @@ export function WizardStep1Category({
             className="flex items-center gap-3 rounded-lg border px-4 py-3"
             style={categoryColorSurfaceStyle(selectedCategory.color)}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#f2fbfa] text-emerald-500 dark:bg-zinc-900">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${SURFACE_MINT_INPUT} text-emerald-500`}>
               <SelectedIcon className="h-5 w-5" />
             </div>
             <div>
@@ -138,14 +140,15 @@ export function WizardStep1Category({
             </div>
           </div>
         ) : null}
-        <button
+        <UiButton
           type="button"
+          variant="primaryLg"
+          className="w-full"
           disabled={!categoryId}
           onClick={() => setStep(2)}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
         >
           {dict.wizardNext} <ChevronRight className="h-5 w-5" />
-        </button>
+        </UiButton>
       </div>
     </div>
   );

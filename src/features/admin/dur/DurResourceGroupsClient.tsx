@@ -6,6 +6,10 @@ import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
+import { UiButton } from "@/components/UiButton";
+import { cn } from "@/lib/cn";
+import { CARD_PADDED, INPUT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 import { useResourceGroups } from "@/features/admin/dur/useResourceGroups";
 import { useDurResourceGroupForm } from "./useDurResourceGroupForm";
 
@@ -40,17 +44,13 @@ export default function DurResourceGroupsClient() {
     <>
       <p className="mb-3 text-xs text-zinc-400">{dict.assignHint}</p>
 
-      <section className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
+      <section className={CARD_PADDED}>
         {canMutate && (
           <div className="mb-4 flex justify-end">
-            <button
-              type="button"
-              onClick={openCreate}
-              className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600"
-            >
+            <UiButton type="button" variant="primaryCompactSm" onClick={openCreate}>
               <Plus className="h-4 w-4" />
               {dict.add}
-            </button>
+            </UiButton>
           </div>
         )}
 
@@ -121,22 +121,22 @@ export default function DurResourceGroupsClient() {
           className="space-y-4 p-6"
         >
           <div>
-            <label className="mb-1 block text-sm font-medium">{dict.nameLabel}</label>
+            <label className={cn("mb-1", FIELD_LABEL)}>{dict.nameLabel}</label>
             <input
               type="text"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               placeholder={dict.namePlaceholder}
-              className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className={INPUT_BASE}
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">{dict.descLabel}</label>
+            <label className={cn("mb-1", FIELD_LABEL)}>{dict.descLabel}</label>
             <textarea
               value={formDescription}
               onChange={(e) => setFormDescription(e.target.value)}
               rows={2}
-              className="w-full resize-none rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
+              className={TEXTAREA_BASE}
             />
           </div>
         </form>

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { Loader2 } from "lucide-react";
-import { BTN_PRIMARY_FULL, BTN_SECONDARY_FULL } from "@/lib/uiButtons";
+import { UiButton } from "@/components/UiButton";
 import { useDictionary } from "@/components/LocaleProvider";
 
 /** Standardowa stopka modala formularza: Anuluj + Zapisz (opcjonalnie dodatkowe akcje nad rzędem). */
@@ -13,8 +13,8 @@ export function FormModalFooter({
   cancelLabel,
   isSubmitting = false,
   submitDisabled = false,
-  submitClassName = BTN_PRIMARY_FULL,
-  cancelClassName = BTN_SECONDARY_FULL,
+  submitClassName,
+  cancelClassName,
   leading,
   hideSubmit = false,
 }: {
@@ -36,18 +36,19 @@ export function FormModalFooter({
     <div className="w-full space-y-2">
       {leading ? <div className="flex flex-col gap-2 pb-1">{leading}</div> : null}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:items-center">
-        <button type="button" onClick={onCancel} className={cancelClassName}>
+        <UiButton type="button" variant="secondaryFull" onClick={onCancel} className={cancelClassName}>
           {cancel}
-        </button>
+        </UiButton>
         {!hideSubmit ? (
-          <button
+          <UiButton
             type="submit"
             form={formId}
+            variant="primaryFull"
             disabled={isSubmitting || submitDisabled}
             className={submitClassName}
           >
             {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : submitLabel}
-          </button>
+          </UiButton>
         ) : null}
       </div>
     </div>
@@ -70,9 +71,9 @@ export function FormModalFooterActions({
   return (
     <div className="flex w-full flex-col gap-2">
       {children}
-      <button type="button" onClick={onCancel} className={`w-full ${BTN_SECONDARY_FULL}`}>
+      <UiButton type="button" variant="secondaryFull" className="w-full" onClick={onCancel}>
         {cancel}
-      </button>
+      </UiButton>
     </div>
   );
 }

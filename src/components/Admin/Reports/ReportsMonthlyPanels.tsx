@@ -1,6 +1,9 @@
 import { Activity, TrendingDown, TrendingUp, Warehouse } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { ReportsDashboardSnapshot } from "@/types/admin";
+import { CARD, SURFACE_MINT } from "@/lib/uiTokens";
+import { ACCENT_ICON_WRAP } from "@/lib/uiChrome";
+import { cn } from "@/lib/cn";
 
 type ReportsDict = AppDictionary["admin"]["reports"];
 
@@ -41,9 +44,9 @@ export function ReportsMonthlyPanels({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-emerald-500/10 rounded-lg">
+      <div className={cn(CARD, "p-6")}>
+        <div className="mb-6 flex items-center gap-3">
+          <div className={ACCENT_ICON_WRAP}>
             <TrendingUp className="w-5 h-5 text-emerald-500" />
           </div>
           <div>
@@ -56,7 +59,7 @@ export function ReportsMonthlyPanels({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-[#f2fbfa] dark:bg-zinc-950 border border-emerald-100 dark:border-zinc-800 rounded-xl">
+          <div className={cn("rounded-xl border border-emerald-100 p-4 dark:border-zinc-800", SURFACE_MINT)}>
             <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">
               {d.completedTasks}
             </div>
@@ -76,7 +79,7 @@ export function ReportsMonthlyPanels({
         </div>
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-6 shadow-sm">
+      <div className={cn(CARD, "p-6")}>
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-amber-500/10 rounded-lg">
             <Warehouse className="w-5 h-5 text-amber-500" />

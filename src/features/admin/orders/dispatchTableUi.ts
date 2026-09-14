@@ -8,6 +8,7 @@ import {
 } from "@/lib/orderLabelFieldVisibility";
 import { buildOrderLabelCustomerDisplay } from "@/lib/orderLabelCustomerDisplay";
 import { narrowOrderType } from "@/lib/orderType";
+import { dispatchStatusPillClass } from "@/lib/uiStatus";
 
 type OrdersDict = AppDictionary["admin"]["orders"];
 type ArchiveDict = AppDictionary["admin"]["archive"];
@@ -21,13 +22,7 @@ export function dispatchStatusTone(status: UnifiedGanttItem["status"]) {
   return "done" as const;
 }
 
-export function dispatchStatusPillClass(status: UnifiedGanttItem["status"]) {
-  if (status === "PENDING")
-    return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-500 dark:border-amber-500/20";
-  if (status === "IN_PROGRESS")
-    return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-500 dark:border-blue-500/20";
-  return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-500 dark:border-emerald-500/20";
-}
+export { dispatchStatusPillClass };
 
 export function dispatchStatusLabel(
   status: UnifiedGanttItem["status"],

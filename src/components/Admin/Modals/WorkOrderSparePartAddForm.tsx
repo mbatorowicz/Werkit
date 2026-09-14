@@ -3,10 +3,10 @@
 import { type AdminSearchComboboxOption } from "@/components/Admin/AdminSearchCombobox";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
 import { DecimalInput } from "@/components/DecimalInput";
+import { UiButton } from "@/components/UiButton";
 import { useDictionary } from "@/i18n";
-
-const CONTROL =
-  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
+import { SELECT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 
 interface WorkOrderSparePartAddFormProps {
   catalogOptions: AdminSearchComboboxOption[];
@@ -44,7 +44,7 @@ export function WorkOrderSparePartAddForm({
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 p-3 space-y-3">
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <label className={FIELD_LABEL_COMPACT}>
           {durDict.fields.part}
         </label>
         <SparePartSearchField
@@ -59,31 +59,31 @@ export function WorkOrderSparePartAddForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label className={FIELD_LABEL_COMPACT}>
             {durDict.fields.quantity}
           </label>
           <DecimalInput
             value={addQuantity}
             onChange={onAddQuantityChange}
             placeholder={durDict.fields.quantityPlaceholder}
-            className={CONTROL}
+            className={SELECT_BASE}
           />
         </div>
         <div>
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label className={FIELD_LABEL_COMPACT}>
             {durDict.fields.unitPrice}
           </label>
           <DecimalInput
             value={addUnitPrice}
             onChange={onAddUnitPriceChange}
             placeholder={durDict.fields.unitPricePlaceholder}
-            className={CONTROL}
+            className={SELECT_BASE}
           />
         </div>
       </div>
 
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <label className={FIELD_LABEL_COMPACT}>
           {durDict.fields.notes}
         </label>
         <input
@@ -91,26 +91,22 @@ export function WorkOrderSparePartAddForm({
           value={addNotes}
           onChange={(e) => onAddNotesChange(e.target.value)}
           placeholder={durDict.fields.notesPlaceholder}
-          className={CONTROL}
+          className={SELECT_BASE}
         />
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
-        <button
+        <UiButton type="button" variant="secondarySm" onClick={onCancel}>
+          {dict.common.actions.cancel}
+        </UiButton>
+        <UiButton
           type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-zinc-200 dark:border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-        >
-          Anuluj
-        </button>
-        <button
-          type="button"
+          variant="primaryCompactSm"
           disabled={!selectedPartId || isAdding}
           onClick={onSubmit}
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isAdding ? adminOrdersDict.saving : adminOrdersDict.addSparePart}
-        </button>
+        </UiButton>
       </div>
     </div>
   );

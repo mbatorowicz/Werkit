@@ -5,6 +5,7 @@ import { workerApi } from "@/lib/appRoutes";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { parseJsonArray } from "@/lib/parseJsonArray";
 import { narrowBaseCategories, narrowBaseMachines, narrowDelegatableWorkers } from "@/lib/narrow";
+import { INPUT_BASE, SELECT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
 
 export type DelegationTarget = { id: number; fullName: string; orgLabel: string | null };
 export type DelegationCategory = { id: number; name: string };
@@ -41,9 +42,6 @@ export async function loadWorkerDelegationFormData(): Promise<{
     machines: narrowBaseMachines(mRes),
   };
 }
-
-const fieldClass =
-  "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-950";
 
 export function WorkerDelegateOrderFormFields({
   dict,
@@ -83,7 +81,7 @@ export function WorkerDelegateOrderFormFields({
         <select
           value={userId}
           onChange={(e) => setUserId(e.target.value)}
-          className={fieldClass}
+          className={SELECT_BASE}
           required
         >
           <option value="">—</option>
@@ -100,7 +98,7 @@ export function WorkerDelegateOrderFormFields({
         <select
           value={categoryId}
           onChange={(e) => onCategoryChange(e.target.value)}
-          className={fieldClass}
+          className={SELECT_BASE}
           required
         >
           <option value="">—</option>
@@ -116,7 +114,7 @@ export function WorkerDelegateOrderFormFields({
         <select
           value={resourceId}
           onChange={(e) => setResourceId(e.target.value)}
-          className={fieldClass}
+          className={SELECT_BASE}
           required
           disabled={!categoryId}
         >
@@ -134,7 +132,7 @@ export function WorkerDelegateOrderFormFields({
           value={taskDescription}
           onChange={(e) => setTaskDescription(e.target.value)}
           rows={3}
-          className={fieldClass}
+          className={TEXTAREA_BASE}
         />
       </label>
       <label className="block space-y-1 text-sm">
@@ -143,7 +141,7 @@ export function WorkerDelegateOrderFormFields({
           type="datetime-local"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className={fieldClass}
+          className={INPUT_BASE}
         />
       </label>
     </>

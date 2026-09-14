@@ -8,6 +8,8 @@ import type { MaterialCategoryRow, MaterialPickerRow } from "@/lib/materialCateg
 import { MaterialComboboxDropdownList } from "./MaterialComboboxDropdownList";
 import { useMaterialComboboxState } from "./useMaterialComboboxState";
 import type { MaterialCategoryMaterialComboboxDict } from "./useMaterialComboboxState";
+import { cn } from "@/lib/cn";
+import { BORDER_DEFAULT, CONTROL_MIN_H, SURFACE_MINT_INPUT } from "@/lib/uiTokens";
 
 export type { MaterialCategoryMaterialComboboxDict };
 
@@ -94,9 +96,13 @@ export function MaterialCategoryMaterialCombobox({
         <input type="hidden" value={materialId} required tabIndex={-1} aria-hidden />
       ) : null}
       <div
-        className={`relative flex min-h-[2.75rem] flex-wrap items-center gap-1 rounded-lg border border-zinc-200 bg-[#f2fbfa] px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-900 ${
-          open ? "ring-1 ring-emerald-500 border-emerald-500" : ""
-        }`}
+        className={cn(
+          "relative flex flex-wrap items-center gap-1 rounded-lg px-2 py-1.5",
+          CONTROL_MIN_H,
+          BORDER_DEFAULT,
+          SURFACE_MINT_INPUT,
+          open && "border-emerald-500 ring-1 ring-emerald-500"
+        )}
       >
         {selectedCategory ? (
           <CategoryColorTag

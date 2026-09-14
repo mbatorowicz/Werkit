@@ -5,6 +5,8 @@ import { ReportStatCard } from "./ReportStatCard";
 import { ReportsActiveByCategorySection } from "./ReportsActiveByCategorySection";
 import { ReportsLiveOpsSection } from "./ReportsLiveOpsSection";
 import { ReportsMonthlyPanels } from "./ReportsMonthlyPanels";
+import { PAGE_TITLE } from "@/lib/uiTypography";
+import { cn } from "@/lib/cn";
 
 type AdminSlice = AppDictionary["admin"];
 
@@ -24,7 +26,7 @@ export function ReportsDashboard({
     <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 className={cn(PAGE_TITLE, "flex items-center gap-2 text-2xl")}>
             <BarChart3 className="w-6 h-6 text-emerald-500" /> {nav.reports}
           </h1>
           {companyLabel ? <p className="text-zinc-500 mt-1">{companyLabel}</p> : null}
@@ -52,7 +54,7 @@ export function ReportsDashboard({
         />
         <ReportStatCard
           icon={Layers}
-          iconWrapClass="bg-violet-500/10 text-violet-500 dark:text-violet-400"
+          iconWrapClass="bg-emerald-500/10 text-emerald-500 dark:text-emerald-400"
           title={r.activeSessionsLive}
           value={snapshot.activeSessions.length}
         />

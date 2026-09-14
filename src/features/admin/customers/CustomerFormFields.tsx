@@ -4,15 +4,14 @@ import dynamic from "next/dynamic";
 import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationsPanel } from "./CustomerLocationsPanel";
-import { INPUT_BASE } from "@/lib/uiTokens";
+import { INPUT_BASE, PLACEHOLDER_BLOCK } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 import { customerFormAddressParts, customerFormGeocodeQuery } from "./customerFormApi";
 
 function CustomerMapPickerLoading() {
   const mapLoading = useDictionary().admin.customers.mapLoading;
   return (
-    <div className="flex h-[200px] w-full items-center justify-center rounded-lg bg-zinc-100 text-sm text-zinc-500 dark:bg-zinc-800">
-      {mapLoading}
-    </div>
+    <div className={`${PLACEHOLDER_BLOCK} h-[200px]`}>{mapLoading}</div>
   );
 }
 
@@ -66,7 +65,7 @@ export default function CustomerFormFields({
     <div className="space-y-5 p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.firstNameLabel}</label>
+          <label className={FIELD_LABEL}>{dict.firstNameLabel}</label>
           <input
             type="text"
             placeholder={dict.firstNamePlaceholder}
@@ -76,7 +75,7 @@ export default function CustomerFormFields({
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.lastNameLabel}</label>
+          <label className={FIELD_LABEL}>{dict.lastNameLabel}</label>
           <input
             required
             type="text"
@@ -108,7 +107,7 @@ export default function CustomerFormFields({
       />
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-400">{dict.phoneLabel}</label>
+        <label className={FIELD_LABEL}>{dict.phoneLabel}</label>
         <input
           type="tel"
           placeholder={dict.phonePlaceholder}
@@ -119,7 +118,7 @@ export default function CustomerFormFields({
       </div>
 
       <div className="space-y-2 border-t border-zinc-200 pt-4 dark:border-zinc-700">
-        <label className="text-sm font-medium text-zinc-400">{dict.gpsOnMapLabel}</label>
+        <label className={FIELD_LABEL}>{dict.gpsOnMapLabel}</label>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">{dict.mapHint}</p>
         <CustomerMapPicker
           lat={form.latitude}

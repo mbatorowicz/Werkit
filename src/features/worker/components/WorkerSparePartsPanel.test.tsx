@@ -80,7 +80,7 @@ describe("WorkerSparePartsPanel", () => {
     const fetchMock = stubPanelFetch();
     renderPanel({ workOrderId: null });
 
-    expect(screen.getByText("Zlecenie nie zostało jeszcze zapisane.")).toBeInTheDocument();
+    expect(screen.getByText(dict.saveOrderBeforeSpareParts)).toBeInTheDocument();
     expect(screen.getByText(dict.noSpareParts)).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });

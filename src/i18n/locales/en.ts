@@ -8,6 +8,10 @@ export const en: AppDictionary = {
     description: "Application interface language",
   },
   common: {
+    app: {
+      name: "Werkit",
+      description: "Field operations and MRO — people, assets, warehouses, and session GPS.",
+    },
     actions: {
       save: "Save",
       cancel: "Cancel",
@@ -418,6 +422,7 @@ export const en: AppDictionary = {
       repairDescriptionPlaceholder: "e.g. bearing replacement, engine adjustment...",
       spareParts: "Spare parts",
       addSparePart: "Add part",
+      saveBeforeSpareParts: "Save the order before adding parts.",
       removeSparePart: "Remove",
       noSpareParts: "No spare parts in this order.",
       partName: "Part name",
@@ -1014,6 +1019,7 @@ export const en: AppDictionary = {
       defineCustom: "Define custom",
       timeElapsed: "Time elapsed",
       gpsSignal: "GPS Signal",
+      gpsSessionOnlyHint: "GPS is active only during the order and turns off when you tap Finish.",
       connOk: "Connected",
       searching: "SEARCHING...",
       error: "ERROR",
@@ -1147,6 +1153,7 @@ export const en: AppDictionary = {
       returnPartSuccess: "Part returned to warehouse.",
       insufficientStock: "Insufficient stock.",
       noSpareParts: "No spare parts in this order.",
+      saveOrderBeforeSpareParts: "The order has not been saved yet.",
       partName: "Part name",
       partQuantity: "Quantity",
       partNotes: "Notes",

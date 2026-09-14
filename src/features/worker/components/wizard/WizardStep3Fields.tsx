@@ -2,6 +2,9 @@
 
 import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
+import { cn } from "@/lib/cn";
+import { TEXTAREA_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL } from "@/lib/uiTypography";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -86,26 +89,26 @@ export function WizardStep3DescriptionField({
   if (isRepair) {
     return (
       <div className="space-y-2">
-        <label className="text-sm font-medium text-zinc-400">{dict.repairDescription}</label>
+        <label className={FIELD_LABEL}>{dict.repairDescription}</label>
         <textarea
           required={required}
           value={repairDescription}
           onChange={(e) => setRepairDescription(e.target.value)}
           placeholder={dict.repairDescriptionPlaceholder}
-          className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+          className={cn(TEXTAREA_BASE, "h-32 resize-none")}
         />
       </div>
     );
   }
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-zinc-400">{dict.wizardDescLabel}</label>
+      <label className={FIELD_LABEL}>{dict.wizardDescLabel}</label>
       <textarea
         required={required}
         value={taskDescription}
         onChange={(e) => setTaskDescription(e.target.value)}
         placeholder={dict.wizardDescPlaceholder}
-        className="w-full h-32 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-4 text-zinc-900 dark:text-white focus:ring-1 focus:ring-emerald-500 outline-none resize-none"
+        className={cn(TEXTAREA_BASE, "h-32 resize-none")}
       />
     </div>
   );

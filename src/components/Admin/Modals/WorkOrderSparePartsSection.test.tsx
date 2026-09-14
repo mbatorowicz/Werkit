@@ -94,7 +94,7 @@ describe("WorkOrderSparePartsSection", () => {
     );
 
     expect(screen.getByText(ordersDict.spareParts)).toBeInTheDocument();
-    expect(screen.getByText("Zapisz zlecenie przed dodaniem części.")).toBeInTheDocument();
+    expect(screen.getByText(ordersDict.saveBeforeSpareParts)).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

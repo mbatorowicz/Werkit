@@ -13,6 +13,7 @@ function parseCoordString(value: string): number {
 }
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { FALLBACK_COMPANY_BASE } from "@/lib/map/companyBaseLocation";
+import { UiButton } from "@/components/UiButton";
 
 const iconLocation = L.icon({
   iconUrl:
@@ -167,14 +168,14 @@ export default function CustomerMapPicker({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <button
+        <UiButton
           type="button"
+          variant="primaryCompactSm"
           onClick={() => void handleGeocode()}
           disabled={geocodeBusy}
-          className="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 transition"
         >
           {geocodeBusy ? dict.geocodeLoading : dict.geocodeBtn}
-        </button>
+        </UiButton>
       </div>
       {geocodeMsg ? (
         <p className="text-xs text-amber-600 dark:text-amber-400">{geocodeMsg}</p>

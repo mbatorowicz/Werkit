@@ -3,10 +3,11 @@
 import type { ComponentProps } from "react";
 import { SparePartSearchField } from "@/features/admin/dur/SparePartSearchField";
 import { DecimalInput } from "@/components/DecimalInput";
+import { UiButton } from "@/components/UiButton";
+import { useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
-
-const CONTROL =
-  "w-full min-h-[2.75rem] rounded-lg border border-zinc-200 dark:border-zinc-700 bg-[#f2fbfa] dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-white outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none";
+import { SELECT_BASE } from "@/lib/uiTokens";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 
 export function WorkerSparePartsAddForm({
   workerDict,
@@ -33,10 +34,12 @@ export function WorkerSparePartsAddForm({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const cancelLabel = useDictionary().common.actions.cancel;
+
   return (
     <div className="mb-3 space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50">
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <label className={FIELD_LABEL_COMPACT}>
           {workerDict.choosePart}
         </label>
         <SparePartSearchField
@@ -51,18 +54,18 @@ export function WorkerSparePartsAddForm({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label className={FIELD_LABEL_COMPACT}>
             {workerDict.partQuantity}
           </label>
           <DecimalInput
             value={addQuantity}
             onChange={setAddQuantity}
             placeholder={workerDict.quantityPlaceholder}
-            className={CONTROL}
+            className={SELECT_BASE}
           />
         </div>
         <div>
-          <label className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label className={FIELD_LABEL_COMPACT}>
             {workerDict.partNotes}
           </label>
           <input
@@ -70,27 +73,23 @@ export function WorkerSparePartsAddForm({
             value={addNotes}
             onChange={(e) => setAddNotes(e.target.value)}
             placeholder={workerDict.sparePartNotesPlaceholder}
-            className={CONTROL}
+            className={SELECT_BASE}
           />
         </div>
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
-        <button
+        <UiButton type="button" variant="secondarySm" onClick={onCancel}>
+          {cancelLabel}
+        </UiButton>
+        <UiButton
           type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-600 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700"
-        >
-          Anuluj
-        </button>
-        <button
-          type="button"
+          variant="primaryCompactSm"
           disabled={!selectedPartId || isAdding}
           onClick={onSubmit}
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isAdding ? "…" : workerDict.addSparePart}
-        </button>
+        </UiButton>
       </div>
     </div>
   );

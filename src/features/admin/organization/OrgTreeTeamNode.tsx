@@ -57,9 +57,9 @@ export function OrgTreeTeamNode({
           ) : (
             <span className="w-5 shrink-0" />
           )}
-          <Users className="h-4 w-4 shrink-0 text-sky-600" aria-hidden />
+          <Users className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
           <span className="truncate font-medium text-zinc-800 dark:text-zinc-200">{team.name}</span>
-          <span className="shrink-0 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700 dark:bg-sky-950/50 dark:text-sky-300">
+          <span className="shrink-0 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
             {labels.teamBadge}
           </span>
         </div>

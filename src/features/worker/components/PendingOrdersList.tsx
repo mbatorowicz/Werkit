@@ -6,7 +6,9 @@ import { WorkOrderPendingCard } from "@/components/work-orders/WorkOrderPendingC
 import { formatDict, formatUiTimeHm } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
 import { WorkOrder, UserData } from "@/types/worker";
-import { UI_RADIUS_CARD, UI_RADIUS_CONTROL } from "@/lib/uiRadius";
+import { UI_RADIUS_CARD } from "@/lib/uiRadius";
+import { cn } from "@/lib/cn";
+import { BTN_CTA_XL } from "@/lib/uiButtons";
 
 interface PendingOrdersListProps {
   workOrders: WorkOrder[];
@@ -110,10 +112,7 @@ export default function PendingOrdersList({
           <div className="text-zinc-400 text-xs uppercase font-bold tracking-widest mb-4">
             {dict.or}
           </div>
-          <Link
-            href="/worker/wizard"
-            className={`w-full bg-emerald-600 hover:bg-emerald-500 text-white ${UI_RADIUS_CONTROL} py-5 px-6 flex items-center justify-center gap-3 transition-all active:scale-95 shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)]`}
-          >
+          <Link href="/worker/wizard" className={cn(BTN_CTA_XL, "gap-3")}>
             <Play className="w-6 h-6 fill-current" />
             <span className="text-lg font-bold uppercase tracking-wider">{dict.defineCustom}</span>
           </Link>

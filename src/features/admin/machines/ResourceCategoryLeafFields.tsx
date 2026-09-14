@@ -3,6 +3,7 @@
 import type { AppDictionary } from "@/i18n/types";
 import { AdminCategoryColorFieldRow } from "@/components/Admin/AdminCategoryColorFieldRow";
 import { categorySharedLabels } from "@/lib/categoryI18n";
+import { SELECT_BASE } from "@/lib/uiTokens";
 import { useDictionary } from "@/i18n";
 import type { OrderType } from "@/types/worker";
 import { ResourceCategoryParamsSection } from "./ResourceCategoryParamsSection";
@@ -42,7 +43,7 @@ export function ResourceCategoryLeafFields({ dict, form, setForm }: Props) {
         <select
           value={form.orderType}
           onChange={(e) => setForm({ ...form, orderType: e.target.value as OrderType })}
-          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+          className={SELECT_BASE}
         >
           <option value="machine_work">{dict.machineWork}</option>
           <option value="machine_repair">{dict.machineRepair}</option>

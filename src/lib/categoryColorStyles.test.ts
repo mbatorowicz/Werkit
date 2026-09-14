@@ -35,7 +35,7 @@ describe("categoryColorStyles", () => {
   });
 
   it("chip bez koloru w słowniku — klasy wariantu", () => {
-    expect(categoryColorChipClassName(true, null, "blue")).toContain("blue");
+    expect(categoryColorChipClassName(true, null, "emerald")).toContain("emerald");
     expect(categoryColorChipClassName(false, "#ff0000")).toContain("border-zinc-200");
   });
 });

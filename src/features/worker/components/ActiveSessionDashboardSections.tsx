@@ -12,6 +12,17 @@ import {
   resolveOrderLabelFieldVisibility,
 } from "@/lib/orderLabelFieldVisibility";
 import { ActiveSessionSessionTimer } from "@/features/worker/components/ActiveSessionSessionTimer";
+import { UiButton } from "@/components/UiButton";
+import { ALERT_WARNING } from "@/lib/uiChrome";
+import { cn } from "@/lib/cn";
+import {
+  GPS_DOT_ACTIVE,
+  GPS_DOT_ERROR,
+  GPS_DOT_WAITING,
+  GPS_TEXT_ACTIVE,
+  GPS_TEXT_ERROR,
+  GPS_TEXT_WAITING,
+} from "@/lib/uiStatus";
 
 const LiveMap = dynamic(() => import("@/components/Map/LiveMap"), { ssr: false });
 
@@ -103,7 +114,7 @@ export function ActiveSessionStatusWidget({
           <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest mb-1.5 flex items-center justify-end gap-1">
             {dict.gpsSignal}
             <div
-              title="GPS jest aktywny tylko w trakcie trwania zlecenia i wyłączy się po naciśnięciu Zakończ."
+              title={dict.gpsSessionOnlyHint}
               className="text-zinc-400 bg-zinc-200 dark:bg-zinc-700 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-bold cursor-help cursor-pointer"
             >
               ?
@@ -111,10 +122,24 @@ export function ActiveSessionStatusWidget({
           </div>
           <div className="flex items-center justify-end gap-1.5">
             <div
-              className={`w-2 h-2 rounded-full ${gpsStatus === "active" ? "bg-emerald-500 animate-pulse" : gpsStatus === "waiting" ? "bg-amber-500 animate-pulse" : "bg-red-500"}`}
+              className={cn(
+                "w-2 h-2 rounded-full",
+                gpsStatus === "active"
+                  ? GPS_DOT_ACTIVE
+                  : gpsStatus === "waiting"
+                    ? GPS_DOT_WAITING
+                    : GPS_DOT_ERROR
+              )}
             />
             <span
-              className={`text-xs font-bold ${gpsStatus === "active" ? "text-emerald-500" : gpsStatus === "waiting" ? "text-amber-500" : "text-red-500"}`}
+              className={cn(
+                "text-xs font-bold",
+                gpsStatus === "active"
+                  ? GPS_TEXT_ACTIVE
+                  : gpsStatus === "waiting"
+                    ? GPS_TEXT_WAITING
+                    : GPS_TEXT_ERROR
+              )}
             >
               {gpsStatus === "active"
                 ? dict.connOk
@@ -131,13 +156,11 @@ export function ActiveSessionStatusWidget({
 
 export function ActiveSessionTimeOverrunBanner({ dict }: { dict: WorkerClientDict }) {
   return (
-    <div className="w-full mt-4 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-lg p-3 flex gap-3 items-center">
-      <div className="bg-rose-100 dark:bg-rose-500/20 p-2 rounded-full shrink-0">
-        <Clock className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+    <div className={cn(ALERT_WARNING, "mt-4 flex items-center gap-3")}>
+      <div className="shrink-0 rounded-full bg-amber-100 p-2 dark:bg-amber-500/20">
+        <Clock className="h-4 w-4 text-amber-700 dark:text-amber-400" />
       </div>
-      <div className="text-sm text-rose-800 dark:text-rose-300 font-medium">
-        {dict.timeOverrunWarn}
-      </div>
+      <div className="text-sm font-medium">{dict.timeOverrunWarn}</div>
     </div>
   );
 }
@@ -322,10 +345,7 @@ export function ActiveSessionActions({
             </div>
           </button>
         )}
-        <button
-          onClick={handleEndSession}
-          className="w-full bg-red-600 hover:bg-red-500 text-white rounded-lg py-4 flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_30px_-10px_rgba(220,38,38,0.4)]"
-        >
+        <UiButton type="button" variant="ctaDanger" onClick={handleEndSession}>
           <div className="flex items-center gap-2">
             <Square className="w-5 h-5 fill-current" />
             <span className="font-bold uppercase tracking-wider text-sm">{dict.finish}</span>
@@ -335,7 +355,7 @@ export function ActiveSessionActions({
               {dict.requiresPhoto}
             </span>
           )}
-        </button>
+        </UiButton>
       </div>
     </>
   );

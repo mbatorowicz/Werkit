@@ -8,7 +8,9 @@ import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
 import { requireServerCompanyId } from "@/lib/serverTenant";
-import { BTN_PRIMARY } from "@/lib/uiButtons";
+import { BTN_PRIMARY, BTN_DANGER_SOFT } from "@/lib/uiButtons";
+import { CARD, SURFACE_MINT } from "@/lib/uiTokens";
+import { PAGE_TITLE } from "@/lib/uiTypography";
 import { cn } from "@/lib/cn";
 
 import { JWT_SECRET } from "@/lib/auth";
@@ -44,14 +46,24 @@ export default async function ProfilePage() {
         <span className="text-sm font-semibold">{dict.backToSession}</span>
       </Link>
 
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-white mb-8">{dict.title}</h1>
+      <h1 className={cn(PAGE_TITLE, "mb-8 text-2xl")}>{dict.title}</h1>
 
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-3xl p-6 flex flex-col items-center mb-6 shadow-inner">
-        <div className="w-24 h-24 bg-[#f2fbfa] dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-700 rounded-full flex items-center justify-center mb-4">
-          <UserIcon className="w-10 h-10 text-zinc-500" />
+      <div className={cn(CARD, "mb-6 flex flex-col items-center p-6")}>
+        <div
+          className={cn(
+            "mb-4 flex h-24 w-24 items-center justify-center rounded-full border-2 border-zinc-200 dark:border-zinc-700",
+            SURFACE_MINT
+          )}
+        >
+          <UserIcon className="h-10 w-10 text-zinc-500" />
         </div>
-        <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{user?.fullName}</h2>
-        <div className="flex items-center gap-2 px-3 py-1 bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full">
+        <h2 className="mb-1 text-xl font-bold text-zinc-900 dark:text-white">{user?.fullName}</h2>
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-1 dark:border-zinc-700",
+            SURFACE_MINT
+          )}
+        >
           <Shield className="w-3.5 h-3.5 text-zinc-500" />
           <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             {user?.role === "admin" ? dict.roleAdmin : dict.roleWorker}
@@ -62,11 +74,16 @@ export default async function ProfilePage() {
       <div className="space-y-4">
         <ProfileOrgSection profile={orgProfile} dict={dict.org} />
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 flex justify-between items-center">
-          <span className="text-zinc-700 dark:text-zinc-300 text-sm font-medium">
+        <div className={cn(CARD, "flex items-center justify-between p-5")}>
+          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             {dict.systemLogin}:
           </span>
-          <span className="text-zinc-900 dark:text-zinc-100 font-mono bg-[#f2fbfa] dark:bg-zinc-950 px-3 py-1 rounded-md border border-zinc-200 dark:border-zinc-700">
+          <span
+            className={cn(
+              "rounded-md border border-zinc-200 px-3 py-1 font-mono text-zinc-900 dark:border-zinc-700 dark:text-zinc-100",
+              SURFACE_MINT
+            )}
+          >
             {user?.usernameEmail}
           </span>
         </div>
@@ -92,7 +109,10 @@ export default async function ProfilePage() {
         />
 
         <LogoutButton
-          className="w-full flex items-center justify-center gap-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-red-500/10 hover:text-red-400 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 rounded-lg p-5 transition-colors group mt-8"
+          className={cn(
+            BTN_DANGER_SOFT,
+            "mt-8 w-full p-5 group"
+          )}
           iconClass="w-5 h-5 group-hover:text-red-400 transition-colors"
           text={dict.logout}
         />

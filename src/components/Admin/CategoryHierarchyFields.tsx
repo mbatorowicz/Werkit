@@ -3,6 +3,7 @@
 import { categorySharedLabels } from "@/lib/categoryI18n";
 import { useDictionary } from "@/i18n";
 import { filterCategoryGroups } from "@/lib/categoryTree";
+import { INPUT_BASE, SELECT_BASE } from "@/lib/uiTokens";
 
 type Row = {
   id: number;
@@ -61,7 +62,7 @@ export function CategoryHierarchyFields({
             const v = e.target.value;
             onParentIdChange(v === "" ? null : Number.parseInt(v, 10));
           }}
-          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className={SELECT_BASE}
         >
           <option value="">{g.parentNone}</option>
           {parentOptions.map((c) => (
@@ -79,7 +80,7 @@ export function CategoryHierarchyFields({
           min={0}
           value={sortOrder}
           onChange={(e) => onSortOrderChange(Math.max(0, Number.parseInt(e.target.value, 10) || 0))}
-          className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className={INPUT_BASE}
         />
       </div>
     </div>

@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import type { AppDictionary } from "@/i18n/types";
 import { buildAdminNavLinks } from "./adminNavLinks";
 import { isAdminDispatchNavActive } from "./adminNavActive";
+import { LOGOUT_ROW } from "@/lib/uiChrome";
 
 export function MobileAdminNav({
   companyName,
@@ -124,7 +125,7 @@ export function MobileAdminNav({
                 </div>
               )}
               <LogoutButton
-                className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-500 transition-all hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
+                className={LOGOUT_ROW}
                 iconClass="w-4 h-4"
                 text={dict.sidebar.logoutSession}
               />

@@ -6,6 +6,7 @@ import type { AppDictionary } from "@/i18n/types";
 import type { WizardCategory, WizardMachine } from "@/types/wizard";
 import { AdminSearchCombobox } from "@/components/Admin/AdminSearchCombobox";
 import { comboboxFeedbackProps } from "@/components/searchFieldStyles";
+import { UiButton } from "@/components/UiButton";
 
 type Dict = AppDictionary["worker"]["client"];
 
@@ -76,14 +77,15 @@ export function WizardStep2Machine({
             {...comboboxFeedbackProps(dict)}
             aria-label={dict.wizardStep2Title}
           />
-          <button
+          <UiButton
             type="button"
+            variant="primaryLg"
+            className="w-full"
             disabled={!resourceId}
             onClick={() => setStep(3)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-bold text-white transition hover:bg-emerald-500 disabled:opacity-50"
           >
             {dict.wizardNext} <ChevronRight className="h-5 w-5" />
-          </button>
+          </UiButton>
         </div>
       )}
 

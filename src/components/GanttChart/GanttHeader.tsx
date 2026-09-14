@@ -31,7 +31,7 @@ export function GanttHeader({
   dict,
 }: Props) {
   return (
-    <div className="p-4 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-[#0a0a0b] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="flex flex-col items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/80 md:flex-row md:items-center">
       <div className="flex items-center bg-white dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
         <button
           onClick={() => setGroupBy("WORKER")}

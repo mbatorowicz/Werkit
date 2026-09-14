@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FormModalFooter } from "@/components/FormModalFooter";
 import { BTN_DANGER_FULL } from "@/lib/uiButtons";
+import { cn } from "@/lib/cn";
+import { INPUT_DANGER } from "@/lib/uiTokens";
+import { FIELD_LABEL_COMPACT } from "@/lib/uiTypography";
 import { useDictionary } from "@/components/LocaleProvider";
 
 const FORM_ID = "admin-password-confirm-form";
@@ -73,7 +76,7 @@ export function AdminPasswordConfirmModal({
       >
         <p className="text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">{description}</p>
         <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <label className={cn(FIELD_LABEL_COMPACT, "mb-1.5")}>
             {uiDict.adminPasswordLabel}
           </label>
           <input
@@ -82,7 +85,7 @@ export function AdminPasswordConfirmModal({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={uiDict.adminPasswordPlaceholder}
-            className="w-full rounded-lg border border-zinc-200 bg-[#f2fbfa] px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-red-500 focus:ring-1 focus:ring-red-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+            className={INPUT_DANGER}
           />
         </div>
         {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
