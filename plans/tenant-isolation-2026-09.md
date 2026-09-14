@@ -1,6 +1,6 @@
 # Plan izolacji tenantów — organizacja, FK, obrona w głąb
 
-> **Status:** otwarty (2026-09-14). T0–T3 do zrobienia.  
+> **Status:** T0–T2 zamknięte (2026-09-14). T3 do zrobienia.  
 > **Źródło:** audyt izolacji multi-firm (czat „Audyt izolacji tenantów”).  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-TENANT-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1). Nie ruszamy modelu logowania bez sluga firmy (globalny `username_email`) poza T3 (komunikat `user_exists`).
@@ -162,14 +162,14 @@ Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; T2: `n
 
 ## Checklista
 
-- [ ] **T0** — `OrganizationService` + API org zawsze z `companyId`; `guardAdminMutation` na mutacjach; 404 na obce ID
-- [ ] **T1** — `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id`
-- [ ] **T2** — integracja dwóch firm: org + grupa maszyn
+- [x] **T0** — `OrganizationService` + API org zawsze z `companyId`; `guardAdminMutation` na mutacjach; 404 na obce ID
+- [x] **T1** — `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id`
+- [x] **T2** — integracja dwóch firm: org + grupa maszyn
 - [ ] **T3.1** — unique login bez `user_exists` 500
 - [ ] **T3.2** — `resolveTenantCompanyId` usunięty albo nieufający JWT
 - [ ] **T3.3** — `getResources` nie ładuje całej `resource_to_categories`
-- [ ] SYSTEM_MAP / AGENTS: krótka wzmianka po T0 (org = ten sam wzorzec co słowniki)
-- [ ] i18n tylko jeśli dojdą nowe kody (`invalid_resource_group` już jest po DUR)
+- [x] SYSTEM_MAP / AGENTS: krótka wzmianka po T0 (org = ten sam wzorzec co słowniki)
+- [x] i18n: dodany `invalid_user` (`invalid_resource_group` już był po DUR)
 
 ## Świadomie nie w tym programie
 

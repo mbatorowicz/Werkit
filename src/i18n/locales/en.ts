@@ -146,6 +146,7 @@ export const en: AppDictionary = {
     biometric_password_required: "Enter your current password to enable biometrics.",
     invalid_payload: "Invalid form data.",
     invalid_supervisor: "Invalid supervisor — choose an active user from your company.",
+    invalid_user: "Invalid user — choose a person from this company.",
     invalid_team: "Invalid team — choose a team from the selected department.",
     material_not_found: "Material not found in your company catalog.",
     invalid_unit: "Invalid unit of measure.",

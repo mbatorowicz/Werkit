@@ -458,9 +458,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `returnForOrderSessions` — PZ dla wszystkich sesji zlecenia (`deleteOrder`).
 
 ### `OrganizationService` (`src/services/OrganizationService.ts`)
-- CRUD `departments`, `teams`, `team_members` (scoped `companyId`).
+- CRUD `departments`, `teams`, `team_members` — **zawsze** `companyId` (ten sam wzorzec co słowniki: `WHERE id AND company_id`). Obce ID → brak wiersza / 404; relacje (`parentId`, `departmentId`, `leaderId`, `userId`) → 400 `invalid_parent` / `invalid_team` / `invalid_user` (bez `cross_tenant`).
+- Mutacje API: `guardAdminMutation` przed serwisem. `addTeamMember.role` ∈ `member|leader`.
 - **Sync lidera:** `teams.leaderId` ↔ wpis `team_members.role='leader'` (`syncTeamLeader`, `applyTeamLeaderFromMember`, `clearTeamLeaderIfMatches`) — wywoływane przy `updateTeam`, `addTeamMember`, `updateTeamMember`, `removeTeamMember`.
-- `getUserTeams(userId)` — zespoły użytkownika z departamentami.
+- `getUserTeams(companyId, userId)` — zespoły użytkownika w firmie.
 
 ### `DelegationScopeService` (`src/services/DelegationScopeService.ts`)
 - **SSOT zasięgu delegacji zleceń** (pozycja w org, nie osobne `reportsToId`).

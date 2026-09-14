@@ -153,6 +153,7 @@ export const de: AppDictionary = {
     invalid_unit: "Ungültige Maßeinheit.",
     invalid_supervisor:
       "Ungültiger Vorgesetzter — wählen Sie einen aktiven Benutzer aus Ihrem Unternehmen.",
+    invalid_user: "Ungültiger Benutzer — wählen Sie eine Person aus diesem Unternehmen.",
     short_query: "Geocode-Abfrage ist zu kurz (min. 3 Zeichen).",
     query_too_long: "Geocode-Abfrage ist zu lang (max. 280 Zeichen).",
     invalid_category: "Fehlende oder ungültige Auftragskategorie.",

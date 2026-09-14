@@ -2,6 +2,15 @@ import { db } from "@/db";
 import { resources, resourceToCategories } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { assertResourceCategoryAssignable } from "@/services/categoryHierarchyValidation";
+import { assertResourceGroupsAssignable } from "@/services/dur/categoryValidation";
+
+async function assertOptionalResourceGroup(
+  companyId: number,
+  resourceGroupId: number | null | undefined
+): Promise<void> {
+  if (resourceGroupId == null) return;
+  await assertResourceGroupsAssignable([resourceGroupId], companyId);
+}
 
 export class ResourceService {
   static async getResources(companyId: number) {
@@ -44,6 +53,7 @@ export class ResourceService {
     imageUrl?: string | null,
     resourceGroupId?: number | null
   ) {
+    await assertOptionalResourceGroup(companyId, resourceGroupId ?? null);
     const desc =
       identity.description != null && String(identity.description).trim() !== ""
         ? String(identity.description).trim().slice(0, 4000)
@@ -88,6 +98,7 @@ export class ResourceService {
     if (data.description !== undefined) patch.description = data.description;
     if (data.imageUrl !== undefined) patch.imageUrl = data.imageUrl;
     if (data.resourceGroupId !== undefined) patch.resourceGroupId = data.resourceGroupId;
+    await assertOptionalResourceGroup(companyId, data.resourceGroupId);
     if (Object.keys(patch).length > 0) {
       await db
         .update(resources)

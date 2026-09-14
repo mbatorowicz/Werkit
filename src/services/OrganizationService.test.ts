@@ -63,10 +63,22 @@ vi.mock("@/db/schema", () => ({
   },
   users: {
     id: "id",
+    companyId: "companyId",
     fullName: "fullName",
     usernameEmail: "usernameEmail",
   },
 }));
+
+function foundSelect(items: unknown[]) {
+  const chain = {
+    from: vi.fn(() => chain),
+    innerJoin: vi.fn(() => chain),
+    where: vi.fn(() => chain),
+    orderBy: vi.fn(() => resultArray(items)),
+    limit: vi.fn(() => resultArray(items)),
+  };
+  return chain;
+}
 
 vi.mock("drizzle-orm", () => ({
   eq: (_col: unknown, val: unknown) => val,
@@ -193,6 +205,13 @@ describe("OrganizationService", () => {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
       insertMock.mockReturnValue(chain);
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 },
+          ])
+        )
+        .mockReturnValueOnce(foundSelect([{ id: 3 }]));
 
       const { OrganizationService } = await import("./OrganizationService");
       const result = await OrganizationService.createDepartment(1, {
@@ -200,9 +219,16 @@ describe("OrganizationService", () => {
         parentId: 1,
         managerId: 3,
       });
-
       expect(result.parentId).toBe(1);
       expect(result.managerId).toBe(3);
+    });
+
+    it("odrzuca parentId spoza firmy", async () => {
+      selectMock.mockReturnValue(foundSelect([]));
+      const { OrganizationService } = await import("./OrganizationService");
+      await expect(
+        OrganizationService.createDepartment(1, { name: "X", parentId: 99 })
+      ).rejects.toThrow("invalid_parent");
     });
   });
 
@@ -223,11 +249,23 @@ describe("OrganizationService", () => {
       updateMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.updateDepartment(1, {
+      const result = await OrganizationService.updateDepartment(1, 1, {
         name: "Transport i logistyka",
       });
 
       expect(result.name).toBe("Transport i logistyka");
+    });
+
+    it("nie mutuje wiersza innej firmy", async () => {
+      const chain = {
+        set: vi.fn(() => chain),
+        where: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
+      };
+      updateMock.mockReturnValue(chain);
+
+      const { OrganizationService } = await import("./OrganizationService");
+      const result = await OrganizationService.updateDepartment(1, 99, { name: "Hacked" });
+      expect(result).toBeUndefined();
     });
   });
 
@@ -247,10 +285,21 @@ describe("OrganizationService", () => {
       deleteMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.deleteDepartment(1);
+      const result = await OrganizationService.deleteDepartment(1, 1);
 
       expect(result.id).toBe(1);
       expect(deleteMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("nie usuwa departamentu innej firmy", async () => {
+      const chain = {
+        where: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
+      };
+      deleteMock.mockReturnValue(chain);
+
+      const { OrganizationService } = await import("./OrganizationService");
+      const result = await OrganizationService.deleteDepartment(1, 99);
+      expect(result).toBeUndefined();
     });
   });
 
@@ -304,18 +353,34 @@ describe("OrganizationService", () => {
       const mockTeams = [
         { id: 1, companyId: 1, departmentId: 1, name: "Zmiana A", leaderId: 1, sortOrder: 0 },
       ];
-      const chain = {
-        from: vi.fn(() => chain),
-        where: vi.fn(() => chain),
-        orderBy: vi.fn(() => resultArray(mockTeams)),
-      };
-      selectMock.mockReturnValue(chain);
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 },
+          ])
+        )
+        .mockReturnValueOnce({
+          from: vi.fn(function (this: unknown) {
+            return this;
+          }),
+          where: vi.fn(function (this: unknown) {
+            return this;
+          }),
+          orderBy: vi.fn(() => resultArray(mockTeams)),
+        });
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getTeamsByDepartment(1);
+      const result = await OrganizationService.getTeamsByDepartment(1, 1);
 
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe("Zmiana A");
+    });
+
+    it("zwraca pusta liste gdy departament nie nalezy do firmy", async () => {
+      selectMock.mockReturnValue(foundSelect([]));
+      const { OrganizationService } = await import("./OrganizationService");
+      const result = await OrganizationService.getTeamsByDepartment(1, 99);
+      expect(result).toEqual([]);
     });
   });
 
@@ -329,7 +394,7 @@ describe("OrganizationService", () => {
       selectMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getTeam(999);
+      const result = await OrganizationService.getTeam(1, 999);
 
       expect(result).toBeNull();
     });
@@ -351,7 +416,7 @@ describe("OrganizationService", () => {
       selectMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getTeam(1);
+      const result = await OrganizationService.getTeam(1, 1);
 
       expect(result).not.toBeNull();
       expect(result!.name).toBe("Zmiana A");
@@ -372,12 +437,25 @@ describe("OrganizationService", () => {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
       insertMock.mockReturnValue(chain);
+      selectMock.mockReturnValue(
+        foundSelect([
+          { id: 1, companyId: 1, name: "Transport", parentId: null, managerId: 1, sortOrder: 0 },
+        ])
+      );
 
       const { OrganizationService } = await import("./OrganizationService");
       const result = await OrganizationService.createTeam(1, { departmentId: 1, name: "Zmiana C" });
 
       expect(result.id).toBe(1);
       expect(result.name).toBe("Zmiana C");
+    });
+
+    it("odrzuca departmentId spoza firmy", async () => {
+      selectMock.mockReturnValue(foundSelect([]));
+      const { OrganizationService } = await import("./OrganizationService");
+      await expect(
+        OrganizationService.createTeam(1, { departmentId: 99, name: "Obcy" })
+      ).rejects.toThrow("invalid_parent");
     });
   });
 
@@ -397,11 +475,14 @@ describe("OrganizationService", () => {
       };
       updateMock.mockReturnValue(updateChain);
 
-      const selectChain = {
-        from: vi.fn(() => selectChain),
-        where: vi.fn(() => resultArray([])),
-      };
-      selectMock.mockReturnValue(selectChain);
+      selectMock
+        .mockReturnValueOnce(foundSelect([{ id: 5 }]))
+        .mockReturnValueOnce({
+          from: vi.fn(function (this: unknown) {
+            return this;
+          }),
+          where: vi.fn(() => resultArray([])),
+        });
 
       const insertChain = {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([])) })),
@@ -409,7 +490,7 @@ describe("OrganizationService", () => {
       insertMock.mockReturnValue(insertChain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.updateTeam(1, { leaderId: 5 });
+      const result = await OrganizationService.updateTeam(1, 1, { leaderId: 5 });
 
       expect(result.leaderId).toBe(5);
     });
@@ -431,7 +512,7 @@ describe("OrganizationService", () => {
       deleteMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.deleteTeam(1);
+      const result = await OrganizationService.deleteTeam(1, 1);
 
       expect(result.id).toBe(1);
     });
@@ -459,15 +540,31 @@ describe("OrganizationService", () => {
           user: { id: 11, fullName: "Anna Nowak", usernameEmail: "anna@test.pl" },
         },
       ];
-      const chain = {
-        from: vi.fn(() => chain),
-        innerJoin: vi.fn(() => chain),
-        where: vi.fn(() => resultArray(mockRows)),
-      };
-      selectMock.mockReturnValue(chain);
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            {
+              id: 1,
+              companyId: 1,
+              departmentId: 1,
+              name: "Zmiana A",
+              leaderId: 1,
+              sortOrder: 0,
+            },
+          ])
+        )
+        .mockReturnValueOnce({
+          from: vi.fn(function (this: unknown) {
+            return this;
+          }),
+          innerJoin: vi.fn(function (this: unknown) {
+            return this;
+          }),
+          where: vi.fn(() => resultArray(mockRows)),
+        });
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getTeamMembersWithUsers(1);
+      const result = await OrganizationService.getTeamMembersWithUsers(1, 1);
 
       expect(result).toHaveLength(2);
       expect(result[0].role).toBe("leader");
@@ -475,16 +572,11 @@ describe("OrganizationService", () => {
       expect(result[1].user.fullName).toBe("Anna Nowak");
     });
 
-    it("zwraca pusta liste gdy zespol nie ma czlonkow", async () => {
-      const chain = {
-        from: vi.fn(() => chain),
-        innerJoin: vi.fn(() => chain),
-        where: vi.fn(() => resultArray([])),
-      };
-      selectMock.mockReturnValue(chain);
+    it("zwraca pusta liste gdy zespol nie nalezy do firmy", async () => {
+      selectMock.mockReturnValue(foundSelect([]));
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getTeamMembersWithUsers(999);
+      const result = await OrganizationService.getTeamMembersWithUsers(1, 999);
 
       expect(result).toEqual([]);
     });
@@ -497,9 +589,23 @@ describe("OrganizationService", () => {
         values: vi.fn(() => ({ returning: vi.fn(() => resultArray([inserted])) })),
       };
       insertMock.mockReturnValue(chain);
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            {
+              id: 1,
+              companyId: 1,
+              departmentId: 1,
+              name: "Zmiana A",
+              leaderId: 1,
+              sortOrder: 0,
+            },
+          ])
+        )
+        .mockReturnValueOnce(foundSelect([{ id: 10 }]));
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.addTeamMember({ teamId: 1, userId: 10 });
+      const result = await OrganizationService.addTeamMember(1, { teamId: 1, userId: 10 });
 
       expect(result.role).toBe("member");
     });
@@ -524,16 +630,52 @@ describe("OrganizationService", () => {
         from: vi.fn(() => selectChain),
         where: vi.fn(() => resultArray([])),
       };
-      selectMock.mockReturnValue(selectChain);
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            {
+              id: 1,
+              companyId: 1,
+              departmentId: 1,
+              name: "Zmiana A",
+              leaderId: 1,
+              sortOrder: 0,
+            },
+          ])
+        )
+        .mockReturnValueOnce(foundSelect([{ id: 11 }]))
+        .mockReturnValueOnce(selectChain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.addTeamMember({
+      const result = await OrganizationService.addTeamMember(1, {
         teamId: 1,
         userId: 11,
         role: "leader",
       });
 
       expect(result.role).toBe("leader");
+    });
+
+    it("odrzuca userId spoza firmy", async () => {
+      selectMock
+        .mockReturnValueOnce(
+          foundSelect([
+            {
+              id: 1,
+              companyId: 1,
+              departmentId: 1,
+              name: "Zmiana A",
+              leaderId: 1,
+              sortOrder: 0,
+            },
+          ])
+        )
+        .mockReturnValueOnce(foundSelect([]));
+
+      const { OrganizationService } = await import("./OrganizationService");
+      await expect(
+        OrganizationService.addTeamMember(1, { teamId: 1, userId: 99 })
+      ).rejects.toThrow("invalid_user");
     });
   });
 
@@ -544,6 +686,7 @@ describe("OrganizationService", () => {
 
       const selectBeforeChain = {
         from: vi.fn(() => selectBeforeChain),
+        innerJoin: vi.fn(() => selectBeforeChain),
         where: vi.fn(() => ({ limit: vi.fn(() => resultArray([before])) })),
       };
       const selectSyncChain = {
@@ -567,24 +710,27 @@ describe("OrganizationService", () => {
       });
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.updateTeamMember(1, { role: "leader" });
+      const result = await OrganizationService.updateTeamMember(1, 1, { role: "leader" });
 
-      expect(result.role).toBe("leader");
+      expect(result?.role).toBe("leader");
     });
   });
 
   describe("removeTeamMember", () => {
     it("usuwa czlonka z zespolu", async () => {
       const deleted = { id: 1, teamId: 1, userId: 10, role: "member", joinedAt: new Date() };
+      selectMock.mockReturnValue(
+        foundSelect([{ id: 1, teamId: 1, userId: 10, role: "member" }])
+      );
       const chain = {
         where: vi.fn(() => ({ returning: vi.fn(() => resultArray([deleted])) })),
       };
       deleteMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.removeTeamMember(1);
+      const result = await OrganizationService.removeTeamMember(1, 1);
 
-      expect(result.id).toBe(1);
+      expect(result?.id).toBe(1);
     });
   });
 
@@ -620,7 +766,7 @@ describe("OrganizationService", () => {
       selectMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getUserTeams(10);
+      const result = await OrganizationService.getUserTeams(1, 10);
 
       expect(result).toHaveLength(1);
       expect(result[0].team.name).toBe("Zmiana A");
@@ -636,7 +782,7 @@ describe("OrganizationService", () => {
       selectMock.mockReturnValue(chain);
 
       const { OrganizationService } = await import("./OrganizationService");
-      const result = await OrganizationService.getUserTeams(999);
+      const result = await OrganizationService.getUserTeams(1, 999);
 
       expect(result).toEqual([]);
     });

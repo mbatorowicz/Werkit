@@ -4,6 +4,8 @@
 
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { mapOrgDomainError } from "@/lib/orgApiErrors";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { OrganizationService } from "@/services/OrganizationService";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +13,9 @@ export const dynamic = "force-dynamic";
 /** POST /api/admin/organization/team-members — dodaj członka do zespołu */
 export const POST = withApiErrorHandling(
   async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -24,8 +29,12 @@ export const POST = withApiErrorHandling(
 
     const role = typeof body.role === "string" ? body.role : "member";
 
-    const inserted = await OrganizationService.addTeamMember({ teamId, userId, role });
+    const inserted = await OrganizationService.addTeamMember(scoped.data.companyId, {
+      teamId,
+      userId,
+      role,
+    });
     return jsonOk(inserted, { status: 201 });
   },
-  { defaultErrorCode: "save_error" }
+  { mapUnknownError: mapOrgDomainError, defaultErrorCode: "save_error" }
 );

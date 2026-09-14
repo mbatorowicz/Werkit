@@ -4,6 +4,8 @@
 
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { mapOrgDomainError } from "@/lib/orgApiErrors";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { OrganizationService } from "@/services/OrganizationService";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +20,13 @@ export const GET = withApiErrorHandling(
     const teamId = parseInt(id, 10);
     if (Number.isNaN(teamId)) return jsonError("invalid_id", 400);
 
-    const team = await OrganizationService.getTeam(teamId);
+    const team = await OrganizationService.getTeam(scoped.data.companyId, teamId);
     if (!team) return jsonError("not_found", 404);
 
-    const members = await OrganizationService.getTeamMembersWithUsers(teamId);
+    const members = await OrganizationService.getTeamMembersWithUsers(
+      scoped.data.companyId,
+      teamId
+    );
 
     return jsonOk({ ...team, members });
   },
@@ -31,6 +36,9 @@ export const GET = withApiErrorHandling(
 /** PATCH /api/admin/organization/teams/[id] — aktualizuj zespół */
 export const PATCH = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -47,17 +55,23 @@ export const PATCH = withApiErrorHandling(
           : null
         : undefined;
 
-    const updated = await OrganizationService.updateTeam(teamId, { name, leaderId });
+    const updated = await OrganizationService.updateTeam(scoped.data.companyId, teamId, {
+      name,
+      leaderId,
+    });
     if (!updated) return jsonError("not_found", 404);
 
     return jsonOk(updated);
   },
-  { defaultErrorCode: "save_error" }
+  { mapUnknownError: mapOrgDomainError, defaultErrorCode: "save_error" }
 );
 
 /** DELETE /api/admin/organization/teams/[id] — usuń zespół */
 export const DELETE = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -65,7 +79,7 @@ export const DELETE = withApiErrorHandling(
     const teamId = parseInt(id, 10);
     if (Number.isNaN(teamId)) return jsonError("invalid_id", 400);
 
-    const deleted = await OrganizationService.deleteTeam(teamId);
+    const deleted = await OrganizationService.deleteTeam(scoped.data.companyId, teamId);
     if (!deleted) return jsonError("not_found", 404);
 
     return jsonOk({ success: true });

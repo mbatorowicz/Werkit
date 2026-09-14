@@ -4,6 +4,8 @@
 
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { mapOrgDomainError } from "@/lib/orgApiErrors";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { OrganizationService } from "@/services/OrganizationService";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +22,10 @@ export const GET = withApiErrorHandling(
     if (departmentIdParam) {
       const departmentId = parseInt(departmentIdParam, 10);
       if (Number.isNaN(departmentId)) return jsonError("invalid_department_id", 400);
-      const teams = await OrganizationService.getTeamsByDepartment(departmentId);
+      const teams = await OrganizationService.getTeamsByDepartment(
+        scoped.data.companyId,
+        departmentId
+      );
       return jsonOk(teams);
     }
 
@@ -33,6 +38,9 @@ export const GET = withApiErrorHandling(
 /** POST /api/admin/organization/teams — utwórz zespół */
 export const POST = withApiErrorHandling(
   async (request: Request) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -53,5 +61,5 @@ export const POST = withApiErrorHandling(
 
     return jsonOk(inserted, { status: 201 });
   },
-  { defaultErrorCode: "save_error" }
+  { mapUnknownError: mapOrgDomainError, defaultErrorCode: "save_error" }
 );

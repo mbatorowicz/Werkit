@@ -23,7 +23,10 @@ export class ResourceGroupService {
         resourceCount: sql<number>`count(${resources.id})::int`,
       })
       .from(resourceGroups)
-      .leftJoin(resources, eq(resources.resourceGroupId, resourceGroups.id))
+      .leftJoin(
+        resources,
+        and(eq(resources.resourceGroupId, resourceGroups.id), eq(resources.companyId, companyId))
+      )
       .where(eq(resourceGroups.companyId, companyId))
       .groupBy(resourceGroups.id)
       .orderBy(asc(resourceGroups.sortOrder), asc(resourceGroups.id));
@@ -48,7 +51,7 @@ export class ResourceGroupService {
     const [{ count }] = await db
       .select({ count: sql<number>`count(*)::int` })
       .from(resources)
-      .where(eq(resources.resourceGroupId, id));
+      .where(and(eq(resources.resourceGroupId, id), eq(resources.companyId, companyId)));
     return {
       id: row.id,
       companyId: row.companyId,

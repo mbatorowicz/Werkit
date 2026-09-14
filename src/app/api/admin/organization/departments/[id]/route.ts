@@ -4,6 +4,8 @@
 
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { mapOrgDomainError } from "@/lib/orgApiErrors";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { OrganizationService } from "@/services/OrganizationService";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +31,9 @@ export const GET = withApiErrorHandling(
 /** PATCH /api/admin/organization/departments/[id] — aktualizuj departament */
 export const PATCH = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -51,7 +56,7 @@ export const PATCH = withApiErrorHandling(
           : null
         : undefined;
 
-    const updated = await OrganizationService.updateDepartment(deptId, {
+    const updated = await OrganizationService.updateDepartment(scoped.data.companyId, deptId, {
       name,
       parentId,
       managerId,
@@ -60,12 +65,15 @@ export const PATCH = withApiErrorHandling(
     if (!updated) return jsonError("not_found", 404);
     return jsonOk(updated);
   },
-  { defaultErrorCode: "save_error" }
+  { mapUnknownError: mapOrgDomainError, defaultErrorCode: "save_error" }
 );
 
 /** DELETE /api/admin/organization/departments/[id] — usuń departament */
 export const DELETE = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -73,7 +81,7 @@ export const DELETE = withApiErrorHandling(
     const deptId = parseInt(id, 10);
     if (Number.isNaN(deptId)) return jsonError("invalid_id", 400);
 
-    const deleted = await OrganizationService.deleteDepartment(deptId);
+    const deleted = await OrganizationService.deleteDepartment(scoped.data.companyId, deptId);
     if (!deleted) return jsonError("not_found", 404);
 
     return jsonOk({ success: true });

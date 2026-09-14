@@ -145,6 +145,7 @@ export const pl = {
     biometric_password_required: "Podaj aktualne hasło, aby włączyć biometrię.",
     invalid_payload: "Nieprawidłowe dane formularza.",
     invalid_supervisor: "Nieprawidłowy przełożony — wybierz aktywnego użytkownika z firmy.",
+    invalid_user: "Nieprawidłowy użytkownik — wybierz osobę z tej firmy.",
     invalid_team: "Nieprawidłowy zespół — wybierz zespół z wybranego departamentu.",
     material_not_found: "Nie znaleziono materiału w bazie firmy.",
     invalid_unit: "Nieprawidłowa jednostka miary.",

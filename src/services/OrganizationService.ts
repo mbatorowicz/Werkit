@@ -8,6 +8,14 @@ import { eq, and, inArray } from "drizzle-orm";
 import { buildHierarchyTree } from "@/lib/hierarchyTree";
 import type { DepartmentTreeNode, TeamWithMembers, TeamMemberWithUser } from "@/types/organization";
 
+const TEAM_MEMBER_ROLES = new Set(["member", "leader"]);
+
+function normalizeTeamMemberRole(role: string | undefined): "member" | "leader" {
+  const r = role ?? "member";
+  if (!TEAM_MEMBER_ROLES.has(r)) throw new Error("invalid_payload");
+  return r as "member" | "leader";
+}
+
 export class OrganizationService {
   /** SSOT: `teams.leaderId` — synchronizuje wpis `team_members` z `role='leader'`. */
   private static async syncTeamLeader(teamId: number, leaderId: number | null) {
@@ -50,6 +58,26 @@ export class OrganizationService {
       await db.update(teams).set({ leaderId: null }).where(eq(teams.id, teamId));
     }
   }
+
+  private static async assertDepartmentInCompany(companyId: number, departmentId: number) {
+    const dept = await this.getDepartment(companyId, departmentId);
+    if (!dept) throw new Error("invalid_parent");
+  }
+
+  private static async assertTeamInCompany(companyId: number, teamId: number) {
+    const team = await this.getTeam(companyId, teamId);
+    if (!team) throw new Error("invalid_team");
+  }
+
+  private static async assertUserInCompany(companyId: number, userId: number) {
+    const [row] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
+      .limit(1);
+    if (!row) throw new Error("invalid_user");
+  }
+
   // ==================== DEPARTAMENTY ====================
 
   /**
@@ -187,11 +215,11 @@ export class OrganizationService {
     const team = companyTeams.find((t) => t.id === teamId);
     if (!team) throw new Error("invalid_team");
 
-    await this.addTeamMember({ teamId, userId, role: "member" });
+    await this.addTeamMember(companyId, { teamId, userId, role: "member" });
   }
 
   /**
-   * Pobiera departament po ID.
+   * Pobiera departament po ID (tylko w obrębie firmy).
    */
   static async getDepartment(companyId: number, id: number) {
     const [dept] = await db
@@ -214,6 +242,13 @@ export class OrganizationService {
       managerId?: number | null;
     }
   ) {
+    if (data.parentId != null) {
+      await this.assertDepartmentInCompany(companyId, data.parentId);
+    }
+    if (data.managerId != null) {
+      await this.assertUserInCompany(companyId, data.managerId);
+    }
+
     const [inserted] = await db
       .insert(departments)
       .values({
@@ -231,6 +266,7 @@ export class OrganizationService {
    * Aktualizuje departament.
    */
   static async updateDepartment(
+    companyId: number,
     id: number,
     data: {
       name?: string;
@@ -238,6 +274,13 @@ export class OrganizationService {
       managerId?: number | null;
     }
   ) {
+    if (data.parentId != null) {
+      await this.assertDepartmentInCompany(companyId, data.parentId);
+    }
+    if (data.managerId != null) {
+      await this.assertUserInCompany(companyId, data.managerId);
+    }
+
     const [updated] = await db
       .update(departments)
       .set({
@@ -245,7 +288,7 @@ export class OrganizationService {
         ...(data.parentId !== undefined ? { parentId: data.parentId } : {}),
         ...(data.managerId !== undefined ? { managerId: data.managerId } : {}),
       })
-      .where(eq(departments.id, id))
+      .where(and(eq(departments.id, id), eq(departments.companyId, companyId)))
       .returning();
 
     return updated;
@@ -254,8 +297,11 @@ export class OrganizationService {
   /**
    * Usuwa departament (kaskadowo usuwa też zespoły i członków).
    */
-  static async deleteDepartment(id: number) {
-    const [deleted] = await db.delete(departments).where(eq(departments.id, id)).returning();
+  static async deleteDepartment(companyId: number, id: number) {
+    const [deleted] = await db
+      .delete(departments)
+      .where(and(eq(departments.id, id), eq(departments.companyId, companyId)))
+      .returning();
 
     return deleted;
   }
@@ -275,21 +321,28 @@ export class OrganizationService {
   }
 
   /**
-   * Pobiera zespoły dla danego departamentu.
+   * Pobiera zespoły dla danego departamentu (tylko gdy dział należy do firmy).
    */
-  static async getTeamsByDepartment(departmentId: number) {
+  static async getTeamsByDepartment(companyId: number, departmentId: number) {
+    const dept = await this.getDepartment(companyId, departmentId);
+    if (!dept) return [];
+
     return db
       .select()
       .from(teams)
-      .where(eq(teams.departmentId, departmentId))
+      .where(and(eq(teams.departmentId, departmentId), eq(teams.companyId, companyId)))
       .orderBy(teams.sortOrder, teams.name);
   }
 
   /**
-   * Pobiera zespół po ID.
+   * Pobiera zespół po ID (tylko w obrębie firmy).
    */
-  static async getTeam(id: number) {
-    const [team] = await db.select().from(teams).where(eq(teams.id, id)).limit(1);
+  static async getTeam(companyId: number, id: number) {
+    const [team] = await db
+      .select()
+      .from(teams)
+      .where(and(eq(teams.id, id), eq(teams.companyId, companyId)))
+      .limit(1);
 
     return team ?? null;
   }
@@ -305,6 +358,11 @@ export class OrganizationService {
       leaderId?: number | null;
     }
   ) {
+    await this.assertDepartmentInCompany(companyId, data.departmentId);
+    if (data.leaderId != null) {
+      await this.assertUserInCompany(companyId, data.leaderId);
+    }
+
     const [inserted] = await db
       .insert(teams)
       .values({
@@ -326,19 +384,24 @@ export class OrganizationService {
    * Aktualizuje zespół.
    */
   static async updateTeam(
+    companyId: number,
     id: number,
     data: {
       name?: string;
       leaderId?: number | null;
     }
   ) {
+    if (data.leaderId != null) {
+      await this.assertUserInCompany(companyId, data.leaderId);
+    }
+
     const [updated] = await db
       .update(teams)
       .set({
         ...(data.name !== undefined ? { name: data.name.trim() } : {}),
         ...(data.leaderId !== undefined ? { leaderId: data.leaderId } : {}),
       })
-      .where(eq(teams.id, id))
+      .where(and(eq(teams.id, id), eq(teams.companyId, companyId)))
       .returning();
 
     if (updated && data.leaderId !== undefined) {
@@ -351,8 +414,11 @@ export class OrganizationService {
   /**
    * Usuwa zespół (kaskadowo usuwa członków).
    */
-  static async deleteTeam(id: number) {
-    const [deleted] = await db.delete(teams).where(eq(teams.id, id)).returning();
+  static async deleteTeam(companyId: number, id: number) {
+    const [deleted] = await db
+      .delete(teams)
+      .where(and(eq(teams.id, id), eq(teams.companyId, companyId)))
+      .returning();
 
     return deleted;
   }
@@ -360,9 +426,15 @@ export class OrganizationService {
   // ==================== CZŁONKOWIE ZESPOŁU ====================
 
   /**
-   * Pobiera członków zespołu z danymi użytkownika.
+   * Pobiera członków zespołu z danymi użytkownika (tylko zespół własnej firmy).
    */
-  static async getTeamMembersWithUsers(teamId: number): Promise<TeamMemberWithUser[]> {
+  static async getTeamMembersWithUsers(
+    companyId: number,
+    teamId: number
+  ): Promise<TeamMemberWithUser[]> {
+    const team = await this.getTeam(companyId, teamId);
+    if (!team) return [];
+
     const rows = await db
       .select({
         id: teamMembers.id,
@@ -397,8 +469,14 @@ export class OrganizationService {
   /**
    * Dodaje użytkownika do zespołu.
    */
-  static async addTeamMember(data: { teamId: number; userId: number; role?: string }) {
-    const role = data.role ?? "member";
+  static async addTeamMember(
+    companyId: number,
+    data: { teamId: number; userId: number; role?: string }
+  ) {
+    await this.assertTeamInCompany(companyId, data.teamId);
+    await this.assertUserInCompany(companyId, data.userId);
+    const role = normalizeTeamMemberRole(data.role);
+
     const [inserted] = await db
       .insert(teamMembers)
       .values({
@@ -418,19 +496,34 @@ export class OrganizationService {
   /**
    * Aktualizuje rolę członka zespołu.
    */
-  static async updateTeamMember(id: number, data: { role?: string }) {
-    const [before] = await db.select().from(teamMembers).where(eq(teamMembers.id, id)).limit(1);
+  static async updateTeamMember(companyId: number, id: number, data: { role?: string }) {
+    const [before] = await db
+      .select({
+        id: teamMembers.id,
+        teamId: teamMembers.teamId,
+        userId: teamMembers.userId,
+        role: teamMembers.role,
+        joinedAt: teamMembers.joinedAt,
+      })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(and(eq(teamMembers.id, id), eq(teams.companyId, companyId)))
+      .limit(1);
+
+    if (!before) return undefined;
+
+    const role = data.role !== undefined ? normalizeTeamMemberRole(data.role) : undefined;
 
     const [updated] = await db
       .update(teamMembers)
       .set({
-        ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(role !== undefined ? { role } : {}),
       })
       .where(eq(teamMembers.id, id))
       .returning();
 
-    if (updated && data.role !== undefined && before) {
-      if (data.role === "leader") {
+    if (updated && role !== undefined) {
+      if (role === "leader") {
         await this.applyTeamLeaderFromMember(before.teamId, before.userId);
       } else if (before.role === "leader") {
         await this.clearTeamLeaderIfMatches(before.teamId, before.userId);
@@ -443,8 +536,25 @@ export class OrganizationService {
   /**
    * Usuwa członka z zespołu.
    */
-  static async removeTeamMember(id: number) {
-    const [deleted] = await db.delete(teamMembers).where(eq(teamMembers.id, id)).returning();
+  static async removeTeamMember(companyId: number, id: number) {
+    const [existing] = await db
+      .select({
+        id: teamMembers.id,
+        teamId: teamMembers.teamId,
+        userId: teamMembers.userId,
+        role: teamMembers.role,
+      })
+      .from(teamMembers)
+      .innerJoin(teams, eq(teamMembers.teamId, teams.id))
+      .where(and(eq(teamMembers.id, id), eq(teams.companyId, companyId)))
+      .limit(1);
+
+    if (!existing) return undefined;
+
+    const [deleted] = await db
+      .delete(teamMembers)
+      .where(eq(teamMembers.id, id))
+      .returning();
 
     if (deleted?.role === "leader") {
       await this.clearTeamLeaderIfMatches(deleted.teamId, deleted.userId);
@@ -454,9 +564,9 @@ export class OrganizationService {
   }
 
   /**
-   * Pobiera wszystkie zespoły, do których należy użytkownik.
+   * Pobiera zespoły użytkownika w obrębie firmy.
    */
-  static async getUserTeams(userId: number) {
+  static async getUserTeams(companyId: number, userId: number) {
     const rows = await db
       .select({
         team: teams,
@@ -465,7 +575,7 @@ export class OrganizationService {
       .from(teamMembers)
       .innerJoin(teams, eq(teamMembers.teamId, teams.id))
       .innerJoin(departments, eq(teams.departmentId, departments.id))
-      .where(eq(teamMembers.userId, userId));
+      .where(and(eq(teamMembers.userId, userId), eq(teams.companyId, companyId)));
 
     return rows;
   }

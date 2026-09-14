@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
+import { CategoryHierarchyError } from "@/services/dur/categoryValidation";
 import {
   parseMachineCategoryIds,
   parseMachineTextFields,
@@ -64,8 +65,11 @@ export const PUT = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      isMissingResourcesVehicleColumns(err) ? jsonError("migration_required", 503) : null,
+    mapUnknownError: (err) => {
+      if (isMissingResourcesVehicleColumns(err)) return jsonError("migration_required", 503);
+      if (err instanceof CategoryHierarchyError) return jsonError(err.code, 400);
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );

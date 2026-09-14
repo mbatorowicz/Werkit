@@ -306,14 +306,14 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 
 ### P-TENANT — izolacja multi-firm (2026-09)
 
-Audyt IDOR między firmami (moduł organizacji, FK grup maszyn). **SSOT faz:** [`plans/tenant-isolation-2026-09.md`](../plans/tenant-isolation-2026-09.md). Status: **otwarty**.
+Audyt IDOR między firmami (moduł organizacji, FK grup maszyn). **SSOT faz:** [`plans/tenant-isolation-2026-09.md`](../plans/tenant-isolation-2026-09.md). Status: **T0–T2 zamknięte; T3 otwarte**.
 
-| Faza | Temat |
-|------|--------|
-| T0 | `OrganizationService` + API org: zawsze `companyId`; `guardAdminMutation` |
-| T1 | `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id` |
-| T2 | Testy integracyjne dwóch firm (org + grupa maszyn) |
-| T3 | Wyrocznia loginu, martwy `resolveTenantCompanyId`, listing `resource_to_categories` |
+| Faza | Temat | Status |
+|------|--------|--------|
+| T0 | `OrganizationService` + API org: zawsze `companyId`; `guardAdminMutation` | Done |
+| T1 | `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id` | Done |
+| T2 | Testy integracyjne dwóch firm (org + grupa maszyn) | Done |
+| T3 | Wyrocznia loginu, martwy `resolveTenantCompanyId`, listing `resource_to_categories` | Otwarte |
 
 ---
 
