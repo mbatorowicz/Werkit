@@ -170,7 +170,10 @@ export const en: AppDictionary = {
     payload_too_large: "Too much data in a single request. Reduce the number of GPS points.",
     invalid_photo_data: "Invalid or too large photo. Allowed: JPEG, PNG, WebP (max 4 MB).",
     too_many_logs: "Too many device logs. Try again in a moment.",
+    too_many_geocode: "Too many address lookups. Try again in a moment.",
     note_too_long: "Note is too long (max 4000 characters).",
+    cannot_delete_self: "You cannot delete your own account.",
+    last_admin: "Cannot delete the last administrator in the company.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Estimated work time (hours)",

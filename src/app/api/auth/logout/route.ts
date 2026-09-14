@@ -1,7 +1,8 @@
 import { jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
+import { clearAuthTokenCookie, isHttpsRequest } from "@/lib/authCookie";
 
-export const POST = withApiErrorHandling(async () => {
+export const POST = withApiErrorHandling(async (req: Request) => {
   const response = jsonOk({ success: true });
-  response.cookies.delete("auth_token");
+  clearAuthTokenCookie(response, isHttpsRequest(req));
   return response;
 });

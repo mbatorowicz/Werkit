@@ -118,7 +118,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | done |
 | P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | done |
 | P-SEC-2 | Limity GPS / zdjęć / `device_logs` | done |
-| P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | open |
+| P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | done |
 
 ### D-02 — co zrobiono
 
@@ -296,6 +296,13 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 - Zdjęcia: 4 MiB zdekodowane; MIME jpeg/png/webp + magic bytes; 400 `invalid_photo_data`.
 - Logi: 30 INSERT / min / user — `DeviceLogRateLimitService`, klucz `logs:{userId}` w `login_attempts` (429 `too_many_logs`).
 - Notatki sesji: max 4000 znaków (`note_too_long`).
+
+#### P-SEC-3 — co zrobiono
+
+- `GET /api/geocode`: `requireCompanyScopedSession()` w handlerze (nie tylko Edge); 30 zapytań / min / firmę (`GeocodeRateLimitService`, klucz `geocode:{companyId}` w `login_attempts`, 429 `too_many_geocode`).
+- `deleteUser(companyId, userId, actorId)`: 409 `cannot_delete_self` / `last_admin`; i18n pl/en/de.
+- Logout / 401 / proxy: `clearAuthTokenCookie` (`src/lib/authCookie.ts`) z `Path=/`, `Max-Age=0` i tymi samymi `Secure`/`SameSite` co login (WebView).
+- CSP w `next.config.ts` (`buildContentSecurityPolicy`): Leaflet/CARTO, Nominatim, OSRM, Vercel Blob; `script-src 'unsafe-inline'` udokumentowany (Next.js hydration, bez nonce).
 
 ---
 

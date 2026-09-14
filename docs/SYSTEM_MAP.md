@@ -190,7 +190,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Body / opis | Response |
 |---|---|---|---|
 | `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_json\|missing_credentials`; **401 `invalid_credentials`** (brak usera, złe hasło, `users.isActive=false`, `companies.isActive=false` — **bez** `account_blocked` / `company_blocked`); 429 `too_many_attempts` (5 nieudanych / 15 min, tabela `login_attempts`); 503 `service_unavailable` (DB); 500 `server_error`. Przy nieistniejącym userze `comparePassword` ze stałym dummy hashem bcrypt (timing). Login **nie** zwraca `weak_password`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
-| `/api/auth/logout` | POST | brak | 200 + delete cookie |
+| `/api/auth/logout` | POST | brak | 200 + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` z tymi samymi `Secure`/`SameSite` co login (`src/lib/authCookie.ts`; WebView nie zostawia sesji) |
 
 ### 5.2. Worker
 
@@ -249,10 +249,10 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/users/[id]` | GET | Szczegóły użytkownika + pełny `orgProfile` (`getUserOrgProfile`) |
 | `/api/admin/users` | POST | Rejestracja konta + polityka hasła (`passwordPolicy`, min. 6, bez trywialnych PIN-ów) + `hashPassword`; 400 `weak_password`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); `23505 → user_exists`, `invalid_team` |
 | `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła; zmiana hasła → ta sama polityka, 400 `weak_password`); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment` |
-| `/api/admin/users/[id]` | DELETE | Usunięcie konta |
+| `/api/admin/users/[id]` | DELETE | Usunięcie konta; 409 `cannot_delete_self` (aktor = cel) / `last_admin` (ostatni `role=admin` w firmie) |
 | `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
 | `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
-| `/api/geocode?q=...` | GET | Proxy do Nominatim (OSM) — `User-Agent: WerkitERP/1.9` |
+| `/api/geocode?q=...` | GET | `requireCompanyScopedSession` + Nominatim (OSM) — `User-Agent: WerkitERP/1.9`; 30/min/firmę (`too_many_geocode`) |
 | `/api/admin/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu naprawy |
 | `/api/admin/work-orders/[id]/spare-parts` | POST `{partId, quantity?, unitPrice?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części do zlecenia (admin) |
 | `/api/admin/work-orders/[id]/spare-parts/[partId]` | PATCH `{quantity?, unitPrice?, notes?}` | `WorkOrderSparePartService.updatePartInOrder` — aktualizacja ilości/ceny/notatek |
@@ -323,6 +323,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `DeviceLogRateLimitService`
 - 30 INSERT / min / user na `POST /api/worker/logs`. Klucz `logs:{userId}` w tej samej tabeli `login_attempts` (S2; nie zaciemnia S1).
 
+### `GeocodeRateLimitService`
+- 30 GET / min / firmę na `GET /api/geocode`. Klucz `geocode:{companyId}` w `login_attempts` (S3). 429 `too_many_geocode`.
+
 ### `AdminUserService`
 - `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
 - `getUserById(userId)`, `getUserByUsername(usernameEmail)` — case-insensitive (`lower(...)`).
@@ -330,7 +333,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `userCanEditRoute(userId) → boolean` — flaga `can_edit_route` (worker edycja trasy).
 - `createUser(companyId, payload)`, `updateUser(companyId, userId, updates)`.
 - `verifyPasswordForUserId(userId, plainPassword) → boolean` (bcrypt/bcryptjs).
-- `deleteUser(userId)`.
+- `deleteUser(companyId, userId, actorId)` — 409 `cannot_delete_self` / `last_admin`; helper `deletionBlockedReason`.
 - Eksport: `type UserUpdatePayload = Partial<typeof users.$inferInsert>`.
 
 ### `WorkerOrderService`
@@ -770,13 +773,14 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 6. **JWT_SECRET** — brak zmiennej powoduje crash proxy (Edge middleware) przy każdym requeście. Upewnij się, że `.env.local` zawiera `JWT_SECRET`.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient chunkuje po **200** (`GPSManager.flushQueue`). Serwer: >200 → 400 `payload_too_large` (nic nie zapisuje); `lat/lng` poza bbox / Infinity odfiltrowane; timestamp poza −24 h … +5 min odfiltrowany.
-9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
+9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa. Kasowanie (`logout`, 401, proxy): `src/lib/authCookie.ts` — `Path=/`, `Max-Age=0`, te same `Secure`/`SameSite` co set (sam `cookies.delete` zostawia sesję w WebView).
 10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli `proxy` już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
-12. **`GET /api/geocode`** — `q` min. 3 znaki, **maks. 280** (anty-nadużycie wobec Nominatim); błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
+12. **`GET /api/geocode`** — wymaga żywej sesji firmowej (`requireCompanyScopedSession`, nie tylko `proxy.ts`); `q` min. 3 znaki, **maks. 280**; 30/min/firmę (429 `too_many_geocode`). Błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
 13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem; **30 INSERT / min / user** (429 `too_many_logs`, klucz `logs:{userId}` w `login_attempts`).
 14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI nie startuje przy każdym deployu web — po zmianach mobilnych bez `android/**` uruchom ręcznie workflow **Build Android App**.
 15. **Zdjęcia sesji** — `uploadPhotoBase64`: max 4 MiB zdekodowane; MIME `image/jpeg|png|webp` + magic bytes (bez SVG). 400 `invalid_photo_data`.
+16. **CSP** — `Content-Security-Policy` w `next.config.ts` (`src/lib/contentSecurityPolicy.ts`): kafelki CARTO, Nominatim, OSRM, markery Leaflet (GitHub/cdnjs), Vercel Blob. `script-src` ma `'unsafe-inline'` (Next.js hydration bez nonce; Leaflet w bundlu).
 
 ---
 

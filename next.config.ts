@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 import pkg from "./package.json";
+import { buildContentSecurityPolicy } from "./src/lib/contentSecurityPolicy";
 
 const isProd = process.env.NODE_ENV === "production";
+const isDev = !isProd;
 
 /** Nagłówki odpowiedzi HTTP — obrona przed sniffingiem / clickjackingiem; HSTS tylko na produkcji (HTTPS). */
 const securityHeaders: { key: string; value: string }[] = [
@@ -12,6 +14,10 @@ const securityHeaders: { key: string; value: string }[] = [
     key: "Permissions-Policy",
     value:
       "accelerometer=(), camera=(self), geolocation=(self), microphone=(), payment=(), usb=()",
+  },
+  {
+    key: "Content-Security-Policy",
+    value: buildContentSecurityPolicy(isDev),
   },
   ...(isProd
     ? [

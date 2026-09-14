@@ -170,7 +170,10 @@ export const pl = {
     payload_too_large: "Zbyt dużo danych w jednym żądaniu. Zmniejsz liczbę punktów GPS.",
     invalid_photo_data: "Nieprawidłowe lub zbyt duże zdjęcie. Dozwolone: JPEG, PNG, WebP (maks. 4 MB).",
     too_many_logs: "Zbyt wiele logów z urządzenia. Spróbuj ponownie za chwilę.",
+    too_many_geocode: "Zbyt wiele zapytań o adres. Spróbuj ponownie za chwilę.",
     note_too_long: "Notatka jest za długa (maks. 4000 znaków).",
+    cannot_delete_self: "Nie możesz usunąć własnego konta.",
+    last_admin: "Nie można usunąć ostatniego administratora w firmie.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Szacowany czas pracy (godz.)",

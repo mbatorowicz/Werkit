@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
+import { AUTH_TOKEN_COOKIE, clearAuthTokenCookie, isHttpsRequest } from "@/lib/authCookie";
 import {
   isAuthCookieClearLoginReason,
   isCompanyScopedRole,
@@ -109,14 +110,14 @@ async function handleLoginPage(
 ): Promise<NextResponse | null> {
   if (!route.isAuthPage) return null;
 
-  const loginToken = request.cookies.get("auth_token")?.value;
+  const loginToken = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
   const dropStaleAuth = isAuthCookieClearLoginReason(
     request.nextUrl.searchParams.get("reason")
   );
 
   if (!loginToken || dropStaleAuth) {
     const res = NextResponse.next();
-    if (dropStaleAuth) res.cookies.delete("auth_token");
+    if (dropStaleAuth) clearAuthTokenCookie(res, isHttpsRequest(request));
     return res;
   }
 
@@ -135,7 +136,7 @@ async function handleLoginPage(
     return NextResponse.redirect(new URL(loginRedirectForRole(role), request.url));
   } catch {
     const res = NextResponse.next();
-    res.cookies.delete("auth_token");
+    clearAuthTokenCookie(res, isHttpsRequest(request));
     return res;
   }
 }
@@ -276,7 +277,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // 4. AUTHENTICATION (Token Extraction)
-  const token = request.cookies.get("auth_token")?.value;
+  const token = request.cookies.get(AUTH_TOKEN_COOKIE)?.value;
   const handleUnauthorized = createUnauthorizedHandler(route.isApi, request);
 
   if (!token) return handleUnauthorized();
@@ -316,7 +317,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   } catch {
     const response = handleUnauthorized();
-    response.cookies.delete("auth_token");
+    clearAuthTokenCookie(response, isHttpsRequest(request));
     return response;
   }
 }

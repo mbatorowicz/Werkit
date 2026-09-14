@@ -1,7 +1,19 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { desc, eq, sql, and } from "drizzle-orm";
+import { count, desc, eq, sql, and } from "drizzle-orm";
 import { comparePassword } from "@/lib/passwordCrypto";
+
+/** SSOT reguł usuwania konta — testowalne bez DB. */
+export function deletionBlockedReason(params: {
+  actorId: number;
+  targetUserId: number;
+  targetRole: string | null | undefined;
+  adminCount: number;
+}): "cannot_delete_self" | "last_admin" | null {
+  if (params.targetUserId === params.actorId) return "cannot_delete_self";
+  if (params.targetRole === "admin" && params.adminCount <= 1) return "last_admin";
+  return null;
+}
 
 export class AdminUserService {
   static async getAllUsers(companyId: number) {
@@ -168,7 +180,29 @@ export class AdminUserService {
     return comparePassword(plainPassword, row[0].passwordHash);
   }
 
-  static async deleteUser(companyId: number, userId: number) {
+  static async countAdmins(companyId: number): Promise<number> {
+    const [row] = await db
+      .select({ n: count() })
+      .from(users)
+      .where(and(eq(users.companyId, companyId), eq(users.role, "admin")));
+    return Number(row?.n ?? 0);
+  }
+
+  static async deleteUser(companyId: number, userId: number, actorId: number) {
+    if (userId === actorId) {
+      throw new Error("cannot_delete_self");
+    }
+    const target = await this.getUserByIdForCompany(userId, companyId);
+    const adminCount = target?.role === "admin" ? await this.countAdmins(companyId) : 0;
+    const blocked = deletionBlockedReason({
+      actorId,
+      targetUserId: userId,
+      targetRole: target?.role,
+      adminCount,
+    });
+    if (blocked) {
+      throw new Error(blocked);
+    }
     await db.delete(users).where(and(eq(users.id, userId), eq(users.companyId, companyId)));
   }
 }

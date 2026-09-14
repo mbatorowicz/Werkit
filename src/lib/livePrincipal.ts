@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { jsonError } from "@/lib/apiRoute";
 import { getAuthSession, type JwtPayload } from "@/lib/auth";
+import { clearAuthTokenCookie } from "@/lib/authCookie";
 import { isSuperadminRole } from "@/lib/tenantRoles";
 import {
   AuthPrincipalService,
@@ -11,6 +12,7 @@ import {
 } from "@/services/AuthPrincipalService";
 
 export type { LiveCompanyPrincipal, LivePrincipal };
+export { clearAuthTokenCookie };
 
 /** JWT z rolą i firmą nadpisanymi z DB (źródło prawdy po `assertLivePrincipal`). */
 export function jwtFromLivePrincipal(principal: LivePrincipal): JwtPayload {
@@ -19,16 +21,6 @@ export function jwtFromLivePrincipal(principal: LivePrincipal): JwtPayload {
     role: principal.role,
     companyId: principal.companyId,
   };
-}
-
-export function clearAuthTokenCookie(response: NextResponse): void {
-  response.cookies.set({
-    name: "auth_token",
-    value: "",
-    httpOnly: true,
-    path: "/",
-    maxAge: 0,
-  });
 }
 
 export function unauthorizedAndClearAuthToken(): NextResponse {

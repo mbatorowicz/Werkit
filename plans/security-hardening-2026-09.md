@@ -1,6 +1,6 @@
 # Plan hartowania bezpieczeństwa — sesja, logowanie, limity
 
-> **Status:** w toku (2026-09-14). S0–S2 zrobione; S3 otwarte.  
+> **Status:** zamknięty (2026-09-14). S0–S3 zrobione.  
 > **Źródło:** audyt podatności (czat „Przegląd podatności Werkit”).  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-SEC-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1).
@@ -176,7 +176,7 @@ Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; przy m
 - [x] **S0** — `assertLivePrincipal` w API + layoutach; login honoruje `companies.isActive`
 - [x] **S1** — polityka 6+ znaków; jeden 401; dummy bcrypt; limit w Postgres
 - [x] **S2** — GPS cap + bbox; foto 4 MiB + allowlista; throttle logów
-- [ ] **S3** — geocode auth; deleteUser; logout cookie; CSP
+- [x] **S3** — geocode auth; deleteUser; logout cookie; CSP
 - [x] SYSTEM_MAP § auth (cookie, kody logowania, brak `account_blocked` na loginie)
 - [x] i18n: `weak_password`, hint PIN (`admin.workers.passwordHint`), `too_many_attempts`
-- [ ] i18n: błędy deleteUser (S3)
+- [x] i18n: błędy deleteUser (S3)

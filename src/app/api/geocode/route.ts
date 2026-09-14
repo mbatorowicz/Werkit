@@ -1,4 +1,6 @@
 import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
+import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { GeocodeRateLimitService } from "@/services/GeocodeRateLimitService";
 
 export const dynamic = "force-dynamic";
 
@@ -6,6 +8,9 @@ const USER_AGENT = "WerkitERP/1.9 (fleet logistics; admin geocode)";
 
 export const GET = withApiErrorHandling(
   async (request: Request) => {
+    const scoped = await requireCompanyScopedSession();
+    if (!scoped.ok) return scoped.response;
+
     const q = new URL(request.url).searchParams.get("q")?.trim();
     if (!q || q.length < 3) {
       return jsonError("short_query", 400);
@@ -13,6 +18,13 @@ export const GET = withApiErrorHandling(
     if (q.length > 280) {
       return jsonError("query_too_long", 400);
     }
+
+    const { companyId } = scoped.data;
+    if (await GeocodeRateLimitService.isLimited(companyId)) {
+      return jsonError("too_many_geocode", 429);
+    }
+
+    await GeocodeRateLimitService.record(companyId);
 
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;
     const res = await fetch(url, {

@@ -149,8 +149,19 @@ export const DELETE = withApiErrorHandling(
     if (!Number.isFinite(id) || id < 1) return jsonError("invalid_id", 400);
 
     const { AdminUserService } = await import("@/services/AdminUserService");
-    await AdminUserService.deleteUser(companyId, id);
+    await AdminUserService.deleteUser(companyId, id, scoped.data.session.userId);
     return jsonOk({ success: true });
   },
-  { defaultErrorCode: "delete_error" }
+  {
+    mapUnknownError: (err) => {
+      if (err instanceof Error && err.message === "cannot_delete_self") {
+        return jsonError("cannot_delete_self", 409);
+      }
+      if (err instanceof Error && err.message === "last_admin") {
+        return jsonError("last_admin", 409);
+      }
+      return null;
+    },
+    defaultErrorCode: "delete_error",
+  }
 );

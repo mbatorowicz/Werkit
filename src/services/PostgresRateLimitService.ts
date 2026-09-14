@@ -3,8 +3,8 @@ import { loginAttempts } from "@/db/schema";
 import { and, eq, sql, type SQL } from "drizzle-orm";
 
 /**
- * Ogólny licznik w tabeli `login_attempts` (S1 logowanie, S2 logi urządzenia).
- * Klucz jest dowolnym tekstem — prefiks `logs:` nie koliduje z `ip:login`.
+ * Ogólny licznik w tabeli `login_attempts` (S1 logowanie, S2 logi, S3 geocode).
+ * Klucz jest dowolnym tekstem — prefiksy `logs:` / `geocode:` nie kolidują z `ip:login`.
  * Okno wyłącznie przez `NOW()` w Postgresie (timestamp bez TZ ≠ Date JS).
  */
 export type RateLimitWindowSql = "1 minute" | "15 minutes";

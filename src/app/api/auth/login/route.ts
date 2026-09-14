@@ -4,6 +4,11 @@ import { SignJWT } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
 import { comparePassword, DUMMY_BCRYPT_HASH } from "@/lib/passwordCrypto";
 import {
+  AUTH_TOKEN_MAX_AGE_SECONDS,
+  authTokenCookieAttrs,
+  isHttpsRequest,
+} from "@/lib/authCookie";
+import {
   clearLoginRateLimit,
   isLoginRateLimited,
   recordLoginFailure,
@@ -47,10 +52,7 @@ async function authenticateLoginCredentials(usernameEmail: string, password: str
 
 export const POST = withApiErrorHandling(
   async (req: Request) => {
-    const url = new URL(req.url);
-    const forwardedProto = req.headers.get("x-forwarded-proto");
-    const isHttps = forwardedProto === "https" || url.protocol === "https:";
-    const cookieSameSite = (isHttps ? "none" : "lax") as "none" | "lax";
+    const isHttps = isHttpsRequest(req);
 
     // Na Vercel pierwszy hop XFF jest wiarygodny; poza Vercel nagłówek jest spoofowalny
     // (throttle, nie autoryzacja). Zob. komentarz w serverRateLimit.ts.
@@ -95,13 +97,9 @@ export const POST = withApiErrorHandling(
     });
 
     response.cookies.set({
-      name: "auth_token",
+      ...authTokenCookieAttrs(isHttps),
       value: jwt,
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: cookieSameSite,
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
+      maxAge: AUTH_TOKEN_MAX_AGE_SECONDS,
     });
 
     return response;

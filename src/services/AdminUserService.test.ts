@@ -33,6 +33,7 @@ vi.mock("drizzle-orm", () => ({
   eq: (_col: unknown, val: unknown) => val,
   desc: (col: unknown) => col,
   and: (...args: unknown[]) => args,
+  count: () => "count",
   sql: (strings: TemplateStringsArray, ...values: unknown[]) => ({ strings, values }),
 }));
 
@@ -295,13 +296,86 @@ describe("AdminUserService", () => {
     });
   });
 
+  describe("deletionBlockedReason", () => {
+    it("blokuje usunięcie siebie", async () => {
+      const { deletionBlockedReason } = await import("./AdminUserService");
+      expect(
+        deletionBlockedReason({
+          actorId: 5,
+          targetUserId: 5,
+          targetRole: "worker",
+          adminCount: 3,
+        })
+      ).toBe("cannot_delete_self");
+    });
+
+    it("blokuje ostatniego admina", async () => {
+      const { deletionBlockedReason } = await import("./AdminUserService");
+      expect(
+        deletionBlockedReason({
+          actorId: 1,
+          targetUserId: 5,
+          targetRole: "admin",
+          adminCount: 1,
+        })
+      ).toBe("last_admin");
+    });
+
+    it("pozwala usunąć workera i nie-ostatniego admina", async () => {
+      const { deletionBlockedReason } = await import("./AdminUserService");
+      expect(
+        deletionBlockedReason({
+          actorId: 1,
+          targetUserId: 5,
+          targetRole: "worker",
+          adminCount: 1,
+        })
+      ).toBeNull();
+      expect(
+        deletionBlockedReason({
+          actorId: 1,
+          targetUserId: 5,
+          targetRole: "admin",
+          adminCount: 2,
+        })
+      ).toBeNull();
+    });
+  });
+
   describe("deleteUser", () => {
-    it("usuwa użytkownika w obrębie firmy", async () => {
+    it("odrzuca usunięcie siebie bez DELETE", async () => {
+      const { AdminUserService } = await import("./AdminUserService");
+      await expect(AdminUserService.deleteUser(1, 5, 5)).rejects.toThrow("cannot_delete_self");
+      expect(deleteMock).not.toHaveBeenCalled();
+      expect(selectMock).not.toHaveBeenCalled();
+    });
+
+    it("odrzuca usunięcie ostatniego admina", async () => {
+      const limit = vi.fn().mockResolvedValue([{ id: 5, role: "admin", companyId: 1 }]);
+      const whereUser = vi.fn().mockReturnValue({ limit });
+      const fromUser = vi.fn().mockReturnValue({ where: whereUser });
+
+      const whereCount = vi.fn().mockResolvedValue([{ n: 1 }]);
+      const fromCount = vi.fn().mockReturnValue({ where: whereCount });
+
+      selectMock.mockReturnValueOnce({ from: fromUser }).mockReturnValueOnce({ from: fromCount });
+
+      const { AdminUserService } = await import("./AdminUserService");
+      await expect(AdminUserService.deleteUser(1, 5, 1)).rejects.toThrow("last_admin");
+      expect(deleteMock).not.toHaveBeenCalled();
+    });
+
+    it("usuwa workera w obrębie firmy", async () => {
+      const limit = vi.fn().mockResolvedValue([{ id: 5, role: "worker", companyId: 1 }]);
+      const whereUser = vi.fn().mockReturnValue({ limit });
+      const fromUser = vi.fn().mockReturnValue({ where: whereUser });
+      selectMock.mockReturnValue({ from: fromUser });
+
       const where = vi.fn().mockResolvedValue(undefined);
       deleteMock.mockReturnValue({ where });
 
       const { AdminUserService } = await import("./AdminUserService");
-      await AdminUserService.deleteUser(1, 5);
+      await AdminUserService.deleteUser(1, 5, 1);
 
       expect(deleteMock).toHaveBeenCalledTimes(1);
     });

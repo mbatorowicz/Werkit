@@ -718,8 +718,9 @@ export const teamMembers = pgTable("team_members", {
 });
 
 /**
- * Próby logowania (S1) i throttle logów urządzenia (S2, klucz `logs:{userId}`).
- * Limit logowania 5/15 min; logi 30/min/user. Brak FK.
+ * Próby logowania (S1), throttle logów urządzenia (S2, klucz `logs:{userId}`)
+ * i geocode (S3, klucz `geocode:{companyId}`).
+ * Limit logowania 5/15 min; logi 30/min/user; geocode 30/min/firmę. Brak FK.
  * `key` logowania = pierwszy hop X-Forwarded-For + ":" + znormalizowany login.
  */
 export const loginAttempts = pgTable("login_attempts", {
