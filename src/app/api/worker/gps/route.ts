@@ -34,10 +34,12 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true, count: savedCount });
   },
   {
-    mapUnknownError: (err) =>
-      err instanceof Error && err.message === "no_active_session"
-        ? jsonError("no_active_session", 400)
-        : null,
+    mapUnknownError: (err) => {
+      if (!(err instanceof Error)) return null;
+      if (err.message === "no_active_session") return jsonError("no_active_session", 400);
+      if (err.message === "payload_too_large") return jsonError("payload_too_large", 400);
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );

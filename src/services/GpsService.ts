@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { workSessions, gpsLogs } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { Coord } from "@/types/worker";
+import { assertGpsPayloadSize, normalizeGpsPoints } from "@/lib/gpsPayloadLimits";
 
 export type GpsPoint = Coord & { timestamp?: string };
 
@@ -32,7 +33,13 @@ export class GpsService {
     }));
   }
 
-  static async saveGpsLogs(userId: number, companyId: number, points: GpsPoint[]) {
+  static async saveGpsLogs(
+    userId: number,
+    companyId: number,
+    points: GpsPoint[],
+    now: Date = new Date()
+  ) {
+    assertGpsPayloadSize(points);
     if (points.length === 0) return 0;
 
     const activeSessions = await db
@@ -51,14 +58,12 @@ export class GpsService {
       throw new Error("no_active_session");
     }
 
-    const valuesToInsert = points
-      .filter((p) => typeof p.lat === "number" && typeof p.lng === "number")
-      .map((p) => ({
-        workSessionId: activeSessions[0].id,
-        latitude: p.lat.toString(),
-        longitude: p.lng.toString(),
-        timestamp: p.timestamp ? new Date(p.timestamp) : new Date(),
-      }));
+    const valuesToInsert = normalizeGpsPoints(points, now).map((p) => ({
+      workSessionId: activeSessions[0].id,
+      latitude: p.lat.toString(),
+      longitude: p.lng.toString(),
+      timestamp: p.timestamp,
+    }));
 
     if (valuesToInsert.length > 0) {
       await db.insert(gpsLogs).values(valuesToInsert);

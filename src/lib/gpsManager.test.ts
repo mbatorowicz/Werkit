@@ -51,4 +51,23 @@ describe("GPSManager.flushQueue", () => {
     const gpsPosts = fetchSpy.mock.calls.filter((call) => call[0] === "/api/worker/gps");
     expect(gpsPosts).toHaveLength(1);
   });
+
+  it("wysyła co najwyżej 200 punktów w jednym POST", async () => {
+    const many: GPSQueueItem[] = Array.from({ length: 201 }, (_, i) => ({
+      lat: 52.2,
+      lng: 21.0,
+      timestamp: new Date(Date.UTC(2026, 0, 1, 0, 0, 0, i)).toISOString(),
+    }));
+    vi.spyOn(GPSManager, "getQueue").mockResolvedValue(many);
+    const fetchSpy = vi.fn().mockResolvedValue(jsonResponse(200, { success: true, count: 200 }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await GPSManager.flushQueue();
+
+    const gpsPosts = fetchSpy.mock.calls.filter((call) => call[0] === "/api/worker/gps");
+    expect(gpsPosts).toHaveLength(1);
+    const init = gpsPosts[0][1] as RequestInit;
+    const body = JSON.parse(String(init.body)) as GPSQueueItem[];
+    expect(body).toHaveLength(200);
+  });
 });

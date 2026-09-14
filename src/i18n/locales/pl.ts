@@ -167,6 +167,10 @@ export const pl = {
     invalid_parent: "Nieprawidłowy rodzic (cykl lub nieistniejący wpis).",
     feature_disabled:
       "Ta funkcja jest wyłączona dla Twojej organizacji. Skontaktuj się z administratorem.",
+    payload_too_large: "Zbyt dużo danych w jednym żądaniu. Zmniejsz liczbę punktów GPS.",
+    invalid_photo_data: "Nieprawidłowe lub zbyt duże zdjęcie. Dozwolone: JPEG, PNG, WebP (maks. 4 MB).",
+    too_many_logs: "Zbyt wiele logów z urządzenia. Spróbuj ponownie za chwilę.",
+    note_too_long: "Notatka jest za długa (maks. 4000 znaków).",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Szacowany czas pracy (godz.)",

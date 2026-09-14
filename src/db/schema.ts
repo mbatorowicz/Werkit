@@ -718,8 +718,9 @@ export const teamMembers = pgTable("team_members", {
 });
 
 /**
- * Próby logowania (S1) — limit 5/15 min współdzielony między instancjami Vercel.
- * `key` = pierwszy hop X-Forwarded-For + ":" + znormalizowany login.
+ * Próby logowania (S1) i throttle logów urządzenia (S2, klucz `logs:{userId}`).
+ * Limit logowania 5/15 min; logi 30/min/user. Brak FK.
+ * `key` logowania = pierwszy hop X-Forwarded-For + ":" + znormalizowany login.
  */
 export const loginAttempts = pgTable("login_attempts", {
   key: text("key").primaryKey(),

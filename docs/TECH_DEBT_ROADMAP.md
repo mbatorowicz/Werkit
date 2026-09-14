@@ -117,7 +117,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | done |
 | P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | done |
 | P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | done |
-| P-SEC-2 | Limity GPS / zdjęć / `device_logs` | open |
+| P-SEC-2 | Limity GPS / zdjęć / `device_logs` | done |
 | P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | open |
 
 ### D-02 — co zrobiono
@@ -139,7 +139,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 ### D-06 — co zrobiono
 
 - [`AdminSessionService.test.ts`](../src/services/AdminSessionService.test.ts): 8 testów pokrywających 3 metody (`getSessionDetails`, `forceCompleteSession`, `deleteArchivedSession`) — w tym przypadki brzegowe (sesja nie istnieje, zły status, aktywna sesja przy usuwaniu).
-- [`GpsService.test.ts`](../src/services/GpsService.test.ts): 6 testów pokrywających 2 metody (`getActiveSessionGpsLogs`, `saveGpsLogs`) — w tym pusta tablica, brak aktywnej sesji, filtrowanie nieprawidłowych punktów.
+- [`GpsService.test.ts`](../src/services/GpsService.test.ts): testy `getActiveSessionGpsLogs` / `saveGpsLogs` — pusta tablica, brak aktywnej sesji, filtrowanie nieprawidłowych punktów, cap 201 → `payload_too_large`, bbox `lat: 999`.
 - [`SystemLogService.test.ts`](../src/services/SystemLogService.test.ts): 6 testów pokrywających 2 metody (`getRecentLogs`, `insertLog`) — w tym domyślne wartości, przycinanie długich stringów, pusty wynik.
 - Łączna liczba testów: **118** (wzrost z 98).
 
@@ -289,6 +289,13 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 - Login: zawsze **401 `invalid_credentials`** (brak usera, złe hasło, nieaktywny user/firma). Dummy bcrypt przy ghost userze. 429 `too_many_attempts` bez zmian.
 - [`LoginRateLimitService`](../src/services/LoginRateLimitService.ts) + migracja **0033** `login_attempts`. `serverRateLimit.ts` = cienki wrapper (XFF poza Vercel spoofowalny).
 - UI: `UserFormFields` `minLength={6}`, placeholder bez `1234`, hint `admin.workers.passwordHint` (formularz ludzi); analogicznie platform create/add-admin.
+
+#### P-SEC-2 — co zrobiono
+
+- GPS: max **200** punktów/request (`payload_too_large`); bbox + `Number.isFinite`; timestamp −24 h … +5 min. Worker `GPSManager.flushQueue` chunkuje po 200.
+- Zdjęcia: 4 MiB zdekodowane; MIME jpeg/png/webp + magic bytes; 400 `invalid_photo_data`.
+- Logi: 30 INSERT / min / user — `DeviceLogRateLimitService`, klucz `logs:{userId}` w `login_attempts` (429 `too_many_logs`).
+- Notatki sesji: max 4000 znaków (`note_too_long`).
 
 ---
 

@@ -24,10 +24,12 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) =>
-      err instanceof Error && err.message === "no_active_session"
-        ? jsonError("no_active_session", 400)
-        : null,
+    mapUnknownError: (err) => {
+      if (!(err instanceof Error)) return null;
+      if (err.message === "no_active_session") return jsonError("no_active_session", 400);
+      if (err.message === "note_too_long") return jsonError("note_too_long", 400);
+      return null;
+    },
     defaultErrorCode: "save_error",
   }
 );
@@ -52,10 +54,10 @@ export const PUT = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
-      if (err instanceof Error && err.message === "no_active_session")
-        return jsonError("no_active_session", 400);
-      if (err instanceof Error && err.message === "unauthorized_note")
-        return jsonError("unauthorized_note", 404);
+      if (!(err instanceof Error)) return null;
+      if (err.message === "no_active_session") return jsonError("no_active_session", 400);
+      if (err.message === "note_too_long") return jsonError("note_too_long", 400);
+      if (err.message === "unauthorized_note") return jsonError("unauthorized_note", 404);
       return null;
     },
     defaultErrorCode: "save_error",

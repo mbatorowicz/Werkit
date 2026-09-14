@@ -80,7 +80,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `departments` | `name` (per `company_id`) | **`company_id`**, `name`, **`parent_id?`**, **`manager_id?`** (kierownik działu → `users`), `sort_order` | `company_id → companies.id` (cascade); `parent_id` self-ref (set null); `manager_id → users.id` (set null). Migracja **0021**. |
 | `teams` | `name` (per departament) | **`company_id`**, **`department_id`**, `name`, **`leader_id?`** (lider → `users`), `sort_order` | `department_id → departments.id` (cascade); `leader_id → users.id` (set null). |
 | `team_members` | PK `id` | **`team_id`**, **`user_id`**, **`role`** ∈ `leader\|member`, `joined_at` | `team_id → teams.id` (cascade); `user_id → users.id` (cascade). **SSOT lidera:** `teams.leader_id` synchronizowany w `OrganizationService` z wpisem `role='leader'`. |
-| `login_attempts` | PK `key` (text) | `count`, `reset_at` | Brak FK. Rate limit logowania 5/15 min (S1). `key` = pierwszy hop `X-Forwarded-For` + `:` + znormalizowany login. Migracja **0033**. |
+| `login_attempts` | PK `key` (text) | `count`, `reset_at` | Brak FK. Rate limit logowania 5/15 min (S1, `ip:login`) **oraz** throttle `device_logs` 30/min/user (S2, klucz `logs:{userId}`). Migracja **0033**. |
 
 ### 3.1. Drizzle relations
 
@@ -204,13 +204,13 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/worker/session` | POST `{resourceId, categoryId, …}` | Wizard legacy — `createWizardSession` (nadal dostępne; **nowy wizard** tworzy `POST work-orders` + `accept`) |
 | `/api/worker/session` | PUT `{latitude?, longitude?}` | `endActiveSession` — ustawia `COMPLETED` + `end_time` + bookend GPS |
 | `/api/worker/session/cancel` | POST | `cancelActiveSession` — przywraca powiązane `workOrder.status='PENDING'`, kasuje sesję |
-| `/api/worker/session/notes` | POST `{note, location?:{lat,lng}}` | `addNote` |
-| `/api/worker/session/notes` | PUT `{noteId, note}` | `updateNote` (z weryfikacją że nota należy do aktywnej sesji usera) |
-| `/api/worker/session/photos` | POST `{photoUrl, location?}` | `addPhoto` (`photo_type='AD_HOC'`) |
+| `/api/worker/session/notes` | POST `{note, location?:{lat,lng}}` | `addNote` — max 4000 znaków, inaczej 400 `note_too_long` |
+| `/api/worker/session/notes` | PUT `{noteId, note}` | `updateNote` (nota musi należeć do aktywnej sesji usera); ten sam max 4000 |
+| `/api/worker/session/photos` | POST `{photoUrl, location?}` | `uploadAndAddPhoto` — data URL; 400 `invalid_photo_data` (SVG, >4 MiB, zły MIME); `photo_type='AD_HOC'` |
 | `/api/worker/gps` | GET | `GpsService.getActiveSessionGpsLogs(userId)` — logi po `timestamp` |
-| `/api/worker/gps` | POST `Coord \| Coord[]` | `GpsService.saveGpsLogs` — przyjmuje pojedynczy punkt **lub tablicę** (offline sync z `GPSManager.flushQueue`) |
+| `/api/worker/gps` | POST `Coord \| Coord[]` | `GpsService.saveGpsLogs` — max **200** punktów (400 `payload_too_large`, nic nie zapisuje); bbox lat/lng + skończone liczby; timestamp w oknie −24 h … +5 min (poza oknem odfiltrowane). Klient (`GPSManager.flushQueue`) chunkuje po 200. |
 | `/api/worker/profile` | POST `{notificationsEnabled?:bool, biometricLoginEnabled?:bool, password?:string}` | Notyfikacje + włączenie biometrii (wymaga roli `worker` + weryfikacji hasła `bcrypt.compare`) |
-| `/api/worker/logs` | POST `{level, message, metadata?}` | `SystemLogService.insertLog` — używane przez `sendRemoteLog` (z `keepalive:true`) |
+| `/api/worker/logs` | POST `{level, message, metadata?}` | `SystemLogService.insertLog` — `sendRemoteLog` (`keepalive:true`); 429 `too_many_logs` przy >30 INSERT/min/user (`login_attempts` klucz `logs:{userId}`) |
 | `/api/worker/customer-locations/[id]/route` | PUT `{waypoints}` | `CustomerLocationService.setRouteWaypoints` — wymaga `AdminUserService.userCanEditRoute` |
 | `/api/worker/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu (widok pracownika) |
 | `/api/worker/work-orders/[id]/spare-parts` | POST `{partId, quantity?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części (wydanie z magazynu przez pracownika w trakcie naprawy) |
@@ -318,7 +318,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - Helpery: `src/lib/livePrincipal.ts` (`assertLivePrincipal`, `requireLivePrincipalOr401`, layout `requireLiveCompanyPrincipalOrRedirect` / `requireLiveSuperadminOrRedirect`).
 
 ### `LoginRateLimitService`
-- `isLimited(key)` / `recordFailure(key)` / `clear(key)` — tabela `login_attempts`. 5 nieudanych / 15 min; sukces logowania kasuje wiersz. Cienki wrapper: `src/lib/serverRateLimit.ts` (komentarz: XFF poza Vercel jest spoofowalny).
+- `isLimited(key)` / `recordFailure(key)` / `clear(key)` — tabela `login_attempts`. 5 nieudanych / 15 min; sukces logowania kasuje wiersz. Cienki wrapper: `src/lib/serverRateLimit.ts` (komentarz: XFF poza Vercel jest spoofowalny). Implementacja: `PostgresRateLimitService`.
+
+### `DeviceLogRateLimitService`
+- 30 INSERT / min / user na `POST /api/worker/logs`. Klucz `logs:{userId}` w tej samej tabeli `login_attempts` (S2; nie zaciemnia S1).
 
 ### `AdminUserService`
 - `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
@@ -374,7 +377,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `GpsService`
 - `getActiveSessionGpsLogs(userId)` → `Coord[]`.
-- `saveGpsLogs(userId, points)` — odrzuca punkty bez liczbowych `lat/lng`. Rzuca `no_active_session`.
+- `saveGpsLogs(userId, points)` — max 200 punktów (inaczej `payload_too_large`); odrzuca punkty bez skończonych `lat/lng` w bbox; timestamp poza −24 h … +5 min odfiltrowany. Rzuca `no_active_session`.
+- SSOT limitów: `src/lib/gpsPayloadLimits.ts`.
 
 ### `SystemLogService`
 - `getRecentLogs(companyId, limit=500)` z JOIN users (`workerName`). Mapuje `createdAt` na ISO string.
@@ -765,13 +769,14 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 5. **Konflikty harmonogramu zleceń** — logika w **`ScheduleConflictService`** + **`src/lib/scheduleConflict.ts`**; UI współdzielone w `components/work-orders/`; nie dodawaj ponownie zapytań Drizzle do `src/lib/` dla tego case’u.
 6. **JWT_SECRET** — brak zmiennej powoduje crash proxy (Edge middleware) przy każdym requeście. Upewnij się, że `.env.local` zawiera `JWT_SECRET`.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
-8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient zawsze wysyła tablicę (zob. `GPSManager.flushQueue`), ale serwer toleruje też pojedynczy.
+8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient chunkuje po **200** (`GPSManager.flushQueue`). Serwer: >200 → 400 `payload_too_large` (nic nie zapisuje); `lat/lng` poza bbox / Infinity odfiltrowane; timestamp poza −24 h … +5 min odfiltrowany.
 9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa.
 10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli `proxy` już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 12. **`GET /api/geocode`** — `q` min. 3 znaki, **maks. 280** (anty-nadużycie wobec Nominatim); błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
-13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem (stabilność + rozmiar wiersza w `device_logs`).
+13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem; **30 INSERT / min / user** (429 `too_many_logs`, klucz `logs:{userId}` w `login_attempts`).
 14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI nie startuje przy każdym deployu web — po zmianach mobilnych bez `android/**` uruchom ręcznie workflow **Build Android App**.
+15. **Zdjęcia sesji** — `uploadPhotoBase64`: max 4 MiB zdekodowane; MIME `image/jpeg|png|webp` + magic bytes (bez SVG). 400 `invalid_photo_data`.
 
 ---
 

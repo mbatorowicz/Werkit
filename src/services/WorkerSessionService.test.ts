@@ -429,6 +429,14 @@ describe("WorkerSessionService", () => {
       expect(insertMock).toHaveBeenCalledTimes(1);
       expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({ note: "Test note" }));
     });
+
+    it("rzuca note_too_long gdy treść > 4000 znaków", async () => {
+      const { WorkerSessionService } = await import("./WorkerSessionService");
+      await expect(WorkerSessionService.addNote(1, 1, "x".repeat(4001))).rejects.toThrow(
+        "note_too_long"
+      );
+      expect(selectMock).not.toHaveBeenCalled();
+    });
   });
 
   describe("addPhoto", () => {

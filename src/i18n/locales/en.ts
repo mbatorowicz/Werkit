@@ -167,6 +167,10 @@ export const en: AppDictionary = {
     parent_must_be_group: "Parent must be an entry marked as a group.",
     invalid_parent: "Invalid parent (cycle or missing entry).",
     feature_disabled: "This feature is disabled for your organization. Contact your administrator.",
+    payload_too_large: "Too much data in a single request. Reduce the number of GPS points.",
+    invalid_photo_data: "Invalid or too large photo. Allowed: JPEG, PNG, WebP (max 4 MB).",
+    too_many_logs: "Too many device logs. Try again in a moment.",
+    note_too_long: "Note is too long (max 4000 characters).",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Estimated work time (hours)",

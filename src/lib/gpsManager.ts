@@ -1,6 +1,7 @@
 import type { Coord } from "@/types/worker";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { readGpsFlushErrorCode, shouldAbandonGpsQueue } from "@/lib/gpsFlushPolicy";
+import { GPS_MAX_POINTS_PER_REQUEST } from "@/lib/gpsPayloadLimits";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 
 export type GPSQueueItem = Coord & { timestamp: string };
@@ -138,7 +139,8 @@ export class GPSManager {
     if (queue.length === 0) return;
 
     this.isFlushing = true;
-    const sentTimestamps = new Set(queue.map((q) => q.timestamp));
+    const batch = queue.slice(0, GPS_MAX_POINTS_PER_REQUEST);
+    const sentTimestamps = new Set(batch.map((q) => q.timestamp));
     let retry = true;
 
     try {
@@ -148,7 +150,7 @@ export class GPSManager {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(queue),
+          body: JSON.stringify(batch),
           keepalive: true,
         },
         { category: "gps", throttleKey: "gps_batch_post", throttleMs: 60_000 }

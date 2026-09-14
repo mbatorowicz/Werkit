@@ -96,6 +96,7 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `AdminUserService` | Pracownicy / konta |
 | `AuthPrincipalService` | Żywy principal: user + `companies.isActive`, rola/firma z DB (nie z JWT) |
 | `LoginRateLimitService` | Limit logowań 5/15 min w tabeli `login_attempts` (Postgres, nie RAM) |
+| `DeviceLogRateLimitService` | Throttle `device_logs` 30/min/user (`logs:{userId}` w `login_attempts`) |
 | `DictionaryService` | Kategorie, maszyny, materiały, klienci — słowniki |
 | `AdminReportService` | Raporty |
 | `SystemLogService` | Agregacja `device_logs` |

@@ -137,8 +137,36 @@ describe("GpsService", () => {
         { lat: 52.2298, lng: undefined as unknown as number },
       ]);
 
-      // typeof undefined === 'undefined' → filtered out; typeof NaN === 'number' → passes
       expect(count).toBe(1);
+    });
+
+    it("201 punktów → payload_too_large bez zapisu", async () => {
+      const { GpsService } = await import("@/services/GpsService");
+      const points = Array.from({ length: 201 }, () => ({ lat: 52.2, lng: 21.0 }));
+      await expect(GpsService.saveGpsLogs(1, 1, points)).rejects.toThrow("payload_too_large");
+      expect(selectMock).not.toHaveBeenCalled();
+      expect(insertMock).not.toHaveBeenCalled();
+    });
+
+    it("odrzuca lat: 999 i nie wstawia go do DB", async () => {
+      selectMock.mockReturnValueOnce({
+        from: () => ({
+          where: () => ({ limit: () => Promise.resolve([{ id: 10 }]) }),
+        }),
+      });
+      const valuesMock = vi.fn().mockResolvedValue(undefined);
+      insertMock.mockReturnValue({ values: valuesMock });
+
+      const { GpsService } = await import("@/services/GpsService");
+      const count = await GpsService.saveGpsLogs(1, 1, [
+        { lat: 52.2297, lng: 21.0122 },
+        { lat: 999, lng: 21 },
+      ]);
+
+      expect(count).toBe(1);
+      expect(valuesMock).toHaveBeenCalledWith([
+        expect.objectContaining({ latitude: "52.2297", longitude: "21.0122" }),
+      ]);
     });
   });
 });

@@ -15,6 +15,10 @@
  */
 
 import { put, del, list, issueSignedToken, presignUrl } from "@vercel/blob";
+import {
+  assertValidatedPhotoBytes,
+  parseAndValidatePhotoDataUrl,
+} from "@/lib/photoPayloadLimits";
 
 const BLOB_PREFIX = "werkit-photos";
 
@@ -97,22 +101,10 @@ export async function uploadPhotoBase64(
   sessionId: number,
   photoType: string
 ): Promise<PhotoUploadResult> {
-  // Konwersja data URL na Blob (kompatybilne z Edge + Node.js)
-  const matches = base64DataUrl.match(/^data:(image\/\w+);base64,(.+)$/);
-  if (!matches || !matches[2]) {
-    throw new Error("invalid_photo_data");
-  }
-
-  const mimeType = matches[1];
-  const ext = mimeType.split("/")[1] || "jpg";
-
-  // Dekoduj base64 do Blob — nie używa Buffer, działa w Edge Runtime
-  const binaryStr = atob(matches[2]);
-  const bytes = new Uint8Array(binaryStr.length);
-  for (let i = 0; i < binaryStr.length; i++) {
-    bytes[i] = binaryStr.charCodeAt(i);
-  }
-  const fileBlob = new Blob([bytes], { type: mimeType });
+  const { mimeType, bytes, ext } = parseAndValidatePhotoDataUrl(base64DataUrl);
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  const fileBlob = new Blob([copy], { type: mimeType });
 
   const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
 
@@ -136,11 +128,12 @@ export async function uploadPhotoFile(
   sessionId: number,
   photoType: string
 ): Promise<PhotoUploadResult> {
-  const ext = file.type.split("/")[1] || "jpg";
+  const buffer = new Uint8Array(await file.arrayBuffer());
+  const { mimeType, ext } = assertValidatedPhotoBytes(file.type || "", buffer);
   const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
 
   const blob = await put(filename, file, {
-    contentType: file.type,
+    contentType: mimeType,
     access: "private",
     addRandomSuffix: true,
   });

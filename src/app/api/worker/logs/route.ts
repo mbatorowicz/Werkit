@@ -1,5 +1,6 @@
-import { jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
+import { DeviceLogRateLimitService } from "@/services/DeviceLogRateLimitService";
 import type { WerkitServerTelemetry } from "@/types/deviceTelemetry";
 
 function attachServerTelemetry(
@@ -33,6 +34,10 @@ export const POST = withApiErrorHandling(
     if (!ctx.ok) return ctx.response;
     const { userId, companyId } = ctx;
 
+    if (await DeviceLogRateLimitService.isLimited(userId)) {
+      return jsonError("too_many_logs", 429);
+    }
+
     const body = await parseJsonBody(req);
     const rawLevel = typeof body.level === "string" ? body.level.trim().toUpperCase() : "INFO";
     const allowed = new Set(["INFO", "WARN", "ERROR", "DEBUG"]);
@@ -61,6 +66,7 @@ export const POST = withApiErrorHandling(
 
     const { SystemLogService } = await import("@/services/SystemLogService");
     await SystemLogService.insertLog(companyId, userId, level, message, metadata);
+    await DeviceLogRateLimitService.record(userId);
 
     return jsonOk({ success: true });
   },

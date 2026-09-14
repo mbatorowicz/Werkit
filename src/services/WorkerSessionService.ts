@@ -20,6 +20,7 @@ import { ScheduleConflictService } from "@/services/ScheduleConflictService";
 import { pickWorkerUserFlags } from "@/lib/workerUserPermissions";
 import { parseOrderBody } from "@/lib/parseRouteParams";
 import { refreshPhotoUrls } from "@/lib/photoUpload";
+import { assertSessionNoteLength } from "@/lib/sessionNoteLimits";
 import {
   assertResourceBelongsToCompany,
   assertCustomerBelongsToCompany,
@@ -327,6 +328,7 @@ export class WorkerSessionService {
     lat?: string | null,
     lng?: string | null
   ) {
+    assertSessionNoteLength(note);
     const existing = await db
       .select()
       .from(workSessions)
@@ -343,6 +345,7 @@ export class WorkerSessionService {
   }
 
   static async updateNote(userId: number, companyId: number, noteId: number, note: string) {
+    assertSessionNoteLength(note);
     const existing = await db
       .select()
       .from(workSessions)

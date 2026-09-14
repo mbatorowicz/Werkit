@@ -43,6 +43,9 @@ export const POST = withApiErrorHandling(async (req: Request) => {
     if (message === "no_active_session") {
       return jsonError("no_active_session", 400);
     }
+    if (message === "invalid_photo_data") {
+      return jsonError("invalid_photo_data", 400);
+    }
     console.error("[photoUpload]", message, err instanceof Error ? err.stack : "");
     return jsonError("photo_upload_failed", 500);
   }

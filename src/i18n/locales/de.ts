@@ -173,6 +173,10 @@ export const de: AppDictionary = {
     invalid_parent: "Ungültiges übergeordnetes Element (Zyklus oder fehlender Eintrag).",
     feature_disabled:
       "Diese Funktion ist für Ihre Organisation deaktiviert. Kontaktieren Sie Ihren Administrator.",
+    payload_too_large: "Zu viele Daten in einer Anfrage. Reduzieren Sie die Anzahl der GPS-Punkte.",
+    invalid_photo_data: "Ungültiges oder zu großes Foto. Erlaubt: JPEG, PNG, WebP (max. 4 MB).",
+    too_many_logs: "Zu viele Gerätelogs. Versuchen Sie es in einem Moment erneut.",
+    note_too_long: "Notiz ist zu lang (max. 4000 Zeichen).",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Geschätzte Arbeitszeit (Std.)",
