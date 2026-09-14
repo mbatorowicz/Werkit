@@ -245,7 +245,7 @@ Nazwa, slug (unikalny), opcjonalnie konto admina startowego.
 
 ### 2. Zarządzanie organizacjami
 
-Edycja danych, status aktywna/zawieszona, dodawanie administratorów.
+Edycja danych, status aktywna/zawieszona, lista administratorów i kont podglądu (aktywacja, dezaktywacja, reset hasła), dodawanie administratorów. Ostatniego aktywnego administratora nie da się wyłączyć.
 
 ### 3. Ustawienia funkcji
 

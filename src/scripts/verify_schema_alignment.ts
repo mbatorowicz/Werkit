@@ -36,6 +36,7 @@ async function main() {
       "can_create_customers",
       "is_dur_worker",
       "reports_to_id",
+      "last_login_at",
     ]),
     resource_categories: new Set([
       "id",
@@ -312,6 +313,16 @@ async function main() {
     ]),
     team_members: new Set(["id", "team_id", "user_id", "role", "joined_at"]),
     login_attempts: new Set(["key", "count", "reset_at"]),
+    platform_audit_events: new Set([
+      "id",
+      "actor_user_id",
+      "company_id",
+      "action",
+      "target_type",
+      "target_id",
+      "metadata",
+      "created_at",
+    ]),
   };
 
   const { sql } = await import("@vercel/postgres");

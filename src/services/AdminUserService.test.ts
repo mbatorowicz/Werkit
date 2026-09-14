@@ -26,6 +26,7 @@ vi.mock("@/db/schema", () => ({
     canCreateCustomers: "canCreateCustomers",
     companyId: "companyId",
     passwordHash: "passwordHash",
+    lastLoginAt: "lastLoginAt",
   },
 }));
 
@@ -378,6 +379,20 @@ describe("AdminUserService", () => {
       await AdminUserService.deleteUser(1, 5, 1);
 
       expect(deleteMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("touchLastLogin", () => {
+    it("ustawia lastLoginAt dla userId", async () => {
+      const where = vi.fn().mockResolvedValue(undefined);
+      const set = vi.fn().mockReturnValue({ where });
+      updateMock.mockReturnValue({ set });
+
+      const { AdminUserService } = await import("./AdminUserService");
+      const at = new Date("2026-09-14T10:00:00.000Z");
+      await AdminUserService.touchLastLogin(42, at);
+
+      expect(set).toHaveBeenCalledWith({ lastLoginAt: at });
     });
   });
 });

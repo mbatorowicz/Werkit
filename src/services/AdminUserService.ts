@@ -180,6 +180,11 @@ export class AdminUserService {
     return comparePassword(plainPassword, row[0].passwordHash);
   }
 
+  /** Udane logowanie — porażka auth nie woła tej metody. */
+  static async touchLastLogin(userId: number, at: Date = new Date()): Promise<void> {
+    await db.update(users).set({ lastLoginAt: at }).where(eq(users.id, userId));
+  }
+
   static async countAdmins(companyId: number): Promise<number> {
     const [row] = await db
       .select({ n: count() })

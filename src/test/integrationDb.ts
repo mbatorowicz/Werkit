@@ -5,6 +5,7 @@ import {
   companies,
   customers,
   materials,
+  platformAuditEvents,
   resourceCategories,
   resources,
   stockIssues,
@@ -38,6 +39,7 @@ export async function createTestUser(
     passwordHash?: string;
     isDurWorker?: boolean;
     canCreateOwnOrders?: boolean;
+    isActive?: boolean;
   } = {}
 ): Promise<{ id: number; usernameEmail: string }> {
   const usernameEmail = `${uniqueTestSlug()}@itest.local`;
@@ -49,7 +51,7 @@ export async function createTestUser(
       usernameEmail,
       passwordHash: options.passwordHash ?? "__itest-no-login",
       role: options.role ?? "worker",
-      isActive: true,
+      isActive: options.isActive ?? true,
       isDurWorker: options.isDurWorker ?? false,
       canCreateOwnOrders: options.canCreateOwnOrders ?? true,
     })
@@ -124,6 +126,7 @@ export async function createTestCustomer(
  * Users przed company, bo FK `users.company_id` ma RESTRICT.
  */
 export async function cleanupTestCompany(companyId: number): Promise<void> {
+  await db.delete(platformAuditEvents).where(eq(platformAuditEvents.companyId, companyId));
   await db.delete(stockIssues).where(eq(stockIssues.companyId, companyId));
   await db.delete(stockReceipts).where(eq(stockReceipts.companyId, companyId));
   await db.delete(users).where(eq(users.companyId, companyId));

@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireSuperadminSession } from "@/lib/apiPlatform";
+import { PlatformAuditService } from "@/services/PlatformAuditService";
 import { PlatformCompanyService } from "@/services/PlatformCompanyService";
 import { hashPassword } from "@/lib/passwordCrypto";
 import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
@@ -55,6 +56,15 @@ export const POST = withApiErrorHandling(
           ? { fullName: adminName, usernameEmail: adminEmail, passwordHash }
           : null
       );
+
+      await PlatformAuditService.insert({
+        actorUserId: auth.userId,
+        companyId: company.id,
+        action: "company.create",
+        targetType: "company",
+        targetId: company.id,
+        metadata: { slug: company.slug, withAdmin: wantsAdmin },
+      });
 
       return jsonOk({ success: true, company });
     } catch (e: unknown) {

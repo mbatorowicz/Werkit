@@ -53,3 +53,5 @@ export {
   type OrganizationTeamMemberRow,
   type OrganizationTeamDetail,
 } from "./organization";
+
+export { narrowPlatformTenantUsers, narrowPlatformTenantUser } from "./platform";

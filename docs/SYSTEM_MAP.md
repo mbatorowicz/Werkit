@@ -48,7 +48,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | Tabela | Klucz biznesowy | Najważniejsze kolumny | Relacje (ON DELETE) |
 |---|---|---|---|
 | `companies` | `slug` (unique) | `id`, `name`, `is_active`, `created_at` | — (multi-tenant; patrz **0017**) |
-| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id`, **`reports_to_id?`** (opcjonalny przełożony — FK self) | `company_id → companies.id` (restrict); `reports_to_id → users.id` (set null). Migracja **0028**. |
+| `users` | `username_email` (unique, **case-insensitive** w zapytaniu — `lower(...)`) | `id`, `company_id`, `full_name`, `password_hash`, `role` ∈ `admin\|worker\|viewer\|superadmin`, `is_active`, `can_create_own_orders`, `can_edit_route`, `can_create_customers`, `notifications_enabled`, `biometric_login_enabled`, `device_unique_id`, **`reports_to_id?`** (opcjonalny przełożony — FK self), **`last_login_at?`** (udane logowanie) | `company_id → companies.id` (restrict); `reports_to_id → users.id` (set null). Migracja **0028**; `last_login_at` — **0034**. |
 | `resource_categories` | `name` (per `company_id`) | **`company_id`**, **`parent_id`**, **`is_group`**, **`sort_order`**, … | `company_id → companies.id` (cascade) |
 | `resources` (= zasoby w rejestrze) | display `name` | **`company_id`**, `brand`, `model`, … | `company_id → companies.id` (cascade) |
 | `resource_to_categories` | `(resource_id, category_id)` | wielokrotne kategorie maszyny | cascade z `resources` i `resource_categories` |
@@ -81,6 +81,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `teams` | `name` (per departament) | **`company_id`**, **`department_id`**, `name`, **`leader_id?`** (lider → `users`), `sort_order` | `department_id → departments.id` (cascade); `leader_id → users.id` (set null). |
 | `team_members` | PK `id` | **`team_id`**, **`user_id`**, **`role`** ∈ `leader\|member`, `joined_at` | `team_id → teams.id` (cascade); `user_id → users.id` (cascade). **SSOT lidera:** `teams.leader_id` synchronizowany w `OrganizationService` z wpisem `role='leader'`. |
 | `login_attempts` | PK `key` (text) | `count`, `reset_at` | Brak FK. Rate limit logowania 5/15 min (S1, `ip:login`) **oraz** throttle `device_logs` 30/min/user (S2, klucz `logs:{userId}`). Migracja **0033**. |
+| `platform_audit_events` | `id` | `actor_user_id`, `company_id?`, `action`, `target_type?`, `target_id?`, `metadata` (jsonb, **bez haseł**), `created_at` | Dziennik mutacji `/platform` (nie `device_logs`). `actor_user_id → users.id` (restrict); `company_id → companies.id` (set null). Migracja **0034**. |
 
 ### 3.1. Drizzle relations
 
@@ -119,6 +120,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0031 | `0031_dispatch_performance_indexes.sql` | Indeksy `work_sessions(company_id, start_time)` pod archiwum dyspozycji. |
 | 0032 | `0032_company_name_default.sql` | Default `company_settings.company_name` → `Werkit`; UPDATE istniejących wierszy z `Werkit ERP`. |
 | 0033 | `0033_login_attempts.sql` | Tabela `login_attempts` (`key` PK, `count`, `reset_at`) — rate limit logowania między instancjami Vercel. |
+| 0034 | `0034_platform_audit_last_login.sql` | `users.last_login_at`; tabela `platform_audit_events` (audyt mutacji panelu platformy). |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -171,7 +173,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ### 4.3. Layout `platform`
 - `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
-- Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*`.
+- Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*` (control plane: konta firmy, flagi pakietu, audyt). **Nie** ogląda mapy GPS ani magazynu tenanta.
 
 ---
 
@@ -189,7 +191,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 
 | Endpoint | Metoda | Body / opis | Response |
 |---|---|---|---|
-| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); 400 `invalid_json\|missing_credentials`; **401 `invalid_credentials`** (brak usera, złe hasło, `users.isActive=false`, `companies.isActive=false` — **bez** `account_blocked` / `company_blocked`); 429 `too_many_attempts` (5 nieudanych / 15 min, tabela `login_attempts`); 503 `service_unavailable` (DB); 500 `server_error`. Przy nieistniejącym userze `comparePassword` ze stałym dummy hashem bcrypt (timing). Login **nie** zwraca `weak_password`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
+| `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); **udane logowanie** ustawia `users.last_login_at` (porażka **nie** rusza pola). 400 `invalid_json\|missing_credentials`; **401 `invalid_credentials`** (brak usera, złe hasło, `users.isActive=false`, `companies.isActive=false` — **bez** `account_blocked` / `company_blocked`); 429 `too_many_attempts` (5 nieudanych / 15 min, tabela `login_attempts`); 503 `service_unavailable` (DB); 500 `server_error`. Przy nieistniejącym userze `comparePassword` ze stałym dummy hashem bcrypt (timing). Login **nie** zwraca `weak_password`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
 | `/api/auth/logout` | POST | brak | 200 + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` z tymi samymi `Secure`/`SameSite` co login (`src/lib/authCookie.ts`; WebView nie zostawia sesji) |
 
 ### 5.2. Worker
@@ -223,11 +225,14 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
 | `/api/platform/companies` | GET | `PlatformCompanyService.listCompanies` |
-| `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy; hasło → `passwordPolicy`, 400 `weak_password`) |
-| `/api/platform/companies/[id]` | PUT | `PlatformCompanyService.updateCompany` |
-| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` (ta sama polityka hasła, 400 `weak_password`) |
+| `/api/platform/companies` | POST | `PlatformCompanyService.createCompanyWithAdmin` (opcjonalnie konto admina firmy; hasło → `passwordPolicy`, 400 `weak_password`); audyt `company.create` |
+| `/api/platform/companies/[id]` | PATCH | `PlatformCompanyService.updateCompany`; audyt `company.update` / `company.activate` / `company.deactivate` |
+| `/api/platform/companies/[id]/admin` | POST | `PlatformCompanyService.createCompanyAdmin` (ta sama polityka hasła, 400 `weak_password`); audyt `admin.create` |
+| `/api/platform/companies/[id]/users` | GET | `PlatformTenantUserService.listCompanyUsers` — admin+viewer, **bez** `passwordHash` |
+| `/api/platform/companies/[id]/users/[userId]` | PATCH `{ isActive }` | `PlatformTenantUserService.setUserActive`; 409 `last_admin`; audyt `admin.activate` / `admin.deactivate` |
+| `/api/platform/companies/[id]/users/[userId]/password` | POST `{ password }` | reset hasła (`weak_password` 400); **nie** zwraca hash; audyt `admin.reset_password` bez metadata hasła |
 | `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` |
-| `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags` |
+| `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags`; audyt `flags.update` |
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
 
 ### 5.4. Admin (deny-by-default → tylko admin/viewer)
@@ -394,6 +399,12 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `PlatformCompanyService` / `PlatformAnalyticsService`
 - Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
 - Analityka użycia per firma na `/platform`.
+
+### `PlatformTenantUserService` (`src/services/PlatformTenantUserService.ts`)
+- Lista adminów/viewerów firmy (bez `passwordHash`), dezaktywacja z blokadą `last_admin`, reset hasła. **Nie** używa `companyId` z sesji admina firmy — to warstwa control plane.
+
+### `PlatformAuditService` (`src/services/PlatformAuditService.ts`)
+- Jedyny INSERT do `platform_audit_events`. Allowlista `action`; `sanitizeAuditMetadata` wycina klucze `password*`. Wołany z handlerów `/api/platform/*` po udanej mutacji.
 
 ### `PlatformFeatureFlagService` (`src/services/PlatformFeatureFlagService.ts`)
 - `getFlags(companyId)` — odczytuje feature flags (`gpsTrackingEnabled`, `mapViewEnabled`, `geofencingEnabled`, `routePlanningEnabled`, `navigationEnabled`, `durEnabled`) z `company_settings`. Zwraca domyślne wartości gdy wiersz nie istnieje.

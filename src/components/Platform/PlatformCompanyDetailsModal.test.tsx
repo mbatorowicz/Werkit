@@ -77,8 +77,24 @@ describe("PlatformCompanyDetailsModal", () => {
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ isActive: false });
   });
 
-  it("zakładka Administratorzy: pokazuje liczbę kont i wysyła POST nowego admina", async () => {
+  it("zakładka Administratorzy: pokazuje listę kont i wysyła POST nowego admina", async () => {
     const fetchMock = stubFetch([
+      {
+        url: "/api/platform/companies/7/users",
+        method: "GET",
+        json: {
+          users: [
+            {
+              id: 11,
+              fullName: "Ewa Viewer",
+              usernameEmail: "ewa@firma.pl",
+              role: "viewer",
+              isActive: true,
+              lastLoginAt: null,
+            },
+          ],
+        },
+      },
       { url: "/api/platform/companies/7/admin", method: "POST", json: { ok: true } },
     ]);
     const user = userEvent.setup();
@@ -89,6 +105,8 @@ describe("PlatformCompanyDetailsModal", () => {
     expect(
       screen.getByText(formatDict(dict.accountsInOrg, { count: baseRow.userCount }))
     ).toBeInTheDocument();
+    expect(await screen.findByText("Ewa Viewer")).toBeInTheDocument();
+    expect(screen.getByText(dict.lastLoginNever)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(dict.adminName), "Anna Admin");
     await user.type(screen.getByLabelText(dict.adminEmail), "anna@firma.pl");
@@ -108,13 +126,57 @@ describe("PlatformCompanyDetailsModal", () => {
     });
   });
 
-  it("zakładka Administratorzy: ostrzega gdy firma nie ma żadnych kont", async () => {
+  it("zakładka Administratorzy: ostrzega gdy firma nie ma adminów/viewerów", async () => {
+    stubFetch([{ url: "/api/platform/companies/7/users", method: "GET", json: { users: [] } }]);
     const user = userEvent.setup();
     renderModal({ ...baseRow, userCount: 0 });
 
     await user.click(screen.getByRole("tab", { name: dict.tabAdmins }));
 
-    expect(screen.getByText(dict.noAdminYet)).toBeInTheDocument();
+    expect(await screen.findByText(dict.noAdminYet)).toBeInTheDocument();
+  });
+
+  it("zakładka Administratorzy: deaktywacja po confirm wysyła PATCH isActive", async () => {
+    const fetchMock = stubFetch([
+      {
+        url: "/api/platform/companies/7/users",
+        method: "GET",
+        json: {
+          users: [
+            {
+              id: 11,
+              fullName: "Ewa Viewer",
+              usernameEmail: "ewa@firma.pl",
+              role: "viewer",
+              isActive: true,
+              lastLoginAt: null,
+            },
+          ],
+        },
+      },
+      {
+        url: "/api/platform/companies/7/users/11",
+        method: "PATCH",
+        json: { success: true, user: { id: 11, role: "viewer", isActive: false } },
+      },
+    ]);
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("tab", { name: dict.tabAdmins }));
+    expect(await screen.findByText("Ewa Viewer")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: dict.deactivateUser }));
+    await user.click(screen.getByRole("button", { name: plDict.admin.ui.dialogConfirm }));
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([input, init]) =>
+          String(input).includes("/api/platform/companies/7/users/11") && init?.method === "PATCH"
+      );
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({ isActive: false });
+    });
   });
 
   it("zakładka Wskaźniki: pokazuje liczniki użytkowania", async () => {

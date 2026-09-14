@@ -321,7 +321,7 @@ Panel superadmina jako płaszczyzna sterowania (konta firmy, impersonacja, cykl 
 
 | Faza | Temat | Status |
 |------|--------|--------|
-| PL0 | Lista adminów/viewerów, reset hasła, deaktywacja, `last_login_at`, zapis audytu | Open |
+| PL0 | Lista adminów/viewerów, reset hasła, deaktywacja, `last_login_at`, zapis audytu | Done (2026-09-14) |
 | PL1 | Impersonacja `/admin` (cookie resume, banner, zakaz `/worker`) | Open |
 | PL2 | `lifecycle_status` + notatka + presety pakietu GPS/DUR | Open |
 | PL3 | Overview zdrowia + UI dziennika platformy | Open |

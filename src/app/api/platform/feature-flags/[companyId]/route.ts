@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireSuperadminSession } from "@/lib/apiPlatform";
+import { PlatformAuditService } from "@/services/PlatformAuditService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { parsePositiveIntFromString } from "@/lib/parseRouteParams";
 import type { FeatureFlags } from "@/types/featureFlags";
@@ -59,7 +60,16 @@ export const PUT = withApiErrorHandling(
       return jsonError("invalid_payload", 400);
     }
 
+    const previous = await PlatformFeatureFlagService.getFlags(companyId);
     const updated = await PlatformFeatureFlagService.updateFlags(companyId, flags);
+    await PlatformAuditService.insert({
+      actorUserId: auth.userId,
+      companyId,
+      action: "flags.update",
+      targetType: "flags",
+      targetId: companyId,
+      metadata: { from: previous, to: updated },
+    });
     return jsonOk({ success: true, flags: updated });
   },
   { defaultErrorCode: "save_error" }

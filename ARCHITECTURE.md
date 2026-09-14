@@ -106,6 +106,8 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `CustomerLocationService` | Lokalizacje klientów, waypointy trasy |
 | `OrganizationService` | Ustawienia organizacyjne (firma, feature flagi) |
 | `PlatformCompanyService` | Multi-tenant: zarządzanie firmami (superadmin) |
+| `PlatformTenantUserService` | Konta admin/viewer firmy z panelu platformy (lista, deaktywacja, reset hasła) |
+| `PlatformAuditService` | Zapis `platform_audit_events` (mutacje `/platform`) |
 | `PlatformAnalyticsService` | Analityka międzyfirmowa (superadmin) |
 | `SparePartService` | Katalog części zamiennych (CRUD, kategorie, kompatybilność) |
 | `SparePartCategoryService` | Kategorie części zamiennych (hierarchia, grupy) |

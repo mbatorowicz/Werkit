@@ -70,7 +70,9 @@ export const POST = withApiErrorHandling(
       return jsonError("invalid_credentials", 401);
     }
 
+    const { AdminUserService } = await import("@/services/AdminUserService");
     await clearLoginRateLimit(rateLimitKey);
+    await AdminUserService.touchLastLogin(user.id);
 
     const jwt = await new SignJWT({
       userId: user.id,

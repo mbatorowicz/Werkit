@@ -4,14 +4,13 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { useDictionary, formatDict } from "@/i18n";
+import { useDictionary } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { FOCUS_EMERALD, INPUT_BASE } from "@/lib/uiTokens";
-import { FIELD_HINT } from "@/lib/uiTypography";
-import { PASSWORD_MIN_LENGTH } from "@/lib/passwordPolicy";
 import { BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
+import { CompanyAdminsTab } from "@/components/Platform/CompanyAdminsTab";
 
 type TabId = "data" | "features" | "admins" | "metrics";
 
@@ -39,7 +38,7 @@ export function PlatformCompanyDetailsModal({ row, dict, onClose, onChanged }: P
       open
       onClose={onClose}
       title={`${dict.detailsTitle} — ${row.companyName}`}
-      maxWidthClass="max-w-2xl"
+      maxWidthClass="max-w-3xl"
       titleSize="lg"
       scrollableBody
       closeOnBackdropClick={false}
@@ -198,112 +197,6 @@ function CompanyDataTab({
         )}
       </div>
     </form>
-  );
-}
-
-function CompanyAdminsTab({
-  row,
-  dict,
-  onChanged,
-}: {
-  row: CompanyUsageRow;
-  dict: AppDictionary["platform"];
-  onChanged: () => Promise<void>;
-}) {
-  const apiErrors = useDictionary().apiErrors as Record<string, string>;
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [pending, setPending] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [isError, setIsError] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setPending(true);
-    setMsg(null);
-    try {
-      const res = await fetch(`/api/platform/companies/${row.companyId}/admin`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, usernameEmail: email, password }),
-      });
-      const body = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setIsError(true);
-        setMsg(apiErrors[body.error ?? ""] ?? dict.createError);
-        return;
-      }
-      setIsError(false);
-      setMsg(dict.addAdminSuccess);
-      setFullName("");
-      setEmail("");
-      setPassword("");
-      await onChanged();
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        {formatDict(dict.accountsInOrg, { count: row.userCount })}
-      </p>
-      {row.userCount === 0 && (
-        <p className="rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2 text-sm font-medium text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
-          {dict.noAdminYet}
-        </p>
-      )}
-      <form onSubmit={submit} className="space-y-4">
-        <label className="block text-sm">
-          <span className="text-zinc-600 dark:text-zinc-400">{dict.adminName}</span>
-          <input
-            required
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className={cn(INPUT_BASE, "mt-1.5")}
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="text-zinc-600 dark:text-zinc-400">{dict.adminEmail}</span>
-          <input
-            required
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={cn(INPUT_BASE, "mt-1.5")}
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="text-zinc-600 dark:text-zinc-400">{dict.adminPassword}</span>
-          <input
-            required
-            type="password"
-            minLength={PASSWORD_MIN_LENGTH}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={cn(INPUT_BASE, "mt-1.5")}
-          />
-        </label>
-        <p className={FIELD_HINT}>{dict.adminPasswordHint}</p>
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" disabled={pending} className={BTN_PRIMARY_COMPACT_SM}>
-            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
-            {dict.addAdmin}
-          </button>
-          {msg && (
-            <p
-              role="status"
-              className={`text-sm ${isError ? "text-red-600 dark:text-red-400" : "text-emerald-700 dark:text-emerald-400"}`}
-            >
-              {msg}
-            </p>
-          )}
-        </div>
-      </form>
-    </div>
   );
 }
 

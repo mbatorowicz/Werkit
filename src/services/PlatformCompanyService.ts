@@ -125,21 +125,26 @@ export class PlatformCompanyService {
       usernameEmail: string;
       passwordHash: string;
     }
-  ): Promise<void> {
+  ): Promise<number> {
     const company = await PlatformCompanyService.getCompanyById(companyId);
     if (!company) throw new Error("company_not_found");
 
-    await db.insert(users).values({
-      companyId,
-      fullName: payload.fullName.trim(),
-      usernameEmail: payload.usernameEmail.trim().toLowerCase(),
-      passwordHash: payload.passwordHash,
-      role: "admin",
-      isActive: true,
-      canCreateOwnOrders: false,
-      canEditRoute: false,
-      canCreateCustomers: false,
-    });
+    const [created] = await db
+      .insert(users)
+      .values({
+        companyId,
+        fullName: payload.fullName.trim(),
+        usernameEmail: payload.usernameEmail.trim().toLowerCase(),
+        passwordHash: payload.passwordHash,
+        role: "admin",
+        isActive: true,
+        canCreateOwnOrders: false,
+        canEditRoute: false,
+        canCreateCustomers: false,
+      })
+      .returning({ id: users.id });
+    if (!created) throw new Error("save_error");
+    return created.id;
   }
 
   static mapCreateError(err: unknown): "slug_exists" | "user_exists" | null {

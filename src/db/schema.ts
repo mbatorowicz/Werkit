@@ -54,6 +54,8 @@ export const users = pgTable("users", {
   reportsToId: integer("reports_to_id").references((): AnyPgColumn => users.id, {
     onDelete: "set null",
   }),
+  /** Ostatnie udane logowanie (wszystkie role). NULL = nigdy. */
+  lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
 });
 
 export const resourceCategories = pgTable("resource_categories", {
@@ -727,6 +729,23 @@ export const loginAttempts = pgTable("login_attempts", {
   key: text("key").primaryKey(),
   count: integer("count").notNull().default(0),
   resetAt: timestamp("reset_at").notNull(),
+});
+
+/**
+ * Dziennik mutacji panelu platformy (superadmin) — nie mylić z `device_logs`.
+ * Hasła nigdy nie lądują w `metadata`.
+ */
+export const platformAuditEvents = pgTable("platform_audit_events", {
+  id: serial("id").primaryKey(),
+  actorUserId: integer("actor_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "restrict" }),
+  companyId: integer("company_id").references(() => companies.id, { onDelete: "set null" }),
+  action: varchar("action", { length: 64 }).notNull(),
+  targetType: varchar("target_type", { length: 32 }),
+  targetId: integer("target_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Relacje organizacji

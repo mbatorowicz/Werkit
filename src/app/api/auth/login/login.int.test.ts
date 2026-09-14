@@ -102,4 +102,37 @@ describe("POST /api/auth/login (S1)", () => {
     expect(body).toMatchObject({ success: true, user: { role: "worker" } });
     expect(await LoginRateLimitService.isLimited(burstKey)).toBe(false);
   });
+
+  it("udane logowanie zapisuje last_login_at; porażka nie rusza pola", async () => {
+    const loginIp = `203.0.113.${(Date.now() % 50) + 40}`;
+    const passwordHash = await hashPassword(GOOD_PASSWORD, 10);
+    const loginUser = await createTestUser(companyId, { role: "admin", passwordHash });
+
+    const [before] = await db
+      .select({ lastLoginAt: users.lastLoginAt })
+      .from(users)
+      .where(eq(users.id, loginUser.id))
+      .limit(1);
+    expect(before?.lastLoginAt).toBeNull();
+
+    const fail = await jsonErrorOf(
+      await postLogin(loginUser.usernameEmail, "zle-haslo-999", loginIp)
+    );
+    expect(fail).toEqual({ status: 401, error: "invalid_credentials" });
+    const [afterFail] = await db
+      .select({ lastLoginAt: users.lastLoginAt })
+      .from(users)
+      .where(eq(users.id, loginUser.id))
+      .limit(1);
+    expect(afterFail?.lastLoginAt).toBeNull();
+
+    const ok = await postLogin(loginUser.usernameEmail, GOOD_PASSWORD, loginIp);
+    expect(ok.status).toBe(200);
+    const [afterOk] = await db
+      .select({ lastLoginAt: users.lastLoginAt })
+      .from(users)
+      .where(eq(users.id, loginUser.id))
+      .limit(1);
+    expect(afterOk?.lastLoginAt).toBeInstanceOf(Date);
+  });
 });
