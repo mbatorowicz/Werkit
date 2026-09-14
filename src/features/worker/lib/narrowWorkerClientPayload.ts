@@ -90,6 +90,7 @@ export function narrowAppSettings(v: unknown): AppSettings | null {
     s.upcomingOrderReminderMinutes = v.upcomingOrderReminderMinutes;
   }
   if (typeof v.durEnabled === "boolean") s.durEnabled = v.durEnabled;
+  if (typeof v.gpsTrackingEnabled === "boolean") s.gpsTrackingEnabled = v.gpsTrackingEnabled;
   return s;
 }
 

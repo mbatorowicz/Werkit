@@ -7,7 +7,7 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 - **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
 - **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
 - **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte**; §5 w tym **P-ALIGN**); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
-- **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (faza 0 = kontrakt, zamknięta).
+- **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (fazy 0–1 zamknięte).
 
 ---
 
@@ -34,7 +34,7 @@ Oś systemu: **zlecenie → sesja → dowody**. Magazyny i GPS są skutkiem rodz
 | Zasoby | Egzemplarz (`resources`) + typ (`resource_groups`) + kategoria pracy (`resource_categories`). |
 | Magazyn materiałów | Zawsze włączony. **1** `material_id` na `machine_work` (ładunek). Auto WZ przy starcie sesji. |
 | Magazyn części (DUR) | Flaga `durEnabled`. **N** wierszy `work_order_spare_parts` na `machine_repair` (BOM). |
-| GPS | Ślad **pracownika w sesji** (`gps_logs` → `work_sessions`). Wyłączony, gdy sesja nieaktywna albo kategoria stacjonarna. |
+| GPS | Ślad **pracownika w sesji** (`gps_logs` → `work_sessions`). Wyłączony, gdy sesja nieaktywna, kategoria stacjonarna **albo** `gpsTrackingEnabled` jest off. |
 
 **Twarde granice dla kodu:**
 

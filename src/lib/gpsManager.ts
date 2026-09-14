@@ -1,5 +1,6 @@
 import type { Coord } from "@/types/worker";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
+import { readGpsFlushErrorCode, shouldAbandonGpsQueue } from "@/lib/gpsFlushPolicy";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 
 export type GPSQueueItem = Coord & { timestamp: string };
@@ -124,6 +125,12 @@ export class GPSManager {
     return payload;
   }
 
+  private static async dropSentItems(sentTimestamps: Set<string>): Promise<void> {
+    const currentQueue = await this.getQueue();
+    const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
+    await this.saveQueue(updatedQueue);
+  }
+
   static async flushQueue(onSuccess?: () => void): Promise<void> {
     if (!navigator.onLine || this.isFlushing) return;
 
@@ -131,8 +138,8 @@ export class GPSManager {
     if (queue.length === 0) return;
 
     this.isFlushing = true;
-
     const sentTimestamps = new Set(queue.map((q) => q.timestamp));
+    let retry = true;
 
     try {
       const res = await fetchWithDeviceTelemetry(
@@ -148,23 +155,20 @@ export class GPSManager {
       );
 
       if (res.ok) {
-        const currentQueue = await this.getQueue();
-        const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
-        await this.saveQueue(updatedQueue);
-        if (onSuccess) onSuccess();
-      } else if (res.status === 400) {
-        let code: string | undefined;
-        try {
-          const j = (await res.clone().json()) as { error?: string };
-          code = typeof j.error === "string" ? j.error : undefined;
-        } catch {
-          /* nie-JSON */
-        }
-        if (code === "no_active_session") {
-          const currentQueue = await this.getQueue();
-          const updatedQueue = currentQueue.filter((q) => !sentTimestamps.has(q.timestamp));
-          await this.saveQueue(updatedQueue);
-        }
+        await this.dropSentItems(sentTimestamps);
+        onSuccess?.();
+        return;
+      }
+
+      const code = await readGpsFlushErrorCode(res);
+      if (shouldAbandonGpsQueue(res.status, code)) {
+        await this.clearQueue();
+        retry = false;
+        return;
+      }
+
+      if (res.status === 400 && code === "no_active_session") {
+        await this.dropSentItems(sentTimestamps);
       }
     } catch (error) {
       sendRemoteLog(
@@ -180,7 +184,7 @@ export class GPSManager {
       );
     } finally {
       this.isFlushing = false;
-      // Retry if queue still has items and we are online
+      if (!retry) return;
       const remaining = await this.getQueue();
       if (remaining.length > 0 && navigator.onLine) {
         setTimeout(() => this.flushQueue(onSuccess), 100);

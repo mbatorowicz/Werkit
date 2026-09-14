@@ -25,6 +25,38 @@ import {
   assertCustomerBelongsToCompany,
   assertMaterialBelongsToCompany,
 } from "@/lib/tenantContext";
+import { DEFAULT_FEATURE_FLAGS } from "@/types/featureFlags";
+import type { AppSettings } from "@/types/worker";
+
+/** Ustawienia widoczne dla workera — bez danych firmy z `company_settings`. */
+export function serializeWorkerAppSettings(row: unknown): AppSettings | null {
+  if (row === null || row === undefined || typeof row !== "object" || Array.isArray(row)) {
+    return null;
+  }
+  const r = row as Record<string, unknown>;
+  const s: AppSettings = {
+    gpsTrackingEnabled:
+      typeof r.gpsTrackingEnabled === "boolean"
+        ? r.gpsTrackingEnabled
+        : DEFAULT_FEATURE_FLAGS.gpsTrackingEnabled,
+    durEnabled: typeof r.durEnabled === "boolean" ? r.durEnabled : DEFAULT_FEATURE_FLAGS.durEnabled,
+  };
+  if (typeof r.requirePhotoToFinish === "boolean") s.requirePhotoToFinish = r.requirePhotoToFinish;
+  if (typeof r.geofenceRadiusMeters === "number" && Number.isFinite(r.geofenceRadiusMeters)) {
+    s.geofenceRadiusMeters = r.geofenceRadiusMeters;
+  }
+  if (typeof r.cancelWindowMinutes === "number" && Number.isFinite(r.cancelWindowMinutes)) {
+    s.cancelWindowMinutes = r.cancelWindowMinutes;
+  }
+  if (typeof r.timeOverrunReminder === "boolean") s.timeOverrunReminder = r.timeOverrunReminder;
+  if (
+    typeof r.upcomingOrderReminderMinutes === "number" &&
+    Number.isFinite(r.upcomingOrderReminderMinutes)
+  ) {
+    s.upcomingOrderReminderMinutes = r.upcomingOrderReminderMinutes;
+  }
+  return s;
+}
 
 export class WorkerSessionService {
   private static activeSessionWhere(userId: number, companyId: number) {
@@ -73,7 +105,7 @@ export class WorkerSessionService {
       db.select().from(users).where(eq(users.id, userId)).limit(1),
     ]);
 
-    const companySettingsData = settingsRows[0] || null;
+    const companySettingsData = serializeWorkerAppSettings(settingsRows[0] || null);
     const userData = userRows[0] ? pickWorkerUserFlags(userRows[0]) : null;
 
     if (activeSessions.length === 0) {

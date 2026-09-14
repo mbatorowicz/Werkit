@@ -71,7 +71,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
 
   useWorkerSessionSync(initialData, fetchSessionAndPath);
 
-  useWorkerGPS(session, setLocation, dispatchRoute, setGpsStatus);
+  useWorkerGPS(session, setLocation, dispatchRoute, setGpsStatus, settings?.gpsTrackingEnabled);
 
   const persistRouteWaypoints = useCallback(
     async (next: Coord[]) => {

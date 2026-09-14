@@ -112,6 +112,8 @@ export type AppSettings = {
   upcomingOrderReminderMinutes?: number;
   /** Moduł utrzymania ruchu włączony dla organizacji. */
   durEnabled?: boolean;
+  /** Śledzenie GPS sesji — flaga organizacji (`company_settings.gps_tracking_enabled`). */
+  gpsTrackingEnabled?: boolean;
 };
 
 export type UserData = {

@@ -12,43 +12,47 @@ import {
   WORKER_WEB_GEO_WATCH_OPTIONS,
 } from "@/features/worker/gps/workerGpsConstants";
 import type { WorkerRouteAction } from "@/features/worker/gps/workerRouteReducer";
-
+import { shouldStartGpsWatcher } from "@/features/worker/gps/shouldStartGpsWatcher";
 import type { Coord, Session } from "@/types/worker";
+
+function clearGpsWatchId(watchIdRef: { current: string | number | null }) {
+  if (watchIdRef.current === null) return;
+  if (Capacitor.isNativePlatform()) {
+    if (typeof backgroundGeolocation.removeWatcher === "function") {
+      backgroundGeolocation.removeWatcher({ id: watchIdRef.current as string });
+    }
+  } else {
+    navigator.geolocation.clearWatch(watchIdRef.current as number);
+  }
+  watchIdRef.current = null;
+}
 
 export function useWorkerGPS(
   session: Session | null,
   setLocation: (loc: Coord) => void,
   dispatchRoute: Dispatch<WorkerRouteAction>,
-  setGpsStatus: (status: "waiting" | "active" | "error") => void
+  setGpsStatus: (status: "waiting" | "active" | "error") => void,
+  gpsTrackingEnabled?: boolean
 ) {
   const watchIdRef = useRef<string | number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const clearWatcher = () => {
-      if (watchIdRef.current === null) return;
-      if (Capacitor.isNativePlatform()) {
-        if (typeof backgroundGeolocation.removeWatcher === "function") {
-          backgroundGeolocation.removeWatcher({ id: watchIdRef.current as string });
-        }
-      } else {
-        navigator.geolocation.clearWatch(watchIdRef.current as number);
-      }
-      watchIdRef.current = null;
-    };
-
     if (!session) {
-      clearWatcher();
+      clearGpsWatchId(watchIdRef);
       return;
     }
 
-    if (session.categoryIsStationary) {
-      clearWatcher();
+    if (!shouldStartGpsWatcher(session, gpsTrackingEnabled)) {
+      clearGpsWatchId(watchIdRef);
+      if (gpsTrackingEnabled === false) {
+        void GPSManager.clearQueue();
+      }
       if (isMounted) setGpsStatus("active");
       return () => {
         isMounted = false;
-        clearWatcher();
+        clearGpsWatchId(watchIdRef);
       };
     }
 
@@ -173,8 +177,8 @@ export function useWorkerGPS(
 
     return () => {
       isMounted = false;
-      clearWatcher();
+      clearGpsWatchId(watchIdRef);
       clearInterval(flushInterval);
     };
-  }, [session, setLocation, dispatchRoute, setGpsStatus]);
+  }, [session, setLocation, dispatchRoute, setGpsStatus, gpsTrackingEnabled]);
 }

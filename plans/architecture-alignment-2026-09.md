@@ -1,6 +1,6 @@
 # Plan dociągnięcia architektury — field-ops + MRO
 
-> **Status:** faza **0 zamknięta** (2026-09-14). Fazy 1–7 otwarte.  
+> **Status:** fazy **0–1 zamknięte** (2026-09-14). Fazy 2–7 otwarte.  
 > **Źródło:** audyt architektury v1.9.4 (14 wrz 2026). Canvas planu żyje obok czatu (`cmms-alignment-plan.canvas.tsx`); ten plik jest SSOT w git.
 > **SSOT postępu w git:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (P-ALIGN).  
 > **Kontrakt dla agentów:** [`AGENTS.md`](../AGENTS.md) §1, [`ARCHITECTURE.md`](../ARCHITECTURE.md) §1a.
@@ -41,7 +41,7 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 | Faza | Nazwa | Blokuje | Ryzyko |
 |------|--------|---------|--------|
-| 1 | GPS: flaga = zachowanie | nic | Niskie — bugfix |
+| 1 | GPS: flaga = zachowanie ✅ | nic | Niskie — bugfix |
 | 2 | Typ floty bez DUR | 5 (kompatybilność części) | Niskie |
 | 3 | IA dwóch magazynów | 5 (gdzie żyje UI) | Niskie — i18n/nav |
 | 4 | Flagi GPS niezależne | nic | Średnie — semantyka UI |
@@ -51,18 +51,16 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 **Faza 5 nie startuje**, dopóki 2 i 3 nie są na `main`.
 
-### Faza 1 — GPS: flaga = zachowanie
+### Faza 1 — GPS: flaga = zachowanie ✅
 
-Dziś serwer odrzuca zapis (`403`), a telefon dalej nagrywa i retry’uje kolejkę co 100 ms.
+**Zamknięta 2026-09-14.** Serwer odrzucał zapis (`403`), a telefon dalej nagrywał i retry’ował kolejkę co 100 ms.
 
-1. Dodać `gpsTrackingEnabled` do `AppSettings` i serializacji sesji (`WorkerSessionService`).
-2. W `useWorkerGPS` nie startować watchera, gdy flaga jest off **albo** kategoria jest stacjonarna.
-3. W `GPSManager.flushQueue`: przy `403` / `feature_disabled` wyczyścić kolejkę i **nie** robić retry.
+1. `gpsTrackingEnabled` w `AppSettings` + `serializeWorkerAppSettings` (`WorkerSessionService`).
+2. `useWorkerGPS` / `shouldStartGpsWatcher`: brak watchera, gdy flaga jest off **albo** kategoria jest stacjonarna.
+3. `GPSManager.flushQueue`: przy `403` / `feature_disabled` czyści kolejkę i **nie** robi retry.
 4. Testy: narrowing settings, flush przy 403, watcher nie woła native API.
 
-**Gotowe, gdy:** wyłączenie GPS w platformie = cisza na urządzeniu, IndexedDB puste, brak pętli sieciowej.
-
-**Pliki:** `WorkerSessionService`, `types/worker`, `narrowWorkerClientPayload`, `useWorkerGPS`, `gpsManager`, `worker/gps/route.ts`.
+**Gotowe:** wyłączenie GPS w platformie = cisza na urządzeniu, IndexedDB puste, brak pętli sieciowej.
 
 ### Faza 2 — typ floty bez DUR
 

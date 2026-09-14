@@ -194,7 +194,7 @@ describe("WorkerSessionService", () => {
       const result = await WorkerSessionService.getActiveSessionWithDetails(1, 1);
 
       expect(result.session).toBeNull();
-      expect(result.settings).not.toBeNull();
+      expect(result.settings).toMatchObject({ gpsTrackingEnabled: true, durEnabled: false });
       expect(result.user).not.toBeNull();
     });
 
@@ -283,6 +283,7 @@ describe("WorkerSessionService", () => {
       expect(result.session!.resourceName).toBe("Koparka");
       expect(result.events).toHaveLength(1);
       expect(result.notes).toHaveLength(1);
+      expect(result.settings).toMatchObject({ gpsTrackingEnabled: true, durEnabled: false });
     });
   });
 
@@ -707,6 +708,39 @@ describe("WorkerSessionService", () => {
       await expect(
         WorkerSessionService.createWizardSession(1, 1, { resourceId: "1", categoryId: "2" })
       ).rejects.toThrow("resource_busy");
+    });
+  });
+});
+
+describe("serializeWorkerAppSettings", () => {
+  it("zwraca null dla pustego wiersza", async () => {
+    const { serializeWorkerAppSettings } = await import("./WorkerSessionService");
+    expect(serializeWorkerAppSettings(null)).toBeNull();
+    expect(serializeWorkerAppSettings(undefined)).toBeNull();
+    expect(serializeWorkerAppSettings([])).toBeNull();
+  });
+
+  it("dodaje gpsTrackingEnabled i nie wycieka pól firmy", async () => {
+    const { serializeWorkerAppSettings } = await import("./WorkerSessionService");
+    const s = serializeWorkerAppSettings({
+      companyName: "Tajna Firma",
+      email: "a@b.c",
+      gpsTrackingEnabled: false,
+      durEnabled: true,
+      requirePhotoToFinish: true,
+    });
+    expect(s).toEqual({
+      gpsTrackingEnabled: false,
+      durEnabled: true,
+      requirePhotoToFinish: true,
+    });
+  });
+
+  it("domyślnie włącza GPS gdy kolumny brak w wierszu", async () => {
+    const { serializeWorkerAppSettings } = await import("./WorkerSessionService");
+    expect(serializeWorkerAppSettings({ companyId: 1 })).toMatchObject({
+      gpsTrackingEnabled: true,
+      durEnabled: false,
     });
   });
 });
