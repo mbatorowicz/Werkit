@@ -115,6 +115,10 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | done |
 | P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | done |
 | P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | done |
+| P-SEC-0 | Żywy principal: JWT + `users`/`companies.isActive` przy API i layoutach | open |
+| P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | open |
+| P-SEC-2 | Limity GPS / zdjęć / `device_logs` | open |
+| P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | open |
 
 ### D-02 — co zrobiono
 
@@ -261,6 +265,17 @@ Program po audycie v1.9.4. **SSOT faz:** [`plans/architecture-alignment-2026-09.
 - Snapshot `orderType` / materiał / ilość na sesję przy akceptacji: [`sessionInsertFromAcceptedOrder`](../src/lib/sessionSnapshotFromOrder.ts) + test kopiowania.
 - Default `company_name` → „Werkit” (`DEFAULT_COMPANY_NAME`, migracja **0032**, metadata, PWA manifest).
 - URL `/admin/machines` bez zmian; etykieta UI „Zasoby”.
+
+### P-SEC — hartowanie bezpieczeństwa (2026-09)
+
+Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-hardening-2026-09.md`](../plans/security-hardening-2026-09.md).
+
+| Faza | Temat |
+|------|--------|
+| S0 | `assertLivePrincipal` — konto/firma nieaktywne → 401 mimo ważnego JWT |
+| S1 | Polityka hasła/PIN, jeden kod `invalid_credentials`, limit logowań w DB |
+| S2 | Cap GPS, allowlista zdjęć, throttle `device_logs` |
+| S3 | Auth w `/api/geocode`, ochrona last-admin, CSP, spójny logout cookie |
 
 ---
 
