@@ -5,24 +5,25 @@
 /**
  * Flagi funkcyjne dla organizacji.
  * Przechowywane w company_settings jako osobne kolumny boolean.
- * Domyślnie wszystkie włączone (true) — zachowanie wstecznie zgodne.
+ * Domyślnie wszystkie GPS włączone (true) — zachowanie wstecznie zgodne.
+ * Flagi GPS są niezależne: wyłączenie geofence / nawigacji nie wyłącza śledzenia.
  */
 export type FeatureFlags = {
-  /** Globalny przełącznik GPS — wyłączenie blokuje cały moduł śledzenia. */
+  /** Śledzenie GPS sesji — zapis `gps_logs`. */
   gpsTrackingEnabled: boolean;
   /** Widok mapy w panelu admina i workera. */
   mapViewEnabled: boolean;
-  /** Geofencing — powiadomienia o wjeździe/wyjeździe ze stref. */
+  /** Geofencing — potwierdzenie „Dojechał” poza promieniem. */
   geofencingEnabled: boolean;
   /** Planowanie trasy (OSRM / kolejność odwiedzin). */
   routePlanningEnabled: boolean;
-  /** Nawigacja krok po kroku (turn-by-turn). */
+  /** Nawigacja krok po kroku (tryb kamery / turn-by-turn). */
   navigationEnabled: boolean;
   /** Moduł DUR (części zamienne, magazyn) — domyślnie wyłączony. */
   durEnabled: boolean;
 };
 
-/** Domyślne wartości flag (wszystkie włączone). */
+/** Domyślne wartości flag (GPS włączony, DUR wyłączony). */
 export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   gpsTrackingEnabled: true,
   mapViewEnabled: true,
@@ -32,7 +33,7 @@ export const DEFAULT_FEATURE_FLAGS: FeatureFlags = {
   durEnabled: false,
 };
 
-/** Klucze flag GPS/map — grupa w panelu platformy. */
+/** Klucze flag GPS/map — grupa w panelu platformy (osobne przełączniki). */
 export const GPS_FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
   "gpsTrackingEnabled",
   "mapViewEnabled",
@@ -44,18 +45,51 @@ export const GPS_FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = [
 /** Klucze modułu DUR — jeden przełącznik w panelu platformy. */
 export const DUR_FEATURE_FLAG_KEYS: (keyof FeatureFlags)[] = ["durEnabled"];
 
-/** Czy moduł GPS i mapa jest włączony (wszystkie flagi GPS muszą być true). */
+/**
+ * Śledzenie GPS (zapis pozycji). Nie AND-uje mapy / geofence / trasy / nawigacji.
+ */
 export function isGpsModuleEnabled(flags: FeatureFlags): boolean {
-  return GPS_FEATURE_FLAG_KEYS.every((key) => flags[key]);
+  return flags.gpsTrackingEnabled;
 }
 
-/** PATCH ustawiający wszystkie flagi modułu GPS/map na tę samą wartość. */
-export function gpsModuleFlagsPatch(enabled: boolean): Partial<FeatureFlags> {
-  const patch: Partial<FeatureFlags> = {};
-  for (const key of GPS_FEATURE_FLAG_KEYS) {
-    patch[key] = enabled;
-  }
-  return patch;
+/**
+ * UI GPS w panelu admina: śledzenie albo mapa.
+ * Geofence / trasa / nawigacja off nie gaszą tej flagi.
+ */
+export function isAdminGpsEnabled(flags: FeatureFlags): boolean {
+  return flags.gpsTrackingEnabled || flags.mapViewEnabled;
+}
+
+/** Uprawnienie `canEditRoute` — wymaga mapy i planowania trasy. */
+export function canAssignWorkerRouteEdit(flags: FeatureFlags): boolean {
+  return flags.mapViewEnabled && flags.routePlanningEnabled;
+}
+
+export type AdminGpsCapabilityFlags = Pick<
+  FeatureFlags,
+  | "gpsTrackingEnabled"
+  | "mapViewEnabled"
+  | "geofencingEnabled"
+  | "routePlanningEnabled"
+  | "navigationEnabled"
+>;
+
+export const DEFAULT_ADMIN_GPS_FLAGS: AdminGpsCapabilityFlags = {
+  gpsTrackingEnabled: true,
+  mapViewEnabled: true,
+  geofencingEnabled: true,
+  routePlanningEnabled: true,
+  navigationEnabled: true,
+};
+
+export function toAdminGpsFlags(flags: FeatureFlags): AdminGpsCapabilityFlags {
+  return {
+    gpsTrackingEnabled: flags.gpsTrackingEnabled,
+    mapViewEnabled: flags.mapViewEnabled,
+    geofencingEnabled: flags.geofencingEnabled,
+    routePlanningEnabled: flags.routePlanningEnabled,
+    navigationEnabled: flags.navigationEnabled,
+  };
 }
 
 /** Klucze flag do iteracji w UI (legacy — pełna lista). */

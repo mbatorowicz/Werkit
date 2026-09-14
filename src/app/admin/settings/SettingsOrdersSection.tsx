@@ -2,6 +2,7 @@
 
 import { useDictionary } from "@/i18n";
 import type { SettingsSnapshot } from "./SettingsForm";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 type Props = {
   settings: SettingsSnapshot;
@@ -18,6 +19,7 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
     timeOverrunReminder,
   } = settings;
   const dict = useDictionary().admin.settings;
+  const { gpsFlags } = useAdminAbility();
 
   return (
     <div
@@ -40,17 +42,19 @@ export function SettingsOrdersSection({ settings, updateField, mode }: Props) {
             className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
           />
         </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-zinc-400">{dict.geofenceLabel}</label>
-          <input
-            type="number"
-            step="100"
-            min="0"
-            value={geofenceRadiusMeters}
-            onChange={(e) => updateField("geofenceRadiusMeters", parseInt(e.target.value, 10))}
-            className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
-          />
-        </div>
+        {gpsFlags.geofencingEnabled ? (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-400">{dict.geofenceLabel}</label>
+            <input
+              type="number"
+              step="100"
+              min="0"
+              value={geofenceRadiusMeters}
+              onChange={(e) => updateField("geofenceRadiusMeters", parseInt(e.target.value, 10))}
+              className="w-full bg-[#f2fbfa] dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-zinc-900 dark:text-white outline-none"
+            />
+          </div>
+        ) : null}
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-400">{dict.reminderLabel}</label>
           <input

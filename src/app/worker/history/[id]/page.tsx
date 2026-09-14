@@ -80,11 +80,11 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   const companyId = await requireServerCompanyId();
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
-  const historyData = await WorkerSessionService.getSessionHistoryFull(
-    sessionId,
-    userId,
-    companyId
-  );
+  const { PlatformFeatureFlagService } = await import("@/services/PlatformFeatureFlagService");
+  const [historyData, featureFlags] = await Promise.all([
+    WorkerSessionService.getSessionHistoryFull(sessionId, userId, companyId),
+    PlatformFeatureFlagService.getFlags(companyId),
+  ]);
 
   if (!historyData) {
     notFound();
@@ -175,7 +175,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
         />
       </div>
 
-      {!isStationary ? (
+      {!isStationary && featureFlags.mapViewEnabled ? (
         <>
           <h3 className="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-3">
             {historyLabels.routeAndEventsTitle}
@@ -187,6 +187,8 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
                 pathTraveled={pathTraveled}
                 destination={destination}
                 events={mapEvents}
+                enableOsrmRoute={featureFlags.routePlanningEnabled}
+                enableNavigation={featureFlags.navigationEnabled}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center flex-col gap-2 text-zinc-500">

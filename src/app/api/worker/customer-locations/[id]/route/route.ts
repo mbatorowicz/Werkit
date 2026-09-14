@@ -3,6 +3,7 @@ import { getAuthSession } from "@/lib/auth";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 import { AdminUserService } from "@/services/AdminUserService";
 import { CustomerLocationService } from "@/services/CustomerLocationService";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { resolveTenantCompanyId } from "@/lib/tenantContext";
 
 export const PUT = withApiErrorHandling(
@@ -19,6 +20,11 @@ export const PUT = withApiErrorHandling(
       companyId = await resolveTenantCompanyId(session);
     } catch {
       return jsonError("forbidden", 403);
+    }
+
+    const flags = await PlatformFeatureFlagService.getFlags(companyId);
+    if (!flags.routePlanningEnabled) {
+      return jsonError("feature_disabled", 403);
     }
 
     const { id } = await ctx.params;

@@ -249,7 +249,7 @@ Edycja danych, status aktywna/zawieszona, dodawanie administratorów.
 
 ### 3. Ustawienia funkcji
 
-Feature flags: moduł GPS (śledzenie, mapa, geofencing, trasa, nawigacja) i moduł DUR.
+Feature flags: GPS niezależnie (śledzenie, mapa, geofencing, trasa, nawigacja — wyłączenie geofence nie wyłącza śledzenia) oraz moduł DUR.
 
 ### 4. Wskaźniki użycia
 

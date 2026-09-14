@@ -11,11 +11,18 @@ function flagsResponse(overrides: Partial<FeatureFlags> = {}) {
   return { flags: { ...DEFAULT_FEATURE_FLAGS, ...overrides } };
 }
 
-/** Checkboxy w kolejności renderu: [0] moduł GPS, [1] moduł DUR. */
+/** Checkboxy w kolejności renderu: 5 GPS + 1 DUR. */
 async function findToggles() {
   await screen.findByText(dict.subtitle);
   const checkboxes = screen.getAllByRole("checkbox");
-  return { gps: checkboxes[0], dur: checkboxes[1] };
+  return {
+    tracking: checkboxes[0],
+    map: checkboxes[1],
+    geofence: checkboxes[2],
+    route: checkboxes[3],
+    nav: checkboxes[4],
+    dur: checkboxes[5],
+  };
 }
 
 describe("FeatureFlagsSection", () => {
@@ -23,16 +30,19 @@ describe("FeatureFlagsSection", () => {
     vi.unstubAllGlobals();
   });
 
-  it("pobiera flagi GET-em i renderuje przełączniki ze stanem z API", async () => {
+  it("pobiera flagi GET-em i renderuje niezależne przełączniki GPS", async () => {
     const fetchMock = stubFetch([
       { url: "/api/platform/feature-flags/5", method: "GET", json: flagsResponse() },
     ]);
     renderWithProviders(<FeatureFlagsSection companyId={5} dict={dict} />);
 
-    const { gps, dur } = await findToggles();
-    expect(gps).toBeChecked();
+    const { tracking, map, geofence, dur } = await findToggles();
+    expect(tracking).toBeChecked();
+    expect(map).toBeChecked();
+    expect(geofence).toBeChecked();
     expect(dur).not.toBeChecked();
-    expect(screen.getByText(dict.gpsModuleEnabled)).toBeInTheDocument();
+    expect(screen.getByText(dict.gpsTrackingEnabled)).toBeInTheDocument();
+    expect(screen.getByText(dict.geofencingEnabled)).toBeInTheDocument();
     expect(screen.getByText(dict.durEnabledHint)).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/platform/feature-flags/5",
@@ -40,7 +50,7 @@ describe("FeatureFlagsSection", () => {
     );
   });
 
-  it("GET z wyłączonym GPS odznacza przełącznik modułu GPS", async () => {
+  it("GET z wyłączonym śledzeniem odznacza tylko GPS tracking", async () => {
     stubFetch([
       {
         url: "/api/platform/feature-flags/5",
@@ -50,8 +60,25 @@ describe("FeatureFlagsSection", () => {
     ]);
     renderWithProviders(<FeatureFlagsSection companyId={5} dict={dict} />);
 
-    const { gps } = await findToggles();
-    expect(gps).not.toBeChecked();
+    const { tracking, map, geofence } = await findToggles();
+    expect(tracking).not.toBeChecked();
+    expect(map).toBeChecked();
+    expect(geofence).toBeChecked();
+  });
+
+  it("GET z wyłączonym geofence zostawia śledzenie włączone", async () => {
+    stubFetch([
+      {
+        url: "/api/platform/feature-flags/5",
+        method: "GET",
+        json: flagsResponse({ geofencingEnabled: false }),
+      },
+    ]);
+    renderWithProviders(<FeatureFlagsSection companyId={5} dict={dict} />);
+
+    const { tracking, geofence } = await findToggles();
+    expect(tracking).toBeChecked();
+    expect(geofence).not.toBeChecked();
   });
 
   it("przełączenie modułu DUR wysyła PUT z patchem i pokazuje komunikat sukcesu", async () => {
@@ -73,7 +100,7 @@ describe("FeatureFlagsSection", () => {
     expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({ durEnabled: true });
   });
 
-  it("wyłączenie modułu GPS wysyła PUT ze wszystkimi flagami GPS na false", async () => {
+  it("wyłączenie geofence wysyła PUT tylko z geofencingEnabled", async () => {
     const fetchMock = stubFetch([
       { url: "/api/platform/feature-flags/5", method: "GET", json: flagsResponse() },
       { url: "/api/platform/feature-flags/5", method: "PUT", json: { ok: true } },
@@ -81,18 +108,13 @@ describe("FeatureFlagsSection", () => {
     const user = userEvent.setup();
     renderWithProviders(<FeatureFlagsSection companyId={5} dict={dict} />);
 
-    const { gps } = await findToggles();
-    await user.click(gps);
+    const { geofence, tracking } = await findToggles();
+    await user.click(geofence);
 
     await screen.findByText(dict.saveSuccess);
+    expect(tracking).toBeChecked();
     const putCall = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
-    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({
-      gpsTrackingEnabled: false,
-      mapViewEnabled: false,
-      geofencingEnabled: false,
-      routePlanningEnabled: false,
-      navigationEnabled: false,
-    });
+    expect(JSON.parse(String(putCall?.[1]?.body))).toEqual({ geofencingEnabled: false });
   });
 
   it("przy błędzie PUT wycofuje zmianę flagi i pokazuje komunikat błędu", async () => {
@@ -107,7 +129,6 @@ describe("FeatureFlagsSection", () => {
     await user.click(dur);
 
     expect(await screen.findByText(dict.saveError)).toBeInTheDocument();
-    // Rollback — DUR wraca do stanu wyjściowego (wyłączony).
     await waitFor(() => expect(dur).not.toBeChecked());
   });
 

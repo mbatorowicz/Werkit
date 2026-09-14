@@ -28,6 +28,10 @@ import {
 import { DEFAULT_FEATURE_FLAGS } from "@/types/featureFlags";
 import type { AppSettings } from "@/types/worker";
 
+function boolFlag(row: Record<string, unknown>, key: string, fallback: boolean): boolean {
+  return typeof row[key] === "boolean" ? (row[key] as boolean) : fallback;
+}
+
 /** Ustawienia widoczne dla workera — bez danych firmy z `company_settings`. */
 export function serializeWorkerAppSettings(row: unknown): AppSettings | null {
   if (row === null || row === undefined || typeof row !== "object" || Array.isArray(row)) {
@@ -35,11 +39,20 @@ export function serializeWorkerAppSettings(row: unknown): AppSettings | null {
   }
   const r = row as Record<string, unknown>;
   const s: AppSettings = {
-    gpsTrackingEnabled:
-      typeof r.gpsTrackingEnabled === "boolean"
-        ? r.gpsTrackingEnabled
-        : DEFAULT_FEATURE_FLAGS.gpsTrackingEnabled,
-    durEnabled: typeof r.durEnabled === "boolean" ? r.durEnabled : DEFAULT_FEATURE_FLAGS.durEnabled,
+    gpsTrackingEnabled: boolFlag(
+      r,
+      "gpsTrackingEnabled",
+      DEFAULT_FEATURE_FLAGS.gpsTrackingEnabled
+    ),
+    mapViewEnabled: boolFlag(r, "mapViewEnabled", DEFAULT_FEATURE_FLAGS.mapViewEnabled),
+    geofencingEnabled: boolFlag(r, "geofencingEnabled", DEFAULT_FEATURE_FLAGS.geofencingEnabled),
+    routePlanningEnabled: boolFlag(
+      r,
+      "routePlanningEnabled",
+      DEFAULT_FEATURE_FLAGS.routePlanningEnabled
+    ),
+    navigationEnabled: boolFlag(r, "navigationEnabled", DEFAULT_FEATURE_FLAGS.navigationEnabled),
+    durEnabled: boolFlag(r, "durEnabled", DEFAULT_FEATURE_FLAGS.durEnabled),
   };
   if (typeof r.requirePhotoToFinish === "boolean") s.requirePhotoToFinish = r.requirePhotoToFinish;
   if (typeof r.geofenceRadiusMeters === "number" && Number.isFinite(r.geofenceRadiusMeters)) {

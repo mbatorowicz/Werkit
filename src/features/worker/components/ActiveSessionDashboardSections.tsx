@@ -189,6 +189,8 @@ export function ActiveSessionMapSection({
   setIsTimelineOpen,
   setSelectedEventId,
   destinationName,
+  routePlanningEnabled = true,
+  navigationEnabled = true,
 }: {
   location: Coord | null;
   pathTraveled: Coord[];
@@ -201,6 +203,8 @@ export function ActiveSessionMapSection({
   setIsTimelineOpen: (val: boolean) => void;
   setSelectedEventId: (val: string | null) => void;
   destinationName: string | undefined;
+  routePlanningEnabled?: boolean;
+  navigationEnabled?: boolean;
 }) {
   return (
     <div className="w-full h-64 md:h-80 mt-4 relative z-0 isolate rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
@@ -210,9 +214,11 @@ export function ActiveSessionMapSection({
           pathTraveled={pathTraveled}
           destination={destination}
           plannedRouteWaypoints={plannedRouteWaypoints}
-          preferPivotNavigation
+          preferPivotNavigation={navigationEnabled}
+          enableOsrmRoute={routePlanningEnabled}
+          enableNavigation={navigationEnabled}
           thumbnail
-          editableRoute={canEditRoute}
+          editableRoute={canEditRoute && routePlanningEnabled}
           onAddRouteWaypoint={(lat, lng) => {
             onRouteWaypointsChange([...plannedRouteWaypoints, { lat, lng }]);
           }}

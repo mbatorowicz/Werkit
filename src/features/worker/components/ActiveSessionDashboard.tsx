@@ -150,8 +150,8 @@ export default function ActiveSessionDashboard({
         />
       )}
 
-      {/* MAPA — ukryta dla trybu stacjonarnego (brak sensu śledzenia trasy na mapie) */}
-      {!isStationarySession && (
+      {/* MAPA — ukryta dla trybu stacjonarnego i gdy organizacja wyłączyła widok mapy */}
+      {!isStationarySession && settings?.mapViewEnabled !== false && (
         <ActiveSessionMapSection
           location={location}
           pathTraveled={pathTraveled}
@@ -164,6 +164,8 @@ export default function ActiveSessionDashboard({
           setIsTimelineOpen={setIsTimelineOpen}
           setSelectedEventId={setSelectedEventId}
           destinationName={destinationName}
+          routePlanningEnabled={settings?.routePlanningEnabled !== false}
+          navigationEnabled={settings?.navigationEnabled !== false}
         />
       )}
 

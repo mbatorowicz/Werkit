@@ -38,6 +38,10 @@ interface LiveMapProps {
    * Obrót mapPane jest wyłączony — kierunek na znaczniku (patrz igła azymutu).
    */
   preferPivotNavigation?: boolean;
+  /** Trasa OSRM do celu i punkty pośrednie — flaga `routePlanningEnabled`. */
+  enableOsrmRoute?: boolean;
+  /** Tryb kamery nawigacji — flaga `navigationEnabled`. */
+  enableNavigation?: boolean;
   /** Klik na mapę dodaje punkt pośredni (wymaga `onAddRouteWaypoint`). */
   editableRoute?: boolean;
   onAddRouteWaypoint?: (lat: number, lng: number) => void;
@@ -97,19 +101,25 @@ export default function LiveMap({
   events = [],
   onEventClick,
   preferPivotNavigation = false,
+  enableOsrmRoute = true,
+  enableNavigation = true,
   editableRoute = false,
   onAddRouteWaypoint,
   onPlannedRouteWaypointsChange,
   thumbnail = false,
   destinationName,
 }: LiveMapProps) {
+  const routeDestination = enableOsrmRoute ? destination : null;
+  const routeWaypoints = enableOsrmRoute ? plannedRouteWaypoints : [];
   const routeToDest = useOsrmRouteToDestination(
     currentLocation,
-    destination,
-    onRouteDistance,
+    routeDestination,
+    enableOsrmRoute ? onRouteDistance : undefined,
     undefined,
-    plannedRouteWaypoints
+    routeWaypoints
   );
+  const navEnabled = enableNavigation && preferPivotNavigation;
+  const canEditWaypointsOnMap = Boolean(enableOsrmRoute && editableRoute && onPlannedRouteWaypointsChange);
 
   const [showHeadingNeedle, setShowHeadingNeedle] = useState(true);
   const [cameraFollowGps, setCameraFollowGps] = useState(true);
@@ -118,7 +128,6 @@ export default function LiveMap({
   const dictionary = useDictionary();
   const dict = dictionary.admin.map;
   const customersDict = dictionary.admin.customers;
-  const canEditWaypoints = Boolean(editableRoute && onPlannedRouteWaypointsChange);
 
   const handleMapAddWaypoint = useCallback(
     (lat: number, lng: number) => {
@@ -131,7 +140,7 @@ export default function LiveMap({
   const { headingKnown, navPivotMode, showNeedleOnMarker, fitContentMode, followPanMode } =
     computeLiveMapModes({
       thumbnail,
-      preferPivotNavigation,
+      preferPivotNavigation: navEnabled,
       heading: currentLocation.heading,
       showHeadingNeedle,
       hasDestination: Boolean(destination),
@@ -144,7 +153,7 @@ export default function LiveMap({
     queueMicrotask(() => {
       setCameraFollowGps(true);
     });
-  }, [preferPivotNavigation]);
+  }, [navEnabled]);
 
   const currentMarkerIcon = useMemo(
     () =>
@@ -187,7 +196,7 @@ export default function LiveMap({
 
           <MapInvalidateOnResize />
           {!thumbnail && <UserTakeoverOnMapGesture onTakeover={() => setCameraFollowGps(false)} />}
-          {!thumbnail && (
+          {!thumbnail && enableOsrmRoute && (
             <RouteWaypointClickLayer mode={waypointMode} onAdd={handleMapAddWaypoint} />
           )}
 
@@ -195,8 +204,8 @@ export default function LiveMap({
 
           {/* W trybie thumbnail punkty pośrednie są statyczne — brak przeciągania i usuwania */}
           <RouteWaypointMarkers
-            waypoints={plannedRouteWaypoints}
-            editable={!thumbnail && canEditWaypoints}
+            waypoints={enableOsrmRoute ? plannedRouteWaypoints : []}
+            editable={!thumbnail && canEditWaypointsOnMap}
             onWaypointsChange={onPlannedRouteWaypointsChange ?? (() => {})}
             deleteLabel={customersDict.routeDeleteWaypoint}
           />
@@ -234,10 +243,10 @@ export default function LiveMap({
         currentLocation={currentLocation}
         pathTraveled={pathTraveled}
         destination={destination}
-        plannedRouteWaypoints={plannedRouteWaypoints}
+        plannedRouteWaypoints={enableOsrmRoute ? plannedRouteWaypoints : []}
         events={events}
         onEventClick={onEventClick}
-        editableRoute={editableRoute}
+        editableRoute={enableOsrmRoute && editableRoute}
         onAddRouteWaypoint={onAddRouteWaypoint}
         onPlannedRouteWaypointsChange={onPlannedRouteWaypointsChange}
         destinationName={destinationName}

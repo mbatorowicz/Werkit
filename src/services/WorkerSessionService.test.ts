@@ -731,6 +731,10 @@ describe("serializeWorkerAppSettings", () => {
     });
     expect(s).toEqual({
       gpsTrackingEnabled: false,
+      mapViewEnabled: true,
+      geofencingEnabled: true,
+      routePlanningEnabled: true,
+      navigationEnabled: true,
       durEnabled: true,
       requirePhotoToFinish: true,
     });
@@ -740,6 +744,10 @@ describe("serializeWorkerAppSettings", () => {
     const { serializeWorkerAppSettings } = await import("./WorkerSessionService");
     expect(serializeWorkerAppSettings({ companyId: 1 })).toMatchObject({
       gpsTrackingEnabled: true,
+      mapViewEnabled: true,
+      geofencingEnabled: true,
+      routePlanningEnabled: true,
+      navigationEnabled: true,
       durEnabled: false,
     });
   });

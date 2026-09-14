@@ -77,7 +77,8 @@ export function usePeopleUserModal({
   reloadAll,
   setIsSubmitting,
 }: UsePeopleUserModalArgs): PeopleUserModalController {
-  const { canMutate, gpsEnabled, durEnabled } = useAdminAbility();
+  const { canMutate, gpsFlags, durEnabled } = useAdminAbility();
+  const canEditRouteOrg = gpsFlags.mapViewEnabled && gpsFlags.routePlanningEnabled;
   const { alert: appAlert } = useAppDialog();
   const dictionary = useDictionary();
   const workersDict = dictionary.admin.workers;
@@ -147,7 +148,7 @@ export function usePeopleUserModal({
       const u = users.find((row) => row.id === userId);
       if (!u) return;
       setEditUserId(u.id);
-      setUserForm(userFormFromRow(u, teams, gpsEnabled, durEnabled));
+      setUserForm(userFormFromRow(u, teams, canEditRouteOrg, durEnabled));
     } else {
       setEditUserId(null);
       setUserForm(emptyUserForm());
@@ -173,7 +174,7 @@ export function usePeopleUserModal({
           userForm.role === "worker" && userForm.teamId !== COMBO_NONE
             ? parseInt(userForm.teamId, 10)
             : null,
-        canEditRoute: gpsEnabled ? userForm.canEditRoute : false,
+        canEditRoute: canEditRouteOrg ? userForm.canEditRoute : false,
         isDurWorker: durEnabled ? userForm.isDurWorker : false,
       };
       const res = await fetchWithDeviceTelemetry(

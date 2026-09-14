@@ -5,8 +5,7 @@ import type { FeatureFlags } from "@/types/featureFlags";
 import {
   DEFAULT_FEATURE_FLAGS,
   DUR_FEATURE_FLAG_KEYS,
-  gpsModuleFlagsPatch,
-  isGpsModuleEnabled,
+  GPS_FEATURE_FLAG_KEYS,
 } from "@/types/featureFlags";
 import type { AppDictionary } from "@/i18n/types";
 import { useDictionary } from "@/i18n";
@@ -18,6 +17,14 @@ type Props = {
   /** Gdy true — render w wierszu tabeli (bez marginesu górnego). */
   inline?: boolean;
 };
+
+type GpsFlagKey = (typeof GPS_FEATURE_FLAG_KEYS)[number];
+
+function gpsFlagHint(dict: Props["dict"], key: GpsFlagKey): string {
+  const hintKey = `${key}Hint` as keyof Props["dict"];
+  const hint = dict[hintKey];
+  return typeof hint === "string" ? hint : "";
+}
 
 export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) {
   const apiErrors = useDictionary().apiErrors as Record<string, string>;
@@ -79,18 +86,8 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
     }
   }
 
-  async function toggleGpsModule() {
+  async function toggleFlag(key: keyof FeatureFlags) {
     if (saving) return;
-    const newValue = !isGpsModuleEnabled(flags);
-    const rollback = flags;
-    const patch = gpsModuleFlagsPatch(newValue);
-    setFlags((prev) => ({ ...prev, ...patch }));
-    await persistFlags(patch, rollback);
-  }
-
-  async function toggleDurModule() {
-    if (saving) return;
-    const key = DUR_FEATURE_FLAG_KEYS[0];
     const newValue = !flags[key];
     const rollback = flags;
     setFlags((prev) => ({ ...prev, [key]: newValue }));
@@ -118,21 +115,20 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
 
       <div className="space-y-5">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             {dict.gpsModuleTitle}
           </p>
+          <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">{dict.gpsModuleHint}</p>
           <WorkerPermissionToggles
-            toggles={[
-              {
-                id: "gps-module",
-                checked: isGpsModuleEnabled(flags),
-                onChange: () => {
-                  void toggleGpsModule();
-                },
-                label: dict.gpsModuleEnabled,
-                hint: dict.gpsModuleHint,
+            toggles={GPS_FEATURE_FLAG_KEYS.map((key) => ({
+              id: key,
+              checked: flags[key],
+              onChange: () => {
+                void toggleFlag(key);
               },
-            ]}
+              label: dict[key],
+              hint: gpsFlagHint(dict, key),
+            }))}
           />
         </div>
 
@@ -146,7 +142,7 @@ export function FeatureFlagsSection({ companyId, dict, inline = false }: Props) 
                 id: "dur-module",
                 checked: flags.durEnabled,
                 onChange: () => {
-                  void toggleDurModule();
+                  void toggleFlag(DUR_FEATURE_FLAG_KEYS[0]);
                 },
                 label: dict.durEnabled,
                 hint: dict.durEnabledHint,

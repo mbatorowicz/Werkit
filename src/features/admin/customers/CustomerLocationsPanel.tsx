@@ -6,6 +6,7 @@ import { useDictionary } from "@/i18n";
 import { CustomerAddressFields } from "@/components/customers/CustomerAddressFields";
 import { CustomerLocationChips } from "./CustomerLocationChips";
 import { useCustomerLocations, locationAddressParts } from "./useCustomerLocations";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 const CustomerRoutePlannerMap = dynamic(
   () => import("@/components/Map/CustomerRoutePlannerMap").then((m) => m.CustomerRoutePlannerMap),
@@ -19,6 +20,8 @@ const CustomerRoutePlannerMap = dynamic(
 
 export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
   const dict = useDictionary().admin.customers;
+  const { gpsFlags } = useAdminAbility();
+  const showRouteMap = gpsFlags.mapViewEnabled;
   const {
     locations,
     selectedId,
@@ -124,14 +127,14 @@ export function CustomerLocationsPanel({ customerId }: { customerId: number }) {
           >
             {geocodeBusy ? dict.geocodeLoading : dict.geocodeBtn}
           </button>
-          {routeOrigin ? (
+          {showRouteMap && routeOrigin ? (
             <CustomerRoutePlannerMap
               routeOrigin={routeOrigin}
               destination={destination}
-              waypoints={waypoints}
+              waypoints={gpsFlags.routePlanningEnabled ? waypoints : []}
               onWaypointsChange={setWaypoints}
               onDestinationChange={applyDestination}
-              editable
+              editable={gpsFlags.routePlanningEnabled}
               heightClass="h-[300px]"
             />
           ) : null}

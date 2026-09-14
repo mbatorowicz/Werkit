@@ -114,6 +114,10 @@ export type AppSettings = {
   durEnabled?: boolean;
   /** Śledzenie GPS sesji — flaga organizacji (`company_settings.gps_tracking_enabled`). */
   gpsTrackingEnabled?: boolean;
+  mapViewEnabled?: boolean;
+  geofencingEnabled?: boolean;
+  routePlanningEnabled?: boolean;
+  navigationEnabled?: boolean;
 };
 
 export type UserData = {

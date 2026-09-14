@@ -366,9 +366,9 @@ export const helpPl = {
           "Każda organizacja może mieć włączone lub wyłączone moduły niezależnie od innych.",
         ],
         bullets: [
-          "Moduł GPS i mapa — śledzenie pozycji, widok mapy, geofencing, planowanie trasy OSRM, nawigacja turn-by-turn.",
+          "Śledzenie GPS, widok mapy, geofencing, planowanie trasy i nawigacja — niezależne przełączniki (wyłączenie geofence nie wyłącza śledzenia).",
           "Moduł utrzymania ruchu (DUR) — magazyn części, typy zasobów, części na zleceniach napraw.",
-          "Zmiany zapisuj osobno dla każdej organizacji — wpływają natychmiast na widoczność menu.",
+          "Zmiany zapisuj osobno dla każdej organizacji — wpływają natychmiast na widoczność menu i zachowanie aplikacji.",
         ],
       },
       {

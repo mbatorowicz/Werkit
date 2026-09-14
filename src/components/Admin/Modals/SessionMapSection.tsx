@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { createContext, useContext } from "react";
 import { getDictionary, type Locale } from "@/i18n";
 import type { TimelineItem } from "@/types/worker";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 
 const SessionDetailsLocaleContext = createContext<Locale>("pl");
 
@@ -49,7 +50,8 @@ export default function SessionMapSection({
   events,
   dict,
 }: SessionMapSectionProps) {
-  if (isStationary) return null;
+  const { gpsFlags } = useAdminAbility();
+  if (isStationary || !gpsFlags.mapViewEnabled) return null;
 
   return (
     <div className="h-[400px] overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
@@ -59,6 +61,8 @@ export default function SessionMapSection({
           pathTraveled={pathTraveled}
           destination={null}
           events={events}
+          enableOsrmRoute={gpsFlags.routePlanningEnabled}
+          enableNavigation={gpsFlags.navigationEnabled}
         />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center bg-zinc-50 text-zinc-500 dark:bg-zinc-800/50">

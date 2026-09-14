@@ -3,6 +3,7 @@ import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { CustomerLocationService } from "@/services/CustomerLocationService";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const PUT = withApiErrorHandling(
   async (req: Request, ctx: { params: Promise<{ id: string; locationId: string }> }) => {
@@ -26,8 +27,12 @@ export const PUT = withApiErrorHandling(
     if (body.longitude !== null && body.longitude !== undefined)
       patch.longitude = String(body.longitude);
     if (body.isDefault === true) patch.isDefault = true;
-    if (body.routeWaypoints !== undefined)
-      patch.routeWaypoints = parseRouteWaypoints(body.routeWaypoints);
+    if (body.routeWaypoints !== undefined) {
+      const flags = await PlatformFeatureFlagService.getFlags(companyId);
+      if (flags.routePlanningEnabled) {
+        patch.routeWaypoints = parseRouteWaypoints(body.routeWaypoints);
+      }
+    }
     const row = await CustomerLocationService.updateLocation(locId, patch, companyId);
     if (!row) return jsonError("not_found", 404);
     return jsonOk(row);

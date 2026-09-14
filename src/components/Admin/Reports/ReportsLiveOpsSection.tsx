@@ -1,9 +1,12 @@
+"use client";
+
 import LiveMap from "@/components/Map/LiveMap";
 import { MapPin } from "lucide-react";
 import type { AppDictionary } from "@/i18n/types";
 import type { ReportsDashboardSnapshot } from "@/types/admin";
 import { formatUiTimeHm } from "@/i18n";
 import { INLINE_SCROLL_X_PANEL_CLASS } from "@/components/scrollPanelStyles";
+import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import {
   TABLE_BODY_ROW,
   TABLE_CELL_NAME,
@@ -26,9 +29,12 @@ export function ReportsLiveOpsSection({
   dashboardDict: d,
   snapshot,
 }: ReportsLiveOpsSectionProps) {
+  const { gpsFlags } = useAdminAbility();
+  const showMap = gpsFlags.mapViewEnabled;
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-      <div className="xl:col-span-2 space-y-6">
+    <div className={`grid grid-cols-1 gap-6 ${showMap ? "xl:grid-cols-3" : ""}`}>
+      <div className={showMap ? "xl:col-span-2 space-y-6" : "space-y-6"}>
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg flex flex-col overflow-hidden shadow-sm">
           <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50">
             <h2 className="font-semibold text-zinc-900 dark:text-white">
@@ -74,6 +80,7 @@ export function ReportsLiveOpsSection({
         </div>
       </div>
 
+      {showMap ? (
       <div className="xl:col-span-1 min-h-[450px]">
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden h-full flex flex-col relative shadow-sm min-h-[450px]">
           <div className="absolute top-0 left-0 right-0 px-5 py-4 bg-gradient-to-b from-white/90 dark:from-zinc-950/90 to-transparent z-10 pointer-events-none">
@@ -90,10 +97,13 @@ export function ReportsLiveOpsSection({
               currentLocation={{ lat: snapshot.mapLat, lng: snapshot.mapLng }}
               pathTraveled={[]}
               destination={null}
+              enableOsrmRoute={gpsFlags.routePlanningEnabled}
+              enableNavigation={gpsFlags.navigationEnabled}
             />
           </div>
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

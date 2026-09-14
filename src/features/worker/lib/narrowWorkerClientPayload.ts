@@ -91,6 +91,10 @@ export function narrowAppSettings(v: unknown): AppSettings | null {
   }
   if (typeof v.durEnabled === "boolean") s.durEnabled = v.durEnabled;
   if (typeof v.gpsTrackingEnabled === "boolean") s.gpsTrackingEnabled = v.gpsTrackingEnabled;
+  if (typeof v.mapViewEnabled === "boolean") s.mapViewEnabled = v.mapViewEnabled;
+  if (typeof v.geofencingEnabled === "boolean") s.geofencingEnabled = v.geofencingEnabled;
+  if (typeof v.routePlanningEnabled === "boolean") s.routePlanningEnabled = v.routePlanningEnabled;
+  if (typeof v.navigationEnabled === "boolean") s.navigationEnabled = v.navigationEnabled;
   return s;
 }
 

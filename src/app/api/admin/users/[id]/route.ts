@@ -9,7 +9,7 @@ import {
   workerPermissionsFromBody,
 } from "@/lib/workerUserPermissions";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { isGpsModuleEnabled } from "@/types/featureFlags";
+import { canAssignWorkerRouteEdit } from "@/types/featureFlags";
 import { DelegationScopeService } from "@/services/DelegationScopeService";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +76,7 @@ export const PUT = withApiErrorHandling(
 
     const featureFlags = await PlatformFeatureFlagService.getFlags(companyId);
     const flags = clampWorkerPermissionsForOrg(workerPermissionsFromBody(normalizedRole, body), {
-      gpsModuleEnabled: isGpsModuleEnabled(featureFlags),
+      gpsModuleEnabled: canAssignWorkerRouteEdit(featureFlags),
       durEnabled: featureFlags.durEnabled,
     });
     updateData.canCreateOwnOrders = flags.canCreateOwnOrders;

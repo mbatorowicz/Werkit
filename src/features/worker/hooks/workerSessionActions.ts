@@ -1,6 +1,7 @@
 import { appDialogApiMessage } from "@/components/AppDialogProvider";
 import type { AppAlertOptions, AppConfirmOptions } from "@/components/AppDialogProvider";
 import { formatDict } from "@/i18n";
+import { shouldPromptArrivalGeofence } from "@/features/worker/lib/arrivalGeofence";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { offlineActionQueue } from "@/lib/offlineActionQueue";
@@ -186,15 +187,20 @@ export async function checkpointAction(
 ): Promise<void> {
   const { dict, appAlert, appConfirm, fetchSessionAndPath, setIsLoading } = deps;
   const { location, settings, distanceToDestKm, categoryIsStationary } = args;
-  if (!categoryIsStationary && settings?.geofenceRadiusMeters && distanceToDestKm !== null) {
-    const distMeters = distanceToDestKm * 1000;
-    if (distMeters > settings.geofenceRadiusMeters) {
-      const msg = formatDict(dict.geofenceConfirm, {
-        dist: Math.round(distMeters),
-        max: settings.geofenceRadiusMeters,
-      });
-      if (!(await appConfirm({ message: msg, variant: "danger" }))) return;
-    }
+  if (
+    shouldPromptArrivalGeofence({
+      categoryIsStationary,
+      geofencingEnabled: settings?.geofencingEnabled,
+      geofenceRadiusMeters: settings?.geofenceRadiusMeters,
+      distanceToDestKm,
+    })
+  ) {
+    const distMeters = (distanceToDestKm ?? 0) * 1000;
+    const msg = formatDict(dict.geofenceConfirm, {
+      dist: Math.round(distMeters),
+      max: settings?.geofenceRadiusMeters ?? 0,
+    });
+    if (!(await appConfirm({ message: msg, variant: "danger" }))) return;
   }
   setIsLoading(true);
   try {

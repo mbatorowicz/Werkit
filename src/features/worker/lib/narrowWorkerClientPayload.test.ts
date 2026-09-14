@@ -8,15 +8,23 @@ describe("narrowAppSettings", () => {
     expect(narrowAppSettings(1)).toBeNull();
   });
 
-  it("przepuszcza gpsTrackingEnabled i durEnabled", () => {
+  it("przepuszcza niezależne flagi GPS i durEnabled", () => {
     expect(
       narrowAppSettings({
         gpsTrackingEnabled: false,
+        mapViewEnabled: true,
+        geofencingEnabled: false,
+        routePlanningEnabled: true,
+        navigationEnabled: false,
         durEnabled: true,
         requirePhotoToFinish: true,
       })
     ).toEqual({
       gpsTrackingEnabled: false,
+      mapViewEnabled: true,
+      geofencingEnabled: false,
+      routePlanningEnabled: true,
+      navigationEnabled: false,
       durEnabled: true,
       requirePhotoToFinish: true,
     });

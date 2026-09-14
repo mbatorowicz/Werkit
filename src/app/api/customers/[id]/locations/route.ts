@@ -3,6 +3,7 @@ import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 import { CustomerLocationService } from "@/services/CustomerLocationService";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
+import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const GET = withApiErrorHandling(
   async (_req: Request, ctx: { params: Promise<{ id: string }> }) => {
@@ -39,6 +40,7 @@ export const POST = withApiErrorHandling(
     const longitude =
       body.longitude !== null && body.longitude !== undefined ? String(body.longitude) : "";
     if (!label || !latitude || !longitude) return jsonError("missing_fields", 400);
+    const flags = await PlatformFeatureFlagService.getFlags(companyId);
     const row = await CustomerLocationService.createLocation({
       customerId,
       label,
@@ -46,7 +48,7 @@ export const POST = withApiErrorHandling(
       latitude,
       longitude,
       isDefault: body.isDefault === true,
-      routeWaypoints: parseRouteWaypoints(body.routeWaypoints),
+      routeWaypoints: flags.routePlanningEnabled ? parseRouteWaypoints(body.routeWaypoints) : [],
       companyId,
     });
     return jsonOk(row);

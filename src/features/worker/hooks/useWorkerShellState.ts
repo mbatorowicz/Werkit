@@ -77,6 +77,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
     async (next: Coord[]) => {
       setRouteWaypoints(next);
       if (!customerLocationId || !currentUser?.canEditRoute) return;
+      if (settings?.routePlanningEnabled === false) return;
       try {
         await fetchWithDeviceTelemetry(
           `Worker: save route waypoints ${customerLocationId}`,
@@ -92,7 +93,7 @@ export function useWorkerShellState(initialData: InitialWorkerData | null) {
         /* zapis trasy opcjonalny */
       }
     },
-    [customerLocationId, currentUser?.canEditRoute]
+    [customerLocationId, currentUser?.canEditRoute, settings?.routePlanningEnabled]
   );
 
   return {

@@ -8,7 +8,7 @@ import {
   clampWorkerPermissionsForOrg,
 } from "@/lib/workerUserPermissions";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { isGpsModuleEnabled } from "@/types/featureFlags";
+import { canAssignWorkerRouteEdit } from "@/types/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +57,7 @@ export const POST = withApiErrorHandling(
     const featureFlags = await PlatformFeatureFlagService.getFlags(companyId);
     const permissions = clampWorkerPermissionsForOrg(
       workerPermissionsFromBody(normalizedRole, body),
-      { gpsModuleEnabled: isGpsModuleEnabled(featureFlags), durEnabled: featureFlags.durEnabled }
+      { gpsModuleEnabled: canAssignWorkerRouteEdit(featureFlags), durEnabled: featureFlags.durEnabled }
     );
 
     if (!fullName || !usernameEmail || !password) {

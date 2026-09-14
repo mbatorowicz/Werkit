@@ -20,7 +20,7 @@ import { INLINE_SCROLL_PANEL_CLASS } from "@/components/scrollPanelStyles";
 import { VERTICAL_SCROLL_PANEL_CLASS } from "@/lib/uiScrollPanels";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
-import { isGpsModuleEnabled } from "@/types/featureFlags";
+import { isAdminGpsEnabled, toAdminGpsFlags } from "@/types/featureFlags";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +71,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       canMutate={canMutate}
       canDelegateOrders={canDelegateOrders}
       delegationScope={delegationScope}
-      gpsEnabled={isGpsModuleEnabled(featureFlags)}
+      gpsEnabled={isAdminGpsEnabled(featureFlags)}
+      gpsFlags={toAdminGpsFlags(featureFlags)}
       durEnabled={featureFlags.durEnabled}
     >
       <div className="layout-admin flex h-[100svh] max-h-[100dvh] overflow-hidden bg-[#f2fbfa] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">

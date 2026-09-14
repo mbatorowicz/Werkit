@@ -44,7 +44,11 @@ export function WorkerActiveSessionFromShell({ shell, ...rest }: Props) {
       currentUser={shell.currentUser}
       setDistanceToDestKm={shell.setDistanceToDestKm}
       plannedRouteWaypoints={shell.routeWaypoints}
-      canEditRoute={Boolean(shell.currentUser?.canEditRoute)}
+      canEditRoute={
+        Boolean(shell.currentUser?.canEditRoute) &&
+        shell.settings?.mapViewEnabled !== false &&
+        shell.settings?.routePlanningEnabled !== false
+      }
       onRouteWaypointsChange={(next) => {
         void shell.persistRouteWaypoints(next);
       }}

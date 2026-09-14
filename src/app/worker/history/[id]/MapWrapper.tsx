@@ -19,6 +19,8 @@ interface MapWrapperProps {
   pathTraveled: Coord[];
   destination: { lat: number; lng: number } | null;
   events?: TimelineItem[];
+  enableOsrmRoute?: boolean;
+  enableNavigation?: boolean;
 }
 
 export default function MapWrapper(props: MapWrapperProps) {

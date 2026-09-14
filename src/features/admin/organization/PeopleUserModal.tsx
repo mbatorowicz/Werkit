@@ -13,7 +13,7 @@ interface PeopleUserModalProps {
 }
 
 export function PeopleUserModal({ controller, isSubmitting }: PeopleUserModalProps) {
-  const { canMutate, gpsEnabled, durEnabled } = useAdminAbility();
+  const { canMutate, gpsFlags, durEnabled } = useAdminAbility();
   const dictionary = useDictionary();
   const workersDict = dictionary.admin.workers;
   const { org: _org, ...workersFlat } = workersDict;
@@ -61,7 +61,7 @@ export function PeopleUserModal({ controller, isSubmitting }: PeopleUserModalPro
           onFormChange={setUserForm}
           onTogglePassword={() => setShowPassword((v) => !v)}
           dict={formDict}
-          gpsEnabled={gpsEnabled}
+          gpsEnabled={gpsFlags.mapViewEnabled && gpsFlags.routePlanningEnabled}
           durEnabled={durEnabled}
           supervisorOptions={supervisorOptions}
           departmentOptions={departmentOptions}
