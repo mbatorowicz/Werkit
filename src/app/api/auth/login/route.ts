@@ -3,7 +3,12 @@ import { SignJWT } from "jose";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { comparePassword, DUMMY_BCRYPT_HASH } from "@/lib/passwordCrypto";
-import { AUTH_TOKEN_MAX_AGE_SECONDS, authTokenCookieAttrs, isHttpsRequest } from "@/lib/authCookie";
+import {
+  AUTH_TOKEN_MAX_AGE_SECONDS,
+  authTokenCookieAttrs,
+  clearPlatformResumeCookie,
+  isHttpsRequest,
+} from "@/lib/authCookie";
 import { clearLoginRateLimit, isLoginRateLimited, recordLoginFailure } from "@/lib/serverRateLimit";
 
 function isLikelyDatabaseOrInfraError(err: unknown): boolean {
@@ -90,6 +95,7 @@ export const POST = withApiErrorHandling(
       user: { id: user.id, fullName: user.fullName, role: user.role },
     });
 
+    clearPlatformResumeCookie(response, isHttps);
     response.cookies.set({
       ...authTokenCookieAttrs(isHttps),
       value: jwt,

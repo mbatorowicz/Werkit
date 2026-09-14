@@ -1,6 +1,6 @@
 # Plan panelu platformy — control plane multi-tenant
 
-> **Status:** PL0 wdrożone (2026-09-14). PL1–PL3 otwarte.  
+> **Status:** PL0 i PL1 wdrożone (2026-09-14). PL2–PL3 otwarte.  
 > **Źródło:** czat „Panel superadmina multi-tenant”.  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-PLAT-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1). Billing, SSO, trial-daty, PostgreSQL RLS, kasowanie firmy z UI — **nie w PL0–PL3**.
@@ -340,7 +340,7 @@ Po PL1: ręcznie w przeglądarce — start impersonacji → banner → jedna mut
 ## Checklista
 
 - [x] **PL0** — lista adminów/viewerów, reset hasła, deaktywacja + `last_admin`; `last_login_at`; `platform_audit_events` + zapis na mutacjach platformy
-- [ ] **PL1** — impersonacja admin/viewer, cookie `platform_resume`, TTL 30 min, banner, zakaz `/worker`, audyt start/end
+- [x] **PL1** — impersonacja admin/viewer, cookie `platform_resume`, TTL 30 min, banner, zakaz `/worker`, audyt start/end
 - [ ] **PL2** — `lifecycle_status` + notatka; presety `field_ops` / `field_ops_mro` / `yard`; `is_active` zsynchronizowane
 - [ ] **PL3** — overview zdrowia; `/platform/audit`; bez silnika seats
 - [ ] SYSTEM_MAP §4.3 / §5.3 + i18n pl/en/de w każdym PR

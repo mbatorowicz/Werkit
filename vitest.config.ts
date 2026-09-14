@@ -12,6 +12,9 @@ export default defineConfig({
   },
   test: {
     passWithNoTests: false,
+    env: {
+      JWT_SECRET: process.env.JWT_SECRET || "unit-test-jwt-secret-do-not-use",
+    },
     projects: [
       {
         extends: true,

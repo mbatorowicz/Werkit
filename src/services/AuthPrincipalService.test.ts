@@ -104,4 +104,96 @@ describe("AuthPrincipalService.resolve", () => {
     });
     expect(getCompanyById).not.toHaveBeenCalled();
   });
+
+  describe("impersonacja", () => {
+    const actor = {
+      id: 2,
+      isActive: true,
+      role: "superadmin",
+      companyId: null,
+      fullName: "Platform",
+    };
+    const targetAdmin = {
+      id: 10,
+      isActive: true,
+      role: "admin",
+      companyId: 7,
+      fullName: "Anna",
+    };
+
+    function mockUsers(map: Record<number, typeof actor | typeof targetAdmin | null>) {
+      getUserById.mockImplementation(async (id: unknown) => map[Number(id)] ?? null);
+    }
+
+    it("brak aktora superadmin → null", async () => {
+      mockUsers({
+        2: { ...actor, role: "admin", companyId: 1 },
+        10: targetAdmin,
+      });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "admin", companyId: 7, impersonatorUserId: 2 })
+        )
+      ).resolves.toBeNull();
+      expect(getCompanyById).not.toHaveBeenCalled();
+    });
+
+    it("nieaktywny aktor → null", async () => {
+      mockUsers({ 2: { ...actor, isActive: false }, 10: targetAdmin });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "admin", companyId: 7, impersonatorUserId: 2 })
+        )
+      ).resolves.toBeNull();
+    });
+
+    it("firma celu nieaktywna → null", async () => {
+      mockUsers({ 2: actor, 10: targetAdmin });
+      getCompanyById.mockResolvedValue({ id: 7, isActive: false });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "admin", companyId: 7, impersonatorUserId: 2 })
+        )
+      ).resolves.toBeNull();
+    });
+
+    it("cel worker → null", async () => {
+      mockUsers({
+        2: actor,
+        10: { ...targetAdmin, role: "worker" },
+      });
+      getCompanyById.mockResolvedValue({ id: 7, isActive: true });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "admin", companyId: 7, impersonatorUserId: 2 })
+        )
+      ).resolves.toBeNull();
+    });
+
+    it("companyId JWT ≠ firma celu → null", async () => {
+      mockUsers({ 2: actor, 10: targetAdmin });
+      getCompanyById.mockResolvedValue({ id: 7, isActive: true });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "admin", companyId: 99, impersonatorUserId: 2 })
+        )
+      ).resolves.toBeNull();
+    });
+
+    it("zwraca principal celu z impersonatorUserId", async () => {
+      mockUsers({ 2: actor, 10: targetAdmin });
+      getCompanyById.mockResolvedValue({ id: 7, isActive: true });
+      await expect(
+        AuthPrincipalService.resolve(
+          jwt({ userId: 10, role: "viewer", companyId: 7, impersonatorUserId: 2 })
+        )
+      ).resolves.toEqual({
+        userId: 10,
+        role: "admin",
+        companyId: 7,
+        fullName: "Anna",
+        impersonatorUserId: 2,
+      });
+    });
+  });
 });

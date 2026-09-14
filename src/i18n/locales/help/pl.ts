@@ -382,6 +382,19 @@ export const helpPl = {
           "Logi urządzeń (7 dni) — wolumen diagnostyki z pola.",
         ],
       },
+      {
+        id: "impersonation",
+        title: "5. Wejście jako wsparcie (panel admina firmy)",
+        paragraphs: [
+          "Superadmin nie ma stałego tenanta. Żeby zobaczyć panel jak klient, wchodzisz jako konkretne konto administratora albo podglądu tej organizacji — na maksymalnie 30 minut.",
+        ],
+        bullets: [
+          "W szczegółach organizacji, zakładka Administratorzy: „Wejdź jako podgląd” albo „Wejdź jako admin” (drugie potwierdzenie, bo mutacje idą na konto klienta).",
+          "W panelu firmy widać pasek „Wsparcie platformy”. Zakończ wraca do konsoli /platform.",
+          "Aplikacja pracownika (/worker) jest zablokowana nawet przy impersonacji.",
+          "Wejście i wyjście są zapisane w dzienniku platformy. Nie używaj zwykłego wylogowania, jeśli chcesz wrócić na konsolę — kliknij Zakończ.",
+        ],
+      },
     ],
   } satisfies HelpPageContent,
 } as const;

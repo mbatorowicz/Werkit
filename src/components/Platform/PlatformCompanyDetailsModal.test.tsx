@@ -107,6 +107,7 @@ describe("PlatformCompanyDetailsModal", () => {
     ).toBeInTheDocument();
     expect(await screen.findByText("Ewa Viewer")).toBeInTheDocument();
     expect(screen.getByText(dict.lastLoginNever)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: dict.impersonateAsViewer })).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(dict.adminName), "Anna Admin");
     await user.type(screen.getByLabelText(dict.adminEmail), "anna@firma.pl");
@@ -177,6 +178,54 @@ describe("PlatformCompanyDetailsModal", () => {
       expect(call).toBeDefined();
       expect(JSON.parse(String(call?.[1]?.body))).toEqual({ isActive: false });
     });
+  });
+
+  it("zakładka Administratorzy: wejdź jako podgląd woła POST impersonation i idzie na /admin", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("location", { assign });
+
+    const fetchMock = stubFetch([
+      {
+        url: "/api/platform/companies/7/users",
+        method: "GET",
+        json: {
+          users: [
+            {
+              id: 11,
+              fullName: "Ewa Viewer",
+              usernameEmail: "ewa@firma.pl",
+              role: "viewer",
+              isActive: true,
+              lastLoginAt: null,
+            },
+          ],
+        },
+      },
+      { url: "/api/platform/impersonation", method: "POST", json: { success: true } },
+    ]);
+    const user = userEvent.setup();
+    renderModal();
+
+    await user.click(screen.getByRole("tab", { name: dict.tabAdmins }));
+    expect(await screen.findByText("Ewa Viewer")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: dict.impersonateAsViewer }));
+    const impersonateButtons = screen.getAllByRole("button", { name: dict.impersonateAsViewer });
+    await user.click(impersonateButtons[impersonateButtons.length - 1]);
+    await user.click(screen.getByRole("button", { name: plDict.admin.ui.dialogConfirm }));
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(([input, init]) =>
+        String(input).includes("/api/platform/impersonation") && init?.method === "POST"
+      );
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+        companyId: 7,
+        targetUserId: 11,
+      });
+    });
+    expect(assign).toHaveBeenCalledWith("/admin");
+    vi.unstubAllGlobals();
   });
 
   it("zakładka Wskaźniki: pokazuje liczniki użytkowania", async () => {

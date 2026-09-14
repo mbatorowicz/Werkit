@@ -78,4 +78,22 @@ describe("livePrincipal", () => {
     if (!result.ok) return;
     expect(result.principal).toMatchObject({ userId: 1, role: "admin", companyId: 4 });
   });
+
+  it("jwtFromLivePrincipal zachowuje impersonatorUserId", async () => {
+    const { jwtFromLivePrincipal } = await import("@/lib/livePrincipal");
+    expect(
+      jwtFromLivePrincipal({
+        userId: 9,
+        role: "viewer",
+        companyId: 3,
+        fullName: "Ewa",
+        impersonatorUserId: 2,
+      })
+    ).toEqual({
+      userId: 9,
+      role: "viewer",
+      companyId: 3,
+      impersonatorUserId: 2,
+    });
+  });
 });

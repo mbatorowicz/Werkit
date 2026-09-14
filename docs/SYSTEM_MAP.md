@@ -162,6 +162,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
+- Przy impersonacji (principal.impersonatorUserId) — `ImpersonationBanner` na pełnej szerokości nad sidebarem.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
 - Sidebar: materiały zawsze; **części zamienne** (`/admin/dur/warehouse`) tylko gdy `durEnabled` — oba linki jako rodzeństwo w sekcji Logistyka (ikona `Boxes`, nie `Package` jak klienci). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines` **zawsze** (nie za DUR). Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
 
@@ -174,6 +175,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.3. Layout `platform`
 - `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
 - Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*` (control plane: konta firmy, flagi pakietu, audyt). **Nie** ogląda mapy GPS ani magazynu tenanta.
+- **Impersonacja (PL1):** superadmin wchodzi w `/admin` jako istniejące konto `admin`/`viewer` firmy. Cookie `platform_resume` trzyma JWT superadmina; `auth_token` to JWT celu (TTL 30 min, claim `impersonatorUserId`). Banner w `admin/layout.tsx` — **Zakończ** → `POST /api/platform/impersonation/end` → `/platform`. Czysty superadmin nadal nie wejdzie na `/admin`. `/worker` zablokowany.
 
 ---
 
@@ -234,6 +236,9 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` |
 | `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags`; audyt `flags.update` |
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
+| `/api/platform/impersonation` | GET | Status sesji wsparcia `{ active }` — superadmin albo impersonacja (claim `impersonatorUserId`) |
+| `/api/platform/impersonation` | POST `{ companyId, targetUserId, reason? }` | Start: kopia `auth_token` → `platform_resume`, JWT celu 30 min; audyt `impersonation.start`. 403 `company_inactive` / `user_inactive`; 409 `already_impersonating` |
+| `/api/platform/impersonation/end` | POST | Przywraca `auth_token` z `platform_resume` (działa po wygaśnięciu support JWT); audyt `impersonation.end`. 400 `no_resume` |
 
 ### 5.4. Admin (deny-by-default → tylko admin/viewer)
 
@@ -320,6 +325,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `AuthPrincipalService`
 - `resolve(session)` — żywy principal z DB: user istnieje i `isActive`, rola z wiersza (nie z JWT), `companyId` z `users.company_id` (JWT może się różnić). Dla ról firmowych: firma istnieje i `companies.isActive`. Superadmin bez firmy — bez odczytu `companies`. Porażka → `null` (API: 401 + kasowanie cookie).
+- **Impersonacja:** gdy JWT ma `impersonatorUserId` — aktor musi być aktywnym superadminem w DB; cel aktywnym `admin`/`viewer`, `companyId` JWT === `users.company_id`, firma aktywna. Zwraca principal **celu** (+ `impersonatorUserId`). Cel worker / nieaktywna firma / martwy aktor → `null`.
 - Helpery: `src/lib/livePrincipal.ts` (`assertLivePrincipal`, `requireLivePrincipalOr401`, layout `requireLiveCompanyPrincipalOrRedirect` / `requireLiveSuperadminOrRedirect`).
 
 ### `LoginRateLimitService`
@@ -404,7 +410,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - Lista adminów/viewerów firmy (bez `passwordHash`), dezaktywacja z blokadą `last_admin`, reset hasła. **Nie** używa `companyId` z sesji admina firmy — to warstwa control plane.
 
 ### `PlatformAuditService` (`src/services/PlatformAuditService.ts`)
-- Jedyny INSERT do `platform_audit_events`. Allowlista `action`; `sanitizeAuditMetadata` wycina klucze `password*`. Wołany z handlerów `/api/platform/*` po udanej mutacji.
+- Jedyny INSERT do `platform_audit_events`. Allowlista `action`; `sanitizeAuditMetadata` wycina klucze `password*`. Wołany z handlerów `/api/platform/*` po udanej mutacji (w tym `impersonation.start` / `impersonation.end`).
+
+### `PlatformImpersonationService` (`src/services/PlatformImpersonationService.ts`)
+- `resolveStartTarget(companyId, targetUserId)` — aktywna firma + aktywny `admin`/`viewer` tej firmy. Błędy: `not_found`, `company_inactive`, `user_inactive`. Cookie i JWT są w handlerze `/api/platform/impersonation`.
 
 ### `PlatformFeatureFlagService` (`src/services/PlatformFeatureFlagService.ts`)
 - `getFlags(companyId)` — odczytuje feature flags (`gpsTrackingEnabled`, `mapViewEnabled`, `geofencingEnabled`, `routePlanningEnabled`, `navigationEnabled`, `durEnabled`) z `company_settings`. Zwraca domyślne wartości gdy wiersz nie istnieje.
@@ -643,7 +652,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 | Plik | Co |
 |---|---|
-| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Tylko podpis JWT** — nie sprawdza `isActive`. Żywy principal: `AuthPrincipalService` + `livePrincipal.ts`. **Brak `JWT_SECRET`** → rzuca `Error`. **Na produkcji wymagane!** |
+| `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` / `parseAuthToken` (cookie `auth_token` + `jwtVerify`), opcjonalny claim `impersonatorUserId`, `signSessionJwt`, `getUserId()`, `getUserRole()`. **Tylko podpis JWT** — nie sprawdza `isActive`. Żywy principal: `AuthPrincipalService` + `livePrincipal.ts`. **Brak `JWT_SECRET`** → rzuca `Error`. **Na produkcji wymagane!** |
+| `authCookie.ts` | `AUTH_TOKEN_COOKIE`, `PLATFORM_RESUME_COOKIE` (kopia JWT superadmina na czas impersonacji), TTL 7d / 30 min. |
+| `impersonationGuard.ts` | Helpery Edge: `readImpersonatorUserId`, ścieżki start/end, `normalizeImpersonationReason` (max 200). |
 | `livePrincipal.ts` | `assertLivePrincipal`, 401 + `auth_token` `Path=/` `Max-Age=0`, redirect layoutów `/login?reason=session`. |
 | `apiTenant.ts` / `apiPlatform.ts` | `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession` — po JWT rewalidacja DB; `session.role` i `companyId` z principal. **Nie** bierz `companyId` z JWT (`getTenantCompanyId` / `resolveTenantCompanyId` usunięte). |
 | `pgErrors.ts` | `findPgUniqueViolation` / `isPgUniqueViolation` — kod `23505` w łańcuchu `cause` (Drizzle). |
@@ -687,7 +698,7 @@ Klasyfikacja → autoryzacja → role:
 - **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
 - Nowy publiczny shard API → **dopisz prefix do `SHARED_API_PREFIXES`**, inaczej deny-by-default zakwalifikuje go jako admin API.
 
-Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Niepoprawny token → wyczyszczenie cookie + redirect/`401`. Edge **nie** czyta DB — martwe konto odpada w Node (`AuthPrincipalService`).
+Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Impersonacja: JWT z `impersonatorUserId` **blokuje** `/worker` i `/api/worker/*`; `POST /api/platform/impersonation/end` przechodzi bez ważnego support JWT (handler czyta `platform_resume`). Niepoprawny token → wyczyszczenie `auth_token` + redirect/`401` (**resume zostaje**). Edge **nie** czyta DB — martwe konto odpada w Node (`AuthPrincipalService`). Czysty superadmin nadal wycinany z `/admin` (`authorizeSuperadminRestrictions`).
 
 ---
 
@@ -708,6 +719,7 @@ Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | `admin.sidebar` | Etykiety nawigacji admin |
 | `admin.dashboard`, `admin.reports`, `admin.archive`, `admin.orders`, `admin.users`, `admin.workers`, `admin.machines`, `admin.materials`, `admin.customers`, `admin.settings`, `admin.logs`, `admin.modals` | Każdy ekran admina ma swój sub-słownik |
 | `worker.client`, `worker.wizard`, `worker.history`, `worker.profile`, `worker.help` | UI mobilki |
+| `platform` | Konsola superadmina: firmy, konta, impersonacja, flagi pakietu |
 | `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors`, `dur.workOrderSpareParts` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API, części w zleceniu naprawy |
 
 Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej UI pokaże surowy kod.

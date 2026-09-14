@@ -26,6 +26,7 @@ import {
   TABLE_WRAPPER,
 } from "@/lib/uiTable";
 import { narrowPlatformTenantUsers } from "@/lib/narrow/platform";
+import { ImpersonateUserActions } from "@/components/Platform/ImpersonateUserActions";
 
 type Dict = AppDictionary["platform"];
 
@@ -82,6 +83,7 @@ export function CompanyAdminsTab({ row, dict, onChanged }: Props) {
       )}
       <AdminsTable
         companyId={row.companyId}
+        companyActive={row.isActive}
         users={users}
         loading={loading}
         dict={dict}
@@ -115,6 +117,7 @@ export function CompanyAdminsTab({ row, dict, onChanged }: Props) {
 
 function AdminsTable({
   companyId,
+  companyActive,
   users,
   loading,
   dict,
@@ -125,6 +128,7 @@ function AdminsTable({
   onChanged,
 }: {
   companyId: number;
+  companyActive: boolean;
   users: PlatformTenantUserRow[];
   loading: boolean;
   dict: Dict;
@@ -264,36 +268,22 @@ function AdminsTable({
                       </button>
                     </div>
                     {resetUserId === user.id && (
-                      <form
+                      <ResetPasswordForm
+                        dict={dict}
+                        password={resetPassword}
+                        pending={resetPending}
+                        onPasswordChange={setResetPassword}
                         onSubmit={(e) => void submitReset(e, user)}
-                        className="flex w-full min-w-[12rem] flex-col gap-2"
-                      >
-                        <label className="block text-xs">
-                          <span className="text-zinc-500 dark:text-zinc-400">
-                            {dict.resetPasswordNew}
-                          </span>
-                          <input
-                            required
-                            type="password"
-                            minLength={PASSWORD_MIN_LENGTH}
-                            value={resetPassword}
-                            onChange={(e) => setResetPassword(e.target.value)}
-                            className={cn(INPUT_BASE, "mt-1")}
-                            autoComplete="new-password"
-                          />
-                        </label>
-                        <button
-                          type="submit"
-                          disabled={resetPending}
-                          className={BTN_PRIMARY_COMPACT_SM}
-                        >
-                          {resetPending && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                          )}
-                          {dict.resetPassword}
-                        </button>
-                      </form>
+                      />
                     )}
+                    <ImpersonateUserActions
+                      companyId={companyId}
+                      companyActive={companyActive}
+                      user={user}
+                      dict={dict}
+                      apiErrors={apiErrors}
+                      onStatusMessage={onStatusMessage}
+                    />
                   </div>
                 </td>
               </tr>
@@ -302,6 +292,41 @@ function AdminsTable({
         </tbody>
       </table>
     </div>
+  );
+}
+
+function ResetPasswordForm({
+  dict,
+  password,
+  pending,
+  onPasswordChange,
+  onSubmit,
+}: {
+  dict: Dict;
+  password: string;
+  pending: boolean;
+  onPasswordChange: (value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  return (
+    <form onSubmit={onSubmit} className="flex w-full min-w-[12rem] flex-col gap-2">
+      <label className="block text-xs">
+        <span className="text-zinc-500 dark:text-zinc-400">{dict.resetPasswordNew}</span>
+        <input
+          required
+          type="password"
+          minLength={PASSWORD_MIN_LENGTH}
+          value={password}
+          onChange={(e) => onPasswordChange(e.target.value)}
+          className={cn(INPUT_BASE, "mt-1")}
+          autoComplete="new-password"
+        />
+      </label>
+      <button type="submit" disabled={pending} className={BTN_PRIMARY_COMPACT_SM}>
+        {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+        {dict.resetPassword}
+      </button>
+    </form>
   );
 }
 

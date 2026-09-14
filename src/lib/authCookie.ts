@@ -3,9 +3,17 @@ import type { NextResponse } from "next/server";
 /** Nazwa cookie sesji JWT — jedyne miejsce, z którego korzystają login / logout / proxy. */
 export const AUTH_TOKEN_COOKIE = "auth_token";
 
+/** Kopia JWT superadmina na czas impersonacji (PL1). */
+export const PLATFORM_RESUME_COOKIE = "platform_resume";
+
 export const AUTH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
+/** TTL cookie `auth_token` podczas impersonacji — 30 min, zgodnie z `exp` JWT. */
+export const IMPERSONATION_TOKEN_MAX_AGE_SECONDS = 60 * 30;
+
 export type AuthCookieSameSite = "none" | "lax";
+
+export type SessionCookieName = typeof AUTH_TOKEN_COOKIE | typeof PLATFORM_RESUME_COOKIE;
 
 /** HTTPS z `x-forwarded-proto` (Vercel) albo ze schematu URL (lokalny https). */
 export function isHttpsRequest(req: Request): boolean {
@@ -16,6 +24,25 @@ export function isHttpsRequest(req: Request): boolean {
   } catch {
     return false;
   }
+}
+
+export function sessionCookieAttrs<N extends SessionCookieName>(
+  name: N,
+  isHttps: boolean
+): {
+  name: N;
+  httpOnly: true;
+  path: "/";
+  secure: boolean;
+  sameSite: AuthCookieSameSite;
+} {
+  return {
+    name,
+    httpOnly: true,
+    path: "/",
+    secure: isHttps,
+    sameSite: isHttps ? "none" : "lax",
+  };
 }
 
 /**
@@ -29,18 +56,22 @@ export function authTokenCookieAttrs(isHttps: boolean): {
   secure: boolean;
   sameSite: AuthCookieSameSite;
 } {
-  return {
-    name: AUTH_TOKEN_COOKIE,
-    httpOnly: true,
-    path: "/",
-    secure: isHttps,
-    sameSite: isHttps ? "none" : "lax",
-  };
+  return sessionCookieAttrs(AUTH_TOKEN_COOKIE, isHttps);
 }
 
-function serializeAuthTokenClear(isHttps: boolean): string {
+export function platformResumeCookieAttrs(isHttps: boolean): {
+  name: typeof PLATFORM_RESUME_COOKIE;
+  httpOnly: true;
+  path: "/";
+  secure: boolean;
+  sameSite: AuthCookieSameSite;
+} {
+  return sessionCookieAttrs(PLATFORM_RESUME_COOKIE, isHttps);
+}
+
+function serializeNamedCookieClear(name: string, isHttps: boolean): string {
   const parts = [
-    `${AUTH_TOKEN_COOKIE}=`,
+    `${name}=`,
     "Path=/",
     "Max-Age=0",
     "HttpOnly",
@@ -48,6 +79,13 @@ function serializeAuthTokenClear(isHttps: boolean): string {
   ];
   if (isHttps) parts.push("Secure");
   return parts.join("; ");
+}
+
+function clearNamedCookie(response: NextResponse, name: string, isHttps?: boolean): void {
+  const variants = isHttps === undefined ? [false, true] : [isHttps];
+  for (const https of variants) {
+    response.headers.append("Set-Cookie", serializeNamedCookieClear(name, https));
+  }
 }
 
 /**
@@ -58,8 +96,9 @@ function serializeAuthTokenClear(isHttps: boolean): string {
  * Gdy `isHttps` jest znany (logout z Request), tylko pasujący wariant.
  */
 export function clearAuthTokenCookie(response: NextResponse, isHttps?: boolean): void {
-  const variants = isHttps === undefined ? [false, true] : [isHttps];
-  for (const https of variants) {
-    response.headers.append("Set-Cookie", serializeAuthTokenClear(https));
-  }
+  clearNamedCookie(response, AUTH_TOKEN_COOKIE, isHttps);
+}
+
+export function clearPlatformResumeCookie(response: NextResponse, isHttps?: boolean): void {
+  clearNamedCookie(response, PLATFORM_RESUME_COOKIE, isHttps);
 }

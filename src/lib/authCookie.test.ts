@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { NextResponse } from "next/server";
 import {
   AUTH_TOKEN_COOKIE,
+  PLATFORM_RESUME_COOKIE,
   authTokenCookieAttrs,
   clearAuthTokenCookie,
+  clearPlatformResumeCookie,
   isHttpsRequest,
+  platformResumeCookieAttrs,
 } from "@/lib/authCookie";
 
 describe("authCookie", () => {
@@ -57,5 +60,21 @@ describe("authCookie", () => {
     expect(setCookie.toLowerCase()).toMatch(/samesite=none/i);
     expect(setCookie.toLowerCase()).toMatch(/max-age=0/);
     expect(setCookie.toLowerCase()).toContain("path=/");
+  });
+
+  it("platform_resume ma te same atrybuty Path/HttpOnly co auth_token", () => {
+    expect(platformResumeCookieAttrs(true)).toMatchObject({
+      name: PLATFORM_RESUME_COOKIE,
+      httpOnly: true,
+      path: "/",
+      secure: true,
+      sameSite: "none",
+    });
+    const res = NextResponse.json({ ok: true });
+    clearPlatformResumeCookie(res, true);
+    const setCookie = (res.headers.get("set-cookie") ?? "").toLowerCase();
+    expect(setCookie).toContain(`${PLATFORM_RESUME_COOKIE}=`);
+    expect(setCookie).toMatch(/max-age=0/);
+    expect(setCookie).toContain("path=/");
   });
 });

@@ -4,6 +4,11 @@ import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
 import { AUTH_TOKEN_COOKIE, clearAuthTokenCookie, isHttpsRequest } from "@/lib/authCookie";
 import {
+  isImpersonationEndApi,
+  isImpersonationStatusApi,
+  readImpersonatorUserId,
+} from "@/lib/impersonationGuard";
+import {
   isAuthCookieClearLoginReason,
   isCompanyScopedRole,
   isSuperadminRole,
@@ -254,6 +259,29 @@ function authorizeAppDistributionAccess(
   return null;
 }
 
+function authorizeImpersonationRestrictions(
+  isImpersonating: boolean,
+  pathname: string,
+  method: string,
+  route: RouteClassification,
+  request: NextRequest
+): NextResponse | null {
+  if (!isImpersonating) return null;
+
+  if (route.isWorkerPage || route.isWorkerApi) {
+    if (route.isApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
+  if (route.isPlatformPage || route.isPlatformApi) {
+    if (isImpersonationStatusApi(pathname, method)) return NextResponse.next();
+    if (route.isPlatformApi) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
+  return null;
+}
+
 /** Strażnik Edge JWT/ról — konwencja Next.js 16: `proxy` zamiast `middleware`. */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -261,6 +289,11 @@ export async function proxy(request: NextRequest) {
 
   // 1. API logowania/wylogowania — zawsze bez straży tras
   if (route.isApiAuth) {
+    return NextResponse.next();
+  }
+
+  // 1b. Koniec impersonacji: resume może żyć po wygaśnięciu support JWT — handler weryfikuje cookie.
+  if (isImpersonationEndApi(pathname, request.method)) {
     return NextResponse.next();
   }
 
@@ -286,6 +319,14 @@ export async function proxy(request: NextRequest) {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     const role = verified.payload.role as string;
+    const impersonationAuth = authorizeImpersonationRestrictions(
+      readImpersonatorUserId(verified.payload) != null,
+      pathname,
+      request.method,
+      route,
+      request
+    );
+    if (impersonationAuth) return impersonationAuth;
 
     // Sprawdź autoryzację dla każdego typu routy
     const platformAuth = authorizePlatformAccess(role, route, request);

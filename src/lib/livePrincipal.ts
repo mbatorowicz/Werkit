@@ -20,6 +20,9 @@ export function jwtFromLivePrincipal(principal: LivePrincipal): JwtPayload {
     userId: principal.userId,
     role: principal.role,
     companyId: principal.companyId,
+    ...(principal.impersonatorUserId != null
+      ? { impersonatorUserId: principal.impersonatorUserId }
+      : {}),
   };
 }
 

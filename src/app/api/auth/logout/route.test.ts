@@ -15,4 +15,14 @@ describe("POST /api/auth/logout", () => {
     expect(setCookie.toLowerCase()).toMatch(/samesite=none/i);
     expect(setCookie.toLowerCase()).toContain("secure");
   });
+
+  it("kasuje też platform_resume", async () => {
+    const res = await POST(
+      new Request("https://app.example/api/auth/logout", { method: "POST" }),
+      undefined
+    );
+    const setCookie = res.headers.get("set-cookie") ?? "";
+    expect(setCookie.toLowerCase()).toContain("platform_resume=");
+    expect(setCookie.toLowerCase()).toMatch(/max-age=0/);
+  });
 });

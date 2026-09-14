@@ -17,6 +17,10 @@ export async function requireWorkerCompanySession(): Promise<
   const live = await requireLivePrincipalOr401(session);
   if (!live.ok) return live;
 
+  if (live.principal.impersonatorUserId != null) {
+    return { ok: false, response: jsonError("Forbidden", 403) };
+  }
+
   if (isSuperadminRole(live.principal.role) || !isLiveCompanyPrincipal(live.principal)) {
     return { ok: false, response: jsonError("Forbidden", 403) };
   }

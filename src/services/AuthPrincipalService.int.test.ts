@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { companies, users } from "@/db/schema";
 import { requireLivePrincipalOr401 } from "@/lib/livePrincipal";
@@ -14,7 +14,7 @@ import {
 describe("AuthPrincipalService (integracja z bazą)", () => {
   let companyId: number;
   let userId: number;
-  let superadminId: number | null = null;
+  const extraUserIds: number[] = [];
 
   beforeAll(async () => {
     const company = await createTestCompany();
@@ -24,8 +24,8 @@ describe("AuthPrincipalService (integracja z bazą)", () => {
   });
 
   afterAll(async () => {
-    if (superadminId != null) {
-      await db.delete(users).where(eq(users.id, superadminId));
+    if (extraUserIds.length > 0) {
+      await db.delete(users).where(inArray(users.id, extraUserIds));
     }
     await cleanupTestCompany(companyId);
   });
@@ -91,7 +91,7 @@ describe("AuthPrincipalService (integracja z bazą)", () => {
         isActive: true,
       })
       .returning({ id: users.id });
-    superadminId = row.id;
+    extraUserIds.push(row.id);
 
     const live = await AuthPrincipalService.resolve({
       userId: row.id,
@@ -103,6 +103,55 @@ describe("AuthPrincipalService (integracja z bazą)", () => {
     await db.update(users).set({ isActive: false }).where(eq(users.id, row.id));
     await expect(
       AuthPrincipalService.resolve({ userId: row.id, role: "superadmin", companyId: null })
+    ).resolves.toBeNull();
+  });
+
+  it("impersonacja: principal celu; worker i nieaktywny aktor → null", async () => {
+    const actor = await db
+      .insert(users)
+      .values({
+        companyId: null,
+        fullName: `__ITEST superadmin ${uniqueTestSlug()}`,
+        usernameEmail: `${uniqueTestSlug()}@itest.local`,
+        passwordHash: "__itest-no-login",
+        role: "superadmin",
+        isActive: true,
+      })
+      .returning({ id: users.id });
+    extraUserIds.push(actor[0].id);
+    const actorId = actor[0].id;
+
+    const admin = await createTestUser(companyId, { role: "admin" });
+    const asAdmin = await AuthPrincipalService.resolve({
+      userId: admin.id,
+      role: "admin",
+      companyId,
+      impersonatorUserId: actorId,
+    });
+    expect(asAdmin).toMatchObject({
+      userId: admin.id,
+      role: "admin",
+      companyId,
+      impersonatorUserId: actorId,
+    });
+
+    await expect(
+      AuthPrincipalService.resolve({
+        userId,
+        role: "worker",
+        companyId,
+        impersonatorUserId: actorId,
+      })
+    ).resolves.toBeNull();
+
+    await db.update(users).set({ isActive: false }).where(eq(users.id, actorId));
+    await expect(
+      AuthPrincipalService.resolve({
+        userId: admin.id,
+        role: "admin",
+        companyId,
+        impersonatorUserId: actorId,
+      })
     ).resolves.toBeNull();
   });
 });

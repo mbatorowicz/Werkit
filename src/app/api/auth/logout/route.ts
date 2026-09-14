@@ -1,8 +1,10 @@
 import { jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
-import { clearAuthTokenCookie, isHttpsRequest } from "@/lib/authCookie";
+import { clearAuthTokenCookie, clearPlatformResumeCookie, isHttpsRequest } from "@/lib/authCookie";
 
 export const POST = withApiErrorHandling(async (req: Request) => {
   const response = jsonOk({ success: true });
-  clearAuthTokenCookie(response, isHttpsRequest(req));
+  const isHttps = isHttpsRequest(req);
+  clearAuthTokenCookie(response, isHttps);
+  clearPlatformResumeCookie(response, isHttps);
   return response;
 });

@@ -79,6 +79,26 @@ describe("API tenant / platform — żywy principal", () => {
     expect(auth.response.status).toBe(403);
   });
 
+  it("requireWorkerCompanySession podczas impersonacji → 403", async () => {
+    getAuthSession.mockResolvedValue({
+      userId: 10,
+      role: "admin",
+      companyId: 1,
+      impersonatorUserId: 2,
+    });
+    resolve.mockResolvedValue({
+      userId: 10,
+      role: "admin",
+      companyId: 1,
+      fullName: "Anna",
+      impersonatorUserId: 2,
+    });
+    const scoped = await requireWorkerCompanySession();
+    expect(scoped.ok).toBe(false);
+    if (scoped.ok) return;
+    expect(scoped.response.status).toBe(403);
+  });
+
   it("guardAdminMutation: demotion admin→worker → 403", async () => {
     getAuthSession.mockResolvedValue({ userId: 4, role: "admin", companyId: 1 });
     resolve.mockResolvedValue({

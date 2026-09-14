@@ -184,6 +184,10 @@ export const de: AppDictionary = {
     cannot_delete_self: "Sie können Ihr eigenes Konto nicht löschen.",
     last_admin:
       "Der letzte Administrator im Unternehmen kann nicht gelöscht oder deaktiviert werden.",
+    company_inactive: "Die Organisation ist inaktiv.",
+    user_inactive: "Dieses Konto ist inaktiv.",
+    already_impersonating: "Eine Support-Sitzung ist bereits aktiv. Beenden Sie sie zuerst.",
+    no_resume: "Keine Plattformsitzung zum Wiederherstellen.",
   },
   workOrdersSchedule: {
     expectedDurationLabel: "Geschätzte Arbeitszeit (Std.)",
@@ -1349,6 +1353,19 @@ export const de: AppDictionary = {
     resetPasswordError: "Passwort konnte nicht geändert werden.",
     userStatusError: "Kontostatus konnte nicht geändert werden.",
     usersLoadError: "Kontoliste konnte nicht geladen werden.",
+    impersonateAsViewer: "Als Ansicht öffnen",
+    impersonateAsAdmin: "Als Admin öffnen",
+    impersonateReason: "Grund (optional)",
+    impersonateReasonPlaceholder: "z. B. Supportfall",
+    impersonateConfirmViewer:
+      "Admin-Panel der Organisation als {name} öffnen (nur Ansicht — ohne Speichern)?",
+    impersonateConfirmAdmin: "Admin-Panel der Organisation als Administrator {name} öffnen?",
+    impersonateConfirmAdminDanger:
+      "Änderungen im Panel werden unter {name} gespeichert. Das ist voller Administratorzugriff. Fortfahren?",
+    impersonateError: "Support-Sitzung konnte nicht gestartet werden.",
+    impersonationBanner: "Plattform-Support — Firma {company}. Sie handeln als {user}.",
+    impersonationEnd: "Beenden",
+    impersonationEndError: "Rückkehr zur Plattformkonsole fehlgeschlagen.",
     saveChanges: "Speichern",
     cancelEdit: "Abbrechen",
     editOrganization: "Bearbeiten",
