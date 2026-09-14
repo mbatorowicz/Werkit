@@ -46,7 +46,15 @@ export const PUT = withApiErrorHandling(
 
     const { MaterialInventoryService } =
       await import("@/services/materials/MaterialInventoryService");
-    await MaterialInventoryService.setQuantity(companyId, materialId, quantity);
+    try {
+      await MaterialInventoryService.setQuantity(companyId, materialId, quantity);
+    } catch (err) {
+      const { WarehouseStockError } = await import("@/services/warehouse/warehouseError");
+      if (err instanceof WarehouseStockError) {
+        return jsonError(err.code, 400);
+      }
+      throw err;
+    }
 
     return jsonOk({ success: true });
   },

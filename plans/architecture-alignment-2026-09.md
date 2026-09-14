@@ -1,6 +1,6 @@
 # Plan dociągnięcia architektury — field-ops + MRO
 
-> **Status:** fazy **0–3 zamknięte** (2026-09-14). Fazy 4–7 otwarte.  
+> **Status:** fazy **0–5 zamknięte** (2026-09-14). Fazy 6–7 otwarte.  
 > **Źródło:** audyt architektury v1.9.4 (14 wrz 2026). Canvas planu żyje obok czatu (`cmms-alignment-plan.canvas.tsx`); ten plik jest SSOT w git.
 > **SSOT postępu w git:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (P-ALIGN).  
 > **Kontrakt dla agentów:** [`AGENTS.md`](../AGENTS.md) §1, [`ARCHITECTURE.md`](../ARCHITECTURE.md) §1a.
@@ -44,12 +44,12 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 | 1 | GPS: flaga = zachowanie ✅ | nic | Niskie — bugfix |
 | 2 | Typ floty bez DUR ✅ | 5 (kompatybilność części) | Niskie |
 | 3 | IA dwóch magazynów ✅ | 5 (gdzie żyje UI) | Niskie — i18n/nav |
-| 4 | Flagi GPS niezależne | nic | Średnie — semantyka UI |
-| 5 | Jądro magazynu | nic dalszego w tym programie | Średnie — stany, WZ/PZ |
+| 4 | Flagi GPS niezależne ✅ | nic | Średnie — semantyka UI |
+| 5 | Jądro magazynu ✅ | nic dalszego w tym programie | Średnie — stany, WZ/PZ |
 | 6 | Polityka kategorii | nic | Średnie — worker GPS + formularze |
 | 7 | Nazwy i snapshot sesji | koniec programu | Niskie |
 
-**Faza 5 może startować** — faza 3 (IA magazynów) jest zamknięta.
+**Faza 6 może startować** — faza 5 (jądro magazynu) jest zamknięta.
 
 ### Faza 1 — GPS: flaga = zachowanie ✅
 
@@ -82,19 +82,26 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 **Gotowe:** admin widzi „Materiały” i „Części zamienne” w jednej sekcji.
 
-### Faza 4 — flagi GPS niezależne
+### Faza 4 — flagi GPS niezależne ✅
 
-`isGpsModuleEnabled` nie wymaga pięciu flag naraz. Śledzenie, mapa, geofence, trasa, nawigacja niezależnie. `AdminAbility.gpsEnabled` = `gpsTrackingEnabled` (ew. mapa).
+**Zamknięta 2026-09-14.** `isGpsModuleEnabled` nie AND-uje pięciu flag.
 
-**Gotowe, gdy:** geofence off nie wyłącza śledzenia.
+1. `isGpsModuleEnabled` = `gpsTrackingEnabled`. `isAdminGpsEnabled` = śledzenie **albo** mapa. `canAssignWorkerRouteEdit` = mapa + planowanie trasy.
+2. Panel platformy: pięć osobnych przełączników GPS (PUT jednego klucza), bez `gpsModuleFlagsPatch`.
+3. `AdminAbility.gpsEnabled` = `gpsTrackingEnabled || mapViewEnabled`; `gpsFlags` steruje mapą / geofence / trasą / nawigacją.
+4. Worker `AppSettings` niesie wszystkie flagi GPS. Geofence off pomija prompt „Dojechał”, nie gasi watchera ani `POST /api/worker/gps`.
 
-### Faza 5 — jądro magazynu
+**Gotowe:** geofence off nie wyłącza śledzenia.
 
-**Nie scalać tabel.** Wydzielić `services/warehouse/`: walidacja ilości, upsert stanu, `insufficient_stock`, korekta, kształt PZ/WZ. Dwa adaptery: materials i spare_parts.
+### Faza 5 — jądro magazynu ✅
 
-Zostaje osobno: auto WZ sesji (materiał), kompatybilność z typem (DUR), prefiksy API, 1×materiał vs N×części na zleceniu.
+**Zamknięta 2026-09-14.** Tabele SKU **nie** są scalone. Reguła stanu żyje w `services/warehouse/`.
 
-**Gotowe, gdy:** zmiana reguły stanu jest w jednym miejscu, oba magazyny przechodzą swoje testy.
+1. Jądro: walidacja ilości, `insufficient_stock`, upsert `quantity + delta`, korekta bezwzględna, orkiestracja PZ/WZ (`executeWarehouseReceipt` / `executeWarehouseIssue`).
+2. Adaptery: `materialsInventoryStore` i `sparePartsInventoryStore` (kind + klasa błędu). Tabele `materials*` i `spare_part*` / `stock_*` zostają osobne.
+3. `InventoryService` / `MaterialInventoryService` / ruchy PZ-WZ delegują mutacje do jądra. Auto WZ sesji, BOM naprawy, prefiksy API — bez zmian.
+
+**Gotowe:** zmiana reguły stanu jest w jednym miejscu; oba magazyny przechodzą swoje testy.
 
 ### Faza 6 — polityka kategorii
 

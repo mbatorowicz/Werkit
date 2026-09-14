@@ -7,7 +7,7 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 - **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
 - **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
 - **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte**; §5 w tym **P-ALIGN**); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
-- **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (fazy 0–3 zamknięte).
+- **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (fazy 0–5 zamknięte).
 
 ---
 
@@ -34,11 +34,11 @@ Oś systemu: **zlecenie → sesja → dowody**. Magazyny i GPS są skutkiem rodz
 | Zasoby | Egzemplarz (`resources`) + typ (`resource_groups`) + kategoria pracy (`resource_categories`). Typ zasobu **nie** zależy od DUR. |
 | Magazyn materiałów | Zawsze włączony. **1** `material_id` na `machine_work` (ładunek). Auto WZ przy starcie sesji. |
 | Magazyn części (DUR) | Flaga `durEnabled`. **N** wierszy `work_order_spare_parts` na `machine_repair` (BOM). Kompatybilność część ↔ typ zostaje za tą flagą. |
-| GPS | Ślad **pracownika w sesji** (`gps_logs` → `work_sessions`). Wyłączony, gdy sesja nieaktywna, kategoria stacjonarna **albo** `gpsTrackingEnabled` jest off. |
+| GPS | Ślad **pracownika w sesji** (`gps_logs` → `work_sessions`). Wyłączony, gdy sesja nieaktywna, kategoria stacjonarna **albo** `gpsTrackingEnabled` jest off. Mapa, geofence, trasa i nawigacja mają **osobne** flagi — geofence off nie gasi śledzenia. |
 
 **Twarde granice dla kodu:**
 
-- Tabele `materials` i `spare_parts` **pozostają osobne**. Faza 5 alignmentu może wydzielić wspólne *jądro kodu* (walidacja ilości, upsert stanu), nie wspólny schemat SKU.
+- Tabele `materials` i `spare_parts` **pozostają osobne**. Jądro kodu: [`src/services/warehouse/`](./src/services/warehouse/) (walidacja ilości, upsert stanu, `insufficient_stock`, PZ/WZ, korekta) + adaptery materials / spare_parts — nie wspólny schemat SKU.
 - Nie łącz 1×materiał z N×części w jeden model wydania na zleceniu — to ładunek vs BOM, nie dług.
 - Nie buduj w tym programie planów prewencji, motogodzin jako encji ani trackera zasobu bez sesji.
 
@@ -107,8 +107,11 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `SparePartCategoryService` | Kategorie części zamiennych (hierarchia, grupy) |
 | `SparePartCompatibilityService` | Kompatybilność części z kategoriami maszyn |
 | `WorkOrderSparePartService` | Przypisywanie części do zleceń naprawczych (`machine_repair`) |
-| `InventoryService` | Stany magazynowe części (`spare_part_inventory`) |
-| `StockMovementService` | Ruchy magazynowe (przychody `stock_receipts`, rozchody `stock_issues`) |
+| jądro `services/warehouse/` | Wspólna reguła stanu: ilość, upsert, `insufficient_stock`, PZ/WZ, korekta; adaptery materials / spare_parts |
+| `InventoryService` | Stany magazynowe części (`spare_part_inventory`) — odczyt; mutacje przez jądro warehouse |
+| `MaterialInventoryService` | Stany magazynowe materiałów — odczyt; mutacje przez jądro warehouse |
+| `StockMovementService` | PZ/WZ części (`stock_receipts` / `stock_issues`) + BOM naprawy |
+| `MaterialStockMovementService` | PZ/WZ materiałów; auto WZ sesji zostaje tu / w `WorkSessionMaterialService` |
 
 **Uwaga:** Część klas ma wyłącznie metody **`static`** — to świadomy, prosty wzorzec w repozytorium (nie mylić z DI kontenerem).
 

@@ -2,7 +2,6 @@ import { db } from "@/db";
 import {
   materialStockReceipts,
   materialStockIssues,
-  materialInventory,
   materials,
   users,
   workOrders,
@@ -16,44 +15,17 @@ import type {
   MaterialStockReceiptInput,
   MaterialStockIssueInput,
 } from "@/types/materials-warehouse";
-import { MaterialInventoryService } from "./MaterialInventoryService";
-import { MaterialStockMovementError } from "./MaterialStockMovementError";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/db/schema";
-import { parseDecimalInput } from "@/lib/decimalInput";
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
+import {
+  executeWarehouseIssue,
+  executeWarehouseReceipt,
+} from "@/services/warehouse/warehouseMovements";
+import { materialsInventoryStore } from "@/services/warehouse/adapters/materialsStore";
 
 const orderCustomer = alias(customers, "order_customer");
 const sessionCustomer = alias(customers, "session_customer");
-
-type DbClient = NodePgDatabase<typeof schema>;
-
-function assertPositiveQuantity(quantity: string) {
-  const n = parseDecimalInput(quantity);
-  if (n == null || n <= 0) {
-    throw new MaterialStockMovementError("invalid_quantity");
-  }
-}
-
-async function assertSufficientStock(
-  companyId: number,
-  materialId: number,
-  quantity: string,
-  client: DbClient = db
-) {
-  const [row] = await client
-    .select({ quantity: materialInventory.quantity })
-    .from(materialInventory)
-    .where(
-      and(eq(materialInventory.companyId, companyId), eq(materialInventory.materialId, materialId))
-    )
-    .limit(1);
-  const currentQty = row ? (parseDecimalInput(String(row.quantity)) ?? 0) : 0;
-  if (currentQty < (parseDecimalInput(quantity) ?? 0)) {
-    throw new MaterialStockMovementError("insufficient_stock");
-  }
-}
 
 export class MaterialStockMovementService {
   static async getReceipts(companyId: number): Promise<MaterialStockReceipt[]> {
@@ -98,43 +70,43 @@ export class MaterialStockMovementService {
     companyId: number,
     userId: number,
     input: MaterialStockReceiptInput,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<MaterialStockReceipt> {
-    assertPositiveQuantity(input.quantity);
-
-    const [row] = await client
-      .insert(materialStockReceipts)
-      .values({
-        companyId,
-        materialId: input.materialId,
-        quantity: input.quantity,
-        unitPrice: input.unitPrice ?? null,
-        invoiceNumber: input.invoiceNumber ?? null,
-        notes: input.notes ?? null,
-        createdBy: userId,
-        workSessionId: input.workSessionId ?? null,
-      })
-      .returning();
-
-    await MaterialInventoryService.upsertQuantity(
+    return executeWarehouseReceipt({
+      store: materialsInventoryStore,
       companyId,
-      input.materialId,
-      input.quantity,
-      client
-    );
+      skuId: input.materialId,
+      quantity: input.quantity,
+      client,
+      insertReceipt: async () => {
+        const [row] = await client
+          .insert(materialStockReceipts)
+          .values({
+            companyId,
+            materialId: input.materialId,
+            quantity: input.quantity,
+            unitPrice: input.unitPrice ?? null,
+            invoiceNumber: input.invoiceNumber ?? null,
+            notes: input.notes ?? null,
+            createdBy: userId,
+            workSessionId: input.workSessionId ?? null,
+          })
+          .returning();
 
-    return {
-      id: row.id,
-      companyId: row.companyId,
-      materialId: row.materialId,
-      quantity: String(row.quantity),
-      unitPrice: row.unitPrice != null ? String(row.unitPrice) : null,
-      invoiceNumber: row.invoiceNumber,
-      notes: row.notes,
-      createdBy: row.createdBy,
-      createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
-      workSessionId: row.workSessionId,
-    };
+        return {
+          id: row.id,
+          companyId: row.companyId,
+          materialId: row.materialId,
+          quantity: String(row.quantity),
+          unitPrice: row.unitPrice != null ? String(row.unitPrice) : null,
+          invoiceNumber: row.invoiceNumber,
+          notes: row.notes,
+          createdBy: row.createdBy,
+          createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
+          workSessionId: row.workSessionId,
+        };
+      },
+    });
   }
 
   static async getIssues(companyId: number): Promise<MaterialStockIssue[]> {
@@ -205,44 +177,43 @@ export class MaterialStockMovementService {
     companyId: number,
     userId: number,
     input: MaterialStockIssueInput,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<MaterialStockIssue> {
-    assertPositiveQuantity(input.quantity);
-    await assertSufficientStock(companyId, input.materialId, input.quantity, client);
-
-    const [row] = await client
-      .insert(materialStockIssues)
-      .values({
-        companyId,
-        materialId: input.materialId,
-        quantity: input.quantity,
-        workOrderId: input.workOrderId ?? null,
-        workSessionId: input.workSessionId ?? null,
-        issuedTo: input.issuedTo ?? null,
-        notes: input.notes ?? null,
-        createdBy: userId,
-      })
-      .returning();
-
-    await MaterialInventoryService.upsertQuantity(
+    return executeWarehouseIssue({
+      store: materialsInventoryStore,
       companyId,
-      input.materialId,
-      `-${input.quantity}`,
-      client
-    );
+      skuId: input.materialId,
+      quantity: input.quantity,
+      client,
+      insertIssue: async () => {
+        const [row] = await client
+          .insert(materialStockIssues)
+          .values({
+            companyId,
+            materialId: input.materialId,
+            quantity: input.quantity,
+            workOrderId: input.workOrderId ?? null,
+            workSessionId: input.workSessionId ?? null,
+            issuedTo: input.issuedTo ?? null,
+            notes: input.notes ?? null,
+            createdBy: userId,
+          })
+          .returning();
 
-    return {
-      id: row.id,
-      companyId: row.companyId,
-      materialId: row.materialId,
-      quantity: String(row.quantity),
-      workOrderId: row.workOrderId,
-      workSessionId: row.workSessionId,
-      issuedTo: row.issuedTo,
-      notes: row.notes,
-      createdBy: row.createdBy,
-      createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
-    };
+        return {
+          id: row.id,
+          companyId: row.companyId,
+          materialId: row.materialId,
+          quantity: String(row.quantity),
+          workOrderId: row.workOrderId,
+          workSessionId: row.workSessionId,
+          issuedTo: row.issuedTo,
+          notes: row.notes,
+          createdBy: row.createdBy,
+          createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
+        };
+      },
+    });
   }
 
   static async issueForWorkSession(
@@ -256,7 +227,7 @@ export class MaterialStockMovementService {
       issuedTo: number;
       notes?: string | null;
     },
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<MaterialStockIssue> {
     return this.addIssue(
       companyId,
@@ -282,7 +253,7 @@ export class MaterialStockMovementService {
       quantity: string;
       workOrderId: number | null;
     },
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<MaterialStockReceipt> {
     return this.addReceipt(
       companyId,

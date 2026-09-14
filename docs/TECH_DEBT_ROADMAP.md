@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–3 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–5 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
 
 ---
 
@@ -111,8 +111,8 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-1 | GPS: `gpsTrackingEnabled` → watcher + 403 bez pętli retry | done |
 | P-ALIGN-2 | `resource_groups` bez `requireDurFeature` | done |
 | P-ALIGN-3 | Dwa magazyny obok siebie w sidebarze | done |
-| P-ALIGN-4 | Niezależne flagi GPS (nie AND pięciu) | open |
-| P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | open |
+| P-ALIGN-4 | Niezależne flagi GPS (nie AND pięciu) | done |
+| P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | done |
 | P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | open |
 | P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | open |
 
@@ -236,6 +236,18 @@ Program po audycie v1.9.4. **SSOT faz:** [`plans/architecture-alignment-2026-09.
 - Etykieta sidebar/strony: „Części zamienne”; ikona `Boxes` (klienci zostają przy `Package`).
 - URL `/admin/dur/warehouse` bez zmian. Pomoc admina: magazyny obok siebie (Materiały → Części zamienne → Klienci).
 - Testy: kolejność linków, brak osobnej sekcji DUR, inna ikona niż klienci.
+
+#### P-ALIGN-4 — co zrobiono
+
+- `isGpsModuleEnabled` = tylko `gpsTrackingEnabled`; `isAdminGpsEnabled` = śledzenie albo mapa; `canAssignWorkerRouteEdit` = mapa + planowanie trasy.
+- Panel platformy: pięć osobnych przełączników GPS. Geofence off nie gasi watchera ani `POST /api/worker/gps`.
+
+#### P-ALIGN-5 — co zrobiono
+
+- [`src/services/warehouse/`](../src/services/warehouse/): walidacja ilości, `insufficient_stock`, upsert `quantity + delta`, korekta, orkiestracja PZ/WZ.
+- Adaptery `materialsInventoryStore` i `sparePartsInventoryStore` — tabele SKU **nie** są scalone.
+- `InventoryService` / `MaterialInventoryService` / serwisy ruchów delegują mutacje stanu do jądra. Auto WZ sesji i BOM naprawy zostają w serwisach domenowych.
+- Testy jądra (ilość, PZ/WZ, korekta, adaptery) + istniejące testy obu magazynów.
 
 ---
 

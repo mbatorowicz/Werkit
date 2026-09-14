@@ -1,15 +1,14 @@
 import { db } from "@/db";
 import { sparePartInventory, spareParts } from "@/db/schema";
 import type { SparePartInventory } from "@/types/dur";
-import { eq, and, sql } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/db/schema";
-
-type DbClient = NodePgDatabase<typeof schema>;
+import { eq, and } from "drizzle-orm";
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
+import { executeWarehouseAdjustment } from "@/services/warehouse/warehouseMovements";
+import { sparePartsInventoryStore } from "@/services/warehouse/adapters/sparePartsStore";
 
 /**
- * Serwis stanów magazynowych części zamiennych (DUR Faza 2).
- * Odczyt i korekta stanów — przyjęcia/wydania realizuje StockMovementService.
+ * Serwis stanów magazynowych części zamiennych.
+ * Odczyt z JOIN katalogu; mutacje stanu przez jądro `services/warehouse`.
  */
 export class InventoryService {
   /**
@@ -66,43 +65,26 @@ export class InventoryService {
     companyId: number,
     partId: number,
     delta: string,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<void> {
-    await client
-      .insert(sparePartInventory)
-      .values({
-        companyId,
-        partId,
-        quantity: delta,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [sparePartInventory.companyId, sparePartInventory.partId],
-        set: {
-          quantity: sql`CAST(${sparePartInventory.quantity} AS numeric) + CAST(${delta} AS numeric)`,
-          updatedAt: new Date(),
-        },
-      });
+    await sparePartsInventoryStore.applyDelta(companyId, partId, delta, client);
   }
 
   /**
    * Ustawia bezwzględną ilość (korekta ręczna).
    */
-  static async setQuantity(companyId: number, partId: number, quantity: string): Promise<void> {
-    await db
-      .insert(sparePartInventory)
-      .values({
-        companyId,
-        partId,
-        quantity,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [sparePartInventory.companyId, sparePartInventory.partId],
-        set: {
-          quantity,
-          updatedAt: new Date(),
-        },
-      });
+  static async setQuantity(
+    companyId: number,
+    partId: number,
+    quantity: string,
+    client: WarehouseDb = db
+  ): Promise<void> {
+    await executeWarehouseAdjustment({
+      store: sparePartsInventoryStore,
+      companyId,
+      skuId: partId,
+      quantity,
+      client,
+    });
   }
 }

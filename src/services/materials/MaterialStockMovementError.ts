@@ -1,9 +1,8 @@
-export class MaterialStockMovementError extends Error {
-  readonly code: string;
+import { WarehouseStockError } from "@/services/warehouse/warehouseError";
 
-  constructor(code: string) {
-    super(code);
+export class MaterialStockMovementError extends WarehouseStockError {
+  constructor(code: string, message?: string) {
+    super(code, message);
     this.name = "MaterialStockMovementError";
-    this.code = code;
   }
 }

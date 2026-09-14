@@ -1,11 +1,10 @@
 import { db } from "@/db";
 import { materialInventory, materials } from "@/db/schema";
 import type { MaterialInventoryRow } from "@/types/materials-warehouse";
-import { eq, and, sql } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/db/schema";
-
-type DbClient = NodePgDatabase<typeof schema>;
+import { eq, and } from "drizzle-orm";
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
+import { executeWarehouseAdjustment } from "@/services/warehouse/warehouseMovements";
+import { materialsInventoryStore } from "@/services/warehouse/adapters/materialsStore";
 
 export class MaterialInventoryService {
   static async getInventory(
@@ -42,40 +41,23 @@ export class MaterialInventoryService {
     companyId: number,
     materialId: number,
     delta: string,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<void> {
-    await client
-      .insert(materialInventory)
-      .values({
-        companyId,
-        materialId,
-        quantity: delta,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [materialInventory.companyId, materialInventory.materialId],
-        set: {
-          quantity: sql`CAST(${materialInventory.quantity} AS numeric) + CAST(${delta} AS numeric)`,
-          updatedAt: new Date(),
-        },
-      });
+    await materialsInventoryStore.applyDelta(companyId, materialId, delta, client);
   }
 
-  static async setQuantity(companyId: number, materialId: number, quantity: string): Promise<void> {
-    await db
-      .insert(materialInventory)
-      .values({
-        companyId,
-        materialId,
-        quantity,
-        updatedAt: new Date(),
-      })
-      .onConflictDoUpdate({
-        target: [materialInventory.companyId, materialInventory.materialId],
-        set: {
-          quantity,
-          updatedAt: new Date(),
-        },
-      });
+  static async setQuantity(
+    companyId: number,
+    materialId: number,
+    quantity: string,
+    client: WarehouseDb = db
+  ): Promise<void> {
+    await executeWarehouseAdjustment({
+      store: materialsInventoryStore,
+      companyId,
+      skuId: materialId,
+      quantity,
+      client,
+    });
   }
 }

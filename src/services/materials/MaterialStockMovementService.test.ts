@@ -12,6 +12,7 @@ vi.mock("@/db", () => ({
 
 vi.mock("@/db/schema", () => ({
   materialInventory: { companyId: "companyId", materialId: "materialId", quantity: "quantity" },
+  sparePartInventory: { companyId: "companyId", partId: "partId", quantity: "quantity" },
   materialStockReceipts: { id: "id" },
   materialStockIssues: { id: "id" },
   materials: { id: "id", name: "name" },
@@ -30,12 +31,6 @@ vi.mock("drizzle-orm", () => ({
 
 vi.mock("drizzle-orm/pg-core", () => ({
   alias: (table: unknown, name: string) => ({ table, name }),
-}));
-
-vi.mock("./MaterialInventoryService", () => ({
-  MaterialInventoryService: {
-    upsertQuantity: vi.fn().mockResolvedValue(undefined),
-  },
 }));
 
 describe("MaterialStockMovementService", () => {

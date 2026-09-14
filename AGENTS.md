@@ -6,7 +6,7 @@ Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kt
 
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — warstwy, przepływ żądania, wzorce (bez duplikowania długiej listy API).
 - [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **inwentaryzacja**: tabele DB, endpointy ↔ serwisy, hooki, `i18n`, pułapki. **Czytaj zanim ruszysz większą zmianę.**
-- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz. Program alignmentu domeny: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md) (fazy 0–3 zamknięte).
+- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz. Program alignmentu domeny: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md) (fazy 0–5 zamknięte).
 
 ---
 
@@ -76,6 +76,7 @@ src/
 ├── hooks/                  # generyczne hooki UI (floating panel, dismiss outside) — używane przez comboboxy
 ├── services/               # Drizzle + logika domenowa (SSOT zapytań DB)
 │   ├── dictionary/         # Sub-moduł słowników (CategoryService, MaterialService, CustomerService, …)
+│   ├── warehouse/          # Jądro magazynu (ilość, upsert, PZ/WZ) + adaptery materials / spare_parts
 │   └── dur/                # Sub-moduł DUR (SparePartService, WorkOrderSparePartService, InventoryService, StockMovementService, …)
 ├── db/
 ├── types/
@@ -86,7 +87,7 @@ src/
 └── proxy.ts                # JWT + role (admin, worker, platform/superadmin)
 ```
 
-**Gdzie nowy kod:** `app/**` = routing; logika worker → `features/worker/`; logika admin → `features/admin/` + `components/Admin/`; współdzielone zlecenia → `components/work-orders/`. Multi-tenant i `/platform` → [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md). Moduł DUR (części zamienne, magazyn) → `services/dur/`, `components/Admin/Modals/`, `features/worker/components/`.
+**Gdzie nowy kod:** `app/**` = routing; logika worker → `features/worker/`; logika admin → `features/admin/` + `components/Admin/`; współdzielone zlecenia → `components/work-orders/`. Multi-tenant i `/platform` → [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md). Moduł DUR (części zamienne) → `services/dur/`. **Reguła stanu magazynu** (materiały i części) → `services/warehouse/`; serwisy SKU zostają w `services/materials/` i `services/dur/`.
 
 ---
 
@@ -110,7 +111,7 @@ src/
 Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
 
 Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
-`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`.
+`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`, jądro `services/warehouse/`.
 
 **Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
 
@@ -215,11 +216,11 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 
 ## 11. Kiedy czytać ARCHITECTURE.md i roadmap długu
 
-Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–3 zamknięte).
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–5 zamknięte).
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–3 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–5 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, niezależne flagi GPS (`isGpsModuleEnabled` = śledzenie, nie AND pięciu), jądro magazynu `services/warehouse/` (dwa adaptery SKU, bez scalania tabel), moduł DUR — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 

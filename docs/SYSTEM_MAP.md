@@ -380,7 +380,8 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `PlatformFeatureFlagService` (`src/services/PlatformFeatureFlagService.ts`)
 - `getFlags(companyId)` — odczytuje feature flags (`gpsTrackingEnabled`, `mapViewEnabled`, `geofencingEnabled`, `routePlanningEnabled`, `navigationEnabled`, `durEnabled`) z `company_settings`. Zwraca domyślne wartości gdy wiersz nie istnieje.
 - `updateFlags(companyId, flags)` — UPSERT do `company_settings` z mapowaniem camelCase → snake_case. Przyjmuje `Partial<FeatureFlags>` — tylko podane klucze są zmieniane.
-- Używany przez endpointy `GET/PUT /api/platform/feature-flags/:companyId` oraz przez API worker/admin do blokowania modułów GPS i DUR (zwracają `feature_disabled` 403 gdy flaga wyłączona).
+- Flagi GPS są **niezależne**: `isGpsModuleEnabled` = `gpsTrackingEnabled` (nie AND pięciu). `isAdminGpsEnabled` = śledzenie albo mapa. Wyłączenie geofence nie gasi śledzenia ani `POST /api/worker/gps`.
+- Używany przez endpointy `GET/PUT /api/platform/feature-flags/:companyId` oraz przez API worker/admin do blokowania **konkretnej** funkcji (`gpsTrackingEnabled` → GPS logs 403; `routePlanningEnabled` → zapis waypointów 403; `durEnabled` → DUR 403).
 
 ### `SparePartCategoryService` (`src/services/dur/SparePartCategoryService.ts`)
 - `getCategories(companyId, opts?)` — lista kategorii części; `leavesOnly` zwraca tylko liście (do przypisania części).
@@ -409,26 +410,27 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `removePartFromOrder(id)` — usuwa przypisanie części.
 - `assertPartBelongsToOrder(partId, workOrderId)` — weryfikacja przynależności (używana w DELETE/PATCH).
 
+### Jądro magazynu (`src/services/warehouse/`)
+- **Bez scalania tabel** `materials` / `spare_parts`. Wspólna reguła stanu: walidacja ilości, `insufficient_stock`, upsert `quantity + delta`, korekta bezwzględna, orkiestracja PZ (`executeWarehouseReceipt`) i WZ (`executeWarehouseIssue`).
+- Adaptery: `materialsInventoryStore` (`kind: "material"`, `MaterialStockMovementError`) i `sparePartsInventoryStore` (`kind: "spare_part"`, `StockMovementError`).
+- Odczyt list + JOIN-y katalogu zostają w `InventoryService` / `MaterialInventoryService`. Auto WZ sesji i BOM naprawy — poza jądrem.
+
 ### `InventoryService` (`src/services/dur/InventoryService.ts`)
 - `getInventory(companyId)` — stan magazynowy wszystkich części w firmie.
 - `getPartInventory(partId, companyId)` — stan pojedynczej części.
-- `upsertQuantity(partId, companyId, delta)` — zwiększa/zmniejsza stan (dodaje do istniejącej ilości).
-- `setQuantity(partId, companyId, quantity)` — ustawia bezwzględną ilość.
+- `upsertQuantity` / `setQuantity` — delegacja do `sparePartsInventoryStore` / `executeWarehouseAdjustment`.
 
 ### `StockMovementService` (`src/services/dur/StockMovementService.ts`)
 - `getReceipts(companyId)` — lista przyjęć magazynowych.
-- `addReceipt(companyId, payload)` — przyjęcie części (`{partId, quantity, unitPrice?, invoiceNumber?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
-- `getIssues(companyId)` — lista wydań magazynowych.
-- `addIssue(companyId, payload)` — wydanie części (`{partId, quantity, workOrderId?, notes?, createdById?}`); automatycznie aktualizuje `spare_part_inventory`.
+- `addReceipt` / `addIssue` — dokument PZ/WZ w tabelach części + mutacja stanu przez jądro warehouse.
+- `issueForWorkOrderLine` / `returnForWorkOrderLine` — BOM naprawy (WZ/PZ powiązane z `work_order_spare_parts`).
 
 ### `MaterialInventoryService` (`src/services/materials/MaterialInventoryService.ts`)
 - `getInventory(companyId)` — stan magazynowy materiałów (tony).
-- `getMaterialInventory(materialId, companyId)` — stan pojedynczego materiału.
-- `upsertQuantity(materialId, companyId, delta)` — delta na stanie.
-- `setQuantity(materialId, companyId, quantity)` — korekta bezwzględna.
+- `upsertQuantity` / `setQuantity` — delegacja do `materialsInventoryStore` / `executeWarehouseAdjustment`.
 
 ### `MaterialStockMovementService` (`src/services/materials/MaterialStockMovementService.ts`)
-- `getReceipts` / `addReceipt` — ręczne PZ + zwroty sesji (`work_session_id`).
+- `getReceipts` / `addReceipt` — ręczne PZ + zwroty sesji (`work_session_id`); stan przez jądro warehouse.
 - `getIssues` / `addIssue` — ręczne WZ.
 - `issueForWorkSession` / `returnForWorkSession` — automatyczne WZ/PZ powiązane z `work_sessions` (idempotentne).
 
@@ -760,7 +762,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–3 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–5 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

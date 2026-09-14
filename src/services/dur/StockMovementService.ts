@@ -1,49 +1,16 @@
 import { db } from "@/db";
-import {
-  stockReceipts,
-  stockIssues,
-  sparePartInventory,
-  spareParts,
-  users,
-  workOrders,
-  resources,
-} from "@/db/schema";
+import { stockReceipts, stockIssues, spareParts, users, workOrders, resources } from "@/db/schema";
 import type { StockReceipt, StockIssue, StockReceiptInput, StockIssueInput } from "@/types/dur";
-import { InventoryService } from "./InventoryService";
-import { StockMovementError } from "./StockMovementError";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
+import {
+  executeWarehouseIssue,
+  executeWarehouseReceipt,
+} from "@/services/warehouse/warehouseMovements";
+import { sparePartsInventoryStore } from "@/services/warehouse/adapters/sparePartsStore";
 
 const recipientUser = alias(users, "stock_issue_recipient");
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from "@/db/schema";
-import { parseDecimalInput } from "@/lib/decimalInput";
-
-type DbClient = NodePgDatabase<typeof schema>;
-
-function assertPositiveQuantity(quantity: string) {
-  const n = parseDecimalInput(quantity);
-  if (n == null || n <= 0) {
-    throw new StockMovementError("invalid_quantity");
-  }
-}
-
-async function assertSufficientStock(
-  companyId: number,
-  partId: number,
-  quantity: string,
-  client: DbClient = db
-) {
-  const [row] = await client
-    .select({ quantity: sparePartInventory.quantity })
-    .from(sparePartInventory)
-    .where(and(eq(sparePartInventory.companyId, companyId), eq(sparePartInventory.partId, partId)))
-    .limit(1);
-  const currentQty = row ? (parseDecimalInput(row.quantity) ?? 0) : 0;
-  if (currentQty < (parseDecimalInput(quantity) ?? 0)) {
-    throw new StockMovementError("insufficient_stock");
-  }
-}
 
 /**
  * Serwis ruchów magazynowych (przyjęcia PZ / wydania WZ) — DUR Faza 2.
@@ -91,30 +58,35 @@ export class StockMovementService {
     companyId: number,
     userId: number,
     input: StockReceiptInput,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<StockReceipt> {
-    assertPositiveQuantity(input.quantity);
+    return executeWarehouseReceipt({
+      store: sparePartsInventoryStore,
+      companyId,
+      skuId: input.partId,
+      quantity: input.quantity,
+      client,
+      insertReceipt: async () => {
+        const [row] = await client
+          .insert(stockReceipts)
+          .values({
+            companyId,
+            partId: input.partId,
+            quantity: input.quantity,
+            unitPrice: input.unitPrice ?? null,
+            invoiceNumber: input.invoiceNumber ?? null,
+            notes: input.notes ?? null,
+            createdBy: userId,
+            workOrderSparePartId: input.workOrderSparePartId ?? null,
+          })
+          .returning();
 
-    const [row] = await client
-      .insert(stockReceipts)
-      .values({
-        companyId,
-        partId: input.partId,
-        quantity: input.quantity,
-        unitPrice: input.unitPrice ?? null,
-        invoiceNumber: input.invoiceNumber ?? null,
-        notes: input.notes ?? null,
-        createdBy: userId,
-        workOrderSparePartId: input.workOrderSparePartId ?? null,
-      })
-      .returning();
-
-    await InventoryService.upsertQuantity(companyId, input.partId, input.quantity, client);
-
-    return {
-      ...row,
-      createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
-    };
+        return {
+          ...row,
+          createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
+        };
+      },
+    });
   }
 
   static async getIssues(companyId: number): Promise<StockIssue[]> {
@@ -168,31 +140,35 @@ export class StockMovementService {
     companyId: number,
     userId: number,
     input: StockIssueInput,
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<StockIssue> {
-    assertPositiveQuantity(input.quantity);
-    await assertSufficientStock(companyId, input.partId, input.quantity, client);
+    return executeWarehouseIssue({
+      store: sparePartsInventoryStore,
+      companyId,
+      skuId: input.partId,
+      quantity: input.quantity,
+      client,
+      insertIssue: async () => {
+        const [row] = await client
+          .insert(stockIssues)
+          .values({
+            companyId,
+            partId: input.partId,
+            quantity: input.quantity,
+            workOrderId: input.workOrderId ?? null,
+            issuedTo: input.issuedTo ?? null,
+            notes: input.notes ?? null,
+            createdBy: userId,
+            workOrderSparePartId: input.workOrderSparePartId ?? null,
+          })
+          .returning();
 
-    const [row] = await client
-      .insert(stockIssues)
-      .values({
-        companyId,
-        partId: input.partId,
-        quantity: input.quantity,
-        workOrderId: input.workOrderId ?? null,
-        issuedTo: input.issuedTo ?? null,
-        notes: input.notes ?? null,
-        createdBy: userId,
-        workOrderSparePartId: input.workOrderSparePartId ?? null,
-      })
-      .returning();
-
-    await InventoryService.upsertQuantity(companyId, input.partId, `-${input.quantity}`, client);
-
-    return {
-      ...row,
-      createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
-    };
+        return {
+          ...row,
+          createdAt: row.createdAt?.toISOString?.() ?? String(row.createdAt),
+        };
+      },
+    });
   }
 
   /** Wydanie magazynowe powiązane z pobraniem części na zlecenie. */
@@ -207,7 +183,7 @@ export class StockMovementService {
       issuedTo: number;
       notes?: string | null;
     },
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<StockIssue> {
     return this.addIssue(
       companyId,
@@ -234,7 +210,7 @@ export class StockMovementService {
       quantity: string;
       workOrderId: number;
     },
-    client: DbClient = db
+    client: WarehouseDb = db
   ): Promise<StockReceipt> {
     return this.addReceipt(
       companyId,

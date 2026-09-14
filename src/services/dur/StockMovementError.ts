@@ -1,10 +1,9 @@
-/** Błąd domenowy ruchów magazynowych (kod → i18n `dur.apiErrors`). */
-export class StockMovementError extends Error {
-  constructor(
-    public readonly code: string,
-    message?: string
-  ) {
-    super(message ?? code);
+import { WarehouseStockError } from "@/services/warehouse/warehouseError";
+
+/** Błąd domenowy ruchów magazynowych części (kod → i18n `dur.apiErrors`). */
+export class StockMovementError extends WarehouseStockError {
+  constructor(code: string, message?: string) {
+    super(code, message);
     this.name = "StockMovementError";
   }
 }
