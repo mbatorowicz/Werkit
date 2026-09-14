@@ -1,6 +1,6 @@
 # Plan izolacji tenantów — organizacja, FK, obrona w głąb
 
-> **Status:** T0–T2 zamknięte (2026-09-14). T3 do zrobienia.  
+> **Status:** T0–T3 zamknięte (2026-09-14). RLS (T3.5) — osobna decyzja, poza tym programem.  
 > **Źródło:** audyt izolacji multi-firm (czat „Audyt izolacji tenantów”).  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-TENANT-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1). Nie ruszamy modelu logowania bez sluga firmy (globalny `username_email`) poza T3 (komunikat `user_exists`).
@@ -165,11 +165,13 @@ Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; T2: `n
 - [x] **T0** — `OrganizationService` + API org zawsze z `companyId`; `guardAdminMutation` na mutacjach; 404 na obce ID
 - [x] **T1** — `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id`
 - [x] **T2** — integracja dwóch firm: org + grupa maszyn
-- [ ] **T3.1** — unique login bez `user_exists` 500
-- [ ] **T3.2** — `resolveTenantCompanyId` usunięty albo nieufający JWT
-- [ ] **T3.3** — `getResources` nie ładuje całej `resource_to_categories`
+- [x] **T3.1** — unique login bez `user_exists` 500
+- [x] **T3.2** — `resolveTenantCompanyId` usunięty albo nieufający JWT
+- [x] **T3.3** — `getResources` nie ładuje całej `resource_to_categories`
+- [x] **T3.4** — nowe uploady Blob: `werkit-photos/{companyId}/{sessionId}/` (stare URL-e bez zmian)
+- [ ] **T3.5** — RLS (opcjonalnie, osobna decyzja — nie w tym programie)
 - [x] SYSTEM_MAP / AGENTS: krótka wzmianka po T0 (org = ten sam wzorzec co słowniki)
-- [x] i18n: dodany `invalid_user` (`invalid_resource_group` już był po DUR)
+- [x] i18n: `invalid_user` (T0), `invalid_username` (T3.1 — bez `user_exists` 500 na POST/PUT users firmy)
 
 ## Świadomie nie w tym programie
 

@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { mapAdminUserWriteError } from "@/lib/adminUserApiErrors";
 import { hashPassword } from "@/lib/passwordCrypto";
 import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
@@ -102,23 +103,7 @@ export const POST = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) => {
-      if (err instanceof Error && err.message === "invalid_supervisor") {
-        return jsonError("invalid_supervisor", 400);
-      }
-      if (err instanceof Error && err.message === "invalid_team") {
-        return jsonError("invalid_team", 400);
-      }
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "code" in err &&
-        (err as { code?: unknown }).code === "23505"
-      ) {
-        return jsonError("user_exists", 500);
-      }
-      return null;
-    },
+    mapUnknownError: mapAdminUserWriteError,
     defaultErrorCode: "save_error",
   }
 );

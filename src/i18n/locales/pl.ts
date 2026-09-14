@@ -122,6 +122,7 @@ export const pl = {
     delete_error: "Wystąpił błąd podczas usuwania.",
     machine_in_use: "Zasób jest przypisany do sesji i nie może zostać usunięty.",
     user_exists: "Ten login jest już zajęty.",
+    invalid_username: "Nie można użyć tego loginu.",
     slug_exists: "Ten identyfikator organizacji jest już zajęty.",
     material_in_use: "Materiał jest przypisany do zleceń i nie może zostać usunięty.",
     customer_in_use: "Klient jest przypisany do zleceń i nie może zostać usunięty.",

@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { resources, resourceToCategories } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { assertResourceCategoryAssignable } from "@/services/categoryHierarchyValidation";
 import { assertResourceGroupsAssignable } from "@/services/dur/categoryValidation";
 
@@ -19,7 +19,13 @@ export class ResourceService {
       .from(resources)
       .where(eq(resources.companyId, companyId))
       .orderBy(desc(resources.id));
-    const links = await db.select().from(resourceToCategories);
+    if (allResources.length === 0) return [];
+
+    const resourceIds = allResources.map((r) => r.id);
+    const links = await db
+      .select()
+      .from(resourceToCategories)
+      .where(inArray(resourceToCategories.resourceId, resourceIds));
     const byResourceId = new Map<number, number[]>();
     for (const l of links) {
       const arr = byResourceId.get(l.resourceId) ?? [];

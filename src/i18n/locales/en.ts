@@ -122,6 +122,7 @@ export const en: AppDictionary = {
     delete_error: "An error occurred while deleting.",
     machine_in_use: "Resource is assigned to sessions and cannot be deleted.",
     user_exists: "This login is already taken.",
+    invalid_username: "This login cannot be used.",
     slug_exists: "This organization identifier is already taken.",
     material_in_use: "Material is assigned to orders and cannot be deleted.",
     customer_in_use: "Customer is assigned to orders and cannot be deleted.",

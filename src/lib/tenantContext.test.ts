@@ -1,16 +1,28 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/db", () => ({
   db: {},
 }));
 
-import {
-  getTenantCompanyId,
-  isCompanyScopedRole,
-  isSuperadminRole,
-  TenantContextError,
-} from "@/lib/tenantContext";
+import * as tenantContext from "@/lib/tenantContext";
+import { isCompanyScopedRole, isSuperadminRole } from "@/lib/tenantContext";
 import { isAuthCookieClearLoginReason } from "@/lib/tenantRoles";
+
+function walkTsFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) {
+      out.push(...walkTsFiles(full));
+    } else if (name.endsWith(".ts") || name.endsWith(".tsx")) {
+      out.push(full);
+    }
+  }
+  return out;
+}
 
 describe("tenantContext", () => {
   it("rozpoznaje superadmina", () => {
@@ -25,18 +37,19 @@ describe("tenantContext", () => {
     expect(isCompanyScopedRole("superadmin")).toBe(false);
   });
 
-  it("getTenantCompanyId zwraca companyId z JWT", () => {
-    expect(getTenantCompanyId({ userId: 1, role: "worker", companyId: 5 })).toBe(5);
+  it("nie eksportuje helperów JWT companyId", () => {
+    expect("getTenantCompanyId" in tenantContext).toBe(false);
+    expect("resolveTenantCompanyId" in tenantContext).toBe(false);
   });
 
-  it("getTenantCompanyId rzuca gdy brak firmy", () => {
-    expect(() => getTenantCompanyId({ userId: 1, role: "worker" })).toThrow(TenantContextError);
-  });
-
-  it("getTenantCompanyId blokuje superadmina", () => {
-    expect(() => getTenantCompanyId({ userId: 1, role: "superadmin", companyId: 1 })).toThrow(
-      TenantContextError
-    );
+  it("src/app/api nie importuje JWT companyId (żywy principal)", () => {
+    const apiRoot = join(process.cwd(), "src/app/api");
+    const forbidden = /\b(getTenantCompanyId|resolveTenantCompanyId)\b/;
+    const hits: string[] = [];
+    for (const file of walkTsFiles(apiRoot)) {
+      if (forbidden.test(readFileSync(file, "utf8"))) hits.push(file);
+    }
+    expect(hits).toEqual([]);
   });
 
   it("isAuthCookieClearLoginReason czyści cookie przy tenant i session", () => {

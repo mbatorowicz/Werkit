@@ -1,5 +1,6 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireSuperadminSession } from "@/lib/apiPlatform";
+import { isPgUniqueViolation } from "@/lib/pgErrors";
 import { PlatformCompanyService } from "@/services/PlatformCompanyService";
 import { parsePositiveIntFromString } from "@/lib/parseRouteParams";
 
@@ -24,12 +25,7 @@ export const PATCH = withApiErrorHandling(
       if (!row) return jsonError("not_found", 404);
       return jsonOk({ success: true, company: row });
     } catch (e: unknown) {
-      const dup =
-        typeof e === "object" &&
-        e !== null &&
-        "code" in e &&
-        (e as { code?: unknown }).code === "23505";
-      if (dup) return jsonError("slug_exists", 409);
+      if (isPgUniqueViolation(e)) return jsonError("slug_exists", 409);
       throw e;
     }
   },

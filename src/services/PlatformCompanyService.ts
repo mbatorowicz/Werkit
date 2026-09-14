@@ -1,5 +1,6 @@
 import { db } from "@/db";
 import { companies, companySettings, users } from "@/db/schema";
+import { findPgUniqueViolation } from "@/lib/pgErrors";
 import { desc, eq } from "drizzle-orm";
 
 export type CompanyRow = typeof companies.$inferSelect;
@@ -14,24 +15,6 @@ function slugifyName(name: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 90);
   return base || "firma";
-}
-
-/**
- * Szuka błędu pg o kodzie 23505 (unique violation) w łańcuchu `cause` —
- * Drizzle opakowuje błąd drivera w DrizzleQueryError i kod nie jest na wierzchu.
- */
-function findPgUniqueViolation(err: unknown): { message: string } | null {
-  let current: unknown = err;
-  for (let depth = 0; depth < 5 && typeof current === "object" && current !== null; depth++) {
-    const candidate = current as { code?: unknown; message?: unknown; cause?: unknown };
-    if (candidate.code === "23505") {
-      return {
-        message: typeof candidate.message === "string" ? candidate.message : String(err),
-      };
-    }
-    current = candidate.cause;
-  }
-  return null;
 }
 
 export class PlatformCompanyService {

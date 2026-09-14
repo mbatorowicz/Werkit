@@ -407,7 +407,7 @@ export class WorkerSessionService {
     if (existing.length === 0) throw new Error("no_active_session");
 
     const { uploadPhotoBase64 } = await import("@/lib/photoUpload");
-    const result = await uploadPhotoBase64(base64DataUrl, existing[0].id, "AD_HOC");
+    const result = await uploadPhotoBase64(base64DataUrl, existing[0].id, "AD_HOC", companyId);
 
     await db.insert(sessionPhotos).values({
       workSessionId: existing[0].id,

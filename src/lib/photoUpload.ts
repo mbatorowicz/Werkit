@@ -19,8 +19,7 @@ import {
   assertValidatedPhotoBytes,
   parseAndValidatePhotoDataUrl,
 } from "@/lib/photoPayloadLimits";
-
-const BLOB_PREFIX = "werkit-photos";
+import { sessionPhotoBlobKey, sessionPhotoBlobPrefixes } from "@/lib/photoBlobPaths";
 
 /**
  * Prywatny store Vercel Blob zwraca signed URL, które wygasają.
@@ -99,14 +98,15 @@ export type PhotoUploadResult = {
 export async function uploadPhotoBase64(
   base64DataUrl: string,
   sessionId: number,
-  photoType: string
+  photoType: string,
+  companyId: number
 ): Promise<PhotoUploadResult> {
   const { mimeType, bytes, ext } = parseAndValidatePhotoDataUrl(base64DataUrl);
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   const fileBlob = new Blob([copy], { type: mimeType });
 
-  const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
+  const filename = sessionPhotoBlobKey(companyId, sessionId, photoType, ext);
 
   const result = await put(filename, fileBlob, {
     contentType: mimeType,
@@ -126,11 +126,12 @@ export async function uploadPhotoBase64(
 export async function uploadPhotoFile(
   file: File | Blob,
   sessionId: number,
-  photoType: string
+  photoType: string,
+  companyId: number
 ): Promise<PhotoUploadResult> {
   const buffer = new Uint8Array(await file.arrayBuffer());
   const { mimeType, ext } = assertValidatedPhotoBytes(file.type || "", buffer);
-  const filename = `${BLOB_PREFIX}/${sessionId}/${Date.now()}_${photoType.toLowerCase()}.${ext}`;
+  const filename = sessionPhotoBlobKey(companyId, sessionId, photoType, ext);
 
   const blob = await put(filename, file, {
     contentType: mimeType,
@@ -157,12 +158,14 @@ export async function deletePhoto(url: string): Promise<void> {
 /**
  * Usuwa wszystkie zdjęcia dla danej sesji.
  */
-export async function deleteSessionPhotos(sessionId: number): Promise<void> {
+export async function deleteSessionPhotos(sessionId: number, companyId?: number): Promise<void> {
   try {
-    const prefix = `${BLOB_PREFIX}/${sessionId}/`;
-    const { blobs } = await list({ prefix });
-    if (blobs.length > 0) {
-      await del(blobs.map((b) => b.url));
+    const prefixes = sessionPhotoBlobPrefixes(sessionId, companyId);
+    for (const prefix of prefixes) {
+      const { blobs } = await list({ prefix });
+      if (blobs.length > 0) {
+        await del(blobs.map((b) => b.url));
+      }
     }
   } catch {
     // Ignoruj błędy

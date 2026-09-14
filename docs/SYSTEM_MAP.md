@@ -247,8 +247,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/users` | GET | `AdminUserService.getAllUsers` + `orgProfile` (skrót badge'y) z `DelegationScopeService.getOrgProfilesForCompany` |
 | `/api/admin/users/delegatable` | GET | `DelegationScopeService.getDelegatableWorkers` — lista do pickera dyspozycji (scoped: tylko podlegli; admin: wszyscy aktywni workerzy) |
 | `/api/admin/users/[id]` | GET | Szczegóły użytkownika + pełny `orgProfile` (`getUserOrgProfile`) |
-| `/api/admin/users` | POST | Rejestracja konta + polityka hasła (`passwordPolicy`, min. 6, bez trywialnych PIN-ów) + `hashPassword`; 400 `weak_password`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); `23505 → user_exists`, `invalid_team` |
-| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła; zmiana hasła → ta sama polityka, 400 `weak_password`); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment` |
+| `/api/admin/users` | POST | Rejestracja konta + polityka hasła (`passwordPolicy`, min. 6, bez trywialnych PIN-ów) + `hashPassword`; 400 `weak_password`; worker: opcjonalne `reportsToId`, `teamId` (przypisanie zespołu po `createUser`); unique `username_email` (`23505`, także w `cause`) → **400 `invalid_username`** (nie `user_exists` 500 — wyrocznia tenanta); `invalid_team` |
+| `/api/admin/users/[id]` | PUT | Edycja konta (z opcjonalnym hash hasła; zmiana hasła → ta sama polityka, 400 `weak_password`); worker: `reportsToId`, `teamId` → `replaceUserTeamAssignment`; unique login → 400 `invalid_username` |
 | `/api/admin/users/[id]` | DELETE | Usunięcie konta; 409 `cannot_delete_self` (aktor = cel) / `last_admin` (ostatni `role=admin` w firmie) |
 | `/api/admin/settings` | GET | `DictionaryService.getSettings()` |
 | `/api/admin/settings` | POST | `DictionaryService.updateSettings` (upsert id=1) |
@@ -371,7 +371,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `deleteArchivedSession(companyId, sessionId, actorUserId?)` — `session_still_active` jeśli w toku; transakcja: PZ zwrot materiału + kasuje sesję + powiązany `work_order` jeśli istniał.
 
 ### `DictionaryService`
-- Słowniki + ustawienia, **w tym mapowanie N↔M** dla maszyn (`resource_to_categories`) i materiałów (`material_to_categories`).
+- Słowniki + ustawienia, **w tym mapowanie N↔M** dla maszyn (`resource_to_categories`) i materiałów (`material_to_categories`). `ResourceService.getResources(companyId)` ładuje łączenia **tylko** dla ID maszyn tej firmy (`inArray`), nie całą tabelę.
 - Wszystkie CRUD-y wymienione w sekcji 5.4. Eksportuje **`type ResourceCategoryUpdateInput`** i **`type MaterialCategoryUpdateInput`** — używane w `/api/categories/[id]` zamiast importowania `@/db/schema` w handlerze.
 - `getSettings()` zwraca tablicę 1-elementową (singleton id=1); `updateSettings()` robi `INSERT … ON CONFLICT (id) DO UPDATE`.
 
@@ -634,7 +634,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 |---|---|
 | `auth.ts` | `JWT_SECRET` (TextEncoder), `getAuthSession()` (cookie `auth_token` + `jwtVerify`), `getUserId()`, `getUserRole()`. **Tylko podpis JWT** — nie sprawdza `isActive`. Żywy principal: `AuthPrincipalService` + `livePrincipal.ts`. **Brak `JWT_SECRET`** → rzuca `Error`. **Na produkcji wymagane!** |
 | `livePrincipal.ts` | `assertLivePrincipal`, 401 + `auth_token` `Path=/` `Max-Age=0`, redirect layoutów `/login?reason=session`. |
-| `apiTenant.ts` / `apiPlatform.ts` | `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession` — po JWT rewalidacja DB; `session.role` i `companyId` z principal. |
+| `apiTenant.ts` / `apiPlatform.ts` | `requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession` — po JWT rewalidacja DB; `session.role` i `companyId` z principal. **Nie** bierz `companyId` z JWT (`getTenantCompanyId` / `resolveTenantCompanyId` usunięte). |
+| `pgErrors.ts` | `findPgUniqueViolation` / `isPgUniqueViolation` — kod `23505` w łańcuchu `cause` (Drizzle). |
+| `adminUserApiErrors.ts` | Unique login w API firmy → 400 `invalid_username` (nie `user_exists` 500). Platforma nadal mapuje `user_exists` przy tworzeniu firmy. |
+| `photoUpload.ts` / `photoBlobPaths.ts` | Upload Vercel Blob (private + presign). Nowe zdjęcia: `werkit-photos/{companyId}/{sessionId}/`; kasowanie listuje też legacy `werkit-photos/{sessionId}/`. |
 | `passwordCrypto.ts` | `comparePassword` / `hashPassword` / `DUMMY_BCRYPT_HASH` — domyślnie natywny **`bcrypt`**; przy **`WERKIT_USE_BCRYPTJS=1`** lub nieudanym imporcie `bcrypt` używa **`bcryptjs`**. Dummy hash (stała w kodzie) przy nieistniejącym userze na loginie. |
 | `passwordPolicy.ts` | `PASSWORD_MIN_LENGTH = 6`, `isPasswordPolicyOk` — odrzut `1234` / `123456` / `000000` / `111111` / login==hasło. Call-site: POST/PUT users, POST platform companies (+ admin). Login **nie** woła polityki. |
 | `parseRouteParams.ts` | `parsePositiveIntFromString` / `parsePositiveIntParam` — walidacja ID z URL i JSON (worker: akceptacja zlecenia, wizard sesji, edycja notatek; zapobiega `NaN` w zapytaniach). |
@@ -780,7 +783,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 12. **`GET /api/geocode`** — wymaga żywej sesji firmowej (`requireCompanyScopedSession`, nie tylko `proxy.ts`); `q` min. 3 znaki, **maks. 280**; 30/min/firmę (429 `too_many_geocode`). Błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
 13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem; **30 INSERT / min / user** (429 `too_many_logs`, klucz `logs:{userId}` w `login_attempts`).
 14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI nie startuje przy każdym deployu web — po zmianach mobilnych bez `android/**` uruchom ręcznie workflow **Build Android App**.
-15. **Zdjęcia sesji** — `uploadPhotoBase64`: max 4 MiB zdekodowane; MIME `image/jpeg|png|webp` + magic bytes (bez SVG). 400 `invalid_photo_data`.
+15. **Zdjęcia sesji** — `uploadPhotoBase64`: max 4 MiB zdekodowane; MIME `image/jpeg|png|webp` + magic bytes (bez SVG). 400 `invalid_photo_data`. Prefiks Blob: `werkit-photos/{companyId}/{sessionId}/` (nowe); stare URL-e bez `companyId` zostają ważne.
 16. **CSP** — `Content-Security-Policy` w `next.config.ts` (`src/lib/contentSecurityPolicy.ts`): kafelki CARTO, Nominatim, OSRM, markery Leaflet (GitHub/cdnjs), Vercel Blob. `script-src` ma `'unsafe-inline'` (Next.js hydration bez nonce; Leaflet w bundlu).
 
 ---
@@ -789,7 +792,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Izolacja tenantów T0–T3: [`plans/tenant-isolation-2026-09.md`](../plans/tenant-isolation-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

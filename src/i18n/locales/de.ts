@@ -124,6 +124,7 @@ export const de: AppDictionary = {
     delete_error: "Fehler beim Löschen.",
     machine_in_use: "Ressource ist Sitzungen zugewiesen und kann nicht gelöscht werden.",
     user_exists: "Dieser Login ist bereits vergeben.",
+    invalid_username: "Dieser Login kann nicht verwendet werden.",
     slug_exists: "Diese Organisationskennung ist bereits vergeben.",
     material_in_use: "Material ist Aufträgen zugewiesen und kann nicht gelöscht werden.",
     customer_in_use: "Kunde ist Aufträgen zugewiesen und kann nicht gelöscht werden.",

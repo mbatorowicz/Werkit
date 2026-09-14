@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { mapAdminUserWriteError } from "@/lib/adminUserApiErrors";
 import { hashPassword } from "@/lib/passwordCrypto";
 import { isPasswordPolicyOk } from "@/lib/passwordPolicy";
 import type { UserUpdatePayload } from "@/services/AdminUserService";
@@ -122,15 +123,7 @@ export const PUT = withApiErrorHandling(
     return jsonOk({ success: true });
   },
   {
-    mapUnknownError: (err) => {
-      if (err instanceof Error && err.message === "invalid_supervisor") {
-        return jsonError("invalid_supervisor", 400);
-      }
-      if (err instanceof Error && err.message === "invalid_team") {
-        return jsonError("invalid_team", 400);
-      }
-      return null;
-    },
+    mapUnknownError: mapAdminUserWriteError,
     defaultErrorCode: "save_error",
   }
 );
