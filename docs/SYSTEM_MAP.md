@@ -3,7 +3,7 @@
 > **Cel:** referencja „kto, gdzie, jak”. Każda tabela DB, endpoint API, serwis, hook i ważny komponent w jednym miejscu.
 > Zaktualizuj ten plik **w tym samym PR** co zmianę struktury — inaczej traci sens.
 >
-> Plik towarzyszący: [`AGENTS.md`](../AGENTS.md) (zasady pracy), [`ARCHITECTURE.md`](../ARCHITECTURE.md) (warstwy i wzorce), [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (plan redukcji długu — **SSOT planu**, nie duplikuj go tutaj w rozmiarze essay).
+> Plik towarzyszący: [`AGENTS.md`](../AGENTS.md) (zasady pracy), [`ARCHITECTURE.md`](../ARCHITECTURE.md) (warstwy i wzorce), [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (plan redukcji długu — **SSOT planu**, nie duplikuj go tutaj w rozmiarze essay). Kontrakt produktu (field-ops + MRO, dwa magazyny, GPS w sesji): [`ARCHITECTURE.md` §1a](../ARCHITECTURE.md), fazy 1–7: [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
 
 ---
 
@@ -682,8 +682,12 @@ W tekstach dla użytkownika (**pl/en/de**) trzymaj rozróżnienie — nazwy tabe
 | **Kategoria materiału** | Drzewo materiałów | `material_categories` |
 | **Kategoria części** | Katalog DUR | `spare_part_categories` |
 | **Rodzaj zlecenia** | Praca operacyjna vs naprawa | `order_type` ∈ `machine_work` \| `machine_repair` |
+| **Ładunek** | Jeden materiał na zlecenie pracy | `work_orders.material_id` (+ ilość); **nie** lista pozycji |
+| **BOM naprawy** | N części na zlecenie naprawy | `work_order_spare_parts` — **osobny** magazyn od materiałów |
 
 Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji słownikowej; **„Rodzaj”** — enum pracy vs naprawy. Etykiety list: `admin.orderFields.category` (kategoria), `orderFields.orderType` (rodzaj).
+
+**Kontrakt (2026-09):** tabele `materials` i `spare_parts` nie łączą się. GPS (`gps_logs`) jest śladem **sesji pracownika**, nie floty 24/7.
 
 ---
 
@@ -756,7 +760,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte** — patrz [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md).
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (faza 0 = kontrakt produktu, zamknięta): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

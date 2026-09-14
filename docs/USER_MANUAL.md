@@ -23,7 +23,9 @@ Pełny podręcznik użytkownika systemu Werkit (logistyka floty i praca w tereni
 
 ## 1. O systemie
 
-Werkit to system logistyczny dla floty i pracowników w terenie. Składa się z:
+Werkit to dyspozycja terenowa z warstwą utrzymania ruchu: praca ludzi, rejestr zasobów, dwa magazyny (materiały i części zamienne) oraz GPS w sesji transportu.
+
+Składa się z:
 
 | Środowisko | Adres | Użytkownicy |
 |------------|-------|-------------|
@@ -33,8 +35,8 @@ Werkit to system logistyczny dla floty i pracowników w terenie. Składa się z:
 
 Moduły opcjonalne per organizacja (ustawiane przez superadmina):
 
-- **GPS i mapa** — śledzenie trasy, mapa na żywo, geofencing, planowanie trasy, nawigacja
-- **DUR (utrzymanie ruchu)** — magazyn części, typy zasobów, części na zleceniach napraw
+- **GPS i mapa** — śledzenie trasy **pracownika w aktywnej sesji** (nie pojazdu 24/7), mapa na żywo, geofencing, planowanie trasy, nawigacja
+- **DUR (utrzymanie ruchu)** — magazyn części (osobny od materiałów), typy zasobów, części na zleceniach napraw
 
 ---
 

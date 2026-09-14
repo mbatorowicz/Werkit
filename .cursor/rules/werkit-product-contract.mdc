@@ -1,0 +1,25 @@
+---
+description: Twardy kontrakt produktu Werkit — field-ops + MRO, dwa magazyny, GPS w sesji.
+alwaysApply: true
+---
+
+# Werkit — kontrakt produktu (faza 0, 2026-09)
+
+Werkit to **dyspozycja terenowa (field-ops)** z warstwą **MRO**, nie klasyczny CMMS.
+
+**W zakresie:** ludzie + zasoby + dwa magazyny + GPS w sesji transportu.
+
+**Zostaje świadomie:**
+
+- 1 materiał na zlecenie `machine_work` (ładunek) — `work_orders.material_id`.
+- N części na zlecenie `machine_repair` (BOM) — `work_order_spare_parts`.
+- Tabele `materials` i `spare_parts` **się nie łączą** (dwa SKU). Wspólny może być tylko kod jądra magazynu, nie schemat.
+- GPS tylko przy aktywnej, niestacjonarnej **sesji pracownika** (`gps_logs` → `work_sessions`).
+
+**Nie dodawaj w tym programie** (fazy 1–7 w `plans/architecture-alignment-2026-09.md`):
+
+- planów prewencji (PM), liczników / motogodzin jako danych,
+- trackera pojazdu lub zasobu poza sesją,
+- scalania tabel magazynów materiałów i części.
+
+Szczegóły: [`AGENTS.md`](../../AGENTS.md) §1, [`ARCHITECTURE.md`](../../ARCHITECTURE.md) §1a.

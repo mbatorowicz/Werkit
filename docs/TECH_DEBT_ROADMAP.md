@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F.
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, faza 0 zamknięta): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
 
 ---
 
@@ -107,6 +107,14 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | D-09 | Refaktoryzacja `proxy.ts` (complexity 59 → ~10) | done |
 | D-10 | Refaktoryzacja `SettingsForm.tsx` (143 lines, complexity 33) | done |
 | D-11 | Refaktoryzacja `WorkerClient.tsx` (177 lines) | done |
+| P-ALIGN-0 | Kontrakt produktu: field-ops + MRO, dwa SKU, GPS w sesji (bez PM) | done |
+| P-ALIGN-1 | GPS: `gpsTrackingEnabled` → watcher + 403 bez pętli retry | open |
+| P-ALIGN-2 | `resource_groups` bez `requireDurFeature` | open |
+| P-ALIGN-3 | Dwa magazyny obok siebie w sidebarze | open |
+| P-ALIGN-4 | Niezależne flagi GPS (nie AND pięciu) | open |
+| P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | open |
+| P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | open |
+| P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | open |
 
 ### D-02 — co zrobiono
 
@@ -196,6 +204,18 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 
 - [`useLocale.ts`](../src/hooks/useLocale.ts): usunięto duplikację logiki między `useState` init a `useEffect` na mount. Stan inicjalizowany leniwie przez `buildLocaleConfigFromCookies()`. Usunięto zbędny `useEffect` i związany z nim `eslint-disable`.
 
+### P-ALIGN — dociągnięcie architektury (2026-09)
+
+Program po audycie v1.9.4. **SSOT faz:** [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Kontrakt w [`AGENTS.md`](../AGENTS.md) §1 i [`ARCHITECTURE.md`](../ARCHITECTURE.md) §1a.
+
+#### P-ALIGN-0 — co zrobiono
+
+- Potwierdzony kontrakt: Werkit = field-ops + MRO (ludzie, zasoby, dwa magazyny, GPS w sesji). Nie pełny CMMS.
+- 1 materiał na `machine_work` (ładunek) i N części na `machine_repair` (BOM) zostają — to nie jest dług do scalenia.
+- Tabele `materials` i `spare_parts` nie łączą się; GPS zostaje na `work_sessions`.
+- PM, motogodziny jako dane, tracker pojazdu 24/7 — poza tym programem (po fazie 7).
+- Reguła agenta: `.cursor/rules/werkit-product-contract.mdc`.
+
 ---
 
-*Ostatnia aktualizacja roadmapu: 2026-06-01.*
+*Ostatnia aktualizacja roadmapu: 2026-09-14.*

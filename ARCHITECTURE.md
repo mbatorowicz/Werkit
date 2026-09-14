@@ -6,7 +6,8 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 
 - **[`AGENTS.md`](./AGENTS.md)** — skrót operacyjny i zasady codziennej pracy.
 - **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
-- **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte** w repo; archiwum decyzji + placeholder §5 na przyszły dług); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
+- **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte**; §5 w tym **P-ALIGN**); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
+- **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (faza 0 = kontrakt, zamknięta).
 
 ---
 
@@ -18,6 +19,30 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 | Refactoring | **`src/app/`** nie importuje `@/db` ani `@/db/schema`; zapytania Drizzle mieszkają w **`src/services/`** — nowy kod trzymaj w tej konwencji |
 
 Architektura **warstwowa z serwisami** (od **v1.6.6**, utrwalona m.in. w **v1.9**) jest **obowiązującym** wzorcem dla tras API i danych ładowanych w Server Components.
+
+---
+
+## 1a. Kontrakt produktu (field-ops + MRO)
+
+**Potwierdzone 2026-09-14 (faza 0).** Werkit nie jest klasycznym CMMS (brak PM, liczników jako danych, historii utrzymania per zasób, GPS na pojeździe poza sesją). Jest **dyspozycją terenową** z warstwą naprawy na zleceniu.
+
+Oś systemu: **zlecenie → sesja → dowody**. Magazyny i GPS są skutkiem rodzaju zlecenia i kategorii, nie osobnymi bounded contextami „flota 24/7” ani „CMMS asset-centric”.
+
+| Moduł | Kontrakt |
+|-------|----------|
+| Ludzie i praca | Jedna aktywna sesja na pracownika. `PENDING` → `IN_PROGRESS` → `COMPLETED`. |
+| Zasoby | Egzemplarz (`resources`) + typ (`resource_groups`) + kategoria pracy (`resource_categories`). |
+| Magazyn materiałów | Zawsze włączony. **1** `material_id` na `machine_work` (ładunek). Auto WZ przy starcie sesji. |
+| Magazyn części (DUR) | Flaga `durEnabled`. **N** wierszy `work_order_spare_parts` na `machine_repair` (BOM). |
+| GPS | Ślad **pracownika w sesji** (`gps_logs` → `work_sessions`). Wyłączony, gdy sesja nieaktywna albo kategoria stacjonarna. |
+
+**Twarde granice dla kodu:**
+
+- Tabele `materials` i `spare_parts` **pozostają osobne**. Faza 5 alignmentu może wydzielić wspólne *jądro kodu* (walidacja ilości, upsert stanu), nie wspólny schemat SKU.
+- Nie łącz 1×materiał z N×części w jeden model wydania na zleceniu — to ładunek vs BOM, nie dług.
+- Nie buduj w tym programie planów prewencji, motogodzin jako encji ani trackera zasobu bez sesji.
+
+Plan faz 1–7: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md). Zasada dla agentów: [`AGENTS.md`](./AGENTS.md) §1.
 
 ---
 
@@ -221,6 +246,7 @@ Reguła nadal obowiązuje w **Next 16** dla dynamicznych tras — nie polegaj na
 - **`GlobalErrorHandler`** — listener `window.error` + `unhandledrejection` w `worker/layout.tsx`; każdy nieobsłużony wyjątek leci do `device_logs`.
 - **GPS bookend** — `work_sessions.start_*` / `end_*` zapisywane przy akceptacji zlecenia (`POST /api/worker/work-orders/:id/accept`) i przy kończeniu sesji (`PUT /api/worker/session`). Body opcjonalne — bez zgody na GPS po prostu `null`.
 - **`isStationary`** (warsztat / plac) — kategoria z tym flagiem ⇒ `useWorkerGPS` **wyłącza watcher**, a `handleCheckpoint` pomija geofence-confirm.
+- **Poza kontraktem produktu:** GPS na pojeździe / zasobie 24/7 (bez sesji) — nie dodawaj w alignmentcie; osobny program po fazie 7.
 
 Pełna mapa modułu mobilnego (hooki, konfig Capacitor, biometria, kolejka GPS) — **[`docs/SYSTEM_MAP.md` §14](./docs/SYSTEM_MAP.md)**.
 
@@ -234,6 +260,7 @@ Pełna mapa modułu mobilnego (hooki, konfig Capacitor, biometria, kolejka GPS) 
 - [ ] Czy komunikaty użytkownika idą przez **`useAppDialog`**, a nie `window.alert` / `confirm`?
 - [ ] Czy nie dodajesz **`any`**?
 - [ ] Czy nowy lub zmieniany **`route.ts`** / **`page.tsx`** nie wprowadza z powrotem **Drizzle w `src/app/`** — tylko woła **serwis**?
+- [ ] Czy zmiana nie łamie **kontraktu produktu** (§1a): dwa SKU magazynowe, ładunek vs BOM, GPS tylko w sesji, bez PM?
 
 ---
 

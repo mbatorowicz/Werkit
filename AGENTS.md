@@ -6,13 +6,23 @@ Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kt
 
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — warstwy, przepływ żądania, wzorce (bez duplikowania długiej listy API).
 - [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **inwentaryzacja**: tabele DB, endpointy ↔ serwisy, hooki, `i18n`, pułapki. **Czytaj zanim ruszysz większą zmianę.**
-- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz.
+- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz. Program alignmentu domeny: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md) (faza 0 zamknięta).
 
 ---
 
 ## 1. Produkt i stawka błędu
 
-Werkit to **system logistyczny dla floty** (PWA + Capacitor). Błąd w sesji pracy, zleceniu lub GPS może realnie zatrzymać lub zmąc wybrane procesy w terenie. Zanim zmienisz API odpowiedzi, typ tablicy → obiekt, lub pole bazy — **przejrzyj call-site’y i serwisy**.
+Werkit to **dyspozycja terenowa (field-ops)** z warstwą **MRO** (PWA + Capacitor): **ludzie + zasoby + dwa magazyny + GPS w sesji transportu**. Błąd w sesji pracy, zleceniu lub GPS może realnie zatrzymać lub zmąc wybrane procesy w terenie. Zanim zmienisz API odpowiedzi, typ tablicy → obiekt, lub pole bazy — **przejrzyj call-site’y i serwisy**.
+
+**Kontrakt (faza 0, 2026-09 — nie łam przy „dociągnięciu architektury”):**
+
+| Zostaje | Nie mieszaj / nie dokładaj w tym programie |
+|---------|--------------------------------------------|
+| 1 materiał na zlecenie `machine_work` (ładunek) | Scalanie tabel `materials` i `spare_parts` |
+| N części na zlecenie `machine_repair` (BOM) | Plany PM, motogodziny jako dane, zgłoszenie awarii poza dyspozycją |
+| GPS tylko przy aktywnej, niestacjonarnej sesji (`gps_logs` → `work_sessions`) | Tracker pojazdu / zasobu 24/7 bez sesji |
+
+Pełny program faz 1–7: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md). Warstwy i uzasadnienie: [`ARCHITECTURE.md`](./ARCHITECTURE.md) §1a.
 
 ---
 
@@ -87,6 +97,7 @@ src/
 3. **Priorytet zlecenia** — wartości domenowe: `URGENT` \| `HIGH` \| `NORMAL` \| `LOW`. W bazie egzekwuje to migracja **CHECK** `work_orders_priority_chk` (patrz `drizzle/`). Po stronie klienta walidacja przez **`narrowPriority`** z [`src/lib/narrow/shared.ts`](./src/lib/narrow/shared.ts).
 3a. **Hierarchia kategorii** (`resource_categories` / `material_categories`): `parent_id`, `is_group`, `sort_order`. Grupy — tylko organizacja w adminie; liście — zlecenia, wizard, przypisania. API: `GET /api/categories?leavesOnly=1` (materiały analogicznie). UI admin: `src/features/admin/categories/`, `src/lib/categoryTree.ts`, i18n `admin.categories`.
 3b. **Nazewnictwo w UI (i18n):** **typ** = tylko typ zasobu (`resource_groups`); **kategoria** = zlecenie / materiał / część DUR; **rodzaj zlecenia** = `orderType` (praca vs naprawa). Nie mieszaj „typ zlecenia” z kategorią — patrz [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) §13.1.
+3c. **Dwa magazyny i GPS (kontrakt produktu):** `materials` ≠ `spare_parts` (dwa SKU). Zlecenie pracy = 1 materiał; naprawa = N części. GPS = ślad **sesji**, nie floty. Nie dodawaj PM / liczników / trackera 24/7 w PR-ach alignmentu — patrz §1 i [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md).
 4. **Nowy kod DB** — **wyłącznie `src/services/`** (Drizzle); **`src/app/`** nie importuje `@/db` / `@/db/schema`. Szczegóły: **[`ARCHITECTURE.md`](./ARCHITECTURE.md)**.
 5. **Teksty UI** — stringi widoczne dla użytkownika przez **`getDictionary()`** / sloty `worker.client`, `admin.*`, `apiErrors`. Placeholdery `{klucz}` przez **`formatDict`**. Domyślny locale formatów dat: **`DEFAULT_UI_LOCALE`** (`src/i18n/constants.ts`), dopóki nie ma wyboru języka użytkownika.
 6. **Proxy (Edge)** — strażnik tras to **`src/proxy.ts`** z eksportem **`proxy`** (Next.js 16; dawniej `middleware.ts`). Ta sama rola: JWT, role, matcher — bez zmian logiki nie psuj ochrony `/admin`, `/worker`, `/api`.
@@ -204,11 +215,11 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 
 ## 11. Kiedy czytać ARCHITECTURE.md i roadmap długu
 
-Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**.
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (faza 0 zamknięta).
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, faza 0 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 

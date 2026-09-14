@@ -2,6 +2,7 @@
 
 > **Cel:** Jeden spójny dokument zastępujący wszystkie rozproszone plany w `plans/`.  
 > **Data:** 2026-05-29  
+> **Aktualizacja 2026-09-14:** dociągnięcie domeny (field-ops + MRO) jest w **[`architecture-alignment-2026-09.md`](./architecture-alignment-2026-09.md)** — faza 0 zamknięta; nie dopisuj PM / scalania magazynów do faz I–VI poniżej.
 > **Źródła scalone:** `audyt-werkit-2026-05.md`, `naprawa-audyt-2026-05.md`, `dur-module-completion-plan.md`, `dur-module-plan.md`, `feature-flags-platform-plan.md`, `order-types-org-gps-toggle-plan.md`, `audyt-i18n-2026-05.md`, `audyt-multitenant-2026-05.md`, `ios-support-2026-05.md`, `prompt-naprawa-duplikacji.md`, `docs/TECH_DEBT_ROADMAP.md`  
 > **Dokumenty nadrzędne:** [`AGENTS.md`](../AGENTS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`docs/SYSTEM_MAP.md`](../docs/SYSTEM_MAP.md)
 
