@@ -3,6 +3,7 @@ import Link from "next/link";
 import { TimelineItem } from "@/types/worker";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import { notFound } from "next/navigation";
@@ -94,9 +95,7 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
 
   const pathTraveled = displayPathFromRawGpsRows(logs, { reverseToChronological: false });
 
-  const isStationary = Boolean(
-    (sessionData as { categoryIsStationary?: boolean | null }).categoryIsStationary
-  );
+  const isStationary = gpsPolicyFromSession(sessionData) === "stationary";
 
   // Oś czasu pokazujemy zawsze (nawet jeśli brak koordynatów). Mapę karmimy tylko zdarzeniami z lat/lng.
   const timelineEvents: TimelineItem[] = [

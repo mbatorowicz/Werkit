@@ -1,6 +1,7 @@
 import { appDialogApiMessage } from "@/components/AppDialogProvider";
 import type { AppAlertOptions, AppConfirmOptions } from "@/components/AppDialogProvider";
 import { formatDict } from "@/i18n";
+import type { GpsPolicy } from "@/lib/categoryPolicy";
 import { shouldPromptArrivalGeofence } from "@/features/worker/lib/arrivalGeofence";
 import type { AppDictionary } from "@/i18n/types";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
@@ -182,14 +183,14 @@ export async function checkpointAction(
     location: Coord | null;
     settings: AppSettings | null;
     distanceToDestKm: number | null;
-    categoryIsStationary: boolean;
+    gpsPolicy: GpsPolicy;
   }
 ): Promise<void> {
   const { dict, appAlert, appConfirm, fetchSessionAndPath, setIsLoading } = deps;
-  const { location, settings, distanceToDestKm, categoryIsStationary } = args;
+  const { location, settings, distanceToDestKm, gpsPolicy } = args;
   if (
     shouldPromptArrivalGeofence({
-      categoryIsStationary,
+      gpsPolicy,
       geofencingEnabled: settings?.geofencingEnabled,
       geofenceRadiusMeters: settings?.geofenceRadiusMeters,
       distanceToDestKm,

@@ -1,6 +1,7 @@
 import { getDictionary, type Locale } from "@/i18n";
+import { resolveFieldVisibility } from "@/lib/categoryPolicy";
 import { isRepairOrderType } from "@/lib/orderType";
-import { type CategoryFieldFlags, resolvedCategoryFieldFlags } from "@/lib/workOrderCategoryFields";
+import { type CategoryFieldFlags } from "@/lib/workOrderCategoryFields";
 import type { OrderType } from "@/types/worker";
 import type { WorkOrder } from "@/types/worker";
 
@@ -22,7 +23,7 @@ export function resolveOrderLabelFieldVisibility(
   } & OrderLabelCategoryFlags,
   locale?: Locale
 ): OrderLabelFieldVisibility {
-  const f = resolvedCategoryFieldFlags(input);
+  const f = resolveFieldVisibility(input);
   const repair = isRepairOrderType(input.orderType);
   const fieldLabels = getDictionary(locale).admin.orderFields;
 

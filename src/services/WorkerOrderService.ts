@@ -14,7 +14,8 @@ import {
   coerceWorkOrderPriority,
   validateCategoryForOrder,
 } from "@/lib/workOrderCategoryValidation";
-import { resolveOrderType } from "@/lib/orderType";
+import { resolveOrderKind } from "@/lib/categoryPolicy";
+import { sessionInsertFromAcceptedOrder } from "@/lib/sessionSnapshotFromOrder";
 import { parseOrderBody } from "@/lib/parseRouteParams";
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import {
@@ -121,28 +122,13 @@ export class WorkerOrderService {
 
       const [newSession] = await tx
         .insert(workSessions)
-        .values({
-          companyId,
-          workOrderId: order.id,
-          userId: userId,
-          categoryId: order.categoryId!,
-          resourceId: order.resourceId,
-          materialId: order.materialId,
-          customerId: order.customerId,
-          taskDescription: order.taskDescription,
-          quantityTons: order.quantityTons,
-          expectedDurationHours: order.expectedDurationHours,
-          dueDate: order.dueDate,
-          status: "IN_PROGRESS",
-          orderType: order.orderType,
-          repairDescription: order.repairDescription,
-          ...(startNums
-            ? {
-                startLatitude: startNums.lat,
-                startLongitude: startNums.lng,
-              }
-            : {}),
-        })
+        .values(
+          sessionInsertFromAcceptedOrder(order, {
+            companyId,
+            userId,
+            startCoord: startNums,
+          })
+        )
         .returning();
 
       if (order.materialId && order.quantityTons) {
@@ -212,7 +198,7 @@ export class WorkerOrderService {
       companyId,
       payload.categoryId
     );
-    const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
+    const orderType = resolveOrderKind(payload.orderType, categoryRow?.orderType);
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
       normalizeWorkOrderMaterialFieldsForCategory(
         categoryRow,
@@ -356,7 +342,7 @@ export class WorkerOrderService {
       companyId,
       payload.categoryId
     );
-    const orderType = resolveOrderType(payload.orderType, categoryRow?.orderType);
+    const orderType = resolveOrderKind(payload.orderType, categoryRow?.orderType);
     const { materialId: orderMaterialId, quantityTons: orderQuantityTons } =
       normalizeWorkOrderMaterialFieldsForCategory(
         categoryRow,

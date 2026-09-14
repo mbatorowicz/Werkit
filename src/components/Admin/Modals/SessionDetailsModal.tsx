@@ -5,6 +5,7 @@ import { getDictionary, type Locale } from "@/i18n";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { AdminPasswordConfirmModal } from "@/components/Admin/AdminPasswordConfirmModal";
 import { useAppDialog } from "@/components/AppDialogProvider";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import type { UnifiedGanttItem } from "@/types/admin";
 import { SessionDetailsLocaleContext } from "./SessionMapSection";
 import SessionPhotoLightbox from "./SessionPhotoLightbox";
@@ -44,7 +45,7 @@ export default function SessionDetailsModal({
   const { isLoading, pathTraveled, events, hasMapData, currentLocation, timelineItems, allPhotos } =
     useSessionDetailsData(item);
 
-  const isStationary = Boolean(item.categoryIsStationary);
+  const isStationary = gpsPolicyFromSession(item) === "stationary";
 
   const showSessionFooter =
     item._type === "SESSION" &&

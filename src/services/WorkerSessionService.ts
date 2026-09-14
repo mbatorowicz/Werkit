@@ -25,6 +25,7 @@ import {
   assertCustomerBelongsToCompany,
   assertMaterialBelongsToCompany,
 } from "@/lib/tenantContext";
+import { resolveGpsPolicy } from "@/lib/categoryPolicy";
 import { DEFAULT_FEATURE_FLAGS } from "@/types/featureFlags";
 import type { AppSettings } from "@/types/worker";
 
@@ -163,6 +164,7 @@ export class WorkerSessionService {
         categoryShowQuantity: Boolean(data.categoryShowQuantity),
         categoryShowTaskDescription: Boolean(data.categoryShowTaskDescription),
         categoryIsStationary: Boolean(data.categoryIsStationary),
+        gpsPolicy: resolveGpsPolicy(Boolean(data.categoryIsStationary)),
         materialName: data.materialName,
         customerLocationId: resolvedLocation?.id ?? null,
         routeWaypoints: resolvedLocation?.routeWaypoints ?? [],
@@ -549,6 +551,14 @@ export class WorkerSessionService {
 
     const photos = await refreshPhotoUrls(rawPhotos);
 
-    return { sessionData, logs, notes, photos };
+    return {
+      sessionData: {
+        ...sessionData,
+        gpsPolicy: resolveGpsPolicy(Boolean(sessionData.categoryIsStationary)),
+      },
+      logs,
+      notes,
+      photos,
+    };
   }
 }

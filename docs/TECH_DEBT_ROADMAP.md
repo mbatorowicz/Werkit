@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–5 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
 
 ---
 
@@ -113,8 +113,8 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-ALIGN-3 | Dwa magazyny obok siebie w sidebarze | done |
 | P-ALIGN-4 | Niezależne flagi GPS (nie AND pięciu) | done |
 | P-ALIGN-5 | Jądro magazynu (`services/warehouse`) + dwa adaptery; **bez** scalania tabel | done |
-| P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | open |
-| P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | open |
+| P-ALIGN-6 | Polityka kategorii: `gpsPolicy` / `orderKind` / `fieldVisibility` | done |
+| P-ALIGN-7 | Test snapshotu sesji + nazwa produktu „Werkit” | done |
 
 ### D-02 — co zrobiono
 
@@ -248,6 +248,19 @@ Program po audycie v1.9.4. **SSOT faz:** [`plans/architecture-alignment-2026-09.
 - Adaptery `materialsInventoryStore` i `sparePartsInventoryStore` — tabele SKU **nie** są scalone.
 - `InventoryService` / `MaterialInventoryService` / serwisy ruchów delegują mutacje stanu do jądra. Auto WZ sesji i BOM naprawy zostają w serwisach domenowych.
 - Testy jądra (ilość, PZ/WZ, korekta, adaptery) + istniejące testy obu magazynów.
+
+#### P-ALIGN-6 — co zrobiono
+
+- [`src/lib/categoryPolicy.ts`](../src/lib/categoryPolicy.ts): odczyt `gpsPolicy` (`stationary` / `track`), `orderKind`, `fieldVisibility` z wiersza `resource_categories` — tabela **nie** jest rozbita.
+- `useWorkerGPS` / `shouldStartGpsWatcher` czytają `gpsPolicy`; legacy `categoryIsStationary` zostaje na payloadzie jako fallback.
+- Geofence „Dojechał”, shell, historia i admin session details przez `gpsPolicyFromSession`.
+- Walidacja zlecenia i etykiety karty: `resolveOrderKind` / `resolveFieldVisibility`.
+
+#### P-ALIGN-7 — co zrobiono
+
+- Snapshot `orderType` / materiał / ilość na sesję przy akceptacji: [`sessionInsertFromAcceptedOrder`](../src/lib/sessionSnapshotFromOrder.ts) + test kopiowania.
+- Default `company_name` → „Werkit” (`DEFAULT_COMPANY_NAME`, migracja **0032**, metadata, PWA manifest).
+- URL `/admin/machines` bez zmian; etykieta UI „Zasoby”.
 
 ---
 

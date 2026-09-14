@@ -18,6 +18,7 @@ import {
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { DEFAULT_COMPANY_NAME } from "@/lib/productName";
 
 /** Tenant (firma) — izolacja danych multi-firm. */
 export const companies = pgTable("companies", {
@@ -83,7 +84,7 @@ export const resourceCategories = pgTable("resource_categories", {
   reqQuantity: boolean("req_quantity").notNull().default(false),
   reqTaskDescription: boolean("req_task_description").notNull().default(true),
   isGlobal: boolean("is_global").notNull().default(false),
-  /** Warsztat / załadunek na placu — bez śledzenia trasy GPS i bez geofencingu „dojazdu”. */
+  /** Warsztat / załadunek na placu — bez śledzenia trasy GPS i bez geofencingu „dojazdu”. Odczyt: `gpsPolicy` w `src/lib/categoryPolicy.ts`. */
   isStationary: boolean("is_stationary").notNull().default(false),
   color: varchar("color", { length: 50 }).default("#3f3f46"),
   /** Rodzaj zlecenia: machine_work (praca na maszynie, z materiałami) | machine_repair (naprawa, z częściami). */
@@ -277,7 +278,7 @@ export const companySettings = pgTable("company_settings", {
     .notNull()
     .references(() => companies.id, { onDelete: "cascade" })
     .unique(),
-  companyName: varchar("company_name", { length: 255 }).notNull().default("Werkit ERP"),
+  companyName: varchar("company_name", { length: 255 }).notNull().default(DEFAULT_COMPANY_NAME),
   companyAddress: text("company_address"),
   zipCode: varchar("zip_code", { length: 20 }),
   city: varchar("city", { length: 255 }),

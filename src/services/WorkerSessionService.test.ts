@@ -281,6 +281,7 @@ describe("WorkerSessionService", () => {
       expect(result.session).not.toBeNull();
       expect(result.session!.id).toBe(1);
       expect(result.session!.resourceName).toBe("Koparka");
+      expect(result.session!.gpsPolicy).toBe("track");
       expect(result.events).toHaveLength(1);
       expect(result.notes).toHaveLength(1);
       expect(result.settings).toMatchObject({ gpsTrackingEnabled: true, durEnabled: false });
@@ -599,6 +600,7 @@ describe("WorkerSessionService", () => {
 
       expect(result).not.toBeNull();
       expect(result!.sessionData.id).toBe(1);
+      expect(result!.sessionData.gpsPolicy).toBe("track");
       expect(result!.logs).toHaveLength(1);
       expect(result!.notes).toHaveLength(1);
       expect(result!.photos).toHaveLength(1);

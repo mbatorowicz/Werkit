@@ -29,13 +29,13 @@ const metadataBaseUrl =
 
 export const metadata: Metadata = {
   metadataBase: new URL(metadataBaseUrl),
-  title: "Werkit ERP",
+  title: "Werkit",
   description: "Zarządzanie operacjami i flotą",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Werkit ERP",
+    title: "Werkit",
   },
 };
 

@@ -1,6 +1,7 @@
 import { isRecord } from "@/lib/narrowApiListRows";
 import { coordFromRawGpsRow, type RawGpsCoordinateRow } from "@/lib/gps/pathFromLogRows";
 import type { AppSettings, Coord, Session, UserData } from "@/types/worker";
+import { narrowGpsPolicy } from "@/lib/categoryPolicy";
 import { narrowOrderType } from "@/lib/orderType";
 import { parseRouteWaypoints } from "@/lib/map/routeWaypoints";
 
@@ -49,6 +50,7 @@ export function narrowSession(v: unknown): Session | null {
     categoryShowQuantity: optionalBoolean(v.categoryShowQuantity),
     categoryShowTaskDescription: optionalBoolean(v.categoryShowTaskDescription),
     categoryIsStationary: optionalBoolean(v.categoryIsStationary),
+    gpsPolicy: narrowGpsPolicy(v.gpsPolicy),
     status: v.status,
     customerAddress: nullableString(v.customerAddress),
     customerLat: nullableString(v.customerLat),

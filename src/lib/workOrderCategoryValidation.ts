@@ -1,5 +1,6 @@
 import { parseDecimalInput } from "@/lib/decimalInput";
-import { isRepairOrderType, resolveOrderType } from "@/lib/orderType";
+import { resolveOrderKind } from "@/lib/categoryPolicy";
+import { isRepairOrderType } from "@/lib/orderType";
 import { DictionaryService } from "@/services/DictionaryService";
 import type { OrderType } from "@/types/worker";
 
@@ -36,7 +37,7 @@ export function validateWorkOrderFieldsAgainstCategory(
   | "missing_task_description" {
   if (!cat) return "invalid_category";
 
-  const orderType = resolveOrderType(payload.orderType, cat.orderType);
+  const orderType = resolveOrderKind(payload.orderType, cat.orderType);
   const isRepair = isRepairOrderType(orderType);
 
   const hasCustomer = payload.customerId != null && String(payload.customerId).trim() !== "";
@@ -93,5 +94,5 @@ export async function resolveOrderTypeForCategory(
   explicit: unknown
 ): Promise<OrderType> {
   const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
-  return resolveOrderType(explicit, categoryRow?.orderType);
+  return resolveOrderKind(explicit, categoryRow?.orderType);
 }

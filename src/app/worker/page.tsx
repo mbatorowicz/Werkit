@@ -1,5 +1,6 @@
 import WorkerClient from "./WorkerClient";
 import { InitialWorkerData, Session } from "@/types/worker";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import { getUserId } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 import type { WorkerSessionService as WorkerSessionServiceType } from "@/services/WorkerSessionService";
@@ -50,6 +51,7 @@ function mapSession(rawSession: RawSession): Session {
       "categoryIsStationary" in rawSession &&
       (rawSession as { categoryIsStationary?: boolean }).categoryIsStationary
     ),
+    gpsPolicy: gpsPolicyFromSession(rawSession),
     workOrderId: rawSession.workOrderId ?? null,
     resourceName: rawSession.resourceName ?? null,
     materialName: rawSession.materialName ?? null,

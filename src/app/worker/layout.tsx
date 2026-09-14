@@ -10,6 +10,7 @@ import { getServerLocale } from "@/lib/localeCookies.server";
 
 import { JWT_SECRET } from "@/lib/auth";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { DEFAULT_COMPANY_NAME } from "@/lib/productName";
 import { workerRoutes } from "@/lib/appRoutes";
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function WorkerLayout({ children }: { children: React.React
 
   const companyId = await requireServerCompanyId();
   const settings = await DictionaryService.getSettings(companyId);
-  const companyName = settings[0]?.companyName || "Werkit ERP";
+  const companyName = settings[0]?.companyName || DEFAULT_COMPANY_NAME;
 
   let userName = "Pracownik";
   try {

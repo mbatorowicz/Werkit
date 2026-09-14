@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react";
 import type { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import { WorkerActiveSessionSection } from "./WorkerActiveSessionSection";
 
 type SectionProps = ComponentProps<typeof WorkerActiveSessionSection>;
@@ -27,7 +28,7 @@ export function WorkerActiveSessionFromShell({ shell, ...rest }: Props) {
     <WorkerActiveSessionSection
       {...rest}
       session={shell.session}
-      isStationarySession={Boolean(shell.session.categoryIsStationary)}
+      isStationarySession={gpsPolicyFromSession(shell.session) === "stationary"}
       queuedPendingOrders={shell.workOrders}
       gpsStatus={shell.gpsStatus}
       traveledKm={shell.traveledKm}

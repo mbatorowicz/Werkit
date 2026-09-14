@@ -40,7 +40,7 @@ const session: Session = {
   categoryId: 1,
   categoryName: "Transport",
   status: "IN_PROGRESS",
-  categoryIsStationary: false,
+  gpsPolicy: "track",
 };
 
 describe("useWorkerGPS", () => {
@@ -66,15 +66,31 @@ describe("useWorkerGPS", () => {
     expect(clearQueue).toHaveBeenCalled();
   });
 
-  it("nie woła native API gdy kategoria jest stacjonarna", async () => {
+  it("nie woła native API gdy gpsPolicy jest stationary", async () => {
     renderHook(() =>
-      useWorkerGPS({ ...session, categoryIsStationary: true }, vi.fn(), vi.fn(), vi.fn(), true)
+      useWorkerGPS({ ...session, gpsPolicy: "stationary" }, vi.fn(), vi.fn(), vi.fn(), true)
     );
 
     await waitFor(() => {
       expect(addWatcher).not.toHaveBeenCalled();
     });
     expect(clearQueue).not.toHaveBeenCalled();
+  });
+
+  it("nie woła native API gdy legacy categoryIsStationary jest true (fallback gpsPolicy)", async () => {
+    renderHook(() =>
+      useWorkerGPS(
+        { ...session, gpsPolicy: undefined, categoryIsStationary: true },
+        vi.fn(),
+        vi.fn(),
+        vi.fn(),
+        true
+      )
+    );
+
+    await waitFor(() => {
+      expect(addWatcher).not.toHaveBeenCalled();
+    });
   });
 
   it("uruchamia BackgroundGeolocation gdy śledzenie jest włączone", async () => {

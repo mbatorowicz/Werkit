@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { useDictionary } from "@/i18n";
 import type { AppDictionary } from "@/i18n/types";
+import type { GpsPolicy } from "@/lib/categoryPolicy";
 import type { Coord, TimelineItem, AppSettings } from "@/types/worker";
 import {
   acceptOrderAction,
@@ -19,8 +20,8 @@ interface UseWorkerActionsProps {
   timelineEvents: TimelineItem[];
   settings: AppSettings | null;
   distanceToDestKm: number | null;
-  /** Typ sprzętu stacjonarny — bez kontroli odległości przy „dojechał”. */
-  categoryIsStationary?: boolean;
+  /** Polityka GPS kategorii — bez kontroli odległości przy „dojechał” gdy stationary. */
+  gpsPolicy?: GpsPolicy;
 }
 
 export function useWorkerActions({
@@ -30,7 +31,7 @@ export function useWorkerActions({
   timelineEvents,
   settings,
   distanceToDestKm,
-  categoryIsStationary = false,
+  gpsPolicy = "track",
 }: UseWorkerActionsProps) {
   const { confirm: appConfirm, alert: appAlert } = useAppDialog();
   const dictionary = useDictionary();
@@ -52,7 +53,7 @@ export function useWorkerActions({
   const handleCancelSession = () => cancelSessionAction(deps);
 
   const handleCheckpoint = (location: Coord | null) =>
-    checkpointAction(deps, { location, settings, distanceToDestKm, categoryIsStationary });
+    checkpointAction(deps, { location, settings, distanceToDestKm, gpsPolicy });
 
   const handleSaveNote = (location: Coord | null) =>
     saveNoteAction(deps, {

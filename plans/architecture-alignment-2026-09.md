@@ -1,6 +1,6 @@
 # Plan dociągnięcia architektury — field-ops + MRO
 
-> **Status:** fazy **0–5 zamknięte** (2026-09-14). Fazy 6–7 otwarte.  
+> **Status:** fazy **0–7 zamknięte** (2026-09-14). Program alignmentu zakończony.  
 > **Źródło:** audyt architektury v1.9.4 (14 wrz 2026). Canvas planu żyje obok czatu (`cmms-alignment-plan.canvas.tsx`); ten plik jest SSOT w git.
 > **SSOT postępu w git:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (P-ALIGN).  
 > **Kontrakt dla agentów:** [`AGENTS.md`](../AGENTS.md) §1, [`ARCHITECTURE.md`](../ARCHITECTURE.md) §1a.
@@ -46,10 +46,10 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 | 3 | IA dwóch magazynów ✅ | 5 (gdzie żyje UI) | Niskie — i18n/nav |
 | 4 | Flagi GPS niezależne ✅ | nic | Średnie — semantyka UI |
 | 5 | Jądro magazynu ✅ | nic dalszego w tym programie | Średnie — stany, WZ/PZ |
-| 6 | Polityka kategorii | nic | Średnie — worker GPS + formularze |
-| 7 | Nazwy i snapshot sesji | koniec programu | Niskie |
+| 6 | Polityka kategorii ✅ | nic | Średnie — worker GPS + formularze |
+| 7 | Nazwy i snapshot sesji ✅ | koniec programu | Niskie |
 
-**Faza 6 może startować** — faza 5 (jądro magazynu) jest zamknięta.
+**Program zamknięty** — fazy 6 i 7 ukończone 2026-09-14.
 
 ### Faza 1 — GPS: flaga = zachowanie ✅
 
@@ -103,15 +103,26 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 **Gotowe:** zmiana reguły stanu jest w jednym miejscu; oba magazyny przechodzą swoje testy.
 
-### Faza 6 — polityka kategorii
+### Faza 6 — polityka kategorii ✅
 
-Nie rozbijać `resource_categories`. Dodać odczyt: `gpsPolicy` (stationary / track), `orderKind`, `fieldVisibility`. Call-site’y przez te funkcje, nie przez surowe booleany z wiersza.
+**Zamknięta 2026-09-14.** Tabela `resource_categories` **nie** jest rozbita. Odczyt: `gpsPolicy` / `orderKind` / `fieldVisibility`.
 
-**Gotowe, gdy:** `useWorkerGPS` nie czyta surowego `isStationary`, tylko `gpsPolicy`.
+1. [`src/lib/categoryPolicy.ts`](../src/lib/categoryPolicy.ts): `resolveGpsPolicy` (`stationary` / `track`), `resolveOrderKind`, `resolveFieldVisibility`, `resolveCategoryPolicy`.
+2. `useWorkerGPS` / `shouldStartGpsWatcher` czytają `gpsPolicy`, nie surowy `isStationary`. Legacy `categoryIsStationary` zostaje na payloadzie jako fallback.
+3. Geofence „Dojechał”, shell sesji, mapa historii i admin session details idą przez `gpsPolicyFromSession`.
+4. Walidacja zlecenia i etykiety karty: `orderKind` / `fieldVisibility` zamiast bezpośredniego `resolveOrderType` / `resolvedCategoryFieldFlags`.
 
-### Faza 7 — snapshot i nazwy
+**Gotowe:** `useWorkerGPS` nie czyta surowego `isStationary`, tylko `gpsPolicy`.
 
-Snapshot `orderType` / materiał / ilość na sesję przy akceptacji zostaje + test kopiowania. Default `company_name` „Werkit ERP” → „Werkit”. URL `/admin/machines` zostaje; etykieta wszędzie „zasoby”.
+### Faza 7 — snapshot i nazwy ✅
+
+**Zamknięta 2026-09-14.**
+
+1. Snapshot `orderType` / `materialId` / `quantityTons` na sesję przy akceptacji: [`sessionInsertFromAcceptedOrder`](../src/lib/sessionSnapshotFromOrder.ts) + test kopiowania (unit + `acceptOrder`).
+2. Default `company_name` „Werkit ERP” → „Werkit” (`DEFAULT_COMPANY_NAME`, migracja **0032**, metadata, manifest).
+3. URL `/admin/machines` bez zmian; etykieta sidebar/strony „Zasoby” (`admin.sidebar.resources`).
+
+**Gotowe:** sesja kopiuje snapshot zlecenia; produkt nazywa się Werkit; rejestr to zasoby.
 
 ---
 

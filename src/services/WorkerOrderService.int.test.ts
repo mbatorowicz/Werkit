@@ -111,6 +111,9 @@ describe("WorkerOrderService (integracja z bazą)", () => {
         workOrderId: workSessions.workOrderId,
         userId: workSessions.userId,
         taskDescription: workSessions.taskDescription,
+        orderType: workSessions.orderType,
+        materialId: workSessions.materialId,
+        quantityTons: workSessions.quantityTons,
       })
       .from(workSessions)
       .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)));
@@ -118,6 +121,9 @@ describe("WorkerOrderService (integracja z bazą)", () => {
     expect(sessionRow.workOrderId).toBe(orderId);
     expect(sessionRow.userId).toBe(workerId);
     expect(sessionRow.taskDescription).toBe("__itest zlecenie własne");
+    expect(sessionRow.orderType).toBe("machine_work");
+    expect(sessionRow.materialId).toBeNull();
+    expect(sessionRow.quantityTons).toBeNull();
 
     await WorkerSessionService.endActiveSession(workerId, companyId);
   });

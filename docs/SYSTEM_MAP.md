@@ -115,6 +115,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | 0023 | `0023_feature_flags_dur.sql` | `company_settings.dur_enabled` — feature flag dla modułu DUR (domyślnie `false`). |
 | 0029 | `0029_material_warehouse.sql` | Magazyn materiałów: `material_inventory`, `material_stock_receipts`, `material_stock_issues`; `materials.min_stock`, `materials.location`; UNIQUE na `work_session_id` w issues/receipts (automatyczne WZ/PZ sesji). |
 | 0030 | `0030_materials_unit.sql` | `materials.unit` — konfigurowalna jednostka miary (domyślnie `t`). Kanon jednostek: `src/lib/measureUnits.ts` (współdzielone z częściami DUR). |
+| 0031 | `0031_dispatch_performance_indexes.sql` | Indeksy `work_sessions(company_id, start_time)` pod archiwum dyspozycji. |
+| 0032 | `0032_company_name_default.sql` | Default `company_settings.company_name` → `Werkit`; UPDATE istniejących wierszy z `Werkit ERP`. |
 
 ### 3.3. Weryfikacja pokrycia DB ↔ kod (`schema.ts`)
 
@@ -322,7 +324,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `WorkerOrderService`
 - `getPendingOrders(userId)` — JOIN: resources, materials, customers, creator (alias users), resource_categories. Sort: dueDate asc → createdAt asc. Mapuje `priority` przez `normalizeWorkOrderPriority`.
 - `createOwnOrder(userId, payload)` — wymaga `canCreateOwnOrders`; INSERT `work_orders` PENDING dla siebie; bez override konfliktów; zwraca `orderId`.
-- `acceptOrder(userId, orderId, startCoord?)` — walidacja harmonogramu (`schedule_conflict`, `resource_busy`, `session_active`); transakcja: UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS` + opcjonalne **WZ materiału** (`WorkSessionMaterialService.issueForSessionStart`). Zwraca `sessionId`.
+- `acceptOrder(userId, orderId, startCoord?)` — walidacja harmonogramu (`schedule_conflict`, `resource_busy`, `session_active`); transakcja: UPDATE order **`IN_PROGRESS`** + INSERT `workSessions IN_PROGRESS` (snapshot `orderType` / `materialId` / `quantityTons` przez `sessionInsertFromAcceptedOrder`) + opcjonalne **WZ materiału** (`WorkSessionMaterialService.issueForSessionStart`). Zwraca `sessionId`.
 
 ### `ScheduleConflictService`
 - `loadCandidates`, `findConflictsForRequest`, `findConflictsForRequestSerialized` — nakładające się zlecenia PENDING/IN_PROGRESS i aktywne sesje dla pracownika/zasobu.
@@ -331,7 +333,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `checkScheduleConflictLegacyMessage` — komunikat PL pod 409 admin API.
 
 ### `WorkerSessionService`
-- `getActiveSessionWithDetails(userId)` — sesja IN_PROGRESS + JOIN klient/maszyna/kategoria (z `categoryIsStationary`)/materiał + `serializeWorkerAppSettings` (`gpsTrackingEnabled`, `durEnabled`, limity sesji — bez pól firmy) + user (`notificationsEnabled`, `canCreateOwnOrders`) + zdjęcia + notatki.
+- `getActiveSessionWithDetails(userId)` — sesja IN_PROGRESS + JOIN klient/maszyna/kategoria (`categoryIsStationary` + wyliczone `gpsPolicy`)/materiał + `serializeWorkerAppSettings` (`gpsTrackingEnabled`, `durEnabled`, limity sesji — bez pól firmy) + user (`notificationsEnabled`, `canCreateOwnOrders`) + zdjęcia + notatki.
 - `createWizardSession(userId, payload)` — transakcja INSERT sesji + opcjonalne WZ materiału; rzuca `session_active` jeśli już trwa.
 - `endActiveSession(userId, endCoord?)` — `no_active_session` jeśli brak.
 - `addNote/updateNote/addPhoto`.
@@ -494,7 +496,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | Hook | Co robi |
 |---|---|
 | `useWorkerActions` | Akcje sesji (koniec, akceptacja, notatki, zdjęcia, checkpoint). |
-| `useWorkerGPS` | Web + natywny GPS, flush kolejki. Nie startuje watchera przy `gpsTrackingEnabled === false` ani kategorii stacjonarnej. |
+| `useWorkerGPS` | Web + natywny GPS, flush kolejki. Nie startuje watchera przy `gpsTrackingEnabled === false` ani `gpsPolicy === "stationary"` (`src/lib/categoryPolicy.ts`). |
 | `useWorkerNotifications` | Alarmy czasu/zleceń + natywne `LocalNotifications`. |
 | `useWorkerAlarmSound` | Odtwarzanie dźwięku alarmu w aplikacji (PWA / foreground). |
 | `useWorkerShellState` | Stan SSR shell workera (sesja, zlecenia, trasa). |
@@ -625,7 +627,10 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 | `remoteLogger.ts` | `sendRemoteLog(level, message, metadata?)` → POST `/api/worker/logs` z `keepalive: true`, błędy są zjadane (`.catch(() => {})`). |
 | `clientRateLimit.ts` | Jedna implementacja okien czasowych: dedupe przed wysłaniem logu oraz throttle w `fetchWithDeviceTelemetry` (osobne mapy kluczy). |
 | `version.ts` | `APP_VERSION = ${pkg.version}${gitHash}` (z `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA`). |
-| `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload)` — payload: `customerId`, `materialId`, `quantityTons`, `taskDescription`, `repairDescription`, `orderType`; dla `machine_repair` wymagany opis w `repairDescription` (nie `taskDescription`), pomijane `reqMaterial`/`reqQuantity`; kody jak wyżej + `coerceWorkOrderPriority`. |
+| `workOrderCategoryValidation.ts` | `validateWorkOrderFieldsAgainstCategory(cat, payload)` — payload: `customerId`, `materialId`, `quantityTons`, `taskDescription`, `repairDescription`, `orderType`; dla `machine_repair` wymagany opis w `repairDescription` (nie `taskDescription`), pomijane `reqMaterial`/`reqQuantity`; kody jak wyżej + `coerceWorkOrderPriority`. Rodzaj zlecenia: `resolveOrderKind` z `categoryPolicy.ts`. |
+| `categoryPolicy.ts` | Odczyt wiersza `resource_categories`: `gpsPolicy` (`stationary` / `track`), `orderKind`, `fieldVisibility`. Call-site’y (GPS, geofence, etykiety) nie czytają surowego `isStationary`. |
+| `sessionSnapshotFromOrder.ts` | Snapshot `orderType` / `materialId` / `quantityTons` na `work_sessions` przy `acceptOrder`. |
+| `productName.ts` | `DEFAULT_COMPANY_NAME` = `"Werkit"`. |
 | `resourceDisplayName.ts` | `buildResourceDisplayName(brand, model, registrationNumber)` — string `BRAND MODEL · REJ`, max 255. `isVehicleIdentityEmpty()` — wszystkie 3 puste. |
 | `postgresMigrationHints.ts` | Detektory braku migracji 0006/0007/0005 (`isMissingResourcesVehicleColumns`, `isMissingResourceCategoriesStationaryColumn`, `isMissingMaterialCategoriesTables`). Używane przez handlery do zwracania **503 `migration_required`** zamiast 500. |
 | `narrow/dur.ts` | `narrowSpareParts`, `narrowSparePart`, `narrowSparePartCategories`, `narrowSparePartCompatibility`, `narrowInventory`, `narrowStockReceipts`, `narrowStockIssues` — bezpieczne parsowanie odpowiedzi API DUR (lista/obiekt → typ domenowy z domyślnymi wartościami). |
@@ -762,7 +767,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–5 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

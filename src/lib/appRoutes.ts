@@ -15,6 +15,7 @@ export const adminRoutes = {
   users: "/admin/users",
   /** Ludzie, konta i struktura organizacyjna (SSOT UI). */
   people: "/admin/organization",
+  /** URL legacy — etykieta UI to „Zasoby” (`admin.sidebar.resources`). */
   machines: "/admin/machines",
   materials: "/admin/materials",
   customers: "/admin/customers",

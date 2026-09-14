@@ -16,6 +16,8 @@ export type Session = {
   categoryShowTaskDescription?: boolean;
   /** Typ sprzętu „stacjonarny” — bez śledzenia trasy i geofencingu dotarcia. */
   categoryIsStationary?: boolean;
+  /** Polityka GPS kategorii: track (śledzenie) | stationary (plac/warsztat). */
+  gpsPolicy?: "stationary" | "track";
   status: string;
   customerAddress?: string | null;
   customerLat?: string | null;

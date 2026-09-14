@@ -12,6 +12,7 @@ import { useCancelWindow } from "@/features/worker/hooks/useCancelWindow";
 import { WorkerAlarmModal } from "@/features/worker/components/WorkerAlarmModal";
 import { useWorkerActions } from "@/features/worker/hooks/useWorkerActions";
 import { useWorkerShellState } from "@/features/worker/hooks/useWorkerShellState";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import { WorkerActiveSessionFromShell } from "@/features/worker/components/shell/WorkerActiveSessionFromShell";
 import { WorkerClientFooter } from "@/features/worker/components/shell/WorkerClientFooter";
 import { WorkerClientLoading } from "@/features/worker/components/shell/WorkerClientLoading";
@@ -48,7 +49,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     timelineEvents: shell.timelineEvents,
     settings: shell.settings,
     distanceToDestKm: shell.distanceToDestKm,
-    categoryIsStationary: Boolean(shell.session?.categoryIsStationary),
+    gpsPolicy: gpsPolicyFromSession(shell.session),
   });
 
   const [showGpsWarning, setShowGpsWarning] = useState(false);

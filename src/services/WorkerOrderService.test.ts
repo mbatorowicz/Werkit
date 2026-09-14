@@ -154,6 +154,12 @@ vi.mock("@/services/DictionaryService", () => ({
   },
 }));
 
+vi.mock("@/services/materials/WorkSessionMaterialService", () => ({
+  WorkSessionMaterialService: {
+    issueForSessionStart: vi.fn().mockResolvedValue(undefined),
+  },
+}));
+
 describe("WorkerOrderService", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -263,6 +269,11 @@ describe("WorkerOrderService", () => {
         dueDate: null,
         expectedDurationHours: null,
         categoryId: 1,
+        materialId: 9,
+        quantityTons: "12.50",
+        orderType: "machine_work",
+        taskDescription: "Załadunek",
+        repairDescription: null,
       };
       const orderResult = resultArray([orderRow]);
       const chain = {
@@ -298,7 +309,15 @@ describe("WorkerOrderService", () => {
       expect(txSet).toHaveBeenCalled();
       expect(txWhere).toHaveBeenCalled();
       expect(txInsert).toHaveBeenCalled();
-      expect(txValues).toHaveBeenCalled();
+      expect(txValues).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workOrderId: 1,
+          orderType: "machine_work",
+          materialId: 9,
+          quantityTons: "12.50",
+          status: "IN_PROGRESS",
+        })
+      );
       expect(txReturning).toHaveBeenCalled();
     });
   });

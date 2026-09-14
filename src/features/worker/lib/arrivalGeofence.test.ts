@@ -3,7 +3,7 @@ import { shouldPromptArrivalGeofence } from "@/features/worker/lib/arrivalGeofen
 
 describe("shouldPromptArrivalGeofence", () => {
   const far = {
-    categoryIsStationary: false,
+    gpsPolicy: "track" as const,
     geofenceRadiusMeters: 500,
     distanceToDestKm: 2,
   };
@@ -17,7 +17,7 @@ describe("shouldPromptArrivalGeofence", () => {
   });
 
   it("nie pyta dla sesji stacjonarnej", () => {
-    expect(shouldPromptArrivalGeofence({ ...far, categoryIsStationary: true })).toBe(false);
+    expect(shouldPromptArrivalGeofence({ ...far, gpsPolicy: "stationary" })).toBe(false);
   });
 
   it("nie pyta gdy brak promienia albo odległości", () => {

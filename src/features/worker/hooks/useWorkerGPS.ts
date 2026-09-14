@@ -13,6 +13,7 @@ import {
 } from "@/features/worker/gps/workerGpsConstants";
 import type { WorkerRouteAction } from "@/features/worker/gps/workerRouteReducer";
 import { shouldStartGpsWatcher } from "@/features/worker/gps/shouldStartGpsWatcher";
+import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
 import type { Coord, Session } from "@/types/worker";
 
 function clearGpsWatchId(watchIdRef: { current: string | number | null }) {
@@ -44,7 +45,8 @@ export function useWorkerGPS(
       return;
     }
 
-    if (!shouldStartGpsWatcher(session, gpsTrackingEnabled)) {
+    const gpsPolicy = gpsPolicyFromSession(session);
+    if (!shouldStartGpsWatcher({ gpsPolicy }, gpsTrackingEnabled)) {
       clearGpsWatchId(watchIdRef);
       if (gpsTrackingEnabled === false) {
         void GPSManager.clearQueue();

@@ -6,6 +6,7 @@ import { useDictionary } from "@/i18n";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { adminApi } from "@/lib/appRoutes";
 import { resolveCompanyBaseCoords } from "@/lib/map/companyBaseLocation";
+import { DEFAULT_COMPANY_NAME } from "@/lib/productName";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { SettingsCompanySection } from "@/app/admin/settings/SettingsCompanySection";
@@ -63,7 +64,7 @@ function buildInitialCompanyFields(
   | "baseLongitude"
 > {
   return {
-    companyName: initialData?.companyName || "Werkit ERP",
+    companyName: initialData?.companyName || DEFAULT_COMPANY_NAME,
     companyAddress: initialData?.companyAddress || "",
     zipCode: initialData?.zipCode || "",
     city: initialData?.city || "",

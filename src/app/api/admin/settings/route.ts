@@ -1,4 +1,5 @@
 import { jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
+import { DEFAULT_COMPANY_NAME } from "@/lib/productName";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
 
@@ -9,7 +10,7 @@ function parseNullableCoord(value: unknown): string | null {
 
 function buildSettingsUpdatePayload(body: Record<string, unknown>) {
   return {
-    companyName: typeof body.companyName === "string" ? body.companyName : "Werkit ERP",
+    companyName: typeof body.companyName === "string" ? body.companyName : DEFAULT_COMPANY_NAME,
     companyAddress: typeof body.companyAddress === "string" ? body.companyAddress : "",
     zipCode: typeof body.zipCode === "string" ? body.zipCode : "",
     city: typeof body.city === "string" ? body.city : "",
