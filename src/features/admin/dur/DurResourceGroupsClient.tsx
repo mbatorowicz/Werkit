@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Plus, Pencil, Trash2, Layers } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useDictionary } from "@/i18n";
 import { useAdminAbility } from "@/components/Admin/AdminAbilityProvider";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
@@ -38,14 +38,7 @@ export default function DurResourceGroupsClient() {
 
   return (
     <>
-      <div className="mb-8">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">
-          <Layers className="h-6 w-6 text-emerald-500" />
-          {dict.title}
-        </h1>
-        <p className="mt-2 text-sm text-zinc-500">{dict.subtitle}</p>
-        <p className="mt-1 text-xs text-zinc-400">{dict.assignHint}</p>
-      </div>
+      <p className="mb-3 text-xs text-zinc-400">{dict.assignHint}</p>
 
       <section className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900/50 p-4">
         {canMutate && (

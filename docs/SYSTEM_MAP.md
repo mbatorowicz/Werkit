@@ -157,7 +157,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.1. Layout `admin`
 - `force-dynamic`. Pobiera `companyName` z `DictionaryService.getSettings()`, weryfikuje JWT z cookie i przekazuje `canMutate` (rola=`admin`) przez `AdminAbilityProvider`.
 - Sidebar (desktop) + `MobileAdminNav` (mobile). Stopka z ikonką użytkownika i `LogoutButton`.
-- Sidebar **DUR**: `/admin/dur/warehouse` (Magazyn — katalog części + przyjęcia/wydania). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines`. Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
+- Sidebar **DUR** (tylko gdy `durEnabled`): `/admin/dur/warehouse` (Magazyn — katalog części + przyjęcia/wydania). Legacy: `/admin/dur/spare-parts`, `/admin/dur/spare-part-categories` → `warehouse`; `/admin/dur/resource-groups` → `/admin/machines`. Typy zasobów (`resource_groups`): zwijany blok na `/admin/machines` **zawsze** (nie za DUR). Kategorie zleceń (`resource_categories`): drzewo na `/admin` w `OrdersCategoriesPanel`.
 
 ### 4.2. Layout `worker`
 - `force-dynamic`. Pobiera `companyName` + nazwę zalogowanego użytkownika.
@@ -178,7 +178,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
 - **`/api/platform/*`** — wymaga roli **`superadmin`** (`requireSuperadminSession` w `src/lib/apiPlatform.ts`).
-- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`, `/api/resource-groups`** — `SHARED_API_PREFIXES`. `resource-groups` = CRUD **grup maszyn** (`ResourceGroupService`), nie kategorie zleceń. **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
+- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`, `/api/resource-groups`** — `SHARED_API_PREFIXES`. `resource-groups` = CRUD **grup maszyn** (`ResourceGroupService`), nie kategorie zleceń; **bez** `requireDurFeature` (typ floty, nie magazyn). **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
 - **Wszystko inne pod `/api/`** — domyślnie traktowane jako `admin API` (deny-by-default), wymaga roli `admin|viewer` na GET, `admin` na mutacjach.
 
 ### 5.1. Auth
@@ -275,7 +275,7 @@ Każda trasa w `categories|customers|materials|machines|material-categories` ma 
 
 ### 5.6. DUR (części zamienne)
 
-Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API). Mutacje przez `guardAdminMutation()`.
+Endpointy pod `/api/dur/*` — chronione przez deny-by-default (admin API) **oraz** `requireDurFeature` (`durEnabled`). Mutacje przez `guardAdminMutation()`. Kompatybilność część ↔ typ zostaje za tą flagą; same typy (`/api/resource-groups`) — nie.
 
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
@@ -677,7 +677,7 @@ W tekstach dla użytkownika (**pl/en/de**) trzymaj rozróżnienie — nazwy tabe
 
 | Słowo w UI | Znaczenie | W bazie / API |
 |---|---|---|
-| **Typ zasobu** | Model/rodzina zasobu (dobór części DUR) | `resource_groups`, `resources.resource_group_id` |
+| **Typ zasobu** | Model/rodzina zasobu (klasyfikacja floty; przy DUR — dobór części) | `resource_groups`, `resources.resource_group_id` |
 | **Kategoria zlecenia** | Drzewo w module Zlecenia, pole formularza zlecenia | `resource_categories`, `work_orders.category_id` |
 | **Kategoria materiału** | Drzewo materiałów | `material_categories` |
 | **Kategoria części** | Katalog DUR | `spare_part_categories` |
@@ -760,7 +760,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 **Pełny plan faz, ryzyka i checklistę:** [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) (tam aktualizuj postęp — nie rozdmuchuj tej sekcji).
 
-Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–1 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
+Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napraw-wszystko-i-zweryfikuj` + **`npm run db:migrate:pg`** dla journalu Drizzle, w tym **0013/0014**); `passwordCrypto` + `WERKIT_USE_BCRYPTJS`; §4 mapuje trasy admin → komponenty UI. **Fazy A–F roadmapy zamknięte**. Program P-ALIGN (fazy 0–2 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md) — postęp w [`TECH_DEBT_ROADMAP.md`](./TECH_DEBT_ROADMAP.md) §5.
 
 ---
 

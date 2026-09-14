@@ -1,6 +1,6 @@
 # Plan dociągnięcia architektury — field-ops + MRO
 
-> **Status:** fazy **0–1 zamknięte** (2026-09-14). Fazy 2–7 otwarte.  
+> **Status:** fazy **0–2 zamknięte** (2026-09-14). Fazy 3–7 otwarte.  
 > **Źródło:** audyt architektury v1.9.4 (14 wrz 2026). Canvas planu żyje obok czatu (`cmms-alignment-plan.canvas.tsx`); ten plik jest SSOT w git.
 > **SSOT postępu w git:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (P-ALIGN).  
 > **Kontrakt dla agentów:** [`AGENTS.md`](../AGENTS.md) §1, [`ARCHITECTURE.md`](../ARCHITECTURE.md) §1a.
@@ -35,21 +35,21 @@ Bez tej granicy faza 5 scalałaby ładunek z BOM, a kolejne PR-y zaczęłyby bud
 
 ---
 
-## Fazy 1–7 (otwarte)
+## Fazy 1–7
 
 Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 | Faza | Nazwa | Blokuje | Ryzyko |
 |------|--------|---------|--------|
 | 1 | GPS: flaga = zachowanie ✅ | nic | Niskie — bugfix |
-| 2 | Typ floty bez DUR | 5 (kompatybilność części) | Niskie |
+| 2 | Typ floty bez DUR ✅ | 5 (kompatybilność części) | Niskie |
 | 3 | IA dwóch magazynów | 5 (gdzie żyje UI) | Niskie — i18n/nav |
 | 4 | Flagi GPS niezależne | nic | Średnie — semantyka UI |
 | 5 | Jądro magazynu | nic dalszego w tym programie | Średnie — stany, WZ/PZ |
 | 6 | Polityka kategorii | nic | Średnie — worker GPS + formularze |
 | 7 | Nazwy i snapshot sesji | koniec programu | Niskie |
 
-**Faza 5 nie startuje**, dopóki 2 i 3 nie są na `main`.
+**Faza 5 nie startuje**, dopóki faza 3 nie jest na `main`.
 
 ### Faza 1 — GPS: flaga = zachowanie ✅
 
@@ -62,15 +62,15 @@ Kolejność z zależności kodu. Każda faza jest merdżowalna sama.
 
 **Gotowe:** wyłączenie GPS w platformie = cisza na urządzeniu, IndexedDB puste, brak pętli sieciowej.
 
-### Faza 2 — typ floty bez DUR
+### Faza 2 — typ floty bez DUR ✅
 
-`resource_groups` to typ maszyny, nie magazyn części.
+**Zamknięta 2026-09-14.** `resource_groups` to typ maszyny, nie magazyn części.
 
-1. Zdjąć `requireDurFeature` z `/api/resource-groups`.
-2. `MachinesClient` zawsze ładuje grupy i pokazuje blok typu zasobu.
-3. Kompatybilność część ↔ typ **zostaje** za `durEnabled`.
+1. Zdjęto `requireDurFeature` z `/api/resource-groups` (GET/POST i `[id]` GET/PUT/DELETE).
+2. `MachinesClient` zawsze ładuje grupy i pokazuje blok typu zasobu; pole typu w formularzu zasobu nie zależy od `durEnabled`.
+3. Kompatybilność część ↔ typ **zostaje** za `durEnabled` (`/api/dur/*`, magazyn w sidebarze, BOM na zleceniu naprawy).
 
-**Gotowe, gdy:** firma bez DUR ma typy zasobów na `/admin/machines`, a magazyn części nadal jest schowany.
+**Gotowe:** firma bez DUR ma typy zasobów na `/admin/machines`, a magazyn części nadal jest schowany.
 
 ### Faza 3 — dwa magazyny obok siebie
 

@@ -15,7 +15,7 @@ import DurResourceGroupsClient from "@/features/admin/dur/DurResourceGroupsClien
 import { useResourceGroups } from "@/features/admin/dur/useResourceGroups";
 
 export default function MachinesClient() {
-  const { canMutate, durEnabled } = useAdminAbility();
+  const { canMutate } = useAdminAbility();
   const { machines, categories, isLoading, fetchData } = useMachinesAdminData();
   const { groups: resourceGroups, fetchGroups } = useResourceGroups();
   const machineFormRef = useRef<MachinesClientMachineFormHandle | null>(null);
@@ -28,9 +28,9 @@ export default function MachinesClient() {
   useEffect(() => {
     queueMicrotask(() => {
       void fetchData();
-      if (durEnabled) void fetchGroups();
+      void fetchGroups();
     });
-  }, [fetchData, fetchGroups, durEnabled]);
+  }, [fetchData, fetchGroups]);
 
   return (
     <>
@@ -41,17 +41,15 @@ export default function MachinesClient() {
         </h1>
       </div>
 
-      {durEnabled ? (
-        <div className="mb-6">
-          <AdminCollapsibleSection
-            title={dictionary.dur.resourceGroups.title}
-            subtitle={dictionary.dur.resourceGroups.subtitle}
-            defaultOpen={false}
-          >
-            <DurResourceGroupsClient />
-          </AdminCollapsibleSection>
-        </div>
-      ) : null}
+      <div className="mb-6">
+        <AdminCollapsibleSection
+          title={dictionary.dur.resourceGroups.title}
+          subtitle={dictionary.dur.resourceGroups.subtitle}
+          defaultOpen={false}
+        >
+          <DurResourceGroupsClient />
+        </AdminCollapsibleSection>
+      </div>
 
       <MachinesClientResourcesTablePanel
         dict={dict}
@@ -71,7 +69,6 @@ export default function MachinesClient() {
         apiErrors={apiErrors}
         categories={categories}
         resourceGroups={resourceGroups}
-        durEnabled={durEnabled}
         fetchData={fetchData}
       />
     </>

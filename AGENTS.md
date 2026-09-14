@@ -6,7 +6,7 @@ Ten dokument jest **operacyjnym SSOT** (single source of truth) dla każdego, kt
 
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md) — warstwy, przepływ żądania, wzorce (bez duplikowania długiej listy API).
 - [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md) — **inwentaryzacja**: tabele DB, endpointy ↔ serwisy, hooki, `i18n`, pułapki. **Czytaj zanim ruszysz większą zmianę.**
-- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz. Program alignmentu domeny: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md) (fazy 0–1 zamknięte).
+- [`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md) — **plan redukcji długu technicznego** (fazy, ryzyko); nie rozdmuchuj SYSTEM_MAP o osobne checklisty długu — tam krótki odsyłacz. Program alignmentu domeny: [`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md) (fazy 0–2 zamknięte).
 
 ---
 
@@ -215,11 +215,11 @@ Krytyczne zdarzenia po stronie worker/PWA: **`sendRemoteLog`** → **`/api/worke
 
 ## 11. Kiedy czytać ARCHITECTURE.md i roadmap długu
 
-Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–1 zamknięte).
+Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, **mapie**, **schemacie DB**, **`proxy.ts`** — **[`ARCHITECTURE.md`](./ARCHITECTURE.md)** (diagram, lista serwisów, „app bez Drizzle”). Planowany refactoring architektury lub usuwanie legacy — **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)**. Dociągnięcie domeny (GPS, dwa magazyny, typ floty) — **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** (fazy 0–2 zamknięte).
 
 ---
 
-*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–1 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
+*Ostatnia zsynchronizowana z codebase struktura: kontrakt produktu §1 (field-ops + MRO, fazy 0–2 alignmentu 2026-09), moduł `features/worker`, `components/work-orders`, i18n `locales/` (pl/en/de), `proxy.ts`, constraint priorytetu zleceń, **`npm run db:verify-schema`**, spójne modale (`AdminModalShell`, `AppDialogProvider`), roadmap długu w **`docs/TECH_DEBT_ROADMAP.md`**, ESLint flat config z `varsIgnorePattern: "^_"`, OSRM turn-by-turn navigation w `components/Map/`, moduł DUR (części zamienne, magazyn) — `services/dur/`, `components/Admin/Modals/WorkOrderSparePartsSection.tsx`, `features/worker/components/WorkerSparePartsPanel.tsx`. Jeśli coś tu przestaje pasować do kodu — **aktualizuj ten plik w tym samym PR** co zmianę struktury.*
 
 ---
 

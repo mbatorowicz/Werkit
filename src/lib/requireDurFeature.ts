@@ -3,7 +3,11 @@ import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagServic
 
 type DurFeatureGuardResult = { ok: true } | { ok: false; response: ReturnType<typeof jsonError> };
 
-/** Blokuje endpointy DUR, gdy organizacja nie ma włączonego modułu utrzymania ruchu. */
+/**
+ * Blokuje magazyn części i BOM naprawy (`/api/dur/*`, spare-parts worker/admin),
+ * gdy organizacja nie ma włączonego modułu DUR.
+ * Typ zasobu (`/api/resource-groups`) nie podlega tej bramce — to flota, nie magazyn.
+ */
 export async function requireDurFeature(companyId: number): Promise<DurFeatureGuardResult> {
   const flags = await PlatformFeatureFlagService.getFlags(companyId);
   if (!flags.durEnabled) {
