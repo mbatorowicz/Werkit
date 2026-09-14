@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Control plane `/platform` (P-PLAT, otwarty): [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md).
 
 ---
 
@@ -314,6 +314,19 @@ Audyt IDOR między firmami (moduł organizacji, FK grup maszyn). **SSOT faz:** [
 | T1 | `resourceGroupId` maszyny w tenancie; `resourceCount` po `company_id` | Done |
 | T2 | Testy integracyjne dwóch firm (org + grupa maszyn) | Done |
 | T3 | Wyrocznia loginu, martwy `resolveTenantCompanyId`, listing `resource_to_categories`, prefiks Blob | Done (T3.1–T3.4; T3.5 RLS poza programem) |
+
+### P-PLAT — control plane `/platform` (2026-09)
+
+Panel superadmina jako płaszczyzna sterowania (konta firmy, impersonacja, cykl życia, zdrowie), nie kopia `/admin`. **SSOT faz:** [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md).
+
+| Faza | Temat | Status |
+|------|--------|--------|
+| PL0 | Lista adminów/viewerów, reset hasła, deaktywacja, `last_login_at`, zapis audytu | Open |
+| PL1 | Impersonacja `/admin` (cookie resume, banner, zakaz `/worker`) | Open |
+| PL2 | `lifecycle_status` + notatka + presety pakietu GPS/DUR | Open |
+| PL3 | Overview zdrowia + UI dziennika platformy | Open |
+
+Poza programem: billing, SSO, RLS, DELETE firmy, mapa GPS na `/platform`.
 
 ---
 
