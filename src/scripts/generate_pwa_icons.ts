@@ -7,6 +7,9 @@ import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createElement } from "react";
+import { ImageResponse } from "next/og";
+import sharp from "sharp";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const OUT_DIR = join(ROOT, "public/icons");
@@ -142,6 +145,42 @@ function strokeLine(
   }
 }
 
+/** Favicon z karty — ten sam wzór co `src/app/icon.tsx` (litera W, nie logo PWA). */
+async function renderTabFaviconPng(size: number): Promise<Buffer> {
+  const rendered = new ImageResponse(
+    createElement(
+      "div",
+      {
+        style: {
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#18181b",
+          borderRadius: 128,
+        },
+      },
+      createElement(
+        "div",
+        {
+          style: {
+            fontSize: 360,
+            fontWeight: 900,
+            fontFamily: "system-ui, sans-serif",
+            color: "#10b981",
+          },
+        },
+        "W"
+      )
+    ),
+    { width: 512, height: 512 }
+  );
+  const png512 = Buffer.from(await rendered.arrayBuffer());
+  if (size === 512) return png512;
+  return sharp(png512).resize(size, size, { kernel: "lanczos3" }).png().toBuffer();
+}
+
 function renderIconRgba(size: number, padRatio: number): Buffer {
   const rgba = Buffer.alloc(size * size * 4);
   fillRect(rgba, size, 0, 0, size - 1, size - 1, BG);
@@ -231,24 +270,28 @@ function encodeIcoWithPng(png: Buffer, size: number): Buffer {
   return Buffer.concat([header, entry, png]);
 }
 
-const files: { name: string; size: number; pad: number }[] = [
-  { name: "favicon-32.png", size: 32, pad: 0.08 },
-  { name: "icon-192.png", size: 192, pad: 0.12 },
-  { name: "icon-512.png", size: 512, pad: 0.12 },
-  { name: "icon-192-maskable.png", size: 192, pad: 0.2 },
-  { name: "icon-512-maskable.png", size: 512, pad: 0.2 },
-  { name: "apple-touch-icon.png", size: 180, pad: 0.12 },
-];
+async function main(): Promise<void> {
+  const files: { name: string; size: number; pad: number }[] = [
+    { name: "icon-192.png", size: 192, pad: 0.12 },
+    { name: "icon-512.png", size: 512, pad: 0.12 },
+    { name: "icon-192-maskable.png", size: 192, pad: 0.2 },
+    { name: "icon-512-maskable.png", size: 512, pad: 0.2 },
+    { name: "apple-touch-icon.png", size: 180, pad: 0.12 },
+  ];
 
-mkdirSync(OUT_DIR, { recursive: true });
-for (const file of files) {
-  writeFileSync(join(OUT_DIR, file.name), drawIcon(file.size, file.pad));
+  mkdirSync(OUT_DIR, { recursive: true });
+  for (const file of files) {
+    writeFileSync(join(OUT_DIR, file.name), drawIcon(file.size, file.pad));
+  }
+
+  const faviconPng = await renderTabFaviconPng(32);
+  writeFileSync(join(OUT_DIR, "favicon-32.png"), faviconPng);
+  writeFileSync(join(ROOT, "public/favicon.ico"), encodeIcoWithPng(faviconPng, 32));
+
+  const storeDir = join(ROOT, "store/google-play");
+  mkdirSync(storeDir, { recursive: true });
+  writeFileSync(join(storeDir, "icon-512.png"), drawIcon(512, 0.12));
+  writeFileSync(join(storeDir, "feature-graphic.png"), drawFeatureGraphic());
 }
 
-const faviconPng = drawIcon(32, 0.08);
-writeFileSync(join(ROOT, "public/favicon.ico"), encodeIcoWithPng(faviconPng, 32));
-
-const storeDir = join(ROOT, "store/google-play");
-mkdirSync(storeDir, { recursive: true });
-writeFileSync(join(storeDir, "icon-512.png"), drawIcon(512, 0.12));
-writeFileSync(join(storeDir, "feature-graphic.png"), drawFeatureGraphic());
+void main();
