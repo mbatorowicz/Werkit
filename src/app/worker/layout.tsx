@@ -20,10 +20,9 @@ import {
   SHELL_FOOTER_NAV,
   SHELL_HEADER,
   USER_CHIP,
-  VERSION_BADGE,
 } from "@/lib/uiChrome";
-import { BRAND_WORDMARK } from "@/lib/uiTypography";
-import { SURFACE_APP, TEXT_MUTED } from "@/lib/uiTokens";
+import { OrgShellBrand } from "@/components/OrgShellBrand";
+import { SURFACE_APP } from "@/lib/uiTokens";
 
 export default async function WorkerLayout({ children }: { children: React.ReactNode }) {
   const fullDict = getDictionary(await getServerLocale());
@@ -40,18 +39,13 @@ export default async function WorkerLayout({ children }: { children: React.React
     <div className={`layout-worker flex h-[100dvh] flex-col overflow-hidden ${SURFACE_APP}`}>
       <GlobalErrorHandler />
       <header className={SHELL_HEADER}>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
-            <span className={`text-[9px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
-          </div>
-          <p
-            className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
-            title={companyName}
-          >
-            {companyName}
-          </p>
-        </div>
+        <OrgShellBrand
+          companyName={companyName}
+          productName={fullDict.common.app.name}
+          version={APP_VERSION}
+          compact
+          className="max-w-[220px]"
+        />
         <div className="flex items-center gap-2">
           <div className={`mr-1 sm:mr-2 ${USER_CHIP}`}>
             <User className="h-3 w-3 text-emerald-500" />

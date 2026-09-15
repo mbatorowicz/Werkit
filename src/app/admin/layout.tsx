@@ -19,9 +19,9 @@ import { ImpersonationBanner } from "@/components/Admin/ImpersonationBanner";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 import { isAdminGpsEnabled, toAdminGpsFlags } from "@/types/featureFlags";
 import { cn } from "@/lib/cn";
-import { LOGOUT_ROW, SHELL_HEADER, SHELL_SIDEBAR, USER_CHIP, VERSION_BADGE } from "@/lib/uiChrome";
-import { BRAND_WORDMARK } from "@/lib/uiTypography";
-import { SURFACE_APP, SURFACE_CARD, TEXT_MUTED } from "@/lib/uiTokens";
+import { OrgShellBrand } from "@/components/OrgShellBrand";
+import { LOGOUT_ROW, SHELL_HEADER, SHELL_SIDEBAR, USER_CHIP } from "@/lib/uiChrome";
+import { SURFACE_APP, SURFACE_CARD } from "@/lib/uiTokens";
 
 export const dynamic = "force-dynamic";
 
@@ -73,16 +73,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <aside className={SHELL_SIDEBAR}>
             <div className={`min-h-0 flex-1 ${VERTICAL_SCROLL_PANEL_CLASS}`}>
               <div className="flex h-[72px] flex-col justify-center border-b border-zinc-200 px-6 dark:border-zinc-800">
-                <div className="flex items-center gap-2">
-                  <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
-                  <span className={`text-[10px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
-                </div>
-                <p
-                  className={`mt-0.5 max-w-full truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
-                  title={companyName}
-                >
-                  {companyName} - {dict.sidebar.logisticsSystem}
-                </p>
+                <OrgShellBrand
+                  companyName={companyName}
+                  productName={fullDict.common.app.name}
+                  version={APP_VERSION}
+                />
               </div>
               <AdminSidebarNav
                 dict={dict}
@@ -115,17 +110,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <header className={cn(SHELL_HEADER, "md:hidden")}>
               <div className="flex items-center gap-3">
                 <AdminMobileBackButton />
-                <div className="flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <h1 className={BRAND_WORDMARK}>{fullDict.common.app.name.toUpperCase()}</h1>
-                    <span className={`text-[9px] ${VERSION_BADGE}`}>v{APP_VERSION}</span>
-                  </div>
-                  <p
-                    className={`max-w-[200px] truncate text-[10px] font-semibold uppercase tracking-widest ${TEXT_MUTED}`}
-                  >
-                    {companyName}
-                  </p>
-                </div>
+                <OrgShellBrand
+                  companyName={companyName}
+                  productName={fullDict.common.app.name}
+                  version={APP_VERSION}
+                  compact
+                  className="max-w-[200px]"
+                />
               </div>
               <div className="flex items-center gap-2">
                 {loggedInUser && (
@@ -138,6 +129,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 )}
                 <MobileAdminNav
                   companyName={companyName}
+                  productName={fullDict.common.app.name}
                   version={APP_VERSION}
                   dict={dict}
                   durDict={durDict}

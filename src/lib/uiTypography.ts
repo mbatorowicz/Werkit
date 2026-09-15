@@ -35,3 +35,7 @@ export const BRAND_WORDMARK =
 
 export const BRAND_WORDMARK_LG =
   "text-4xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600";
+
+/** Mały podpis produktu pod nazwą organizacji w shellu admin/worker. */
+export const BRAND_PRODUCT_CAPTION =
+  "mt-0.5 text-[10px] font-medium leading-none text-zinc-500 dark:text-zinc-400";

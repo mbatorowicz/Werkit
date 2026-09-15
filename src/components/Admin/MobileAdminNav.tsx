@@ -11,10 +11,12 @@ import { usePathname } from "next/navigation";
 import type { AppDictionary } from "@/i18n/types";
 import { buildAdminNavLinks } from "./adminNavLinks";
 import { isAdminDispatchNavActive } from "./adminNavActive";
+import { OrgShellBrand } from "@/components/OrgShellBrand";
 import { LOGOUT_ROW, ICON_BTN_GHOST } from "@/lib/uiChrome";
 
 export function MobileAdminNav({
   companyName,
+  productName,
   version,
   dict,
   durDict,
@@ -23,6 +25,7 @@ export function MobileAdminNav({
   loggedInUser,
 }: {
   companyName: string;
+  productName: string;
   version: string;
   dict: AppDictionary["admin"];
   durDict: AppDictionary["dur"];
@@ -53,22 +56,12 @@ export function MobileAdminNav({
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeMenu} />
           <div className="relative flex h-full w-72 max-w-[80vw] flex-col bg-white pb-[1.5cm] box-border dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-700 animate-in slide-in-from-left duration-200">
             <div className="h-[72px] flex items-center justify-between px-6 border-b border-zinc-200 dark:border-zinc-800">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-600 tracking-tighter">
-                    WERKIT
-                  </h1>
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
-                    v{version}
-                  </span>
-                </div>
-                <p
-                  className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold tracking-widest uppercase mt-0.5 truncate max-w-[200px]"
-                  title={companyName}
-                >
-                  {companyName}
-                </p>
-              </div>
+              <OrgShellBrand
+                companyName={companyName}
+                productName={productName}
+                version={version}
+                className="max-w-[200px]"
+              />
               <button
                 type="button"
                 onClick={closeMenu}
