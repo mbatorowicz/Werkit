@@ -1,40 +1,25 @@
 import { ArrowLeft, User as UserIcon, Shield, Settings } from "lucide-react";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ProfileSettings } from "@/features/worker/components/profile/ProfileSettings";
 import { ProfileOrgSection } from "@/components/organization/ProfileOrgSection";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { BTN_PRIMARY, BTN_DANGER_SOFT } from "@/lib/uiButtons";
 import { CARD, SURFACE_MINT } from "@/lib/uiTokens";
 import { PAGE_TITLE } from "@/lib/uiTypography";
 import { cn } from "@/lib/cn";
 
-import { JWT_SECRET } from "@/lib/auth";
-async function getUserId() {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return null;
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload.userId as number;
-  } catch {
-    return null;
-  }
-}
-
 export default async function ProfilePage() {
   const dict = getDictionary(await getServerLocale()).worker.profile;
-  const userId = await getUserId();
-  if (!userId) return <div>{dict.noAccess}</div>;
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const userId = principal.userId;
 
   const { AdminUserService } = await import("@/services/AdminUserService");
   const { DelegationScopeService } = await import("@/services/DelegationScopeService");
   const user = await AdminUserService.getUserById(userId);
-  const companyId = await requireServerCompanyId();
-  const orgProfile = await DelegationScopeService.getUserOrgProfile(companyId, userId);
+  const orgProfile = await DelegationScopeService.getUserOrgProfile(principal.companyId, userId);
 
   return (
     <div className="py-6 pb-20">

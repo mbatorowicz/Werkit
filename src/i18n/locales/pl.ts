@@ -175,6 +175,8 @@ export const pl = {
       "Nieprawidłowe lub zbyt duże zdjęcie. Dozwolone: JPEG, PNG, WebP (maks. 4 MB).",
     too_many_logs: "Zbyt wiele logów z urządzenia. Spróbuj ponownie za chwilę.",
     too_many_geocode: "Zbyt wiele zapytań o adres. Spróbuj ponownie za chwilę.",
+    too_many_exports: "Zbyt wiele eksportów logów. Spróbuj ponownie za kilka minut.",
+    csrf_rejected: "Żądanie odrzucone (ochrona sesji). Odśwież stronę i spróbuj ponownie.",
     note_too_long: "Notatka jest za długa (maks. 4000 znaków).",
     cannot_delete_self: "Nie możesz usunąć własnego konta.",
     last_admin: "Nie można usunąć ani dezaktywować ostatniego administratora w firmie.",

@@ -173,6 +173,8 @@ export const en: AppDictionary = {
     invalid_photo_data: "Invalid or too large photo. Allowed: JPEG, PNG, WebP (max 4 MB).",
     too_many_logs: "Too many device logs. Try again in a moment.",
     too_many_geocode: "Too many address lookups. Try again in a moment.",
+    too_many_exports: "Too many log exports. Try again in a few minutes.",
+    csrf_rejected: "Request rejected (session protection). Refresh the page and try again.",
     note_too_long: "Note is too long (max 4000 characters).",
     cannot_delete_self: "You cannot delete your own account.",
     last_admin: "Cannot delete or deactivate the last administrator in the company.",

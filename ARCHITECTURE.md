@@ -8,7 +8,7 @@ Dokument opisuje **aktualny kształt** aplikacji (stan około **v1.9.x**, Next *
 - **[`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)** — inwentaryzacja: tabele DB, endpointy, serwisy, hooki, i18n, pułapki. **Otwórz przed większą zmianą** — szybciej niż grep po całym repo.
 - **[`docs/TECH_DEBT_ROADMAP.md`](./docs/TECH_DEBT_ROADMAP.md)** — **plan redukcji długu** (fazy A–F **zamknięte**; §5 w tym **P-ALIGN**); nie utrzymuj osobnych „list życzeń” w ARCHITECTURE — linkuj tutaj.
 - **[`plans/architecture-alignment-2026-09.md`](./plans/architecture-alignment-2026-09.md)** — dociągnięcie domeny (fazy 0–7 zamknięte).
-- **[`plans/security-hardening-2026-09.md`](./plans/security-hardening-2026-09.md)** — hartowanie sesji, logowania i limitów (fazy S0–S3 zamknięte).
+- **[`plans/security-hardening-2026-09.md`](./plans/security-hardening-2026-09.md)** — hartowanie sesji, logowania i limitów (fazy S0–S4 zamknięte).
 
 ---
 

@@ -17,7 +17,11 @@ vi.mock("@/services/AuthPrincipalService", async (importOriginal) => {
   };
 });
 
-import { requireCompanyScopedSession, requireWorkerCompanySession } from "@/lib/apiTenant";
+import {
+  requireAdminPanelSession,
+  requireCompanyScopedSession,
+  requireWorkerCompanySession,
+} from "@/lib/apiTenant";
 import { requireSuperadminSession } from "@/lib/apiPlatform";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
 
@@ -97,6 +101,32 @@ describe("API tenant / platform — żywy principal", () => {
     expect(scoped.ok).toBe(false);
     if (scoped.ok) return;
     expect(scoped.response.status).toBe(403);
+  });
+
+  it("requireAdminPanelSession: worker → 403", async () => {
+    getAuthSession.mockResolvedValue({ userId: 9, role: "worker", companyId: 1 });
+    resolve.mockResolvedValue({
+      userId: 9,
+      role: "worker",
+      companyId: 1,
+      fullName: "Ewa",
+    });
+    const scoped = await requireAdminPanelSession();
+    expect(scoped.ok).toBe(false);
+    if (scoped.ok) return;
+    expect(scoped.response.status).toBe(403);
+  });
+
+  it("requireAdminPanelSession: viewer → ok", async () => {
+    getAuthSession.mockResolvedValue({ userId: 8, role: "viewer", companyId: 1 });
+    resolve.mockResolvedValue({
+      userId: 8,
+      role: "viewer",
+      companyId: 1,
+      fullName: "Ola",
+    });
+    const scoped = await requireAdminPanelSession();
+    expect(scoped.ok).toBe(true);
   });
 
   it("guardAdminMutation: demotion admin→worker → 403", async () => {

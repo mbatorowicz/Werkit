@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { JWT_SECRET } from "@/lib/auth";
 import { AUTH_TOKEN_COOKIE, clearAuthTokenCookie, isHttpsRequest } from "@/lib/authCookie";
+import { CSRF_REJECTED, isMutatingHttpMethod, isTrustedMutationOrigin } from "@/lib/csrfGuard";
 import {
   isImpersonationEndApi,
   isImpersonationStatusApi,
@@ -28,6 +29,13 @@ const ADMIN_PANEL_ROLES = ["admin", "viewer"];
 const WORKER_APP_ROLES = ["worker", "admin"];
 const SHARED_READ_ROLES = ["worker", "admin", "viewer"];
 const PLATFORM_ROLES = ["superadmin"];
+
+/** Magazyn materiałów (ceny, PZ/WZ) — admin/viewer, nie worker. Worker zostaje na GET `/api/materials`. */
+function isMaterialsWarehouseApi(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api/materials/inventory") || pathname.startsWith("/api/materials/stock/")
+  );
+}
 
 /** Worker z `can_create_customers` tworzy kontrahenta przez POST /api/customers (guard w route handler). */
 function isWorkerSharedCustomerCreate(pathname: string, method: string, role: string): boolean {
@@ -74,7 +82,9 @@ function classifyRoute(pathname: string): RouteClassification {
   const isWorkerApi = pathname.startsWith("/api/worker");
 
   const isAdminPage = pathname.startsWith("/admin");
-  const isSharedApi = SHARED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const isSharedApi =
+    SHARED_API_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
+    !isMaterialsWarehouseApi(pathname);
   const isAppDistributionApi = APP_DISTRIBUTION_API_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   );
@@ -286,6 +296,12 @@ function authorizeImpersonationRestrictions(
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const route = classifyRoute(pathname);
+  const isMutation = isMutatingHttpMethod(request.method);
+
+  // 0. CSRF: mutacje API (w tym /api/auth i impersonation/end) — Origin albo JSON / X-Werkit-Request
+  if (route.isApi && isMutation && !isTrustedMutationOrigin(request)) {
+    return NextResponse.json({ error: CSRF_REJECTED }, { status: 403 });
+  }
 
   // 1. API logowania/wylogowania — zawsze bez straży tras
   if (route.isApiAuth) {
@@ -312,8 +328,6 @@ export async function proxy(request: NextRequest) {
   const handleUnauthorized = createUnauthorizedHandler(route.isApi, request);
 
   if (!token) return handleUnauthorized();
-
-  const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method);
 
   // 5. AUTHORIZATION (Role Verification)
   try {

@@ -1,14 +1,14 @@
 import { normalizeDecimalBodyField, parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
-import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { requireAdminPanelSession, requireCompanyScopedSession } from "@/lib/apiTenant";
 import { MaterialStockMovementError } from "@/services/materials/MaterialStockMovementError";
 
 export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
   async () => {
-    const scoped = await requireCompanyScopedSession();
+    const scoped = await requireAdminPanelSession();
     if (!scoped.ok) return scoped.response;
 
     const { MaterialStockMovementService } =

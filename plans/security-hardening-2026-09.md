@@ -1,7 +1,7 @@
 # Plan hartowania bezpieczeństwa — sesja, logowanie, limity
 
-> **Status:** zamknięty (2026-09-14). S0–S3 zrobione.  
-> **Źródło:** audyt podatności (czat „Przegląd podatności Werkit”).  
+> **Status:** S0–S4 (2026-09). S0–S3 zamknięte 2026-09-14. **S4** — CSRF Origin, magazyn materiałów, TTL impersonacji.  
+> **Źródło:** audyt podatności (czat „Przegląd podatności Werkit”) + audyt S4 („znajdź podatności wejdź na wyższy poziom”).  
 > **SSOT postępu:** ten plik + [`docs/TECH_DEBT_ROADMAP.md`](../docs/TECH_DEBT_ROADMAP.md) §5 (`P-SEC-*`).  
 > **Poza zakresem:** tracker floty 24/7, scalanie magazynów, PM — kontrakt produktu bez zmian ([`AGENTS.md`](../AGENTS.md) §1).
 
@@ -15,8 +15,9 @@ Każda faza jest merdżowalna sama. Kolejność = zależności (S0 odblokowuje s
 | S1 | Logowanie: PIN, enumeracja, limit w Postgres | nic | Średnie — UX PIN-ów w terenie |
 | S2 | Limity GPS / zdjęć / `device_logs` | nic | Niskie |
 | S3 | Obrona w głąb (geocode, deleteUser, CSP, logout) | S0 (layout spójny z API) | Niskie |
+| S4 | CSRF Origin, magazyn materiałów, TTL `platform_resume` | S3 (cookie + proxy) | Niskie |
 
-**Świadomie zostaje:** `SameSite=None` + `Secure` na HTTPS (Capacitor WebView na innym originie). CSRF łagodzi wymóg `Content-Type: application/json`. Nie dodajemy tokenów CSRF w S0–S2, dopóki nie pojawi się mutacja GET albo CORS `*`.
+**Świadomie zostaje:** `SameSite=None` + `Secure` na HTTPS (Capacitor WebView). CSRF w S4: zaufany `Origin` (albo JSON / `X-Werkit-Request` gdy Origin brak). Pełne tokeny CSRF nadal zbędne, dopóki nie pojawi się CORS `*`.
 
 ---
 
@@ -155,21 +156,51 @@ Brak handlera API, który polega wyłącznie na Edge. Panel nie pozwala wyciąć
 
 ---
 
+## S4 — CSRF, magazyn, impersonacja (High / Medium)
+
+**Problem po S3:** `SameSite=None` przepuszcza cookie w cross-site POST. Endpointy bez JSON (`logout`, `session/cancel`, `force-complete`, `impersonation/end`) oraz `parseJsonBodyOrEmpty` (połykało `invalid_json`) dawały CSRF z prostego formularza. Worker czytał `/api/materials/inventory` i PZ/WZ (ceny, faktury) przez zbyt szeroki `SHARED_API_PREFIXES`. `platform_resume` żyło 7 dni po 30-minutowym JWT wsparcia.
+
+### Zrób
+
+1. **CSRF w `proxy.ts`** (`src/lib/csrfGuard.ts`): mutacje `/api/*` wymagają zaufanego `Origin` (ten sam host, `capacitor://localhost` / `ionic://localhost`) albo — gdy Origin brak — `Content-Type: application/json` lub `X-Werkit-Request: 1`. Inaczej **403 `csrf_rejected`**.
+2. **`parseJsonBodyOrEmpty`:** pusty POST bez typu → `{}`; `application/x-www-form-urlencoded` → `invalid_json` (nie puste ciało).
+3. **Magazyn materiałów:** `/api/materials/inventory` i `/api/materials/stock/*` to API panelu (admin/viewer). Worker nadal ma GET `/api/materials` (słownik ładunku). Handler: `requireAdminPanelSession()`.
+4. **`platform_resume` `maxAge` = 30 min** (`IMPERSONATION_TOKEN_MAX_AGE_SECONDS`), zsynchronizowane z JWT impersonacji.
+5. **Obrona w głąb:** 5 eksportów logów / 15 min / firmę (`too_many_exports`); `guardAdminMutation` na spare-parts admin; `requireSuperadminSession(request)` wszędzie; strony workera biorą `userId` z `requireLiveCompanyPrincipalOrRedirect`, nie z surowego JWT.
+
+### Testy
+
+- Unit: `csrfGuard` — obcy Origin odrzucony; JSON bez Origin OK.
+- Proxy: logout z `Origin: evil` → 403; worker GET inventory → 403; worker GET `/api/materials` → 200.
+- `parseJsonBodyOrEmpty`: form-urlencoded rzuca `invalid_json`.
+
+### Kryterium ukończenia
+
+Formularz HTML z obcej strony nie wyloguje, nie anuluje sesji i nie przywróci superadmina. Worker nie czyta stanów/cen magazynu. Cookie resume nie przeżywa impersonacji o dni.
+
+### Pliki
+
+`src/lib/csrfGuard.ts`, `src/proxy.ts`, `src/lib/apiRoute.ts`, `src/lib/apiTenant.ts`, `src/app/api/materials/**`, `src/app/api/platform/impersonation/route.ts`, `src/services/DeviceLogsExportRateLimitService.ts`, strony `src/app/worker/**`, i18n `csrf_rejected` / `too_many_exports`.
+
+---
+
 ## Kolejność wdrożenia
 
 1. **S0** na `main` jako pierwszy PR — zamyka High „martwy JWT”.
 2. **S1** zaraz potem (migracja `login_attempts` + polityka PIN).
 3. **S2** może iść równolegle z S1 (brak zależności schematu, chyba że wspólna tabela limitów — wtedy po S1).
-4. **S3** na końcu (CSP najłatwiej zepsuć UI).
+4. **S3** (CSP najłatwiej zepsuć UI).
+5. **S4** po S3 — CSRF Origin + magazyn + TTL resume.
 
 Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; przy migracji S1: `npm run db:migrate:pg` + `npm run db:verify-schema`.
 
 ## Świadomie nie w tym programie
 
-- Redis/Upstash (Postgres wystarczy na login + logi).
-- Token CSRF (JSON + same-origin fetch; wrócić, jeśli pojawi się CORS albo mutujący GET).
-- Rotacja JWT / refresh token / lista `jti` — zbędne po S0, o ile TTL zostaje 7d.
+- Redis/Upstash (Postgres wystarczy na login + logi + eksport).
+- Synchronizer / double-submit token CSRF (Origin + JSON wystarcza przy braku CORS `*`; wrócić, jeśli pojawi się `Access-Control-Allow-Origin`).
+- Rotacja JWT / refresh token / lista `jti` — zbędne po S0, o ile TTL zostaje 7d (impersonacja: 30 min).
 - Wymuszanie resetu wszystkich istniejących słabych PIN-ów przy logowaniu (osobna decyzja produktu; S1 tnie tylko **nowe** i zmianę hasła).
+- PostgreSQL RLS (osobna decyzja T3.5).
 
 ## Checklista
 
@@ -177,6 +208,8 @@ Weryfikacja każdej fazy: `npm run lint`, `npx tsc --noEmit`, `npm test`; przy m
 - [x] **S1** — polityka 6+ znaków; jeden 401; dummy bcrypt; limit w Postgres
 - [x] **S2** — GPS cap + bbox; foto 4 MiB + allowlista; throttle logów
 - [x] **S3** — geocode auth; deleteUser; logout cookie; CSP
+- [x] **S4** — CSRF Origin; magazyn materiałów poza shared; `platform_resume` 30 min; limit eksportu
 - [x] SYSTEM_MAP § auth (cookie, kody logowania, brak `account_blocked` na loginie)
 - [x] i18n: `weak_password`, hint PIN (`admin.workers.passwordHint`), `too_many_attempts`
 - [x] i18n: błędy deleteUser (S3)
+- [x] i18n: `csrf_rejected`, `too_many_exports` (S4)

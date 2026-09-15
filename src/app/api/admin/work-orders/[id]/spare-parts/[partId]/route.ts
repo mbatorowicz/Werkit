@@ -5,6 +5,7 @@
 import { normalizeDecimalBodyField, parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
 import { StockMovementError } from "@/services/dur/StockMovementError";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
@@ -14,6 +15,9 @@ export const dynamic = "force-dynamic";
 /** PATCH /api/admin/work-orders/[id]/spare-parts/[partId] — aktualizuj ilość/cenę/notatki */
 export const PATCH = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string; partId: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 
@@ -84,6 +88,9 @@ export const PATCH = withApiErrorHandling(
 /** DELETE /api/admin/work-orders/[id]/spare-parts/[partId] — usuń część ze zlecenia */
 export const DELETE = withApiErrorHandling(
   async (_request: Request, { params }: { params: Promise<{ id: string; partId: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 

@@ -2,7 +2,6 @@ import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/ap
 import { getAuthSessionFromRequest, readCookieFromHeader, signSessionJwt } from "@/lib/auth";
 import {
   AUTH_TOKEN_COOKIE,
-  AUTH_TOKEN_MAX_AGE_SECONDS,
   IMPERSONATION_TOKEN_MAX_AGE_SECONDS,
   authTokenCookieAttrs,
   isHttpsRequest,
@@ -70,7 +69,7 @@ export const GET = withApiErrorHandling(
   { defaultErrorCode: "fetch_error" }
 );
 
-/** Start impersonacji: kopia `auth_token` → `platform_resume`, JWT celu na 30 min. */
+/** Start impersonacji: kopia `auth_token` → `platform_resume` (TTL 30 min, jak support JWT). */
 export const POST = withApiErrorHandling(
   async (request: Request) => {
     const auth = await requireLiveSuperadminFromRequest(request);
@@ -125,7 +124,7 @@ export const POST = withApiErrorHandling(
       response.cookies.set({
         ...platformResumeCookieAttrs(isHttps),
         value: currentToken,
-        maxAge: AUTH_TOKEN_MAX_AGE_SECONDS,
+        maxAge: IMPERSONATION_TOKEN_MAX_AGE_SECONDS,
       });
       response.cookies.set({
         ...authTokenCookieAttrs(isHttps),

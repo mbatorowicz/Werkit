@@ -1,8 +1,7 @@
 import WorkerClient from "./WorkerClient";
 import { InitialWorkerData, Session } from "@/types/worker";
 import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
-import { getUserId } from "@/lib/auth";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import type { WorkerSessionService as WorkerSessionServiceType } from "@/services/WorkerSessionService";
 
 export const dynamic = "force-dynamic";
@@ -63,12 +62,9 @@ function mapSession(rawSession: RawSession): Session {
 }
 
 export default async function WorkerPage() {
-  const userId = await getUserId();
-  if (!userId) {
-    return <WorkerClient initialData={null} />;
-  }
-
-  const companyId = await requireServerCompanyId();
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const userId = principal.userId;
+  const companyId = principal.companyId;
   const { WorkerOrderService } = await import("@/services/WorkerOrderService");
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
 

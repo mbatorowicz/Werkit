@@ -119,6 +119,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-SEC-1 | Logowanie: PIN ≥6, brak enumeracji, rate limit w Postgres | done |
 | P-SEC-2 | Limity GPS / zdjęć / `device_logs` | done |
 | P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | done |
+| P-SEC-4 | CSRF Origin, magazyn materiałów poza shared, TTL impersonacji, limit eksportu | done |
 
 ### D-02 — co zrobiono
 
@@ -276,6 +277,7 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 | S1 | Polityka hasła/PIN, jeden kod `invalid_credentials`, limit logowań w DB |
 | S2 | Cap GPS, allowlista zdjęć, throttle `device_logs` |
 | S3 | Auth w `/api/geocode`, ochrona last-admin, CSP, spójny logout cookie |
+| S4 | CSRF Origin na mutacjach API, magazyn materiałów tylko panel, `platform_resume` 30 min |
 
 #### P-SEC-0 — co zrobiono
 
@@ -303,6 +305,13 @@ Audyt sesji JWT, logowania i limitów nadużyć. **SSOT faz:** [`plans/security-
 - `deleteUser(companyId, userId, actorId)`: 409 `cannot_delete_self` / `last_admin`; i18n pl/en/de.
 - Logout / 401 / proxy: `clearAuthTokenCookie` (`src/lib/authCookie.ts`) z `Path=/`, `Max-Age=0` i tymi samymi `Secure`/`SameSite` co login (WebView).
 - CSP w `next.config.ts` (`buildContentSecurityPolicy`): Leaflet/CARTO, Nominatim, OSRM, Vercel Blob; `script-src 'unsafe-inline'` udokumentowany (Next.js hydration, bez nonce).
+
+#### P-SEC-4 — co zrobiono
+
+- [`csrfGuard.ts`](../src/lib/csrfGuard.ts) w `proxy.ts`: mutacje `/api/*` — zaufany `Origin` albo JSON / `X-Werkit-Request`; 403 `csrf_rejected`. `parseJsonBodyOrEmpty` nie połyka formularza HTML.
+- Magazyn: `/api/materials/inventory` i `/api/materials/stock/*` poza `SHARED_API_PREFIXES`; GET: `requireAdminPanelSession()` (admin/viewer). Worker zostaje na słowniku `/api/materials`.
+- Impersonacja: cookie `platform_resume` **30 min** (`IMPERSONATION_TOKEN_MAX_AGE_SECONDS`).
+- Eksport logów: 5 / 15 min / firmę (`DeviceLogsExportRateLimitService`, 429 `too_many_exports`). `guardAdminMutation` na spare-parts admin. Strony workera: `requireLiveCompanyPrincipalOrRedirect`.
 
 ### P-TENANT — izolacja multi-firm (2026-09)
 

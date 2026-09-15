@@ -8,8 +8,8 @@ export const dynamic = "force-dynamic";
 
 /** Lista adminów i viewerów firmy — bez passwordHash. */
 export const GET = withApiErrorHandling(
-  async (_request: Request, context: { params: Promise<{ id: string }> }) => {
-    const auth = await requireSuperadminSession();
+  async (request: Request, context: { params: Promise<{ id: string }> }) => {
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).id);

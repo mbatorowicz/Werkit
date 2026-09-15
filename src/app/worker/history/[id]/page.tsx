@@ -1,11 +1,8 @@
 import { ArrowLeft, MapPin } from "lucide-react";
 import Link from "next/link";
 import { TimelineItem } from "@/types/worker";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
 import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
-import { JWT_SECRET } from "@/lib/auth";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { notFound } from "next/navigation";
 import { getDictionary, formatUiDateOnly, formatUiTimeHm } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
@@ -24,17 +21,6 @@ function asDate(v: unknown): Date | null {
   if (v instanceof Date) return v;
   const d = new Date(String(v));
   return Number.isNaN(d.getTime()) ? null : d;
-}
-
-async function getUserId() {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return null;
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload.userId as number;
-  } catch {
-    return null;
-  }
 }
 
 function resolveDestination(sessionData: {
@@ -72,14 +58,14 @@ export default async function HistoryDetailPage({ params }: { params: Promise<{ 
   const historyLabels = dict.worker.history;
   const workerClient = dict.worker.client;
 
-  const userId = await getUserId();
-  if (!userId) return <div>{historyLabels.accessDenied}</div>;
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const userId = principal.userId;
 
   const resolvedParams = await params;
   const sessionId = parseInt(resolvedParams.id);
   if (isNaN(sessionId)) notFound();
 
-  const companyId = await requireServerCompanyId();
+  const companyId = principal.companyId;
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
   const { PlatformFeatureFlagService } = await import("@/services/PlatformFeatureFlagService");
   const [historyData, featureFlags] = await Promise.all([

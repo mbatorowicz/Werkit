@@ -180,6 +180,9 @@ export const de: AppDictionary = {
     invalid_photo_data: "Ungültiges oder zu großes Foto. Erlaubt: JPEG, PNG, WebP (max. 4 MB).",
     too_many_logs: "Zu viele Gerätelogs. Versuchen Sie es in einem Moment erneut.",
     too_many_geocode: "Zu viele Adresssuchen. Versuchen Sie es in einem Moment erneut.",
+    too_many_exports: "Zu viele Log-Exporte. Versuchen Sie es in ein paar Minuten erneut.",
+    csrf_rejected:
+      "Anfrage abgelehnt (Sitzungsschutz). Aktualisieren Sie die Seite und versuchen Sie es erneut.",
     note_too_long: "Notiz ist zu lang (max. 4000 Zeichen).",
     cannot_delete_self: "Sie können Ihr eigenes Konto nicht löschen.",
     last_admin:

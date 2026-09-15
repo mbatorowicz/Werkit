@@ -5,6 +5,7 @@
 import { normalizeDecimalBodyField, parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireCompanyScopedSession } from "@/lib/apiTenant";
+import { guardAdminMutation } from "@/lib/requireAdminMutation";
 import { WorkOrderSparePartService } from "@/services/dur/WorkOrderSparePartService";
 import { StockMovementError } from "@/services/dur/StockMovementError";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
@@ -41,6 +42,9 @@ export const GET = withApiErrorHandling(
 /** POST /api/admin/work-orders/[id]/spare-parts — dodaj część do zlecenia */
 export const POST = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
+    const denied = await guardAdminMutation();
+    if (denied) return denied;
+
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
 

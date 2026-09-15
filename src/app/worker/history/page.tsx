@@ -1,23 +1,9 @@
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { narrowOrderType } from "@/lib/orderType";
 import type { WorkerHistoryListSession } from "@/features/worker/components/WorkerHistoryList";
-import { JWT_SECRET } from "@/lib/auth";
-import { requireServerCompanyId } from "@/lib/serverTenant";
 import { WorkerHistoryList } from "@/features/worker/components/WorkerHistoryList";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-
-async function getUserId() {
-  const token = (await cookies()).get("auth_token")?.value;
-  if (!token) return null;
-  try {
-    const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload.userId as number;
-  } catch {
-    return null;
-  }
-}
 
 export const dynamic = "force-dynamic";
 
@@ -26,12 +12,12 @@ export default async function HistoryPage() {
   const h = dict.worker.history;
   const workerClient = dict.worker.client;
 
-  const userId = await getUserId();
-  if (!userId) return <div>{h.accessDenied}</div>;
-
-  const companyId = await requireServerCompanyId();
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
-  const sessions = await WorkerSessionService.getCompletedSessions(userId, companyId);
+  const sessions = await WorkerSessionService.getCompletedSessions(
+    principal.userId,
+    principal.companyId
+  );
 
   return (
     <div className="py-6 pb-20">

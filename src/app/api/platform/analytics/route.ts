@@ -5,8 +5,8 @@ import { PlatformAnalyticsService } from "@/services/PlatformAnalyticsService";
 export const dynamic = "force-dynamic";
 
 export const GET = withApiErrorHandling(
-  async () => {
-    const auth = await requireSuperadminSession();
+  async (request: Request) => {
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const overview = await PlatformAnalyticsService.getCompaniesUsageOverview();

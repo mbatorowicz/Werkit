@@ -178,7 +178,7 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 - `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
 - Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*` (control plane: konta firmy, flagi pakietu, audyt). **Nie** ogląda mapy GPS ani magazynu tenanta.
 - Nawigacja w headerze: **Rejestr firm** (`/platform`) · **Dziennik** (`/platform/audit`) — bez drugiego sidebara admina.
-- **Impersonacja (PL1):** superadmin wchodzi w `/admin` jako istniejące konto `admin`/`viewer` firmy. Cookie `platform_resume` trzyma JWT superadmina; `auth_token` to JWT celu (TTL 30 min, claim `impersonatorUserId`). Banner w `admin/layout.tsx` — **Zakończ** → `POST /api/platform/impersonation/end` → `/platform`. Czysty superadmin nadal nie wejdzie na `/admin`. `/worker` zablokowany.
+- **Impersonacja (PL1):** superadmin wchodzi w `/admin` jako istniejące konto `admin`/`viewer` firmy. Cookie `platform_resume` trzyma JWT superadmina (**TTL 30 min**, jak support JWT); `auth_token` to JWT celu (TTL 30 min, claim `impersonatorUserId`). Banner w `admin/layout.tsx` — **Zakończ** → `POST /api/platform/impersonation/end` → `/platform`. Czysty superadmin nadal nie wejdzie na `/admin`. `/worker` zablokowany.
 - **Cykl życia (PL2):** `lifecycle_status` + `is_active` zsynchronizowane (`trial`/`active` → login tak; `suspended`/`archived` → nie). Lista ukrywa archived (filtr). Presety pakietu `field_ops` / `field_ops_mro` / `yard` wołają `PUT feature-flags` i ustawiają `plan_key`.
 - **Zdrowie (PL3):** overview dopisuje `lastAdminLoginAt` / `lastWorkerLoginAt` / `activeSessionsNow` / `errorLogsLast24h`. Lista sortowana po ostatnim logowaniu admina; chip „cicha” gdy `active` i 0 sesji 30d. Dziennik: `GET /api/platform/audit`. W szczegółach — stałe produktu (GPS 200, foto 4 MiB, 30 logów/min), bez silnika seats. `device_logs` tenanta nie są otwierane w UI platformy (tylko licznik).
 
@@ -191,7 +191,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 - **`/api/auth/*`** — publiczne (sam login/logout).
 - **`/api/worker/*`** — wymaga roli `worker` lub `admin` (cookie JWT).
 - **`/api/platform/*`** — wymaga roli **`superadmin`** (`requireSuperadminSession` w `src/lib/apiPlatform.ts`).
-- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`, `/api/resource-groups`** — `SHARED_API_PREFIXES`. `resource-groups` = CRUD **grup maszyn** (`ResourceGroupService`), nie kategorie zleceń; **bez** `requireDurFeature` (typ floty, nie magazyn). **GET**: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
+- **`/api/machines`, `/api/materials`, `/api/customers`, `/api/categories`, `/api/resource-groups`** — `SHARED_API_PREFIXES`. **Wyjątek (S4):** `/api/materials/inventory` i `/api/materials/stock/*` są API panelu (admin/viewer), nie shared — worker nie czyta cen/PZ/WZ. `resource-groups` = CRUD **grup maszyn** (`ResourceGroupService`), nie kategorie zleceń; **bez** `requireDurFeature` (typ floty, nie magazyn). **GET** shared: `worker|admin|viewer`. **Mutacje** (`POST/PUT/PATCH/DELETE`): domyślnie tylko `admin`; **wyjątek**: worker z `can_create_customers` może `POST /api/customers` (proxy + `guardCustomerCreate()` w handlerze).
 - **Wszystko inne pod `/api/`** — domyślnie traktowane jako `admin API` (deny-by-default), wymaga roli `admin|viewer` na GET, `admin` na mutacjach.
 
 ### 5.1. Auth
@@ -199,7 +199,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | Endpoint | Metoda | Body / opis | Response |
 |---|---|---|---|
 | `/api/auth/login` | POST | `{usernameEmail, password}` (lowercase + trim po stronie serwera) | 200 `{success, user:{id,fullName,role}}` + cookie `auth_token` (`HttpOnly, Secure, SameSite=None, 7d`); **udane logowanie** ustawia `users.last_login_at` (porażka **nie** rusza pola). 400 `invalid_json\|missing_credentials`; **401 `invalid_credentials`** (brak usera, złe hasło, `users.isActive=false`, `companies.isActive=false` — **bez** `account_blocked` / `company_blocked`); 429 `too_many_attempts` (5 nieudanych / 15 min, tabela `login_attempts`); 503 `service_unavailable` (DB); 500 `server_error`. Przy nieistniejącym userze `comparePassword` ze stałym dummy hashem bcrypt (timing). Login **nie** zwraca `weak_password`. JWT **nie** wystarcza po zalogowaniu: API (`requireCompanyScopedSession` / `requireWorkerCompanySession` / `requireSuperadminSession`) i layouty wołają `AuthPrincipalService.resolve` — skasowane/nieaktywne konto albo `companies.isActive=false` → **401** + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` (layout: redirect `/login?reason=session`). |
-| `/api/auth/logout` | POST | brak | 200 + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` z tymi samymi `Secure`/`SameSite` co login (`src/lib/authCookie.ts`; WebView nie zostawia sesji) |
+| `/api/auth/logout` | POST | brak | 200 + `Set-Cookie` `auth_token` `Max-Age=0; Path=/` z tymi samymi `Secure`/`SameSite` co login (`src/lib/authCookie.ts`; WebView nie zostawia sesji). Mutacja podlega CSRF Origin (S4). |
 
 ### 5.2. Worker
 
@@ -243,8 +243,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` — zdrowie: last login, sesje aktywne, ERROR 24h; sort po `lastAdminLoginAt` |
 | `/api/platform/audit` | GET `?companyId=&action=&limit=100` | `PlatformAuditService.list` — tylko odczyt; 403 poza `requireSuperadminSession` |
 | `/api/platform/impersonation` | GET | Status sesji wsparcia `{ active }` — superadmin albo impersonacja (claim `impersonatorUserId`) |
-| `/api/platform/impersonation` | POST `{ companyId, targetUserId, reason? }` | Start: kopia `auth_token` → `platform_resume`, JWT celu 30 min; audyt `impersonation.start`. 403 `company_inactive` / `user_inactive`; 409 `already_impersonating` |
-| `/api/platform/impersonation/end` | POST | Przywraca `auth_token` z `platform_resume` (działa po wygaśnięciu support JWT); audyt `impersonation.end`. 400 `no_resume` |
+| `/api/platform/impersonation` | POST `{ companyId, targetUserId, reason? }` | Start: kopia `auth_token` → `platform_resume` (TTL 30 min), JWT celu 30 min; audyt `impersonation.start`. 403 `company_inactive` / `user_inactive`; 409 `already_impersonating` |
+| `/api/platform/impersonation/end` | POST | Przywraca `auth_token` z `platform_resume` (działa po wygaśnięciu support JWT, w oknie 30 min); audyt `impersonation.end`. 400 `no_resume`. CSRF Origin (S4). |
 
 ### 5.4. Admin (deny-by-default → tylko admin/viewer)
 
@@ -256,7 +256,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/work-orders/[id]` | PUT | `guardDispatchMutation` + `assertCanDelegateTo` przy zmianie `userId`; `assertOrderEntitiesBelongToCompany`; edycja (sprawdza `not_pending`); konflikt harmonogramu (+ `forceSave`) |
 | `/api/admin/work-orders/[id]` | DELETE | `AdminOrderService.deleteOrder` — PZ zwrotów materiału + kasuje sesje i zlecenie (transakcja) |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
-| `/api/admin/logs/export` | GET | `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON z `device_logs`; limity w `src/lib/deviceLogLimits.ts`; GET dla ról admin, viewer |
+| `/api/admin/logs/export` | GET | `requireAdminPanelSession` + `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON; 5/15 min/firmę (`too_many_exports`); GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
 | `/api/admin/work-sessions/[id]` | DELETE | Body JSON `{ password }` → `AdminUserService.verifyPasswordForUserId` (zalogowany admin); potem `deleteArchivedSession`. 400 `admin_password_required`, 401 `invalid_credentials`, 409 `session_still_active` |
 | `/api/admin/work-sessions/[id]/force-complete` | POST | `forceCompleteSession` — ratunek dla zawieszonej `IN_PROGRESS` |
@@ -284,11 +284,11 @@ Każda trasa w `categories|customers|materials|machines|material-categories` ma 
 
 | Endpoint | Metoda | Funkcja |
 |---|---|---|
-| `/api/materials/inventory` | GET | `MaterialInventoryService.getInventory(companyId)` — stan wszystkich materiałów |
+| `/api/materials/inventory` | GET | `requireAdminPanelSession` + `MaterialInventoryService.getInventory` — stan magazynu (nie worker) |
 | `/api/materials/inventory` | PUT `{materialId, quantity}` | `MaterialInventoryService.setQuantity` — korekta bezwzględna |
-| `/api/materials/stock/receipts` | GET | `MaterialStockMovementService.getReceipts` |
+| `/api/materials/stock/receipts` | GET | `requireAdminPanelSession` + `MaterialStockMovementService.getReceipts` |
 | `/api/materials/stock/receipts` | POST `{materialId, quantity, unitPrice?, invoiceNumber?, notes?}` | `MaterialStockMovementService.addReceipt` — ręczne PZ |
-| `/api/materials/stock/issues` | GET | `MaterialStockMovementService.getIssues` |
+| `/api/materials/stock/issues` | GET | `requireAdminPanelSession` + `MaterialStockMovementService.getIssues` |
 | `/api/materials/stock/issues` | POST `{materialId, quantity, workOrderId?, notes?}` | `MaterialStockMovementService.addIssue` — ręczne WZ |
 
 **Automatyczne ruchy magazynowe materiałów** (przy `materialId` + `quantityTons` > 0): **WZ** przy starcie sesji (`WorkerOrderService.acceptOrder`, `WorkerSessionService.createWizardSession` → `WorkSessionMaterialService.issueForSessionStart`); **PZ zwrot** przy cofnięciu (`cancelActiveSession`, `AdminOrderService.deleteOrder`, `AdminSessionService.deleteArchivedSession` → `returnForSessionIfIssued`). Błędy: `MaterialStockMovementError` (`insufficient_stock`, `material_not_found`) — mapowane w API worker accept/session.
@@ -342,6 +342,9 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 
 ### `GeocodeRateLimitService`
 - 30 GET / min / firmę na `GET /api/geocode`. Klucz `geocode:{companyId}` w `login_attempts` (S3). 429 `too_many_geocode`.
+
+### `DeviceLogsExportRateLimitService`
+- 5 GET / 15 min / firmę na `GET /api/admin/logs/export`. Klucz `logs-export:{companyId}` (S4). 429 `too_many_exports`.
 
 ### `AdminUserService`
 - `getAllUsers(companyId)` — projekcja kolumn (bez hasła).
@@ -705,10 +708,10 @@ Klasyfikacja → autoryzacja → role:
 - **`/login`**: jeśli jest ważne `auth_token` → **redirect** do `/worker` (rola `worker`) lub `/admin` (pozostałe role); nie wolno zwracać `next()` przed tym krokiem — inaczej wstecz z WebView pokazywałby formularz mimo aktywnej sesji. Wyjątek: `?reason=tenant` **lub** `?reason=session` (`isAuthCookieClearLoginReason`) → kasuje cookie i pokazuje formularz (martwy principal / brak tenanta — inaczej pętla z JWT).
 - **`ADMIN_PANEL_ROLES = ['admin', 'viewer']`** — strony i API admin (czytanie). Mutacje API admin: domyślnie tylko `admin`; **wyjątek:** `POST/PUT /api/admin/work-orders*` (`isAdminDispatchMutation`) — viewer/worker z `hasDelegationRights` (szczegóły w `guardDispatchMutation` w handlerze).
 - **`WORKER_APP_ROLES = ['worker', 'admin']`** — `/worker` i `/api/worker`.
-- **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES`. Mutacje: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
+- **`SHARED_READ_ROLES = ['worker', 'admin', 'viewer']`** — `SHARED_API_PREFIXES` **bez** `/api/materials/inventory` i `/api/materials/stock/*` (S4: magazyn = admin API). Mutacje shared: domyślnie tylko `admin`; worker: `POST /api/customers` gdy ma flagę w DB.
 - Nowy publiczny shard API → **dopisz prefix do `SHARED_API_PREFIXES`**, inaczej deny-by-default zakwalifikuje go jako admin API.
 
-Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). Impersonacja: JWT z `impersonatorUserId` **blokuje** `/worker` i `/api/worker/*`; `POST /api/platform/impersonation/end` przechodzi bez ważnego support JWT (handler czyta `platform_resume`). Niepoprawny token → wyczyszczenie `auth_token` + redirect/`401` (**resume zostaje**). Edge **nie** czyta DB — martwe konto odpada w Node (`AuthPrincipalService`). Czysty superadmin nadal wycinany z `/admin` (`authorizeSuperadminRestrictions`).
+Cookie `auth_token`: `HttpOnly, Secure, SameSite=None, 7d` (potrzebne dla Capacitor WebView na innym originie). **CSRF (S4):** mutacje `/api/*` w `proxy.ts` — zaufany `Origin` albo JSON / `X-Werkit-Request` (`csrfGuard.ts`); 403 `csrf_rejected`. Impersonacja: JWT z `impersonatorUserId` **blokuje** `/worker` i `/api/worker/*`; `POST /api/platform/impersonation/end` przechodzi bez ważnego support JWT (handler czyta `platform_resume`, TTL 30 min). Niepoprawny token → wyczyszczenie `auth_token` + redirect/`401` (**resume zostaje** w oknie 30 min). Edge **nie** czyta DB — martwe konto odpada w Node (`AuthPrincipalService`). Czysty superadmin nadal wycinany z `/admin` (`authorizeSuperadminRestrictions`).
 
 ---
 
@@ -810,7 +813,7 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 6. **JWT_SECRET** — brak zmiennej powoduje crash proxy (Edge middleware) przy każdym requeście. Upewnij się, że `.env.local` zawiera `JWT_SECRET`.
 7. **GPS bookend** (`workSessions.start_*`/`end_*`) — wymaga migracji 0008. Akceptacja zlecenia (`POST /api/worker/work-orders/:id/accept`) i koniec sesji (`PUT /api/worker/session`) wysyłają `{latitude, longitude}` w body, ale są opcjonalne (urządzenie bez zgody na GPS → po prostu null w bazie).
 8. **`/api/worker/gps`** akceptuje **pojedynczy obiekt LUB tablicę** (offline sync). Klient chunkuje po **200** (`GPSManager.flushQueue`). Serwer: >200 → 400 `payload_too_large` (nic nie zapisuje); `lat/lng` poza bbox / Infinity odfiltrowane; timestamp poza −24 h … +5 min odfiltrowany.
-9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa. Kasowanie (`logout`, 401, proxy): `src/lib/authCookie.ts` — `Path=/`, `Max-Age=0`, te same `Secure`/`SameSite` co set (sam `cookies.delete` zostawia sesję w WebView).
+9. **Cookie `SameSite=None, Secure`** — wymagane dla WebView na innym originie (Capacitor). Lokalnie na `http://localhost:3000` przeglądarka odrzuci `Secure` cookie — to **wyłącznie problem dev-przeglądarki**, mobilka działa. Kasowanie (`logout`, 401, proxy): `src/lib/authCookie.ts` — `Path=/`, `Max-Age=0`, te same `Secure`/`SameSite` co set (sam `cookies.delete` zostawia sesję w WebView). Mutacje API: CSRF Origin (S4) — obcy `Origin` → 403 `csrf_rejected`.
 10. **Mutacje admin** — zawsze przez `guardAdminMutation()` (nawet jeśli `proxy` już sprawdza). Druga warstwa obrony chroni przed pominięciem matchera.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 12. **`GET /api/geocode`** — wymaga żywej sesji firmowej (`requireCompanyScopedSession`, nie tylko `proxy.ts`); `q` min. 3 znaki, **maks. 280**; 30/min/firmę (429 `too_many_geocode`). Błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.

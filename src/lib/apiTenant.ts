@@ -52,3 +52,16 @@ export async function requireCompanyScopedSession(): Promise<
     },
   };
 }
+
+/** Odczyt panelu admina (admin + viewer). Worker odpada — m.in. magazyn materiałów. */
+export async function requireAdminPanelSession(): Promise<
+  { ok: true; data: CompanyScopedSession } | { ok: false; response: Response }
+> {
+  const scoped = await requireCompanyScopedSession();
+  if (!scoped.ok) return scoped;
+  const role = scoped.data.session.role;
+  if (role !== "admin" && role !== "viewer") {
+    return { ok: false, response: jsonError("Forbidden", 403) };
+  }
+  return scoped;
+}

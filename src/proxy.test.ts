@@ -59,9 +59,50 @@ describe("proxy — impersonacja", () => {
     expect(res.status).toBe(200);
   });
 
-  it("POST /api/platform/impersonation/end przechodzi bez JWT", async () => {
+  it("POST /api/platform/impersonation/end przechodzi bez JWT (z Origin)", async () => {
     const req = new NextRequest(new URL("/api/platform/impersonation/end", "http://localhost"), {
       method: "POST",
+      headers: { origin: "http://localhost" },
+    });
+    const res = await proxy(req);
+    expect(res.status).toBe(200);
+  });
+
+  it("POST logout z obcego Origin → 403 csrf_rejected", async () => {
+    const req = new NextRequest(new URL("/api/auth/logout", "http://localhost"), {
+      method: "POST",
+      headers: { origin: "https://evil.example" },
+    });
+    const res = await proxy(req);
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: "csrf_rejected" });
+  });
+
+  it("worker GET /api/materials/inventory → 403 (magazyn nie jest shared)", async () => {
+    const req = await authedRequest("/api/materials/inventory", {
+      userId: 1,
+      role: "worker",
+      companyId: 1,
+    });
+    const res = await proxy(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("worker GET /api/materials → 200 (słownik ładunku zostaje shared)", async () => {
+    const req = await authedRequest("/api/materials", {
+      userId: 1,
+      role: "worker",
+      companyId: 1,
+    });
+    const res = await proxy(req);
+    expect(res.status).toBe(200);
+  });
+
+  it("admin GET /api/materials/inventory → 200", async () => {
+    const req = await authedRequest("/api/materials/inventory", {
+      userId: 2,
+      role: "admin",
+      companyId: 1,
     });
     const res = await proxy(req);
     expect(res.status).toBe(200);

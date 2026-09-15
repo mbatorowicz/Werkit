@@ -2,8 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import WizardClient from "@/features/worker/components/wizard/WizardClient";
-import { getUserId } from "@/lib/auth";
-import { requireServerCompanyId } from "@/lib/serverTenant";
+import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { getDictionary } from "@/i18n";
 import { getServerLocale } from "@/lib/localeCookies.server";
 
@@ -11,14 +10,14 @@ export const dynamic = "force-dynamic";
 
 export default async function WizardPage() {
   const dict = getDictionary(await getServerLocale()).worker.profile;
-  const userId = await getUserId();
-  if (!userId) {
-    redirect("/login");
-  }
+  const principal = await requireLiveCompanyPrincipalOrRedirect();
+  const userId = principal.userId;
 
-  const companyId = await requireServerCompanyId();
   const { WorkerSessionService } = await import("@/services/WorkerSessionService");
-  const details = await WorkerSessionService.getActiveSessionWithDetails(userId, companyId);
+  const details = await WorkerSessionService.getActiveSessionWithDetails(
+    userId,
+    principal.companyId
+  );
 
   if (!details.user?.canCreateOwnOrders) {
     redirect("/worker");

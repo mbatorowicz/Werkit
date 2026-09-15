@@ -93,11 +93,28 @@ export async function parseJson(request: Request): Promise<unknown> {
   }
 }
 
+/**
+ * Opcjonalne JSON body. Pusty POST (bez Content-Type / zerowa długość) → `{}`.
+ * `application/x-www-form-urlencoded` i inny nie-JSON **nie** są połykane — inaczej CSRF omija `parseJsonBody`.
+ */
 export async function parseJsonBodyOrEmpty(request: Request): Promise<Record<string, unknown>> {
+  const ct = (request.headers.get("content-type") ?? "").toLowerCase();
+  if (!ct.includes("application/json")) {
+    const len = request.headers.get("content-length");
+    if (!ct && (!len || len === "0")) return {};
+    throwApiError("invalid_json", 400);
+  }
+  const text = await request.text();
+  if (!text.trim()) return {};
   try {
-    return await parseJsonBody(request);
-  } catch {
-    return {};
+    const body: unknown = JSON.parse(text);
+    if (body === null || typeof body !== "object" || Array.isArray(body)) {
+      throwApiError("invalid_json", 400);
+    }
+    return body as Record<string, unknown>;
+  } catch (cause) {
+    if (cause instanceof ApiRouteError) throw cause;
+    throw new ApiRouteError("invalid_json", 400, { cause });
   }
 }
 
