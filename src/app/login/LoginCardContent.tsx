@@ -99,6 +99,12 @@ export function LoginCardContent({
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : dict.login.submit}
         </button>
       </form>
+
+      <p className="mt-6 text-center text-sm">
+        <a href="/privacy-policy" className="text-zinc-500 underline hover:text-zinc-800 dark:hover:text-zinc-200">
+          {dict.login.privacyPolicy}
+        </a>
+      </p>
     </>
   );
 }

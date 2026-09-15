@@ -15,7 +15,7 @@
 | Framework | **Next.js 16.2.4**, React 19.2.4, App Router. |
 | Runtime API | Domyślne Vercel Node.js (hasło: **`passwordCrypto`** — domyślnie natywny `bcrypt`, opcjonalnie `bcryptjs` przez `WERKIT_USE_BCRYPTJS`). Tras **edge** brak. |
 | Hosting | Vercel + custom domain `https://werkit.cncsolutions.dev/`. |
-| Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. APK: jeden uniwersalny build debug z GitHub Release `android-latest` (`werkit.apk` + `werkit-apk-meta.json`). |
+| Mobilka | Capacitor 8 (`capacitor.config.ts → server.url = 'https://werkit.cncsolutions.dev/'`). WebView ładuje produkcję; natywne wtyczki: `@capacitor/app`, `@capacitor/local-notifications`, `@capacitor-community/background-geolocation`, `@capgo/capacitor-native-biometric`. APK/AAB: GitHub Release `android-latest` + artefakt AAB; podpis Play gdy sekrety CI (`docs/GOOGLE_PLAY.md`). |
 | Lokalny dev | `npm run dev` na porcie 3000. Baza: `DATABASE_URL` / `POSTGRES_URL` w `.env.local` (nie commituj). |
 | Domyślny język | `'pl'` (zob. `src/i18n/index.ts`); locale dat/czasu: `DEFAULT_UI_LOCALE = 'pl-PL'`, strefa UI (SSR + hydracja): `DEFAULT_UI_TIMEZONE = 'Europe/Warsaw'` (`src/i18n/constants.ts`; formaty w `src/i18n/format.ts`). |
 
@@ -767,7 +767,7 @@ Audyt warstwy telefonu (PWA + APK, 2026-09): [`plans/audyt-mobile-2026-09.md`](.
 - **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` (**web i native**, `coordFromAccuracySample`) + native `distanceFilter: 10m`. Bufor **IndexedDB** (`werkit_gps_db` / `gps_queue` w `gpsManager.ts`) → flush natychmiast po nowej koordynacie i co 30 s. Dla `gpsPolicy === "stationary"` GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
 - **PWA**: `public/manifest.json` + ikony PNG 192/512; SW `werkit-v3` — install nie pada na 404, GET sesji/zleceń/ustawień = **network-first**. Rejestracja SW tylko w przeglądarce (nie w Capacitor WebView).
 - **Notyfikacje natywne**: `LocalNotifications` na `dueDate` / reminder / koniec planowanego czasu sesji (`planNativeWorkerAlarms`, `allowWhileIdle`); tick JS 30 s zostaje jako uzupełnienie na pierwszym planie. Persistencja dismiss/snooze: `werkit_alarm_*` (localStorage).
-- **APK dystrybucja**: GitHub Release `android-latest` publikuje **release** APK (podpis debug keystore, `debuggable=false`); debug zostaje na artifacts CI.
+- **APK dystrybucja**: GitHub Release `android-latest` publikuje **release** APK. Podpis: klucz uploadu Google Play gdy sekrety CI są ustawione, w przeciwnym razie debug keystore (`debuggable=false`). AAB do Play Console: artefakt `werkit-app-release-bundle`. Publikacja: [`docs/GOOGLE_PLAY.md`](./GOOGLE_PLAY.md).
 - **Android hartowanie**: `allowBackup=false`, cleartext tylko w **debug**, FileProvider bez `external-path path="."`. Dialog baterii: wtyczka `BatteryOptimization` przy starcie GPS, raz na instalację (nie w `MainActivity.onCreate`).
 - **Logi z urządzenia**: każda krytyczna ścieżka woła `sendRemoteLog('LEVEL', 'msg', meta)` → `/api/worker/logs` → tabela `device_logs` → admin `/admin/logs`. **Globalne błędy JS** łapie `<GlobalErrorHandler />` (window error + unhandledrejection).
 - **Biometria**: Keystore/Keychain pod tagiem `com.werkit.app.auth`. Włączenie z poziomu profilu wymaga aktualnego hasła (weryfikowane w `/api/worker/profile`).
@@ -846,7 +846,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 | Element | Lokalizacja |
 |---|---|
 | CI (lint, TypeScript, build Next) | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) — `main`, PR do `main` |
-| Build Android (Capacitor) | [`.github/workflows/android-build.yml`](../.github/workflows/android-build.yml) — release `android-latest`: `werkit.apk` (debug) + `werkit-apk-meta.json` |
+| Build Android (Capacitor) | [`.github/workflows/android-build.yml`](../.github/workflows/android-build.yml) — release `android-latest`: `werkit.apk` + `werkit-apk-meta.json`; AAB w artefaktach. Play: [`docs/GOOGLE_PLAY.md`](./GOOGLE_PLAY.md) |
 | APK — pobranie / metadane | `GET /api/app/android`, `GET /api/app/android/info` — [`androidAppDownload.ts`](../src/lib/androidAppDownload.ts), [`githubReleaseApk.ts`](../src/lib/githubReleaseApk.ts) |
 | Licencja (zastrzeżone prawa) | [`LICENSE`](../LICENSE); pole `license` w `package.json`: `UNLICENSED` |
 | Raportowanie podatności | [`SECURITY.md`](../SECURITY.md) |

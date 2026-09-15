@@ -236,6 +236,7 @@ export const de: AppDictionary = {
     biometricPromptReason: "Identität bestätigen, um sich anzumelden",
     biometricPromptTitle: "Werkit",
     biometricPromptSubtitle: "Biometrische Anmeldung",
+    privacyPolicy: "Datenschutzerklärung",
   },
   admin: {
     shared: {
@@ -1129,6 +1130,9 @@ export const de: AppDictionary = {
       gpsAlwaysPermissionEmphasis: "„Immer erlauben“",
       gpsAlwaysPermissionTail:
         " gesetzt sein. Wenn Sie „Nur während der Nutzung“ verwenden, wird die Route in gerade Linien zerfallen.",
+      gpsBackgroundDisclosure:
+        "Die Werkit-App erfasst Standortdaten, um die Route des Mitarbeiters während einer aktiven Arbeitssitzung zu verfolgen — auch wenn die App geschlossen ist oder nicht verwendet wird.",
+      gpsPrivacyPolicy: "Datenschutzerklärung",
       gpsOpenPhoneSettings: "Telefoneinstellungen öffnen",
       gpsUnderstandAlwaysSet: "Ich verstehe — ist auf „Immer“ gesetzt",
       wizardTitle: "Was machen wir heute?",

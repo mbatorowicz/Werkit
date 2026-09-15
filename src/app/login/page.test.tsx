@@ -49,6 +49,10 @@ describe("LoginPage", () => {
     expect(screen.getByLabelText(plDict.login.usernameLabel)).toBeInTheDocument();
     expect(screen.getByLabelText(plDict.login.passwordLabel)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: plDict.login.submit })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: plDict.login.privacyPolicy })).toHaveAttribute(
+      "href",
+      "/privacy-policy"
+    );
   });
 
   it("wymaga loginu i hasła (puste pola nie wysyłają żądania)", async () => {

@@ -51,7 +51,7 @@ Moduły opcjonalne per organizacja (ustawiane przez superadmina):
 4. W nagłówku możesz zmienić **język** (PL / EN / DE) i **motyw** (jasny / ciemny).
 5. Wersję aplikacji web i APK porównaj w **Ustawieniach Firmy** (`/admin/settings`).
 
-Polityka prywatności (GPS, dane osobowe): `/privacy-policy`
+Polityka prywatności (GPS, dane osobowe): `/privacy-policy` (pełny URL: `https://werkit.cncsolutions.dev/privacy-policy`). Publikacja w Google Play: [`docs/GOOGLE_PLAY.md`](./GOOGLE_PLAY.md).
 
 ---
 
@@ -304,7 +304,8 @@ Alternatywnie: pracownik tworzy **własne zlecenie** (wizard) → od razu aktywn
 
 ### Dokumenty powiązane
 
-- Polityka prywatności: `/privacy-policy`
+- Polityka prywatności: `/privacy-policy` (`https://werkit.cncsolutions.dev/privacy-policy`)
+- Google Play: `docs/GOOGLE_PLAY.md`
 - Dokumentacja techniczna (deweloperzy): `README.md`, `AGENTS.md`, `docs/SYSTEM_MAP.md`
 
 ---

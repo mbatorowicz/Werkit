@@ -32,7 +32,8 @@
     "logs:device": "tsx src/scripts/view_device_logs.ts",
     "logs:system": "tsx src/scripts/view_device_logs.ts",
     "sounds:generate": "tsx src/scripts/generate_notification_sounds.ts",
-    "icons:generate": "tsx src/scripts/generate_pwa_icons.ts"
+    "icons:generate": "tsx src/scripts/generate_pwa_icons.ts",
+    "android:play-keystore": "tsx src/scripts/generate_play_upload_keystore.ts"
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "^1.2.26",

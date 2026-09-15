@@ -230,6 +230,7 @@ export const pl = {
     biometricPromptReason: "Potwierdź tożsamość, aby się zalogować",
     biometricPromptTitle: "Werkit",
     biometricPromptSubtitle: "Logowanie biometryczne",
+    privacyPolicy: "Polityka prywatności",
   },
   admin: {
     shared: {
@@ -1107,6 +1108,9 @@ export const pl = {
       gpsAlwaysPermissionEmphasis: "„Zawsze zezwalaj”",
       gpsAlwaysPermissionTail:
         ". Jeśli masz „Tylko podczas używania”, trasa będzie się rwać na proste linie.",
+      gpsBackgroundDisclosure:
+        "Werkit zbiera dane o lokalizacji, aby rejestrować trasę pracownika podczas aktywnej sesji pracy — również gdy aplikacja jest zamknięta lub nieużywana.",
+      gpsPrivacyPolicy: "Polityka prywatności",
       gpsOpenPhoneSettings: "Otwórz ustawienia telefonu",
       gpsUnderstandAlwaysSet: "Rozumiem, mam ustawione „Zawsze”",
       wizardTitle: "Co dzisiaj robimy?",

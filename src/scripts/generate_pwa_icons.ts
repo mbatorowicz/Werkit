@@ -1,5 +1,6 @@
 /**
- * Generuje ikony PWA (PNG 192/512 + maskable + apple-touch).
+ * Generuje ikony PWA (PNG 192/512 + maskable + apple-touch)
+ * oraz assety Google Play (`store/google-play/`).
  * Uruchom: npx tsx src/scripts/generate_pwa_icons.ts
  */
 import { deflateSync } from "node:zlib";
@@ -141,7 +142,7 @@ function strokeLine(
   }
 }
 
-function drawIcon(size: number, padRatio: number): Buffer {
+function renderIconRgba(size: number, padRatio: number): Buffer {
   const rgba = Buffer.alloc(size * size * 4);
   fillRect(rgba, size, 0, 0, size - 1, size - 1, BG);
 
@@ -165,7 +166,54 @@ function drawIcon(size: number, padRatio: number): Buffer {
   strokeLine(rgba, size, (left + right) / 2, midY, midRight, bottom, stroke, WHITE);
   strokeLine(rgba, size, midRight, bottom, right, top, stroke, WHITE);
 
-  return encodePng(size, size, rgba);
+  return rgba;
+}
+
+function drawIcon(size: number, padRatio: number): Buffer {
+  return encodePng(size, size, renderIconRgba(size, padRatio));
+}
+
+function blitSquare(
+  dst: Buffer,
+  dw: number,
+  dh: number,
+  src: Buffer,
+  ss: number,
+  dx: number,
+  dy: number
+): void {
+  for (let y = 0; y < ss; y++) {
+    for (let x = 0; x < ss; x++) {
+      const tx = dx + x;
+      const ty = dy + y;
+      if (tx < 0 || ty < 0 || tx >= dw || ty >= dh) continue;
+      const si = (y * ss + x) * 4;
+      const di = (ty * dw + tx) * 4;
+      dst[di] = src[si];
+      dst[di + 1] = src[si + 1];
+      dst[di + 2] = src[si + 2];
+      dst[di + 3] = src[si + 3];
+    }
+  }
+}
+
+/** Baner sklepu Google Play: 1024×500, bez przezroczystości. */
+function drawFeatureGraphic(): Buffer {
+  const w = 1024;
+  const h = 500;
+  const rgba = Buffer.alloc(w * h * 4);
+  for (let i = 0; i < w * h; i++) {
+    const o = i * 4;
+    rgba[o] = BG.r;
+    rgba[o + 1] = BG.g;
+    rgba[o + 2] = BG.b;
+    rgba[o + 3] = 255;
+  }
+  const iconSize = 280;
+  const icon = renderIconRgba(iconSize, 0.12);
+  blitSquare(rgba, w, h, icon, iconSize, 88, Math.round((h - iconSize) / 2));
+  fillRect(rgba, w, 420, 228, 920, 236, ACCENT);
+  return encodePng(w, h, rgba);
 }
 
 const files: { name: string; size: number; pad: number }[] = [
@@ -180,3 +228,8 @@ mkdirSync(OUT_DIR, { recursive: true });
 for (const file of files) {
   writeFileSync(join(OUT_DIR, file.name), drawIcon(file.size, file.pad));
 }
+
+const storeDir = join(ROOT, "store/google-play");
+mkdirSync(storeDir, { recursive: true });
+writeFileSync(join(storeDir, "icon-512.png"), drawIcon(512, 0.12));
+writeFileSync(join(storeDir, "feature-graphic.png"), drawFeatureGraphic());

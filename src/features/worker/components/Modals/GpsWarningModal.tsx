@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Navigation } from "lucide-react";
 import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
 import type { AppDictionary } from "@/i18n/types";
@@ -82,6 +83,15 @@ export default function GpsWarningModal({
           </strong>
           {dict.gpsAlwaysPermissionTail}
         </p>
+        <p className="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          {dict.gpsBackgroundDisclosure}
+        </p>
+        <Link
+          href="/privacy-policy"
+          className="mt-3 text-sm font-medium text-emerald-700 underline dark:text-emerald-400"
+        >
+          {dict.gpsPrivacyPolicy}
+        </Link>
       </div>
     </AdminModalShell>
   );

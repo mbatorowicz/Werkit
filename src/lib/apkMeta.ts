@@ -1,10 +1,13 @@
 /** Metadane builda APK publikowane obok pliku w GitHub Release (`werkit-apk-meta.json`). */
 export type AndroidApkBuildType = "debug" | "release";
 
+export type AndroidApkSigning = "play-upload" | "debug";
+
 export type AndroidApkMeta = {
   version: string;
   packageVersion: string;
   buildType: AndroidApkBuildType;
+  signing?: AndroidApkSigning;
   commitSha?: string;
   builtAt?: string;
 };
@@ -19,8 +22,10 @@ export function parseAndroidApkMeta(raw: unknown): AndroidApkMeta | null {
   const buildType =
     o.buildType === "release" ? "release" : o.buildType === "debug" ? "debug" : null;
   if (!version || !buildType) return null;
+  const signing: AndroidApkSigning | undefined =
+    o.signing === "play-upload" || o.signing === "debug" ? o.signing : undefined;
   const commitSha =
     typeof o.commitSha === "string" && o.commitSha.trim() ? o.commitSha.trim() : undefined;
   const builtAt = typeof o.builtAt === "string" && o.builtAt.trim() ? o.builtAt.trim() : undefined;
-  return { version, packageVersion, buildType, commitSha, builtAt };
+  return { version, packageVersion, buildType, signing, commitSha, builtAt };
 }

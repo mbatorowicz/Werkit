@@ -51,12 +51,37 @@ jobs:
         working-directory: ./android
         run: chmod +x ./gradlew
 
+      - name: Decode Play upload keystore
+        id: play_key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "${ANDROID_KEYSTORE_BASE64}" ]; then
+            echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > android/upload-keystore.jks
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "keystore_file=upload-keystore.jks" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "keystore_file=" >> "$GITHUB_OUTPUT"
+            echo "::warning::Brak ANDROID_KEYSTORE_BASE64 — AAB/APK będą podpisane kluczem debug (nie nadają się do Google Play). Patrz docs/GOOGLE_PLAY.md."
+          fi
+
       - name: Build Android Release Bundle (AAB)
         working-directory: ./android
+        env:
+          WERKIT_UPLOAD_KEYSTORE_FILE: ${{ steps.play_key.outputs.keystore_file }}
+          WERKIT_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          WERKIT_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          WERKIT_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew bundleRelease
 
       - name: Build Android Release APK (APK)
         working-directory: ./android
+        env:
+          WERKIT_UPLOAD_KEYSTORE_FILE: ${{ steps.play_key.outputs.keystore_file }}
+          WERKIT_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          WERKIT_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          WERKIT_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew assembleRelease
 
       - name: Build Android Debug APK (CI artifact)
@@ -67,6 +92,8 @@ jobs:
         run: cp android/app/build/outputs/apk/release/app-release.apk werkit.apk
 
       - name: Write APK metadata (werkit-apk-meta.json)
+        env:
+          PLAY_SIGNING: ${{ steps.play_key.outputs.present }}
         run: |
           node -e "
           const fs = require('fs');
@@ -75,6 +102,7 @@ jobs:
             version: pkg.version,
             packageVersion: pkg.version,
             buildType: 'release',
+            signing: process.env.PLAY_SIGNING === 'true' ? 'play-upload' : 'debug',
             commitSha: process.env.GITHUB_SHA,
             builtAt: new Date().toISOString(),
           }, null, 2));
@@ -96,6 +124,8 @@ jobs:
             Automatyczny build z gałęzi `main`.
             **Jeden plik APK dla wszystkich organizacji** — logowanie wybiera firmę w aplikacji.
             Wersja z package.json: ${{ steps.pkg.outputs.version }}
+            Podpis: ${{ steps.play_key.outputs.present == 'true' && 'klucz uploadu Google Play' || 'debug (nie do Play Console)' }}
+            AAB do Play Console jest w artefaktach workflow (`werkit-app-release-bundle`).
           files: |
             werkit.apk
             werkit-apk-meta.json

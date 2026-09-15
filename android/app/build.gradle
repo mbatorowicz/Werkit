@@ -5,6 +5,38 @@ def packageJson = new JsonSlurper().parse(file("../../package.json"))
 def (major, minor, patch) = packageJson.version.tokenize('.').collect { it.toInteger() }
 def computedVersionCode = major * 10000 + minor * 100 + patch
 
+/** Klucz uploadu Google Play (env CI albo android/keystore.properties). Brak pliku = podpis debug (sideload). */
+def resolvePlayUploadSigning() {
+    def storePath = System.getenv("WERKIT_UPLOAD_KEYSTORE_FILE") ?: ""
+    def storePass = System.getenv("WERKIT_UPLOAD_KEYSTORE_PASSWORD") ?: ""
+    def alias = System.getenv("WERKIT_UPLOAD_KEY_ALIAS") ?: ""
+    def keyPass = System.getenv("WERKIT_UPLOAD_KEY_PASSWORD") ?: ""
+    def propsFile = rootProject.file("keystore.properties")
+    if (propsFile.exists()) {
+        def props = new Properties()
+        propsFile.withInputStream { stream -> props.load(stream) }
+        if (!storePath) storePath = (props["storeFile"] ?: "").toString()
+        if (!storePass) storePass = (props["storePassword"] ?: "").toString()
+        if (!alias) alias = (props["keyAlias"] ?: "").toString()
+        if (!keyPass) keyPass = (props["keyPassword"] ?: "").toString()
+    }
+    if (!storePath || !storePass || !alias || !keyPass) {
+        return null
+    }
+    def resolved = rootProject.file(storePath)
+    if (!resolved.exists()) {
+        return null
+    }
+    return [
+        storeFile: resolved,
+        storePassword: storePass,
+        keyAlias: alias,
+        keyPassword: keyPass,
+    ]
+}
+
+def playUploadSigning = resolvePlayUploadSigning()
+
 android {
     namespace = "com.werkit.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -22,14 +54,34 @@ android {
         }
         manifestPlaceholders = [usesCleartextTraffic: "false"]
     }
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false
+        }
+    }
+    signingConfigs {
+        play {
+            if (playUploadSigning != null) {
+                storeFile playUploadSigning.storeFile
+                storePassword playUploadSigning.storePassword
+                keyAlias playUploadSigning.keyAlias
+                keyPassword playUploadSigning.keyPassword
+            }
+        }
+    }
     buildTypes {
         debug {
             manifestPlaceholders = [usesCleartextTraffic: "true"]
         }
         release {
             minifyEnabled false
-            // Sideload z GitHub Release — podpis debug, ale buildType=release (nie debuggable).
-            signingConfig signingConfigs.debug
+            if (playUploadSigning != null) {
+                signingConfig signingConfigs.play
+            } else {
+                // Sideload / CI bez sekretów Play — podpis debug, buildType=release (nie debuggable).
+                logger.warn("Werkit: brak upload keystore — release podpisany kluczem debug. Google Play wymaga android/upload-keystore.jks (patrz docs/GOOGLE_PLAY.md).")
+                signingConfig signingConfigs.debug
+            }
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             manifestPlaceholders = [usesCleartextTraffic: "false"]
         }

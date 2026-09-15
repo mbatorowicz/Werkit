@@ -35,6 +35,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Android Play upload keystore (never commit)
+*.jks
+*.keystore
+/android/keystore.properties
+/android/.upload-keystore.env
+
 # env files (can opt-in for committing if needed)
 .env*
 
