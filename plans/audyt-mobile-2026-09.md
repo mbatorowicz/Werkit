@@ -22,7 +22,28 @@
 
 ---
 
-## Jak telefon naprawdę działa
+## Stan napraw (2026-09-15)
+
+Wdrożone w kodzie po audycie. Test na fizycznym urządzeniu z zgaszonym ekranem — nadal w checklistie na dole.
+
+| ID | Status |
+|----|--------|
+| M-1 | **done** — `public/manifest.json`, ikony PNG, SW install nie pada na 404 |
+| M-2 | **done** — GitHub Release publikuje `app-release.apk`, `buildType: release` |
+| M-3 | open — jeden URL w `capacitor.config.ts` (osobna decyzja: flavor vs picker) |
+| M-4 | **done** — `planNativeWorkerAlarms` na `dueDate` / reminder / overrun; tick JS zostaje |
+| M-5 | **done** — ten sam filtr 40 m na web i native |
+| M-6 | **done** — dialog baterii przy starcie GPS, raz na instalację |
+| M-7 | **done** — CI też przy `src/features/worker/gps/**` i `biometricLogin.ts` |
+| M-8 | **done** — cleartext tylko w debug |
+| M-9 | **done** — `allowBackup=false` |
+| M-10 | **done** — FileProvider bez całego external storage |
+| M-11 | **done** — logi odrzuceń GPS bez `lat`/`lng` |
+| M-12 | open — biometria nadal trzyma hasło |
+| M-13 | **done** — SW network-first dla sesji/zleceń/ustawień |
+| M-14–M-18 | open / świadomy kompromis (iOS, App Links, R8, kamera) |
+
+---
 
 To nie jest natywna aplikacja z ekranami w Javie. `MainActivity` to mostek Capacitor. UI, sesja, zlecenia i mapa żyją w zdalnym Next.js.
 

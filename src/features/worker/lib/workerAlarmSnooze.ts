@@ -70,8 +70,13 @@ export function getSnoozeOptions(remainingMinutes: number | null): number[] {
   return [Math.max(1, remainingMinutes)];
 }
 
-export function isSnoozed(alarmKey: string, nowMs = Date.now()): boolean {
+export function getSnoozeUntil(alarmKey: string): number | undefined {
   const until = readSnoozeMap()[alarmKey];
+  return typeof until === "number" && Number.isFinite(until) ? until : undefined;
+}
+
+export function isSnoozed(alarmKey: string, nowMs = Date.now()): boolean {
+  const until = getSnoozeUntil(alarmKey);
   return typeof until === "number" && until > nowMs;
 }
 

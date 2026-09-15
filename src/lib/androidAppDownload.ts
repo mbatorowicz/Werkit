@@ -1,4 +1,4 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { AndroidApkBuildType, AndroidApkMeta } from "@/lib/apkMeta";
@@ -121,17 +121,8 @@ export async function getAndroidAppDownloadInfoAsync(): Promise<AndroidAppDownlo
   const localPath = resolveLocalAndroidApkPath();
   if (localPath) {
     const meta = await readLocalApkMeta();
-    const stat = statSync(localPath);
-    const mergedMeta: AndroidApkMeta | null =
-      meta ??
-      ({
-        version: WEB_PACKAGE_VERSION,
-        packageVersion: WEB_PACKAGE_VERSION,
-        buildType: "debug",
-        builtAt: stat.mtime.toISOString(),
-      } satisfies AndroidApkMeta);
     return {
-      ...infoFromMeta(baseInfo("local"), mergedMeta, WEB_PACKAGE_VERSION),
+      ...infoFromMeta(baseInfo("local"), meta, WEB_PACKAGE_VERSION),
       available: true,
     };
   }

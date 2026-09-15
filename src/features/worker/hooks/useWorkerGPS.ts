@@ -4,7 +4,12 @@ import { Capacitor } from "@capacitor/core";
 import { sendRemoteLog } from "@/lib/remoteLogger";
 import { GPSManager } from "@/lib/gpsManager";
 import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
-import { coordFromNativeBackgroundReading } from "@/features/worker/gps/coordFromNativeReading";
+import {
+  coordFromGeolocationCoords,
+  coordFromNativeBackgroundReading,
+  gpsRejectLogMeta,
+} from "@/features/worker/gps/coordFromNativeReading";
+import { requestIgnoreBatteryOptimizationsIfNeeded } from "@/features/worker/gps/batteryOptimization";
 import {
   WORKER_BG_GEO_NOTIFICATION,
   WORKER_GPS_NATIVE_DISTANCE_FILTER_METERS,
@@ -22,7 +27,7 @@ function clearGpsWatchId(watchIdRef: { current: string | number | null }) {
     if (typeof backgroundGeolocation.removeWatcher === "function") {
       backgroundGeolocation.removeWatcher({ id: watchIdRef.current as string });
     }
-  } else {
+  } else if (typeof navigator.geolocation?.clearWatch === "function") {
     navigator.geolocation.clearWatch(watchIdRef.current as number);
   }
   watchIdRef.current = null;
@@ -75,6 +80,7 @@ export function useWorkerGPS(
     const startNativeTracking = async () => {
       setGpsStatus("waiting");
       try {
+        await requestIgnoreBatteryOptimizationsIfNeeded();
         if (typeof backgroundGeolocation.addWatcher !== "function") {
           if (isMounted) setGpsStatus("error");
           return;
@@ -104,18 +110,12 @@ export function useWorkerGPS(
 
             const coord = coordFromNativeBackgroundReading(location);
             if (!coord) {
-              if (typeof location.accuracy === "number") {
-                sendRemoteLog(
-                  "INFO",
-                  "Filtrowanie GPS: Odrzucono szpilkę",
-                  {
-                    accuracy: location.accuracy,
-                    lat: location.latitude,
-                    lng: location.longitude,
-                  },
-                  { category: "gps" }
-                );
-              }
+              sendRemoteLog(
+                "INFO",
+                "Filtrowanie GPS: Odrzucono szpilkę",
+                gpsRejectLogMeta(location.accuracy),
+                { category: "gps" }
+              );
               return;
             }
             handleNewLoc(coord);
@@ -149,12 +149,19 @@ export function useWorkerGPS(
       setGpsStatus("waiting");
       if ("geolocation" in navigator) {
         watchIdRef.current = navigator.geolocation.watchPosition(
-          (pos) =>
-            handleNewLoc({
-              lat: pos.coords.latitude,
-              lng: pos.coords.longitude,
-              heading: pos.coords.heading,
-            }),
+          (pos) => {
+            const coord = coordFromGeolocationCoords(pos.coords);
+            if (!coord) {
+              sendRemoteLog(
+                "INFO",
+                "Filtrowanie GPS: Odrzucono szpilkę",
+                gpsRejectLogMeta(pos.coords.accuracy),
+                { category: "gps" }
+              );
+              return;
+            }
+            handleNewLoc(coord);
+          },
           () => {
             if (isMounted) setGpsStatus("error");
           },

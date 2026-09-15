@@ -19,7 +19,11 @@ import {
   migrateLegacyNotifiedOrders,
   setSnooze,
 } from "@/features/worker/lib/workerAlarmSnooze";
-import { scheduleWorkerAlarmNotification } from "@/features/worker/lib/scheduleWorkerAlarmNotification";
+import { useNativeWorkerAlarmSchedule } from "@/features/worker/hooks/useNativeWorkerAlarmSchedule";
+import {
+  cancelWorkerAlarmNotification,
+  scheduleWorkerAlarmNotification,
+} from "@/features/worker/lib/scheduleWorkerAlarmNotification";
 
 function pickActiveAlarm(
   isTimeOverrun: boolean,
@@ -138,6 +142,15 @@ export function useWorkerNotifications(
     [alarmClock, alarmsDict]
   );
 
+  useNativeWorkerAlarmSchedule(
+    session,
+    workOrders,
+    settings,
+    notificationsEnabled,
+    alarmsDict,
+    alarmSuppressVersion
+  );
+
   useEffect(() => {
     if (!activeAlarm) return;
     queueMicrotask(() => {
@@ -171,6 +184,7 @@ export function useWorkerNotifications(
     if (!activeAlarm) return;
     dismissAlarm(activeAlarm.alarmKey);
     delete lastNativeScheduledRef.current[activeAlarm.alarmKey];
+    void cancelWorkerAlarmNotification(activeAlarm.notificationId);
     refreshAlarmUi();
   }, [activeAlarm, refreshAlarmUi]);
 
@@ -179,6 +193,7 @@ export function useWorkerNotifications(
       if (!activeAlarm) return;
       setSnooze(activeAlarm.alarmKey, minutes);
       delete lastNativeScheduledRef.current[activeAlarm.alarmKey];
+      void cancelWorkerAlarmNotification(activeAlarm.notificationId);
       refreshAlarmUi();
     },
     [activeAlarm, refreshAlarmUi]

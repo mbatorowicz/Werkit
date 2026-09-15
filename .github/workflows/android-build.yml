@@ -10,6 +10,8 @@ on:
       - 'capacitor.config.ts'
       - 'package.json'
       - '.github/workflows/android-build.yml'
+      - 'src/features/worker/gps/**'
+      - 'src/lib/biometricLogin.ts'
 
 permissions:
   contents: write
@@ -57,12 +59,12 @@ jobs:
         working-directory: ./android
         run: ./gradlew assembleRelease
 
-      - name: Build Android Debug APK (for distribution)
+      - name: Build Android Debug APK (CI artifact)
         working-directory: ./android
         run: ./gradlew assembleDebug
 
       - name: Prepare APK for GitHub Release
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk werkit.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk werkit.apk
 
       - name: Write APK metadata (werkit-apk-meta.json)
         run: |
@@ -72,7 +74,7 @@ jobs:
           fs.writeFileSync('werkit-apk-meta.json', JSON.stringify({
             version: pkg.version,
             packageVersion: pkg.version,
-            buildType: 'debug',
+            buildType: 'release',
             commitSha: process.env.GITHUB_SHA,
             builtAt: new Date().toISOString(),
           }, null, 2));
@@ -109,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: werkit-app-release-apk
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Upload Debug APK (Test)
         uses: actions/upload-artifact@v7

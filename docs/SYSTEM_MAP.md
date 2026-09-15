@@ -762,10 +762,13 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 Audyt warstwy telefonu (PWA + APK, 2026-09): [`plans/audyt-mobile-2026-09.md`](../plans/audyt-mobile-2026-09.md).
 
 - `capacitor.config.ts`: `appId: 'com.werkit.app'`, `appName: 'Werkit'`, `webDir: 'public'`, `server.url: https://werkit.cncsolutions.dev/`.
-- WebView ładuje **produkcyjną** wersję — lokalne zmiany w UI są widoczne na telefonie tylko po deploy. Do testów na telefonie w sieci LAN: tymczasowo zmień `server.url` na `http://192.168.x.x:3000` + `cleartext: true`. W `capacitor.config.ts` nie ma `cleartext`; **`AndroidManifest` nadal ma `usesCleartextTraffic="true"`** (znalezisko M-8 w audycie mobilnym).
+- WebView ładuje **produkcyjną** wersję — lokalne zmiany w UI są widoczne na telefonie tylko po deploy. Do testów na telefonie w sieci LAN: tymczasowo zmień `server.url` na `http://192.168.x.x:3000` + `cleartext: true` w `capacitor.config.ts` i użyj **debug APK** (`usesCleartextTraffic` tylko w debug). Release ma cleartext wyłączony.
 - **Hardware back (Android)**: jedyne miejsce obsługi — `<CapacitorBackButton />` w root `app/layout.tsx`. Własny stos ścieżek (`pathname` + `popstate`); gdy stos > 1 → **`history.back()`**, na pierwszym ekranie → **`App.minimizeApp()`**. Nie polegać na `window.history.length` (Next.js SPA). **Nie dodawaj własnych listenerów `backButton`.**
-- **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` (tylko native) + `distanceFilter: 10m`. Bufor **IndexedDB** (`werkit_gps_db` / `gps_queue` w `gpsManager.ts`) → flush natychmiast po nowej koordynacie i co 30 s. Dla `gpsPolicy === "stationary"` GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
-- **Notyfikacje natywne**: `LocalNotifications.schedule({at: now+1s})`. Persistencja IDs: `werkit_notified_orders` (localStorage).
+- **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` (**web i native**, `coordFromAccuracySample`) + native `distanceFilter: 10m`. Bufor **IndexedDB** (`werkit_gps_db` / `gps_queue` w `gpsManager.ts`) → flush natychmiast po nowej koordynacie i co 30 s. Dla `gpsPolicy === "stationary"` GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
+- **PWA**: `public/manifest.json` + ikony PNG 192/512; SW `werkit-v3` — install nie pada na 404, GET sesji/zleceń/ustawień = **network-first**. Rejestracja SW tylko w przeglądarce (nie w Capacitor WebView).
+- **Notyfikacje natywne**: `LocalNotifications` na `dueDate` / reminder / koniec planowanego czasu sesji (`planNativeWorkerAlarms`, `allowWhileIdle`); tick JS 30 s zostaje jako uzupełnienie na pierwszym planie. Persistencja dismiss/snooze: `werkit_alarm_*` (localStorage).
+- **APK dystrybucja**: GitHub Release `android-latest` publikuje **release** APK (podpis debug keystore, `debuggable=false`); debug zostaje na artifacts CI.
+- **Android hartowanie**: `allowBackup=false`, cleartext tylko w **debug**, FileProvider bez `external-path path="."`. Dialog baterii: wtyczka `BatteryOptimization` przy starcie GPS, raz na instalację (nie w `MainActivity.onCreate`).
 - **Logi z urządzenia**: każda krytyczna ścieżka woła `sendRemoteLog('LEVEL', 'msg', meta)` → `/api/worker/logs` → tabela `device_logs` → admin `/admin/logs`. **Globalne błędy JS** łapie `<GlobalErrorHandler />` (window error + unhandledrejection).
 - **Biometria**: Keystore/Keychain pod tagiem `com.werkit.app.auth`. Włączenie z poziomu profilu wymaga aktualnego hasła (weryfikowane w `/api/worker/profile`).
 
@@ -820,7 +823,7 @@ Audyt warstwy telefonu (PWA + APK, 2026-09): [`plans/audyt-mobile-2026-09.md`](.
 11. **Pusta lista kategorii na `/admin/machines` + „Błąd pobierania danych”** — kod jest już wdrożony, ale **baza bez migracji 0010** (`resource_categories.show_*`): dawniej **GET `/api/categories`** padał na `SELECT` przez Drizzle. Serwis robi teraz **fallback** (odczyt bez `show_*`, domyślnie `show* = true`). **Zapis** kategorii nadal wymaga kolumn: uruchom `npm run db:napraw-kategorie-widocznosc` (lub SQL z `drizzle/0010` + `0011`) na bazie produkcyjnej.
 12. **`GET /api/geocode`** — wymaga żywej sesji firmowej (`requireCompanyScopedSession`, nie tylko `proxy.ts`); `q` min. 3 znaki, **maks. 280**; 30/min/firmę (429 `too_many_geocode`). Błędy walidacji `short_query` / `query_too_long`. **Brak wyniku Nominatim:** odpowiedź **200** z `{ lat: null, lng: null, error: "not_found" }` (nie HTTP 404), żeby nie zaśmiecać telemetrii i UI.
 13. **`POST /api/worker/logs`** — `level` tylko z zestawu `INFO|WARN|ERROR|DEBUG`; długość `message` i `metadata` ograniczona przed zapisem; **30 INSERT / min / user** (429 `too_many_logs`, klucz `logs:{userId}` w `login_attempts`).
-14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI nie startuje przy każdym deployu web — po zmianach mobilnych bez `android/**` uruchom ręcznie workflow **Build Android App**.
+14. **Rozjazd wersji web vs APK** — panel pokazuje `WEB_PACKAGE_VERSION` z `package.json`; APK z release `android-latest` ma własną wersję w `werkit-apk-meta.json`. Ostrzeżenie w **`AppDownloadCard`** gdy `inSync === false`. Build CI startuje przy `android/**`, `capacitor.config.ts`, `package.json`, `src/features/worker/gps/**`, `src/lib/biometricLogin.ts` albo ręcznie **workflow_dispatch**.
 15. **Zdjęcia sesji** — `uploadPhotoBase64`: max 4 MiB zdekodowane; MIME `image/jpeg|png|webp` + magic bytes (bez SVG). 400 `invalid_photo_data`. Prefiks Blob: `werkit-photos/{companyId}/{sessionId}/` (nowe); stare URL-e bez `companyId` zostają ważne.
 16. **CSP** — `Content-Security-Policy` w `next.config.ts` (`src/lib/contentSecurityPolicy.ts`): kafelki CARTO, Nominatim, OSRM, markery Leaflet (GitHub/cdnjs), Vercel Blob. `script-src` ma `'unsafe-inline'` (Next.js hydration bez nonce; Leaflet w bundlu).
 
@@ -834,7 +837,7 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 
 ---
 
-*Ostatnia weryfikacja vs repo: 2026-06-11. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
+*Ostatnia weryfikacja vs repo: 2026-09-15. Jeśli przypisanie endpoint↔serwis rozjedzie się z kodem — aktualizuj ten plik w tym samym PR.*
 
 ---
 

@@ -188,7 +188,7 @@ Tytuły i etykiety przycisków dialogów: `admin.ui.dialogAlertTitle`, `dialogCo
 - **Wersja APK:** metadane z GitHub Release `android-latest` — asset **`werkit-apk-meta.json`** (generowany w [`.github/workflows/android-build.yml`](./.github/workflows/android-build.yml)); SSOT typu: [`src/lib/apkMeta.ts`](./src/lib/apkMeta.ts).
 - **UI:** [`AppDownloadCard`](./src/components/Admin/AppDownloadCard.tsx) na `/admin/settings` — pokazuje wersję web i APK, badge **debug**, ostrzeżenie gdy `inSync === false`.
 - **Pobieranie:** `GET /api/app/android`; metadane: `GET /api/app/android/info` — logika w [`src/lib/androidAppDownload.ts`](./src/lib/androidAppDownload.ts) (źródła: `WERKIT_ANDROID_APK_URL` → `public/downloads/werkit.apk` + opcjonalny meta → GitHub release).
-- **CI Android** uruchamia się przy pushu do `main` tylko gdy zmienią się `android/**`, `capacitor.config.ts`, `package.json` lub sam workflow. Po większych zmianach w workerze / Capacitor bez tych plików — **ręcznie** `workflow_dispatch` na GitHub Actions, żeby APK nadal pasowało do wersji web.
+- **CI Android** uruchamia się przy pushu do `main` gdy zmienią się `android/**`, `capacitor.config.ts`, `package.json`, `src/features/worker/gps/**`, `src/lib/biometricLogin.ts` lub sam workflow. Po innych zmianach mostka natywnego — **ręcznie** `workflow_dispatch`. GitHub Release `android-latest` publikuje **release** APK (nie debug).
 - **Dźwięki alarmów:** pliki WAV w `public/sounds/` i `android/app/src/main/res/raw/` — regeneracja: **`npm run sounds:generate`** (`src/scripts/generate_notification_sounds.ts`).
 
 ---

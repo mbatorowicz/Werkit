@@ -32,6 +32,10 @@ vi.mock("@/lib/remoteLogger", () => ({
   sendRemoteLog: vi.fn(),
 }));
 
+vi.mock("@/features/worker/gps/batteryOptimization", () => ({
+  requestIgnoreBatteryOptimizationsIfNeeded: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { useWorkerGPS } from "@/features/worker/hooks/useWorkerGPS";
 
 const session: Session = {
@@ -98,6 +102,76 @@ describe("useWorkerGPS", () => {
 
     await waitFor(() => {
       expect(addWatcher).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("na web odrzuca próbkę z accuracy > 40 m", async () => {
+    isNativePlatform.mockReturnValue(false);
+    const setLocation = vi.fn();
+    const clearWatch = vi.fn();
+    const watchPosition = vi.fn((success: (pos: GeolocationPosition) => void) => {
+      success({
+        coords: {
+          latitude: 52.2,
+          longitude: 21.0,
+          accuracy: 80,
+          heading: null,
+          altitude: null,
+          altitudeAccuracy: null,
+          speed: null,
+          toJSON: () => ({}),
+        },
+        timestamp: Date.now(),
+        toJSON: () => ({}),
+      } as GeolocationPosition);
+      return 11;
+    });
+    Object.defineProperty(navigator, "geolocation", {
+      configurable: true,
+      value: { watchPosition, clearWatch },
+    });
+
+    const { unmount } = renderHook(() =>
+      useWorkerGPS(session, setLocation, vi.fn(), vi.fn(), true)
+    );
+
+    await waitFor(() => {
+      expect(watchPosition).toHaveBeenCalled();
+    });
+    expect(setLocation).not.toHaveBeenCalled();
+    unmount();
+    expect(clearWatch).toHaveBeenCalled();
+  });
+
+  it("na web przyjmuje próbkę z accuracy ≤ 40 m", async () => {
+    isNativePlatform.mockReturnValue(false);
+    const setLocation = vi.fn();
+    const watchPosition = vi.fn((success: (pos: GeolocationPosition) => void) => {
+      success({
+        coords: {
+          latitude: 52.2,
+          longitude: 21.0,
+          accuracy: 15,
+          heading: 90,
+          altitude: null,
+          altitudeAccuracy: null,
+          speed: null,
+          toJSON: () => ({}),
+        },
+        timestamp: Date.now(),
+        toJSON: () => ({}),
+      } as GeolocationPosition);
+      return 12;
+    });
+    Object.defineProperty(navigator, "geolocation", {
+      configurable: true,
+      value: { watchPosition, clearWatch: vi.fn() },
+    });
+
+    renderHook(() => useWorkerGPS(session, setLocation, vi.fn(), vi.fn(), true));
+
+    await waitFor(() => {
+      expect(setLocation).toHaveBeenCalledWith({ lat: 52.2, lng: 21.0, heading: 90 });
     });
   });
 });

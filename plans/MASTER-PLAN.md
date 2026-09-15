@@ -4,7 +4,7 @@
 > **Data:** 2026-05-29  
 > **Aktualizacja 2026-09-14:** dociągnięcie domeny (field-ops + MRO) jest w **[`architecture-alignment-2026-09.md`](./architecture-alignment-2026-09.md)** — fazy 0–7 zamknięte; nie dopisuj PM / scalania magazynów do faz I–VI poniżej.  
 > **Hartowanie bezpieczeństwa (sesja JWT, logowanie, limity):** **[`security-hardening-2026-09.md`](./security-hardening-2026-09.md)** — fazy S0–S4 zamknięte.
-> **Audyt apki na telefon (PWA + Capacitor Android):** **[`audyt-mobile-2026-09.md`](./audyt-mobile-2026-09.md)** — 2026-09, otwarty.
+> **Audyt apki na telefon (PWA + Capacitor Android):** **[`audyt-mobile-2026-09.md`](./audyt-mobile-2026-09.md)** — 2026-09; P0/P1 terenowe (poza M-3) i hartowanie M-8–M-11/M-13 wdrożone 2026-09-15.
 > **Źródła scalone:** `audyt-werkit-2026-05.md`, `naprawa-audyt-2026-05.md`, `dur-module-completion-plan.md`, `dur-module-plan.md`, `feature-flags-platform-plan.md`, `order-types-org-gps-toggle-plan.md`, `audyt-i18n-2026-05.md`, `audyt-multitenant-2026-05.md`, `ios-support-2026-05.md`, `prompt-naprawa-duplikacji.md`, `docs/TECH_DEBT_ROADMAP.md`  
 > **Dokumenty nadrzędne:** [`AGENTS.md`](../AGENTS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`docs/SYSTEM_MAP.md`](../docs/SYSTEM_MAP.md)
 
