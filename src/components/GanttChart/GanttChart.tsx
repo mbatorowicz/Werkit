@@ -389,7 +389,9 @@ function GanttChartCanvas({
       />
 
       <div className="flex flex-col relative pb-4">
-        <div className={cn("absolute inset-0 pointer-events-none flex", GANTT_GRID_OFFSET[density])}>
+        <div
+          className={cn("absolute inset-0 pointer-events-none flex", GANTT_GRID_OFFSET[density])}
+        >
           {hours.map((h) => (
             <div
               key={h}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readViewportOrientation } from "@/hooks/useViewportOrientation";
+import { render } from "@testing-library/react";
+import { readViewportOrientation, useViewportOrientation } from "@/hooks/useViewportOrientation";
 
 function fakeWin(
   width: number,
@@ -46,5 +47,38 @@ describe("readViewportOrientation", () => {
       isLandscape: true,
       isPortrait: false,
     });
+  });
+});
+
+describe("useViewportOrientation", () => {
+  it("nie zapętla renderów — getSnapshot jest referencyjnie stabilny", () => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      configurable: true,
+      value: (query: string) =>
+        ({
+          matches: query.includes("orientation: landscape")
+            ? window.innerWidth > window.innerHeight
+            : window.innerWidth < 1024,
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          addListener: () => {},
+          removeListener: () => {},
+          dispatchEvent: () => false,
+          onchange: null,
+        }) as MediaQueryList,
+    });
+
+    let renders = 0;
+    function Probe() {
+      renders += 1;
+      useViewportOrientation();
+      return <span data-testid="renders">{renders}</span>;
+    }
+
+    const { getByTestId } = render(<Probe />);
+    expect(Number(getByTestId("renders").textContent)).toBeLessThan(5);
+    expect(renders).toBeLessThan(5);
   });
 });

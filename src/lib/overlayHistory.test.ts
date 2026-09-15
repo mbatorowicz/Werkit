@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { isOverlayHistoryState, overlayHistoryState, OVERLAY_HISTORY_KEY } from "@/lib/overlayHistory";
+import {
+  isOverlayHistoryState,
+  overlayHistoryState,
+  OVERLAY_HISTORY_KEY,
+} from "@/lib/overlayHistory";
 
 describe("overlayHistory", () => {
   it("buduje marker overlayu", () => {

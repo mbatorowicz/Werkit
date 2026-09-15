@@ -87,7 +87,10 @@ export function OrdersHeader({
           <button
             type="button"
             onClick={onNewOrder}
-            className={cn("flex flex-1 items-center justify-center gap-2 sm:flex-none", BTN_PRIMARY_COMPACT)}
+            className={cn(
+              "flex flex-1 items-center justify-center gap-2 sm:flex-none",
+              BTN_PRIMARY_COMPACT
+            )}
           >
             <Plus className="h-4 w-4" /> {dict.newOrder}
           </button>

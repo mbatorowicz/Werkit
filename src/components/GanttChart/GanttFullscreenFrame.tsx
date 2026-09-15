@@ -66,10 +66,7 @@ export function GanttFullscreenFrame({
 
   return (
     <div
-      className={cn(
-        "fixed inset-0 z-[80] flex h-[100dvh] max-h-[100dvh] flex-col",
-        SURFACE_CARD
-      )}
+      className={cn("fixed inset-0 z-[80] flex h-[100dvh] max-h-[100dvh] flex-col", SURFACE_CARD)}
       role="dialog"
       aria-modal="true"
     >

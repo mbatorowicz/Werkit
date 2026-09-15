@@ -22,7 +22,12 @@ describe("GanttFullscreenFrame", () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
     renderWithProviders(
-      <GanttFullscreenFrame open onClose={onClose} showRotateHint rotateHint="Obróć telefon poziomo">
+      <GanttFullscreenFrame
+        open
+        onClose={onClose}
+        showRotateHint
+        rotateHint="Obróć telefon poziomo"
+      >
         <button type="button">Nowe zlecenie</button>
       </GanttFullscreenFrame>
     );
