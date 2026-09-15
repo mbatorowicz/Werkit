@@ -1,6 +1,6 @@
 /**
- * Generuje ikony PWA (PNG 192/512 + maskable + apple-touch)
- * oraz assety Google Play (`store/google-play/`).
+ * Generuje ikony PWA (PNG 192/512 + maskable + apple-touch),
+ * favicon (32 PNG + ICO) oraz assety Google Play (`store/google-play/`).
  * Uruchom: npx tsx src/scripts/generate_pwa_icons.ts
  */
 import { deflateSync } from "node:zlib";
@@ -216,7 +216,23 @@ function drawFeatureGraphic(): Buffer {
   return encodePng(w, h, rgba);
 }
 
+/** ICO z osadzonym PNG (Vista+) — jeden rozmiar, offset 22 = nagłówek 6 + wpis 16. */
+function encodeIcoWithPng(png: Buffer, size: number): Buffer {
+  const header = Buffer.alloc(6);
+  header.writeUInt16LE(1, 2); // type = icon
+  header.writeUInt16LE(1, 4); // count
+  const entry = Buffer.alloc(16);
+  entry.writeUInt8(size >= 256 ? 0 : size, 0);
+  entry.writeUInt8(size >= 256 ? 0 : size, 1);
+  entry.writeUInt16LE(1, 4); // color planes
+  entry.writeUInt16LE(32, 6); // bits
+  entry.writeUInt32LE(png.length, 8);
+  entry.writeUInt32LE(22, 12);
+  return Buffer.concat([header, entry, png]);
+}
+
 const files: { name: string; size: number; pad: number }[] = [
+  { name: "favicon-32.png", size: 32, pad: 0.08 },
   { name: "icon-192.png", size: 192, pad: 0.12 },
   { name: "icon-512.png", size: 512, pad: 0.12 },
   { name: "icon-192-maskable.png", size: 192, pad: 0.2 },
@@ -228,6 +244,9 @@ mkdirSync(OUT_DIR, { recursive: true });
 for (const file of files) {
   writeFileSync(join(OUT_DIR, file.name), drawIcon(file.size, file.pad));
 }
+
+const faviconPng = drawIcon(32, 0.08);
+writeFileSync(join(ROOT, "public/favicon.ico"), encodeIcoWithPng(faviconPng, 32));
 
 const storeDir = join(ROOT, "store/google-play");
 mkdirSync(storeDir, { recursive: true });

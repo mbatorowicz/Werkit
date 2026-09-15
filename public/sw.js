@@ -11,8 +11,10 @@
  * Rejestracja: automatyczna w `src/components/ServiceWorkerRegister.tsx`
  */
 
-const CACHE_NAME = "werkit-v3";
+const CACHE_NAME = "werkit-v4";
 const STATIC_ASSETS = [
+  "/favicon.ico",
+  "/icons/favicon-32.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/sounds/werkit_alert.wav",

@@ -59,6 +59,13 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "public, max-age=3600" },
         ],
       },
+      {
+        source: "/favicon.ico",
+        headers: [
+          ...securityHeaders,
+          { key: "Cache-Control", value: "public, max-age=86400" },
+        ],
+      },
     ];
   },
   /** Legacy aliasy — query string jest zachowany automatycznie (np. `/admin/orders?open=123`). */
