@@ -114,7 +114,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   companyName={companyName}
                   productName={fullDict.common.app.name}
                   version={APP_VERSION}
-                  compact
                   className="max-w-[200px]"
                 />
               </div>

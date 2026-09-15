@@ -4,7 +4,7 @@ import { OrgShellBrand } from "@/components/OrgShellBrand";
 import { renderWithProviders } from "@/test/renderWithProviders";
 
 describe("OrgShellBrand", () => {
-  it("pokazuje nazwę organizacji jako główny nagłówek i produkt małym drukiem", () => {
+  it("pokazuje nazwę organizacji jako główny nagłówek, a produkt i build małym drukiem", () => {
     renderWithProviders(
       <OrgShellBrand companyName="CNC Solutions" productName="Werkit" version="1.9.4" />
     );
@@ -13,6 +13,7 @@ describe("OrgShellBrand", () => {
     expect(screen.getByText("werkit")).toBeInTheDocument();
     expect(screen.getByText("v1.9.4")).toBeInTheDocument();
     expect(screen.queryByText("WERKIT")).not.toBeInTheDocument();
+    expect(screen.getByText("werkit").closest("p")).toContainElement(screen.getByText("v1.9.4"));
   });
 
   it("ukrywa badge wersji, gdy nie podano version", () => {

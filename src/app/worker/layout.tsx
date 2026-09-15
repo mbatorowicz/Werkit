@@ -43,7 +43,6 @@ export default async function WorkerLayout({ children }: { children: React.React
           companyName={companyName}
           productName={fullDict.common.app.name}
           version={APP_VERSION}
-          compact
           className="max-w-[220px]"
         />
         <div className="flex items-center gap-2">
