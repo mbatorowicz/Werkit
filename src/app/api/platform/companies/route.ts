@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export const GET = withApiErrorHandling(
-  async () => {
-    const auth = await requireSuperadminSession();
+  async (request: Request) => {
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const rows = await PlatformCompanyService.listCompanies();
@@ -21,7 +21,7 @@ export const GET = withApiErrorHandling(
 
 export const POST = withApiErrorHandling(
   async (request: Request) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const body = await parseJsonBody(request);

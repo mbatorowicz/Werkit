@@ -3,6 +3,7 @@ import { jsonError } from "@/lib/apiRoute";
 import { requireLivePrincipalOr401 } from "@/lib/livePrincipal";
 import { isSuperadminRole } from "@/lib/tenantRoles";
 
+/** Z route handlera przekazuj `request` — JWT z nagłówka Cookie, nie tylko z `cookies()`. */
 export async function requireSuperadminSession(
   request?: Request
 ): Promise<{ ok: true; userId: number } | { ok: false; response: Response }> {

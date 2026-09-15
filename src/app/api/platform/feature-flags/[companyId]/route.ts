@@ -23,8 +23,8 @@ const ALLOWED_FLAG_KEYS: (keyof FeatureFlags)[] = [
  * Zwraca aktualne flagi funkcji i klucz pakietu dla organizacji.
  */
 export const GET = withApiErrorHandling(
-  async (_request: Request, context: { params: Promise<{ companyId: string }> }) => {
-    const auth = await requireSuperadminSession();
+  async (request: Request, context: { params: Promise<{ companyId: string }> }) => {
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).companyId);
@@ -47,7 +47,7 @@ export const GET = withApiErrorHandling(
  */
 export const PUT = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ companyId: string }> }) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).companyId);

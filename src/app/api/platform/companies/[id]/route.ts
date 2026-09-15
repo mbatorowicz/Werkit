@@ -87,7 +87,7 @@ async function writeCompanyPatchAudit(
 
 export const PATCH = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const id = parsePositiveIntFromString((await context.params).id);

@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 /** Reset hasła admina/viewera firmy. Hasło nie wraca w odpowiedzi i nie idzie do audytu. */
 export const POST = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string; userId: string }> }) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const params = await context.params;

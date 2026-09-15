@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** Aktywacja / dezaktywacja admina lub viewera firmy. */
 export const PATCH = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string; userId: string }> }) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const params = await context.params;

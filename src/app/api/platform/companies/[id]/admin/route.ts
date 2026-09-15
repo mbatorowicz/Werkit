@@ -12,7 +12,7 @@ export const maxDuration = 60;
 /** Dodanie administratora do istniejącej organizacji (np. po częściowej nieudanej próbie). */
 export const POST = withApiErrorHandling(
   async (request: Request, context: { params: Promise<{ id: string }> }) => {
-    const auth = await requireSuperadminSession();
+    const auth = await requireSuperadminSession(request);
     if (!auth.ok) return auth.response;
 
     const companyId = parsePositiveIntFromString((await context.params).id);

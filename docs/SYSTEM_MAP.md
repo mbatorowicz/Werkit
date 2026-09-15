@@ -419,6 +419,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `PlatformAuditService` (`src/services/PlatformAuditService.ts`)
 - Jedyny INSERT do `platform_audit_events`. Allowlista `action`; `sanitizeAuditMetadata` wycina klucze `password*`. Wołany z handlerów `/api/platform/*` po udanej mutacji (w tym `impersonation.start` / `impersonation.end`).
 - `list({ companyId?, action?, limit? })` — JOIN aktor + firma; default limit 100, max 200. UI: `/platform/audit`.
+- Integracja (`audit.int.test.ts`): GET z filtrem firmy; mutacje company/flags/admin zapisują wiersz; porażka (`last_admin`, `weak_password`) i hasło z body nie lądują w `metadata`.
 
 ### `PlatformImpersonationService` (`src/services/PlatformImpersonationService.ts`)
 - `resolveStartTarget(companyId, targetUserId)` — aktywna firma + aktywny `admin`/`viewer` tej firmy. Błędy: `not_found`, `company_inactive`, `user_inactive`. Cookie i JWT są w handlerze `/api/platform/impersonation`.
