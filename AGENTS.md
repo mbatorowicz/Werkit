@@ -180,7 +180,7 @@ Tytuły i etykiety przycisków dialogów: `admin.ui.dialogAlertTitle`, `dialogCo
 
 - **`setInterval` / `setTimeout`** na frontcie **nie są niezawodne** przy zablokowanym ekranie.
 - Bufforowanie GPS / wysyłka na backend: **fetch od razu**, **`keepalive: true`** tam, gdzie już przyjęto ten wzorzec — nie polegaj na „kolejce co N sekund” w JS w tle.
-- **Hardware back (Android):** **`CapacitorBackButton`** w root `app/layout.tsx` — `history.length > 1` → `router.back()`, inaczej `App.minimizeApp()` (pierwszy ekran); nie rozrzucaj własnych listenerów `backButton`.
+- **Hardware back (Android):** **`CapacitorBackButton`** w root `app/layout.tsx` — własny stos ścieżek: stos > 1 → `history.back()`, inaczej `App.minimizeApp()` (pierwszy ekran); nie rozrzucaj własnych listenerów `backButton`.
 
 ### Sync wersji web ↔ APK
 

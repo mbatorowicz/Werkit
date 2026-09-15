@@ -253,7 +253,7 @@ Reguła nadal obowiązuje w **Next 16** dla dynamicznych tras — nie polegaj na
 
 ## 13. PWA / Capacitor
 
-- **`CapacitorBackButton`** (root `app/layout.tsx`) — jeden listener `backButton` na Androidzie (Capacitor): **`history.length > 1` → `router.back()`**, inaczej **`App.minimizeApp()`** (pierwszy ekran).
+- **`CapacitorBackButton`** (root `app/layout.tsx`) — jeden listener `backButton` na Androidzie (Capacitor): **własny stos ścieżek > 1 → `history.back()`**, inaczej **`App.minimizeApp()`** (pierwszy ekran).
 - **`sendRemoteLog`** — ścieżka diagnostyczna na urządzeniach w terenie; persystencja w **`device_logs`**.
 - **`GlobalErrorHandler`** — listener `window.error` + `unhandledrejection` w `worker/layout.tsx`; każdy nieobsłużony wyjątek leci do `device_logs`.
 - **GPS bookend** — `work_sessions.start_*` / `end_*` zapisywane przy akceptacji zlecenia (`POST /api/worker/work-orders/:id/accept`) i przy kończeniu sesji (`PUT /api/worker/session`). Body opcjonalne — bez zgody na GPS po prostu `null`.

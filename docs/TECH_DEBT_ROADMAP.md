@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Control plane `/platform` (P-PLAT, fazy PL0–PL3 zamknięte): [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Control plane `/platform` (P-PLAT, fazy PL0–PL3 zamknięte): [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md). Audyt apki na telefon (P-MOBILE, otwarty): [`plans/audyt-mobile-2026-09.md`](../plans/audyt-mobile-2026-09.md).
 
 ---
 
@@ -120,6 +120,7 @@ Opcjonalnie później: generowanie fragmentów SYSTEM_MAP ze skryptu (np. lista 
 | P-SEC-2 | Limity GPS / zdjęć / `device_logs` | done |
 | P-SEC-3 | Geocode auth, deleteUser, logout cookie, CSP | done |
 | P-SEC-4 | CSRF Origin, magazyn materiałów poza shared, TTL impersonacji, limit eksportu | done |
+| P-MOBILE | Audyt apki na telefon: PWA/SW, debug APK, alarmy w tle — [`audyt-mobile-2026-09.md`](../plans/audyt-mobile-2026-09.md) | open |
 
 ### D-02 — co zrobiono
 

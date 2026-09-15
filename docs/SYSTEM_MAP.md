@@ -759,10 +759,12 @@ Reguła: **„Typ”** w UI dotyczy zasobu; **„Kategoria”** — klasyfikacji
 
 ## 14. Capacitor / mobilka
 
+Audyt warstwy telefonu (PWA + APK, 2026-09): [`plans/audyt-mobile-2026-09.md`](../plans/audyt-mobile-2026-09.md).
+
 - `capacitor.config.ts`: `appId: 'com.werkit.app'`, `appName: 'Werkit'`, `webDir: 'public'`, `server.url: https://werkit.cncsolutions.dev/`.
-- WebView ładuje **produkcyjną** wersję — lokalne zmiany w UI są widoczne na telefonie tylko po deploy. Do testów na telefonie w sieci LAN: tymczasowo zmień `server.url` na `http://192.168.x.x:3000` + `cleartext: true` (uwaga: w repo `cleartext` jest celowo wyłączone — patrz commit `e7285b5 security: remove cleartext HTTP flag to enforce HTTPS`).
-- **Hardware back (Android)**: jedyne miejsce obsługi — `<CapacitorBackButton />` w root `app/layout.tsx` (Capacitor native). Jeśli `window.history.length > 1` → **`router.back()`**, w przeciwnym razie **`App.minimizeApp()`** (pierwszy ekran w sesji WebView). **Nie dodawaj własnych listenerów `backButton`.**
-- **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` + `distanceFilter: 10m`. Bufor `localStorage` (`werkit_gps_queue`) → flush co 30s lub natychmiast po nowej koordynacie. Dla `categoryIsStationary` (warsztat/plac) GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
+- WebView ładuje **produkcyjną** wersję — lokalne zmiany w UI są widoczne na telefonie tylko po deploy. Do testów na telefonie w sieci LAN: tymczasowo zmień `server.url` na `http://192.168.x.x:3000` + `cleartext: true`. W `capacitor.config.ts` nie ma `cleartext`; **`AndroidManifest` nadal ma `usesCleartextTraffic="true"`** (znalezisko M-8 w audycie mobilnym).
+- **Hardware back (Android)**: jedyne miejsce obsługi — `<CapacitorBackButton />` w root `app/layout.tsx`. Własny stos ścieżek (`pathname` + `popstate`); gdy stos > 1 → **`history.back()`**, na pierwszym ekranie → **`App.minimizeApp()`**. Nie polegać na `window.history.length` (Next.js SPA). **Nie dodawaj własnych listenerów `backButton`.**
+- **GPS w tle**: `BackgroundGeolocation` + filtr `accuracy > 40m` (tylko native) + `distanceFilter: 10m`. Bufor **IndexedDB** (`werkit_gps_db` / `gps_queue` w `gpsManager.ts`) → flush natychmiast po nowej koordynacie i co 30 s. Dla `gpsPolicy === "stationary"` GPS jest **wyłączony** — i w UI, i przy czekpoint-confirm.
 - **Notyfikacje natywne**: `LocalNotifications.schedule({at: now+1s})`. Persistencja IDs: `werkit_notified_orders` (localStorage).
 - **Logi z urządzenia**: każda krytyczna ścieżka woła `sendRemoteLog('LEVEL', 'msg', meta)` → `/api/worker/logs` → tabela `device_logs` → admin `/admin/logs`. **Globalne błędy JS** łapie `<GlobalErrorHandler />` (window error + unhandledrejection).
 - **Biometria**: Keystore/Keychain pod tagiem `com.werkit.app.auth`. Włączenie z poziomu profilu wymaga aktualnego hasła (weryfikowane w `/api/worker/profile`).
