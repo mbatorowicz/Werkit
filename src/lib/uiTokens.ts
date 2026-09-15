@@ -29,6 +29,12 @@ export const TEXT_ACCENT = "text-emerald-600 dark:text-emerald-400";
 /** Tło całej aplikacji (admin + worker). */
 export const SURFACE_APP = cn(SURFACE_MINT, TEXT_PRIMARY, "dark:text-zinc-100");
 
+/** Padding stron admina — ciaśniejszy na telefonie. */
+export const PAGE_PAD = "p-4 md:p-8";
+
+/** Min. cel dotykowy 44px (ikony nagłówka, zamknięcie modala). */
+export const ICON_HIT = "inline-flex items-center justify-center min-h-11 min-w-11";
+
 /** Min. wysokość pól formularzy (admin + worker). */
 export const CONTROL_MIN_H = "min-h-[2.75rem]";
 

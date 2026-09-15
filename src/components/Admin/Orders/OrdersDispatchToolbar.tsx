@@ -21,6 +21,7 @@ export function OrdersDispatchToolbar({
   page,
   totalPages,
   onPageChange,
+  hideTableMode = false,
 }: {
   dict: OrdersDict;
   searchQuery: string;
@@ -32,12 +33,14 @@ export function OrdersDispatchToolbar({
   page: number;
   totalPages: number;
   onPageChange: (p: number) => void;
+  hideTableMode?: boolean;
 }) {
   const sizes = [10, 20, 50, 100] as const;
+  const showTableControls = !hideTableMode;
 
   return (
     <div className="flex flex-wrap items-center gap-4 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/80">
-      <div className="flex-1 max-w-sm min-w-[200px]">
+      <div className="min-w-[200px] flex-1 max-w-sm">
         <ListSearchBar
           value={searchQuery}
           onChange={onSearchChange}
@@ -45,26 +48,28 @@ export function OrdersDispatchToolbar({
           className="mb-0"
         />
       </div>
-      <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden shadow-sm">
-        <button
-          type="button"
-          onClick={() => onViewModeChange("board")}
-          className={viewMode === "board" ? TAB_ACTIVE : TAB_IDLE}
-        >
-          Board
-        </button>
-        <button
-          type="button"
-          onClick={() => onViewModeChange("table")}
-          className={cn(
-            viewMode === "table" ? TAB_ACTIVE : TAB_IDLE,
-            "border-l border-zinc-200 dark:border-zinc-700"
-          )}
-        >
-          Tabela
-        </button>
-      </div>
-      {viewMode === "table" && totalPages > 1 ? (
+      {showTableControls ? (
+        <div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+          <button
+            type="button"
+            onClick={() => onViewModeChange("board")}
+            className={viewMode === "board" ? TAB_ACTIVE : TAB_IDLE}
+          >
+            Board
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewModeChange("table")}
+            className={cn(
+              viewMode === "table" ? TAB_ACTIVE : TAB_IDLE,
+              "border-l border-zinc-200 dark:border-zinc-700"
+            )}
+          >
+            Tabela
+          </button>
+        </div>
+      ) : null}
+      {showTableControls && viewMode === "table" && totalPages > 1 ? (
         <div className="flex items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden shadow-sm">
           <button
             type="button"
@@ -89,15 +94,17 @@ export function OrdersDispatchToolbar({
           </button>
         </div>
       ) : null}
-      <select
-        value={tableLimit}
-        onChange={(e) => onTableLimitChange(Number(e.target.value))}
-        className={cn(SELECT_BASE, "w-auto")}
-      >
-        {sizes.map((n) => (
-          <option key={n} value={n}>{`${n} ${dict.tableResultsSuffix}`}</option>
-        ))}
-      </select>
+      {showTableControls ? (
+        <select
+          value={tableLimit}
+          onChange={(e) => onTableLimitChange(Number(e.target.value))}
+          className={cn(SELECT_BASE, "w-auto")}
+        >
+          {sizes.map((n) => (
+            <option key={n} value={n}>{`${n} ${dict.tableResultsSuffix}`}</option>
+          ))}
+        </select>
+      ) : null}
     </div>
   );
 }

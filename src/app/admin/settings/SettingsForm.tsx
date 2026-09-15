@@ -181,7 +181,7 @@ export default function SettingsForm({
       </div>
 
       <div
-        className={`p-6 md:p-8 space-y-8 ${!canMutate ? "opacity-85 pointer-events-none select-none" : ""}`}
+        className={`p-4 md:p-8 space-y-8 ${!canMutate ? "opacity-85 pointer-events-none select-none" : ""}`}
       >
         {(mode === "all" || mode === "company") && (
           <SettingsCompanySection

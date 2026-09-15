@@ -9,6 +9,7 @@ import {
 } from "@/components/GanttChart/ganttTimeMath";
 import { cn } from "@/lib/cn";
 import { uiStatusToneClasses } from "@/lib/uiStatus";
+import { GANTT_BAR_TEXT, type GanttDensity } from "@/components/GanttChart/ganttLayout";
 
 export interface GanttRowItemProps {
   item: UnifiedGanttItem;
@@ -19,6 +20,7 @@ export interface GanttRowItemProps {
   ) => string;
   getDimensions: (start: Date, durationHours: number) => GanttBarDimensions | null;
   dict: Record<string, string>;
+  density?: GanttDensity;
 }
 
 export function GanttRowItem({
@@ -27,6 +29,7 @@ export function GanttRowItem({
   formatItemTooltip,
   getDimensions,
   dict,
+  density = "inline",
 }: GanttRowItemProps) {
   const { plannedStart, plannedDims, actualStart, actualEnd, actualDims } = computeGanttItemBars(
     item,
@@ -58,7 +61,12 @@ export function GanttRowItem({
             footer: dict.clickToEdit,
           })}
         >
-          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate">
+          <span
+            className={cn(
+              GANTT_BAR_TEXT[density],
+              "font-bold text-amber-700 dark:text-amber-500 whitespace-nowrap truncate"
+            )}
+          >
             #{item.workOrderId || item.id}
           </span>
         </div>
@@ -76,7 +84,12 @@ export function GanttRowItem({
             footer: dict.clickToDetails,
           })}
         >
-          <span className="text-[10px] font-bold text-white whitespace-nowrap truncate">
+          <span
+            className={cn(
+              GANTT_BAR_TEXT[density],
+              "font-bold text-white whitespace-nowrap truncate"
+            )}
+          >
             #{item.workOrderId || item.id}
           </span>
         </div>

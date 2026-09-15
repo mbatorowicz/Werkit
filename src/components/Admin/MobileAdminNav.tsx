@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import type { AppDictionary } from "@/i18n/types";
 import { buildAdminNavLinks } from "./adminNavLinks";
 import { isAdminDispatchNavActive } from "./adminNavActive";
-import { LOGOUT_ROW } from "@/lib/uiChrome";
+import { LOGOUT_ROW, ICON_BTN_GHOST } from "@/lib/uiChrome";
 
 export function MobileAdminNav({
   companyName,
@@ -42,7 +42,8 @@ export function MobileAdminNav({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="p-2 -mr-2 text-zinc-600 dark:text-zinc-400 focus:outline-none"
+        className={`${ICON_BTN_GHOST} -mr-1`}
+        aria-label={dict.ui.menu}
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -71,7 +72,8 @@ export function MobileAdminNav({
               <button
                 type="button"
                 onClick={closeMenu}
-                className="text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                className={ICON_BTN_GHOST}
+                aria-label={dict.ui.closeModal}
               >
                 <X className="w-5 h-5" />
               </button>

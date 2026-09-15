@@ -3,6 +3,8 @@
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDictionary } from "@/i18n";
+import { cn } from "@/lib/cn";
+import { ICON_BTN_GHOST } from "@/lib/uiChrome";
 
 /**
  * Mobile back button for admin panel — uses `router.back()` to navigate
@@ -16,7 +18,7 @@ export function AdminMobileBackButton() {
     <button
       type="button"
       onClick={() => router.back()}
-      className="p-1.5 -ml-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+      className={cn(ICON_BTN_GHOST, "-ml-1")}
       aria-label={dict.back}
     >
       <ArrowLeft className="w-5 h-5" />

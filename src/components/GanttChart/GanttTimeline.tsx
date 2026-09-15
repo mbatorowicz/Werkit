@@ -1,6 +1,8 @@
 "use client";
 
 import { formatUiTimeHm } from "@/i18n";
+import { cn } from "@/lib/cn";
+import { GANTT_LABEL_COL, type GanttDensity } from "@/components/GanttChart/ganttLayout";
 
 type Props = {
   startHour: number;
@@ -10,6 +12,7 @@ type Props = {
   currentTime: Date | null;
   groupBy: "WORKER" | "MACHINE";
   dict: Record<string, string>;
+  density?: GanttDensity;
 };
 
 export function GanttTimeline({
@@ -20,10 +23,16 @@ export function GanttTimeline({
   currentTime,
   groupBy,
   dict,
+  density = "inline",
 }: Props) {
   return (
     <div className="flex border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 sticky top-0 z-30">
-      <div className="sticky left-0 z-40 flex w-40 shrink-0 items-center border-r border-zinc-200 bg-zinc-50 p-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:border-zinc-700 dark:bg-zinc-950/80 dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)] md:w-48">
+      <div
+        className={cn(
+          "sticky left-0 z-40 flex shrink-0 items-center border-r border-zinc-200 bg-zinc-50 p-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:border-zinc-700 dark:bg-zinc-950/80 dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]",
+          GANTT_LABEL_COL[density]
+        )}
+      >
         <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
           {groupBy === "WORKER" ? dict.groupByWorker : dict.groupByResource}
         </span>

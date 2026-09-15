@@ -3,6 +3,7 @@ import { UI_RADIUS_CARD, UI_RADIUS_CONTROL } from "@/lib/uiRadius";
 import {
   BORDER_DEFAULT,
   BORDER_DIVIDER,
+  ICON_HIT,
   SURFACE_CARD,
   SURFACE_CHROME,
   TEXT_MUTED,
@@ -21,29 +22,34 @@ export const MODAL_PANEL = cn(
 );
 
 export const MODAL_HEADER = cn(
-  "flex shrink-0 items-center justify-between border-b px-6 py-4",
+  "flex shrink-0 items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4",
   BORDER_DIVIDER,
   SURFACE_CHROME
 );
 
-export const MODAL_FOOTER = cn("shrink-0 border-t px-6 py-4", BORDER_DIVIDER, SURFACE_CHROME);
+export const MODAL_FOOTER = cn(
+  "shrink-0 border-t px-4 py-3 sm:px-6 sm:py-4",
+  BORDER_DIVIDER,
+  SURFACE_CHROME
+);
 
 export const MODAL_CLOSE_BTN = cn(
-  "rounded-md p-1 transition",
+  ICON_HIT,
+  "rounded-md transition",
   TEXT_MUTED,
   "hover:bg-zinc-200/80 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
 );
 
-export const MODAL_BODY_TEXT = cn("p-6 text-sm leading-relaxed", TEXT_MUTED);
+export const MODAL_BODY_TEXT = cn("p-4 text-sm leading-relaxed sm:p-6", TEXT_MUTED);
 
 export const SHELL_HEADER = cn(
-  "sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between border-b px-4",
+  "sticky top-0 z-50 flex min-h-16 shrink-0 items-center justify-between border-b px-4 pt-[env(safe-area-inset-top,0px)]",
   BORDER_DIVIDER,
   SURFACE_CARD
 );
 
 export const SHELL_FOOTER_NAV = cn(
-  "sticky bottom-0 z-50 flex h-16 items-center justify-around border-t pb-safe",
+  "sticky bottom-0 z-50 flex min-h-16 items-center justify-around border-t pb-[env(safe-area-inset-bottom,0px)]",
   BORDER_DIVIDER,
   SURFACE_CARD
 );
@@ -57,19 +63,22 @@ export const SHELL_SIDEBAR = cn(
 export const NAV_ITEM =
   "flex h-full flex-1 flex-col items-center justify-center gap-1 text-zinc-600 transition-colors hover:text-emerald-500 dark:text-zinc-400";
 
-export const NAV_ITEM_LABEL = "text-[10px] font-semibold uppercase tracking-wider";
+export const NAV_ITEM_LABEL = "text-[11px] font-semibold uppercase tracking-wider";
 
 export const LINK_ACCENT =
   "inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 transition hover:text-emerald-500 dark:text-emerald-400";
 
 export const ICON_BTN_GHOST = cn(
-  "rounded-lg p-2 transition",
+  ICON_HIT,
+  "rounded-lg transition",
   TEXT_MUTED,
   "hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
 );
 
-export const ICON_BTN_DANGER_GHOST =
-  "rounded-lg p-2 text-zinc-500 transition hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10";
+export const ICON_BTN_DANGER_GHOST = cn(
+  ICON_HIT,
+  "rounded-lg text-zinc-500 transition hover:bg-red-50 hover:text-red-500 dark:text-zinc-400 dark:hover:bg-red-500/10"
+);
 
 export const CHIP_IDLE = cn(
   "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",

@@ -6,6 +6,7 @@ import { ReportsActiveByCategorySection } from "./ReportsActiveByCategorySection
 import { ReportsLiveOpsSection } from "./ReportsLiveOpsSection";
 import { ReportsMonthlyPanels } from "./ReportsMonthlyPanels";
 import { PAGE_TITLE } from "@/lib/uiTypography";
+import { PAGE_PAD } from "@/lib/uiTokens";
 import { cn } from "@/lib/cn";
 
 type AdminSlice = AppDictionary["admin"];
@@ -23,7 +24,7 @@ export function ReportsDashboard({
   const companyLabel = snapshot.companyName ?? "";
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full space-y-8">
+    <div className={`${PAGE_PAD} max-w-[1600px] mx-auto w-full space-y-8`}>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className={cn(PAGE_TITLE, "flex items-center gap-2 text-2xl")}>

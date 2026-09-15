@@ -1,7 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ChevronLeft, ChevronRight, User, Truck } from "lucide-react";
 import { DateInput } from "@/components/DateInput";
+import { cn } from "@/lib/cn";
+import { ICON_HIT } from "@/lib/uiTokens";
 
 type Props = {
   groupBy: "WORKER" | "MACHINE";
@@ -15,6 +18,10 @@ type Props = {
   onPrevDay: () => void;
   onNextDay: () => void;
   dict: Record<string, string>;
+  variant?: "default" | "compact";
+  leading?: ReactNode;
+  trailing?: ReactNode;
+  showHourRange?: boolean;
 };
 
 export function GanttHeader({
@@ -29,64 +36,110 @@ export function GanttHeader({
   onPrevDay,
   onNextDay,
   dict,
+  variant = "default",
+  leading,
+  trailing,
+  showHourRange = true,
 }: Props) {
+  const compact = variant === "compact";
+
   return (
-    <div className="flex flex-col items-start justify-between gap-4 border-b border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-950/80 md:flex-row md:items-center">
-      <div className="flex items-center bg-white dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-        <button
-          onClick={() => setGroupBy("WORKER")}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition ${groupBy === "WORKER" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-500 shadow-sm" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
-        >
-          <User className="w-4 h-4" /> {dict.groupByWorker}
-        </button>
-        <button
-          onClick={() => setGroupBy("MACHINE")}
-          className={`px-4 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition ${groupBy === "MACHINE" ? "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-500 shadow-sm" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
-        >
-          <Truck className="w-4 h-4" /> {dict.groupByResource}
-        </button>
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-2 border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950/80",
+        compact ? "p-2" : "flex-col items-start gap-4 p-4 md:flex-row md:items-center"
+      )}
+    >
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        {leading}
+        <div className="flex items-center rounded-lg border border-zinc-200 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-800">
+          <button
+            type="button"
+            onClick={() => setGroupBy("WORKER")}
+            className={cn(
+              "flex items-center gap-2 rounded-md text-sm font-medium transition",
+              compact ? "px-2.5 py-1.5" : "px-4 py-1.5",
+              groupBy === "WORKER"
+                ? "bg-amber-100 text-amber-800 shadow-sm dark:bg-amber-500/20 dark:text-amber-500"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+            )}
+          >
+            <User className="h-4 w-4" /> {dict.groupByWorker}
+          </button>
+          <button
+            type="button"
+            onClick={() => setGroupBy("MACHINE")}
+            className={cn(
+              "flex items-center gap-2 rounded-md text-sm font-medium transition",
+              compact ? "px-2.5 py-1.5" : "px-4 py-1.5",
+              groupBy === "MACHINE"
+                ? "bg-amber-100 text-amber-800 shadow-sm dark:bg-amber-500/20 dark:text-amber-500"
+                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+            )}
+          >
+            <Truck className="h-4 w-4" /> {dict.groupByResource}
+          </button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-zinc-500">{dict.hourFrom ?? "Od:"}</label>
-          <input
-            type="number"
-            min="0"
-            max={endHour - 1}
-            value={startHour}
-            onChange={(e) =>
-              setStartHour(Math.min(endHour - 1, Math.max(0, parseInt(e.target.value) || 0)))
-            }
-            className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
-          />
-          <label className="text-xs font-medium text-zinc-500">{dict.hourTo ?? "Do:"}</label>
-          <input
-            type="number"
-            min={startHour + 1}
-            max="24"
-            value={endHour}
-            onChange={(e) =>
-              setEndHour(Math.max(startHour + 1, Math.min(24, parseInt(e.target.value) || 24)))
-            }
-            className="w-16 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded px-2 py-1 text-sm font-medium text-zinc-900 dark:text-white outline-none focus:ring-1 focus:ring-amber-500"
-          />
-        </div>
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+        {showHourRange ? (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-zinc-500">{dict.hourFrom ?? "Od:"}</label>
+            <input
+              type="number"
+              min="0"
+              max={endHour - 1}
+              value={startHour}
+              onChange={(e) =>
+                setStartHour(Math.min(endHour - 1, Math.max(0, parseInt(e.target.value) || 0)))
+              }
+              className="w-16 rounded border border-zinc-200 bg-white px-2 py-1 text-sm font-medium text-zinc-900 outline-none focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+            />
+            <label className="text-xs font-medium text-zinc-500">{dict.hourTo ?? "Do:"}</label>
+            <input
+              type="number"
+              min={startHour + 1}
+              max="24"
+              value={endHour}
+              onChange={(e) =>
+                setEndHour(Math.max(startHour + 1, Math.min(24, parseInt(e.target.value) || 24)))
+              }
+              className="w-16 rounded border border-zinc-200 bg-white px-2 py-1 text-sm font-medium text-zinc-900 outline-none focus:ring-1 focus:ring-amber-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+            />
+          </div>
+        ) : null}
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={onPrevDay}
-            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition"
+            aria-label={dict.prevDay ?? "Poprzedni dzień"}
+            className={cn(
+              ICON_HIT,
+              "rounded border border-zinc-200 bg-white text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white"
+            )}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
-          <DateInput variant="compact" value={selectedDateStr} onChange={setSelectedDateStr} />
+          <DateInput
+            variant="compact"
+            value={selectedDateStr}
+            onChange={setSelectedDateStr}
+            aria-label={dict.date}
+          />
           <button
+            type="button"
             onClick={onNextDay}
-            className="p-1.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-700 transition"
+            aria-label={dict.nextDay ?? "Następny dzień"}
+            className={cn(
+              ICON_HIT,
+              "rounded border border-zinc-200 bg-white text-zinc-500 shadow-sm transition hover:bg-zinc-50 hover:text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:hover:text-white"
+            )}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
+        {trailing}
       </div>
     </div>
   );

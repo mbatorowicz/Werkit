@@ -354,6 +354,7 @@ export const en: AppDictionary = {
       dialogConfirm: "Confirm",
       searchNoResults: "No results",
       back: "Back",
+      menu: "Menu",
       noResults: "No results",
       clear: "Clear",
     },
@@ -617,6 +618,14 @@ export const en: AppDictionary = {
       noOrders: "No scheduled or ongoing orders for this day.",
       groupByWorker: "Worker",
       groupByResource: "Resource",
+      openFullscreen: "Open timeline",
+      closeFullscreen: "Close timeline",
+      rotateHint: "Rotate the phone sideways — the timeline is easier to read.",
+      portraitCardTitle: "Timeline (Gantt)",
+      portraitCardBody:
+        "In portrait on a small screen the chart is hard to read. Rotate the phone or open full screen.",
+      prevDay: "Previous day",
+      nextDay: "Next day",
     },
     orderFields: {
       category: "Order category",

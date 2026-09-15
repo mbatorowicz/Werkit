@@ -230,7 +230,7 @@ export function ActiveSessionMapSection({
   navigationEnabled?: boolean;
 }) {
   return (
-    <div className="w-full h-64 md:h-80 mt-4 relative z-0 isolate rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
+    <div className="w-full h-72 md:h-80 mt-4 relative z-0 isolate rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-inner bg-white dark:bg-zinc-900">
       {location ? (
         <LiveMap
           currentLocation={location}

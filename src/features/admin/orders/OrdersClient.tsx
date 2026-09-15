@@ -17,6 +17,7 @@ import { OrdersDispatchModals } from "@/features/admin/orders/OrdersDispatchModa
 import { OrdersHeader } from "./OrdersHeader";
 import { AdminCollapsibleSection } from "@/components/Admin/AdminCollapsibleSection";
 import { OrdersCategoriesPanel } from "@/features/admin/orders/OrdersCategoriesPanel";
+import { useViewportOrientation } from "@/hooks/useViewportOrientation";
 
 function OrdersCategoriesSection({
   dictionary,
@@ -90,6 +91,8 @@ export default function OrdersClient({
   });
 
   const view = useOrdersViewState();
+  const { isNarrow } = useViewportOrientation();
+  const viewMode = isNarrow ? "board" : view.viewMode;
 
   const actions = useOrdersActions({
     dict,
@@ -108,9 +111,9 @@ export default function OrdersClient({
   );
 
   const totalPages = useMemo(() => {
-    if (view.viewMode !== "table") return 1;
+    if (viewMode !== "table") return 1;
     return Math.max(1, Math.ceil(unifiedItems.length / Math.max(1, view.tableLimit)));
-  }, [unifiedItems.length, view.tableLimit, view.viewMode]);
+  }, [unifiedItems.length, view.tableLimit, viewMode]);
 
   const safePage = Math.min(view.page, totalPages);
 
@@ -138,6 +141,9 @@ export default function OrdersClient({
         machines={machines}
         unifiedItems={unifiedItems}
         onItemClick={onDispatchItemClick}
+        onNewOrder={canDelegateOrders ? openNewOrderModal : undefined}
+        onRefresh={() => fetchData(true)}
+        canCreateOrder={canDelegateOrders}
       />
 
       <div className="flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
@@ -147,11 +153,12 @@ export default function OrdersClient({
           onSearchChange={view.setSearchQueryAndResetPage}
           tableLimit={view.tableLimit}
           onTableLimitChange={view.setTableLimitAndResetPage}
-          viewMode={view.viewMode}
+          viewMode={viewMode}
           onViewModeChange={view.setViewModePersisted}
           page={safePage}
           totalPages={totalPages}
           onPageChange={view.setPage}
+          hideTableMode={isNarrow}
         />
         <OrdersDispatchTable
           ordersDict={dict}
@@ -162,7 +169,7 @@ export default function OrdersClient({
           tableColSpan={tableColSpan}
           tableLimit={view.tableLimit}
           unifiedItems={unifiedItems}
-          viewMode={view.viewMode}
+          viewMode={viewMode}
           page={safePage}
           onRowClick={onDispatchItemClick}
           onDeleteWorkOrder={actions.onDeleteWorkOrder}

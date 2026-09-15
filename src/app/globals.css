@@ -14,15 +14,15 @@
   --app-bottom-bar-height: 0px;
 }
 
-/* Worker layout: always has top (h-16) and bottom (h-16) bars */
+/* Worker layout: always has top (h-16) and bottom (h-16) bars + notch / home indicator */
 .layout-worker {
-  --app-top-bar-height: 64px;
-  --app-bottom-bar-height: 64px;
+  --app-top-bar-height: calc(64px + env(safe-area-inset-top, 0px));
+  --app-bottom-bar-height: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Admin layout: mobile has top bar (h-16), desktop has sidebar instead */
 .layout-admin {
-  --app-top-bar-height: 64px;
+  --app-top-bar-height: calc(64px + env(safe-area-inset-top, 0px));
   --app-bottom-bar-height: 0px;
 }
 
@@ -61,6 +61,14 @@ body {
 
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

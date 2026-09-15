@@ -21,6 +21,7 @@ const geistMono = Geist_Mono({
 
 export const viewport: Viewport = {
   themeColor: "#0a0a0a",
+  viewportFit: "cover",
 };
 
 /** Kanoniczny origin dla metadanych (OG, manifest) — Vercel lub jawna zmienna środowiskowa. */

@@ -28,7 +28,7 @@ export default function WorkerEditOrderClient({
   }
 
   return (
-    <div className="flex flex-col min-h-[80vh] py-6">
+    <div className="flex flex-col min-h-[80vh] py-2">
       <div className="px-4 mb-4">
         <h1 className="text-xl font-bold text-zinc-900 dark:text-white">
           {flow.dict.editOrderTitle}

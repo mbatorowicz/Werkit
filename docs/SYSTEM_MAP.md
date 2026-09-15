@@ -586,7 +586,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `AppDialogProvider.tsx` + `useAppDialog()` — globalne alert/confirm (root `src/app/layout.tsx`); **`appDialogApiMessage`**. Zakaz natywnych `window.alert` / `confirm`.
 - `FormModalFooter.tsx` — stopka Anuluj/Zapisz w modalach CRUD.
 
-`src/components/GanttChart/GanttChart.tsx` — wykres Gantta dla `UnifiedGanttItem[]`.
+`src/components/GanttChart/GanttChart.tsx` — wykres Gantta dla `UnifiedGanttItem[]`. Na ekranie < `lg` karta CTA w pionie i pełny ekran w poziomie (edycja/nowe zlecenie z overlayu); od `lg` inline jak wcześniej.
 
 ### Mapy (Leaflet + OSRM)
 

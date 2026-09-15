@@ -369,6 +369,7 @@ export const de: AppDictionary = {
       dialogConfirm: "Bestätigen",
       searchNoResults: "Keine Ergebnisse",
       back: "Zurück",
+      menu: "Menü",
       noResults: "Keine Ergebnisse",
       clear: "Löschen",
     },
@@ -635,6 +636,14 @@ export const de: AppDictionary = {
       noOrders: "Keine geplanten oder laufenden Aufträge für diesen Tag.",
       groupByWorker: "Arbeiter",
       groupByResource: "Ressource",
+      openFullscreen: "Zeitachse öffnen",
+      closeFullscreen: "Zeitachse schließen",
+      rotateHint: "Drehen Sie das Telefon quer — die Zeitachse ist besser lesbar.",
+      portraitCardTitle: "Zeitachse (Gantt)",
+      portraitCardBody:
+        "Im Hochformat auf einem kleinen Bildschirm ist das Diagramm schwer lesbar. Drehen Sie das Telefon oder öffnen Sie den Vollbildmodus.",
+      prevDay: "Vorheriger Tag",
+      nextDay: "Nächster Tag",
     },
     orderFields: {
       category: "Auftragskategorie",

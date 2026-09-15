@@ -1,8 +1,9 @@
 import CustomersClient from "@/features/admin/customers/CustomersClient";
+import { PAGE_PAD } from "@/lib/uiTokens";
 
 export default function CustomersPage() {
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+    <div className={`${PAGE_PAD} max-w-7xl mx-auto w-full`}>
       <CustomersClient />
     </div>
   );

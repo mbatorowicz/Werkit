@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import WarehouseClient from "@/features/admin/dur/WarehouseClient";
 import { adminRoutes } from "@/lib/appRoutes";
 import { requireServerCompanyId } from "@/lib/serverTenant";
+import { PAGE_PAD } from "@/lib/uiTokens";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export default async function WarehousePage() {
@@ -12,7 +13,7 @@ export default async function WarehousePage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-6 md:p-8">
+    <div className={`mx-auto w-full max-w-7xl ${PAGE_PAD}`}>
       <WarehouseClient />
     </div>
   );

@@ -18,7 +18,7 @@ export default async function AdminLogsPage() {
   ]);
 
   return (
-    <div className="p-6 pb-24 lg:pb-6 max-w-7xl mx-auto">
+    <div className="p-4 pb-24 md:p-8 lg:pb-8 max-w-7xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">{sidebar.deviceLogs}</h1>
       </div>

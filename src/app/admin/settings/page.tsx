@@ -4,6 +4,7 @@ import { Settings } from "lucide-react";
 import { getDictionary } from "@/i18n";
 import { getAndroidAppDownloadInfoAsync } from "@/lib/androidAppDownload";
 import { getServerLocale } from "@/lib/localeCookies.server";
+import { PAGE_PAD } from "@/lib/uiTokens";
 import { requireServerCompanyId } from "@/lib/serverTenant";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function SettingsPage() {
   const appDownload = await getAndroidAppDownloadInfoAsync();
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto w-full">
+    <div className={`${PAGE_PAD} max-w-6xl mx-auto w-full`}>
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
           <Settings className="w-6 h-6 text-emerald-500" /> {dict.admin.sidebar.companySettings}

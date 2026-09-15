@@ -18,7 +18,7 @@ export default function WizardClient({
   const flow = useWizardFlow(userId, initialCanCreateCustomers);
 
   return (
-    <div className="flex flex-col min-h-[80vh] py-6">
+    <div className="flex flex-col min-h-[80vh] py-2">
       <WizardProgressBar step={flow.step} />
 
       <div className="flex-1 w-full">

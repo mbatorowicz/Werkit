@@ -8,6 +8,9 @@ const dict = {
   groupByResource: "Zasoby",
   hourFrom: "Od:",
   hourTo: "Do:",
+  prevDay: "Poprzedni dzień",
+  nextDay: "Następny dzień",
+  date: "Data",
 };
 
 function renderHeader(overrides: Partial<Parameters<typeof GanttHeader>[0]> = {}) {
@@ -67,12 +70,10 @@ describe("GanttHeader", () => {
     const user = userEvent.setup();
     const props = renderHeader();
 
-    const buttons = screen.getAllByRole("button");
-    // Kolejność: grupowanie (2), poprzedni dzień, następny dzień.
-    await user.click(buttons[2]);
+    await user.click(screen.getByRole("button", { name: dict.prevDay }));
     expect(props.onPrevDay).toHaveBeenCalledTimes(1);
 
-    await user.click(buttons[3]);
+    await user.click(screen.getByRole("button", { name: dict.nextDay }));
     expect(props.onNextDay).toHaveBeenCalledTimes(1);
   });
 
@@ -96,5 +97,16 @@ describe("GanttHeader", () => {
 
     fireEvent.change(endInput, { target: { value: "2" } });
     expect(props.setEndHour).toHaveBeenLastCalledWith(7);
+  });
+
+  it("wariant compact ukrywa zakres godzin i pokazuje trailing", () => {
+    renderHeader({
+      variant: "compact",
+      showHourRange: false,
+      trailing: <button type="button">Nowe zlecenie</button>,
+    });
+
+    expect(screen.queryByText("Od:")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nowe zlecenie" })).toBeInTheDocument();
   });
 });

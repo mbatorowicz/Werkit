@@ -4,6 +4,7 @@ import { RouteLoading } from "@/components/RouteLoading";
 import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import { AdminDispatchService } from "@/services/AdminDispatchService";
 import { DelegationScopeService } from "@/services/DelegationScopeService";
+import { PAGE_PAD } from "@/lib/uiTokens";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto w-full">
+    <div className={`${PAGE_PAD} max-w-[1600px] mx-auto w-full`}>
       <Suspense fallback={<RouteLoading />}>
         <OrdersClient initialBootstrap={bootstrap} />
       </Suspense>

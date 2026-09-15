@@ -6,6 +6,12 @@ import {
   ganttItemMatchesRow,
   ganttItemVisibleInRange,
 } from "@/components/GanttChart/ganttTimeMath";
+import { cn } from "@/lib/cn";
+import {
+  GANTT_LABEL_COL,
+  GANTT_ROW_TRACK,
+  type GanttDensity,
+} from "@/components/GanttChart/ganttLayout";
 
 type Props = {
   row: BaseWorker | BaseMachine;
@@ -25,6 +31,7 @@ type Props = {
   ) => string;
   getDimensions: (start: Date, durationHours: number) => { left: string; width: string } | null;
   dict: Record<string, string>;
+  density?: GanttDensity;
 };
 
 export function GanttRow({
@@ -42,6 +49,7 @@ export function GanttRow({
   formatItemTooltip,
   getDimensions,
   dict,
+  density = "inline",
 }: Props) {
   const rowItems = unifiedItems.filter(
     (item) =>
@@ -52,7 +60,12 @@ export function GanttRow({
 
   return (
     <div className="flex border-b border-zinc-100 dark:border-zinc-800/50 group hover:bg-zinc-50 dark:hover:bg-zinc-800/20 transition-colors">
-      <div className="w-40 md:w-48 shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-20 group-hover:bg-zinc-50 dark:group-hover:bg-zinc-800/20 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]">
+      <div
+        className={cn(
+          "shrink-0 border-r border-zinc-200 dark:border-zinc-700 p-2 bg-white dark:bg-zinc-900 flex flex-col justify-center sticky left-0 z-20 group-hover:bg-zinc-50 dark:group-hover:bg-zinc-800/20 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] dark:shadow-[2px_0_5px_-2px_rgba(0,0,0,0.5)]",
+          GANTT_LABEL_COL[density]
+        )}
+      >
         <span
           className="text-sm font-medium text-zinc-900 dark:text-zinc-200 truncate"
           title={"fullName" in row ? row.fullName : row.name}
@@ -60,7 +73,7 @@ export function GanttRow({
           {"fullName" in row ? row.fullName : row.name}
         </span>
       </div>
-      <div className="flex-1 relative h-10 my-1">
+      <div className={cn("flex-1 relative", GANTT_ROW_TRACK[density])}>
         {rowItems.map((item) => (
           <GanttRowItem
             key={`${item._type}-${item.id}`}
@@ -69,6 +82,7 @@ export function GanttRow({
             formatItemTooltip={formatItemTooltip}
             getDimensions={getDimensions}
             dict={dict}
+            density={density}
           />
         ))}
       </div>

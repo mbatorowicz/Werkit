@@ -358,6 +358,7 @@ export const pl = {
       dialogConfirm: "Potwierdź",
       searchNoResults: "Brak wyników",
       back: "Wstecz",
+      menu: "Menu",
       noResults: "Brak wyników",
       clear: "Wyczyść",
     },
@@ -577,6 +578,14 @@ export const pl = {
       noOrders: "Brak zaplanowanych i realizowanych zleceń w tym dniu.",
       groupByWorker: "Pracownik",
       groupByResource: "Zasób",
+      openFullscreen: "Otwórz oś czasu",
+      closeFullscreen: "Zamknij oś czasu",
+      rotateHint: "Obróć telefon poziomo — oś czasu jest czytelniejsza.",
+      portraitCardTitle: "Oś czasu (Gantt)",
+      portraitCardBody:
+        "W pionie na małym ekranie wykres jest nieczytelny. Obróć telefon lub otwórz pełny ekran.",
+      prevDay: "Poprzedni dzień",
+      nextDay: "Następny dzień",
     },
     orderFields: {
       category: "Kategoria zlecenia",

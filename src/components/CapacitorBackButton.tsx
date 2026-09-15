@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { usePathname } from "next/navigation";
+import { isOverlayHistoryState } from "@/lib/overlayHistory";
 
 /**
  * Android (Capacitor): hardware „wstecz” — jeden listener w root `layout.tsx`.
@@ -43,6 +44,10 @@ export function CapacitorBackButton() {
     window.addEventListener("popstate", onPopState);
 
     void App.addListener("backButton", () => {
+      if (isOverlayHistoryState(window.history.state)) {
+        window.history.back();
+        return;
+      }
       const stack = stackRef.current;
       if (stack.length > 1) {
         // Usuń bieżącą ścieżkę i cofnij

@@ -112,7 +112,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <main
             className={`flex min-w-0 flex-1 flex-col ${SURFACE_CARD} ${INLINE_SCROLL_PANEL_CLASS}`}
           >
-            <header className={cn(SHELL_HEADER, "px-6 md:hidden")}>
+            <header className={cn(SHELL_HEADER, "md:hidden")}>
               <div className="flex items-center gap-3">
                 <AdminMobileBackButton />
                 <div className="flex flex-col justify-center">
