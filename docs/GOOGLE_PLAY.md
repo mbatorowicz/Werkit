@@ -7,6 +7,8 @@ Polityka prywatności (publiczna, bez logowania):
 
 Szczegóły recenzji: [`store/google-play/`](../store/google-play/).
 
+**Co zostało do produkcji (stan 2026-09-15):** [`store/google-play/pozostale.md`](../store/google-play/pozostale.md) — AAB 1.9.4 jest na teście wewnętrznym; brakuje zrzutów, filmu GPS, listingu w Konsoli, Data safety, deklaracji uprawnień i wniosku o produkcję.
+
 ---
 
 ## 1. Co jest już w repo
