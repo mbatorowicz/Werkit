@@ -107,9 +107,9 @@ Centralne miejsce na zapytania Drizzle, transakcje (w przyszłości) i **jeden p
 | `OrganizationService` | Ustawienia organizacyjne (firma, feature flagi) |
 | `PlatformCompanyService` | Multi-tenant: zarządzanie firmami (superadmin) |
 | `PlatformTenantUserService` | Konta admin/viewer firmy z panelu platformy (lista, deaktywacja, reset hasła) |
-| `PlatformAuditService` | Zapis `platform_audit_events` (mutacje `/platform`) |
+| `PlatformAuditService` | Zapis i odczyt `platform_audit_events` (mutacje `/platform`, UI `/platform/audit`) |
 | `PlatformImpersonationService` | Walidacja celu impersonacji (admin/viewer, aktywna firma) — cookie/JWT w handlerze |
-| `PlatformAnalyticsService` | Analityka międzyfirmowa (superadmin) |
+| `PlatformAnalyticsService` | Analityka i zdrowie tenanta (superadmin) |
 | `SparePartService` | Katalog części zamiennych (CRUD, kategorie, kompatybilność) |
 | `SparePartCategoryService` | Kategorie części zamiennych (hierarchia, grupy) |
 | `SparePartCompatibilityService` | Kompatybilność części z kategoriami maszyn |

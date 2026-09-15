@@ -1,12 +1,16 @@
 import { db } from "@/db";
 import { companies, users, workSessions, workOrders, deviceLogs } from "@/db/schema";
-import { sql, eq, gte, and, count } from "drizzle-orm";
+import { sql, eq, gte, and, count, max, isNull } from "drizzle-orm";
 import {
   isCompanyLifecycleStatus,
   isCompanyPlanKey,
   type CompanyLifecycleStatus,
   type CompanyPlanKey,
 } from "@/lib/companyLifecycle";
+import {
+  sortCompaniesByLastAdminLogin,
+  toIsoTimestamp,
+} from "@/lib/platformTenantHealth";
 
 export type CompanyUsageRow = {
   companyId: number;
@@ -21,6 +25,10 @@ export type CompanyUsageRow = {
   sessionsLast30Days: number;
   pendingOrders: number;
   deviceLogsLast7Days: number;
+  lastAdminLoginAt: string | null;
+  lastWorkerLoginAt: string | null;
+  activeSessionsNow: number;
+  errorLogsLast24h: number;
 };
 
 export class PlatformAnalyticsService {
@@ -32,8 +40,19 @@ export class PlatformAnalyticsService {
     since30.setDate(since30.getDate() - 30);
     const since7 = new Date();
     since7.setDate(since7.getDate() - 7);
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    const [userCounts, workerCounts, sessionCounts, pendingCounts, logCounts] = await Promise.all([
+    const [
+      userCounts,
+      workerCounts,
+      sessionCounts,
+      pendingCounts,
+      logCounts,
+      adminLogins,
+      workerLogins,
+      activeSessions,
+      errorLogs,
+    ] = await Promise.all([
       db
         .select({ companyId: users.companyId, c: count() })
         .from(users)
@@ -59,6 +78,26 @@ export class PlatformAnalyticsService {
         .from(deviceLogs)
         .where(gte(deviceLogs.createdAt, since7))
         .groupBy(deviceLogs.companyId),
+      db
+        .select({ companyId: users.companyId, last: max(users.lastLoginAt) })
+        .from(users)
+        .where(and(eq(users.role, "admin"), sql`${users.companyId} IS NOT NULL`))
+        .groupBy(users.companyId),
+      db
+        .select({ companyId: users.companyId, last: max(users.lastLoginAt) })
+        .from(users)
+        .where(and(eq(users.role, "worker"), sql`${users.companyId} IS NOT NULL`))
+        .groupBy(users.companyId),
+      db
+        .select({ companyId: workSessions.companyId, c: count() })
+        .from(workSessions)
+        .where(isNull(workSessions.endTime))
+        .groupBy(workSessions.companyId),
+      db
+        .select({ companyId: deviceLogs.companyId, c: count() })
+        .from(deviceLogs)
+        .where(and(eq(deviceLogs.level, "ERROR"), gte(deviceLogs.createdAt, since24h)))
+        .groupBy(deviceLogs.companyId),
     ]);
 
     const mapCount = (rows: { companyId: number | null; c: number }[]) => {
@@ -69,13 +108,25 @@ export class PlatformAnalyticsService {
       return m;
     };
 
+    const mapLast = (rows: { companyId: number | null; last: Date | string | null }[]) => {
+      const m = new Map<number, string | null>();
+      for (const r of rows) {
+        if (r.companyId != null) m.set(r.companyId, toIsoTimestamp(r.last));
+      }
+      return m;
+    };
+
     const usersMap = mapCount(userCounts);
     const workersMap = mapCount(workerCounts);
     const sessionsMap = mapCount(sessionCounts);
     const pendingMap = mapCount(pendingCounts);
     const logsMap = mapCount(logCounts);
+    const adminLoginMap = mapLast(adminLogins);
+    const workerLoginMap = mapLast(workerLogins);
+    const activeSessionsMap = mapCount(activeSessions);
+    const errorLogsMap = mapCount(errorLogs);
 
-    return allCompanies.map((c) => ({
+    const rows: CompanyUsageRow[] = allCompanies.map((c) => ({
       companyId: c.id,
       companyName: c.name,
       slug: c.slug,
@@ -88,6 +139,12 @@ export class PlatformAnalyticsService {
       sessionsLast30Days: sessionsMap.get(c.id) ?? 0,
       pendingOrders: pendingMap.get(c.id) ?? 0,
       deviceLogsLast7Days: logsMap.get(c.id) ?? 0,
+      lastAdminLoginAt: adminLoginMap.get(c.id) ?? null,
+      lastWorkerLoginAt: workerLoginMap.get(c.id) ?? null,
+      activeSessionsNow: activeSessionsMap.get(c.id) ?? 0,
+      errorLogsLast24h: errorLogsMap.get(c.id) ?? 0,
     }));
+
+    return sortCompaniesByLastAdminLogin(rows);
   }
 }

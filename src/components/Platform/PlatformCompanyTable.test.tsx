@@ -20,6 +20,10 @@ const baseRow: CompanyUsageRow = {
   sessionsLast30Days: 17,
   pendingOrders: 2,
   deviceLogsLast7Days: 9,
+  lastAdminLoginAt: null,
+  lastWorkerLoginAt: null,
+  activeSessionsNow: 0,
+  errorLogsLast24h: 0,
 };
 
 function noopHandlers() {
@@ -94,5 +98,15 @@ describe("PlatformCompanyTable", () => {
     await user.click(screen.getByRole("button", { name: dict.detailsAction }));
 
     expect(handlers.onShowDetails).toHaveBeenCalledWith(baseRow);
+  });
+
+  it("aktywna firma bez sesji 30d pokazuje chip cicha", () => {
+    renderTable([{ ...baseRow, sessionsLast30Days: 0 }]);
+    expect(screen.getByText(dict.quietChip)).toBeInTheDocument();
+  });
+
+  it("firma z sesjami nie pokazuje chipa cicha", () => {
+    renderTable([baseRow]);
+    expect(screen.queryByText(dict.quietChip)).not.toBeInTheDocument();
   });
 });

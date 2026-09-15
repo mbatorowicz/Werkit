@@ -153,7 +153,8 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 | `/admin/dur/warehouse` | RSC | `WarehouseClient` | Części zamienne: kategorie + katalog (`SparePartsClient` embedded) + przyjęcia/wydania (`StockMovementsClient`) | admin |
 | `/admin/dur/spare-parts` | RSC | redirect → `warehouse` | Legacy URL | admin |
 | `/admin/dur/spare-part-categories` | RSC | redirect → `warehouse` | Legacy URL — kategorie na stronie Magazyn | admin |
-| `/platform` | RSC | `PlatformDashboard` | Panel superadmin: firmy, analityka użycia, feature flags (`components/Platform/PlatformDashboard.tsx`, `FeatureFlagsSection`) | `platform/layout.tsx` |
+| `/platform` | RSC | `PlatformDashboard` | Superadmin: rejestr firm, zdrowie tenanta (ostatnie logowanie, chip „cicha”, błędy 24h), flagi pakietu | `platform/layout.tsx` |
+| `/platform/audit` | RSC | `PlatformAuditLog` | Dziennik mutacji platformy (tylko odczyt) | `platform/layout.tsx` |
 | `/worker` | RSC | `WorkerClient` | SSR ładuje zlecenia/sesję → aktywna sesja, lista `PENDING`, GPS, notatki, zdjęcia (`worker/WorkerClient.tsx`) | `worker/layout.tsx` |
 | `/worker/wizard` | RSC | `WizardClient` | Kreator własnego zlecenia (guard `canCreateOwnOrders`): 5 kroków — kategoria → maszyna → szczegóły → **termin** → podsumowanie; kroki 1–3: `AdminSearchCombobox` (client-side filter); `POST work-orders` + `accept` | worker |
 | `/worker/history` | RSC | — | Lista zakończonych sesji — logika w `worker/history/page.tsx` + `OrderLabelCard` | worker |
@@ -176,8 +177,10 @@ Klient (PWA/WebView) ── HTTP ──▶ Next.js
 ### 4.3. Layout `platform`
 - `force-dynamic`. Tylko rola **`superadmin`** (JWT); inne role → redirect z `proxy.ts`.
 - Superadmin **nie** ma `companyId` w scope operacyjnym — zarządza wieloma firmami z `/platform` i `/api/platform/*` (control plane: konta firmy, flagi pakietu, audyt). **Nie** ogląda mapy GPS ani magazynu tenanta.
+- Nawigacja w headerze: **Rejestr firm** (`/platform`) · **Dziennik** (`/platform/audit`) — bez drugiego sidebara admina.
 - **Impersonacja (PL1):** superadmin wchodzi w `/admin` jako istniejące konto `admin`/`viewer` firmy. Cookie `platform_resume` trzyma JWT superadmina; `auth_token` to JWT celu (TTL 30 min, claim `impersonatorUserId`). Banner w `admin/layout.tsx` — **Zakończ** → `POST /api/platform/impersonation/end` → `/platform`. Czysty superadmin nadal nie wejdzie na `/admin`. `/worker` zablokowany.
 - **Cykl życia (PL2):** `lifecycle_status` + `is_active` zsynchronizowane (`trial`/`active` → login tak; `suspended`/`archived` → nie). Lista ukrywa archived (filtr). Presety pakietu `field_ops` / `field_ops_mro` / `yard` wołają `PUT feature-flags` i ustawiają `plan_key`.
+- **Zdrowie (PL3):** overview dopisuje `lastAdminLoginAt` / `lastWorkerLoginAt` / `activeSessionsNow` / `errorLogsLast24h`. Lista sortowana po ostatnim logowaniu admina; chip „cicha” gdy `active` i 0 sesji 30d. Dziennik: `GET /api/platform/audit`. W szczegółach — stałe produktu (GPS 200, foto 4 MiB, 30 logów/min), bez silnika seats. `device_logs` tenanta nie są otwierane w UI platformy (tylko licznik).
 
 ---
 
@@ -237,7 +240,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/platform/companies/[id]/users/[userId]/password` | POST `{ password }` | reset hasła (`weak_password` 400); **nie** zwraca hash; audyt `admin.reset_password` bez metadata hasła |
 | `/api/platform/feature-flags/[companyId]` | GET | `PlatformFeatureFlagService.getFlags` + `planKey` z `companies` |
 | `/api/platform/feature-flags/[companyId]` | PUT | `PlatformFeatureFlagService.updateFlags` + `plan_key`; preset `yard`/`field_ops`/`field_ops_mro` nadpisuje pełny zestaw flag; ręczny patch → `plan_key=custom`. Audyt `flags.update` z `{ planKey, flags }`. |
-| `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` |
+| `/api/platform/analytics` | GET | `PlatformAnalyticsService.getCompaniesUsageOverview` — zdrowie: last login, sesje aktywne, ERROR 24h; sort po `lastAdminLoginAt` |
+| `/api/platform/audit` | GET `?companyId=&action=&limit=100` | `PlatformAuditService.list` — tylko odczyt; 403 poza `requireSuperadminSession` |
 | `/api/platform/impersonation` | GET | Status sesji wsparcia `{ active }` — superadmin albo impersonacja (claim `impersonatorUserId`) |
 | `/api/platform/impersonation` | POST `{ companyId, targetUserId, reason? }` | Start: kopia `auth_token` → `platform_resume`, JWT celu 30 min; audyt `impersonation.start`. 403 `company_inactive` / `user_inactive`; 409 `already_impersonating` |
 | `/api/platform/impersonation/end` | POST | Przywraca `auth_token` z `platform_resume` (działa po wygaśnięciu support JWT); audyt `impersonation.end`. 400 `no_resume` |
@@ -407,13 +411,14 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `PlatformCompanyService` / `PlatformAnalyticsService`
 - Multi-tenant: tworzenie/edycja firm (`companies`), pierwszy admin firmy, lista firm dla superadmina.
 - `updateCompany`: `lifecycleStatus` ustawia `is_active` przez `lifecycleToIsActive`; toggle `isActive` mapuje active/trial ↔ suspended (archived nie rusza).
-- Analityka użycia per firma na `/platform` (w tym `lifecycleStatus`, `planKey`, `internalNote`). Filtr „ukryj zarchiwizowane” jest w UI (`filterCompaniesForRegistry`).
+- Analityka użycia per firma na `/platform` (w tym `lifecycleStatus`, `planKey`, `internalNote`, `lastAdminLoginAt`, `lastWorkerLoginAt`, `activeSessionsNow`, `errorLogsLast24h`). Filtr „ukryj zarchiwizowane” jest w UI (`filterCompaniesForRegistry`). Sortowanie: ostatnie logowanie admina (nigdy na końcu). Chip „cicha”: `active` + 0 sesji 30d (`isQuietCompany`).
 
 ### `PlatformTenantUserService` (`src/services/PlatformTenantUserService.ts`)
 - Lista adminów/viewerów firmy (bez `passwordHash`), dezaktywacja z blokadą `last_admin`, reset hasła. **Nie** używa `companyId` z sesji admina firmy — to warstwa control plane.
 
 ### `PlatformAuditService` (`src/services/PlatformAuditService.ts`)
 - Jedyny INSERT do `platform_audit_events`. Allowlista `action`; `sanitizeAuditMetadata` wycina klucze `password*`. Wołany z handlerów `/api/platform/*` po udanej mutacji (w tym `impersonation.start` / `impersonation.end`).
+- `list({ companyId?, action?, limit? })` — JOIN aktor + firma; default limit 100, max 200. UI: `/platform/audit`.
 
 ### `PlatformImpersonationService` (`src/services/PlatformImpersonationService.ts`)
 - `resolveStartTarget(companyId, targetUserId)` — aktywna firma + aktywny `admin`/`viewer` tej firmy. Błędy: `not_found`, `company_inactive`, `user_inactive`. Cookie i JWT są w handlerze `/api/platform/impersonation`.
@@ -723,7 +728,7 @@ Najwyższe sloty (top-level) — używaj zawsze przez `getDictionary().<slot>`:
 | `admin.sidebar` | Etykiety nawigacji admin |
 | `admin.dashboard`, `admin.reports`, `admin.archive`, `admin.orders`, `admin.users`, `admin.workers`, `admin.machines`, `admin.materials`, `admin.customers`, `admin.settings`, `admin.logs`, `admin.modals` | Każdy ekran admina ma swój sub-słownik |
 | `worker.client`, `worker.wizard`, `worker.history`, `worker.profile`, `worker.help` | UI mobilki |
-| `platform` | Konsola superadmina: firmy, konta, impersonacja, flagi pakietu |
+| `platform` | Konsola superadmina: firmy, konta, impersonacja, flagi pakietu, zdrowie, dziennik |
 | `dur.sidebar`, `dur.spareParts`, `dur.categories`, `dur.compatibility`, `dur.apiErrors`, `dur.workOrderSpareParts` | Moduł DUR — etykiety nawigacji, lista części, kategorie, kompatybilność, błędy API, części w zleceniu naprawy |
 
 Każdy `error` z route handlerów MUSI mieć odpowiednik w `apiErrors`, inaczej UI pokaże surowy kod.

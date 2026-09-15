@@ -3,9 +3,12 @@
 import { Loader2, SlidersHorizontal } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
+import { formatUiDateTimeShort } from "@/i18n";
 import { cn } from "@/lib/cn";
 import { TABLE_BODY_ROW, TABLE_CELL_NAME, TABLE_TD, TABLE_TD_RIGHT } from "@/lib/uiTable";
+import { UI_STATUS_TONE } from "@/lib/uiStatus";
 import type { CompanyLifecycleStatus } from "@/lib/companyLifecycle";
+import { isQuietCompany } from "@/lib/platformTenantHealth";
 
 export interface PlatformCompanyRowProps {
   row: CompanyUsageRow;
@@ -32,6 +35,7 @@ export function PlatformCompanyRow({
 }: PlatformCompanyRowProps) {
   const togglePending = togglePendingId === r.companyId;
   const archived = r.lifecycleStatus === "archived";
+  const quiet = isQuietCompany(r);
   const statusText = lifecycleLabel(dict, r.lifecycleStatus);
   const statusClass = cn(
     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-60",
@@ -43,7 +47,14 @@ export function PlatformCompanyRow({
   return (
     <tr className={TABLE_BODY_ROW}>
       <td className={TABLE_TD}>
-        <span className={TABLE_CELL_NAME}>{r.companyName}</span>
+        <span className="inline-flex flex-wrap items-center gap-2">
+          <span className={TABLE_CELL_NAME}>{r.companyName}</span>
+          {quiet ? (
+            <span className={cn("border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", UI_STATUS_TONE.planned.pill)}>
+              {dict.quietChip}
+            </span>
+          ) : null}
+        </span>
       </td>
       <td className={TABLE_TD}>
         <code className="text-xs text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
@@ -55,6 +66,17 @@ export function PlatformCompanyRow({
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.sessionsLast30Days}</td>
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.pendingOrders}</td>
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.deviceLogsLast7Days}</td>
+      <td className={`${TABLE_TD} whitespace-nowrap text-xs tabular-nums text-zinc-600 dark:text-zinc-400`}>
+        {r.lastAdminLoginAt ? formatUiDateTimeShort(r.lastAdminLoginAt) : dict.lastLoginNever}
+      </td>
+      <td
+        className={cn(
+          `${TABLE_TD_RIGHT} tabular-nums`,
+          r.errorLogsLast24h > 0 ? "font-semibold text-red-600 dark:text-red-400" : ""
+        )}
+      >
+        {r.errorLogsLast24h}
+      </td>
       <td className={TABLE_TD}>
         {archived ? (
           <span className={statusClass}>{statusText}</span>

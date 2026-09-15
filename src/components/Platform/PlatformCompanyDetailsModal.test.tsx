@@ -21,6 +21,10 @@ const baseRow: CompanyUsageRow = {
   sessionsLast30Days: 17,
   pendingOrders: 2,
   deviceLogsLast7Days: 9,
+  lastAdminLoginAt: null,
+  lastWorkerLoginAt: null,
+  activeSessionsNow: 0,
+  errorLogsLast24h: 0,
 };
 
 function renderModal(row: CompanyUsageRow = baseRow) {
@@ -247,5 +251,9 @@ describe("PlatformCompanyDetailsModal", () => {
     expect(screen.getByText("17")).toBeInTheDocument();
     expect(screen.getByText(dict.colLogs7)).toBeInTheDocument();
     expect(screen.getByText("9")).toBeInTheDocument();
+    expect(screen.getByText(dict.colErrorLogs24h)).toBeInTheDocument();
+    expect(screen.getByText(dict.colLastAdminLogin)).toBeInTheDocument();
+    expect(screen.getByText(dict.productLimitsTitle)).toBeInTheDocument();
+    expect(screen.getByText(/GPS 200/)).toBeInTheDocument();
   });
 });

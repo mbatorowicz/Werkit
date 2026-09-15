@@ -15,7 +15,10 @@ vi.mock("@/db/schema", () => ({
 }));
 
 import {
+  clampAuditListLimit,
   isPlatformAuditAction,
+  PLATFORM_AUDIT_LIST_DEFAULT_LIMIT,
+  PLATFORM_AUDIT_LIST_MAX_LIMIT,
   PlatformAuditService,
   sanitizeAuditMetadata,
 } from "./PlatformAuditService";
@@ -74,5 +77,12 @@ describe("PlatformAuditService", () => {
       })
     ).rejects.toThrow("invalid_audit_action");
     expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it("clampAuditListLimit: default 100, max 200", () => {
+    expect(clampAuditListLimit(undefined)).toBe(PLATFORM_AUDIT_LIST_DEFAULT_LIMIT);
+    expect(clampAuditListLimit(0)).toBe(PLATFORM_AUDIT_LIST_DEFAULT_LIMIT);
+    expect(clampAuditListLimit(50)).toBe(50);
+    expect(clampAuditListLimit(999)).toBe(PLATFORM_AUDIT_LIST_MAX_LIMIT);
   });
 });

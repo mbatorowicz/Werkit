@@ -84,5 +84,6 @@ export function adminDispatchOpenUrl(workOrderOrSessionId: number): string {
 
 export const platformRoutes = {
   home: "/platform",
+  audit: "/platform/audit",
   help: "/platform/help",
 } as const;

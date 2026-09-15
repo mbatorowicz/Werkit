@@ -1,12 +1,12 @@
-import { getAuthSession } from "@/lib/auth";
+import { getAuthSession, getAuthSessionFromRequest } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
 import { requireLivePrincipalOr401 } from "@/lib/livePrincipal";
 import { isSuperadminRole } from "@/lib/tenantRoles";
 
-export async function requireSuperadminSession(): Promise<
-  { ok: true; userId: number } | { ok: false; response: Response }
-> {
-  const session = await getAuthSession();
+export async function requireSuperadminSession(
+  request?: Request
+): Promise<{ ok: true; userId: number } | { ok: false; response: Response }> {
+  const session = request ? await getAuthSessionFromRequest(request) : await getAuthSession();
   const live = await requireLivePrincipalOr401(session);
   if (!live.ok) return live;
 

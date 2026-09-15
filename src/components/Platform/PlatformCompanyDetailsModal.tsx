@@ -4,15 +4,16 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { CompanyUsageRow } from "@/services/PlatformAnalyticsService";
 import type { AppDictionary } from "@/i18n/types";
-import { formatDict, useDictionary } from "@/i18n";
+import { formatDict, formatUiDateTimeShort, useDictionary } from "@/i18n";
 import { useAppDialog } from "@/components/AppDialogProvider";
 import { cn } from "@/lib/cn";
-import { INPUT_BASE, SELECT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
+import { CARD_NESTED, INPUT_BASE, SELECT_BASE, TEXTAREA_BASE } from "@/lib/uiTokens";
 import { FIELD_HINT, FIELD_LABEL } from "@/lib/uiTypography";
 import { BTN_DANGER_SOFT, BTN_PRIMARY_COMPACT_SM } from "@/lib/uiButtons";
 import { AdminModalShell } from "@/components/Admin/AdminModalShell";
 import { FeatureFlagsSection } from "@/components/Platform/FeatureFlagsSection";
 import { CompanyAdminsTab } from "@/components/Platform/CompanyAdminsTab";
+import { PLATFORM_PRODUCT_LIMITS } from "@/lib/platformProductLimits";
 import {
   INTERNAL_NOTE_MAX_LENGTH,
   isCompanyLifecycleStatus,
@@ -272,29 +273,53 @@ function CompanyMetricsTab({
   row: CompanyUsageRow;
   dict: AppDictionary["platform"];
 }) {
-  const metrics: { label: string; value: number }[] = [
-    { label: dict.colUsers, value: row.userCount },
-    { label: dict.colWorkers, value: row.workerCount },
-    { label: dict.colSessions30, value: row.sessionsLast30Days },
-    { label: dict.colPending, value: row.pendingOrders },
-    { label: dict.colLogs7, value: row.deviceLogsLast7Days },
+  const metrics: { label: string; value: string }[] = [
+    { label: dict.colUsers, value: String(row.userCount) },
+    { label: dict.colWorkers, value: String(row.workerCount) },
+    { label: dict.colSessions30, value: String(row.sessionsLast30Days) },
+    { label: dict.colActiveSessions, value: String(row.activeSessionsNow) },
+    { label: dict.colPending, value: String(row.pendingOrders) },
+    { label: dict.colLogs7, value: String(row.deviceLogsLast7Days) },
+    { label: dict.colErrorLogs24h, value: String(row.errorLogsLast24h) },
+    {
+      label: dict.colLastAdminLogin,
+      value: row.lastAdminLoginAt ? formatUiDateTimeShort(row.lastAdminLoginAt) : dict.lastLoginNever,
+    },
+    {
+      label: dict.colLastWorkerLogin,
+      value: row.lastWorkerLoginAt
+        ? formatUiDateTimeShort(row.lastWorkerLoginAt)
+        : dict.lastLoginNever,
+    },
   ];
 
   return (
-    <dl className="grid gap-3 sm:grid-cols-2">
-      {metrics.map((m) => (
-        <div
-          key={m.label}
-          className="rounded-lg border border-zinc-200 bg-zinc-50/60 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/30"
-        >
-          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-            {m.label}
-          </dt>
-          <dd className="mt-1 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-            {m.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <div className="space-y-6">
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {metrics.map((m) => (
+          <div
+            key={m.label}
+            className="rounded-lg border border-zinc-200 bg-zinc-50/60 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-800/30"
+          >
+            <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              {m.label}
+            </dt>
+            <dd className="mt-1 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {m.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <section className={CARD_NESTED}>
+        <h3 className={FIELD_LABEL}>{dict.productLimitsTitle}</h3>
+        <p className={FIELD_HINT}>
+          {formatDict(dict.productLimitsHint, {
+            gps: PLATFORM_PRODUCT_LIMITS.gpsPointsPerRequest,
+            photoMb: PLATFORM_PRODUCT_LIMITS.photoMaxMib,
+            logs: PLATFORM_PRODUCT_LIMITS.deviceLogsPerMinute,
+          })}
+        </p>
+      </section>
+    </div>
   );
 }

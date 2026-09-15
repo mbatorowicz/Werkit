@@ -40,6 +40,8 @@ export function PlatformCompanyTable({
             <th className={TABLE_TH_RIGHT}>{dict.colSessions30}</th>
             <th className={TABLE_TH_RIGHT}>{dict.colPending}</th>
             <th className={TABLE_TH_RIGHT}>{dict.colLogs7}</th>
+            <th className={TABLE_TH}>{dict.colLastAdminLogin}</th>
+            <th className={TABLE_TH_RIGHT}>{dict.colErrorLogs24h}</th>
             <th className={TABLE_TH}>{dict.colStatus}</th>
             <th className={TABLE_TH}>{dict.colActions}</th>
           </tr>
@@ -47,7 +49,7 @@ export function PlatformCompanyTable({
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={9} className={TABLE_EMPTY_CELL}>
+              <td colSpan={11} className={TABLE_EMPTY_CELL}>
                 {dict.empty}
               </td>
             </tr>

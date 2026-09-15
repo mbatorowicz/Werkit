@@ -379,9 +379,12 @@ export const helpPl = {
         paragraphs: ["Kolumny tabeli pomagają monitorować adopcję systemu."],
         bullets: [
           "Konta i pracownicy — liczba użytkowników w organizacji.",
-          "Sesje (30 dni) — aktywność terenowa.",
+          "Sesje (30 dni) — aktywność terenowa. Chip „cicha” gdy status aktywna i 0 sesji w 30 dniach.",
+          "Ostatnie logowanie admina — sortowanie listy; „nigdy” gdy nikt z adminów się nie logował.",
+          "Błędy (24 h) — licznik `device_logs` poziomu ERROR (bez otwierania treści logów tenanta).",
           "Zlecenia oczekujące — obciążenie dyspozytorni.",
           "Logi urządzeń (7 dni) — wolumen diagnostyki z pola.",
+          "W szczegółach: sesje teraz, ostatnie logowanie pracownika oraz stałe limity produktu (GPS 200, foto 4 MiB, 30 logów/min) — bez silnika seats.",
         ],
       },
       {
@@ -407,6 +410,18 @@ export const helpPl = {
           "W szczegółach, zakładka Dane: przycisk Archiwizuj + potwierdzenie.",
           "Zawieszenie (toggle w tabeli) i archiwum blokują logowanie tak samo — bez osobnego komunikatu „firma zablokowana”.",
           "Archiwum nie da się zrobić jednym kliknięciem w tabeli (toggle to tylko aktywna ↔ zawieszona).",
+        ],
+      },
+      {
+        id: "audit",
+        title: "7. Dziennik platformy",
+        paragraphs: [
+          "Link Dziennik w nagłówku (`/platform/audit`) pokazuje ślad działań superadmina: tworzenie firmy, flagi, impersonacja. To nie są logi urządzeń klienta.",
+        ],
+        bullets: [
+          "Kolumny: czas, aktor, firma, akcja, cel. Filtr po firmie i typie akcji.",
+          "Tylko odczyt — bez edycji i usuwania. Hasła nigdy nie lądują w dzienniku.",
+          "API tylko dla roli superadmin (`GET /api/platform/audit`).",
         ],
       },
     ],

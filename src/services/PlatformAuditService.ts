@@ -1,37 +1,22 @@
 import { db } from "@/db";
-import { platformAuditEvents } from "@/db/schema";
+import { companies, platformAuditEvents, users } from "@/db/schema";
+import { and, desc, eq, type SQL } from "drizzle-orm";
+import {
+  isPlatformAuditAction,
+  isPlatformAuditTargetType,
+  type PlatformAuditAction,
+  type PlatformAuditListRow,
+  type PlatformAuditTargetType,
+} from "@/lib/platformAuditCatalog";
 
-export const PLATFORM_AUDIT_ACTIONS = [
-  "company.create",
-  "company.update",
-  "company.activate",
-  "company.deactivate",
-  "company.archive",
-  "admin.create",
-  "admin.reset_password",
-  "admin.activate",
-  "admin.deactivate",
-  "flags.update",
-  "impersonation.start",
-  "impersonation.end",
-] as const;
-
-export type PlatformAuditAction = (typeof PLATFORM_AUDIT_ACTIONS)[number];
-
-export const PLATFORM_AUDIT_TARGET_TYPES = ["company", "user", "flags", "impersonation"] as const;
-
-export type PlatformAuditTargetType = (typeof PLATFORM_AUDIT_TARGET_TYPES)[number];
-
-const ACTION_SET = new Set<string>(PLATFORM_AUDIT_ACTIONS);
-const TARGET_SET = new Set<string>(PLATFORM_AUDIT_TARGET_TYPES);
-
-export function isPlatformAuditAction(value: string): value is PlatformAuditAction {
-  return ACTION_SET.has(value);
-}
-
-export function isPlatformAuditTargetType(value: string): value is PlatformAuditTargetType {
-  return TARGET_SET.has(value);
-}
+export {
+  PLATFORM_AUDIT_ACTIONS,
+  PLATFORM_AUDIT_TARGET_TYPES,
+  isPlatformAuditAction,
+  isPlatformAuditTargetType,
+  type PlatformAuditAction,
+  type PlatformAuditTargetType,
+} from "@/lib/platformAuditCatalog";
 
 export type PlatformAuditInsert = {
   actorUserId: number;
@@ -55,7 +40,81 @@ export function sanitizeAuditMetadata(
   return Object.keys(out).length > 0 ? out : null;
 }
 
+export const PLATFORM_AUDIT_LIST_DEFAULT_LIMIT = 100;
+export const PLATFORM_AUDIT_LIST_MAX_LIMIT = 200;
+
+export type PlatformAuditListFilters = {
+  companyId?: number;
+  action?: PlatformAuditAction;
+  limit?: number;
+};
+
+export { type PlatformAuditListRow } from "@/lib/platformAuditCatalog";
+
+export function clampAuditListLimit(raw: number | undefined): number {
+  if (raw == null || !Number.isFinite(raw) || raw < 1) {
+    return PLATFORM_AUDIT_LIST_DEFAULT_LIMIT;
+  }
+  return Math.min(Math.floor(raw), PLATFORM_AUDIT_LIST_MAX_LIMIT);
+}
+
+function toIso(value: Date | string): string {
+  if (value instanceof Date) return value.toISOString();
+  const ms = Date.parse(value);
+  return Number.isNaN(ms) ? value : new Date(ms).toISOString();
+}
+
 export class PlatformAuditService {
+  /** Odczyt dziennika — tylko panel `/platform` (superadmin). */
+  static async list(filters: PlatformAuditListFilters = {}): Promise<PlatformAuditListRow[]> {
+    const limit = clampAuditListLimit(filters.limit);
+    const conditions: SQL[] = [];
+    if (filters.companyId != null) {
+      conditions.push(eq(platformAuditEvents.companyId, filters.companyId));
+    }
+    if (filters.action) {
+      conditions.push(eq(platformAuditEvents.action, filters.action));
+    }
+
+    const rows = await db
+      .select({
+        id: platformAuditEvents.id,
+        createdAt: platformAuditEvents.createdAt,
+        actorUserId: platformAuditEvents.actorUserId,
+        actorName: users.fullName,
+        companyId: platformAuditEvents.companyId,
+        companyName: companies.name,
+        action: platformAuditEvents.action,
+        targetType: platformAuditEvents.targetType,
+        targetId: platformAuditEvents.targetId,
+      })
+      .from(platformAuditEvents)
+      .innerJoin(users, eq(platformAuditEvents.actorUserId, users.id))
+      .leftJoin(companies, eq(platformAuditEvents.companyId, companies.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(platformAuditEvents.createdAt))
+      .limit(limit);
+
+    const out: PlatformAuditListRow[] = [];
+    for (const row of rows) {
+      if (!isPlatformAuditAction(row.action)) continue;
+      const targetType =
+        row.targetType != null && isPlatformAuditTargetType(row.targetType) ? row.targetType : null;
+      out.push({
+        id: row.id,
+        createdAt: toIso(row.createdAt),
+        actorUserId: row.actorUserId,
+        actorName: row.actorName,
+        companyId: row.companyId,
+        companyName: row.companyName ?? null,
+        action: row.action,
+        targetType,
+        targetId: row.targetId,
+      });
+    }
+    return out;
+  }
+
   /** Jedyny zapis do `platform_audit_events`. */
   static async insert(input: PlatformAuditInsert): Promise<void> {
     if (!isPlatformAuditAction(input.action)) {

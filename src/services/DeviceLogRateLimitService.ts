@@ -1,7 +1,9 @@
+import { MAX_DEVICE_LOGS_PER_MINUTE } from "@/lib/deviceLogLimits";
 import { PostgresRateLimitService } from "@/services/PostgresRateLimitService";
 
-/** 30 INSERT `device_logs` / min / user — SSOT (Postgres, ta sama tabela co S1, klucz z prefiksem). */
-export const MAX_DEVICE_LOGS_PER_MINUTE = 30;
+export { MAX_DEVICE_LOGS_PER_MINUTE };
+
+/** 30 INSERT `device_logs` / min / user — SSOT w `deviceLogLimits` (Postgres, klucz z prefiksem). */
 export const DEVICE_LOG_RATE_KEY_PREFIX = "logs:";
 
 export function deviceLogRateKey(userId: number): string {

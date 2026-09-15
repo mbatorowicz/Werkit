@@ -253,7 +253,11 @@ Feature flags: GPS niezależnie (śledzenie, mapa, geofencing, trasa, nawigacja 
 
 ### 4. Wskaźniki użycia
 
-Konta, pracownicy, sesje (30 dni), zlecenia oczekujące, logi (7 dni).
+Konta, pracownicy, sesje (30 dni), ostatnie logowanie admina/pracownika, sesje aktywne, błędy 24 h, zlecenia oczekujące, logi (7 dni). Chip „cicha” na liście. Stałe limity produktu w szczegółach (GPS 200, foto 4 MiB, throttle logów).
+
+### 5. Dziennik platformy
+
+`/platform/audit` — ślad działań superadmina (czas, aktor, firma, akcja, cel). Tylko odczyt.
 
 ---
 

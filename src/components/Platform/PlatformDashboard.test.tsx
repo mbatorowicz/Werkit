@@ -20,6 +20,10 @@ function usageRow(
     sessionsLast30Days: 0,
     pendingOrders: 0,
     deviceLogsLast7Days: 0,
+    lastAdminLoginAt: null,
+    lastWorkerLoginAt: null,
+    activeSessionsNow: 0,
+    errorLogsLast24h: 0,
     ...overrides,
   };
 }

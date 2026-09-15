@@ -10,6 +10,7 @@ import { filterCompaniesForRegistry } from "@/lib/companyLifecycle";
 import { PlatformCompanyCreateModal } from "@/components/Platform/PlatformCompanyCreateModal";
 import { PlatformCompanyDetailsModal } from "@/components/Platform/PlatformCompanyDetailsModal";
 import { PlatformCompanyTable } from "@/components/Platform/PlatformCompanyTable";
+import { narrowCompanyUsageRows } from "@/lib/narrow/platform";
 
 type Props = {
   initialOverview: CompanyUsageRow[];
@@ -33,8 +34,9 @@ export function PlatformDashboard({ initialOverview, dict }: Props) {
   async function refreshOverview() {
     const res = await fetch("/api/platform/analytics", { credentials: "include" });
     if (!res.ok) return;
-    const data = await res.json();
-    if (Array.isArray(data)) setRows(data as CompanyUsageRow[]);
+    const data: unknown = await res.json();
+    const next = narrowCompanyUsageRows(data);
+    if (next.length > 0 || Array.isArray(data)) setRows(next);
   }
 
   function showFeedback(text: string, isError: boolean) {

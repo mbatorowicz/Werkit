@@ -2,7 +2,7 @@
 
 > **Cel:** jedno miejsce na *plan* i priorytety. Szczegółowa inwentaryzacja endpointów / DB nadal w [`SYSTEM_MAP.md`](./SYSTEM_MAP.md); zasady pracy w [`../AGENTS.md`](../AGENTS.md).
 
-> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Control plane `/platform` (P-PLAT, otwarty): [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md).
+> **Status dokumentu:** fazy **A–F** są **zamknięte** (checklista §4 — wszystkie `[x]`). Sekcja **§2** to **archiwum decyzji** (co było, co zrobiono). **Nowy dług** dopisuj w **§5** albo nowym dokumencie po ustaleniu z zespołem — nie podpinaj pod zamknięte litery A–F. Program dociągnięcia domeny (P-ALIGN, fazy 0–7 zamknięte): [`plans/architecture-alignment-2026-09.md`](../plans/architecture-alignment-2026-09.md). Control plane `/platform` (P-PLAT, fazy PL0–PL3 zamknięte): [`plans/platform-control-plane-2026-09.md`](../plans/platform-control-plane-2026-09.md).
 
 ---
 
@@ -324,10 +324,10 @@ Panel superadmina jako płaszczyzna sterowania (konta firmy, impersonacja, cykl 
 | PL0 | Lista adminów/viewerów, reset hasła, deaktywacja, `last_login_at`, zapis audytu | Done (2026-09-14) |
 | PL1 | Impersonacja `/admin` (cookie resume, banner, zakaz `/worker`) | Done (2026-09-14) |
 | PL2 | `lifecycle_status` + notatka + presety pakietu GPS/DUR | Done (2026-09-14) |
-| PL3 | Overview zdrowia + UI dziennika platformy | Open |
+| PL3 | Overview zdrowia + UI dziennika platformy | Done (2026-09-15) |
 
 Poza programem: billing, SSO, RLS, DELETE firmy, mapa GPS na `/platform`.
 
 ---
 
-*Ostatnia aktualizacja roadmapu: 2026-09-14.*
+*Ostatnia aktualizacja roadmapu: 2026-09-15.*
