@@ -26,7 +26,7 @@ function randomPassword(): string {
 }
 
 const storePassword = randomPassword();
-const keyPassword = randomPassword();
+const keyPassword = storePassword;
 
 const result = spawnSync(
   "keytool",
@@ -35,6 +35,8 @@ const result = spawnSync(
     "-v",
     "-keystore",
     KEYSTORE,
+    "-storetype",
+    "PKCS12",
     "-keyalg",
     "RSA",
     "-keysize",

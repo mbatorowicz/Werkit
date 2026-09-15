@@ -65,7 +65,9 @@ android {
                 storeFile playUploadSigning.storeFile
                 storePassword playUploadSigning.storePassword
                 keyAlias playUploadSigning.keyAlias
-                keyPassword playUploadSigning.keyPassword
+                // PKCS12 (domyślny keytool) ignoruje osobne hasło klucza — musi być to samo co store.
+                keyPassword playUploadSigning.storePassword
+                storeType "PKCS12"
             }
         }
     }

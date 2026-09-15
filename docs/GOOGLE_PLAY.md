@@ -39,7 +39,7 @@ Google Play App Signing: **Ty** trzymasz *upload key*, Google trzyma *app signin
 | `ANDROID_KEYSTORE_BASE64` | PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("android\upload-keystore.jks"))` — **jedna linia Base64**, bez nagłówków `-----BEGIN` |
 | `ANDROID_KEYSTORE_PASSWORD` | `WERKIT_UPLOAD_KEYSTORE_PASSWORD` z `.upload-keystore.env` |
 | `ANDROID_KEY_ALIAS` | `werkit-upload` |
-| `ANDROID_KEY_PASSWORD` | `WERKIT_UPLOAD_KEY_PASSWORD` |
+| `ANDROID_KEY_PASSWORD` | to samo co `ANDROID_KEYSTORE_PASSWORD` (PKCS12 nie obsługuje dwóch haseł) |
 
 5. `workflow_dispatch` na **Build Android App**. W logu nie może być ostrzeżenia o braku keystore. W `werkit-apk-meta.json`: `"signing": "play-upload"`.
 
