@@ -228,8 +228,9 @@ describe("PlatformCompanyDetailsModal", () => {
     await user.click(screen.getByRole("button", { name: plDict.admin.ui.dialogConfirm }));
 
     await waitFor(() => {
-      const call = fetchMock.mock.calls.find(([input, init]) =>
-        String(input).includes("/api/platform/impersonation") && init?.method === "POST"
+      const call = fetchMock.mock.calls.find(
+        ([input, init]) =>
+          String(input).includes("/api/platform/impersonation") && init?.method === "POST"
       );
       expect(call).toBeDefined();
       expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({

@@ -97,9 +97,8 @@ describe("PL1 impersonacja (integracja)", () => {
       "7d"
     );
 
-    const { GET, POST: startImpersonation } = await import(
-      "@/app/api/platform/impersonation/route"
-    );
+    const { GET, POST: startImpersonation } =
+      await import("@/app/api/platform/impersonation/route");
     const startRes = await startImpersonation(
       new Request("http://localhost/api/platform/impersonation", {
         method: "POST",

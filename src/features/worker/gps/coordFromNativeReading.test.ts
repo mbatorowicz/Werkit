@@ -13,9 +13,7 @@ describe("coordFromAccuracySample", () => {
   });
 
   it("odrzuca szpilkę powyżej 40 m", () => {
-    expect(
-      coordFromAccuracySample({ latitude: 52.2, longitude: 21.0, accuracy: 40.1 })
-    ).toBeNull();
+    expect(coordFromAccuracySample({ latitude: 52.2, longitude: 21.0, accuracy: 40.1 })).toBeNull();
   });
 
   it("przyjmuje odczyt bez accuracy (web bez pola)", () => {

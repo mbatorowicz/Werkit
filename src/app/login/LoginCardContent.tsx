@@ -123,7 +123,11 @@ export function LoginCardContent({
             </button>
           </div>
           {hasError && (
-            <p id={errorId} role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">
+            <p
+              id={errorId}
+              role="alert"
+              className="text-sm font-medium text-red-600 dark:text-red-400"
+            >
               {error}
             </p>
           )}

@@ -1332,7 +1332,8 @@ export const pl = {
     archiveCompanyConfirm:
       "Zarchiwizować {name}? Konta nie zalogują się. Dane (sesje, GPS, magazyn) zostają — bez usuwania.",
     hideArchived: "Ukryj zarchiwizowane",
-    addAdminInactiveHint: "Nie można dodać administratora, gdy organizacja jest zawieszona albo zarchiwizowana.",
+    addAdminInactiveHint:
+      "Nie można dodać administratora, gdy organizacja jest zawieszona albo zarchiwizowana.",
     organizationName: "Nazwa organizacji",
     organizationNamePlaceholder: "np. Margaz Sp. z o.o.",
     organizationSlug: "Identyfikator",

@@ -81,4 +81,6 @@ writeFileSync(
 );
 
 console.log("Utworzono android/upload-keystore.jks, keystore.properties i .upload-keystore.env.");
-console.log("Pliki są poza Gitem. Skopiuj je na bezpieczny nośnik, potem GitHub Secrets (docs/GOOGLE_PLAY.md).");
+console.log(
+  "Pliki są poza Gitem. Skopiuj je na bezpieczny nośnik, potem GitHub Secrets (docs/GOOGLE_PLAY.md)."
+);

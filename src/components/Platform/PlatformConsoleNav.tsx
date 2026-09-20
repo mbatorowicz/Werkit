@@ -13,7 +13,8 @@ type Props = {
 export function PlatformConsoleNav({ registryLabel, auditLabel }: Props) {
   const pathname = usePathname();
   const onRegistry = pathname === platformRoutes.home;
-  const onAudit = pathname === platformRoutes.audit || pathname.startsWith(`${platformRoutes.audit}/`);
+  const onAudit =
+    pathname === platformRoutes.audit || pathname.startsWith(`${platformRoutes.audit}/`);
 
   const itemClass = (active: boolean) =>
     cn(

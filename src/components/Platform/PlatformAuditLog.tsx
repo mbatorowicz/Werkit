@@ -103,7 +103,9 @@ export function PlatformAuditLog({ dict }: Props) {
   return (
     <div>
       <header className="mb-6">
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{dict.auditTitle}</h2>
+        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          {dict.auditTitle}
+        </h2>
         <p className="mt-0.5 text-sm text-zinc-500">{dict.auditSubtitle}</p>
       </header>
 

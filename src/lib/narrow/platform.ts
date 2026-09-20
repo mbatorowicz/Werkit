@@ -132,7 +132,8 @@ export function narrowPlatformAuditEvent(u: unknown): PlatformAuditListRow | nul
     actorUserId,
     actorName: readString(u, "actorName"),
     companyId,
-    companyName: typeof companyNameRaw === "string" && companyNameRaw.trim() ? companyNameRaw : null,
+    companyName:
+      typeof companyNameRaw === "string" && companyNameRaw.trim() ? companyNameRaw : null,
     action: u.action,
     targetType,
     targetId,

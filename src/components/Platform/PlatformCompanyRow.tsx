@@ -50,7 +50,12 @@ export function PlatformCompanyRow({
         <span className="inline-flex flex-wrap items-center gap-2">
           <span className={TABLE_CELL_NAME}>{r.companyName}</span>
           {quiet ? (
-            <span className={cn("border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide", UI_STATUS_TONE.planned.pill)}>
+            <span
+              className={cn(
+                "border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                UI_STATUS_TONE.planned.pill
+              )}
+            >
               {dict.quietChip}
             </span>
           ) : null}
@@ -66,7 +71,9 @@ export function PlatformCompanyRow({
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.sessionsLast30Days}</td>
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.pendingOrders}</td>
       <td className={`${TABLE_TD_RIGHT} tabular-nums`}>{r.deviceLogsLast7Days}</td>
-      <td className={`${TABLE_TD} whitespace-nowrap text-xs tabular-nums text-zinc-600 dark:text-zinc-400`}>
+      <td
+        className={`${TABLE_TD} whitespace-nowrap text-xs tabular-nums text-zinc-600 dark:text-zinc-400`}
+      >
         {r.lastAdminLoginAt ? formatUiDateTimeShort(r.lastAdminLoginAt) : dict.lastLoginNever}
       </td>
       <td

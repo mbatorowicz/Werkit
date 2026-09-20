@@ -64,9 +64,7 @@ describe("PlatformAuditLog", () => {
     await user.selectOptions(screen.getByLabelText(dict.auditFilterCompany), "3");
 
     await waitFor(() => {
-      const called = fetchMock.mock.calls.some(([input]) =>
-        String(input).includes("companyId=3")
-      );
+      const called = fetchMock.mock.calls.some(([input]) => String(input).includes("companyId=3"));
       expect(called).toBe(true);
     });
   });

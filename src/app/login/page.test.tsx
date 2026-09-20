@@ -105,7 +105,10 @@ describe("LoginPage", () => {
         "true"
       )
     );
-    expect(screen.getByLabelText(plDict.login.usernameLabel)).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText(plDict.login.usernameLabel)).toHaveAttribute(
+      "aria-invalid",
+      "true"
+    );
   });
 
   it("wymaga loginu i hasła (puste pola nie wysyłają żądania)", async () => {

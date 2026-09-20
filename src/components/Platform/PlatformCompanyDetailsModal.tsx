@@ -213,14 +213,13 @@ function CompanyDataTab({
           }}
           className={cn(SELECT_BASE, "mt-1.5")}
         >
-          {(archived
-            ? (["archived", ...EDITABLE_LIFECYCLES] as const)
-            : EDITABLE_LIFECYCLES
-          ).map((status) => (
-            <option key={status} value={status}>
-              {lifecycleLabel(dict, status)}
-            </option>
-          ))}
+          {(archived ? (["archived", ...EDITABLE_LIFECYCLES] as const) : EDITABLE_LIFECYCLES).map(
+            (status) => (
+              <option key={status} value={status}>
+                {lifecycleLabel(dict, status)}
+              </option>
+            )
+          )}
         </select>
         <span className={cn(FIELD_HINT, "mt-1 block")}>{dict.lifecycleHint}</span>
       </label>
@@ -283,7 +282,9 @@ function CompanyMetricsTab({
     { label: dict.colErrorLogs24h, value: String(row.errorLogsLast24h) },
     {
       label: dict.colLastAdminLogin,
-      value: row.lastAdminLoginAt ? formatUiDateTimeShort(row.lastAdminLoginAt) : dict.lastLoginNever,
+      value: row.lastAdminLoginAt
+        ? formatUiDateTimeShort(row.lastAdminLoginAt)
+        : dict.lastLoginNever,
     },
     {
       label: dict.colLastWorkerLogin,

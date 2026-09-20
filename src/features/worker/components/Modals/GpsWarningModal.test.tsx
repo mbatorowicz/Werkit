@@ -21,9 +21,8 @@ describe("GpsWarningModal", () => {
     );
 
     expect(screen.getByText(plDict.worker.client.gpsBackgroundDisclosure)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: plDict.worker.client.gpsPrivacyPolicy })).toHaveAttribute(
-      "href",
-      "/privacy-policy"
-    );
+    expect(
+      screen.getByRole("link", { name: plDict.worker.client.gpsPrivacyPolicy })
+    ).toHaveAttribute("href", "/privacy-policy");
   });
 });

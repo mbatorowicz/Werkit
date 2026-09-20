@@ -148,7 +148,9 @@ describe("PL3 /api/platform/audit (integracja)", () => {
       {}
     );
     expect(superRes.status).toBe(200);
-    const superBody = (await superRes.json()) as { events: { companyId: number | null; action: string }[] };
+    const superBody = (await superRes.json()) as {
+      events: { companyId: number | null; action: string }[];
+    };
     expect(Array.isArray(superBody.events)).toBe(true);
     const fromAorB = superBody.events.filter(
       (e) => e.companyId === companyA.id || e.companyId === companyB.id
@@ -214,12 +216,9 @@ describe("PL3 /api/platform/audit (integracja)", () => {
 
     const { PUT: putFlags } = await import("@/app/api/platform/feature-flags/[companyId]/route");
     const flagsRes = await putFlags(
-      jsonRequest(
-        `http://localhost/api/platform/feature-flags/${companyId}`,
-        "PUT",
-        superJwt,
-        { planKey: "yard" }
-      ),
+      jsonRequest(`http://localhost/api/platform/feature-flags/${companyId}`, "PUT", superJwt, {
+        planKey: "yard",
+      }),
       flagParams(companyId)
     );
     expect(flagsRes.status).toBe(200);
@@ -245,9 +244,8 @@ describe("PL3 /api/platform/audit (integracja)", () => {
     expect(secondAdmin).toBeDefined();
     if (secondAdmin == null) return;
 
-    const { PATCH: patchUser } = await import(
-      "@/app/api/platform/companies/[id]/users/[userId]/route"
-    );
+    const { PATCH: patchUser } =
+      await import("@/app/api/platform/companies/[id]/users/[userId]/route");
     const deactivateRes = await patchUser(
       jsonRequest(
         `http://localhost/api/platform/companies/${companyId}/users/${secondAdmin.id}`,
@@ -282,9 +280,8 @@ describe("PL3 /api/platform/audit (integracja)", () => {
     );
     expect(activateRes.status).toBe(200);
 
-    const { POST: resetPassword } = await import(
-      "@/app/api/platform/companies/[id]/users/[userId]/password/route"
-    );
+    const { POST: resetPassword } =
+      await import("@/app/api/platform/companies/[id]/users/[userId]/password/route");
     const weakRes = await resetPassword(
       jsonRequest(
         `http://localhost/api/platform/companies/${companyId}/users/${firstAdminId}/password`,
@@ -314,10 +311,7 @@ describe("PL3 /api/platform/audit (integracja)", () => {
     );
     expect(missingNameRes.status).toBe(400);
 
-    const adminJwt = await signSessionJwt(
-      { userId: firstAdminId, role: "admin", companyId },
-      "7d"
-    );
+    const adminJwt = await signSessionJwt({ userId: firstAdminId, role: "admin", companyId }, "7d");
     const ghostSlug = uniqueTestSlug();
     const forbiddenRes = await createCompany(
       jsonRequest("http://localhost/api/platform/companies", "POST", adminJwt, {

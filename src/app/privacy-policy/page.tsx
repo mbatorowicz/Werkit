@@ -29,11 +29,11 @@ export default function PrivacyPolicy() {
           <h2 className="text-xl font-bold mt-8 mb-4">1. Wstęp (Introduction)</h2>
           <p>
             Niniejsza Polityka Prywatności określa zasady przetwarzania danych osobowych oraz danych
-            o lokalizacji w aplikacji mobilnej i webowej <strong>Werkit</strong> (dyspozycja terenowa
-            z warstwą MRO). Administratorem danych dla danej organizacji jest{" "}
+            o lokalizacji w aplikacji mobilnej i webowej <strong>Werkit</strong> (dyspozycja
+            terenowa z warstwą MRO). Administratorem danych dla danej organizacji jest{" "}
             <strong>firma (tenant), która korzysta z Werkit</strong> — pracodawca lub zleceniodawca
-            pracownika. Operator hostingu instancji (np.{" "}
-            <code>werkit.cncsolutions.dev</code>) przetwarza dane w imieniu tej organizacji.
+            pracownika. Operator hostingu instancji (np. <code>werkit.cncsolutions.dev</code>)
+            przetwarza dane w imieniu tej organizacji.
           </p>
           <p>
             This policy describes how the <strong>Werkit</strong> mobile and web app processes
@@ -54,9 +54,9 @@ export default function PrivacyPolicy() {
                 sesji pracy, również wtedy, gdy aplikacja jest zamknięta lub nie jest używana (w
                 tle)
               </strong>
-              . Śledzenie nie działa 24/7: GPS jest włączany wyłącznie przy aktywnej, niestacjonarnej
-              sesji pracownika. Dane służą weryfikacji realizacji zlecenia (czas i trasa) i są
-              widoczne dla upoważnionych administratorów organizacji.
+              . Śledzenie nie działa 24/7: GPS jest włączany wyłącznie przy aktywnej,
+              niestacjonarnej sesji pracownika. Dane służą weryfikacji realizacji zlecenia (czas i
+              trasa) i są widoczne dla upoważnionych administratorów organizacji.
             </p>
             <p className="font-semibold mb-2">English version:</p>
             <p>
@@ -109,20 +109,22 @@ export default function PrivacyPolicy() {
             reklamowych. We do not sell data or share it with third parties for advertising.
           </p>
 
-          <h2 className="text-xl font-bold mt-8 mb-4">5. Podstawy i przechowywanie (Legal basis)</h2>
+          <h2 className="text-xl font-bold mt-8 mb-4">
+            5. Podstawy i przechowywanie (Legal basis)
+          </h2>
           <p>
             Przetwarzanie odbywa się w związku ze stosunkiem pracy / zleceniem oraz prawnie
             uzasadnionym interesem organizacji (organizacja pracy w terenie), a tam gdzie wymagane —
-            na podstawie zgody na uprawnienia systemowe Androida (lokalizacja, powiadomienia).
-            Okres przechowywania ustala administrator organizacji (retencja sesji, zdjęć i logów w
-            panelu firmy).
+            na podstawie zgody na uprawnienia systemowe Androida (lokalizacja, powiadomienia). Okres
+            przechowywania ustala administrator organizacji (retencja sesji, zdjęć i logów w panelu
+            firmy).
           </p>
 
           <h2 className="text-xl font-bold mt-8 mb-4">6. Uprawnienia Android (App permissions)</h2>
           <ul className="list-disc pl-5 space-y-2">
             <li>
-              Lokalizacja (w tym w tle) — trasa sesji pracy / Location including background — session
-              route
+              Lokalizacja (w tym w tle) — trasa sesji pracy / Location including background —
+              session route
             </li>
             <li>Powiadomienia i alarmy — przypomnienia o zleceniach / order reminders</li>
             <li>
@@ -134,9 +136,9 @@ export default function PrivacyPolicy() {
 
           <h2 className="text-xl font-bold mt-8 mb-4">7. Kontakt (Contact)</h2>
           <p>
-            W sprawie danych osobowych skontaktuj się z administratorem swojej organizacji w
-            Werkit (pracodawca). Pytania techniczne dotyczące instancji: administrator hostingu
-            podanej w adresie URL aplikacji.
+            W sprawie danych osobowych skontaktuj się z administratorem swojej organizacji w Werkit
+            (pracodawca). Pytania techniczne dotyczące instancji: administrator hostingu podanej w
+            adresie URL aplikacji.
           </p>
           <p>
             For personal data requests, contact your Werkit organization administrator (employer).

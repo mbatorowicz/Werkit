@@ -7,10 +7,7 @@ import {
   type CompanyLifecycleStatus,
   type CompanyPlanKey,
 } from "@/lib/companyLifecycle";
-import {
-  sortCompaniesByLastAdminLogin,
-  toIsoTimestamp,
-} from "@/lib/platformTenantHealth";
+import { sortCompaniesByLastAdminLogin, toIsoTimestamp } from "@/lib/platformTenantHealth";
 
 export type CompanyUsageRow = {
   companyId: number;
