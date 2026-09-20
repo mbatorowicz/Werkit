@@ -47,6 +47,8 @@ export const en: AppDictionary = {
     },
     theme: {
       toggle: "Toggle theme",
+      switchToDark: "Switch to dark mode",
+      switchToLight: "Switch to light mode",
     },
     gantt: {
       from: "From:",
@@ -222,7 +224,10 @@ export const en: AppDictionary = {
     usernameLabel: "Admin login",
     usernamePlaceholder: "login",
     passwordLabel: "Password",
-    passwordPlaceholder: "••••••••",
+    passwordPlaceholder: "Password",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    versionLabel: "Version {version}",
     biometricPromptReason: "Confirm your identity to sign in",
     biometricPromptTitle: "Werkit",
     biometricPromptSubtitle: "Biometric sign-in",

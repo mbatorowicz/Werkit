@@ -4,8 +4,9 @@ import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDictionary } from "@/components/LocaleProvider";
+import { cn } from "@/lib/cn";
 
-export function ThemeToggle() {
+export function ThemeToggle({ size = "sm" }: { size?: "sm" | "md" }) {
   const { theme, setTheme } = useTheme();
   const dict = useDictionary();
   const [mounted, setMounted] = useState(false);
@@ -14,17 +15,27 @@ export function ThemeToggle() {
     queueMicrotask(() => setMounted(true));
   }, []);
 
+  const boxClass = size === "md" ? "min-h-11 min-w-11" : "w-9 h-9";
+
   if (!mounted) {
-    return <div className="w-9 h-9 opacity-0" />;
+    return <div className={cn(boxClass, "opacity-0")} aria-hidden="true" />;
   }
+
+  const isDark = theme === "dark";
+  const label = isDark ? dict.common.theme.switchToLight : dict.common.theme.switchToDark;
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 text-zinc-500 hover:text-emerald-500 transition-colors flex items-center justify-center rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
-      title={dict.common.theme.toggle}
+      type="button"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className={cn(
+        boxClass,
+        "flex items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-emerald-600 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-emerald-400"
+      )}
+      title={label}
+      aria-label={label}
     >
-      {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
     </button>
   );
 }

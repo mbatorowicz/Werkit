@@ -47,6 +47,8 @@ export const de: AppDictionary = {
     },
     theme: {
       toggle: "Design wechseln",
+      switchToDark: "Zu dunklem Modus wechseln",
+      switchToLight: "Zu hellem Modus wechseln",
     },
     gantt: {
       from: "Von:",
@@ -232,7 +234,10 @@ export const de: AppDictionary = {
     usernameLabel: "Login",
     usernamePlaceholder: "login",
     passwordLabel: "Passwort",
-    passwordPlaceholder: "••••••••",
+    passwordPlaceholder: "Passwort",
+    showPassword: "Passwort anzeigen",
+    hidePassword: "Passwort ausblenden",
+    versionLabel: "Version {version}",
     biometricPromptReason: "Identität bestätigen, um sich anzumelden",
     biometricPromptTitle: "Werkit",
     biometricPromptSubtitle: "Biometrische Anmeldung",

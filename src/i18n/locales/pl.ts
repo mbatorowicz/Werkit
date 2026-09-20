@@ -46,6 +46,8 @@ export const pl = {
     },
     theme: {
       toggle: "Zmień motyw",
+      switchToDark: "Przełącz na tryb ciemny",
+      switchToLight: "Przełącz na tryb jasny",
     },
     gantt: {
       from: "Od:",
@@ -226,7 +228,10 @@ export const pl = {
     usernameLabel: "Login administratora",
     usernamePlaceholder: "login",
     passwordLabel: "Hasło",
-    passwordPlaceholder: "••••••••",
+    passwordPlaceholder: "Hasło",
+    showPassword: "Pokaż hasło",
+    hidePassword: "Ukryj hasło",
+    versionLabel: "Wersja {version}",
     biometricPromptReason: "Potwierdź tożsamość, aby się zalogować",
     biometricPromptTitle: "Werkit",
     biometricPromptSubtitle: "Logowanie biometryczne",

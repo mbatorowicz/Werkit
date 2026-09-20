@@ -55,6 +55,59 @@ describe("LoginPage", () => {
     );
   });
 
+  it("hasło startuje puste z realnym placeholderem (bez maskowanych kropek)", () => {
+    stubFetch([]);
+    renderWithProviders(<LoginPage />);
+
+    const password = screen.getByLabelText(plDict.login.passwordLabel) as HTMLInputElement;
+    expect(password.value).toBe("");
+    expect(password).toHaveAttribute("placeholder", plDict.login.passwordPlaceholder);
+    expect(plDict.login.passwordPlaceholder).not.toContain("•");
+  });
+
+  it("przełącznik pokaż/ukryj zmienia typ pola hasła", async () => {
+    stubFetch([]);
+    renderWithProviders(<LoginPage />);
+
+    const password = screen.getByLabelText(plDict.login.passwordLabel) as HTMLInputElement;
+    expect(password.type).toBe("password");
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: plDict.login.showPassword }));
+    expect(password.type).toBe("text");
+
+    await user.click(screen.getByRole("button", { name: plDict.login.hidePassword }));
+    expect(password.type).toBe("password");
+  });
+
+  it("pokazuje numer wersji na dole karty", () => {
+    stubFetch([]);
+    renderWithProviders(<LoginPage />);
+    expect(screen.getByText(/Wersja/)).toBeInTheDocument();
+  });
+
+  it("przy błędzie oznacza pola jako aria-invalid", async () => {
+    stubFetch([
+      {
+        url: "/api/auth/login",
+        method: "POST",
+        status: 401,
+        json: { error: "invalid_credentials" },
+      },
+    ]);
+    renderWithProviders(<LoginPage />);
+
+    await fillAndSubmit("janek_k", "zle-haslo");
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(plDict.login.passwordLabel)).toHaveAttribute(
+        "aria-invalid",
+        "true"
+      )
+    );
+    expect(screen.getByLabelText(plDict.login.usernameLabel)).toHaveAttribute("aria-invalid", "true");
+  });
+
   it("wymaga loginu i hasła (puste pola nie wysyłają żądania)", async () => {
     const fetchMock = stubFetch([]);
     renderWithProviders(<LoginPage />);

@@ -126,8 +126,8 @@ export default function LoginPage() {
       )}
     >
       <div className="absolute top-4 right-4 flex items-center gap-2">
-        <LocaleSwitcher />
-        <ThemeToggle />
+        <LocaleSwitcher variant="auth" />
+        <ThemeToggle size="md" />
       </div>
       <div
         className={cn(
@@ -145,7 +145,7 @@ export default function LoginPage() {
         />
       </div>
 
-      <p className="text-zinc-600 text-xs mt-10 font-medium">&copy; {new Date().getFullYear()}</p>
+      <p className="text-zinc-600 text-xs mt-8 font-medium">&copy; {new Date().getFullYear()}</p>
     </div>
   );
 }

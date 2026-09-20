@@ -8,24 +8,32 @@ import { useDictionary } from "@/components/LocaleProvider";
 import { cn } from "@/lib/cn";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-type LocaleSwitcherVariant = "header" | "embedded" | "profile";
+type LocaleSwitcherVariant = "header" | "embedded" | "profile" | "auth";
 
 function LocaleButtonGroup({
   locale,
   onChange,
   ariaLabel,
   supportedLocales,
+  size = "sm",
 }: {
   locale: Locale;
   onChange: (next: Locale) => void;
   ariaLabel: string;
   supportedLocales: { value: Locale; label: string }[];
+  size?: "sm" | "md";
 }) {
+  const large = size === "md";
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      className="inline-flex items-center rounded-md border border-zinc-200/70 bg-zinc-50/80 p-0.5 dark:border-zinc-700/70 dark:bg-zinc-900/50"
+      className={cn(
+        "inline-flex items-center rounded-lg border",
+        large
+          ? "border-zinc-300 bg-white/80 p-1 dark:border-zinc-600 dark:bg-zinc-800/60"
+          : "rounded-md border-zinc-200/70 bg-zinc-50/80 p-0.5 dark:border-zinc-700/70 dark:bg-zinc-900/50"
+      )}
     >
       {supportedLocales.map((l) => {
         const active = locale === l.value;
@@ -37,10 +45,17 @@ function LocaleButtonGroup({
             aria-pressed={active}
             aria-current={active ? "true" : undefined}
             className={cn(
-              "min-w-[1.75rem] rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide transition-colors",
+              "font-semibold uppercase leading-none tracking-wide transition-colors",
+              large
+                ? "min-w-[2.25rem] rounded-md px-2.5 py-1.5 text-xs"
+                : "min-w-[1.75rem] rounded px-1.5 py-0.5 text-[10px]",
               active
-                ? "bg-white text-emerald-700 shadow-sm dark:bg-zinc-800 dark:text-emerald-400"
-                : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+                ? large
+                  ? "bg-emerald-600 text-white shadow-sm dark:bg-emerald-500"
+                  : "bg-white text-emerald-700 shadow-sm dark:bg-zinc-800 dark:text-emerald-400"
+                : large
+                  ? "text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white"
+                  : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
             )}
           >
             {l.value}
@@ -72,6 +87,7 @@ export function LocaleSwitcher({ variant = "header" }: { variant?: LocaleSwitche
       onChange={onChange}
       ariaLabel={dict.localeSwitcher.label}
       supportedLocales={supportedLocales}
+      size={variant === "auth" ? "md" : "sm"}
     />
   );
 
