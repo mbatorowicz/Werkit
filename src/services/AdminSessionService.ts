@@ -1,5 +1,12 @@
 import { db } from "@/db";
-import { workSessions, gpsLogs, sessionPhotos, sessionNotes, workOrders } from "@/db/schema";
+import {
+  workSessions,
+  gpsLogs,
+  sessionPhotos,
+  sessionNotes,
+  workOrders,
+  materialStockIssues,
+} from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { refreshPhotoUrls } from "@/lib/photoUpload";
 
@@ -63,39 +70,24 @@ export class AdminSessionService {
     }
   }
 
-  /**
-   * Usuwa zakończoną sesję z ewidencji. Jeśli sesja pochodziła ze zlecenia systemowego (`work_order_id`),
-   * usuwa też powiązany wiersz `work_orders` (marker „zaakceptowane” po stronie dyspozycji).
-   */
-  static async deleteArchivedSession(companyId: number, sessionId: number, actorUserId?: number) {
-    const rows = await db
-      .select()
-      .from(workSessions)
-      .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
-      .limit(1);
-    if (rows.length === 0) throw new Error("not_found");
-    const session = rows[0];
-    if (session.status === "IN_PROGRESS") throw new Error("session_still_active");
-
+  /** Deletes only an unlinked archived session without warehouse history. */
+  static async deleteArchivedSession(companyId: number, sessionId: number, _actorUserId?: number) {
     await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } =
-        await import("@/services/materials/WorkSessionMaterialService");
-      await WorkSessionMaterialService.returnForSessionIfIssued(
-        companyId,
-        actorUserId ?? companyId,
-        sessionId,
-        tx
-      );
-
-      const wid = session.workOrderId;
-      await tx
-        .delete(workSessions)
-        .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)));
-      if (wid != null) {
-        await tx
-          .delete(workOrders)
-          .where(and(eq(workOrders.id, wid), eq(workOrders.companyId, companyId)));
-      }
+      const [session] = await tx
+        .select()
+        .from(workSessions)
+        .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
+        .for("update");
+      if (!session) throw new Error("not_found");
+      if (session.status === "IN_PROGRESS") throw new Error("session_still_active");
+      if (session.workOrderId != null) throw new Error("order_has_history");
+      const issues = await tx
+        .select({ id: materialStockIssues.id })
+        .from(materialStockIssues)
+        .where(eq(materialStockIssues.workSessionId, sessionId))
+        .limit(1);
+      if (issues.length) throw new Error("order_has_history");
+      await tx.delete(workSessions).where(eq(workSessions.id, sessionId));
     });
   }
 }

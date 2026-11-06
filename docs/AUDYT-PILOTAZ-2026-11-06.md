@@ -185,3 +185,14 @@ Walidacja przed CI: 55/55 testów wybranego zestawu, później dodatkowy test do
 Granice: przygotowanie migawki wymaga wcześniejszego wejścia online i miejsca na urządzeniu. Brak migawki, jej wygaśnięcie lub wylogowanie oznacza neutralny ekran offline. Nie dodano offline panelu admina, historii ani rozpoczynania nowej sesji wymagającego serwera. To trwałość i odzyskanie dashboardu, nie gwarancja GPS w tle na iOS. Testy SW uruchamiają faktyczne skrypty w izolowanym środowisku zdarzeń/cache; kolejki testowano przez fake-indexeddb. Test rzeczywistej instalacji/restartu Safari/PWA i Androida nadal obowiązuje przed pilotażem.
 
 Uzupełnienie kontroli kont: przeniesienie użytkownika do innej firmy wymaga świeżego logowania przed worker API / ekranem firmy, aby nagłówek zakresu migawki ze starego JWT nie oznaczył danych nowej firmy. Rola nadal pochodzi z żywego principala. Dodano test przeniesienia, sprawdzono 38/38 testów guardów i SW oraz TypeScript. Pełne CI głównego pakietu 2a8d08c zakończone SUCCESS, łącznie z produkcyjnym buildem: https://github.com/mbatorowicz/Werkit/actions/runs/42260967805 .
+
+
+## Walidacja serwerowa i bezpieczne usuwanie — 6 listopada 2026
+
+Serwer egzekwuje wymagane zdjęcie, okno cofnięcia sesji, uprawnienia tworzenia pracy i DUR oraz pola kategorii. Zakończenie i cofnięcie blokują rekord sesji w transakcji. Synchronizacja offline stosuje te same reguły i zachowuje idempotencję. Edycja/akceptacja/usunięcie zlecenia nie może skasować ani nadpisać rozpoczętej pracy. Odrzucane są błędne identyfikatory, ilości, czas trwania, rodzaje i zbyt długie opisy.
+
+Usunięcie zlecenia z sesją, częściami albo WZ jest zabronione. Wyeliminowano automatyczny zwrot materiału przy kasowaniu zlecenia i obejście przez usunięcie archiwalnej sesji. Archiwum powiązane ze zleceniem lub WZ pozostaje chronione. Wczesne cofnięcie sesji nadal rozlicza faktyczne wcześniejsze WZ zgodnie z dotychczasowym procesem; po dodaniu części jest blokowane. Historycznie błędne stany nie są automatycznie przeliczane.
+
+Walidacja: 43/43 testy integracyjne na izolowanych firmach __ITEST (sprzątanie po testach); nowy zestaw obejmuje zdjęcie, offline, uprawnienia, historię obu magazynów, ponowienie i równoczesne operacje. Lokalne 67/67 testów walidacji/sesji/zleceń oraz 10/10 administracyjnych. Pełny lokalny zestaw przed ostatnimi uzupełnieniami: 835 zaliczonych, 6 istniejących błędów localStorage w testach alarmów na Node 26. CI na Node 22 pozostaje rozstrzygającym sprawdzeniem pełnego zestawu i buildu. Brak zmian schematu bazy i mostka natywnego.
+
+Ograniczenia: occurredAt offline jest deklaracją klienta, a nie dowodem czasu. Nie dodano osobnego procesu korekt zatwierdzanej ewidencji pracy. Testy rzeczywistych telefonów, odtwarzania backupu i obciążenia nadal są wymagane przed pełnym pilotażem.

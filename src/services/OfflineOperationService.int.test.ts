@@ -19,7 +19,7 @@ describe("offline operations", () => {
     companyId = (await createTestCompany()).id;
     userId = (await createTestUser(companyId)).id;
     const resourceId = (await createTestResource(companyId)).id;
-    const categoryId = (await createTestCategory(companyId)).id;
+    const categoryId = (await createTestCategory(companyId, { reqTaskDescription: false })).id;
     sessionId = (
       await WorkerSessionService.createWizardSession(userId, companyId, { resourceId, categoryId })
     ).id;

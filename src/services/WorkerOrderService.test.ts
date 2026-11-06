@@ -1,3 +1,13 @@
+function queryRows<T>(rows: T[]) {
+  const chain = {
+    from: () => chain,
+    where: () => chain,
+    for: () => Promise.resolve(rows),
+    limit: () => Promise.resolve(rows),
+    then: Promise.resolve(rows).then.bind(Promise.resolve(rows)),
+  };
+  return chain;
+}
 vi.mock("@/services/lockSessionStart", () => ({
   lockSessionStart: vi.fn().mockResolvedValue(undefined),
 }));
@@ -51,6 +61,11 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
+  workOrderSpareParts: { id: "id", workOrderId: "workOrderId" },
+  materialStockIssues: { id: "id", workOrderId: "workOrderId" },
+  stockIssues: { id: "id", workOrderId: "workOrderId" },
+  resourceCategories: { id: "id", companyId: "companyId" },
+  companySettings: { companyId: "companyId" },
   workOrders: {
     id: "id",
     companyId: "companyId",
@@ -303,7 +318,10 @@ describe("WorkerOrderService", () => {
       const tx = {
         update: txUpdate,
         insert: txInsert,
-        select: () => ({ from: () => ({ where: () => ({ for: () => orderResult }) }) }),
+        select: vi
+          .fn()
+          .mockReturnValueOnce(queryRows([orderRow]))
+          .mockReturnValue(queryRows([{ isGroup: false, reqTaskDescription: false }])),
       };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<number>) => cb(tx));
 
@@ -461,7 +479,13 @@ describe("WorkerOrderService", () => {
 
       const txDeleteWhere = vi.fn().mockResolvedValue(undefined);
       const txDelete = vi.fn().mockReturnValue({ where: txDeleteWhere });
-      const tx = { delete: txDelete };
+      const tx = {
+        delete: txDelete,
+        select: vi
+          .fn()
+          .mockReturnValueOnce(queryRows([{ id: 1, status: "PENDING", createdById: 1, userId: 1 }]))
+          .mockReturnValue(queryRows([])),
+      };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
         await cb(tx);
       });
@@ -470,7 +494,7 @@ describe("WorkerOrderService", () => {
       await WorkerOrderService.deleteOwnOrder(1, 1, 1);
 
       expect(transactionMock).toHaveBeenCalledTimes(1);
-      expect(txDelete).toHaveBeenCalledTimes(2);
+      expect(txDelete).toHaveBeenCalledTimes(1);
     });
   });
 });

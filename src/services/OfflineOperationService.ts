@@ -1,4 +1,5 @@
 import { coordsFromRequestBody } from "@/lib/coordsFromRequestBody";
+import { assertSessionTransition, sessionEventTime } from "./sessionTransitionPolicy";
 import { createHash } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -83,6 +84,7 @@ export class OfflineOperationService {
           end.getTime() > Date.now() + 60_000
         )
           throw new Error("invalid_payload");
+        await assertSessionTransition(tx, session, "end", end);
         await tx
           .update(workSessions)
           .set({
@@ -97,6 +99,8 @@ export class OfflineOperationService {
             .set({ status: "COMPLETED" })
             .where(eq(workOrders.id, session.workOrderId));
       } else if (type === "cancel_session") {
+        const at = sessionEventTime(session, typeof p.occurredAt === "string" ? p.occurredAt : "");
+        await assertSessionTransition(tx, session, "cancel", at);
         await WorkSessionMaterialService.returnForSessionIfIssued(
           companyId,
           userId,

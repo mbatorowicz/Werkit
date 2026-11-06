@@ -10,7 +10,7 @@ export async function lockSessionStart(
   resourceId: number
 ) {
   const [user] = await tx
-    .select({ id: users.id })
+    .select({ id: users.id, isActive: users.isActive })
     .from(users)
     .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
     .for("update");
@@ -19,7 +19,7 @@ export async function lockSessionStart(
     .from(resources)
     .where(and(eq(resources.id, resourceId), eq(resources.companyId, companyId)))
     .for("update");
-  if (!user || !resource) throw new Error("invalid_payload");
+  if (!user || !user.isActive || !resource) throw new Error("invalid_payload");
   const active = await tx
     .select({ userId: workSessions.userId })
     .from(workSessions)

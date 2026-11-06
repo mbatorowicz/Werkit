@@ -1,4 +1,5 @@
 import { db } from "@/db";
+import { validateCategoryForOrder } from "@/lib/workOrderCategoryValidation";
 import {
   workOrders,
   workSessions,
@@ -203,6 +204,8 @@ export class AdminOrderService {
     if (companyId == null) throw new Error("missing_company");
 
     await assertOrderEntitiesBelongToCompany(orderData, companyId);
+    if (orderData.categoryId == null) throw new Error("invalid_category");
+    await validateCategoryForOrder(companyId, orderData.categoryId, orderData);
 
     if (actor) {
       await DelegationScopeService.assertCanDelegateTo(
@@ -222,56 +225,45 @@ export class AdminOrderService {
     updates: Partial<typeof workOrders.$inferInsert>,
     actor?: OrderMutationActor
   ) {
-    const existingOrder = await db
-      .select()
-      .from(workOrders)
-      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)))
-      .limit(1);
-    if (existingOrder.length === 0) throw new Error("not_found");
-    if (existingOrder[0].status !== "PENDING") throw new Error("not_pending");
+    return db.transaction(async (tx) => {
+      const existingOrder = await tx
+        .select()
+        .from(workOrders)
+        .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)))
+        .for("update");
+      if (existingOrder.length === 0) throw new Error("not_found");
+      if (existingOrder[0].status !== "PENDING") throw new Error("not_pending");
 
-    const merged = { ...existingOrder[0], ...updates };
-    await assertOrderEntitiesBelongToCompany(merged, companyId);
+      const merged = { ...existingOrder[0], ...updates };
+      if (
+        merged.companyId !== companyId ||
+        (updates.status && !["PENDING", "CANCELLED"].includes(updates.status))
+      )
+        throw new Error("invalid_payload");
+      await assertOrderEntitiesBelongToCompany(merged, companyId);
+      if (merged.categoryId == null) throw new Error("invalid_category");
+      await validateCategoryForOrder(companyId, merged.categoryId, merged);
 
-    const targetUserId = updates.userId ?? existingOrder[0].userId;
-    if (actor) {
-      await DelegationScopeService.assertCanDelegateTo(
-        companyId,
-        actor.userId,
-        actor.role,
-        targetUserId
-      );
-    }
+      const targetUserId = updates.userId ?? existingOrder[0].userId;
+      if (actor) {
+        await DelegationScopeService.assertCanDelegateTo(
+          companyId,
+          actor.userId,
+          actor.role,
+          targetUserId
+        );
+      }
 
-    await db
-      .update(workOrders)
-      .set(updates)
-      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)));
-  }
-
-  /** Usuwa zlecenie i sesje z `work_order_id` (podrzędne GPS/zdjęcia/notatki — kaskada z sesji). */
-  static async deleteOrder(companyId: number, orderId: number, actorUserId?: number) {
-    const rows = await db
-      .select({ id: workOrders.id })
-      .from(workOrders)
-      .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)))
-      .limit(1);
-    if (rows.length === 0) throw new Error("not_found");
-
-    await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } =
-        await import("@/services/materials/WorkSessionMaterialService");
-      await WorkSessionMaterialService.returnForOrderSessions(
-        companyId,
-        actorUserId ?? companyId,
-        orderId,
-        tx
-      );
-
-      await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
       await tx
-        .delete(workOrders)
+        .update(workOrders)
+        .set(updates)
         .where(and(eq(workOrders.id, orderId), eq(workOrders.companyId, companyId)));
     });
+  }
+
+  /** Only unused orders can be deleted; history and inventory are never rewritten. */
+  static async deleteOrder(companyId: number, orderId: number, _actorUserId?: number) {
+    const { OrderDeletionService } = await import("./OrderDeletionService");
+    await OrderDeletionService.deleteUnused(companyId, orderId);
   }
 }

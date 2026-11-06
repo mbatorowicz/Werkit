@@ -61,7 +61,12 @@ export async function createTestUser(
 
 export async function createTestCategory(
   companyId: number,
-  options: { name?: string; isGroup?: boolean; parentId?: number | null } = {}
+  options: {
+    name?: string;
+    isGroup?: boolean;
+    parentId?: number | null;
+    reqTaskDescription?: boolean;
+  } = {}
 ): Promise<{ id: number }> {
   const [row] = await db
     .insert(resourceCategories)
@@ -69,6 +74,7 @@ export async function createTestCategory(
       companyId,
       name: options.name ?? `__ITEST kategoria ${uniqueTestSlug()}`,
       isGroup: options.isGroup ?? false,
+      reqTaskDescription: options.reqTaskDescription ?? true,
       parentId: options.parentId ?? null,
     })
     .returning({ id: resourceCategories.id });

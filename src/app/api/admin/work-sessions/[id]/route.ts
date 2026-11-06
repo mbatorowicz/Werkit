@@ -52,6 +52,7 @@ export const DELETE = withApiErrorHandling(
   {
     mapUnknownError: (e) => {
       const msg = e instanceof Error ? e.message : "";
+      if (msg === "order_has_history") return jsonError("order_has_history", 409);
       if (msg === "not_found") return jsonError("not_found", 404);
       if (msg === "session_still_active") return jsonError("session_still_active", 409);
       return null;

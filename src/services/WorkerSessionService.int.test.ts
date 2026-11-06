@@ -20,7 +20,7 @@ describe("WorkerSessionService (integracja z bazą)", () => {
     const [user, resource, category] = await Promise.all([
       createTestUser(companyId),
       createTestResource(companyId),
-      createTestCategory(companyId),
+      createTestCategory(companyId, { reqTaskDescription: false }),
     ]);
     userId = user.id;
     resourceId = resource.id;

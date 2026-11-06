@@ -32,7 +32,7 @@ describe("ScheduleConflictService (integracja z bazą)", () => {
       createTestUser(companyId),
       createTestResource(companyId),
       createTestResource(companyId),
-      createTestCategory(companyId),
+      createTestCategory(companyId, { reqTaskDescription: false }),
     ]);
     userAId = userA.id;
     userBId = userB.id;

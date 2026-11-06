@@ -27,7 +27,7 @@ describe("GPS session protocol", () => {
   beforeAll(async () => {
     companyId = (await createTestCompany()).id;
     userId = (await createTestUser(companyId)).id;
-    categoryId = (await createTestCategory(companyId)).id;
+    categoryId = (await createTestCategory(companyId, { reqTaskDescription: false })).id;
     const resourceId = (await createTestResource(companyId)).id;
     sessionId = (
       await WorkerSessionService.createWizardSession(userId, companyId, { categoryId, resourceId })

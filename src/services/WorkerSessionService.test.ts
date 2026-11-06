@@ -1,3 +1,13 @@
+function queryRows<T>(rows: T[]) {
+  const chain = {
+    from: () => chain,
+    where: () => chain,
+    for: () => Promise.resolve(rows),
+    limit: () => Promise.resolve(rows),
+    then: Promise.resolve(rows).then.bind(Promise.resolve(rows)),
+  };
+  return chain;
+}
 vi.mock("@/services/lockSessionStart", () => ({
   lockSessionStart: vi.fn().mockResolvedValue(undefined),
 }));
@@ -61,6 +71,9 @@ vi.mock("@/db", () => ({
 }));
 
 vi.mock("@/db/schema", () => ({
+  workOrderSpareParts: { id: "id", workOrderId: "workOrderId" },
+  materialStockIssues: { id: "id", workOrderId: "workOrderId" },
+  stockIssues: { id: "id", workOrderId: "workOrderId" },
   workSessions: {
     id: "id",
     companyId: "companyId",
@@ -164,6 +177,9 @@ describe("WorkerSessionService", () => {
     updateMock.mockReset();
     deleteMock.mockReset();
     transactionMock.mockReset();
+    transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) =>
+      cb({ select: () => queryRows([]) })
+    );
   });
 
   describe("getActiveSessionWithDetails", () => {
@@ -339,7 +355,13 @@ describe("WorkerSessionService", () => {
       const txWhere = vi.fn().mockResolvedValue(undefined);
       const txSet = vi.fn().mockReturnValue({ where: txWhere });
       const txUpdate = vi.fn().mockReturnValue({ set: txSet });
-      const tx = { update: txUpdate };
+      const tx = {
+        update: txUpdate,
+        select: vi
+          .fn()
+          .mockReturnValueOnce(queryRows([{ ...sessionRow, startTime: new Date() }]))
+          .mockReturnValue(queryRows([])),
+      };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => cb(tx));
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
@@ -385,7 +407,14 @@ describe("WorkerSessionService", () => {
       const deleteWhere = vi.fn().mockResolvedValue(undefined);
       const txDelete = vi.fn().mockReturnValue({ where: deleteWhere });
 
-      const tx = { update: txUpdate, delete: txDelete };
+      const tx = {
+        update: txUpdate,
+        delete: txDelete,
+        select: vi
+          .fn()
+          .mockReturnValueOnce(queryRows([{ ...sessionRow, startTime: new Date() }]))
+          .mockReturnValue(queryRows([])),
+      };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => cb(tx));
 
       const { WorkerSessionService } = await import("./WorkerSessionService");
@@ -679,7 +708,13 @@ describe("WorkerSessionService", () => {
       const txInsert = vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({ returning: returningMock }),
       });
-      const tx = { insert: txInsert };
+      const tx = {
+        insert: txInsert,
+        select: vi
+          .fn()
+          .mockReturnValueOnce(queryRows([{ isActive: true, canCreateOwnOrders: true }]))
+          .mockReturnValue(queryRows([{ isGroup: false, reqTaskDescription: true }])),
+      };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<unknown>) => cb(tx));
 
       const { WorkerSessionService } = await import("./WorkerSessionService");

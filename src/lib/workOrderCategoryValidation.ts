@@ -19,6 +19,7 @@ export type WorkOrderCategoryValidationPayload = {
   taskDescription?: unknown;
   repairDescription?: unknown;
   orderType?: unknown;
+  expectedDurationHours?: unknown;
 };
 
 /**
@@ -31,11 +32,32 @@ export function validateWorkOrderFieldsAgainstCategory(
 ):
   | "ok"
   | "invalid_category"
+  | "invalid_payload"
   | "missing_customer"
   | "missing_material"
   | "missing_quantity"
   | "missing_task_description" {
   if (!cat) return "invalid_category";
+  if (
+    payload.orderType != null &&
+    payload.orderType !== "machine_work" &&
+    payload.orderType !== "machine_repair"
+  )
+    return "invalid_payload";
+  for (const value of [payload.quantityTons, payload.expectedDurationHours]) {
+    if (value == null || value === "") continue;
+    if (
+      (typeof value !== "number" && typeof value !== "string") ||
+      !/^\d+(?:[.,]\d+)?$/.test(String(value).trim()) ||
+      Number(String(value).trim().replace(",", ".")) <= 0 ||
+      !Number.isFinite(Number(String(value).trim().replace(",", ".")))
+    )
+      return "invalid_payload";
+  }
+  for (const value of [payload.taskDescription, payload.repairDescription]) {
+    if (value != null && (typeof value !== "string" || value.length > 4000))
+      return "invalid_payload";
+  }
 
   const orderType = resolveOrderKind(payload.orderType, cat.orderType);
   const isRepair = isRepairOrderType(orderType);

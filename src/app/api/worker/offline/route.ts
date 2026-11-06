@@ -13,9 +13,15 @@ export const POST = withApiErrorHandling(
   {
     mapUnknownError: (error) =>
       error instanceof Error &&
-      ["offline_conflict", "invalid_payload", "invalid_photo_data", "note_too_long"].includes(
-        error.message
-      )
+      [
+        "offline_conflict",
+        "invalid_payload",
+        "invalid_photo_data",
+        "note_too_long",
+        "photo_required",
+        "cancel_window_expired",
+        "session_has_parts",
+      ].includes(error.message)
         ? jsonError(error.message, 409)
         : null,
   }

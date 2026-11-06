@@ -160,6 +160,12 @@ export const de: AppDictionary = {
     invalid_user: "Ungültiger Benutzer — wählen Sie eine Person aus diesem Unternehmen.",
     short_query: "Geocode-Abfrage ist zu kurz (min. 3 Zeichen).",
     query_too_long: "Geocode-Abfrage ist zu lang (max. 280 Zeichen).",
+    photo_required: "Fügen Sie vor dem Abschluss ein Foto hinzu.",
+    cancel_window_expired: "Die Frist zum Rückgängigmachen des Arbeitsbeginns ist abgelaufen.",
+    session_has_parts:
+      "Für diese Reparatur wurden Teile ausgegeben. Klären Sie diese vor dem Zurücksetzen der Sitzung.",
+    order_has_history:
+      "Aufträge mit Arbeitsverlauf oder Lagerbewegungen können nicht gelöscht werden. Erfassen Sie Rückgaben separat.",
     invalid_category: "Fehlende oder ungültige Auftragskategorie.",
     missing_customer: "Diese Auftragskategorie erfordert die Auswahl eines Kunden.",
     missing_material: "Diese Auftragskategorie erfordert die Auswahl eines Materials.",

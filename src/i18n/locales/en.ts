@@ -155,6 +155,11 @@ export const en: AppDictionary = {
     invalid_unit: "Invalid unit of measure.",
     short_query: "Geocode query is too short (min. 3 characters).",
     query_too_long: "Geocode query is too long (max. 280 characters).",
+    photo_required: "Add a photo before finishing the session.",
+    cancel_window_expired: "The time allowed to undo starting work has expired.",
+    session_has_parts: "This repair has issued parts. Reconcile them before undoing the session.",
+    order_has_history:
+      "Orders with work history or stock movements cannot be deleted. Record returns separately.",
     invalid_category: "Missing or invalid order category.",
     missing_customer: "This order category requires selecting a customer.",
     missing_material: "This order category requires selecting a material.",

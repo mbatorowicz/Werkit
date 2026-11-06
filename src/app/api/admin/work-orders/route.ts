@@ -1,3 +1,4 @@
+import { mapSessionDomainError } from "@/lib/sessionDomainErrors";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +60,7 @@ export const POST = withApiErrorHandling(
         customerId,
         materialId,
         quantityTons,
+        expectedDurationHours,
         taskDescription,
         repairDescription,
         orderType: body.orderType,
@@ -132,6 +134,8 @@ export const POST = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
+      const domainError = mapSessionDomainError(err);
+      if (domainError) return domainError;
       if (isMissingWorkOrderRepairColumns(err)) {
         console.error("[admin/work-orders] Brak kolumn order_type / repair_* — uruchom migracje.");
         return jsonError("save_error", 503);

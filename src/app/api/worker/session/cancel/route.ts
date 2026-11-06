@@ -1,3 +1,4 @@
+import { mapSessionDomainError } from "@/lib/sessionDomainErrors";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { WorkerSessionService } from "@/services/WorkerSessionService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
@@ -8,6 +9,8 @@ export const POST = withApiErrorHandling(
     if (!ctx.ok) return ctx.response;
 
     const body = await parseJsonBody(request);
+    if (!Number.isSafeInteger(body.sessionId) || Number(body.sessionId) < 1)
+      return jsonError("invalid_payload", 400);
     await WorkerSessionService.cancelActiveSession(
       ctx.userId,
       ctx.companyId,
@@ -19,7 +22,7 @@ export const POST = withApiErrorHandling(
     mapUnknownError: (err) =>
       err instanceof Error && err.message === "no_active_session"
         ? jsonError("no_active_session", 404)
-        : null,
+        : mapSessionDomainError(err),
     defaultErrorCode: "save_error",
   }
 );

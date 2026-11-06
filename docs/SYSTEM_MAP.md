@@ -254,7 +254,7 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/admin/work-orders` | POST | `guardDispatchMutation` (admin **lub** lider/kierownik z org) → tworzy zlecenie + `DelegationScopeService.assertCanDelegateTo` na `userId` + walidacja kategorii + konflikt harmonogramu. 403 `forbidden` / `invalid_assignee`. UI: panel inline w `OrderFormModal`. |
 | `/api/admin/work-orders/schedule-conflicts` | GET | Podgląd konfliktów (admin); bez terminu → konflikty `resource_busy` |
 | `/api/admin/work-orders/[id]` | PUT | `guardDispatchMutation` + `assertCanDelegateTo` przy zmianie `userId`; `assertOrderEntitiesBelongToCompany`; edycja (sprawdza `not_pending`); konflikt harmonogramu (+ `forceSave`) |
-| `/api/admin/work-orders/[id]` | DELETE | `AdminOrderService.deleteOrder` — PZ zwrotów materiału + kasuje sesje i zlecenie (transakcja) |
+| `/api/admin/work-orders/[id]` | DELETE | `AdminOrderService.deleteOrder` → `OrderDeletionService.deleteUnused`: tylko niewykorzystane PENDING/CANCELLED; historia blokuje usunięcie (409), bez PZ i kasowania sesji |
 | `/api/admin/archive` | GET | `AdminOrderService.getArchivedSessions` (limit 500) |
 | `/api/admin/logs/export` | GET | `requireAdminPanelSession` + `SystemLogService.getRecentLogs(DEVICE_LOGS_EXPORT_MAX)` → JSON; 5/15 min/firmę (`too_many_exports`); GET dla ról admin, viewer |
 | `/api/admin/work-sessions/[id]` | GET | `AdminSessionService.getSessionDetails` — logi GPS + zdjęcia + notatki |
@@ -291,7 +291,7 @@ Każda trasa w `categories|customers|materials|machines|material-categories` ma 
 | `/api/materials/stock/issues` | GET | `requireAdminPanelSession` + `MaterialStockMovementService.getIssues` |
 | `/api/materials/stock/issues` | POST `{materialId, quantity, workOrderId?, notes?}` | `MaterialStockMovementService.addIssue` — ręczne WZ |
 
-**Automatyczne ruchy magazynowe materiałów** (przy `materialId` + `quantityTons` > 0): **WZ** przy starcie sesji (`WorkerOrderService.acceptOrder`, `WorkerSessionService.createWizardSession` → `WorkSessionMaterialService.issueForSessionStart`); **PZ zwrot** przy cofnięciu (`cancelActiveSession`, `AdminOrderService.deleteOrder`, `AdminSessionService.deleteArchivedSession` → `returnForSessionIfIssued`). Błędy: `MaterialStockMovementError` (`insufficient_stock`, `material_not_found`) — mapowane w API worker accept/session.
+**Automatyczne ruchy magazynowe materiałów** (przy `materialId` + `quantityTons` > 0): **WZ** przy starcie sesji (`WorkerOrderService.acceptOrder`, `WorkerSessionService.createWizardSession` → `WorkSessionMaterialService.issueForSessionStart`); **PZ zwrot** przy cofnięciu (`cancelActiveSession` → `returnForSessionIfIssued`; usuwanie archiwum/zlecenia nie tworzy PZ). Błędy: `MaterialStockMovementError` (`insufficient_stock`, `material_not_found`) — mapowane w API worker accept/session.
 
 ### 5.6. DUR (części zamienne)
 
@@ -383,7 +383,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 - `getArchivedSessions(limit=500)` — sesje z JOIN-ami pracownika/maszyny/itp.
 - `createOrder(orderData, { actorUserId, actorRole }?)` — opcjonalnie `DelegationScopeService.assertCanDelegateTo` na `userId`.
 - `updateOrder(orderId, updates, { actorUserId, actorRole }?)` — jak wyżej przy zmianie `userId`; `assertOrderEntitiesBelongToCompany` na update; rzuca `not_found` lub `not_pending`.
-- `deleteOrder(companyId, orderId, actorUserId?)` — transakcja: PZ zwrotów materiału dla sesji zlecenia, kasuje sesje, potem zlecenie.
+- `deleteOrder(companyId, orderId, actorUserId?)` — deleguje do `OrderDeletionService`; blokuje zlecenie i odrzuca usunięcie przy sesjach, częściach lub WZ. Nie zmienia magazynu.
 
 ### `AdminSessionService`
 - `getSessionDetails(sessionId)` — logi GPS, zdjęcia, notatki (sortowane od najnowszych).
@@ -487,7 +487,7 @@ Wszystkie metody `static async` (świadomy prosty wzorzec, nie DI). Każdy serwi
 ### `WorkSessionMaterialService` (`src/services/materials/WorkSessionMaterialService.ts`)
 - `issueForSessionStart` — WZ przy `acceptOrder` / `createWizardSession` gdy `materialId` + `quantityTons` > 0.
 - `returnForSessionIfIssued` — PZ zwrot przy anulowaniu/usuwaniu sesji (idempotentne).
-- `returnForOrderSessions` — PZ dla wszystkich sesji zlecenia (`deleteOrder`).
+- `returnForOrderSessions` — legacy helper; nie używany przy usuwaniu zlecenia.
 
 ### `OrganizationService` (`src/services/OrganizationService.ts`)
 - CRUD `departments`, `teams`, `team_members` — **zawsze** `companyId` (ten sam wzorzec co słowniki: `WHERE id AND company_id`). Obce ID → brak wiersza / 404; relacje (`parentId`, `departmentId`, `leaderId`, `userId`) → 400 `invalid_parent` / `invalid_team` / `invalid_user` (bez `cross_tenant`).
@@ -877,3 +877,12 @@ Zastępuje ograniczenie poprzedniego pakietu A07. `public/sw-account.js` (import
 Logowanie/wylogowanie oraz impersonacja unieważniają migawkę przed żądaniem. Epoka blokuje spóźnione odpowiedzi, stan blokady jest trwały między procesami SW. Wylogowanie bez sieci kończone jest na serwerze przed ponownym wejściem do chronionego ekranu, aby nie przywrócić starego cookie. Zmiana konta wymaga internetu. Cofnięcia uprawnień nie można wykryć podczas fizycznego braku łączności — lokalny dostęp ogranicza TTL; odmowa 401/403 online unieważnia migawkę.
 
 `offlineOwner.ts` odczytuje właściciela z metadanych renderowanych przez worker layout. Kolejki IndexedDB zapisują i filtrują owner; serwer sprawdza nagłówek X-Werkit-Offline-Owner przed wysyłką do handlera. `recoverQueueOwners.ts` wiąże starsze wpisy z sessionId dopiero po odpowiedzi `/api/worker/offline-ownership` (GpsService.ownedSessionIds, filtr user/company). Bez sessionId wpisy zostają na dysku, ale nie są pokazywane przypadkowemu kontu. Brak migracji DB. Lokalnie zakończona sesja nie jest przywracana przez odczyt starej migawki API; znacznik zatrzymania GPS pozostaje trwały.
+
+
+## Serwerowe reguły sesji i usuwania (2026-11-06)
+
+`sessionTransitionPolicy` współdzielony przez WorkerSessionService i OfflineOperationService: blokada aktywnej sesji, granice czasu zdarzenia, wymagane zdjęcie z zapisanej session_photos, limit anulowania oraz zakaz anulowania po dodaniu części. Offline liczy okno anulowania według occurredAt (czasu deklarowanego przez klienta); nie jest to kryptograficzny dowód czasu pracy. Bezpośrednie zakończenie/anulowanie API wymaga sessionId.
+
+Kreator wymaga aktywnego konta z canCreateOwnOrders; naprawa także durEnabled i isDurWorker. Akceptacja zlecenia sprawdza bieżącą kategorię, wymagane pola oraz zgodność danych po zablokowaniu zlecenia. Edycja administratora blokuje rekord; edycja pracownika zapisuje tylko nadal PENDING. Identyfikatory nie są obcinane parseInt, ilości/czas muszą być dodatnimi liczbami dziesiętnymi, opisy mają limit 4000 znaków.
+
+`OrderDeletionService` obsługuje wspólną regułę admin/worker: usunięcie tylko PENDING/CANCELLED bez sesji, przypisań części ani WZ. `AdminSessionService.deleteArchivedSession` blokuje archiwum powiązane ze zleceniem lub WZ materiału; nigdy nie tworzy PZ ani nie kasuje zlecenia. Rzeczywisty zwrot to osobna operacja magazynowa. Testy integracyjne: `PilotSessionPolicy.int.test.ts`.

@@ -1,3 +1,4 @@
+import { mapSessionDomainError } from "@/lib/sessionDomainErrors";
 import { jsonError, jsonOk, parseJsonBodyOrEmpty, withApiErrorHandling } from "@/lib/apiRoute";
 import { coordsFromRequestBody } from "@/lib/coordsFromRequestBody";
 import { parsePositiveIntFromString } from "@/lib/parseRouteParams";
@@ -29,6 +30,8 @@ export const POST = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
+      const domainError = mapSessionDomainError(err);
+      if (domainError) return domainError;
       if (err instanceof Error && err.message === "order_not_found")
         return jsonError("order_not_found", 404);
       if (err instanceof Error && err.message === "session_active")

@@ -155,6 +155,11 @@ export const pl = {
     invalid_unit: "Nieprawidłowa jednostka miary.",
     short_query: "Zapytanie geokodowania jest za krótkie (min. 3 znaki).",
     query_too_long: "Zapytanie geokodowania jest za długie (maks. 280 znaków).",
+    photo_required: "Przed zakończeniem sesji dodaj zdjęcie.",
+    cancel_window_expired: "Upłynął czas na cofnięcie rozpoczęcia pracy.",
+    session_has_parts: "Ta naprawa ma pobrane części. Rozlicz je przed cofnięciem sesji.",
+    order_has_history:
+      "Nie można usunąć zlecenia z historią pracy lub ruchami magazynowymi. Zwrot zarejestruj osobno.",
     invalid_category: "Brak lub nieprawidłowa kategoria zlecenia.",
     missing_customer: "Ta kategoria zlecenia wymaga wyboru klienta.",
     missing_material: "Ta kategoria zlecenia wymaga wyboru materiału.",

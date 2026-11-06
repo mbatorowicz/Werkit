@@ -25,6 +25,7 @@ vi.mock("@/db/schema", () => ({
   gpsLogs: { workSessionId: "workSessionId", timestamp: "timestamp" },
   sessionPhotos: { workSessionId: "workSessionId", createdAt: "createdAt" },
   sessionNotes: { workSessionId: "workSessionId", createdAt: "createdAt" },
+  materialStockIssues: { id: "id", workSessionId: "workSessionId" },
   workOrders: { id: "id", companyId: "companyId", status: "status" },
 }));
 
@@ -147,51 +148,35 @@ describe("AdminSessionService", () => {
   });
 
   describe("deleteArchivedSession", () => {
-    it("usuwa zakończoną sesję i powiązane zlecenie", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: 42, companyId: 1 }]),
-          }),
-        }),
+    function setup(rows: unknown[], issues: unknown[] = []) {
+      const chain = (data: unknown[]) => ({
+        from: () => ({ where: () => ({ for: async () => data, limit: async () => data }) }),
       });
-      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
-        const tx = { delete: vi.fn(() => ({ where: () => Promise.resolve() })) };
-        await cb(tx);
-      });
-
-      const { AdminSessionService } = await import("@/services/AdminSessionService");
-      await AdminSessionService.deleteArchivedSession(1, 1);
-
-      expect(transactionMock).toHaveBeenCalledTimes(1);
-    });
-
-    it("rzuca błąd gdy sesja jest wciąż aktywna", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({
-            limit: () =>
-              Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: null, companyId: 1 }]),
-          }),
-        }),
-      });
-
-      const { AdminSessionService } = await import("@/services/AdminSessionService");
-      await expect(AdminSessionService.deleteArchivedSession(1, 1)).rejects.toThrow(
-        "session_still_active"
+      const txDelete = vi.fn(() => ({ where: async () => undefined }));
+      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) =>
+        cb({
+          select: vi.fn().mockReturnValueOnce(chain(rows)).mockReturnValue(chain(issues)),
+          delete: txDelete,
+        })
       );
+      return txDelete;
+    }
+    it("deletes only unlinked history without stock movements", async () => {
+      const remove = setup([{ id: 1, status: "COMPLETED", workOrderId: null }]);
+      const { AdminSessionService } = await import("./AdminSessionService");
+      await AdminSessionService.deleteArchivedSession(1, 1);
+      expect(remove).toHaveBeenCalledTimes(1);
     });
-
-    it("rzuca błąd gdy sesja nie istnieje", async () => {
-      selectMock.mockReturnValueOnce({
-        from: () => ({
-          where: () => ({ limit: () => Promise.resolve([]) }),
-        }),
-      });
-
-      const { AdminSessionService } = await import("@/services/AdminSessionService");
-      await expect(AdminSessionService.deleteArchivedSession(1, 999)).rejects.toThrow("not_found");
+    it.each([
+      [[{ id: 1, status: "COMPLETED", workOrderId: 42 }], [], "order_has_history"],
+      [[{ id: 1, status: "COMPLETED", workOrderId: null }], [{ id: 2 }], "order_has_history"],
+      [[{ id: 1, status: "IN_PROGRESS", workOrderId: null }], [], "session_still_active"],
+      [[], [], "not_found"],
+    ])("protects session history %#", async (rows, issues, code) => {
+      const remove = setup(rows as unknown[], issues as unknown[]);
+      const { AdminSessionService } = await import("./AdminSessionService");
+      await expect(AdminSessionService.deleteArchivedSession(1, 1)).rejects.toThrow(code as string);
+      expect(remove).not.toHaveBeenCalled();
     });
   });
 });

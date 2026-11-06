@@ -1,15 +1,15 @@
 /** Parsowanie dodatnich identyfikatorów z segmentów URL lub pól JSON (API). */
 
 export function parsePositiveIntFromString(raw: string): number | null {
-  const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n) || n < 1) return null;
-  return n;
+  return parsePositiveIntParam(raw);
 }
 
 export function parsePositiveIntParam(value: unknown): number | null {
   if (value === null || value === undefined) return null;
-  const n = typeof value === "number" ? value : Number.parseInt(String(value), 10);
-  if (!Number.isFinite(n) || n < 1 || !Number.isInteger(n)) return null;
+  if (typeof value !== "number" && (typeof value !== "string" || !/^\d+$/.test(value.trim())))
+    return null;
+  const n = Number(value);
+  if (!Number.isSafeInteger(n) || n < 1) return null;
   return n;
 }
 
@@ -35,6 +35,13 @@ export type ParsedOrderBody = {
 };
 
 export function parseOrderBody(body: Record<string, unknown>): ParsedOrderBody {
+  for (const key of ["taskDescription", "repairDescription", "orderType", "dueDate", "priority"]) {
+    if (body[key] != null && typeof body[key] !== "string") throw new Error("invalid_payload");
+  }
+  for (const key of ["quantityTons", "expectedDurationHours"]) {
+    if (body[key] != null && typeof body[key] !== "string" && typeof body[key] !== "number")
+      throw new Error("invalid_payload");
+  }
   const categoryId = parsePositiveIntParam(body.categoryId);
   const resourceId = parsePositiveIntParam(body.resourceId);
   if (categoryId == null || resourceId == null) {

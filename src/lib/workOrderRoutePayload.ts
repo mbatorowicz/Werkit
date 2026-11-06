@@ -1,3 +1,5 @@
+import { parsePositiveIntParam } from "./parseRouteParams";
+
 export type WorkOrderRoutePayload = {
   userId: unknown;
   resourceId: unknown;
@@ -14,6 +16,17 @@ export type WorkOrderRoutePayload = {
 };
 
 export function parseWorkOrderRoutePayload(body: Record<string, unknown>): WorkOrderRoutePayload {
+  for (const key of ["materialId", "customerId"]) {
+    if (body[key] != null && body[key] !== "" && parsePositiveIntParam(body[key]) === null)
+      throw new Error("invalid_payload");
+  }
+  for (const key of ["taskDescription", "repairDescription", "orderType", "dueDate"]) {
+    if (body[key] != null && typeof body[key] !== "string") throw new Error("invalid_payload");
+  }
+  for (const key of ["quantityTons", "expectedDurationHours"]) {
+    if (body[key] != null && typeof body[key] !== "string" && typeof body[key] !== "number")
+      throw new Error("invalid_payload");
+  }
   return {
     userId: body.userId,
     resourceId: body.resourceId,
@@ -33,7 +46,7 @@ export function parseWorkOrderRoutePayload(body: Record<string, unknown>): WorkO
         : null,
     priority: body.priority,
     dueDate: typeof body.dueDate === "string" ? body.dueDate : null,
-    forceSave: Boolean(body.forceSave),
+    forceSave: body.forceSave === true,
   };
 }
 
@@ -42,19 +55,9 @@ export function parseWorkOrderRequiredIds(payload: {
   resourceId: unknown;
   categoryId: unknown;
 }): { uidNum: number; resIdNum: number; catIdNum: number } | null {
-  const uidNum = parseInt(String(payload.userId), 10);
-  const resIdNum = parseInt(String(payload.resourceId), 10);
-  const catIdNum = parseInt(String(payload.categoryId), 10);
-
-  if (
-    !payload.userId ||
-    !payload.resourceId ||
-    !payload.categoryId ||
-    Number.isNaN(uidNum) ||
-    Number.isNaN(resIdNum) ||
-    Number.isNaN(catIdNum)
-  ) {
-    return null;
-  }
+  const uidNum = parsePositiveIntParam(payload.userId);
+  const resIdNum = parsePositiveIntParam(payload.resourceId);
+  const catIdNum = parsePositiveIntParam(payload.categoryId);
+  if (uidNum === null || resIdNum === null || catIdNum === null) return null;
   return { uidNum, resIdNum, catIdNum };
 }

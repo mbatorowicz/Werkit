@@ -1,6 +1,13 @@
 import { lockSessionStart } from "@/services/lockSessionStart";
 import { db } from "@/db";
-import { workOrders, customers, workSessions, users } from "@/db/schema";
+import {
+  workOrders,
+  customers,
+  workSessions,
+  users,
+  resourceCategories,
+  companySettings,
+} from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import {
   applyWorkOrderListJoins,
@@ -14,6 +21,7 @@ import { ScheduleConflictService } from "@/services/ScheduleConflictService";
 import {
   coerceWorkOrderPriority,
   validateCategoryForOrder,
+  validateWorkOrderFieldsAgainstCategory,
 } from "@/lib/workOrderCategoryValidation";
 import { resolveOrderKind } from "@/lib/categoryPolicy";
 import { sessionInsertFromAcceptedOrder } from "@/lib/sessionSnapshotFromOrder";
@@ -125,6 +133,43 @@ export class WorkerOrderService {
         .for("update");
       if (!current || current.status !== "PENDING") throw new Error("not_pending");
       if (current.resourceId !== order.resourceId) throw new Error("invalid_payload");
+      const snapshotFields = [
+        "categoryId",
+        "materialId",
+        "customerId",
+        "customerLocationId",
+        "orderType",
+        "repairDescription",
+        "taskDescription",
+        "quantityTons",
+        "expectedDurationHours",
+        "dueDate",
+        "lockedUntil",
+      ] as const;
+      if (snapshotFields.some((key) => String(current[key]) !== String(order[key])))
+        throw new Error("invalid_payload");
+      if (current.categoryId === null) throw new Error("invalid_category");
+      const [category] = await tx
+        .select()
+        .from(resourceCategories)
+        .where(
+          and(
+            eq(resourceCategories.id, current.categoryId),
+            eq(resourceCategories.companyId, companyId)
+          )
+        )
+        .for("share");
+      if (!category || category.isGroup) throw new Error("invalid_category");
+      const validation = validateWorkOrderFieldsAgainstCategory(category, current);
+      if (validation !== "ok") throw new Error(validation);
+      if (resolveOrderKind(current.orderType, category.orderType) === "machine_repair") {
+        const [worker] = await tx.select().from(users).where(eq(users.id, userId));
+        const [settings] = await tx
+          .select()
+          .from(companySettings)
+          .where(eq(companySettings.companyId, companyId));
+        if (!worker?.isDurWorker || !settings?.durEnabled) throw new Error("forbidden");
+      }
       await tx
         .update(workOrders)
         .set({
@@ -204,6 +249,7 @@ export class WorkerOrderService {
       customerId: payload.customerId,
       materialId: payload.materialId,
       quantityTons: payload.quantityTons,
+      expectedDurationHours: payload.expectedDurationHours,
       taskDescription: payload.taskDescription,
       repairDescription: payload.repairDescription,
       orderType: payload.orderType,
@@ -348,6 +394,7 @@ export class WorkerOrderService {
       customerId: payload.customerId,
       materialId: payload.materialId,
       quantityTons: payload.quantityTons,
+      expectedDurationHours: payload.expectedDurationHours,
       taskDescription: payload.taskDescription,
       repairDescription: payload.repairDescription,
       orderType: payload.orderType,
@@ -379,7 +426,7 @@ export class WorkerOrderService {
 
     const prio = coerceWorkOrderPriority(payload.priority);
 
-    await db
+    const changed = await db
       .update(workOrders)
       .set({
         resourceId: payload.resourceId,
@@ -402,9 +449,12 @@ export class WorkerOrderService {
         and(
           eq(workOrders.id, orderId),
           eq(workOrders.companyId, companyId),
-          eq(workOrders.userId, userId)
+          eq(workOrders.userId, userId),
+          eq(workOrders.status, "PENDING")
         )
-      );
+      )
+      .returning({ id: workOrders.id });
+    if (!changed.length) throw new Error("not_pending");
   }
 
   static async deleteOwnOrder(userId: number, companyId: number, orderId: number) {
@@ -420,17 +470,7 @@ export class WorkerOrderService {
       throw new Error("forbidden");
     }
 
-    await db.transaction(async (tx) => {
-      await tx.delete(workSessions).where(eq(workSessions.workOrderId, orderId));
-      await tx
-        .delete(workOrders)
-        .where(
-          and(
-            eq(workOrders.id, orderId),
-            eq(workOrders.companyId, companyId),
-            eq(workOrders.userId, userId)
-          )
-        );
-    });
+    const { OrderDeletionService } = await import("./OrderDeletionService");
+    await OrderDeletionService.deleteUnused(companyId, orderId, userId);
   }
 }

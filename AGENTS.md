@@ -111,7 +111,7 @@ src/
 Serwisy to docelowe miejsce na **`db.select` / `insert` / `update`** i mapowanie na typy domenowe.
 
 Przykłady klas (pełna lista w [`docs/SYSTEM_MAP.md`](./docs/SYSTEM_MAP.md)):
-`WorkerOrderService`, `WorkerSessionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AuthPrincipalService`, `LoginRateLimitService`, `DeviceLogRateLimitService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformTenantUserService`, `PlatformAuditService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`, jądro `services/warehouse/`.
+`WorkerOrderService`, `WorkerSessionService`, `OrderDeletionService`, `AdminOrderService`, `AdminSessionService`, `AdminUserService`, `AuthPrincipalService`, `LoginRateLimitService`, `DeviceLogRateLimitService`, `AdminReportService`, `DictionaryService`, `SystemLogService`, `GpsService`, `ScheduleConflictService`, `CustomerLocationService`, `PlatformCompanyService`, `PlatformTenantUserService`, `PlatformAuditService`, `PlatformAnalyticsService`, `PlatformFeatureFlagService`, `WorkOrderSparePartService`, `InventoryService`, `StockMovementService`, jądro `services/warehouse/`.
 
 **Zasada:** Admin i Worker korzystają z **tych samych reguł biznesowych** tam, gdzie to możliwe (np. lista / akceptacja zleceń przez serwis worker).
 

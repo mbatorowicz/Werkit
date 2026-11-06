@@ -1,3 +1,4 @@
+import { mapSessionDomainError } from "@/lib/sessionDomainErrors";
 import {
   jsonError,
   jsonOk,
@@ -37,6 +38,8 @@ export const POST = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
+      const domainError = mapSessionDomainError(err);
+      if (domainError) return domainError;
       if (err instanceof Error && err.message === "session_active")
         return jsonError("session_active", 400);
       if (err instanceof Error && err.message === "resource_busy")
@@ -54,6 +57,8 @@ export const PUT = withApiErrorHandling(
     if (!ctx.ok) return ctx.response;
 
     const body = await parseJsonBodyOrEmpty(request);
+    if (!Number.isSafeInteger(body.sessionId) || Number(body.sessionId) < 1)
+      return jsonError("invalid_payload", 400);
     const endCoord = coordsFromRequestBody(body);
 
     await WorkerSessionService.endActiveSession(
@@ -67,6 +72,8 @@ export const PUT = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
+      const domainError = mapSessionDomainError(err);
+      if (domainError) return domainError;
       if (err instanceof Error && err.message === "no_active_session")
         return jsonError("no_active_session", 400);
       return null;

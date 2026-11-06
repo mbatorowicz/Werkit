@@ -1,4 +1,15 @@
+import {
+  lockActiveSession,
+  sessionEventTime,
+  assertSessionTransition,
+} from "./sessionTransitionPolicy";
 import { lockSessionStart } from "@/services/lockSessionStart";
+import { validateWorkOrderFieldsAgainstCategory } from "@/lib/workOrderCategoryValidation";
+import { resolveOrderKind } from "@/lib/categoryPolicy";
+import {
+  buildWorkOrderDescriptionFields,
+  normalizeWorkOrderMaterialFieldsForCategory,
+} from "@/lib/workOrderCategoryFields";
 import { db } from "@/db";
 import {
   workSessions,
@@ -190,8 +201,6 @@ export class WorkerSessionService {
     const catId = parsed.categoryId;
     const matId = parsed.materialId;
     const custId = parsed.customerId;
-    const taskDescription = parsed.taskDescription ?? undefined;
-    const quantityTons = parsed.quantityTons;
 
     const startCoord = coordsFromRequestBody(body);
 
@@ -228,6 +237,33 @@ export class WorkerSessionService {
 
     const newSession = await db.transaction(async (tx) => {
       await lockSessionStart(tx, companyId, userId, resId);
+      const [worker] = await tx
+        .select()
+        .from(users)
+        .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
+      if (!worker?.isActive || !worker.canCreateOwnOrders) throw new Error("forbidden");
+      const [category] = await tx
+        .select()
+        .from(resourceCategories)
+        .where(and(eq(resourceCategories.id, catId), eq(resourceCategories.companyId, companyId)))
+        .for("share");
+      if (!category || category.isGroup) throw new Error("invalid_category");
+      const validation = validateWorkOrderFieldsAgainstCategory(category, parsed);
+      if (validation !== "ok") throw new Error(validation);
+      const orderType = resolveOrderKind(parsed.orderType, category.orderType);
+      if (orderType === "machine_repair") {
+        const [settings] = await tx
+          .select()
+          .from(companySettings)
+          .where(eq(companySettings.companyId, companyId));
+        if (!settings?.durEnabled || !worker.isDurWorker) throw new Error("forbidden");
+      }
+      const descriptions = buildWorkOrderDescriptionFields(orderType, category, parsed);
+      const { materialId, quantityTons } = normalizeWorkOrderMaterialFieldsForCategory(
+        category,
+        matId,
+        parsed.quantityTons
+      );
       const [row] = await tx
         .insert(workSessions)
         .values({
@@ -235,10 +271,11 @@ export class WorkerSessionService {
           userId,
           resourceId: resId,
           categoryId: catId,
-          materialId: matId || null,
+          materialId,
           customerId: custId || null,
           quantityTons: quantityTons || null,
-          taskDescription: taskDescription || null,
+          ...descriptions,
+          orderType,
           status: "IN_PROGRESS",
           ...(startNums
             ? {
@@ -249,7 +286,7 @@ export class WorkerSessionService {
         })
         .returning();
 
-      if (matId && quantityTons) {
+      if (materialId && quantityTons) {
         const { WorkSessionMaterialService } =
           await import("@/services/materials/WorkSessionMaterialService");
         await WorkSessionMaterialService.issueForSessionStart(
@@ -258,7 +295,7 @@ export class WorkerSessionService {
           {
             workSessionId: row.id,
             workOrderId: null,
-            materialId: matId,
+            materialId,
             quantityTons: String(quantityTons),
             issuedTo: userId,
           },
@@ -282,51 +319,25 @@ export class WorkerSessionService {
     expectedSessionId?: number,
     occurredAt?: string
   ) {
-    const existing = await db
-      .select()
-      .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
-      .limit(1);
-
-    if (existing.length === 0) {
-      throw new Error("no_active_session");
-    }
-
-    const row = existing[0];
-    const sessionId = row.id;
-    const endTime = occurredAt ? new Date(occurredAt) : new Date();
-    if (
-      !Number.isFinite(endTime.getTime()) ||
-      endTime.getTime() < new Date(row.startTime).getTime() ||
-      endTime.getTime() > Date.now() + 60_000
-    )
-      throw new Error("invalid_payload");
     const endNums = endCoord ? coordPairToNumericStrings(endCoord) : null;
-
-    // Transakcja: UPDATE work_sessions + UPDATE work_orders atomowo
     await db.transaction(async (tx) => {
+      const row = await lockActiveSession(tx, userId, companyId, expectedSessionId);
+      const endTime = sessionEventTime(row, occurredAt);
+      await assertSessionTransition(tx, row, "end", endTime);
       await tx
         .update(workSessions)
         .set({
           status: "COMPLETED",
           endTime,
-          ...(endNums
-            ? {
-                endLatitude: endNums.lat,
-                endLongitude: endNums.lng,
-              }
-            : {}),
+          ...(endNums ? { endLatitude: endNums.lat, endLongitude: endNums.lng } : {}),
         })
-        .where(eq(workSessions.id, sessionId));
-
-      if (row.workOrderId !== null) {
+        .where(eq(workSessions.id, row.id));
+      if (row.workOrderId !== null)
         await tx
           .update(workOrders)
           .set({ status: "COMPLETED" })
           .where(eq(workOrders.id, row.workOrderId));
-      }
     });
-
     return true;
   }
   static async addNote(
@@ -437,29 +448,19 @@ export class WorkerSessionService {
   }
 
   static async cancelActiveSession(userId: number, companyId: number, expectedSessionId?: number) {
-    const [session] = await db
-      .select()
-      .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
-      .limit(1);
-    if (!session) throw new Error("no_active_session");
-
-    // Transakcja: zwrot materiału + UPDATE work_orders + DELETE work_sessions atomowo
     await db.transaction(async (tx) => {
-      const { WorkSessionMaterialService } =
-        await import("@/services/materials/WorkSessionMaterialService");
+      const session = await lockActiveSession(tx, userId, companyId, expectedSessionId);
+      await assertSessionTransition(tx, session, "cancel", sessionEventTime(session));
+      const { WorkSessionMaterialService } = await import("./materials/WorkSessionMaterialService");
       await WorkSessionMaterialService.returnForSessionIfIssued(companyId, userId, session.id, tx);
-
-      if (session.workOrderId !== null) {
+      if (session.workOrderId !== null)
         await tx
           .update(workOrders)
           .set({ status: "PENDING" })
           .where(eq(workOrders.id, session.workOrderId));
-      }
       await tx.delete(workSessions).where(eq(workSessions.id, session.id));
     });
   }
-
   /**
    * Pobiera historię zakończonych sesji dla pracownika.
    */

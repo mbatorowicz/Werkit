@@ -1,3 +1,5 @@
+import { parsePositiveIntParam } from "@/lib/parseRouteParams";
+import { mapSessionDomainError } from "@/lib/sessionDomainErrors";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { normalizeDecimalBodyField } from "@/lib/decimalInput";
 import {
@@ -33,8 +35,8 @@ export const PUT = withApiErrorHandling(
     const { companyId, userId: actorUserId, role: actorRole } = auth;
 
     const params = await props.params;
-    const orderId = parseInt(params.id, 10);
-    if (Number.isNaN(orderId)) return jsonError("invalid_id", 400);
+    const orderId = parsePositiveIntParam(params.id);
+    if (orderId === null) return jsonError("invalid_id", 400);
 
     const body = await parseJsonBody(request);
     const payload = parseWorkOrderRoutePayload(body);
@@ -65,6 +67,7 @@ export const PUT = withApiErrorHandling(
       customerId,
       materialId,
       quantityTons,
+      expectedDurationHours,
       taskDescription,
       repairDescription,
       orderType: body.orderType,
@@ -138,6 +141,8 @@ export const PUT = withApiErrorHandling(
   },
   {
     mapUnknownError: (err) => {
+      const domainError = mapSessionDomainError(err);
+      if (domainError) return domainError;
       if (isMissingWorkOrderRepairColumns(err)) {
         console.error("[admin/work-orders] Brak kolumn order_type / repair_* — uruchom migracje.");
         return jsonError("save_error", 503);
@@ -157,8 +162,8 @@ export const DELETE = withApiErrorHandling(
     if (denied) return denied;
 
     const params = await props.params;
-    const orderId = parseInt(params.id, 10);
-    if (Number.isNaN(orderId)) return jsonError("invalid_id", 400);
+    const orderId = parsePositiveIntParam(params.id);
+    if (orderId === null) return jsonError("invalid_id", 400);
 
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
@@ -168,7 +173,9 @@ export const DELETE = withApiErrorHandling(
   },
   {
     mapUnknownError: (e) =>
-      e instanceof Error && e.message === "not_found" ? jsonError("not_found", 404) : null,
+      e instanceof Error && e.message === "not_found"
+        ? jsonError("not_found", 404)
+        : mapSessionDomainError(e),
     defaultErrorCode: "delete_error",
   }
 );

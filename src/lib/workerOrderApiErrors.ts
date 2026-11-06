@@ -14,9 +14,13 @@ export const WORKER_ORDER_ERROR_CODES = new Set([
   "missing_task_description",
   "order_not_found",
   "not_pending",
+  "order_has_history",
+  "not_found",
 ]);
 
 export function workerOrderErrorStatus(code: string): number {
+  if (code === "order_has_history") return 409;
+  if (code === "not_found") return 404;
   if (code === "forbidden") return 403;
   if (code === "order_not_found" || code === "not_pending") return 404;
   if (code === "schedule_conflict" || code === "resource_busy") return 409;
