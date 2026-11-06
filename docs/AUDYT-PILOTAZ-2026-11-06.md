@@ -157,3 +157,7 @@ Lokalne zakończenie/anulowanie utrwala znacznik zatrzymania przed wysyłką ope
 Walidacja: końcowy zestaw GPS 16/16 (kolejka 5, rzeczywiste IndexedDB 2, hook 9), integracyjne GPS 3/3 (w tym zamknięta sesja sprzed trzech dni, współbieżne ponowienia, granice czasu i obcy użytkownik). Wcześniej sprawdzono również banner/offline queue i istniejące testy serwisu. TypeScript poprawny, lint 0 błędów/10 ostrzeżeń, build poprawny; ostatnią drobną korektę kontynuowania partii sprawdzono testami. Formatowanie pozostałych plików zgłasza lokalne CRLF; po normalizacji do LF treść przechodzi kontrolę.
 
 Ograniczenia: brak testu na fizycznym Androidzie/iPhonie, działania przy zablokowanym ekranie i wymuszonego ubicia aplikacji. PWA iOS nie zapewnia ciągłego GPS w tle. Usunięcie danych przeglądarki przez użytkownika/system nadal usuwa lokalną kolejkę. Nie uznawać całego pilotażu za gotowy wyłącznie na podstawie tych testów.
+
+## CI i APK po naprawach GPS — 6 listopada 2026
+
+Dla e88c0f8 CI 42254324308 oraz Android 42254318258 zakończyły się SUCCESS. Sprawdzono etapy, metadane publikacji i SHA-256 pobranego APK; szczegóły oraz niewykonane jeszcze próby urządzeń: [TESTY-TERENOWE-GPS-2026-11-06.md](./TESTY-TERENOWE-GPS-2026-11-06.md). APK ładuje zdalny web, dlatego zgodność wdrożonego web z poprawkami wymaga osobnej kontroli przed próbą. Nie potwierdzono instalacji, certyfikatu apksigner ani gotowości terenowej.
