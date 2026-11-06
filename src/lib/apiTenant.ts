@@ -1,6 +1,10 @@
 import { getAuthSession, type JwtPayload } from "@/lib/auth";
 import { jsonError } from "@/lib/apiRoute";
-import { jwtFromLivePrincipal, requireLivePrincipalOr401 } from "@/lib/livePrincipal";
+import {
+  jwtFromLivePrincipal,
+  requireLivePrincipalOr401,
+  unauthorizedAndClearAuthToken,
+} from "@/lib/livePrincipal";
 import { isSuperadminRole } from "@/lib/tenantRoles";
 import { isLiveCompanyPrincipal } from "@/services/AuthPrincipalService";
 
@@ -23,6 +27,10 @@ export async function requireWorkerCompanySession(): Promise<
 
   if (isSuperadminRole(live.principal.role) || !isLiveCompanyPrincipal(live.principal)) {
     return { ok: false, response: jsonError("Forbidden", 403) };
+  }
+  // A tenant transfer requires a fresh login before producing offline-scoped worker data.
+  if (session?.companyId !== live.principal.companyId) {
+    return { ok: false, response: unauthorizedAndClearAuthToken() };
   }
 
   return {

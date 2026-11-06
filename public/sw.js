@@ -107,7 +107,9 @@ async function cacheFirst(request) {
 async function networkOnly(request) {
   try {
     if (new URL(request.url).pathname === "/login") await clearBlockedSession();
-    return await fetch(request, { cache: "no-store" });
+    const response = await fetch(request, { cache: "no-store" });
+    if (response.status === 401 || response.status === 403) await invalidateAccount(true);
+    return response;
   } catch {
     return offlineResponse(request);
   }

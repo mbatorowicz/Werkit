@@ -98,7 +98,8 @@ async function privateNetworkFirst(request) {
           const url = new URL(asset, self.location.origin);
           if (url.origin !== self.location.origin) continue;
           const result = await cacheFirst(new Request(url));
-          if (!result.ok) return response; // never advertise an incomplete snapshot
+          if (!result.ok)
+            return epoch === accountEpoch && !authPending ? response : offlineResponse(request);
         }
       }
       await locked(async () => {

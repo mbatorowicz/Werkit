@@ -40,8 +40,8 @@ describe("API tenant / platform — żywy principal", () => {
     expect(scoped.response.status).toBe(401);
   });
 
-  it("żywy worker: companyId i rola z DB, nie z JWT", async () => {
-    getAuthSession.mockResolvedValue({ userId: 5, role: "admin", companyId: 1 });
+  it("żywy worker: rola z DB, nie z JWT, w tej samej firmie", async () => {
+    getAuthSession.mockResolvedValue({ userId: 5, role: "admin", companyId: 8 });
     resolve.mockResolvedValue({
       userId: 5,
       role: "worker",
@@ -53,6 +53,15 @@ describe("API tenant / platform — żywy principal", () => {
     if (!scoped.ok) return;
     expect(scoped.companyId).toBe(8);
     expect(scoped.session.role).toBe("worker");
+  });
+  it("przeniesienie do innej firmy wymaga ponownego logowania przed tworzeniem migawki", async () => {
+    getAuthSession.mockResolvedValue({ userId: 5, role: "worker", companyId: 1 });
+    resolve.mockResolvedValue({ userId: 5, role: "worker", companyId: 8, fullName: "Ewa" });
+    const scoped = await requireWorkerCompanySession();
+    expect(scoped.ok).toBe(false);
+    if (scoped.ok) return;
+    expect(scoped.response.status).toBe(401);
+    expect(scoped.response.headers.get("set-cookie")).toContain("Max-Age=0");
   });
 
   it("superadmin na API firmy → 403 (sesja żywa, zły kontekst)", async () => {

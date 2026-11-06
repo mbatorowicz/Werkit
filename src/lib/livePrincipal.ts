@@ -64,6 +64,7 @@ export async function requireLiveCompanyPrincipalOrRedirect(): Promise<LiveCompa
   if (!isLiveCompanyPrincipal(principal) || isSuperadminRole(principal.role)) {
     redirect("/platform");
   }
+  if (session.companyId !== principal.companyId) redirect("/login?reason=session");
 
   return principal;
 }
