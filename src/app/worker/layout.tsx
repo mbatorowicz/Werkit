@@ -37,6 +37,7 @@ export default async function WorkerLayout({ children }: { children: React.React
 
   return (
     <div className={`layout-worker flex h-[100dvh] flex-col overflow-hidden ${SURFACE_APP}`}>
+      <meta name="werkit-offline-owner" content={`${principal.companyId}:${principal.userId}`} />
       <GlobalErrorHandler />
       <header className={SHELL_HEADER}>
         <OrgShellBrand

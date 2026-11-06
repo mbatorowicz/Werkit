@@ -15,6 +15,8 @@
  */
 
 import { sendRemoteLog } from "@/lib/remoteLogger";
+import { offlineOwner, requireOfflineOwner } from "./offlineOwner";
+import { recoverQueueOwners } from "./recoverQueueOwners";
 
 // ─── Typy operacji ───────────────────────────────────────────────────────────
 
@@ -30,6 +32,7 @@ export type OfflineActionType =
 export type OfflineActionPayload = Record<string, unknown>;
 
 export type OfflineAction = {
+  owner?: string;
   protocolVersion?: 2;
   /** UUID — klucz główny w IndexedDB */
   id: string;
@@ -109,6 +112,7 @@ export const offlineActionQueue = {
     options?: { maxRetries?: number }
   ): Promise<{ ok: boolean; queued: true; id: string }> {
     const action: OfflineAction = {
+      owner: requireOfflineOwner(),
       protocolVersion: 2,
       id: generateId(),
       type,
@@ -164,7 +168,7 @@ export const offlineActionQueue = {
   async getAll(): Promise<OfflineAction[]> {
     try {
       const db = await openDb();
-      return new Promise((resolve) => {
+      const rows = await new Promise<OfflineAction[]>((resolve) => {
         const tx = db.transaction(STORE_NAME, "readonly");
         const store = tx.objectStore(STORE_NAME);
         const req = store.getAll();
@@ -174,6 +178,14 @@ export const offlineActionQueue = {
         };
         req.onerror = () => resolve([]);
       });
+      await recoverQueueOwners(
+        db,
+        STORE_NAME,
+        rows,
+        (row) => row.payload?.sessionId,
+        (row) => row.id
+      );
+      return rows.filter((row) => row.owner && row.owner === offlineOwner());
     } catch {
       return [];
     }
@@ -253,7 +265,10 @@ export const offlineActionQueue = {
   ): Promise<Response> {
     const res = await fetch("/api/worker/offline", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Werkit-Offline-Owner": requireOfflineOwner(),
+      },
       body: JSON.stringify({ operationId, type, payload }),
     });
 
@@ -283,6 +298,7 @@ export const offlineActionQueue = {
     let sent = 0;
     let failed = 0;
     for (const action of actions) {
+      if (!action.owner || action.owner !== offlineOwner()) continue;
       if (action.protocolVersion !== 2 || typeof action.payload.sessionId !== "number") {
         failed++;
         break;

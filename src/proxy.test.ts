@@ -108,3 +108,24 @@ describe("proxy — impersonacja", () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe("offline account guard", () => {
+  it("labels worker snapshots with verified owner and bounded expiry", async () => {
+    const res = await proxy(
+      await authedRequest("/worker", { userId: 10, companyId: 2, role: "worker" })
+    );
+    expect(res.headers.get("X-Werkit-Offline-Owner")).toBe("2:10");
+    expect(Number(res.headers.get("X-Werkit-Offline-Until"))).toBeLessThanOrEqual(
+      Date.now() + 1800000
+    );
+  });
+  it("rejects replay from a previous account before executing its operation", async () => {
+    const req = await authedRequest("/api/worker/offline", {
+      userId: 20,
+      companyId: 2,
+      role: "worker",
+    });
+    req.headers.set("X-Werkit-Offline-Owner", "2:10");
+    expect((await proxy(req)).status).toBe(409);
+  });
+});

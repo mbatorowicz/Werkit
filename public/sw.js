@@ -3,7 +3,8 @@
  * RSC responses must never be shared between users through Cache Storage.
  * Durable pending mutations/GPS live separately in IndexedDB.
  */
-const CACHE_NAME = "werkit-public-v6";
+importScripts("/sw-account.js");
+const CACHE_NAME = "werkit-public-v7";
 const STATIC_ASSETS = [
   "/favicon.ico",
   "/icons/favicon-32.png",
@@ -43,7 +44,13 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((key) => key.startsWith("werkit-") && key !== CACHE_NAME)
+          .filter(
+            (key) =>
+              key.startsWith("werkit-") &&
+              key !== CACHE_NAME &&
+              key !== PRIVATE_META &&
+              !key.startsWith(PRIVATE_PREFIX)
+          )
           .map((key) => caches.delete(key))
       );
       await self.clients.claim();
@@ -54,7 +61,26 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || request.method !== "GET") return;
+  if (url.origin !== self.location.origin) return;
+  if (request.method !== "GET") {
+    if (url.pathname.startsWith("/api/auth/") || url.pathname.includes("impersonat")) {
+      event.respondWith(authTransition(request, url.pathname));
+    }
+    return;
+  }
+
+  if (privatePath(request, url)) {
+    event.respondWith(privateNetworkFirst(request));
+    return;
+  }
+  if (url.pathname === "/" && request.mode === "navigate") {
+    event.respondWith(
+      fetch(request, { cache: "no-store" }).catch(() =>
+        Response.redirect(new URL("/worker", self.location.origin).href, 302)
+      )
+    );
+    return;
+  }
 
   if (url.pathname.startsWith("/_next/static/") || STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(cacheFirst(request));
@@ -74,29 +100,33 @@ async function cacheFirst(request) {
     if (response.ok && !response.redirected) await cache.put(request, response.clone());
     return response;
   } catch {
-    return new Response("Offline", { status: 503 });
+    return offlineResponse(request);
   }
 }
 
 async function networkOnly(request) {
   try {
+    if (new URL(request.url).pathname === "/login") await clearBlockedSession();
     return await fetch(request, { cache: "no-store" });
   } catch {
-    // No cached HTML fallback: server-rendered pages contain account data too.
-    if (request.mode === "navigate") {
-      return new Response(
-        '<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline - Werkit</title></head><body><h1>Brak połączenia</h1><p>Werkit wymaga dostępu do internetu.<br>Sprawdź swoje połączenie i spróbuj ponownie.</p></body></html>',
-        {
-          status: 503,
-          headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
-        }
-      );
-    }
-    return new Response(JSON.stringify({ error: "offline" }), {
-      status: 503,
-      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-    });
+    return offlineResponse(request);
   }
+}
+
+function offlineResponse(request) {
+  if (request.mode === "navigate") {
+    return new Response(
+      '<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline - Werkit</title></head><body><h1>Brak połączenia</h1><p>Werkit wymaga dostępu do internetu.<br>Sprawdź swoje połączenie i spróbuj ponownie.</p></body></html>',
+      {
+        status: 503,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+      }
+    );
+  }
+  return new Response(JSON.stringify({ error: "offline" }), {
+    status: 503,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
 }
 
 self.addEventListener("sync", (event) => {

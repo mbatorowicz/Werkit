@@ -137,6 +137,7 @@ async function handleLoginPage(
   try {
     const verified = await jwtVerify(loginToken, JWT_SECRET);
     const role = verified.payload.role as string;
+
     const rawCompanyId = verified.payload.companyId;
     const hasCompanyInJwt = typeof rawCompanyId === "number" && rawCompanyId >= 1;
 
@@ -333,6 +334,11 @@ export async function proxy(request: NextRequest) {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     const role = verified.payload.role as string;
+    const offlineOwner = `${verified.payload.companyId}:${verified.payload.userId}`;
+    const expectedOwner = request.headers.get("X-Werkit-Offline-Owner");
+    if (expectedOwner && expectedOwner !== offlineOwner) {
+      return NextResponse.json({ error: "offline_account_mismatch" }, { status: 409 });
+    }
     const impersonationAuth = authorizeImpersonationRestrictions(
       readImpersonatorUserId(verified.payload) != null,
       pathname,
@@ -367,7 +373,15 @@ export async function proxy(request: NextRequest) {
     const appDistributionAuth = authorizeAppDistributionAccess(role, route, request.method);
     if (appDistributionAuth) return appDistributionAuth;
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+    if ((route.isWorkerPage || route.isWorkerApi) && /^\d+:\d+$/.test(offlineOwner)) {
+      response.headers.set("X-Werkit-Offline-Owner", offlineOwner);
+      response.headers.set(
+        "X-Werkit-Offline-Until",
+        String(Math.min(Number(verified.payload.exp) * 1000, Date.now() + 12 * 60 * 60 * 1000))
+      );
+    }
+    return response;
   } catch {
     const response = handleUnauthorized();
     clearAuthTokenCookie(response, isHttpsRequest(request));

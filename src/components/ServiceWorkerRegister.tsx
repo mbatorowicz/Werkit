@@ -17,6 +17,11 @@ export function ServiceWorkerRegister() {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
+          if (window.location.pathname === "/worker") {
+            void navigator.serviceWorker.ready.then((ready) => {
+              ready.active?.postMessage({ type: "PREPARE_OFFLINE_WORKER" });
+            });
+          }
           const swReg = reg as ServiceWorkerRegistration & {
             sync?: { register: (tag: string) => Promise<void> };
           };
@@ -30,6 +35,13 @@ export function ServiceWorkerRegister() {
     }, 2000);
 
     const handleMessage = (event: MessageEvent) => {
+      if (
+        event.data?.type === "OFFLINE_ACCOUNT_CHANGED" &&
+        window.location.pathname.startsWith("/worker")
+      ) {
+        window.location.replace("/login");
+        return;
+      }
       if (event.data?.type === "FLUSH_OFFLINE_QUEUE") {
         sendRemoteLog("INFO", "SW: received FLUSH_OFFLINE_QUEUE, flushing queue", undefined, {
           category: "session",

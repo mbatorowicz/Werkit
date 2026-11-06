@@ -1,3 +1,4 @@
+import { beforeEach as beforeOwnerTest } from "vitest";
 import "fake-indexeddb/auto";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { GPSManager } from "./gpsManager";
@@ -29,7 +30,7 @@ describe("durable GPS queue", () => {
     const queue = await GPSManager.getQueue();
     expect(queue.some((p) => p.pointId === first!.pointId)).toBe(false);
     expect(queue.find((p) => p.pointId === second!.pointId)?.sessionId).toBe(102);
-    expect(await GPSManager.getLegacyQueue()).toHaveLength(1);
+    expect(await GPSManager.getLegacyQueue()).toHaveLength(0);
   });
   it("persists stop without deleting queued points and rejects later samples", async () => {
     vi.stubGlobal("window", { dispatchEvent: vi.fn() });
@@ -48,3 +49,5 @@ describe("durable GPS queue", () => {
     vi.unstubAllGlobals();
   });
 });
+
+beforeOwnerTest(() => vi.stubGlobal("document", { querySelector: () => ({ content: "1:1" }) }));

@@ -40,6 +40,11 @@ describe("GPS session protocol", () => {
   afterAll(async () => {
     await cleanupTestCompany(companyId);
   });
+  it("recovers queue ownership only for sessions of the current user and company", async () => {
+    expect(await GpsService.ownedSessionIds(userId, companyId, [sessionId])).toEqual([sessionId]);
+    expect(await GpsService.ownedSessionIds(userId + 1000000, companyId, [sessionId])).toEqual([]);
+    expect(await GpsService.ownedSessionIds(userId, companyId + 1000000, [sessionId])).toEqual([]);
+  });
   it("accepts delayed points of a closed session once even with concurrent retry", async () => {
     const p = point();
     const results = await Promise.all(

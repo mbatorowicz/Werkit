@@ -94,3 +94,7 @@ Sprawdzić brak zbierania przed startem, po zakończeniu i w sesji stacjonarnej 
 ## Warunek uruchomienia pilotażu
 
 Każdy scenariusz wykonać co najmniej dwa razy na każdej docelowej konfiguracji. Żaden utrwalony poprawny punkt nie może zaginąć ani zostać przypisany do innej sesji/osoby. Śledzenie nie może trwać po lokalnym końcu. Niewyjaśnione zaległości i niemożliwy restart offline pozostają otwartymi problemami. Wymaganie GPS w tle należy ocenić oddzielnie od trwałości kolejki. Zakończenie testów na kilku urządzeniach nie jest testem obciążenia 40 pracowników; wdrożenie etapowe i test obciążenia pozostają osobnymi warunkami.
+
+## Uzupełnienie odbioru: restart PWA z kontem
+
+Po aktualizacji otworzyć /worker ONLINE i poczekać na przygotowanie migawki. Zapisane dane offline mają ograniczoną ważność (najwyżej 12 godzin, nie dłużej niż sesja logowania). Wykonać restart z ikony przy wyłączonej sieci; powinien otworzyć dashboard poprzedniego konta, także gdy start_url prowadzi na /. Następnie: A → dane w kolejce → wylogowanie offline → restart (brak danych A) → internet → login B (brak kolejki A) → login A → synchronizacja zachowanych ID. Osobno sprawdzić wygaśnięcie migawki, brak miejsca oraz migawkę sprzed lokalnego zakończenia sesji. Wpisy starsze bez sessionId wymagają kontrolowanego odzyskania, nie powinny pojawiać się na innym koncie. Pierwsze przygotowanie i rzeczywisty restart urządzenia pozostają do wykonania przez testerów.

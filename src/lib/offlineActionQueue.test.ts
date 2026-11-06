@@ -1,3 +1,4 @@
+import { beforeEach as beforeOwnerTest } from "vitest";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { offlineActionQueue } from "./offlineActionQueue";
 vi.mock("@/lib/remoteLogger", () => ({ sendRemoteLog: vi.fn() }));
@@ -34,6 +35,7 @@ describe("offline queue", () => {
       [1, 2].map((id) => ({
         id: String(id),
         protocolVersion: 2,
+        owner: "1:1",
         type: "save_note",
         payload: { sessionId: 5 },
         createdAt: String(id),
@@ -63,3 +65,5 @@ describe("offline queue", () => {
     vi.unstubAllGlobals();
   });
 });
+
+beforeOwnerTest(() => vi.stubGlobal("document", { querySelector: () => ({ content: "1:1" }) }));

@@ -21,6 +21,7 @@ function jsonResponse(status: number, body: unknown): Response {
 describe("GPSManager.flushQueue", () => {
   beforeEach(() => {
     GPSManager.isFlushing = false;
+    vi.stubGlobal("document", { querySelector: () => ({ content: "1:1" }) });
     vi.stubGlobal("navigator", { onLine: true });
     vi.useFakeTimers();
     vi.spyOn(GPSManager, "getQueue").mockResolvedValue(queued);

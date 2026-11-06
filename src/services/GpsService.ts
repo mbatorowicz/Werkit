@@ -7,6 +7,24 @@ import { assertGpsPayloadSize, normalizeGpsPoints } from "@/lib/gpsPayloadLimits
 export type GpsPoint = Coord & { timestamp?: string };
 
 export class GpsService {
+  static async ownedSessionIds(
+    userId: number,
+    companyId: number,
+    ids: number[]
+  ): Promise<number[]> {
+    if (!ids.length) return [];
+    const rows = await db
+      .select({ id: workSessions.id })
+      .from(workSessions)
+      .where(
+        and(
+          eq(workSessions.userId, userId),
+          eq(workSessions.companyId, companyId),
+          inArray(workSessions.id, ids)
+        )
+      );
+    return rows.map((row) => row.id);
+  }
   /** v2: session ownership and sample time, not the session active at upload time. */
   static async saveSessionPoints(
     userId: number,

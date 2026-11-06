@@ -2,8 +2,15 @@ import { sendRemoteLog } from "@/lib/remoteLogger";
 import type { Coord } from "@/types/worker";
 import { fetchWithDeviceTelemetry } from "@/lib/fetchWithDeviceTelemetry";
 import { GPS_MAX_POINTS_PER_REQUEST } from "@/lib/gpsPayloadLimits";
+import { offlineOwner, requireOfflineOwner } from "./offlineOwner";
+import { recoverQueueOwners } from "./recoverQueueOwners";
 
-export type GPSQueueItem = Coord & { pointId: string; sessionId: number; timestamp: string };
+export type GPSQueueItem = Coord & {
+  owner?: string;
+  pointId: string;
+  sessionId: number;
+  timestamp: string;
+};
 const STORE = "gps_queue_v2";
 const META = "stopped_sessions";
 export const GPS_STOP_EVENT = "werkit-gps-stop";
@@ -38,20 +45,23 @@ export class GPSManager {
   }
   static async getQueue(): Promise<GPSQueueItem[]> {
     const db = await this.openDb();
-    return new Promise((resolve, reject) => {
+    const rows = await new Promise<GPSQueueItem[]>((resolve, reject) => {
       const req = db.transaction(STORE, "readonly").objectStore(STORE).getAll();
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
+    await recoverQueueOwners(
+      db,
+      STORE,
+      rows,
+      (row) => row.sessionId,
+      (row) => row.pointId
+    );
+    return rows.filter((p) => p.owner && p.owner === offlineOwner());
   }
   static async getLegacyQueue(): Promise<unknown[]> {
-    const db = await this.openDb();
-    if (!db.objectStoreNames.contains("gps_queue")) return [];
-    return new Promise((resolve, reject) => {
-      const req = db.transaction("gps_queue", "readonly").objectStore("gps_queue").getAll();
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    // Unowned legacy records remain on disk for controlled recovery, never exposed to another account.
+    return [];
   }
   static async isStopped(sessionId: number): Promise<boolean> {
     const db = await this.openDb();
@@ -80,7 +90,13 @@ export class GPSManager {
     timestamp = new Date().toISOString()
   ): Promise<GPSQueueItem | null> {
     if (!Number.isInteger(sessionId) || sessionId < 1) throw new Error("gps_session_required");
-    const payload = { ...location, sessionId, pointId: crypto.randomUUID(), timestamp };
+    const payload = {
+      ...location,
+      owner: requireOfflineOwner(),
+      sessionId,
+      pointId: crypto.randomUUID(),
+      timestamp,
+    };
     const db = await this.openDb();
     const tx = db.transaction([STORE, META], "readwrite");
     let accepted = false;
@@ -121,7 +137,10 @@ export class GPSManager {
             "/api/worker/gps",
             {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "X-Werkit-Offline-Owner": requireOfflineOwner(),
+              },
               body: JSON.stringify(batch),
               keepalive: true,
             },

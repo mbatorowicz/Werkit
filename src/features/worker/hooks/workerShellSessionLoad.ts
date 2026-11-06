@@ -22,6 +22,7 @@ import {
   narrowUserData,
 } from "@/features/worker/lib/narrowWorkerClientPayload";
 import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
+import { GPSManager } from "@/lib/gpsManager";
 
 export type WorkerShellSessionLoadCtx = {
   destinationRef: { current: Coord | null };
@@ -118,7 +119,9 @@ export async function loadWorkerSessionAndPath(
         ? (sessRaw as Record<string, unknown>)
         : {};
 
-    const sessionRowEarly = narrowSession(sessData.session);
+    const serverSession = narrowSession(sessData.session);
+    const sessionRowEarly =
+      serverSession && (await GPSManager.isStopped(serverSession.id)) ? null : serverSession;
     const stationary = gpsPolicyFromSession(sessionRowEarly) === "stationary";
     if (stationary) {
       ctx.dispatchRoute({ type: "reset", path: [] });
