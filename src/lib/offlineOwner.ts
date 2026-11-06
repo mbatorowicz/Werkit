@@ -1,4 +1,4 @@
-/** Identity rendered by the authenticated worker layout, never inferred from queued data. */
+/** Identity rendered by the authenticated company layout, never inferred from queued data. */
 export function offlineOwner(): string | null {
   if (typeof document === "undefined") return null;
   const owner = document.querySelector<HTMLMetaElement>(

@@ -46,6 +46,8 @@ export const POST = withApiErrorHandling(
   async (request: Request, { params }: { params: Promise<{ id: string }> }) => {
     const ctx = await requireWorkerCompanySession();
     if (!ctx.ok) return ctx.response;
+    if (request.headers.get("X-Werkit-Offline-Owner") !== `${ctx.companyId}:${ctx.userId}`)
+      return jsonError("offline_account_mismatch", 409);
 
     // Sprawdź, czy organizacja ma włączony moduł DUR
     const flags = await PlatformFeatureFlagService.getFlags(ctx.companyId);

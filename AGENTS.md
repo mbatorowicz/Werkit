@@ -265,4 +265,4 @@ Nie usuwać bufora GPS po końcu pracy, 401/403 lub zmianie flag. Każdy punkt z
 
 ### Pobranie części — ponowienia (2026-11-06)
 
-POST części admin/worker wymaga Idempotency-Key. `part_pick_operations` (0038) zapisuje wynik atomowo z BOM/WZ; zachowuj klucz przy ponowieniu i nie kasuj potwierdzeń po zwrocie części. Formularze używają `partPickRequest`; nie zastępuj go zwykłym fetch ani nowym UUID przy błędzie sieci. Szczegóły i granice sessionStorage: SYSTEM_MAP.
+POST części admin/worker wymaga Idempotency-Key. `part_pick_operations` (0038) zapisuje wynik atomowo z BOM/WZ; zachowuj klucz przy ponowieniu i nie kasuj potwierdzeń po zwrocie części. Formularze używają `partPickRequest`; nie zastępuj go zwykłym fetch ani nowym UUID przy błędzie sieci. Oczekujące pobrania w IndexedDB są przypisane do firma:użytkownik i odtwarzają formularz po restarcie. Nie przejmuj wpisów innego konta; oba endpointy wymagają X-Werkit-Offline-Owner. Szczegóły i granice trwałości: SYSTEM_MAP.

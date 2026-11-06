@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
@@ -60,6 +61,18 @@ function renderSection(ui: ReactElement, durEnabled = true) {
     </AdminAbilityProvider>
   );
 }
+
+beforeEach(() => {
+  vi.stubGlobal("indexedDB", new IDBFactory());
+  const meta = document.createElement("meta");
+  meta.name = "werkit-offline-owner";
+  meta.content = "1:2";
+  document.head.append(meta);
+});
+afterEach(() => {
+  document.querySelector('meta[name="werkit-offline-owner"]')?.remove();
+  vi.unstubAllGlobals();
+});
 
 describe("WorkOrderSparePartsSection", () => {
   it("nie renderuje sekcji dla zlecenia, które nie jest naprawą", () => {

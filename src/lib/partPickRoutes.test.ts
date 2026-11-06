@@ -31,15 +31,24 @@ for (const [name, post] of [
   ["worker", workerPost],
   ["admin", adminPost],
 ] as const) {
-  const call = (key?: string) =>
+  const call = (key?: string, owner = "1:2") =>
     post(
       new Request("http://localhost/api/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(key ? { "Idempotency-Key": key } : {}) },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Werkit-Offline-Owner": owner,
+          ...(key ? { "Idempotency-Key": key } : {}),
+        },
         body: JSON.stringify({ partId: 3, quantity: "1" }),
       }),
       { params: Promise.resolve({ id: "4" }) }
     );
+  it(`${name}: rejects another account before issuing`, async () => {
+    expect((await call(crypto.randomUUID(), "1:99")).status).toBe(409);
+    expect((await call(crypto.randomUUID(), "")).status).toBe(409);
+    expect(Parts.pickPartFromWarehouse).not.toHaveBeenCalled();
+  });
   it(`${name}: rejects missing or malformed keys before issuing`, async () => {
     expect((await call()).status).toBe(400);
     expect((await call("bad")).status).toBe(400);

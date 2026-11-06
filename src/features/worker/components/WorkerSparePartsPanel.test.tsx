@@ -1,4 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { preparePartPick } from "@/lib/partPickStore";
+import { IDBFactory } from "fake-indexeddb";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import WorkerSparePartsPanel from "@/features/worker/components/WorkerSparePartsPanel";
@@ -51,6 +53,18 @@ function renderPanel(overrides: Partial<Parameters<typeof WorkerSparePartsPanel>
     />
   );
 }
+
+beforeEach(() => {
+  vi.stubGlobal("indexedDB", new IDBFactory());
+  const meta = document.createElement("meta");
+  meta.name = "werkit-offline-owner";
+  meta.content = "1:2";
+  document.head.append(meta);
+});
+afterEach(() => {
+  document.querySelector('meta[name="werkit-offline-owner"]')?.remove();
+  vi.unstubAllGlobals();
+});
 
 describe("WorkerSparePartsPanel", () => {
   afterEach(() => {
@@ -114,6 +128,29 @@ describe("WorkerSparePartsPanel", () => {
     await waitFor(() =>
       expect(screen.queryByRole("combobox", { name: dict.choosePart })).not.toBeInTheDocument()
     );
+  });
+
+  it("po restarcie i zmianie B→A odtwarza pobranie wyłącznie dla A z tym samym kluczem", async () => {
+    const url = "/api/worker/work-orders/10/spare-parts";
+    const body = JSON.stringify({ partId: 5, quantity: "2", notes: "offline repair" });
+    const pending = await preparePartPick("1:2", url, body);
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="werkit-offline-owner"]')!;
+    meta.content = "1:3";
+    const fetchMock = stubPanelFetch();
+    const b = renderPanel();
+    await screen.findByText("Filtr oleju");
+    expect(screen.queryByRole("combobox", { name: dict.choosePart })).not.toBeInTheDocument();
+    b.unmount();
+    meta.content = "1:2";
+    renderPanel();
+    await screen.findByRole("combobox", { name: dict.choosePart });
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: dict.addSparePart }));
+    expect(await screen.findByText(dict.pickPartSuccess)).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(post?.[1]?.body).toBe(body);
+    expect(new Headers(post?.[1]?.headers).get("Idempotency-Key")).toBe(pending?.operationId);
+    expect(new Headers(post?.[1]?.headers).get("X-Werkit-Offline-Owner")).toBe("1:2");
   });
 
   it("przycisk dodawania bez wybranej części jest zablokowany", async () => {

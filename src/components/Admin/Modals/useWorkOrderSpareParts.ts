@@ -1,5 +1,6 @@
 "use client";
 import { sendPartPickRequest } from "@/lib/partPickRequest";
+import { usePartPickRecovery } from "@/hooks/usePartPickRecovery";
 import { useRef } from "react";
 
 import { useCallback, useEffect, useState } from "react";
@@ -112,6 +113,13 @@ export function useWorkOrderSpareParts({
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
   // ── Dodawanie części ──
+  usePartPickRecovery(workOrderId ? `/api/admin/work-orders/${workOrderId}/spare-parts` : null, {
+    setSelectedPartId,
+    setAddQuantity,
+    setAddNotes,
+    setShowAddForm,
+    setAddUnitPrice,
+  });
   const pickInFlight = useRef(false);
   const handleAddPart = async () => {
     if (pickInFlight.current) return;
@@ -151,8 +159,11 @@ export function useWorkOrderSpareParts({
     } catch (error) {
       await appAlert({
         message:
-          error instanceof Error && error.message === "part_pick_pending"
-            ? apiErrors.part_pick_pending
+          error instanceof Error &&
+          ["part_pick_pending", "part_pick_legacy", "offline_account_mismatch"].includes(
+            error.message
+          )
+            ? apiErrors[error.message]
             : durDict.saveError,
       });
     } finally {

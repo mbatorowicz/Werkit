@@ -110,6 +110,11 @@ export const pl = {
     },
   },
   apiErrors: {
+    part_pick_legacy:
+      "W tej karcie pozostało stare pobranie bez przypisanego konta. Sprawdź wydania z administratorem przed kolejnym pobraniem.",
+    offline_account_mismatch:
+      "Konto uległo zmianie. Odśwież aplikację i zaloguj się na konto właściciela pobrania.",
+
     operation_conflict:
       "To pobranie ma już inny zapis. Odśwież listę części i sprawdź wydanie; nie twórz kolejnego.",
     invalid_operation_id: "Odśwież aplikację, aby bezpiecznie pobrać część.",

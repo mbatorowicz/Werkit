@@ -111,6 +111,11 @@ export const en: AppDictionary = {
     },
   },
   apiErrors: {
+    part_pick_legacy:
+      "This tab contains an old pick without an account owner. Check issues with an administrator before another pick.",
+    offline_account_mismatch:
+      "The account has changed. Refresh the app and sign in as the owner of the pick.",
+
     operation_conflict:
       "This request already has a different record. Refresh the parts list and check the issue; do not create another.",
     invalid_operation_id: "Refresh the application to pick a part safely.",

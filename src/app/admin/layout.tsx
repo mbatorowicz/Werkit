@@ -57,6 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       gpsFlags={toAdminGpsFlags(featureFlags)}
       durEnabled={featureFlags.durEnabled}
     >
+      <meta name="werkit-offline-owner" content={`${principal.companyId}:${principal.userId}`} />
       <div
         className={`layout-admin flex h-[100svh] max-h-[100dvh] flex-col overflow-hidden ${SURFACE_APP}`}
       >

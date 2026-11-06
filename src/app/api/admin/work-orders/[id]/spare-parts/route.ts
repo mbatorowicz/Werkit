@@ -47,6 +47,11 @@ export const POST = withApiErrorHandling(
 
     const scoped = await requireCompanyScopedSession();
     if (!scoped.ok) return scoped.response;
+    if (
+      request.headers.get("X-Werkit-Offline-Owner") !==
+      `${scoped.data.companyId}:${scoped.data.session.userId}`
+    )
+      return jsonError("offline_account_mismatch", 409);
 
     // Sprawdź, czy organizacja ma włączony moduł DUR
     const flags = await PlatformFeatureFlagService.getFlags(scoped.data.companyId);

@@ -1,48 +1,45 @@
 import { fetchWithDeviceTelemetry } from "./fetchWithDeviceTelemetry";
+import { requireOfflineOwner } from "./offlineOwner";
+import { acknowledgePartPick, preparePartPick, readPartPick } from "./partPickStore";
 
-/** Keep an uncertain request across rerenders/reloads of this tab. Never rotate its key on timeout. */
+function checkLegacy(url: string) {
+  // v1 has no trustworthy owner. Never assign it to whichever account is currently open.
+  if (sessionStorage.getItem(`werkit:part-pick:v1:${url}`)) throw new Error("part_pick_legacy");
+}
+export async function readPendingPartPick(url: string) {
+  const owner = requireOfflineOwner();
+  const pending = await readPartPick(owner, url);
+  if (requireOfflineOwner() !== owner) throw new Error("offline_account_mismatch");
+  return pending;
+}
+/** Persist the exact request for the authenticated account before any network mutation. */
 export async function sendPartPickRequest(
   label: string,
   url: string,
   body: string,
   category: "orders" | "admin"
 ): Promise<Response> {
-  const storageKey = `werkit:part-pick:v1:${url}`;
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(body));
-  const fingerprint = Array.from(new Uint8Array(digest), (b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
-  const saved = sessionStorage.getItem(storageKey);
-  let operationId: string;
-  if (saved) {
-    const pending: unknown = JSON.parse(saved);
-    if (
-      !pending ||
-      typeof pending !== "object" ||
-      !("fingerprint" in pending) ||
-      pending.fingerprint !== fingerprint ||
-      !("operationId" in pending) ||
-      typeof pending.operationId !== "string"
-    )
-      throw new Error("part_pick_pending");
-    operationId = pending.operationId;
-  } else {
-    operationId = crypto.randomUUID();
-    // A storage failure aborts before sending; no untracked mutation.
-    sessionStorage.setItem(storageKey, JSON.stringify({ operationId, fingerprint }));
-  }
+  const owner = requireOfflineOwner();
+  checkLegacy(url);
+  const pending = await preparePartPick(owner, url, body);
+  if (!pending) throw new Error("part_pick_storage_failed");
+  if (requireOfflineOwner() !== owner) throw new Error("offline_account_mismatch");
   const response = await fetchWithDeviceTelemetry(
     label,
     url,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Idempotency-Key": operationId },
-      body,
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": pending.operationId,
+        "X-Werkit-Offline-Owner": owner,
+      },
+      body: pending.body,
     },
     { category }
   );
-  // Authentication, timeout, conflict and server failures may follow a lost success.
-  // Only a validated success or definite domain rejection releases this intent.
-  if (response.ok || response.status === 400) sessionStorage.removeItem(storageKey);
+  // Never remove a different account's request or a newer intent on a late response.
+  if (response.ok || response.status === 400)
+    await acknowledgePartPick(owner, url, pending.operationId);
   return response;
 }

@@ -111,6 +111,11 @@ export const de: AppDictionary = {
     },
   },
   apiErrors: {
+    part_pick_legacy:
+      "Dieser Tab enthält eine alte Entnahme ohne Kontozuordnung. Ausgaben vor einer weiteren Entnahme mit einem Administrator prüfen.",
+    offline_account_mismatch:
+      "Das Konto hat sich geändert. App aktualisieren und mit dem Konto der Entnahme anmelden.",
+
     operation_conflict:
       "Diese Anfrage hat bereits einen anderen Eintrag. Teileliste aktualisieren und Ausgabe prüfen; keine weitere anlegen.",
     invalid_operation_id: "Anwendung aktualisieren, um ein Teil sicher zu entnehmen.",
