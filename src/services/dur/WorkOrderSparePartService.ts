@@ -1,3 +1,4 @@
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 // ============================================================
 // Werkit — Serwis: części zamienne przypisane do zlecenia naprawy
 // ============================================================
@@ -46,8 +47,12 @@ export class WorkOrderSparePartService {
     return !!row;
   }
 
-  static async assertPartBelongsToCompany(partId: number, companyId: number): Promise<boolean> {
-    const [row] = await db
+  static async assertPartBelongsToCompany(
+    partId: number,
+    companyId: number,
+    client: WarehouseDb = db
+  ): Promise<boolean> {
+    const [row] = await client
       .select({ id: spareParts.id })
       .from(spareParts)
       .where(and(eq(spareParts.id, partId), eq(spareParts.companyId, companyId)))
@@ -149,7 +154,7 @@ export class WorkOrderSparePartService {
 
       if (!line) return null;
 
-      const partOk = await this.assertPartBelongsToCompany(line.partId, companyId);
+      const partOk = await this.assertPartBelongsToCompany(line.partId, companyId, tx);
       if (!partOk) throw new StockMovementError("part_not_found");
 
       await StockMovementService.returnForWorkOrderLine(

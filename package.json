@@ -33,7 +33,9 @@
     "logs:system": "tsx src/scripts/view_device_logs.ts",
     "sounds:generate": "tsx src/scripts/generate_notification_sounds.ts",
     "icons:generate": "tsx src/scripts/generate_pwa_icons.ts",
-    "android:play-keystore": "tsx src/scripts/generate_play_upload_keystore.ts"
+    "android:play-keystore": "tsx src/scripts/generate_play_upload_keystore.ts",
+    "test:pilot:recovery": "node scripts/pilot-drill.mjs",
+    "test:pilot:blob": "node scripts/pilot-blob-drill.mjs"
   },
   "dependencies": {
     "@capacitor-community/background-geolocation": "^1.2.26",

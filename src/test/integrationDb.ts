@@ -5,6 +5,8 @@ import {
   companies,
   customers,
   materials,
+  materialStockIssues,
+  materialStockReceipts,
   platformAuditEvents,
   resourceCategories,
   resources,
@@ -135,6 +137,8 @@ export async function cleanupTestCompany(companyId: number): Promise<void> {
   await db.delete(platformAuditEvents).where(eq(platformAuditEvents.companyId, companyId));
   await db.delete(stockIssues).where(eq(stockIssues.companyId, companyId));
   await db.delete(stockReceipts).where(eq(stockReceipts.companyId, companyId));
+  await db.delete(materialStockIssues).where(eq(materialStockIssues.companyId, companyId));
+  await db.delete(materialStockReceipts).where(eq(materialStockReceipts.companyId, companyId));
   await db.delete(users).where(eq(users.companyId, companyId));
   await db.delete(companies).where(eq(companies.id, companyId));
 }

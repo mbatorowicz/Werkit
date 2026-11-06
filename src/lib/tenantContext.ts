@@ -1,3 +1,4 @@
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 import { db } from "@/db";
 import { resources, materials, customers, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -28,10 +29,11 @@ const entityConfig: Record<EntityName, { table: EntityTable; label: string }> = 
 async function assertEntityBelongsToCompany(
   entityName: EntityName,
   entityId: number,
-  companyId: number
+  companyId: number,
+  client: WarehouseDb = db
 ): Promise<void> {
   const cfg = entityConfig[entityName];
-  const [row] = await db
+  const [row] = await client
     .select({ id: (cfg.table as typeof resources).id })
     .from(cfg.table as typeof resources)
     .where(
@@ -49,25 +51,28 @@ async function assertEntityBelongsToCompany(
 /** Sprawdza czy zasób o podanym ID należy do firmy. */
 export function assertResourceBelongsToCompany(
   resourceId: number,
-  companyId: number
+  companyId: number,
+  client: WarehouseDb = db
 ): Promise<void> {
-  return assertEntityBelongsToCompany("resource", resourceId, companyId);
+  return assertEntityBelongsToCompany("resource", resourceId, companyId, client);
 }
 
 /** Sprawdza czy materiał o podanym ID należy do firmy. */
 export function assertMaterialBelongsToCompany(
   materialId: number,
-  companyId: number
+  companyId: number,
+  client: WarehouseDb = db
 ): Promise<void> {
-  return assertEntityBelongsToCompany("material", materialId, companyId);
+  return assertEntityBelongsToCompany("material", materialId, companyId, client);
 }
 
 /** Sprawdza czy klient o podanym ID należy do firmy. */
 export function assertCustomerBelongsToCompany(
   customerId: number,
-  companyId: number
+  companyId: number,
+  client: WarehouseDb = db
 ): Promise<void> {
-  return assertEntityBelongsToCompany("customer", customerId, companyId);
+  return assertEntityBelongsToCompany("customer", customerId, companyId, client);
 }
 
 export async function assertOrderEntitiesBelongToCompany(
@@ -77,10 +82,11 @@ export async function assertOrderEntitiesBelongToCompany(
     customerId?: number | null;
     materialId?: number | null;
   },
-  companyId: number
+  companyId: number,
+  client: WarehouseDb = db
 ): Promise<void> {
   if (orderData.userId != null) {
-    const [userRow] = await db
+    const [userRow] = await client
       .select({ id: users.id })
       .from(users)
       .where(and(eq(users.id, orderData.userId), eq(users.companyId, companyId)))
@@ -88,13 +94,13 @@ export async function assertOrderEntitiesBelongToCompany(
     if (!userRow) throw new Error("invalid_user");
   }
   if (orderData.resourceId != null) {
-    await assertResourceBelongsToCompany(orderData.resourceId, companyId);
+    await assertResourceBelongsToCompany(orderData.resourceId, companyId, client);
   }
   if (orderData.customerId != null) {
-    await assertCustomerBelongsToCompany(orderData.customerId, companyId);
+    await assertCustomerBelongsToCompany(orderData.customerId, companyId, client);
   }
   if (orderData.materialId != null) {
-    await assertMaterialBelongsToCompany(orderData.materialId, companyId);
+    await assertMaterialBelongsToCompany(orderData.materialId, companyId, client);
   }
 }
 

@@ -50,3 +50,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Isolated backup/load drill artifacts (never commit archives or credentials)
+/.pilot-drill/

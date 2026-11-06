@@ -886,3 +886,9 @@ Logowanie/wylogowanie oraz impersonacja unieważniają migawkę przed żądaniem
 Kreator wymaga aktywnego konta z canCreateOwnOrders; naprawa także durEnabled i isDurWorker. Akceptacja zlecenia sprawdza bieżącą kategorię, wymagane pola oraz zgodność danych po zablokowaniu zlecenia. Edycja administratora blokuje rekord; edycja pracownika zapisuje tylko nadal PENDING. Identyfikatory nie są obcinane parseInt, ilości/czas muszą być dodatnimi liczbami dziesiętnymi, opisy mają limit 4000 znaków.
 
 `OrderDeletionService` obsługuje wspólną regułę admin/worker: usunięcie tylko PENDING/CANCELLED bez sesji, przypisań części ani WZ. `AdminSessionService.deleteArchivedSession` blokuje archiwum powiązane ze zleceniem lub WZ materiału; nigdy nie tworzy PZ ani nie kasuje zlecenia. Rzeczywisty zwrot to osobna operacja magazynowa. Testy integracyjne: `PilotSessionPolicy.int.test.ts`.
+
+## Próba odzyskania i obciążenia
+
+`npm run test:pilot:recovery` → `scripts/pilot-drill.mjs`: wyłącznie schemat z bazy źródłowej; testy, 40 pracowników i dump/restore na dwóch lokalnych bazach w nowym kontenerze. `src/scripts/pilot_workload.ts` sprawdza izolację przed pierwszym zapisem, `pilot_restore_verify.ts` weryfikuje replay po odtworzeniu. `npm run test:pilot:blob` testuje tylko nowe syntetyczne obiekty pod losowym prefiksem. Pliki `.pilot-drill/` nigdy nie trafiają do Git. Procedura i granice: [KOPIE-I-OBCIAZENIE-PILOTAZ-2026-11-06.md](./KOPIE-I-OBCIAZENIE-PILOTAZ-2026-11-06.md).
+
+Walidatory encji/kategorii mogą przyjąć klienta transakcji: nie pożyczaj dodatkowego połączenia z db wewnątrz transakcji przy pełnej puli. Ruchy części blokują SKU przez FOR NO KEY UPDATE, aby zachować serializację bez konfliktu z KEY SHARE kluczy obcych pozycji BOM. Regresja: `transactionValidation.test.ts` i scenariusz 40 równoczesnych wydań/zwrotów w lokalnej próbie.

@@ -1,3 +1,4 @@
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 import { db } from "@/db";
 import { isMissingResourceCategoriesVisibilityColumns } from "@/lib/postgresMigrationHints";
 import { resourceCategories } from "@/db/schema";
@@ -104,8 +105,8 @@ export class CategoryService {
       .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)));
   }
 
-  static async getResourceCategoryById(companyId: number, id: number) {
-    const rows = await db
+  static async getResourceCategoryById(companyId: number, id: number, client: WarehouseDb = db) {
+    const rows = await client
       .select()
       .from(resourceCategories)
       .where(and(eq(resourceCategories.id, id), eq(resourceCategories.companyId, companyId)))

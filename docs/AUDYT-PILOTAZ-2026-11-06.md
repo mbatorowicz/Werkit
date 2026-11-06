@@ -196,3 +196,13 @@ Usunięcie zlecenia z sesją, częściami albo WZ jest zabronione. Wyeliminowano
 Walidacja: 43/43 testy integracyjne na izolowanych firmach __ITEST (sprzątanie po testach); nowy zestaw obejmuje zdjęcie, offline, uprawnienia, historię obu magazynów, ponowienie i równoczesne operacje. Lokalne 67/67 testów walidacji/sesji/zleceń oraz 10/10 administracyjnych. Pełny lokalny zestaw przed ostatnimi uzupełnieniami: 835 zaliczonych, 6 istniejących błędów localStorage w testach alarmów na Node 26. CI na Node 22 pozostaje rozstrzygającym sprawdzeniem pełnego zestawu i buildu. Brak zmian schematu bazy i mostka natywnego.
 
 Ograniczenia: occurredAt offline jest deklaracją klienta, a nie dowodem czasu. Nie dodano osobnego procesu korekt zatwierdzanej ewidencji pracy. Testy rzeczywistych telefonów, odtwarzania backupu i obciążenia nadal są wymagane przed pełnym pilotażem.
+
+## Kopie i 40 równoczesnych pracowników — 6 listopada 2026
+
+W zalogowanym panelu projektu Neon potwierdzono: retencja historii 6 godzin, brak snapshotów, brak harmonogramu. Ten bloker operacyjny pozostaje otwarty; nie zmieniano planu ani produkcyjnej bazy. Przygotowano [procedurę kopii, odtworzenia i dalszych testów](./KOPIE-I-OBCIAZENIE-PILOTAZ-2026-11-06.md).
+
+Odizolowany test z samym schematem produkcji, lokalnym PostgreSQL 17 i danymi syntetycznymi wykrył dwa błędy: wyczerpanie puli przez walidację wewnątrz transakcji (40/40 błędów) i zakleszczenie przy wydaniu tej samej części (39/40 błędów). Walidacja korzysta teraz z tej samej transakcji, a blokady SKU nie kolidują ze sprawdzaniem kluczy obcych. Po naprawie wszystkie serie po 40 operacji przeszły; najwolniejsze p95 w tej próbie 248 ms (wydania części). To wynik lokalnych serwisów, nie obietnica czasu odpowiedzi produkcyjnego HTTP.
+
+Przeszło 29/29 integracyjnych na izolowanej bazie, odtworzenie 36 tabel z porównaniem danych/ograniczeń/indeksów/sekwencji, odczyt historii aplikacji i 40 ponowień offline po odtworzeniu bez ponownego wykonania. Osobno sprawdzono kopię/odtworzenie syntetycznego PNG w prywatnym Blob z porównaniem SHA-256; obiekty testowe usunięto. Kontenery testowe usunięto. Zagregowane raporty zapisano w docs/PILOT-*-RESULT-2026-11-06.json; archiwa i robocze dane są ignorowane przez Git.
+
+Lokalne typy poprawne, lint bez błędów; pełny lokalny zestaw 841 zaliczonych i 6 znanych błędów localStorage na Node 26. CI na Node 22 sprawdzi cały zestaw i build. Nie potwierdzono regularnych kopii poza kontem produkcji, odtworzenia całego firmowego archiwum zdjęć ani wydajności 40 klientów HTTP na docelowym planie hostingu. Nie uznawać pilotażu za gotowy na podstawie samej lokalnej próby.

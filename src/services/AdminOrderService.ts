@@ -225,6 +225,9 @@ export class AdminOrderService {
     updates: Partial<typeof workOrders.$inferInsert>,
     actor?: OrderMutationActor
   ) {
+    const delegationScope = actor
+      ? await DelegationScopeService.getDelegatableUserIds(companyId, actor.userId, actor.role)
+      : "all";
     return db.transaction(async (tx) => {
       const existingOrder = await tx
         .select()
@@ -240,19 +243,13 @@ export class AdminOrderService {
         (updates.status && !["PENDING", "CANCELLED"].includes(updates.status))
       )
         throw new Error("invalid_payload");
-      await assertOrderEntitiesBelongToCompany(merged, companyId);
+      await assertOrderEntitiesBelongToCompany(merged, companyId, tx);
       if (merged.categoryId == null) throw new Error("invalid_category");
-      await validateCategoryForOrder(companyId, merged.categoryId, merged);
+      await validateCategoryForOrder(companyId, merged.categoryId, merged, tx);
 
       const targetUserId = updates.userId ?? existingOrder[0].userId;
-      if (actor) {
-        await DelegationScopeService.assertCanDelegateTo(
-          companyId,
-          actor.userId,
-          actor.role,
-          targetUserId
-        );
-      }
+      if (delegationScope !== "all" && !delegationScope.includes(targetUserId))
+        throw new Error("forbidden");
 
       await tx
         .update(workOrders)

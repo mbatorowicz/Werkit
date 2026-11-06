@@ -1,3 +1,4 @@
+import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { resolveOrderKind } from "@/lib/categoryPolicy";
 import { isRepairOrderType } from "@/lib/orderType";
@@ -89,9 +90,14 @@ export function validateWorkOrderFieldsAgainstCategory(
 export async function validateCategoryForOrder(
   companyId: number,
   categoryId: number,
-  fields: WorkOrderCategoryValidationPayload
+  fields: WorkOrderCategoryValidationPayload,
+  client?: WarehouseDb
 ): Promise<{ ok: true } | never> {
-  const categoryRow = await DictionaryService.getResourceCategoryById(companyId, categoryId);
+  const categoryRow = await DictionaryService.getResourceCategoryById(
+    companyId,
+    categoryId,
+    client
+  );
   if (!categoryRow || categoryRow.isGroup) {
     throw new Error("invalid_category");
   }

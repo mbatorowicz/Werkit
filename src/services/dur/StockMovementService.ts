@@ -64,11 +64,12 @@ export class StockMovementService {
       return db.transaction((tx) => this.addReceipt(companyId, userId, input, tx));
     }
     const { TenantContextError } = await import("@/lib/tenantContext");
+    // Serialize stock changes without conflicting with FK KEY SHARE locks on BOM inserts.
     const [part] = await client
       .select({ id: spareParts.id })
       .from(spareParts)
       .where(and(eq(spareParts.id, input.partId), eq(spareParts.companyId, companyId)))
-      .for("update");
+      .for("no key update");
     if (!part) throw new TenantContextError("cross_tenant", "Część nie należy do firmy.");
     return executeWarehouseReceipt({
       store: sparePartsInventoryStore,
@@ -156,11 +157,12 @@ export class StockMovementService {
       return db.transaction((tx) => this.addIssue(companyId, userId, input, tx));
     }
     const { TenantContextError } = await import("@/lib/tenantContext");
+    // Serialize stock changes without conflicting with FK KEY SHARE locks on BOM inserts.
     const [part] = await client
       .select({ id: spareParts.id })
       .from(spareParts)
       .where(and(eq(spareParts.id, input.partId), eq(spareParts.companyId, companyId)))
-      .for("update");
+      .for("no key update");
     if (!part) throw new TenantContextError("cross_tenant", "Część nie należy do firmy.");
     if (input.workOrderId != null) {
       const [order] = await client

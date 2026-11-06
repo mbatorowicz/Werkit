@@ -1,0 +1,177 @@
+{
+  "at": "2026-11-06T18:06:59.866Z",
+  "isolation": "local Docker; schema-only remote read; synthetic rows only",
+  "image": "postgres:17",
+  "backupMs": 875,
+  "restoreMs": 703,
+  "archiveSha256": "9aa7ca2e7171288d3a04cc70bf0dcb85e732bfc715b5e3efb006358c29ca7718",
+  "tableCounts": {
+    "\"drizzle\".\"__drizzle_migrations\"": 0,
+    "\"public\".\"companies\"": 1,
+    "\"public\".\"company_settings\"": 1,
+    "\"public\".\"customer_locations\"": 0,
+    "\"public\".\"customers\"": 0,
+    "\"public\".\"departments\"": 0,
+    "\"public\".\"device_logs\"": 0,
+    "\"public\".\"gps_logs\"": 4000,
+    "\"public\".\"login_attempts\"": 0,
+    "\"public\".\"material_categories\"": 0,
+    "\"public\".\"material_inventory\"": 0,
+    "\"public\".\"material_stock_issues\"": 0,
+    "\"public\".\"material_stock_receipts\"": 0,
+    "\"public\".\"material_to_categories\"": 0,
+    "\"public\".\"materials\"": 0,
+    "\"public\".\"offline_operations\"": 80,
+    "\"public\".\"platform_audit_events\"": 0,
+    "\"public\".\"resource_categories\"": 1,
+    "\"public\".\"resource_groups\"": 0,
+    "\"public\".\"resource_to_categories\"": 0,
+    "\"public\".\"resources\"": 40,
+    "\"public\".\"session_notes\"": 40,
+    "\"public\".\"session_photos\"": 40,
+    "\"public\".\"spare_part_categories\"": 0,
+    "\"public\".\"spare_part_inventory\"": 1,
+    "\"public\".\"spare_part_machine_compatibility\"": 0,
+    "\"public\".\"spare_part_to_categories\"": 0,
+    "\"public\".\"spare_parts\"": 1,
+    "\"public\".\"stock_issues\"": 40,
+    "\"public\".\"stock_receipts\"": 40,
+    "\"public\".\"team_members\"": 0,
+    "\"public\".\"teams\"": 0,
+    "\"public\".\"users\"": 40,
+    "\"public\".\"work_order_spare_parts\"": 0,
+    "\"public\".\"work_orders\"": 40,
+    "\"public\".\"work_sessions\"": 40
+  },
+  "constraints": 124,
+  "indexes": 105,
+  "sequences": 30,
+  "restoreVerified": true,
+  "restoredApplicationReplayVerified": true,
+  "isolatedIntegrationTests": 29,
+  "load": {
+    "workers": 40,
+    "metrics": {
+      "admin-edit-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 50,
+        "p95Ms": 73,
+        "maxMs": 73
+      },
+      "start-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 66,
+        "p95Ms": 99,
+        "maxMs": 99
+      },
+      "shared-stock-pick-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 132,
+        "p95Ms": 248,
+        "maxMs": 261
+      },
+      "shared-stock-return-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 109,
+        "p95Ms": 187,
+        "maxMs": 194
+      },
+      "dashboard-0": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 48,
+        "p95Ms": 53,
+        "maxMs": 54
+      },
+      "gps-0": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 92,
+        "p95Ms": 118,
+        "maxMs": 119
+      },
+      "dashboard-1": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 49,
+        "p95Ms": 53,
+        "maxMs": 54
+      },
+      "gps-1": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 85,
+        "p95Ms": 110,
+        "maxMs": 111
+      },
+      "dashboard-2": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 39,
+        "p95Ms": 45,
+        "maxMs": 45
+      },
+      "gps-2": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 85,
+        "p95Ms": 108,
+        "maxMs": 108
+      },
+      "dashboard-3": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 43,
+        "p95Ms": 48,
+        "maxMs": 48
+      },
+      "gps-3": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 93,
+        "p95Ms": 115,
+        "maxMs": 116
+      },
+      "dashboard-4": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 42,
+        "p95Ms": 46,
+        "maxMs": 47
+      },
+      "gps-4": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 75,
+        "p95Ms": 100,
+        "maxMs": 100
+      },
+      "offline-note-retry-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 57,
+        "p95Ms": 64,
+        "maxMs": 64
+      },
+      "finish-offline-40": {
+        "count": 40,
+        "errors": 0,
+        "p50Ms": 68,
+        "p95Ms": 75,
+        "maxMs": 76
+      }
+    },
+    "checks": {
+      "gps": 4000,
+      "notes": 40,
+      "receipts": 80,
+      "completedSessions": 40,
+      "stock": 100
+    },
+    "scope": "services + local PostgreSQL; not HTTP/Vercel/device throughput"
+  }
+}
