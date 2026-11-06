@@ -146,16 +146,14 @@ async function main() {
       true
     );
   });
-  await db
-    .insert(sessionPhotos)
-    .values(
-      workers.map((w) => ({
-        workSessionId: w.sessionId,
-        photoType: "AD_HOC",
-        photoUrl:
-          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aC1sAAAAASUVORK5CYII=",
-      }))
-    );
+  await db.insert(sessionPhotos).values(
+    workers.map((w) => ({
+      workSessionId: w.sessionId,
+      photoType: "AD_HOC",
+      photoUrl:
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aC1sAAAAASUVORK5CYII=",
+    }))
+  );
   const replays: { userId: number; companyId: number; action: unknown }[] = [];
   await phase("finish-offline-40", workers, async (w) => {
     const action = {
