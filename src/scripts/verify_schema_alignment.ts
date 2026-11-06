@@ -176,7 +176,14 @@ async function main() {
       "longitude",
       "created_at",
     ]),
-    gps_logs: new Set(["id", "work_session_id", "latitude", "longitude", "timestamp"]),
+    gps_logs: new Set([
+      "client_point_id",
+      "id",
+      "work_session_id",
+      "latitude",
+      "longitude",
+      "timestamp",
+    ]),
     session_notes: new Set([
       "id",
       "work_session_id",

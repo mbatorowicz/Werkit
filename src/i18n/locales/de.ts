@@ -1044,6 +1044,8 @@ export const de: AppDictionary = {
       offlineDiscard: "Verwerfen",
       offlineDiscardConfirm:
         "Ungesendeten Vorgang verwerfen? Speichern Sie eine Kopie, um die Daten zu behalten.",
+      gpsPendingCount: "GPS: {count} unbestätigte Punkte",
+      gpsExport: "GPS-Kopie speichern",
       offlineBanner: "Keine Internetverbindung",
       offlinePendingCount: "{count} Operationen warten",
       offlineQueuedEndSession:

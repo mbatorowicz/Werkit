@@ -1027,6 +1027,8 @@ export const pl = {
       offlineDiscard: "Odrzuć",
       offlineDiscardConfirm:
         "Odrzucić niewysłaną operację? Zapisz kopię, jeśli dane mają zostać zachowane.",
+      gpsPendingCount: "GPS: {count} punktów niepotwierdzonych",
+      gpsExport: "Zapisz kopię GPS",
       offlineBanner: "Brak połączenia z internetem",
       offlinePendingCount: "{count} operacji oczekuje",
       offlineQueuedEndSession:

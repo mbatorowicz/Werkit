@@ -53,11 +53,11 @@ export async function endSessionAction(
       sendRemoteLog("INFO", "Zakończenie sesji zakolejkowane offline", undefined, {
         category: "session",
       });
-      GPSManager.clearQueue();
+      void GPSManager.flushQueue();
       await appAlert({ message: dict.offlineQueuedEndSession });
       await fetchSessionAndPath(false, false);
     } else if (result.ok) {
-      GPSManager.clearQueue();
+      void GPSManager.flushQueue();
       sendRemoteLog("INFO", "Użytkownik zakończył sesję pracy", undefined, {
         category: "session",
       });
@@ -156,12 +156,12 @@ export async function cancelSessionAction(deps: WorkerSessionActionDeps): Promis
         { status: "cancelled" },
         { category: "orders" }
       );
-      GPSManager.clearQueue();
+      void GPSManager.flushQueue();
       await appAlert({ message: dict.offlineQueuedCancel });
       await fetchSessionAndPath(true, true);
     } else if (result.ok) {
       sendRemoteLog("WARN", "Cofnięto zlecenie", { status: "cancelled" }, { category: "orders" });
-      GPSManager.clearQueue();
+      void GPSManager.flushQueue();
       await appAlert({ message: dict.cancelSuccess });
       await fetchSessionAndPath(true, true);
     } else {

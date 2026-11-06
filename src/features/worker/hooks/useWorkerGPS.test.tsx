@@ -21,8 +21,10 @@ vi.mock("@/features/worker/gps/backgroundGeolocationSingleton", () => ({
 }));
 
 vi.mock("@/lib/gpsManager", () => ({
+  GPS_STOP_EVENT: "werkit-gps-stop",
   GPSManager: {
-    enqueue: vi.fn(),
+    isStopped: vi.fn().mockResolvedValue(false),
+    enqueue: vi.fn().mockResolvedValue({ pointId: "test" }),
     flushQueue: vi.fn(),
     clearQueue,
   },
@@ -37,6 +39,7 @@ vi.mock("@/features/worker/gps/batteryOptimization", () => ({
 }));
 
 import { useWorkerGPS } from "@/features/worker/hooks/useWorkerGPS";
+import { GPSManager } from "@/lib/gpsManager";
 
 const session: Session = {
   id: 1,
@@ -53,10 +56,41 @@ describe("useWorkerGPS", () => {
     removeWatcher.mockClear();
     clearQueue.mockClear();
     isNativePlatform.mockReturnValue(true);
+    vi.mocked(GPSManager.isStopped).mockResolvedValue(false);
+    addWatcher.mockResolvedValue("watcher-1");
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("stops the watcher immediately after a durable local end signal", async () => {
+    renderHook(() => useWorkerGPS(session, vi.fn(), vi.fn(), vi.fn(), true));
+    await waitFor(() => expect(addWatcher).toHaveBeenCalledTimes(1));
+    window.dispatchEvent(new CustomEvent("werkit-gps-stop", { detail: session.id }));
+    await waitFor(() => expect(removeWatcher).toHaveBeenCalledWith({ id: "watcher-1" }));
+    expect(clearQueue).not.toHaveBeenCalled();
+  });
+
+  it("does not restart an ended session from stale server state", async () => {
+    vi.mocked(GPSManager.isStopped).mockResolvedValue(true);
+    renderHook(() => useWorkerGPS(session, vi.fn(), vi.fn(), vi.fn(), true));
+    await waitFor(() => expect(GPSManager.isStopped).toHaveBeenCalledWith(session.id));
+    expect(addWatcher).not.toHaveBeenCalled();
+  });
+
+  it("removes a native watcher that finishes registering after stop", async () => {
+    let resolveWatcher!: (id: string) => void;
+    addWatcher.mockReturnValue(
+      new Promise<string>((resolve) => {
+        resolveWatcher = resolve;
+      })
+    );
+    renderHook(() => useWorkerGPS(session, vi.fn(), vi.fn(), vi.fn(), true));
+    await waitFor(() => expect(addWatcher).toHaveBeenCalledTimes(1));
+    window.dispatchEvent(new CustomEvent("werkit-gps-stop", { detail: session.id }));
+    resolveWatcher("late-watcher");
+    await waitFor(() => expect(removeWatcher).toHaveBeenCalledWith({ id: "late-watcher" }));
   });
 
   it("nie woła native API gdy gpsTrackingEnabled jest false", async () => {
@@ -67,7 +101,7 @@ describe("useWorkerGPS", () => {
       expect(setGpsStatus).toHaveBeenCalledWith("active");
     });
     expect(addWatcher).not.toHaveBeenCalled();
-    expect(clearQueue).toHaveBeenCalled();
+    expect(clearQueue).not.toHaveBeenCalled();
   });
 
   it("nie woła native API gdy gpsPolicy jest stationary", async () => {

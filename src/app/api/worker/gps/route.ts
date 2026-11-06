@@ -1,6 +1,6 @@
 import { jsonError, jsonOk, parseJson, withApiErrorHandling } from "@/lib/apiRoute";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
-import { GpsService, GpsPoint } from "@/services/GpsService";
+import { GpsService } from "@/services/GpsService";
 import { PlatformFeatureFlagService } from "@/services/PlatformFeatureFlagService";
 
 export const GET = withApiErrorHandling(
@@ -26,17 +26,23 @@ export const POST = withApiErrorHandling(
     }
 
     const body = await parseJson(request);
-    const points: GpsPoint[] = Array.isArray(body) ? (body as GpsPoint[]) : [body as GpsPoint];
+    const points: unknown[] = Array.isArray(body) ? body : [body];
 
-    if (points.length === 0) return jsonOk({ success: true, count: 0 });
+    if (points.length === 0) return jsonOk({ success: true, count: 0, acknowledgedIds: [] });
 
-    const savedCount = await GpsService.saveGpsLogs(ctx.userId, ctx.companyId, points);
-    return jsonOk({ success: true, count: savedCount });
+    const acknowledgedIds = await GpsService.saveSessionPoints(ctx.userId, ctx.companyId, points);
+    return jsonOk({ success: true, count: acknowledgedIds.length, acknowledgedIds });
   },
   {
     mapUnknownError: (err) => {
       if (!(err instanceof Error)) return null;
       if (err.message === "no_active_session") return jsonError("no_active_session", 400);
+      if (
+        ["invalid_gps_point", "gps_session_conflict", "gps_stationary_session"].includes(
+          err.message
+        )
+      )
+        return jsonError(err.message, 409);
       if (err.message === "payload_too_large") return jsonError("payload_too_large", 400);
       return null;
     },

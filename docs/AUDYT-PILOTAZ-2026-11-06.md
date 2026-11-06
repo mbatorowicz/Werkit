@@ -145,3 +145,15 @@ Testy nowe: 5/5 jednostkowych/UI oraz 3/3 integracyjnych (równoczesne identyczn
 Android workflow 42251369737 dla ca6b6b7: SUCCESS (release AAB, release APK, debug APK i publikacja): https://github.com/mbatorowicz/Werkit/actions/runs/42251369737 . Metadane opublikowanego APK: 1.9.4, release, signing=play-upload, commit ca6b6b7a1a50f931f696b65d7b4d8b7312410cfa. APK pobrano i sprawdzono SHA-256 względem digestu GitHub: 7e0d0ee3e94db00a14f071a1e39f8a4299bfb00bc92c25f894f4e3383e31205e; rozmiar 9299126 bajtów. ZIP zawiera AndroidManifest.xml, classes.dex i assets/capacitor.config.json. Nie wykonywano instalacji na telefonie ani osobnego sprawdzenia certyfikatu apksigner. APK dotyczy funkcjonalnego commitu; kolejny commit zmienia wyłącznie formatowanie.
 
 Wynik ten zamyka zakres implementacji deduplikacji i interfejsu konfliktów, nie cały audyt gotowości firmy. Testy terenowe Android/iPhone, GPS, backup/restore i pozostałe otwarte punkty raportu nadal obowiązują.
+
+## GPS: przypisanie, trwała kolejka i zatrzymanie — 6 listopada 2026
+
+Każdy nowy punkt ma trwały pointId, sessionId i czas pomiaru. Serwer sprawdza właściciela/firmę, niestacjonarny charakter oraz przedział czasu sesji; przyjmuje opóźnione punkty również po zakończeniu sesji. Unikalny client_point_id zapobiega duplikatom przy ponowieniu po utraconej odpowiedzi. Migracja 0037, db:napraw-wszystko oraz db:verify-schema wykonane poprawnie na podłączonej bazie.
+
+IndexedDB v2 usuwa wyłącznie potwierdzone identyfikatory, bez czyszczenia całej kolejki przy błędzie lub zakończeniu. Równoczesny dopływ punktów nie ginie podczas potwierdzania. Niepotwierdzony punkt nie blokuje późniejszych partii tej samej sesji. Stare punkty bez sessionId pozostają zachowane do eksportu; nie przypisuje się ich automatycznie. Interfejs pokazuje zaległe punkty i pozwala pobrać kopię. Stary klient GPS wymaga przeładowania po wdrożeniu nowego API.
+
+Lokalne zakończenie/anulowanie utrwala znacznik zatrzymania przed wysyłką operacji. Watcher reaguje w bieżącej i innych kartach; nie startuje ponownie dla lokalnie zamkniętej sesji i usuwa również spóźnioną rejestrację natywną. Synchronizacja zaległych danych działa także bez aktywnej sesji.
+
+Walidacja: końcowy zestaw GPS 16/16 (kolejka 5, rzeczywiste IndexedDB 2, hook 9), integracyjne GPS 3/3 (w tym zamknięta sesja sprzed trzech dni, współbieżne ponowienia, granice czasu i obcy użytkownik). Wcześniej sprawdzono również banner/offline queue i istniejące testy serwisu. TypeScript poprawny, lint 0 błędów/10 ostrzeżeń, build poprawny; ostatnią drobną korektę kontynuowania partii sprawdzono testami. Formatowanie pozostałych plików zgłasza lokalne CRLF; po normalizacji do LF treść przechodzi kontrolę.
+
+Ograniczenia: brak testu na fizycznym Androidzie/iPhonie, działania przy zablokowanym ekranie i wymuszonego ubicia aplikacji. PWA iOS nie zapewnia ciągłego GPS w tle. Usunięcie danych przeglądarki przez użytkownika/system nadal usuwa lokalną kolejkę. Nie uznawać całego pilotażu za gotowy wyłącznie na podstawie tych testów.

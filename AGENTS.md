@@ -258,3 +258,7 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 ### Offline worker (2026-11-06)
 
 Operacje kolejki v2 wykonuje `OfflineOperationService` przez `/api/worker/offline`; trwałe potwierdzenia `offline_operations` (0036) są atomowe z mutacją. Zachowuj identyfikator przy ponowieniach. Nie czyść automatycznie konfliktów ani historycznych potwierdzeń. UI konfliktów: `OfflineBanner`; wysyłka między kartami: Web Locks. Szczegóły w SYSTEM_MAP.
+
+### GPS v2 (2026-11-06)
+
+Nie usuwać bufora GPS po końcu pracy, 401/403 lub zmianie flag. Każdy punkt zawiera sessionId i pointId; API potwierdza konkretne acknowledgedIds. Unikalny gps_logs.client_point_id (0037) deduplikuje ponowienia. Zakończenie offline zapisuje trwały znacznik stopped_sessions w IndexedDB i zatrzymuje watcher; punkty historyczne wysyłane są do pierwotnej sesji. Szczegóły i ograniczenia w SYSTEM_MAP.

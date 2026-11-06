@@ -148,6 +148,13 @@ export const offlineActionQueue = {
       throw err;
     }
 
+    if (
+      (type === "end_session" || type === "cancel_session") &&
+      typeof payload.sessionId === "number"
+    ) {
+      const { GPSManager } = await import("@/lib/gpsManager");
+      await GPSManager.stopSession(payload.sessionId);
+    }
     return { ok: true, queued: true, id: action.id };
   },
 

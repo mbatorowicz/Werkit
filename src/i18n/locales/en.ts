@@ -1021,6 +1021,8 @@ export const en: AppDictionary = {
       offlineExport: "Save copy",
       offlineDiscard: "Discard",
       offlineDiscardConfirm: "Discard this unsent operation? Save a copy to keep its data.",
+      gpsPendingCount: "GPS: {count} unacknowledged points",
+      gpsExport: "Save GPS copy",
       offlineBanner: "No internet connection",
       offlinePendingCount: "{count} operations pending",
       offlineQueuedEndSession:

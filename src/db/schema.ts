@@ -260,6 +260,7 @@ export const sessionPhotos = pgTable("session_photos", {
 });
 
 export const gpsLogs = pgTable("gps_logs", {
+  clientPointId: varchar("client_point_id", { length: 100 }).unique(),
   id: serial("id").primaryKey(),
   workSessionId: integer("work_session_id")
     .notNull()

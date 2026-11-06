@@ -1,4 +1,5 @@
 "use client";
+import { GPSManager } from "@/lib/gpsManager";
 
 import { useEffect, useState } from "react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -15,6 +16,7 @@ import { useAppDialog } from "@/components/AppDialogProvider";
 export function OfflineBanner() {
   const { isOnline } = useOnlineStatus();
   const dict = useDictionary();
+  const [gpsCount, setGpsCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [actions, setActions] = useState<OfflineAction[]>([]);
   const { confirm } = useAppDialog();
@@ -28,6 +30,13 @@ export function OfflineBanner() {
       const queued = await offlineActionQueue.getAll();
       if (!cancelled) setActions(queued);
       if (!cancelled) setPendingCount(count);
+      try {
+        const points = await GPSManager.getQueue();
+        const legacy = await GPSManager.getLegacyQueue();
+        if (!cancelled) setGpsCount(points.length + legacy.length);
+      } catch {
+        /* retain the last displayed count */
+      }
     };
 
     void checkPending();
@@ -39,7 +48,7 @@ export function OfflineBanner() {
     };
   }, [isOnline]);
 
-  if (isOnline && pendingCount === 0) return null;
+  if (isOnline && pendingCount === 0 && gpsCount === 0) return null;
 
   return (
     <div
@@ -67,6 +76,31 @@ export function OfflineBanner() {
           </span>
         )}
       </span>
+      {gpsCount > 0 && (
+        <div className="mt-2">
+          {formatDict(dict.worker.client.gpsPendingCount, { count: gpsCount })}
+          <button
+            type="button"
+            className="ml-3 underline"
+            onClick={async () => {
+              const points = await GPSManager.getQueue();
+              const legacy = await GPSManager.getLegacyQueue();
+              const url = URL.createObjectURL(
+                new Blob([JSON.stringify({ points, legacy }, null, 2)], {
+                  type: "application/json",
+                })
+              );
+              const link = document.createElement("a");
+              link.href = url;
+              link.download = "werkit-gps-pending.json";
+              link.click();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }}
+          >
+            {dict.worker.client.gpsExport}
+          </button>
+        </div>
+      )}
       {actions
         .filter(
           (action) =>

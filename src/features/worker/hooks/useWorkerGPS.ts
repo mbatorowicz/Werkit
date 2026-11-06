@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Dispatch } from "react";
 import { Capacitor } from "@capacitor/core";
 import { sendRemoteLog } from "@/lib/remoteLogger";
-import { GPSManager } from "@/lib/gpsManager";
+import { GPSManager, GPS_STOP_EVENT } from "@/lib/gpsManager";
 import { backgroundGeolocation } from "@/features/worker/gps/backgroundGeolocationSingleton";
 import {
   coordFromGeolocationCoords,
@@ -43,9 +43,22 @@ export function useWorkerGPS(
   const watchIdRef = useRef<string | number | null>(null);
 
   useEffect(() => {
+    const flush = () => {
+      void GPSManager.flushQueue();
+    };
+    window.addEventListener("online", flush);
+    const timer = setInterval(flush, WORKER_GPS_QUEUE_FLUSH_INTERVAL_MS);
+    flush();
+    return () => {
+      window.removeEventListener("online", flush);
+      clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
-    if (!session) {
+    if (!session || session.status !== "IN_PROGRESS") {
       clearGpsWatchId(watchIdRef);
       return;
     }
@@ -53,9 +66,6 @@ export function useWorkerGPS(
     const gpsPolicy = gpsPolicyFromSession(session);
     if (!shouldStartGpsWatcher({ gpsPolicy }, gpsTrackingEnabled)) {
       clearGpsWatchId(watchIdRef);
-      if (gpsTrackingEnabled === false) {
-        void GPSManager.clearQueue();
-      }
       if (isMounted) setGpsStatus("active");
       return () => {
         isMounted = false;
@@ -63,24 +73,31 @@ export function useWorkerGPS(
       };
     }
 
-    const handleNewLoc = (newLoc: Coord) => {
+    const handleNewLoc = async (newLoc: Coord, timestamp = new Date().toISOString()) => {
       if (!isMounted) return;
-      setLocation(newLoc);
-      dispatchRoute({
-        type: "gps",
-        loc: { ...newLoc, recordedAt: new Date().toISOString() },
-      });
-
-      GPSManager.enqueue(newLoc);
-      GPSManager.flushQueue(() => {
-        if (isMounted) setGpsStatus("active");
-      });
+      try {
+        const saved = await GPSManager.enqueue(newLoc, session.id, timestamp);
+        if (!saved) {
+          isMounted = false;
+          clearGpsWatchId(watchIdRef);
+          return;
+        }
+        if (!isMounted) return;
+        setLocation(newLoc);
+        dispatchRoute({ type: "gps", loc: { ...newLoc, recordedAt: timestamp } });
+        await GPSManager.flushQueue(() => {
+          if (isMounted) setGpsStatus("active");
+        });
+      } catch {
+        if (isMounted) setGpsStatus("error");
+      }
     };
 
     const startNativeTracking = async () => {
       setGpsStatus("waiting");
       try {
         await requestIgnoreBatteryOptimizationsIfNeeded();
+        if (!isMounted) return;
         if (typeof backgroundGeolocation.addWatcher !== "function") {
           if (isMounted) setGpsStatus("error");
           return;
@@ -90,7 +107,7 @@ export function useWorkerGPS(
           {
             ...WORKER_BG_GEO_NOTIFICATION,
             requestPermissions: true,
-            stale: true,
+            stale: false,
             distanceFilter: WORKER_GPS_NATIVE_DISTANCE_FILTER_METERS,
           },
           (location, error) => {
@@ -118,7 +135,7 @@ export function useWorkerGPS(
               );
               return;
             }
-            handleNewLoc(coord);
+            void handleNewLoc(coord);
           }
         );
 
@@ -160,7 +177,7 @@ export function useWorkerGPS(
               );
               return;
             }
-            handleNewLoc(coord);
+            void handleNewLoc(coord, new Date(pos.timestamp).toISOString());
           },
           () => {
             if (isMounted) setGpsStatus("error");
@@ -172,11 +189,33 @@ export function useWorkerGPS(
       }
     };
 
-    if (Capacitor.isNativePlatform()) {
-      void startNativeTracking();
-    } else {
-      startWebTracking();
-    }
+    const stop = () => {
+      isMounted = false;
+      clearGpsWatchId(watchIdRef);
+    };
+    const onStop = (event: Event) => {
+      if ((event as CustomEvent<number>).detail === session.id) stop();
+    };
+    const checkStopped = async () => {
+      if (await GPSManager.isStopped(session.id)) stop();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === GPS_STOP_EVENT) void checkStopped().catch(stop);
+    };
+    window.addEventListener(GPS_STOP_EVENT, onStop);
+    window.addEventListener("storage", onStorage);
+    void (async () => {
+      if (await GPSManager.isStopped(session.id)) {
+        stop();
+        return;
+      }
+      if (!isMounted) return;
+      if (Capacitor.isNativePlatform()) await startNativeTracking();
+      else startWebTracking();
+    })().catch(() => {
+      stop();
+      setGpsStatus("error");
+    });
 
     const flushInterval = setInterval(() => {
       GPSManager.flushQueue(() => {
@@ -188,6 +227,8 @@ export function useWorkerGPS(
       isMounted = false;
       clearGpsWatchId(watchIdRef);
       clearInterval(flushInterval);
+      window.removeEventListener(GPS_STOP_EVENT, onStop);
+      window.removeEventListener("storage", onStorage);
     };
   }, [session, setLocation, dispatchRoute, setGpsStatus, gpsTrackingEnabled]);
 }
