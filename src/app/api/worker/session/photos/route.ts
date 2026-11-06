@@ -35,7 +35,8 @@ export const POST = withApiErrorHandling(async (req: Request) => {
       userId,
       companyId,
       photoUrl,
-      location
+      location,
+      typeof body.sessionId === "number" ? body.sessionId : undefined
     );
     return jsonOk({ success: true, url: result.url });
   } catch (err) {

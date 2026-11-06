@@ -156,6 +156,36 @@ describe("WorkOrderSparePartService (integracja z bazą)", () => {
     await StockMovementService.addReceipt(companyId, userId, { partId, quantity: "7" });
   });
 
+  it("równoczesne korekty i zwroty zachowują stan", async () => {
+    const line = await WorkOrderSparePartService.pickPartFromWarehouse(
+      companyId,
+      userId,
+      workOrderId,
+      { partId, quantity: "2" }
+    );
+    await Promise.all(
+      ["3", "4"].map((quantity) =>
+        WorkOrderSparePartService.updatePartInOrderWithStock(
+          companyId,
+          userId,
+          line.id,
+          workOrderId,
+          { quantity }
+        )
+      )
+    );
+    const lines = await WorkOrderSparePartService.getPartsForOrder(workOrderId);
+    const current = lines.find((item) => item.id === line.id)!;
+    expect(Number(await readStock(companyId, partId)) + Number(current.quantity)).toBe(10);
+    const returned = await Promise.all(
+      [1, 2].map(() =>
+        WorkOrderSparePartService.returnPartToWarehouse(companyId, userId, line.id, workOrderId)
+      )
+    );
+    expect(returned.filter(Boolean)).toHaveLength(1);
+    expect(await readStock(companyId, partId)).toBe("10.00");
+  });
+
   it("pobranie ponad stan rzuca insufficient_stock bez wpisu na zleceniu (rollback)", async () => {
     await expect(
       WorkOrderSparePartService.pickPartFromWarehouse(companyId, userId, workOrderId, {

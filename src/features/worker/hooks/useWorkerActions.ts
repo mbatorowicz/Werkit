@@ -14,6 +14,7 @@ import {
 } from "@/features/worker/hooks/workerSessionActions";
 
 interface UseWorkerActionsProps {
+  sessionId?: number;
   dict: AppDictionary["worker"]["client"];
   fetchSessionAndPath: (showLoader: boolean, fetchGpsPath: boolean) => Promise<void>;
   setIsLoading: (val: boolean) => void;
@@ -25,6 +26,7 @@ interface UseWorkerActionsProps {
 }
 
 export function useWorkerActions({
+  sessionId,
   dict,
   fetchSessionAndPath,
   setIsLoading,
@@ -42,7 +44,15 @@ export function useWorkerActions({
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
 
-  const deps = { dict, apiErrors, appAlert, appConfirm, fetchSessionAndPath, setIsLoading };
+  const deps = {
+    sessionId,
+    dict,
+    apiErrors,
+    appAlert,
+    appConfirm,
+    fetchSessionAndPath,
+    setIsLoading,
+  };
 
   const handleEndSession = (endLocation: Coord | null) =>
     endSessionAction(deps, { endLocation, settings, timelineEvents });

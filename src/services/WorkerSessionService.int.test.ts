@@ -82,6 +82,36 @@ describe("WorkerSessionService (integracja z bazą)", () => {
     }
   });
 
+  it("równoczesny start tworzy tylko jedną sesję", async () => {
+    const results = await Promise.allSettled(
+      [1, 2].map(() =>
+        WorkerSessionService.createWizardSession(userId, companyId, { resourceId, categoryId })
+      )
+    );
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    await WorkerSessionService.endActiveSession(userId, companyId);
+  });
+
+  it("opóźniona operacja nie zamyka innej sesji", async () => {
+    const session = await WorkerSessionService.createWizardSession(userId, companyId, {
+      resourceId,
+      categoryId,
+    });
+    await expect(
+      WorkerSessionService.endActiveSession(userId, companyId, null, session.id + 1)
+    ).rejects.toThrow("no_active_session");
+    expect(
+      (await WorkerSessionService.getActiveSessionWithDetails(userId, companyId)).session?.id
+    ).toBe(session.id);
+    await WorkerSessionService.endActiveSession(
+      userId,
+      companyId,
+      null,
+      session.id,
+      new Date().toISOString()
+    );
+  });
+
   it("zakończenie bez aktywnej sesji rzuca no_active_session", async () => {
     await expect(WorkerSessionService.endActiveSession(userId, companyId)).rejects.toThrow(
       "no_active_session"

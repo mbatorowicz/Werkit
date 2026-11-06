@@ -18,7 +18,8 @@ export const POST = withApiErrorHandling(
       ctx.companyId,
       note,
       location?.lat != null ? String(location.lat) : null,
-      location?.lng != null ? String(location.lng) : null
+      location?.lng != null ? String(location.lng) : null,
+      typeof body.sessionId === "number" ? body.sessionId : undefined
     );
 
     return jsonOk({ success: true });
@@ -49,7 +50,13 @@ export const PUT = withApiErrorHandling(
       return jsonError("invalid_id", 400);
     }
 
-    await WorkerSessionService.updateNote(ctx.userId, ctx.companyId, nid, note);
+    await WorkerSessionService.updateNote(
+      ctx.userId,
+      ctx.companyId,
+      nid,
+      note,
+      typeof body.sessionId === "number" ? body.sessionId : undefined
+    );
     return jsonOk({ success: true });
   },
   {

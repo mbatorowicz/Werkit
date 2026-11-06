@@ -123,3 +123,13 @@ Walidacja pakietu: 20/20 wybranych testów jednostkowych, 23/23 integracyjnych (
 To częściowa realizacja: nadal wymagają naprawy współbieżne korekty/zwroty pozycji, bezwzględne korekty stanu, wyścigi przy starcie i końcu sesji, atomowa kontrola uprawnień razem z mutacją, offline oraz GPS. Nie uznawać A02/A04/A05 za całkowicie zamknięte. Istniejących błędnych dokumentów nie przeliczano automatycznie.
 
 Zatwierdzony skan npm --omit=dev zakończony: 8 zgłoszeń (2 critical, 5 high, 1 moderate). Pełny wynik: npm-audit-2026-11-06.json. Wśród krytycznych Capacitor Android GHSA-rvm3-566m-v7fv. Zależności w tym pakiecie nie były aktualizowane; wymaga to osobnego sprawdzenia kompatybilności i nowego APK.
+
+## Drugi pakiet napraw — 6 listopada 2026
+
+Korekty i zwroty blokują pozycję zlecenia SELECT FOR UPDATE wewnątrz transakcji. Oba wejścia startu sesji blokują pracownika i zasób, następnie ponownie sprawdzają aktywne sesje; przyjęcie zlecenia dodatkowo ponownie sprawdza status pod blokadą wiersza. Brak migracji schematu.
+
+Offline: nowe operacje przekazują sessionId, serwisy filtrują docelową aktywną sesję; zakończenie zachowuje occurredAt po sprawdzeniu granic czasu. Stare wpisy bez sessionId są zatrzymywane. Wysyłka w jednym kontekście JS jest współdzielona, zatrzymuje się na błędzie i zachowuje konflikt. Błąd IndexedDB nie jest sukcesem. Nadal otwarte: idempotencja serwerowa po utraconej odpowiedzi, koordynacja między kartami, jawny właściciel kolejki i UI rozwiązywania konfliktów. Nie uznawać całego A06 za zamknięte.
+
+Testy: 35/35 wybranych jednostkowych; 24/24 integracyjnych współbieżności, następnie 7/7 integracyjnych sesji po dodaniu ochrony sessionId/czasu i 24/24 jednostkowych po tej zmianie. TypeScript poprawny, lint 0 błędów/7 ostrzeżeń. Build po aktualizacji zależności poprawny (przed ostatnią zmianą walidacji czasu, którą sprawdzono testami i typami).
+
+Next.js oraz eslint-config-next zaktualizowane do 16.4.5, pozostałe poprawki zależności w lockfile. npm audit --omit=dev: 0 podatności; wynik npm-audit-after-2026-11-06.json. To nie jest pełny pentest. Nowego APK nie zbudowano lokalnie ani nie sprawdzono na telefonie; zmiana package.json uruchamia workflow Android po pushu.

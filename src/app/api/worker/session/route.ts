@@ -56,7 +56,13 @@ export const PUT = withApiErrorHandling(
     const body = await parseJsonBodyOrEmpty(request);
     const endCoord = coordsFromRequestBody(body);
 
-    await WorkerSessionService.endActiveSession(ctx.userId, ctx.companyId, endCoord);
+    await WorkerSessionService.endActiveSession(
+      ctx.userId,
+      ctx.companyId,
+      endCoord,
+      typeof body.sessionId === "number" ? body.sessionId : undefined,
+      typeof body.occurredAt === "string" ? body.occurredAt : undefined
+    );
     return jsonOk({ success: true });
   },
   {

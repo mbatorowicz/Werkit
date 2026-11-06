@@ -43,6 +43,7 @@ export default function WorkerClient({ initialData }: { initialData: InitialWork
     handlePhotoUpload,
     acceptErrors,
   } = useWorkerActions({
+    sessionId: shell.session?.id,
     dict,
     fetchSessionAndPath: shell.fetchSessionAndPath,
     setIsLoading: shell.setIsLoading,

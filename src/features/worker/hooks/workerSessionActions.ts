@@ -12,6 +12,7 @@ import { sendRemoteLog } from "@/lib/remoteLogger";
 import type { Coord, TimelineItem, AppSettings } from "@/types/worker";
 
 export type WorkerSessionActionDeps = {
+  sessionId?: number;
   dict: AppDictionary["worker"]["client"];
   apiErrors: Record<string, string>;
   appAlert: (options: AppAlertOptions) => Promise<void>;
@@ -43,7 +44,10 @@ export async function endSessionAction(
       ? { latitude: args.endLocation.lat, longitude: args.endLocation.lng }
       : {};
 
-    const result = await offlineActionQueue.enqueue("end_session", body);
+    const result = await offlineActionQueue.enqueue("end_session", {
+      ...body,
+      sessionId: deps.sessionId,
+    });
     if (result.queued) {
       // Offline — zakolejkowano, wyślę po powrocie online
       sendRemoteLog("INFO", "Zakończenie sesji zakolejkowane offline", undefined, {
@@ -142,7 +146,9 @@ export async function cancelSessionAction(deps: WorkerSessionActionDeps): Promis
   if (!(await appConfirm({ message: dict.confirmCancelSession, variant: "danger" }))) return;
   setIsLoading(true);
   try {
-    const result = await offlineActionQueue.enqueue("cancel_session", {});
+    const result = await offlineActionQueue.enqueue("cancel_session", {
+      sessionId: deps.sessionId,
+    });
     if (result.queued) {
       sendRemoteLog(
         "WARN",
@@ -206,6 +212,7 @@ export async function checkpointAction(
   setIsLoading(true);
   try {
     const result = await offlineActionQueue.enqueue("checkpoint", {
+      sessionId: deps.sessionId,
       note: dict.checkpointNote,
       location,
     });
@@ -262,7 +269,10 @@ export async function saveNoteAction(
       ? { noteId: editingNoteId, note: noteText }
       : { note: noteText, location };
 
-    const result = await offlineActionQueue.enqueue(actionType, body);
+    const result = await offlineActionQueue.enqueue(actionType, {
+      ...body,
+      sessionId: deps.sessionId,
+    });
     if (result.queued) {
       sendRemoteLog(
         "INFO",
@@ -318,6 +328,7 @@ export async function photoUploadAction(
       const base64 = await compressPhotoToBase64(file);
 
       const result = await offlineActionQueue.enqueue("upload_photo", {
+        sessionId: deps.sessionId,
         photoUrl: base64,
         location,
       });

@@ -1,3 +1,6 @@
+vi.mock("@/services/lockSessionStart", () => ({
+  lockSessionStart: vi.fn().mockResolvedValue(undefined),
+}));
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 /**
@@ -297,7 +300,11 @@ describe("WorkerOrderService", () => {
       const txValues = vi.fn().mockReturnValue({ returning: txReturning });
       const txInsert = vi.fn().mockReturnValue({ values: txValues });
 
-      const tx = { update: txUpdate, insert: txInsert };
+      const tx = {
+        update: txUpdate,
+        insert: txInsert,
+        select: () => ({ from: () => ({ where: () => ({ for: () => orderResult }) }) }),
+      };
       transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<number>) => cb(tx));
 
       const { WorkerOrderService } = await import("./WorkerOrderService");

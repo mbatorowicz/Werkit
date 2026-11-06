@@ -1,3 +1,4 @@
+import { lockSessionStart } from "@/services/lockSessionStart";
 import { db } from "@/db";
 import { workOrders, customers, workSessions, users } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
@@ -110,6 +111,20 @@ export class WorkerOrderService {
 
     // Transakcja: UPDATE work_orders + INSERT work_sessions atomowo
     return await db.transaction(async (tx) => {
+      await lockSessionStart(tx, companyId, userId, order.resourceId);
+      const [current] = await tx
+        .select()
+        .from(workOrders)
+        .where(
+          and(
+            eq(workOrders.id, order.id),
+            eq(workOrders.companyId, companyId),
+            eq(workOrders.userId, userId)
+          )
+        )
+        .for("update");
+      if (!current || current.status !== "PENDING") throw new Error("not_pending");
+      if (current.resourceId !== order.resourceId) throw new Error("invalid_payload");
       await tx
         .update(workOrders)
         .set({

@@ -1,3 +1,4 @@
+import { lockSessionStart } from "@/services/lockSessionStart";
 import { db } from "@/db";
 import {
   workSessions,
@@ -70,11 +71,12 @@ export function serializeWorkerAppSettings(row: unknown): AppSettings | null {
 }
 
 export class WorkerSessionService {
-  private static activeSessionWhere(userId: number, companyId: number) {
+  private static activeSessionWhere(userId: number, companyId: number, expectedSessionId?: number) {
     return and(
       eq(workSessions.userId, userId),
       eq(workSessions.companyId, companyId),
-      eq(workSessions.status, "IN_PROGRESS")
+      eq(workSessions.status, "IN_PROGRESS"),
+      expectedSessionId === undefined ? undefined : eq(workSessions.id, expectedSessionId)
     );
   }
   /**
@@ -225,6 +227,7 @@ export class WorkerSessionService {
     const startNums = startCoord ? coordPairToNumericStrings(startCoord) : null;
 
     const newSession = await db.transaction(async (tx) => {
+      await lockSessionStart(tx, companyId, userId, resId);
       const [row] = await tx
         .insert(workSessions)
         .values({
@@ -275,12 +278,14 @@ export class WorkerSessionService {
   static async endActiveSession(
     userId: number,
     companyId: number,
-    endCoord?: { lat: number; lng: number } | null
+    endCoord?: { lat: number; lng: number } | null,
+    expectedSessionId?: number,
+    occurredAt?: string
   ) {
     const existing = await db
       .select()
       .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
       .limit(1);
 
     if (existing.length === 0) {
@@ -289,6 +294,13 @@ export class WorkerSessionService {
 
     const row = existing[0];
     const sessionId = row.id;
+    const endTime = occurredAt ? new Date(occurredAt) : new Date();
+    if (
+      !Number.isFinite(endTime.getTime()) ||
+      endTime.getTime() < new Date(row.startTime).getTime() ||
+      endTime.getTime() > Date.now() + 60_000
+    )
+      throw new Error("invalid_payload");
     const endNums = endCoord ? coordPairToNumericStrings(endCoord) : null;
 
     // Transakcja: UPDATE work_sessions + UPDATE work_orders atomowo
@@ -297,7 +309,7 @@ export class WorkerSessionService {
         .update(workSessions)
         .set({
           status: "COMPLETED",
-          endTime: new Date(),
+          endTime,
           ...(endNums
             ? {
                 endLatitude: endNums.lat,
@@ -322,13 +334,14 @@ export class WorkerSessionService {
     companyId: number,
     note: string,
     lat?: string | null,
-    lng?: string | null
+    lng?: string | null,
+    expectedSessionId?: number
   ) {
     assertSessionNoteLength(note);
     const existing = await db
       .select()
       .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
       .limit(1);
     if (existing.length === 0) throw new Error("no_active_session");
 
@@ -340,12 +353,18 @@ export class WorkerSessionService {
     });
   }
 
-  static async updateNote(userId: number, companyId: number, noteId: number, note: string) {
+  static async updateNote(
+    userId: number,
+    companyId: number,
+    noteId: number,
+    note: string,
+    expectedSessionId?: number
+  ) {
     assertSessionNoteLength(note);
     const existing = await db
       .select()
       .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
       .limit(1);
     if (existing.length === 0) throw new Error("no_active_session");
 
@@ -393,12 +412,13 @@ export class WorkerSessionService {
     userId: number,
     companyId: number,
     base64DataUrl: string,
-    location?: { lat: number; lng: number } | null
+    location?: { lat: number; lng: number } | null,
+    expectedSessionId?: number
   ): Promise<{ url: string }> {
     const existing = await db
       .select({ id: workSessions.id })
       .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
       .limit(1);
     if (existing.length === 0) throw new Error("no_active_session");
 
@@ -416,11 +436,11 @@ export class WorkerSessionService {
     return { url: result.url };
   }
 
-  static async cancelActiveSession(userId: number, companyId: number) {
+  static async cancelActiveSession(userId: number, companyId: number, expectedSessionId?: number) {
     const [session] = await db
       .select()
       .from(workSessions)
-      .where(WorkerSessionService.activeSessionWhere(userId, companyId))
+      .where(WorkerSessionService.activeSessionWhere(userId, companyId, expectedSessionId))
       .limit(1);
     if (!session) throw new Error("no_active_session");
 

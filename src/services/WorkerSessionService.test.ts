@@ -1,3 +1,6 @@
+vi.mock("@/services/lockSessionStart", () => ({
+  lockSessionStart: vi.fn().mockResolvedValue(undefined),
+}));
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 /**

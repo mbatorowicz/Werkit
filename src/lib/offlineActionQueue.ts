@@ -67,6 +67,8 @@ const DB_NAME = "werkit_offline_queue";
 const STORE_NAME = "actions";
 const DB_VERSION = 1;
 
+let flushPromise: Promise<{ sent: number; failed: number; remaining: number }> | null = null;
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 async function openDb(): Promise<IDBDatabase> {
@@ -110,6 +112,7 @@ export const offlineActionQueue = {
     payload: OfflineActionPayload,
     options?: { maxRetries?: number }
   ): Promise<{ ok: boolean; queued?: boolean; error?: string }> {
+    payload = { ...payload, occurredAt: new Date().toISOString() };
     // Jeśli online — wykonaj od razu
     if (navigator.onLine) {
       try {
@@ -169,6 +172,7 @@ export const offlineActionQueue = {
         },
         { category: "session" }
       );
+      throw err;
     }
 
     return { ok: true, queued: true };
@@ -279,68 +283,45 @@ export const offlineActionQueue = {
    * Te które failed sieciowo — zostawia.
    */
   async flushAll(): Promise<{ sent: number; failed: number; remaining: number }> {
-    const actions = await this.getAll();
-    if (actions.length === 0) return { sent: 0, failed: 0, remaining: 0 };
+    if (flushPromise) return flushPromise;
+    flushPromise = this.flushPending().finally(() => {
+      flushPromise = null;
+    });
+    return flushPromise;
+  },
 
+  async flushPending(): Promise<{ sent: number; failed: number; remaining: number }> {
+    const actions = (await this.getAll()).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     let sent = 0;
     let failed = 0;
-
     for (const action of actions) {
-      try {
-        const res = await this.executeAction(action.type, action.payload);
-
-        if (res.ok) {
-          await this.remove(action.id);
-          sent++;
-          sendRemoteLog(
-            "INFO",
-            `OfflineQueue: flushed ${action.type}`,
-            {
-              actionId: action.id,
-            },
-            { category: "session", dedupeWindowMs: 10_000 }
-          );
-        } else if (res.status === 400) {
-          // Błąd walidacji — nie ma sensu retry
-          await this.remove(action.id);
-          failed++;
-          sendRemoteLog(
-            "WARN",
-            `OfflineQueue: removed invalid action ${action.type}`,
-            {
-              actionId: action.id,
-              status: res.status,
-            },
-            { category: "session" }
-          );
-        } else {
-          // Inny błąd HTTP — retry
-          const newRetry = action.retryCount + 1;
-          if (newRetry >= action.maxRetries) {
-            await this.remove(action.id);
-            failed++;
-            sendRemoteLog(
-              "ERROR",
-              `OfflineQueue: max retries reached for ${action.type}`,
-              {
-                actionId: action.id,
-                type: action.type,
-                retries: newRetry,
-              },
-              { category: "session" }
-            );
-          } else {
-            await this.updateRetry(action.id, newRetry);
-            failed++;
-          }
-        }
-      } catch {
-        // Błąd sieci — zostaw w kolejce
+      if (typeof action.payload.sessionId !== "number") {
         failed++;
+        break;
+      }
+      if (action.retryCount >= action.maxRetries) {
+        failed++;
+        break;
+      }
+      try {
+        const response = await this.executeAction(action.type, action.payload);
+        if (!response.ok) {
+          await this.updateRetry(
+            action.id,
+            response.status >= 400 && response.status < 500
+              ? action.maxRetries
+              : action.retryCount + 1
+          );
+          failed++;
+          break;
+        }
+        await this.remove(action.id);
+        sent++;
+      } catch {
+        failed++;
+        break;
       }
     }
-
-    const remaining = await this.getCount();
-    return { sent, failed, remaining };
+    return { sent, failed, remaining: await this.getCount() };
   },
 };

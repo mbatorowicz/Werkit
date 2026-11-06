@@ -1,13 +1,18 @@
-import { jsonError, jsonOk, withApiErrorHandling } from "@/lib/apiRoute";
+import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { WorkerSessionService } from "@/services/WorkerSessionService";
 import { requireWorkerCompanySession } from "@/lib/apiTenant";
 
 export const POST = withApiErrorHandling(
-  async () => {
+  async (request: Request) => {
     const ctx = await requireWorkerCompanySession();
     if (!ctx.ok) return ctx.response;
 
-    await WorkerSessionService.cancelActiveSession(ctx.userId, ctx.companyId);
+    const body = await parseJsonBody(request);
+    await WorkerSessionService.cancelActiveSession(
+      ctx.userId,
+      ctx.companyId,
+      typeof body.sessionId === "number" ? body.sessionId : undefined
+    );
     return jsonOk({ success: true });
   },
   {

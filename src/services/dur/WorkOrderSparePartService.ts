@@ -137,20 +137,21 @@ export class WorkOrderSparePartService {
     lineId: number,
     workOrderId: number
   ) {
-    const [line] = await db
-      .select()
-      .from(workOrderSpareParts)
-      .where(
-        and(eq(workOrderSpareParts.id, lineId), eq(workOrderSpareParts.workOrderId, workOrderId))
-      )
-      .limit(1);
-
-    if (!line) return null;
-
-    const partOk = await this.assertPartBelongsToCompany(line.partId, companyId);
-    if (!partOk) throw new StockMovementError("part_not_found");
-
     return db.transaction(async (tx) => {
+      const [line] = await tx
+        .select()
+        .from(workOrderSpareParts)
+        .where(
+          and(eq(workOrderSpareParts.id, lineId), eq(workOrderSpareParts.workOrderId, workOrderId))
+        )
+        .limit(1)
+        .for("update");
+
+      if (!line) return null;
+
+      const partOk = await this.assertPartBelongsToCompany(line.partId, companyId);
+      if (!partOk) throw new StockMovementError("part_not_found");
+
       await StockMovementService.returnForWorkOrderLine(
         companyId,
         actorUserId,
@@ -186,26 +187,27 @@ export class WorkOrderSparePartService {
       notes?: string | null;
     }
   ) {
-    const [line] = await db
-      .select()
-      .from(workOrderSpareParts)
-      .where(
-        and(eq(workOrderSpareParts.id, lineId), eq(workOrderSpareParts.workOrderId, workOrderId))
-      )
-      .limit(1);
-
-    if (!line) return null;
-
-    const newQty = data.quantity ?? line.quantity;
-    const oldQty = parseDecimalInput(line.quantity) ?? 0;
-    const nextQty = parseDecimalInput(newQty) ?? Number.NaN;
-    const delta = nextQty - oldQty;
-
-    if (!Number.isFinite(nextQty) || nextQty <= 0) {
-      throw new StockMovementError("invalid_quantity");
-    }
-
     return db.transaction(async (tx) => {
+      const [line] = await tx
+        .select()
+        .from(workOrderSpareParts)
+        .where(
+          and(eq(workOrderSpareParts.id, lineId), eq(workOrderSpareParts.workOrderId, workOrderId))
+        )
+        .limit(1)
+        .for("update");
+
+      if (!line) return null;
+
+      const newQty = data.quantity ?? line.quantity;
+      const oldQty = parseDecimalInput(line.quantity) ?? 0;
+      const nextQty = parseDecimalInput(newQty) ?? Number.NaN;
+      const delta = nextQty - oldQty;
+
+      if (!Number.isFinite(nextQty) || nextQty <= 0) {
+        throw new StockMovementError("invalid_quantity");
+      }
+
       if (Math.abs(delta) > 0.0001) {
         if (delta > 0) {
           await StockMovementService.addIssue(
