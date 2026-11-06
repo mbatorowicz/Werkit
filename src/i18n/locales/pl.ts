@@ -110,6 +110,12 @@ export const pl = {
     },
   },
   apiErrors: {
+    operation_conflict:
+      "To pobranie ma już inny zapis. Odśwież listę części i sprawdź wydanie; nie twórz kolejnego.",
+    invalid_operation_id: "Odśwież aplikację, aby bezpiecznie pobrać część.",
+    part_pick_pending:
+      "Poprzednie pobranie nie ma potwierdzenia. Ponów je z tymi samymi danymi przed kolejnym pobraniem.",
+
     fetch_error: "Błąd podczas pobierania danych z serwera.",
     migration_required: "Baza wymaga aktualizacji. Skontaktuj się z administratorem systemu.",
     migration_material_categories:

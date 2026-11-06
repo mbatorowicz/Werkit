@@ -1,4 +1,6 @@
 "use client";
+import { sendPartPickRequest } from "@/lib/partPickRequest";
+import { useRef } from "react";
 
 import type { AppAlertOptions, AppConfirmOptions } from "@/components/AppDialogProvider";
 import { appDialogApiMessage } from "@/components/AppDialogProvider";
@@ -60,26 +62,25 @@ export function useWorkerSparePartsActions(args: UseWorkerSparePartsActionsArgs)
   const { workOrderId, resourceGroupId, workerDict, durDict, apiErrors, durApiErrors } = args;
   const { appAlert, appConfirm, fetchParts, fetchCatalog } = args;
 
+  const pickInFlight = useRef(false);
   const handleAddPart = async () => {
+    if (pickInFlight.current) return;
     const partIdNum = parseInt(args.selectedPartId, 10);
     if (!partIdNum || Number.isNaN(partIdNum)) return;
     if (!workOrderId) return;
 
+    pickInFlight.current = true;
     args.setIsAdding(true);
     try {
-      const res = await fetchWithDeviceTelemetry(
+      const res = await sendPartPickRequest(
         `Worker: spare-parts POST work-order ${workOrderId}`,
         `/api/worker/work-orders/${workOrderId}/spare-parts`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            partId: partIdNum,
-            quantity: decimalStringForStorage(args.addQuantity || "1") ?? "1",
-            notes: args.addNotes || null,
-          }),
-        },
-        { category: "orders" }
+        JSON.stringify({
+          partId: partIdNum,
+          quantity: decimalStringForStorage(args.addQuantity || "1") ?? "1",
+          notes: args.addNotes || null,
+        }),
+        "orders"
       );
 
       if (res.ok) {
@@ -101,9 +102,15 @@ export function useWorkerSparePartsActions(args: UseWorkerSparePartsActionsArgs)
           ),
         });
       }
-    } catch {
-      await appAlert({ message: durDict.saveError });
+    } catch (error) {
+      await appAlert({
+        message:
+          error instanceof Error && error.message === "part_pick_pending"
+            ? apiErrors.part_pick_pending
+            : durDict.saveError,
+      });
     } finally {
+      pickInFlight.current = false;
       args.setIsAdding(false);
     }
   };

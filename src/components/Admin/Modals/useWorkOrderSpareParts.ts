@@ -1,4 +1,6 @@
 "use client";
+import { sendPartPickRequest } from "@/lib/partPickRequest";
+import { useRef } from "react";
 
 import { useCallback, useEffect, useState } from "react";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
@@ -110,27 +112,26 @@ export function useWorkOrderSpareParts({
   }, [isRepair, hasOrderId, fetchParts, fetchCatalog, resourceGroupId]);
 
   // ── Dodawanie części ──
+  const pickInFlight = useRef(false);
   const handleAddPart = async () => {
+    if (pickInFlight.current) return;
     const partIdNum = parseInt(selectedPartId, 10);
     if (!partIdNum || Number.isNaN(partIdNum)) return;
     if (!workOrderId) return;
 
+    pickInFlight.current = true;
     setIsAdding(true);
     try {
-      const res = await fetchWithDeviceTelemetry(
+      const res = await sendPartPickRequest(
         `Admin: spare-parts POST work-order ${workOrderId}`,
         `/api/admin/work-orders/${workOrderId}/spare-parts`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            partId: partIdNum,
-            quantity: decimalStringForStorage(addQuantity || "1") ?? "1",
-            unitPrice: addUnitPrice.trim() ? decimalStringForStorage(addUnitPrice) : null,
-            notes: addNotes || null,
-          }),
-        },
-        { category: "admin" }
+        JSON.stringify({
+          partId: partIdNum,
+          quantity: decimalStringForStorage(addQuantity || "1") ?? "1",
+          unitPrice: addUnitPrice.trim() ? decimalStringForStorage(addUnitPrice) : null,
+          notes: addNotes || null,
+        }),
+        "admin"
       );
 
       if (res.ok) {
@@ -147,9 +148,15 @@ export function useWorkOrderSpareParts({
         const code = readApiErrorString(body);
         await appAlert({ message: appDialogApiMessage(apiErrors, code, durDict.saveError) });
       }
-    } catch {
-      await appAlert({ message: durDict.saveError });
+    } catch (error) {
+      await appAlert({
+        message:
+          error instanceof Error && error.message === "part_pick_pending"
+            ? apiErrors.part_pick_pending
+            : durDict.saveError,
+      });
     } finally {
+      pickInFlight.current = false;
       setIsAdding(false);
     }
   };

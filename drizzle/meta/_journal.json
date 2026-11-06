@@ -267,6 +267,13 @@
       "when": 1793952000001,
       "tag": "0037_gps_point_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793952000002,
+      "tag": "0038_part_pick_operations",
+      "breakpoints": true
     }
   ]
 }

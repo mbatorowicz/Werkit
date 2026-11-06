@@ -788,3 +788,19 @@ export const offlineOperations = pgTable("offline_operations", {
   requestHash: text("request_hash").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/** Durable results must survive BOM returns/deletions; never cascade from the BOM line. */
+export const partPickOperations = pgTable("part_pick_operations", {
+  id: varchar("id", { length: 100 }).primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  requestHash: text("request_hash").notNull(),
+  result: jsonb("result")
+    .$type<Omit<typeof workOrderSpareParts.$inferSelect, "createdAt"> & { createdAt: string }>()
+    .notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

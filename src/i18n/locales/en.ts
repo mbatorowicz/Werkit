@@ -111,6 +111,12 @@ export const en: AppDictionary = {
     },
   },
   apiErrors: {
+    operation_conflict:
+      "This request already has a different record. Refresh the parts list and check the issue; do not create another.",
+    invalid_operation_id: "Refresh the application to pick a part safely.",
+    part_pick_pending:
+      "The previous pick is unconfirmed. Retry with the same details before starting another pick.",
+
     fetch_error: "Error while fetching data from server.",
     migration_required: "Database requires an update. Contact your system administrator.",
     migration_material_categories: "Dictionary data is missing. Contact your system administrator.",

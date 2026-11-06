@@ -60,11 +60,14 @@ export const POST = withApiErrorHandling(
       workOrderId,
       ctx.companyId,
       ctx.userId,
-      true
+      false
     );
     if (!belongs) return jsonError("not_found", 404);
 
     const body = await parseJsonBody(request);
+    const operationId = request.headers.get("Idempotency-Key");
+    if (!operationId || !/^[a-zA-Z0-9_-]{10,100}$/.test(operationId))
+      return jsonError("invalid_operation_id", 400);
     const partId = parsePositiveIntParam(body.partId);
     if (partId === null) return jsonError("missing_part_id", 400);
 
@@ -85,7 +88,7 @@ export const POST = withApiErrorHandling(
         ctx.companyId,
         ctx.userId,
         workOrderId,
-        { partId, quantity: qtyParsed.value, unitPrice, notes, issuedTo: ctx.userId },
+        { partId, quantity: qtyParsed.value, unitPrice, notes, issuedTo: ctx.userId, operationId },
         ctx.userId
       );
 
@@ -94,7 +97,7 @@ export const POST = withApiErrorHandling(
       if (err instanceof StockMovementError) {
         return jsonError(
           err.code,
-          err.code === "no_active_session"
+          ["no_active_session", "operation_conflict"].includes(err.code)
             ? 409
             : ["forbidden", "feature_disabled"].includes(err.code)
               ? 403

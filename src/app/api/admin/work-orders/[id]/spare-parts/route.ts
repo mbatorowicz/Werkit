@@ -64,6 +64,9 @@ export const POST = withApiErrorHandling(
     if (!belongs) return jsonError("not_found", 404);
 
     const body = await parseJsonBody(request);
+    const operationId = request.headers.get("Idempotency-Key");
+    if (!operationId || !/^[a-zA-Z0-9_-]{10,100}$/.test(operationId))
+      return jsonError("invalid_operation_id", 400);
     const partId = parseInt(String(body.partId), 10);
     if (!partId || Number.isNaN(partId)) return jsonError("missing_part_id", 400);
 
@@ -85,6 +88,7 @@ export const POST = withApiErrorHandling(
         scoped.data.session.userId as number,
         workOrderId,
         {
+          operationId,
           partId,
           quantity: qtyParsed.value,
           unitPrice,
@@ -99,7 +103,7 @@ export const POST = withApiErrorHandling(
       return jsonOk(inserted);
     } catch (err) {
       if (err instanceof StockMovementError) {
-        return jsonError(err.code, 400);
+        return jsonError(err.code, err.code === "operation_conflict" ? 409 : 400);
       }
       throw err;
     }

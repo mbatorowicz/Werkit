@@ -111,6 +111,12 @@ export const de: AppDictionary = {
     },
   },
   apiErrors: {
+    operation_conflict:
+      "Diese Anfrage hat bereits einen anderen Eintrag. Teileliste aktualisieren und Ausgabe prüfen; keine weitere anlegen.",
+    invalid_operation_id: "Anwendung aktualisieren, um ein Teil sicher zu entnehmen.",
+    part_pick_pending:
+      "Die vorherige Entnahme ist unbestätigt. Vor einer weiteren Entnahme mit denselben Angaben wiederholen.",
+
     fetch_error: "Fehler beim Abrufen der Daten vom Server.",
     migration_required:
       "Datenbank muss aktualisiert werden. Wenden Sie sich an den Systemadministrator.",

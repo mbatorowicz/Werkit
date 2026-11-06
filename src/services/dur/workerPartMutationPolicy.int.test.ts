@@ -154,3 +154,79 @@ it("cannot pick or return after an admin closes the session", async () => {
   ).rejects.toThrow("no_active_session");
   expect(await stock(f)).toBe(4);
 });
+
+const keyedPick = (f: Fixture, operationId: string, quantity = "1") =>
+  Parts.pickPartFromWarehouse(
+    companyId,
+    f.userId,
+    f.orderId,
+    { partId: f.partId, quantity, operationId },
+    f.userId
+  );
+it("concurrent retries create one BOM line and one WZ", async () => {
+  const f = await setup();
+  const key = crypto.randomUUID();
+  const lines = await Promise.all(Array.from({ length: 12 }, () => keyedPick(f, key)));
+  expect(new Set(lines.map((l) => l.id)).size).toBe(1);
+  expect(await stock(f)).toBe(4);
+  expect(
+    await db.select().from(stockIssues).where(eq(stockIssues.workOrderId, f.orderId))
+  ).toHaveLength(1);
+  await expect(keyedPick(f, key, "2")).rejects.toThrow("operation_conflict");
+  expect(await stock(f)).toBe(4);
+});
+it("replays the original result after return and completion without reissuing", async () => {
+  const f = await setup();
+  const key = crypto.randomUUID();
+  const line = await keyedPick(f, key);
+  await Parts.returnPartToWarehouse(companyId, f.userId, line.id, f.orderId, f.userId);
+  await AdminSessionService.forceCompleteSession(companyId, f.sessionId);
+  expect(await keyedPick(f, key)).toEqual(line);
+  expect(await stock(f)).toBe(5);
+  expect(
+    await db
+      .select()
+      .from(workOrderSpareParts)
+      .where(eq(workOrderSpareParts.workOrderId, f.orderId))
+  ).toHaveLength(0);
+});
+it("rolls back the receipt when stock is insufficient and allows safe retry", async () => {
+  const f = await setup();
+  const key = crypto.randomUUID();
+  await expect(keyedPick(f, key, "6")).rejects.toThrow("insufficient_stock");
+  await InventoryService.setQuantity(companyId, f.partId, "10");
+  const line = await keyedPick(f, key, "6");
+  expect((await keyedPick(f, key, "6")).id).toBe(line.id);
+  expect(await stock(f)).toBe(4);
+});
+it("rejects another actor or company using a confirmed key", async () => {
+  const f = await setup();
+  const g = await setup();
+  const key = crypto.randomUUID();
+  await keyedPick(f, key);
+  await expect(keyedPick(g, key)).rejects.toThrow("operation_conflict");
+  await expect(
+    Parts.pickPartFromWarehouse(
+      companyId + 999999,
+      f.userId,
+      f.orderId,
+      { partId: f.partId, quantity: "1", operationId: key },
+      f.userId
+    )
+  ).rejects.toThrow("operation_conflict");
+  expect(await stock(g)).toBe(5);
+});
+it("admin retries are deduplicated and a new key permits a new intentional pick", async () => {
+  const f = await setup();
+  const key = crypto.randomUUID();
+  const data = { partId: f.partId, quantity: "1", operationId: key };
+  const lines = await Promise.all(
+    [1, 2].map(() => Parts.pickPartFromWarehouse(companyId, f.userId, f.orderId, data))
+  );
+  expect(lines[0].id).toBe(lines[1].id);
+  await Parts.pickPartFromWarehouse(companyId, f.userId, f.orderId, {
+    ...data,
+    operationId: crypto.randomUUID(),
+  });
+  expect(await stock(f)).toBe(3);
+});

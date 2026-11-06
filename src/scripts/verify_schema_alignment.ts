@@ -18,6 +18,14 @@ async function main() {
 
   /** Nazwy kolumn w PG muszą odpowiadać definicjom w schema.ts (Drizzle snake_case). */
   const EXPECTED: Record<string, ReadonlySet<string>> = {
+    part_pick_operations: new Set([
+      "id",
+      "company_id",
+      "user_id",
+      "request_hash",
+      "result",
+      "created_at",
+    ]),
     offline_operations: new Set(["id", "company_id", "user_id", "request_hash", "created_at"]),
     companies: new Set([
       "id",

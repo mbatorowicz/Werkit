@@ -262,3 +262,7 @@ Operacje kolejki v2 wykonuje `OfflineOperationService` przez `/api/worker/offlin
 ### GPS v2 (2026-11-06)
 
 Nie usuwać bufora GPS po końcu pracy, 401/403 lub zmianie flag. Każdy punkt zawiera sessionId i pointId; API potwierdza konkretne acknowledgedIds. Unikalny gps_logs.client_point_id (0037) deduplikuje ponowienia. Zakończenie offline zapisuje trwały znacznik stopped_sessions w IndexedDB i zatrzymuje watcher; punkty historyczne wysyłane są do pierwotnej sesji. Szczegóły i ograniczenia w SYSTEM_MAP.
+
+### Pobranie części — ponowienia (2026-11-06)
+
+POST części admin/worker wymaga Idempotency-Key. `part_pick_operations` (0038) zapisuje wynik atomowo z BOM/WZ; zachowuj klucz przy ponowieniu i nie kasuj potwierdzeń po zwrocie części. Formularze używają `partPickRequest`; nie zastępuj go zwykłym fetch ani nowym UUID przy błędzie sieci. Szczegóły i granice sessionStorage: SYSTEM_MAP.

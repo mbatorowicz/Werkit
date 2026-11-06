@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { lockWorkerPartMutation } from "./workerPartMutationPolicy";
 import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 // ============================================================
@@ -5,8 +6,14 @@ import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 // ============================================================
 
 import { db } from "@/db";
-import { workOrderSpareParts, spareParts, workOrders, users } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import {
+  workOrderSpareParts,
+  spareParts,
+  workOrders,
+  users,
+  partPickOperations,
+} from "@/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { StockMovementService } from "@/services/dur/StockMovementService";
 import { StockMovementError } from "@/services/dur/StockMovementError";
@@ -96,16 +103,50 @@ export class WorkOrderSparePartService {
       notes?: string | null;
       /** Komu wydano (domyślnie actorUserId). */
       issuedTo?: number;
+      operationId?: string;
     },
     workerUserId?: number
   ) {
     const quantity = data.quantity ?? "1";
     const issuedTo = data.issuedTo ?? actorUserId;
 
-    const partOk = await this.assertPartBelongsToCompany(data.partId, companyId);
-    if (!partOk) throw new StockMovementError("part_not_found");
-
+    const operationId = data.operationId;
+    if (operationId !== undefined && !/^[a-zA-Z0-9_-]{10,100}$/.test(operationId))
+      throw new StockMovementError("invalid_operation_id");
+    const requestHash = createHash("sha256")
+      .update(
+        JSON.stringify({
+          workOrderId,
+          partId: data.partId,
+          quantity,
+          issuedTo,
+          unitPrice: data.unitPrice ?? null,
+          notes: data.notes ?? null,
+          worker: workerUserId !== undefined,
+        })
+      )
+      .digest("hex");
     return db.transaction(async (tx) => {
+      if (operationId) {
+        await tx.execute(
+          sql`SELECT pg_advisory_xact_lock(hashtextextended(${"part-pick:" + operationId}, 0))`
+        );
+        const [receipt] = await tx
+          .select()
+          .from(partPickOperations)
+          .where(eq(partPickOperations.id, operationId));
+        if (receipt) {
+          if (
+            receipt.companyId !== companyId ||
+            receipt.userId !== actorUserId ||
+            receipt.requestHash !== requestHash
+          )
+            throw new StockMovementError("operation_conflict");
+          return { ...receipt.result, createdAt: new Date(receipt.result.createdAt) };
+        }
+      }
+      const partOk = await this.assertPartBelongsToCompany(data.partId, companyId, tx);
+      if (!partOk) throw new StockMovementError("part_not_found");
       if (workerUserId !== undefined) {
         if (actorUserId !== workerUserId || issuedTo !== workerUserId)
           throw new StockMovementError("forbidden");
@@ -136,6 +177,14 @@ export class WorkOrderSparePartService {
         tx
       );
 
+      if (operationId)
+        await tx.insert(partPickOperations).values({
+          id: operationId,
+          companyId,
+          userId: actorUserId,
+          requestHash,
+          result: { ...inserted, createdAt: inserted.createdAt.toISOString() },
+        });
       return inserted;
     });
   }

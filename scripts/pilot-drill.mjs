@@ -278,7 +278,7 @@ try {
     sequences: before.sequences.length,
     restoreVerified: true,
     restoredApplicationReplayVerified: true,
-    isolatedIntegrationTests: 37,
+    isolatedIntegrationTests: 42,
     load: JSON.parse(readFileSync(resolve(dir, "load.json"), "utf8")),
   };
   writeFileSync(resolve(dir, "report.json"), JSON.stringify(report, null, 2));
