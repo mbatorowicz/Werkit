@@ -1,17 +1,9 @@
 /**
- * Service Worker dla Werkit PWA.
- * Zapewnia wsparcie offline dla assetów statycznych oraz danych API.
- *
- * Strategie:
- * - Cache-First dla assetów (JS, CSS, fonts, icons, sounds)
- * - Network-First dla API worker (sesja / zlecenia / ustawienia — bez stale-while-revalidate)
- * - Network-First dla nawigacji
- * - Background Sync dla operacji offline (jeśli SyncManager dostępny)
- *
- * Rejestracja: automatyczna w `src/components/ServiceWorkerRegister.tsx`
+ * Cache only public, account-independent assets. Authenticated API, HTML and
+ * RSC responses must never be shared between users through Cache Storage.
+ * Durable pending mutations/GPS live separately in IndexedDB.
  */
-
-const CACHE_NAME = "werkit-v5";
+const CACHE_NAME = "werkit-public-v6";
 const STATIC_ASSETS = [
   "/favicon.ico",
   "/icons/favicon-32.png",
@@ -24,147 +16,94 @@ const STATIC_ASSETS = [
   "/sounds/werkit_sound_urgent.wav",
 ];
 
-const WORKER_API_CACHE_PATHS = [
-  "/api/worker/session",
-  "/api/worker/work-orders",
-  "/api/worker/settings",
-];
-
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
-      Promise.all(
-        STATIC_ASSETS.map((url) =>
-          cache.add(url).catch(() => {
-            // Jeden 404 nie może zablokować instalacji SW.
-          }),
-        ),
-      ),
-    ),
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await Promise.all(
+        STATIC_ASSETS.map(async (path) => {
+          try {
+            const response = await fetch(path, { cache: "no-store" });
+            if (response.ok && !response.redirected) await cache.put(path, response);
+          } catch {
+            /* A missing optional public asset must not block installation. */
+          }
+        })
+      );
+      await self.skipWaiting();
+    })()
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
-    ),
+    (async () => {
+      // Remove legacy mixed caches before controlling any clients. Do not touch
+      // IndexedDB queues, or caches owned by unrelated applications on this origin.
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter((key) => key.startsWith("werkit-") && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      );
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  if (url.origin !== self.location.origin || request.method !== "GET") return;
 
-  if (url.origin !== self.location.origin) return;
-
-  if (request.method === "GET" && isWorkerApiPath(url.pathname)) {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-
-  if (url.pathname.startsWith("/api/")) {
-    return;
-  }
-
-  if (url.pathname.startsWith("/_next/static/")) {
+  if (url.pathname.startsWith("/_next/static/") || STATIC_ASSETS.includes(url.pathname)) {
     event.respondWith(cacheFirst(request));
     return;
   }
-
-  if (url.pathname.match(/\.(webp|png|jpg|jpeg|gif|svg|ico|wav|mp3|woff2?|css|js)$/)) {
-    event.respondWith(cacheFirst(request));
-    return;
-  }
-
-  if (request.mode === "navigate") {
-    event.respondWith(networkFirstWithFallback(request));
-  }
+  // Explicitly bypass HTTP cache as well. 401/403/redirects are returned as-is;
+  // neither a failed request nor a denied request can revive another user's data.
+  event.respondWith(networkOnly(request));
 });
 
-function isWorkerApiPath(pathname) {
-  return WORKER_API_CACHE_PATHS.some((prefix) => pathname.startsWith(prefix));
-}
-
-function withSwCacheHeader(response) {
-  const headers = new Headers(response.headers);
-  headers.set("X-Werkit-Sw-Cache", "1");
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
-}
-
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
+    if (response.ok && !response.redirected) await cache.put(request, response.clone());
     return response;
   } catch {
     return new Response("Offline", { status: 503 });
   }
 }
 
-/** Network-first: żywe dane sesji; cache tylko gdy sieć padnie. */
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
+async function networkOnly(request) {
   try {
-    const response = await fetch(request);
-    if (response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
+    return await fetch(request, { cache: "no-store" });
   } catch {
-    const cached = await cache.match(request);
-    if (cached) return withSwCacheHeader(cached);
+    // No cached HTML fallback: server-rendered pages contain account data too.
+    if (request.mode === "navigate") {
+      return new Response(
+        '<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline - Werkit</title></head><body><h1>Brak połączenia</h1><p>Werkit wymaga dostępu do internetu.<br>Sprawdź swoje połączenie i spróbuj ponownie.</p></body></html>',
+        {
+          status: 503,
+          headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+        }
+      );
+    }
     return new Response(JSON.stringify({ error: "offline" }), {
       status: 503,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
   }
 }
 
-async function networkFirstWithFallback(request) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    const cached = await caches.match(request);
-    if (cached) return cached;
-    if (request.mode === "navigate") {
-      return new Response(
-        '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline - Werkit</title><style>body{font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;background:#09090b;color:#e4e4e7}.card{text-align:center;padding:2rem}h1{font-size:1.5rem;margin-bottom:0.5rem}p{color:#a1a1aa}</style></head><body><div class="card"><h1>Brak połączenia</h1><p>Werkit wymaga dostępu do internetu.<br>Sprawdź swoje połączenie i spróbuj ponownie.</p></div></body></html>',
-        {
-          status: 503,
-          headers: { "Content-Type": "text/html; charset=utf-8" },
-        },
-      );
-    }
-    return new Response("Offline", { status: 503 });
-  }
-}
-
 self.addEventListener("sync", (event) => {
-  if (event.tag === "werkit-flush-queue") {
-    event.waitUntil(flushOfflineQueue());
-  }
+  if (event.tag === "werkit-flush-queue") event.waitUntil(flushOfflineQueue());
 });
 
 async function flushOfflineQueue() {
   const clients = await self.clients.matchAll();
-  for (const client of clients) {
-    client.postMessage({ type: "FLUSH_OFFLINE_QUEUE" });
-  }
+  for (const client of clients) client.postMessage({ type: "FLUSH_OFFLINE_QUEUE" });
 }

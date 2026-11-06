@@ -161,3 +161,13 @@ Ograniczenia: brak testu na fizycznym Androidzie/iPhonie, działania przy zablok
 ## CI i APK po naprawach GPS — 6 listopada 2026
 
 Dla e88c0f8 CI 42254324308 oraz Android 42254318258 zakończyły się SUCCESS. Sprawdzono etapy, metadane publikacji i SHA-256 pobranego APK; szczegóły oraz niewykonane jeszcze próby urządzeń: [TESTY-TERENOWE-GPS-2026-11-06.md](./TESTY-TERENOWE-GPS-2026-11-06.md). APK ładuje zdalny web, dlatego zgodność wdrożonego web z poprawkami wymaga osobnej kontroli przed próbą. Nie potwierdzono instalacji, certyfikatu apksigner ani gotowości terenowej.
+
+## Weryfikacja produkcji i usunięcie wspólnego cache PWA — 6 listopada 2026
+
+Przed zmianą domena werkit.cncsolutions.dev wskazywała deployment dpl_8mExT9ZsicvM4iw4qbNBxgf6HgAo, READY/production, commit 3318a5b6198f42283ed1f00afc104f7183c22198. Odczyt strony /login zwrócił HTTP 200 i wersję 1.9.4-3318a5b. Różnica względem APK e88c0f8 dotyczyła wyłącznie dwóch plików dokumentacji; działający kod web zawiera poprawki GPS i jest zgodny z nowym APK. Nie jest to test uwierzytelnionej sesji GPS na urządzeniu.
+
+A07: usunięto cache uwierzytelnionych API, stron HTML i RSC. Nowy SW przechowuje tylko publiczne assety z listy oraz pliki Next static. Stare cache Werkit usuwane podczas aktywacji, przed clients.claim; cache innych aplikacji oraz IndexedDB oczekujących operacji/GPS pozostają nietknięte. Odmowa dostępu i błędy nie powodują odtworzenia danych poprzedniego konta. Dotychczasowy szeroki filtr rozszerzenia pliku zastąpiono listą publicznych ścieżek, aby np. prywatne API kończące się .jpg nie trafiało do cache.
+
+Walidacja: 14/14 nowych testów wykonujących rzeczywisty public/sw.js w kontrolowanym środowisku zdarzeń/cache; dodatkowo 4/4 offline queue i 2/2 trwałości GPS. Sprawdzono czyszczenie legacy, A→login→B→offline, API/HTML/RSC, statusy 401/403/500, przekierowanie do logowania oraz zachowanie publicznych assetów. To nie jest test rzeczywistej aktualizacji service workera w Safari. Bez zmian schematu bazy i bez zmian natywnego mostka APK.
+
+Koszt/otwarty zakres: zimny start PWA bez internetu zwraca neutralny ekran offline zamiast prywatnego HTML poprzedniego konta. Pełne otwieranie aplikacji offline wymaga izolowanej powłoki i migawki danych per konto; pozostaje blokerem, jeśli firma wymaga restartu bez sieci. Już otwarty ekran może nadal kolejkować obsługiwane operacje. Aktualizacja SW wymaga otwarcia aplikacji online; nie zakładać natychmiastowej naprawy telefonów pozostających offline. Testy urządzeń, odtworzenia kopii, obciążenia oraz pozostałe reguły serwerowe z audytu nadal otwarte.
