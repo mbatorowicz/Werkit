@@ -113,3 +113,13 @@ Warunek: odtworzenie kopii do oddzielnego środowiska, ustalony dopuszczalny cza
 - Testy integracyjne: 137/137 przechodzi, 25 plików, około 148 s, na podłączonej bazie z wydzielonymi firmami testowymi i sprzątaniem przez istniejące fixtures. Nie obejmuje to nowych scenariuszy współbieżności opisanych w audycie.
 - Skan aktualnych podatności npm nie został ukończony: pierwsza próba nie miała DNS, rozszerzona próba została odrzucona przez automatyczną kontrolę zgody z powodu wysłania metadanych zależności do npm. Brak wyniku nie oznacza braku podatności.
 - Nie wykonano interaktywnego testu UI, testu na fizycznych telefonach, pełnego pentestu ani testu obciążenia. Nie zmieniano schematu i nie uruchamiano migracji.
+
+## Pierwszy pakiet napraw — 6 listopada 2026
+
+Wprowadzono transakcje dla ręcznych PZ/WZ części, blokadę wiersza SKU serializującą wydania/przyjęcia przez StockMovementService, kontrolę firmy części/zlecenia/odbiorcy i niezmienność historycznego WZ przy korekcie. Worker API części wymaga przypisanego technika DUR i naprawy, a mutacje statusu IN_PROGRESS. Przyjęcie zlecenia odrzuca status inny niż PENDING.
+
+Walidacja pakietu: 20/20 wybranych testów jednostkowych, 23/23 integracyjnych (w tym równoczesne wydanie ponad stan i kontrola sumy WZ), TypeScript i lint zmienionych serwisów poprawne. Bez zmian schematu DB.
+
+To częściowa realizacja: nadal wymagają naprawy współbieżne korekty/zwroty pozycji, bezwzględne korekty stanu, wyścigi przy starcie i końcu sesji, atomowa kontrola uprawnień razem z mutacją, offline oraz GPS. Nie uznawać A02/A04/A05 za całkowicie zamknięte. Istniejących błędnych dokumentów nie przeliczano automatycznie.
+
+Zatwierdzony skan npm --omit=dev zakończony: 8 zgłoszeń (2 critical, 5 high, 1 moderate). Pełny wynik: npm-audit-2026-11-06.json. Wśród krytycznych Capacitor Android GHSA-rvm3-566m-v7fv. Zależności w tym pakiecie nie były aktualizowane; wymaga to osobnego sprawdzenia kompatybilności i nowego APK.

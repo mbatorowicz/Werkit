@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { stockReceipts, stockIssues, spareParts, users, workOrders, resources } from "@/db/schema";
 import type { StockReceipt, StockIssue, StockReceiptInput, StockIssueInput } from "@/types/dur";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 import {
@@ -60,6 +60,16 @@ export class StockMovementService {
     input: StockReceiptInput,
     client: WarehouseDb = db
   ): Promise<StockReceipt> {
+    if (client === db) {
+      return db.transaction((tx) => this.addReceipt(companyId, userId, input, tx));
+    }
+    const { TenantContextError } = await import("@/lib/tenantContext");
+    const [part] = await client
+      .select({ id: spareParts.id })
+      .from(spareParts)
+      .where(and(eq(spareParts.id, input.partId), eq(spareParts.companyId, companyId)))
+      .for("update");
+    if (!part) throw new TenantContextError("cross_tenant", "Część nie należy do firmy.");
     return executeWarehouseReceipt({
       store: sparePartsInventoryStore,
       companyId,
@@ -142,6 +152,30 @@ export class StockMovementService {
     input: StockIssueInput,
     client: WarehouseDb = db
   ): Promise<StockIssue> {
+    if (client === db) {
+      return db.transaction((tx) => this.addIssue(companyId, userId, input, tx));
+    }
+    const { TenantContextError } = await import("@/lib/tenantContext");
+    const [part] = await client
+      .select({ id: spareParts.id })
+      .from(spareParts)
+      .where(and(eq(spareParts.id, input.partId), eq(spareParts.companyId, companyId)))
+      .for("update");
+    if (!part) throw new TenantContextError("cross_tenant", "Część nie należy do firmy.");
+    if (input.workOrderId != null) {
+      const [order] = await client
+        .select({ id: workOrders.id })
+        .from(workOrders)
+        .where(and(eq(workOrders.id, input.workOrderId), eq(workOrders.companyId, companyId)));
+      if (!order) throw new TenantContextError("cross_tenant", "Zlecenie nie należy do firmy.");
+    }
+    if (input.issuedTo != null) {
+      const [recipient] = await client
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.id, input.issuedTo), eq(users.companyId, companyId)));
+      if (!recipient) throw new TenantContextError("cross_tenant", "Odbiorca nie należy do firmy.");
+    }
     return executeWarehouseIssue({
       store: sparePartsInventoryStore,
       companyId,

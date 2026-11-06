@@ -84,6 +84,7 @@ export class WorkerOrderService {
         )
       );
     if (!order) throw new Error("order_not_found");
+    if (order.status !== "PENDING") throw new Error("not_pending");
 
     if (await ScheduleConflictService.hasActiveWorkerSession(companyId, userId)) {
       throw new Error("session_active");

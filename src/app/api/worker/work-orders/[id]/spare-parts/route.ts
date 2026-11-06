@@ -26,9 +26,11 @@ export const GET = withApiErrorHandling(
     if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
-    const belongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(
+    const belongs = await WorkOrderSparePartService.canWorkerAccessOrder(
       workOrderId,
-      ctx.companyId
+      ctx.companyId,
+      ctx.userId,
+      false
     );
     if (!belongs) return jsonError("not_found", 404);
 
@@ -53,9 +55,11 @@ export const POST = withApiErrorHandling(
     if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
-    const belongs = await WorkOrderSparePartService.verifyOrderBelongsToCompany(
+    const belongs = await WorkOrderSparePartService.canWorkerAccessOrder(
       workOrderId,
-      ctx.companyId
+      ctx.companyId,
+      ctx.userId,
+      true
     );
     if (!belongs) return jsonError("not_found", 404);
 

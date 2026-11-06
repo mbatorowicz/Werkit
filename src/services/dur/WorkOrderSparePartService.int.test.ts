@@ -66,6 +66,16 @@ describe("WorkOrderSparePartService (integracja z bazą)", () => {
     await cleanupTestCompany(companyId);
   });
 
+  it("worker nie ma dostępu do cudzej naprawy ani mutacji oczekującego zlecenia", async () => {
+    expect(
+      await WorkOrderSparePartService.canWorkerAccessOrder(workOrderId, companyId, userId, true)
+    ).toBe(false);
+    const other = await createTestUser(companyId, { isDurWorker: true });
+    expect(
+      await WorkOrderSparePartService.canWorkerAccessOrder(workOrderId, companyId, other.id)
+    ).toBe(false);
+  });
+
   it("pobranie części na zlecenie pomniejsza magazyn: 10.00 − 2.50 = 7.50", async () => {
     const line = await WorkOrderSparePartService.pickPartFromWarehouse(
       companyId,
@@ -104,7 +114,9 @@ describe("WorkOrderSparePartService (integracja z bazą)", () => {
       .where(
         and(eq(stockIssues.companyId, companyId), eq(stockIssues.workOrderSparePartId, lineId))
       );
-    expect(linked?.quantity).toBe("4.00");
+    expect(linked?.quantity).toBe("2.50");
+    const issues = await db.select().from(stockIssues).where(eq(stockIssues.companyId, companyId));
+    expect(issues.reduce((sum, issue) => sum + Number(issue.quantity), 0)).toBe(4);
   });
 
   it("korekta z nieprawidłową ilością rzuca invalid_quantity i nie zmienia stanu", async () => {
@@ -132,6 +144,16 @@ describe("WorkOrderSparePartService (integracja z bazą)", () => {
     const receipts = await StockMovementService.getReceipts(companyId);
     const returnReceipt = receipts.find((r) => r.notes?.includes("Zwrot ze zlecenia"));
     expect(returnReceipt?.quantity).toBe("4.00");
+  });
+
+  it("równoczesne wydania nie przekraczają dostępnego stanu", async () => {
+    const results = await Promise.allSettled([
+      StockMovementService.addIssue(companyId, userId, { partId, quantity: "7" }),
+      StockMovementService.addIssue(companyId, userId, { partId, quantity: "7" }),
+    ]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+    expect(await readStock(companyId, partId)).toBe("3.00");
+    await StockMovementService.addReceipt(companyId, userId, { partId, quantity: "7" });
   });
 
   it("pobranie ponad stan rzuca insufficient_stock bez wpisu na zleceniu (rollback)", async () => {

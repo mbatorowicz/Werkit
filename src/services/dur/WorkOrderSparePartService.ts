@@ -3,13 +3,36 @@
 // ============================================================
 
 import { db } from "@/db";
-import { workOrderSpareParts, spareParts, workOrders, stockIssues } from "@/db/schema";
+import { workOrderSpareParts, spareParts, workOrders, users } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { parseDecimalInput } from "@/lib/decimalInput";
 import { StockMovementService } from "@/services/dur/StockMovementService";
 import { StockMovementError } from "@/services/dur/StockMovementError";
 
 export class WorkOrderSparePartService {
+  static async canWorkerAccessOrder(
+    workOrderId: number,
+    companyId: number,
+    userId: number,
+    mutate = false
+  ): Promise<boolean> {
+    const [row] = await db
+      .select({ status: workOrders.status })
+      .from(workOrders)
+      .innerJoin(users, eq(users.id, workOrders.userId))
+      .where(
+        and(
+          eq(workOrders.id, workOrderId),
+          eq(workOrders.companyId, companyId),
+          eq(workOrders.userId, userId),
+          eq(users.companyId, companyId),
+          eq(users.isDurWorker, true),
+          eq(workOrders.orderType, "machine_repair")
+        )
+      );
+    return !!row && (!mutate || row.status === "IN_PROGRESS");
+  }
+
   static async verifyOrderBelongsToCompany(
     workOrderId: number,
     companyId: number
@@ -210,19 +233,6 @@ export class WorkOrderSparePartService {
             },
             tx
           );
-        }
-
-        const [linkedIssue] = await tx
-          .select({ id: stockIssues.id, quantity: stockIssues.quantity })
-          .from(stockIssues)
-          .where(eq(stockIssues.workOrderSparePartId, lineId))
-          .limit(1);
-
-        if (linkedIssue) {
-          await tx
-            .update(stockIssues)
-            .set({ quantity: newQty })
-            .where(eq(stockIssues.id, linkedIssue.id));
         }
       }
 
