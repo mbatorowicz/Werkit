@@ -119,14 +119,12 @@ export class OfflineOperationService {
           companyId,
           operationId
         );
-        await tx
-          .insert(sessionPhotos)
-          .values({
-            workSessionId: session.id,
-            photoUrl: photo.url,
-            photoType: "AD_HOC",
-            ...coordinates,
-          });
+        await tx.insert(sessionPhotos).values({
+          workSessionId: session.id,
+          photoUrl: photo.url,
+          photoType: "AD_HOC",
+          ...coordinates,
+        });
       } else throw new Error("invalid_payload");
       await tx
         .insert(offlineOperations)
