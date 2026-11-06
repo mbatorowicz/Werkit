@@ -2,7 +2,7 @@
 
 Zakres: DUR, magazyn części, zlecenia, GPS; 40 pracowników, Android i iPhone. Kod: main `4525691`, wersja 1.9.4. Lokalny checkout zaktualizowany fast-forward z GitHub. Audyt kodu i automatycznych kontroli, nie certyfikacja bezpieczeństwa ani test terenowy.
 
-## Decyzja
+## Decyzja pierwotna (kolejne naprawy opisano poniżej)
 
 **NO-GO dla używania przez 40 osób jako wiążącej ewidencji magazynu i pracy.** Można przygotować demonstrację na fikcyjnych danych. Pilotaż operacyjny dopiero po usunięciu poniższych blokerów, początkowo 5–8 osób i równoległa dotychczasowa ewidencja. Nie ma uzasadnienia do przepisywania całej aplikacji; problemy skupiają się w integralności zapisów, uprawnieniach i synchronizacji.
 
@@ -206,3 +206,11 @@ Odizolowany test z samym schematem produkcji, lokalnym PostgreSQL 17 i danymi sy
 Przeszło 29/29 integracyjnych na izolowanej bazie, odtworzenie 36 tabel z porównaniem danych/ograniczeń/indeksów/sekwencji, odczyt historii aplikacji i 40 ponowień offline po odtworzeniu bez ponownego wykonania. Osobno sprawdzono kopię/odtworzenie syntetycznego PNG w prywatnym Blob z porównaniem SHA-256; obiekty testowe usunięto. Kontenery testowe usunięto. Zagregowane raporty zapisano w docs/PILOT-*-RESULT-2026-11-06.json; archiwa i robocze dane są ignorowane przez Git.
 
 Lokalne typy poprawne, lint bez błędów; pełny lokalny zestaw 841 zaliczonych i 6 znanych błędów localStorage na Node 26. CI na Node 22 sprawdzi cały zestaw i build. Nie potwierdzono regularnych kopii poza kontem produkcji, odtworzenia całego firmowego archiwum zdjęć ani wydajności 40 klientów HTTP na docelowym planie hostingu. Nie uznawać pilotażu za gotowy na podstawie samej lokalnej próby.
+
+## Kontynuacja ograniczonego pilotażu — 6 listopada 2026
+
+Decyzja właściciela: rozwój produkcyjny po pozytywnej ocenie firmy. Bez zmiany planów płatnych i bez deklarowania Werkit jako jedynej ewidencji magazynu lub pracy. Zalecany start 5–8 osób z dotychczasową ewidencją równoległą, potem rozszerzenie do 40 po sprawdzeniu telefonów. Testy fizycznego Androida/iPhone nadal nie zostały wykonane; ciągły GPS w tle iOS PWA nie jest gwarantowany.
+
+Usunięto wyścig pobrania/zwrotu części z zamknięciem lub anulowaniem sesji. Worker blokuje sesję i zlecenie wewnątrz transakcji magazynowej oraz ponownie sprawdza przypisanie i uprawnienia. Administrator kończy sesję i zlecenie atomowo. Dodano 8 testów integracyjnych tych reguł. Nie dodano idempotencji do bezpośredniego pobrania części; nie należy utożsamiać tej poprawki z ochroną wszystkich żądań POST przed ponowieniem.
+
+Walidacja lokalna: 847/847 testów aplikacji; 37/37 testów integracyjnych na izolowanym PostgreSQL. Powtórzono obciążenie 40 pracowników z rzeczywistym kontekstem worker w operacjach części oraz kopię/odtworzenie i replay offline. Zero błędów faz obciążenia, zapas końcowy 100, 40 zakończonych sesji, 4000 punktów GPS. Raport: PILOT-SESSION-RACE-RESULT-2026-11-06.json. To próba serwisów i lokalnej bazy, nie przepustowości Vercel/HTTP ani telefonów. Ujednolicono też atrapę localStorage w testach alarmów, aby zestaw działał na lokalnym Node 26; bez zmiany zachowania alarmów aplikacji.

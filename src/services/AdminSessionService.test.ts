@@ -102,11 +102,16 @@ describe("AdminSessionService", () => {
   });
 
   describe("forceCompleteSession", () => {
+    beforeEach(() => {
+      transactionMock.mockImplementation(async (cb: (tx: unknown) => Promise<void>) =>
+        cb({ select: selectMock, update: updateMock })
+      );
+    });
     it("kończy sesję IN_PROGRESS i oznacza zlecenie jako COMPLETED", async () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () =>
+            for: () =>
               Promise.resolve([{ id: 1, status: "IN_PROGRESS", workOrderId: 42, companyId: 1 }]),
           }),
         }),
@@ -122,7 +127,7 @@ describe("AdminSessionService", () => {
     it("rzuca błąd gdy sesja nie istnieje", async () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
-          where: () => ({ limit: () => Promise.resolve([]) }),
+          where: () => ({ for: () => Promise.resolve([]) }),
         }),
       });
 
@@ -134,7 +139,7 @@ describe("AdminSessionService", () => {
       selectMock.mockReturnValueOnce({
         from: () => ({
           where: () => ({
-            limit: () =>
+            for: () =>
               Promise.resolve([{ id: 1, status: "COMPLETED", workOrderId: null, companyId: 1 }]),
           }),
         }),

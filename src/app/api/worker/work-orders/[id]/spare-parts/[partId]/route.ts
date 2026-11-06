@@ -1,3 +1,4 @@
+import { parsePositiveIntParam } from "@/lib/parseRouteParams";
 // ============================================================
 // API: Pojedyncza część w zleceniu naprawy (worker) — DELETE
 // ============================================================
@@ -21,9 +22,9 @@ export const DELETE = withApiErrorHandling(
     if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
     const { id, partId } = await params;
-    const workOrderId = parseInt(id, 10);
-    const sparePartId = parseInt(partId, 10);
-    if (Number.isNaN(workOrderId) || Number.isNaN(sparePartId)) return jsonError("invalid_id", 400);
+    const workOrderId = parsePositiveIntParam(id);
+    const sparePartId = parsePositiveIntParam(partId);
+    if (workOrderId === null || sparePartId === null) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
     const orderBelongs = await WorkOrderSparePartService.canWorkerAccessOrder(
@@ -46,14 +47,22 @@ export const DELETE = withApiErrorHandling(
         ctx.companyId,
         ctx.userId,
         sparePartId,
-        workOrderId
+        workOrderId,
+        ctx.userId
       );
       if (!deleted) return jsonError("not_found", 404);
 
       return jsonOk({ success: true, returned: true });
     } catch (err) {
       if (err instanceof StockMovementError) {
-        return jsonError(err.code, 400);
+        return jsonError(
+          err.code,
+          err.code === "no_active_session"
+            ? 409
+            : ["forbidden", "feature_disabled"].includes(err.code)
+              ? 403
+              : 400
+        );
       }
       throw err;
     }

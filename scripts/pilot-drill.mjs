@@ -192,6 +192,7 @@ try {
       "src/services/dur/StockMovementService.int.test.ts",
       "src/services/PilotSessionPolicy.int.test.ts",
       "src/services/WorkerOrderService.int.test.ts",
+      "src/services/dur/workerPartMutationPolicy.int.test.ts",
     ],
     { env, encoding: "utf8", timeout: 180000, maxBuffer: 4 * 1024 * 1024 }
   );
@@ -277,7 +278,7 @@ try {
     sequences: before.sequences.length,
     restoreVerified: true,
     restoredApplicationReplayVerified: true,
-    isolatedIntegrationTests: 29,
+    isolatedIntegrationTests: 37,
     load: JSON.parse(readFileSync(resolve(dir, "load.json"), "utf8")),
   };
   writeFileSync(resolve(dir, "report.json"), JSON.stringify(report, null, 2));

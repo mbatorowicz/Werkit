@@ -1,3 +1,4 @@
+import { parsePositiveIntParam } from "@/lib/parseRouteParams";
 // ============================================================
 // API: CRUD części zamiennych w zleceniu naprawy (worker)
 // ============================================================
@@ -22,8 +23,8 @@ export const GET = withApiErrorHandling(
     if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
     const { id } = await params;
-    const workOrderId = parseInt(id, 10);
-    if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
+    const workOrderId = parsePositiveIntParam(id);
+    if (workOrderId === null) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
     const belongs = await WorkOrderSparePartService.canWorkerAccessOrder(
@@ -51,8 +52,8 @@ export const POST = withApiErrorHandling(
     if (!flags.durEnabled) return jsonError("feature_disabled", 403);
 
     const { id } = await params;
-    const workOrderId = parseInt(id, 10);
-    if (Number.isNaN(workOrderId)) return jsonError("invalid_id", 400);
+    const workOrderId = parsePositiveIntParam(id);
+    if (workOrderId === null) return jsonError("invalid_id", 400);
 
     // Weryfikacja: zlecenie należy do firmy
     const belongs = await WorkOrderSparePartService.canWorkerAccessOrder(
@@ -64,8 +65,8 @@ export const POST = withApiErrorHandling(
     if (!belongs) return jsonError("not_found", 404);
 
     const body = await parseJsonBody(request);
-    const partId = parseInt(String(body.partId), 10);
-    if (!partId || Number.isNaN(partId)) return jsonError("missing_part_id", 400);
+    const partId = parsePositiveIntParam(body.partId);
+    if (partId === null) return jsonError("missing_part_id", 400);
 
     const qtyParsed = parsePositiveDecimalField(
       body.quantity != null && String(body.quantity).trim() !== "" ? body.quantity : "1"
@@ -84,13 +85,21 @@ export const POST = withApiErrorHandling(
         ctx.companyId,
         ctx.userId,
         workOrderId,
-        { partId, quantity: qtyParsed.value, unitPrice, notes, issuedTo: ctx.userId }
+        { partId, quantity: qtyParsed.value, unitPrice, notes, issuedTo: ctx.userId },
+        ctx.userId
       );
 
       return jsonOk(inserted);
     } catch (err) {
       if (err instanceof StockMovementError) {
-        return jsonError(err.code, 400);
+        return jsonError(
+          err.code,
+          err.code === "no_active_session"
+            ? 409
+            : ["forbidden", "feature_disabled"].includes(err.code)
+              ? 403
+              : 400
+        );
       }
       throw err;
     }

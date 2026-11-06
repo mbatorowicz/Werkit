@@ -48,26 +48,24 @@ export class AdminSessionService {
 
   /** Kończy „wiszącą” sesję IN_PROGRESS — ustawia status COMPLETED i czas zakończenia (jak domknięcie z aplikacji). */
   static async forceCompleteSession(companyId: number, sessionId: number) {
-    const rows = await db
-      .select()
-      .from(workSessions)
-      .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
-      .limit(1);
-    if (rows.length === 0) throw new Error("not_found");
-    if (rows[0].status !== "IN_PROGRESS") throw new Error("not_in_progress");
-
-    await db
-      .update(workSessions)
-      .set({ status: "COMPLETED", endTime: new Date() })
-      .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)));
-
-    const wid = rows[0].workOrderId;
-    if (wid != null) {
-      await db
-        .update(workOrders)
-        .set({ status: "COMPLETED" })
-        .where(and(eq(workOrders.id, wid), eq(workOrders.companyId, companyId)));
-    }
+    await db.transaction(async (tx) => {
+      const [session] = await tx
+        .select()
+        .from(workSessions)
+        .where(and(eq(workSessions.id, sessionId), eq(workSessions.companyId, companyId)))
+        .for("update");
+      if (!session) throw new Error("not_found");
+      if (session.status !== "IN_PROGRESS") throw new Error("not_in_progress");
+      await tx
+        .update(workSessions)
+        .set({ status: "COMPLETED", endTime: new Date() })
+        .where(eq(workSessions.id, sessionId));
+      if (session.workOrderId != null)
+        await tx
+          .update(workOrders)
+          .set({ status: "COMPLETED" })
+          .where(and(eq(workOrders.id, session.workOrderId), eq(workOrders.companyId, companyId)));
+    });
   }
 
   /** Deletes only an unlinked archived session without warehouse history. */

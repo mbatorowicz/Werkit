@@ -11,7 +11,7 @@ Projekt Neon `neon-werkit`, PostgreSQL 17, gałąź main, plan Free. Odczyt 6 li
 
 [Panel Backup & Restore](https://console.neon.tech/app/projects/odd-paper-85251779/branches/br-sweet-morning-almv0kyx/restore).
 
-**Bloker pozostaje:** sześciogodzinne okno nie chroni przed błędem wykrytym następnego dnia. Sama udana próba techniczna nie oznacza, że istnieje przechowywana i monitorowana kopia produkcyjna.
+**Ograniczenie dla wiążącej ewidencji produkcyjnej:** sześciogodzinne okno nie chroni przed błędem wykrytym następnego dnia. Sama udana próba techniczna nie oznacza, że istnieje przechowywana i monitorowana kopia produkcyjna.
 
 ## Powtarzalna próba na danych odizolowanych
 
@@ -24,7 +24,7 @@ npm run test:pilot:blob
 
 Pierwszy skrypt czyta z adresu bazy w środowisku **wyłącznie schemat** (pg_dump --schema-only, read-only, TLS verify-full). Nie kopiuje danych firmowych. Tworzy kontener z losową nazwą i hasłem, udostępniony tylko na 127.0.0.1 i losowym porcie. Wszystkie adresy bazy procesów testowych są zastępowane adresem lokalnym. Workload dodatkowo wymaga flagi testowej, lokalnego hosta, konkretnej nazwy bazy i pustej tabeli firm. Sekret Blob jest wyłączony w procesach DB. Kontener i jego wolumen są usuwane w finally; nie są zatrzymywane inne kontenery użytkownika.
 
-W lokalnej bazie uruchamia 29 istniejących testów integracyjnych, następnie tworzy syntetyczną firmę i 40 pracowników. Testuje równoczesną edycję zleceń, uruchomienie sesji, wydania/zwroty jednej wspólnej części, dashboard, GPS z ponowieniami, notatki offline i zakończenia offline. Kopię pełnej bazy testowej w formacie custom odtwarza do **drugiej, nowej bazy**. Porównuje SHA-256 posortowanych wierszy wszystkich tabel, definicje ograniczeń, indeksy i stany sekwencji. Na odtworzeniu serwisy odczytują historię i ponawiają 40 zakończeń offline bez wykonania ich drugi raz.
+W lokalnej bazie uruchamia 37 testów integracyjnych, następnie tworzy syntetyczną firmę i 40 pracowników. Testuje równoczesną edycję zleceń, uruchomienie sesji, wydania/zwroty jednej wspólnej części, dashboard, GPS z ponowieniami, notatki offline i zakończenia offline. Kopię pełnej bazy testowej w formacie custom odtwarza do **drugiej, nowej bazy**. Porównuje SHA-256 posortowanych wierszy wszystkich tabel, definicje ograniczeń, indeksy i stany sekwencji. Na odtworzeniu serwisy odczytują historię i ponawiają 40 zakończeń offline bez wykonania ich drugi raz.
 
 Drugi skrypt tworzy tylko dwa syntetyczne obiekty PNG w losowym prefiksie `__werkit_recovery_drill/` istniejącego prywatnego store. Pobiera kopię na dysk, odtwarza pod nową nazwą i porównuje SHA-256 pobranych bajtów; usuwa tylko obiekty utworzone przez tę próbę. Nie odczytuje istniejących zdjęć firmowych. Próba małego PNG nie dowodzi odtworzenia całego magazynu zdjęć ani przepustowości uploadu 40 telefonów.
 
@@ -42,9 +42,11 @@ Raporty obok tego pliku: `PILOT-RECOVERY-RESULT-2026-11-06.json` oraz `PILOT-BLO
 
 To test serwisów aplikacji + lokalnego PostgreSQL, z pulą 10 połączeń. Czasy obejmują oczekiwanie w puli. Nie obejmuje HTTP, JWT/proxy, zimnego startu Vercel, sieci komórkowej, geokodowania, rzeczywistych telefonów ani długiego testu stabilności. Lokalne czasy poniżej sekundy nie dowodzą takich czasów na planie produkcyjnym Neon/Vercel. W bazie testowej tabele migracji i część słowników są puste; test nie zastępuje odtworzenia kompletnej kopii firmowej w kontrolowanym środowisku.
 
-## Procedura operacyjna do zatwierdzenia przed pilotażem
+## Docelowa procedura produkcyjna
 
-Proponowane wymagania, jeszcze nie uzgodnione z firmą: dopuszczalna utrata danych 1 godzina, przywrócenie pracy w 4 godziny, co najmniej 7 dni historii i 30 dziennych kopii poza kontem produkcji. Wybrać i wdrożyć retencję Neon/snapshoty lub niezależny harmonogram; nie zakładać, że darmowy plan spełnia te wymagania. Wyznaczyć właściciela i zastępcę oraz alarm po nieudanej kopii lub przekroczeniu dopuszczalnego wieku.
+Na życzenie właściciela rozwój infrastruktury produkcyjnej odkładamy do oceny pilotażu. Ograniczony test powinien zachować równoległą dotychczasową ewidencję; Werkit nie jest jeszcze jedynym źródłem danych firmy. Poniższe propozycje nie są warunkiem zakupu usług przed testem.
+
+Proponowane wymagania produkcyjne, jeszcze nie uzgodnione z firmą: dopuszczalna utrata danych 1 godzina, przywrócenie pracy w 4 godziny, co najmniej 7 dni historii i 30 dziennych kopii poza kontem produkcji. Wybrać i wdrożyć retencję Neon/snapshoty lub niezależny harmonogram; nie zakładać, że darmowy plan spełnia te wymagania. Wyznaczyć właściciela i zastępcę oraz alarm po nieudanej kopii lub przekroczeniu dopuszczalnego wieku.
 
 Komplet kopii: pełny pg_dump w formacie custom (w tym drizzle i offline_operations), bajty zdjęć wskazywanych przez bazę z manifestem ścieżek i sum SHA-256, wersja kodu/migracji oraz bezpiecznie przechowywana konfiguracja infrastruktury. Eksport bazy i powiązanych zdjęć wymaga skoordynowanego okna bez kasowania zdjęć; sam URL lub wygasający signed URL nie jest kopią. Przechowywać szyfrowane kopie poza workspace/OneDrive i poza kontem produkcji; klucz odzyskania przechowywać oddzielnie, bez commitu i bez logów.
 

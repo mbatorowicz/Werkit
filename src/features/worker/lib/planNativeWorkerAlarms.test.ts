@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { planNativeWorkerAlarms } from "@/features/worker/lib/planNativeWorkerAlarms";
 import { dismissAlarm, setSnooze } from "@/features/worker/lib/workerAlarmSnooze";
 import type { Session, WorkOrder } from "@/types/worker";
@@ -38,8 +38,25 @@ describe("planNativeWorkerAlarms", () => {
   const nowMs = new Date("2026-09-15T10:00:00.000Z").getTime();
 
   beforeEach(() => {
-    localStorage.clear();
+    // Keep each test independent of Node's optional native localStorage.
+    const entries = new Map<string, string>();
+    const storage: Storage = {
+      get length() {
+        return entries.size;
+      },
+      clear: () => entries.clear(),
+      getItem: (key) => entries.get(key) ?? null,
+      key: (index) => [...entries.keys()][index] ?? null,
+      removeItem: (key) => {
+        entries.delete(key);
+      },
+      setItem: (key, value) => {
+        entries.set(key, String(value));
+      },
+    };
+    vi.stubGlobal("localStorage", storage);
   });
+  afterEach(() => vi.unstubAllGlobals());
 
   it("nie planuje nic gdy powiadomienia wyłączone", () => {
     expect(

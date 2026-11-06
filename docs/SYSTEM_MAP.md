@@ -222,8 +222,8 @@ Klasyfikacja zgodna z `src/proxy.ts`:
 | `/api/worker/logs` | POST `{level, message, metadata?}` | `SystemLogService.insertLog` — `sendRemoteLog` (`keepalive:true`); 429 `too_many_logs` przy >30 INSERT/min/user (`login_attempts` klucz `logs:{userId}`) |
 | `/api/worker/customer-locations/[id]/route` | PUT `{waypoints}` | `CustomerLocationService.setRouteWaypoints` — wymaga `AdminUserService.userCanEditRoute` |
 | `/api/worker/work-orders/[id]/spare-parts` | GET | `WorkOrderSparePartService.getPartsForOrder(workOrderId)` — lista części w zleceniu (widok pracownika) |
-| `/api/worker/work-orders/[id]/spare-parts` | POST `{partId, quantity?, notes?}` | `WorkOrderSparePartService.addPartToOrder` — dodanie części (wydanie z magazynu przez pracownika w trakcie naprawy) |
-| `/api/worker/work-orders/[id]/spare-parts/[partId]` | DELETE | `WorkOrderSparePartService.removePartFromOrder` — usunięcie części ze zlecenia (pracownik) |
+| `/api/worker/work-orders/[id]/spare-parts` | POST `{partId, quantity?, notes?}` | `WorkOrderSparePartService.pickPartFromWarehouse` — atomowe BOM + WZ; kontekst worker i blokada aktywnej sesji |
+| `/api/worker/work-orders/[id]/spare-parts/[partId]` | DELETE | `WorkOrderSparePartService.returnPartToWarehouse` — atomowy zwrot PZ; kontekst worker i blokada aktywnej sesji |
 | `/api/worker/delegation-targets` | GET | `DelegationScopeService.getDelegatableWorkers` — aktywni workerzy w zasięgu lidera/kierownika (picker delegacji w workerze) |
 | `/api/worker/delegations` | POST | `WorkerDelegationService.createDelegatedOrder` — tworzy `PENDING` z `created_by_id = actor`; `assertCanDelegateTo` + walidacja kategorii/harmonogramu |
 
@@ -892,3 +892,7 @@ Kreator wymaga aktywnego konta z canCreateOwnOrders; naprawa także durEnabled i
 `npm run test:pilot:recovery` → `scripts/pilot-drill.mjs`: wyłącznie schemat z bazy źródłowej; testy, 40 pracowników i dump/restore na dwóch lokalnych bazach w nowym kontenerze. `src/scripts/pilot_workload.ts` sprawdza izolację przed pierwszym zapisem, `pilot_restore_verify.ts` weryfikuje replay po odtworzeniu. `npm run test:pilot:blob` testuje tylko nowe syntetyczne obiekty pod losowym prefiksem. Pliki `.pilot-drill/` nigdy nie trafiają do Git. Procedura i granice: [KOPIE-I-OBCIAZENIE-PILOTAZ-2026-11-06.md](./KOPIE-I-OBCIAZENIE-PILOTAZ-2026-11-06.md).
 
 Walidatory encji/kategorii mogą przyjąć klienta transakcji: nie pożyczaj dodatkowego połączenia z db wewnątrz transakcji przy pełnej puli. Ruchy części blokują SKU przez FOR NO KEY UPDATE, aby zachować serializację bez konfliktu z KEY SHARE kluczy obcych pozycji BOM. Regresja: `transactionValidation.test.ts` i scenariusz 40 równoczesnych wydań/zwrotów w lokalnej próbie.
+
+### Części pracownika a zamknięcie sesji (2026-11-06)
+
+Worker API przekazuje userId jako ostatni argument pickPartFromWarehouse / returnPartToWarehouse. lockWorkerPartMutation w tej samej transakcji blokuje najpierw aktywną sesję, następnie zlecenie; sprawdza przypisanie, status naprawy, aktywność i DUR pracownika oraz flagę firmy. Brak aktywnej sesji zwraca 409. Kontrola poza transakcją nie zastępuje tej reguły. Admin zachowuje osobną ścieżkę bez kontekstu worker. forceCompleteSession blokuje sesję i zapisuje zamknięcie sesji oraz zlecenia atomowo. Regresje: workerPartMutationPolicy.int.test.ts (8 przypadków), w tym pobranie kontra anulowanie i wymuszone zamknięcie kontra anulowanie.

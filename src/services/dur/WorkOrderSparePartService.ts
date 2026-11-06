@@ -1,3 +1,4 @@
+import { lockWorkerPartMutation } from "./workerPartMutationPolicy";
 import type { WarehouseDb } from "@/services/warehouse/warehouseTypes";
 // ============================================================
 // Werkit — Serwis: części zamienne przypisane do zlecenia naprawy
@@ -95,7 +96,8 @@ export class WorkOrderSparePartService {
       notes?: string | null;
       /** Komu wydano (domyślnie actorUserId). */
       issuedTo?: number;
-    }
+    },
+    workerUserId?: number
   ) {
     const quantity = data.quantity ?? "1";
     const issuedTo = data.issuedTo ?? actorUserId;
@@ -104,6 +106,11 @@ export class WorkOrderSparePartService {
     if (!partOk) throw new StockMovementError("part_not_found");
 
     return db.transaction(async (tx) => {
+      if (workerUserId !== undefined) {
+        if (actorUserId !== workerUserId || issuedTo !== workerUserId)
+          throw new StockMovementError("forbidden");
+        await lockWorkerPartMutation(tx, companyId, workerUserId, workOrderId);
+      }
       const [inserted] = await tx
         .insert(workOrderSpareParts)
         .values({
@@ -140,9 +147,14 @@ export class WorkOrderSparePartService {
     companyId: number,
     actorUserId: number,
     lineId: number,
-    workOrderId: number
+    workOrderId: number,
+    workerUserId?: number
   ) {
     return db.transaction(async (tx) => {
+      if (workerUserId !== undefined) {
+        if (actorUserId !== workerUserId) throw new StockMovementError("forbidden");
+        await lockWorkerPartMutation(tx, companyId, workerUserId, workOrderId);
+      }
       const [line] = await tx
         .select()
         .from(workOrderSpareParts)

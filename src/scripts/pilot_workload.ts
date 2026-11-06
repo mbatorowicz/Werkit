@@ -103,10 +103,16 @@ async function main() {
   const partId = await SparePartService.addPart(companyId, { name: "__ITEST shared bearing" });
   await InventoryService.setQuantity(companyId, partId, "100");
   const lines = await phase("shared-stock-pick-40", workers, (w) =>
-    WorkOrderSparePartService.pickPartFromWarehouse(companyId, w.userId, w.orderId, {
-      partId,
-      quantity: "1",
-    })
+    WorkOrderSparePartService.pickPartFromWarehouse(
+      companyId,
+      w.userId,
+      w.orderId,
+      {
+        partId,
+        quantity: "1",
+      },
+      w.userId
+    )
   );
   assert.equal(Number((await InventoryService.getPartInventory(companyId, partId))?.quantity), 60);
   await phase("shared-stock-return-40", workers, (w, i) =>
@@ -114,7 +120,8 @@ async function main() {
       companyId,
       w.userId,
       (lines[i] as { id: number }).id,
-      w.orderId
+      w.orderId,
+      w.userId
     )
   );
   assert.equal(Number((await InventoryService.getPartInventory(companyId, partId))?.quantity), 100);
