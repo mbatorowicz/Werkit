@@ -851,3 +851,9 @@ Skrót: kolumny legacy usunięte migracją **0014**; pipeline migracji (`db:napr
 | APK — pobranie / metadane | `GET /api/app/android`, `GET /api/app/android/info` — [`androidAppDownload.ts`](../src/lib/androidAppDownload.ts), [`githubReleaseApk.ts`](../src/lib/githubReleaseApk.ts) |
 | Licencja (zastrzeżone prawa) | [`LICENSE`](../LICENSE); pole `license` w `package.json`: `UNLICENSED` |
 | Raportowanie podatności | [`SECURITY.md`](../SECURITY.md) |
+
+### Offline worker — protokół v2 (2026-11-06)
+
+POST /api/worker/offline → OfflineOperationService. Tabela offline_operations (migracja 0036): id, company_id, user_id, request_hash, created_at. Potwierdzenie i zmiana danych w jednej transakcji; blokada advisory ID operacji i blokada sesji. Ten sam identyfikator z innym payloadem lub właścicielem zwraca konflikt. Nie usuwać potwierdzeń bez określenia maksymalnego okresu ponawiania.
+
+IndexedDB zapisuje przed wysyłką, Web Locks serializuje karty, serwer zapewnia deduplikację również bez Web Locks. OfflineBanner pokazuje konflikty także online: ponów / eksport JSON / odrzuć z potwierdzeniem. Stare rekordy bez protocolVersion=2 pozostają do eksportu/odrzucenia, nie są automatycznie wykonywane. Zdjęcia mają deterministyczny klucz Blob per operacja (ponowienie po rollbacku nie tworzy nowego klucza).

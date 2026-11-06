@@ -1013,6 +1013,20 @@ export const pl = {
     },
     client: {
       refresh: "Odśwież listę",
+      offlineAction_end_session: "Zakończenie",
+      offlineAction_accept_order: "Przyjęcie zlecenia",
+      offlineAction_cancel_session: "Anulowanie",
+      offlineAction_checkpoint: "Punkt kontrolny",
+      offlineAction_save_note: "Notatka",
+      offlineAction_edit_note: "Edycja notatki",
+      offlineAction_upload_photo: "Zdjęcie",
+      offlineConflictTitle: "Synchronizacja wymaga uwagi",
+      offlineOperationLabel: "Operacja dla sesji {session}: {type}",
+      offlineRetry: "Ponów",
+      offlineExport: "Zapisz kopię",
+      offlineDiscard: "Odrzuć",
+      offlineDiscardConfirm:
+        "Odrzucić niewysłaną operację? Zapisz kopię, jeśli dane mają zostać zachowane.",
       offlineBanner: "Brak połączenia z internetem",
       offlinePendingCount: "{count} operacji oczekuje",
       offlineQueuedEndSession:

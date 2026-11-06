@@ -774,3 +774,16 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   team: one(teams, { fields: [teamMembers.teamId], references: [teams.id] }),
   user: one(users, { fields: [teamMembers.userId], references: [users.id] }),
 }));
+
+/** Durable receipt committed atomically with each offline action. */
+export const offlineOperations = pgTable("offline_operations", {
+  id: varchar("id", { length: 100 }).primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  requestHash: text("request_hash").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

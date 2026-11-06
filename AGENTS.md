@@ -254,3 +254,7 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 - Testy Vitest (`npm test`) nie potrzebują bazy ani żadnych sekretów — można je uruchomić zawsze.
 - Testy integracyjne (`npm run test:integration`, pliki `*.int.test.ts`) wymagają `DATABASE_URL` / `POSTGRES_URL` w `.env.local`; tworzą i usuwają firmy z prefiksem `__ITEST`.
 - Natywny moduł `bcrypt` może nie skompilować się w niestandardowych kontenerach — `WERKIT_USE_BCRYPTJS=1` to bezpieczny fallback.
+
+### Offline worker (2026-11-06)
+
+Operacje kolejki v2 wykonuje `OfflineOperationService` przez `/api/worker/offline`; trwałe potwierdzenia `offline_operations` (0036) są atomowe z mutacją. Zachowuj identyfikator przy ponowieniach. Nie czyść automatycznie konfliktów ani historycznych potwierdzeń. UI konfliktów: `OfflineBanner`; wysyłka między kartami: Web Locks. Szczegóły w SYSTEM_MAP.

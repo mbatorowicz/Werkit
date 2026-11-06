@@ -1030,6 +1030,20 @@ export const de: AppDictionary = {
     },
     client: {
       refresh: "Liste aktualisieren",
+      offlineAction_end_session: "Sitzung beenden",
+      offlineAction_accept_order: "Auftrag annehmen",
+      offlineAction_cancel_session: "Sitzung abbrechen",
+      offlineAction_checkpoint: "Kontrollpunkt",
+      offlineAction_save_note: "Notiz",
+      offlineAction_edit_note: "Notiz bearbeiten",
+      offlineAction_upload_photo: "Foto",
+      offlineConflictTitle: "Synchronisierung benötigt Aufmerksamkeit",
+      offlineOperationLabel: "Vorgang für Sitzung {session}: {type}",
+      offlineRetry: "Erneut versuchen",
+      offlineExport: "Kopie speichern",
+      offlineDiscard: "Verwerfen",
+      offlineDiscardConfirm:
+        "Ungesendeten Vorgang verwerfen? Speichern Sie eine Kopie, um die Daten zu behalten.",
       offlineBanner: "Keine Internetverbindung",
       offlinePendingCount: "{count} Operationen warten",
       offlineQueuedEndSession:

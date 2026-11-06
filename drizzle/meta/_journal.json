@@ -253,6 +253,13 @@
       "when": 1749600000000,
       "tag": "0035_company_lifecycle_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793952000000,
+      "tag": "0036_offline_operations",
+      "breakpoints": true
     }
   ]
 }

@@ -30,6 +30,7 @@ export type OfflineActionType =
 export type OfflineActionPayload = Record<string, unknown>;
 
 export type OfflineAction = {
+  protocolVersion?: 2;
   /** UUID — klucz główny w IndexedDB */
   id: string;
   /** Typ operacji */
@@ -42,23 +43,6 @@ export type OfflineAction = {
   retryCount: number;
   /** Maksymalna liczba prób */
   maxRetries: number;
-};
-
-// ─── Mapowanie typ → endpoint / metoda ───────────────────────────────────────
-
-type ActionRoute = {
-  url: string;
-  method: "POST" | "PUT";
-};
-
-const ACTION_ROUTES: Record<OfflineActionType, ActionRoute> = {
-  end_session: { url: "/api/worker/session", method: "PUT" },
-  accept_order: { url: "", method: "POST" }, // URL zależy od orderId
-  cancel_session: { url: "/api/worker/session/cancel", method: "POST" },
-  checkpoint: { url: "/api/worker/session/notes", method: "POST" },
-  save_note: { url: "/api/worker/session/notes", method: "POST" },
-  edit_note: { url: "/api/worker/session/notes", method: "PUT" },
-  upload_photo: { url: "/api/worker/session/photos", method: "POST" },
 };
 
 // ─── IndexedDB ───────────────────────────────────────────────────────────────
@@ -94,7 +78,7 @@ async function openDb(): Promise<IDBDatabase> {
 // ─── Kolejka ─────────────────────────────────────────────────────────────────
 
 function generateId(): string {
-  return `${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+  return crypto.randomUUID();
 }
 
 export const offlineActionQueue = {
@@ -113,30 +97,19 @@ export const offlineActionQueue = {
     options?: { maxRetries?: number }
   ): Promise<{ ok: boolean; queued?: boolean; error?: string }> {
     payload = { ...payload, occurredAt: new Date().toISOString() };
-    // Jeśli online — wykonaj od razu
-    if (navigator.onLine) {
-      try {
-        const res = await this.executeAction(type, payload);
-        if (res.ok) return { ok: true };
-        // Jeśli API zwróciło błąd (nie sieciowy) — nie kolejkuj, zwróć błąd
-        return { ok: false, error: `HTTP ${res.status}` };
-      } catch {
-        // Błąd sieci mimo navigator.onLine? Możliwy race condition.
-        // Kolejkuj do IndexedDB.
-        return this.enqueueOffline(type, payload, options);
-      }
-    }
-
-    // Offline — zapisz do kolejki
-    return this.enqueueOffline(type, payload, options);
+    const saved = await this.enqueueOffline(type, payload, options);
+    if (navigator.onLine) await this.flushAll();
+    const pending = (await this.getAll()).find((action) => action.id === saved.id);
+    return pending ? { ok: true, queued: true } : { ok: true };
   },
 
   async enqueueOffline(
     type: OfflineActionType,
     payload: OfflineActionPayload,
     options?: { maxRetries?: number }
-  ): Promise<{ ok: boolean; queued: true }> {
+  ): Promise<{ ok: boolean; queued: true; id: string }> {
     const action: OfflineAction = {
+      protocolVersion: 2,
       id: generateId(),
       type,
       payload,
@@ -175,7 +148,7 @@ export const offlineActionQueue = {
       throw err;
     }
 
-    return { ok: true, queued: true };
+    return { ok: true, queued: true, id: action.id };
   },
 
   /**
@@ -215,8 +188,12 @@ export const offlineActionQueue = {
       const db = await openDb();
       const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).delete(id);
-    } catch {
-      /* ignore */
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onabort = tx.onerror = () => reject(tx.error);
+      });
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -236,8 +213,12 @@ export const offlineActionQueue = {
           store.put(action);
         }
       };
-    } catch {
-      /* ignore */
+      await new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onabort = tx.onerror = () => reject(tx.error);
+      });
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -249,8 +230,8 @@ export const offlineActionQueue = {
       const db = await openDb();
       const tx = db.transaction(STORE_NAME, "readwrite");
       tx.objectStore(STORE_NAME).clear();
-    } catch {
-      /* ignore */
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -258,19 +239,15 @@ export const offlineActionQueue = {
    * Wykonuje pojedyńczą akcję (fetch).
    * Wyrzuca błąd przy problemach sieciowych.
    */
-  async executeAction(type: OfflineActionType, payload: OfflineActionPayload): Promise<Response> {
-    const route = ACTION_ROUTES[type];
-    const url =
-      type === "accept_order" ? `/api/worker/work-orders/${payload.orderId}/accept` : route.url;
-
-    const body: Record<string, unknown> = { ...payload };
-    // Usuń meta-pola które nie są częścią body API
-    delete body.orderId;
-
-    const res = await fetch(url, {
-      method: route.method,
+  async executeAction(
+    type: OfflineActionType,
+    payload: OfflineActionPayload,
+    operationId?: string
+  ): Promise<Response> {
+    const res = await fetch("/api/worker/offline", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ operationId, type, payload }),
     });
 
     return res;
@@ -279,12 +256,16 @@ export const offlineActionQueue = {
   /**
    * Próbuje wysłać wszystkie operacje z kolejki.
    * Te które się udały — usuwa.
-   * Te które przekroczyły maxRetries — usuwa z logiem błędu.
+   * Konflikty pozostają do decyzji użytkownika; następne operacje czekają.
    * Te które failed sieciowo — zostawia.
    */
   async flushAll(): Promise<{ sent: number; failed: number; remaining: number }> {
     if (flushPromise) return flushPromise;
-    flushPromise = this.flushPending().finally(() => {
+    const run = () => this.flushPending();
+    flushPromise = (async () =>
+      await (typeof navigator !== "undefined" && navigator.locks
+        ? navigator.locks.request("werkit-offline-flush", run)
+        : run()))().finally(() => {
       flushPromise = null;
     });
     return flushPromise;
@@ -295,7 +276,7 @@ export const offlineActionQueue = {
     let sent = 0;
     let failed = 0;
     for (const action of actions) {
-      if (typeof action.payload.sessionId !== "number") {
+      if (action.protocolVersion !== 2 || typeof action.payload.sessionId !== "number") {
         failed++;
         break;
       }
@@ -304,7 +285,7 @@ export const offlineActionQueue = {
         break;
       }
       try {
-        const response = await this.executeAction(action.type, action.payload);
+        const response = await this.executeAction(action.type, action.payload, action.id);
         if (!response.ok) {
           await this.updateRetry(
             action.id,

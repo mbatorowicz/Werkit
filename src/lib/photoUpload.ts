@@ -96,19 +96,23 @@ export async function uploadPhotoBase64(
   base64DataUrl: string,
   sessionId: number,
   photoType: string,
-  companyId: number
+  companyId: number,
+  operationId?: string
 ): Promise<PhotoUploadResult> {
   const { mimeType, bytes, ext } = parseAndValidatePhotoDataUrl(base64DataUrl);
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   const fileBlob = new Blob([copy], { type: mimeType });
 
-  const filename = sessionPhotoBlobKey(companyId, sessionId, photoType, ext);
+  const filename = operationId
+    ? `werkit-photos/${companyId}/${sessionId}/offline-${operationId}.${ext}`
+    : sessionPhotoBlobKey(companyId, sessionId, photoType, ext);
 
   const result = await put(filename, fileBlob, {
     contentType: mimeType,
     access: "private",
-    addRandomSuffix: true,
+    addRandomSuffix: !operationId,
+    allowOverwrite: !!operationId,
   });
 
   return {
