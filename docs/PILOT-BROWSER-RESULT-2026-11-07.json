@@ -1,0 +1,46 @@
+{
+  "at": "2026-11-07",
+  "codeCommit": "afc05c8",
+  "scope": "Real Chrome headless on Windows; local Next dev and isolated PostgreSQL 17; real HTTP and IndexedDB; synthetic data",
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+  "results": [
+    {
+      "scenario": "lost response + full browser restart + A-B-A",
+      "status": "PASS",
+      "before": {
+        "issues": 0,
+        "lines": 0,
+        "receipts": 0,
+        "stock": "10.00"
+      },
+      "afterServerCommit": {
+        "issues": 1,
+        "lines": 1,
+        "receipts": 1,
+        "stock": "8.00"
+      },
+      "afterReplay": {
+        "issues": 1,
+        "lines": 1,
+        "receipts": 1,
+        "stock": "8.00"
+      }
+    },
+    {
+      "scenario": "request aborted before server + full restart + retry",
+      "status": "PASS",
+      "before": {
+        "issues": 1,
+        "lines": 1,
+        "receipts": 1,
+        "stock": "8.00"
+      },
+      "after": {
+        "issues": 2,
+        "lines": 2,
+        "receipts": 2,
+        "stock": "6.00"
+      }
+    }
+  ]
+}
