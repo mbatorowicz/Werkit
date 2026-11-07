@@ -1,12 +1,18 @@
 import { readFileSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
+import { IDBFactory } from "fake-indexeddb";
+
+const accountDatabases = new WeakMap<Map<string, Map<string, Response>>, IDBFactory>();
 
 // Execute the shipped service worker, including its event handlers (not a copy).
 function harness(
   stores = new Map<string, Map<string, Response>>(),
-  failCacheWrite: boolean | (() => boolean) = false
+  failCacheWrite: boolean | (() => boolean) = false,
+  accountDb?: IDBFactory
 ) {
+  const indexedDB = accountDb ?? accountDatabases.get(stores) ?? new IDBFactory();
+  accountDatabases.set(stores, indexedDB);
   const key = (request: Request | string) => (typeof request === "string" ? request : request.url);
   const caches = {
     keys: async () => [...stores.keys()],
@@ -40,13 +46,16 @@ function harness(
       skipWaiting: vi.fn(),
     },
     caches,
+    indexedDB,
     fetch,
     Response,
     Request,
     Headers,
     URL,
   });
-  context.importScripts = () => runInContext(readFileSync("public/sw-account.js", "utf8"), context);
+  context.importScripts = (...paths: string[]) => {
+    for (const path of paths) runInContext(readFileSync(`public${path}`, "utf8"), context);
+  };
   runInContext(readFileSync("public/sw.js", "utf8"), context);
   return {
     stores,
@@ -200,6 +209,79 @@ function scoped(body: string, owner = "1:1", until = Date.now() + 60000) {
   });
 }
 describe("account-scoped offline restart", () => {
+  it("preserves a legacy offline logout block during metadata migration", async () => {
+    const stores = new Map<string, Map<string, Response>>([
+      [
+        "werkit-offline-meta-v1",
+        new Map([
+          [
+            "https://werkit.test/__offline_account",
+            new Response(JSON.stringify({ owner: null, until: 0, blocked: true })),
+          ],
+        ]),
+      ],
+      ["werkit-account-v1-1:1", new Map([["https://werkit.test/worker", scoped("legacy A")]])],
+    ]);
+    const h = harness(stores, true);
+    h.fetch.mockRejectedValue(new Error("offline"));
+    expect((await h.request("/worker", "navigate")).status).toBe(503);
+    const reboot = harness(stores, true);
+    reboot.fetch.mockResolvedValue(new Response("logout completed"));
+    expect((await reboot.request("/worker", "navigate")).status).toBe(302);
+    expect(String(reboot.fetch.mock.calls[0][0])).toBe("https://werkit.test/api/auth/logout");
+  });
+
+  it("migrates a legacy owner's snapshot without deleting it", async () => {
+    const stores = new Map<string, Map<string, Response>>([
+      [
+        "werkit-offline-meta-v1",
+        new Map([
+          [
+            "https://werkit.test/__offline_account",
+            new Response(
+              JSON.stringify({ owner: "1:1", until: Date.now() + 60000, blocked: false })
+            ),
+          ],
+        ]),
+      ],
+      ["werkit-account-v1-1:1", new Map([["https://werkit.test/worker", scoped("legacy A")]])],
+    ]);
+    const h = harness(stores, true);
+    h.fetch.mockRejectedValue(new Error("offline"));
+    expect(await (await h.request("/worker", "navigate")).text()).toBe("legacy A");
+    expect(stores.get("werkit-account-v1-1:1")?.size).toBe(1);
+    const reboot = harness(stores, true);
+    reboot.fetch.mockRejectedValue(new Error("offline"));
+    expect(await (await reboot.request("/worker", "navigate")).text()).toBe("legacy A");
+  });
+
+  it("logs in despite Cache Storage write failures and preserves the logout gate after restart", async () => {
+    const h = harness(new Map(), true);
+    h.fetch.mockResolvedValue(new Response("login accepted"));
+    expect(await (await h.request("/api/auth/login", undefined, "POST")).text()).toBe(
+      "login accepted"
+    );
+    h.fetch.mockRejectedValue(new Error("offline"));
+    await expect(h.request("/api/auth/logout", undefined, "POST")).rejects.toThrow();
+    const reboot = harness(h.stores, true);
+    reboot.fetch.mockRejectedValue(new Error("offline"));
+    expect((await reboot.request("/worker", "navigate")).status).toBe(503);
+    reboot.fetch.mockResolvedValue(new Response("login accepted again"));
+    expect((await reboot.request("/api/auth/login", undefined, "POST")).status).toBe(200);
+  });
+
+  it("does not start authentication if the durable account gate cannot be written", async () => {
+    const factory = new IDBFactory();
+    vi.spyOn(factory, "open").mockImplementation(() => {
+      throw new Error("storage unavailable");
+    });
+    const h = harness(new Map(), true, factory);
+    await expect(h.request("/api/auth/login", undefined, "POST")).rejects.toThrow(
+      "storage unavailable"
+    );
+    expect(h.fetch).not.toHaveBeenCalled();
+  });
+
   it("restores the same account after the service worker process restarts", async () => {
     const h = harness();
     h.fetch.mockResolvedValueOnce(scoped("worker A"));

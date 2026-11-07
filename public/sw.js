@@ -3,7 +3,7 @@
  * RSC responses must never be shared between users through Cache Storage.
  * Durable pending mutations/GPS live separately in IndexedDB.
  */
-importScripts("/sw-account.js");
+importScripts("/sw-account-state.js", "/sw-account.js");
 const CACHE_NAME = "werkit-public-v7";
 const STATIC_ASSETS = [
   "/favicon.ico",

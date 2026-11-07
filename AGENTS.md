@@ -257,6 +257,8 @@ Przed większymi zmianami w: **API admin/worker**, **sesjach**, **zleceniach**, 
 
 ### Offline worker (2026-11-06)
 
+Stan bezpieczeństwa PWA (właściciel/TTL/blokada wylogowania) zapisuje `public/sw-account-state.js` w osobnym IndexedDB `werkit_offline_account`; migruje legacy metadane Cache Storage bez kasowania kolejek. Nie uzależniaj logowania od zapisu Cache Storage i nie omijaj trwałej blokady przed zmianą konta. Regresja starego WebKit na buildzie produkcyjnym: `docs/WEBKIT-ODZYSKANIE-PROFILU-2026-11-07.md`.
+
 Operacje kolejki v2 wykonuje `OfflineOperationService` przez `/api/worker/offline`; trwałe potwierdzenia `offline_operations` (0036) są atomowe z mutacją. Zachowuj identyfikator przy ponowieniach. Nie czyść automatycznie konfliktów ani historycznych potwierdzeń. UI konfliktów: `OfflineBanner`; wysyłka między kartami: Web Locks. Szczegóły w SYSTEM_MAP.
 
 ### GPS v2 (2026-11-06)

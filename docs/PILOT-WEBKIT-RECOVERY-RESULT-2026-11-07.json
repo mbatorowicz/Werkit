@@ -1,0 +1,24 @@
+{
+  "buildMode": "production",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+  "steps": [
+    "old profile login A and pending form: PASS",
+    "full process restart: PASS",
+    "A-B-A account isolation: PASS"
+  ],
+  "queuesBeforeSha256": "3202f8961bdf7e573d132c67e314fd85c0aa428acd225c396fe4e0384b0aae98",
+  "queuesAfterSha256": "3202f8961bdf7e573d132c67e314fd85c0aa428acd225c396fe4e0384b0aae98",
+  "preservedOperationId": "1498685f-6061-4e07-8b67-769ecd289d7b",
+  "initialWarehouse": {
+    "issues": 0,
+    "lines": 0,
+    "receipts": 0,
+    "stock": "10.00"
+  },
+  "finalWarehouse": {
+    "issues": 0,
+    "lines": 0,
+    "receipts": 0,
+    "stock": "10.00"
+  }
+}

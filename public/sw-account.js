@@ -20,13 +20,12 @@ function locked(task) {
 }
 async function readAccount() {
   if (accountState === undefined) {
-    const cached = await (await caches.open(PRIVATE_META)).match(META_URL);
-    accountState = cached ? await cached.json() : { owner: null, until: 0, blocked: false };
+    accountState = await loadAccountState();
   }
   return accountState;
 }
 async function writeAccount(value) {
-  await (await caches.open(PRIVATE_META)).put(META_URL, new Response(JSON.stringify(value)));
+  await accountStateTransaction("readwrite", value);
   accountState = value;
 }
 async function invalidateAccount(blocked = true) {

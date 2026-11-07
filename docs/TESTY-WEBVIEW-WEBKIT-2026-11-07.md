@@ -34,6 +34,8 @@ Końcowe testy wstrzykują błąd na granicy fetch aplikacji: odczytują rzeczyw
 
 ### Pozostała niepewność — istniejący profil WebKit
 
+**Aktualizacja:** poniższy historyczny problem uruchomienia i logowania zachowanego profilu został naprawiony i sprawdzony na lokalnym buildzie produkcyjnym bez kasowania kolejek. Wynik, przyczyna i granice próby: [WEBKIT-ODZYSKANIE-PROFILU-2026-11-07.md](./WEBKIT-ODZYSKANIE-PROFILU-2026-11-07.md).
+
 Zachowany profil z wczesnego nieudanego przebiegu nadal miał problem z wejściem do aplikacji i późniejszym logowaniem po aktualizacji service workera. W IndexedDB pozostaje prawidłowy wpis oczekującego pobrania. Świeży profil przechodzi pełne scenariusze, lecz nie dowodzi to naprawy tego przypadku. Nie uznajemy restartu PWA w WebKit za bezwarunkowo zaliczony. Do dalszej diagnozy pozostaje przywrócenie logowania w tym profilu i powtórzenie na produkcyjnym buildzie oraz Safari na urządzeniu. Nie czyszczono danych problematycznego profilu, żeby nie zamaskować błędu. Błąd zapisu WebKit pod Windows nie dowodzi tego samego błędu na iOS.
 
 ## Powtórzenie

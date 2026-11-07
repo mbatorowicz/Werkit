@@ -9,6 +9,7 @@ import nextEnv from "@next/env";
 const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 const dir = resolve(".pilot-drill");
+const production = process.argv.includes("--production");
 mkdirSync(dir, { recursive: true });
 rmSync(resolve(dir, "browser-stop"), { force: true });
 writeFileSync(resolve(dir, "ca.pem"), getCACertificates("default").join("\n"));
@@ -143,6 +144,7 @@ try {
   ]);
   const env = {
     ...process.env,
+    NODE_ENV: production ? "production" : "development",
     DATABASE_URL: url,
     DATABASE_URL_UNPOOLED: url,
     POSTGRES_URL: url,
@@ -162,10 +164,29 @@ try {
   if (seed.status !== 0) throw new Error(`Seed failed: ${seed.stderr}`);
   const fixture = JSON.parse(readFileSync(env.PILOT_REPORT, "utf8"));
   fixture.profileRoot = resolve(dir, "browser-profiles");
+  fixture.buildMode = production ? "production" : "development";
   const log = openSync(resolve(dir, "browser-app.log"), "w");
+  if (production) {
+    const buildLog = openSync(resolve(dir, "browser-build.log"), "w");
+    const build = spawnSync(process.execPath, ["node_modules/next/dist/bin/next", "build"], {
+      env,
+      stdio: ["ignore", buildLog, buildLog],
+      windowsHide: true,
+      timeout: 300000,
+    });
+    if (build.status !== 0)
+      throw new Error("Isolated production build failed; see .pilot-drill/browser-build.log");
+  }
   app = spawn(
     process.execPath,
-    ["node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1", "--port", "4317"],
+    [
+      "node_modules/next/dist/bin/next",
+      production ? "start" : "dev",
+      "--hostname",
+      "127.0.0.1",
+      "--port",
+      "4317",
+    ],
     { env, stdio: ["ignore", log, log], windowsHide: true }
   );
   control = http.createServer(async (req, res) => {
