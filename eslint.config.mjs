@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "artifacts/**",
+    ".pilot-drill/**",
+    ".playwright-mcp/**",
     "docs/archive/**",
   ]),
   {

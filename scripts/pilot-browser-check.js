@@ -3,13 +3,13 @@ async (page) => {
   const base = "http://127.0.0.1:4317";
   const info = async () => (await (await page.request.get("http://127.0.0.1:4318/state")).json());
   const { fixture } = await info();
-  const browserType = page.context().browser().browserType();
+  const browserType = page.pilotBrowserType ?? page.context().browser().browserType();
   const profile = `${fixture.profileRoot}/${Date.now()}`;
   let context, p;
   const results = [];
   const assert = (ok, message) => { if (!ok) throw new Error(message); };
   const open = async () => {
-    context = await browserType.launchPersistentContext(profile, { channel: "chrome", headless: true });
+    context = await browserType.launchPersistentContext(profile, { ...(browserType.name() === "chromium" ? { channel: "chrome" } : {}), headless: true });
     p = await context.newPage();
   };
   const login = async (index) => {
@@ -87,5 +87,8 @@ async (page) => {
     assert(final.issues === committed.issues + 1 && final.lines === committed.lines + 1 && final.receipts === committed.receipts + 1 && Number(final.stock) === Number(committed.stock) - 2, "Unsent retry not applied exactly once");
     results.push({ scenario: "request aborted before server + full restart + retry", status: "PASS", before: committed, after: final });
     return { browser: await p.evaluate(() => navigator.userAgent), results };
+  } catch (error) {
+    error.message += "\nBrowser state: " + JSON.stringify({ url: p?.url(), body: await p?.locator("body").innerText().catch(() => "unavailable"), storage: await p?.evaluate(async () => ({ databases: await indexedDB.databases(), owner: document.querySelector('meta[name="werkit-offline-owner"]')?.content })).catch(() => null) });
+    throw error;
   } finally { await context?.close(); }
 }

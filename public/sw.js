@@ -92,12 +92,23 @@ self.addEventListener("fetch", (event) => {
 });
 
 async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  if (cached) return cached;
+  let cache;
+  try {
+    cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    if (cached) return cached;
+  } catch {
+    /* Storage failure must not block an available network response. */
+  }
   try {
     const response = await fetch(request);
-    if (response.ok && !response.redirected) await cache.put(request, response.clone());
+    if (cache && response.ok && !response.redirected) {
+      try {
+        await cache.put(request, response.clone());
+      } catch {
+        /* Cache writes are best-effort, including quota/engine failures. */
+      }
+    }
     return response;
   } catch {
     return offlineResponse(request);

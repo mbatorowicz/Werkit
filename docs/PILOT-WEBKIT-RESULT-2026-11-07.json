@@ -1,0 +1,43 @@
+{
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+  "results": [
+    {
+      "scenario": "lost response + full browser restart + A-B-A",
+      "status": "PASS",
+      "before": {
+        "issues": 1,
+        "lines": 1,
+        "receipts": 1,
+        "stock": "8.00"
+      },
+      "afterServerCommit": {
+        "issues": 2,
+        "lines": 2,
+        "receipts": 2,
+        "stock": "6.00"
+      },
+      "afterReplay": {
+        "issues": 2,
+        "lines": 2,
+        "receipts": 2,
+        "stock": "6.00"
+      }
+    },
+    {
+      "scenario": "request aborted before server + full restart + retry",
+      "status": "PASS",
+      "before": {
+        "issues": 2,
+        "lines": 2,
+        "receipts": 2,
+        "stock": "6.00"
+      },
+      "after": {
+        "issues": 3,
+        "lines": 3,
+        "receipts": 3,
+        "stock": "4.00"
+      }
+    }
+  ]
+}

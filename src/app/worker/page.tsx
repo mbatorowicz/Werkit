@@ -1,6 +1,7 @@
 import WorkerClient from "./WorkerClient";
 import { InitialWorkerData, Session } from "@/types/worker";
 import { gpsPolicyFromSession } from "@/lib/categoryPolicy";
+import { narrowOrderType } from "@/lib/orderType";
 import { requireLiveCompanyPrincipalOrRedirect } from "@/lib/livePrincipal";
 import type { WorkerSessionService as WorkerSessionServiceType } from "@/services/WorkerSessionService";
 
@@ -52,6 +53,9 @@ function mapSession(rawSession: RawSession): Session {
     ),
     gpsPolicy: gpsPolicyFromSession(rawSession),
     workOrderId: rawSession.workOrderId ?? null,
+    orderType: rawSession.orderType == null ? null : narrowOrderType(rawSession.orderType),
+    repairDescription: rawSession.repairDescription ?? null,
+    resourceGroupId: rawSession.resourceGroupId ?? null,
     resourceName: rawSession.resourceName ?? null,
     materialName: rawSession.materialName ?? null,
     taskDescription: rawSession.taskDescription ?? null,

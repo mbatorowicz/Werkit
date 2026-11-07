@@ -3,7 +3,7 @@ import { createContext, runInContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
 // Execute the shipped service worker, including its event handlers (not a copy).
-function harness(stores = new Map<string, Map<string, Response>>()) {
+function harness(stores = new Map<string, Map<string, Response>>(), failCacheWrite = false) {
   const key = (request: Request | string) => (typeof request === "string" ? request : request.url);
   const caches = {
     keys: async () => [...stores.keys()],
@@ -14,6 +14,7 @@ function harness(stores = new Map<string, Map<string, Response>>()) {
       return {
         match: async (request: Request | string) => store.get(key(request))?.clone(),
         put: async (request: Request | string, response: Response) => {
+          if (failCacheWrite) throw new Error("Cache storage write failed");
           store.set(key(request), response.clone());
         },
       };
@@ -64,6 +65,14 @@ function harness(stores = new Map<string, Map<string, Response>>()) {
 }
 
 describe("PWA account cache isolation", () => {
+  it("serves a downloaded script even if storing it in Cache Storage fails", async () => {
+    const h = harness(new Map(), true);
+    h.fetch.mockResolvedValue(new Response("/* app */", { status: 200 }));
+    const response = await h.request("/_next/static/chunks/app.js");
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("/* app */");
+  });
+
   it("shows a neutral offline page instead of cached authenticated HTML", async () => {
     const h = harness();
     h.fetch.mockRejectedValue(new Error("offline"));

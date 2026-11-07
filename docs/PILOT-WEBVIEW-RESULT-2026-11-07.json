@@ -1,0 +1,48 @@
+{
+  "browser": "Mozilla/5.0 (Linux; Android 15; Android SDK built for x86_64 Build/AE3A.240806.019; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/124.0.6367.219 Mobile Safari/537.36",
+  "results": [
+    {
+      "scenario": "lost response + full browser restart + A-B-A",
+      "status": "PASS",
+      "before": {
+        "issues": 3,
+        "lines": 3,
+        "receipts": 3,
+        "stock": "4.00"
+      },
+      "afterServerCommit": {
+        "issues": 4,
+        "lines": 4,
+        "receipts": 4,
+        "stock": "2.00"
+      },
+      "afterReplay": {
+        "issues": 4,
+        "lines": 4,
+        "receipts": 4,
+        "stock": "2.00"
+      }
+    },
+    {
+      "scenario": "request aborted before server + full restart + retry",
+      "status": "PASS",
+      "before": {
+        "issues": 4,
+        "lines": 4,
+        "receipts": 4,
+        "stock": "2.00"
+      },
+      "after": {
+        "issues": 5,
+        "lines": 5,
+        "receipts": 5,
+        "stock": "0.00"
+      }
+    }
+  ],
+  "device": {
+    "android": "15",
+    "sdk": "35",
+    "provider": "Current WebView Update Service state\r\n  Current WebView package (name, version): (com.android.webview, 124.0.6367.219)\r\n  Minimum targetSdkVersion: 33\r\n  Minimum WebView version code: 636771907\r\n  Number of relros started: 1\r\n  Number of relros finished: 1\r\n  WebView package dirty: false\r\n  Any WebView package installed: true\r\n  Preferred WebView package (name, version): (com.android.webview, 124.0.6367.219)\r\n  WebView packages:\r\n    Valid package com.android.webview (versionName: 124.0.6367.219, versionCode: 636771907, targetSdkVersion: 34) is  installed/enabled for all users"
+  }
+}
