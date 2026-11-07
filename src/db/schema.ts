@@ -804,3 +804,17 @@ export const partPickOperations = pgTable("part_pick_operations", {
     .notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+/** Durable confirmations of manual PZ/WZ; independent of document/SKU deletion. */
+export const stockMovementOperations = pgTable("stock_movement_operations", {
+  id: varchar("id", { length: 100 }).primaryKey(),
+  companyId: integer("company_id")
+    .notNull()
+    .references(() => companies.id, { onDelete: "cascade" }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  requestHash: text("request_hash").notNull(),
+  result: jsonb("result").$type<unknown>().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});

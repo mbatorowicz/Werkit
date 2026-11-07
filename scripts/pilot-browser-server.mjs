@@ -9,6 +9,7 @@ import nextEnv from "@next/env";
 const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 const dir = resolve(".pilot-drill");
+const manualStock = process.argv.includes("--manual-stock");
 const production = process.argv.includes("--production");
 const networkGateway = process.argv.includes("--network-gateway");
 mkdirSync(dir, { recursive: true });
@@ -145,6 +146,22 @@ try {
     "-f",
     "/tmp/schema.sql",
   ]);
+  if (manualStock) {
+    run(["cp", resolve("drizzle/0039_stock_movement_operations.sql"), name + ":/tmp/manual.sql"]);
+    run([
+      "exec",
+      name,
+      "psql",
+      "-U",
+      "postgres",
+      "-d",
+      "werkit_drill_source",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-f",
+      "/tmp/manual.sql",
+    ]);
+  }
   const env = {
     ...process.env,
     NODE_ENV: production ? "production" : "development",
@@ -165,6 +182,21 @@ try {
     { env, encoding: "utf8", timeout: 60000 }
   );
   if (seed.status !== 0) throw new Error(`Seed failed: ${seed.stderr}`);
+  if (manualStock) {
+    const test = spawnSync(
+      process.execPath,
+      [
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "vitest.integration.config.ts",
+        "src/services/warehouse/ManualStockMovementService.int.test.ts",
+      ],
+      { env, encoding: "utf8", timeout: 180000 }
+    );
+    console.log(test.stdout);
+    if (test.status !== 0) throw new Error("Manual stock integration test failed: " + test.stderr);
+  }
   const fixture = JSON.parse(readFileSync(env.PILOT_REPORT, "utf8"));
   fixture.profileRoot = resolve(dir, "browser-profiles");
   fixture.buildMode = production ? "production" : "development";
@@ -231,13 +263,33 @@ try {
       res.end(JSON.stringify({ available }));
       return;
     }
-    if (req.method !== "GET" || !["/state", "/queue-state"].includes(req.url)) {
+    if (
+      req.method !== "GET" ||
+      !["/state", "/queue-state", "/manual-stock-state"].includes(req.url)
+    ) {
       res.writeHead(404).end();
       return;
     }
     const client = new pg.Client({ connectionString: url });
     try {
       await client.connect();
+      if (req.url === "/manual-stock-state") {
+        const state = {};
+        for (const table of [
+          "stock_receipts",
+          "stock_issues",
+          "material_stock_receipts",
+          "material_stock_issues",
+          "stock_movement_operations",
+          "spare_part_inventory",
+          "material_inventory",
+        ]) {
+          state[table] = (await client.query('SELECT * FROM "' + table + '" ORDER BY 1')).rows;
+        }
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(state));
+        return;
+      }
       if (req.url === "/queue-state") {
         const gps = await client.query(
           "select g.client_point_id, g.work_session_id, s.user_id from gps_logs g join work_sessions s on s.id=g.work_session_id order by g.id"

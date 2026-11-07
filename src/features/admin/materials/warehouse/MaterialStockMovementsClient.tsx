@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { PendingStockMovements } from "@/features/admin/warehouse/PendingStockMovements";
 import { Plus, Package } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { formatDict, useDictionary } from "@/i18n";
@@ -115,6 +116,16 @@ export function MaterialStockMovementsClient({ materials, onRefreshMaterials }: 
         </button>
       </div>
 
+      {canMutate ? (
+        <PendingStockMovements
+          kind="materials"
+          names={materialById}
+          onSaved={() => {
+            void loadMovements();
+            onRefreshMaterials();
+          }}
+        />
+      ) : null}
       <ListSearchBar
         value={searchQuery}
         onChange={setSearchQuery}

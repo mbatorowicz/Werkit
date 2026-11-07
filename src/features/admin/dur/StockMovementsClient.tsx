@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { PendingStockMovements } from "@/features/admin/warehouse/PendingStockMovements";
 import { Plus } from "lucide-react";
 import { ListSearchBar } from "@/components/ListSearchBar";
 import { useDictionary } from "@/i18n";
@@ -106,6 +107,16 @@ export default function StockMovementsClient() {
         ) : null}
       </div>
 
+      {canMutate ? (
+        <PendingStockMovements
+          kind="dur"
+          names={partById}
+          onSaved={() => {
+            void fetchData();
+            void fetchCatalog();
+          }}
+        />
+      ) : null}
       <ListSearchBar
         value={searchQuery}
         onChange={setSearchQuery}

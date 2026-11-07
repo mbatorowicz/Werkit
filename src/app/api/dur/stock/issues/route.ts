@@ -1,3 +1,5 @@
+import { requireStockMovementOperation } from "@/lib/stockMovementOperation";
+import { ManualStockMovementService } from "@/services/warehouse/ManualStockMovementService";
 import { parsePositiveDecimalField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
@@ -31,6 +33,7 @@ export const POST = withApiErrorHandling(
     if (!scoped.ok) return scoped.response;
     const { companyId, session } = scoped.data;
     const userId = session.userId;
+    const operationId = requireStockMovementOperation(request, companyId, userId);
 
     const dur = await requireDurFeature(companyId);
     if (!dur.ok) return dur.response;
@@ -50,7 +53,7 @@ export const POST = withApiErrorHandling(
     const { StockMovementService } = await import("@/services/dur/StockMovementService");
     const { StockMovementError } = await import("@/services/dur/StockMovementError");
     try {
-      const issue = await StockMovementService.addIssue(companyId, userId, {
+      const input = {
         partId,
         quantity: qtyParsed.value,
         workOrderId:
@@ -62,7 +65,15 @@ export const POST = withApiErrorHandling(
             ? parseInt(String(body.issuedTo), 10)
             : null,
         notes: typeof body.notes === "string" ? body.notes : null,
-      });
+      };
+      const issue = await ManualStockMovementService.execute(
+        companyId,
+        userId,
+        operationId,
+        "dur:issues",
+        input,
+        (tx) => StockMovementService.addIssue(companyId, userId, input, tx)
+      );
       return jsonOk(issue);
     } catch (err) {
       if (err instanceof StockMovementError) {

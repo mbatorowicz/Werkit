@@ -55,6 +55,10 @@ export const de: AppDictionary = {
       to: "Bis:",
     },
     warehouse: {
+      pendingMovementTitle: "Unbestätigte Lagerbewegung",
+      pendingMovementHint:
+        "Die Antwort ist möglicherweise verloren gegangen. Wiederholen Sie die gespeicherten Angaben; legen Sie die Bewegung nicht erneut an.",
+      retryMovement: "Dieselbe Bewegung erneut senden",
       adjustStock: "Bestand korrigieren",
       stockColumn: "Bestand",
       stockWithUnit: "{qty} {unit}",
@@ -111,14 +115,18 @@ export const de: AppDictionary = {
     },
   },
   apiErrors: {
+    stock_movement_pending:
+      "Eine frühere Lagerbewegung ist unbestätigt. Schließen Sie das Formular und wählen Sie beim gespeicherten Vorgang „Dieselbe Bewegung erneut senden“.",
+    part_pick_storage_failed:
+      "Der dauerhafte Vorgangsspeicher ist nicht verfügbar. Prüfen Sie App-Speicher und Vorgangsstatus vor einer Wiederholung.",
     part_pick_legacy:
       "Dieser Tab enthält eine alte Entnahme ohne Kontozuordnung. Ausgaben vor einer weiteren Entnahme mit einem Administrator prüfen.",
     offline_account_mismatch:
-      "Das Konto hat sich geändert. App aktualisieren und mit dem Konto der Entnahme anmelden.",
+      "Das Konto wurde gewechselt. Aktualisieren Sie die App und melden Sie sich als Eigentümer des Vorgangs an.",
 
     operation_conflict:
-      "Diese Anfrage hat bereits einen anderen Eintrag. Teileliste aktualisieren und Ausgabe prüfen; keine weitere anlegen.",
-    invalid_operation_id: "Anwendung aktualisieren, um ein Teil sicher zu entnehmen.",
+      "Diese Kennung gehört zu einem anderen Vorgang. Prüfen Sie den Eintrag mit einem Administrator; legen Sie ihn nicht erneut an.",
+    invalid_operation_id: "Aktualisieren Sie die App, um den Vorgang sicher zu speichern.",
     part_pick_pending:
       "Die vorherige Entnahme ist unbestätigt. Vor einer weiteren Entnahme mit denselben Angaben wiederholen.",
 

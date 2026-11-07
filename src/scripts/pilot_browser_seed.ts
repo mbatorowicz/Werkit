@@ -7,6 +7,7 @@ import {
   createTestUser,
   createTestCategory,
   createTestResource,
+  createTestMaterial,
 } from "@/test/integrationDb";
 import { hashPassword } from "@/lib/passwordCrypto";
 import { WorkerOrderService } from "@/services/WorkerOrderService";
@@ -33,7 +34,7 @@ async function main() {
   const password = "Pilot-Only-2026!";
   const passwordHash = await hashPassword(password);
   const accounts = [];
-  for (const role of ["worker", "worker", "admin"] as const) {
+  for (const role of ["worker", "worker", "admin", "admin"] as const) {
     const user = await createTestUser(companyId, { role, passwordHash, isDurWorker: true });
     const resourceId = (await createTestResource(companyId)).id;
     const [order] = await db
@@ -55,9 +56,10 @@ async function main() {
     catalogNumber: "BROWSER-01",
   });
   await InventoryService.setQuantity(companyId, partId, "10");
+  const materialId = (await createTestMaterial(companyId, { name: "TEST browser material" })).id;
   writeFileSync(
     process.env.PILOT_REPORT!,
-    JSON.stringify({ companyId, password, accounts, partId })
+    JSON.stringify({ companyId, password, accounts, partId, materialId })
   );
 }
 main().finally(() => pool.end());

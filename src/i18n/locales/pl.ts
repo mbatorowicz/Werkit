@@ -54,6 +54,10 @@ export const pl = {
       to: "Do:",
     },
     warehouse: {
+      pendingMovementTitle: "Nierozstrzygnięty zapis magazynowy",
+      pendingMovementHint:
+        "Odpowiedź mogła nie dotrzeć. Ponów poniższy zapis bez zmiany danych; nie twórz go ponownie.",
+      retryMovement: "Ponów ten sam zapis",
       adjustStock: "Korekta stanu",
       stockColumn: "Stan",
       stockWithUnit: "{qty} {unit}",
@@ -110,14 +114,18 @@ export const pl = {
     },
   },
   apiErrors: {
+    stock_movement_pending:
+      "Poprzedni zapis magazynowy nie ma potwierdzenia. Zamknij formularz i użyj przycisku „Ponów ten sam zapis” przy zachowanej operacji.",
+    part_pick_storage_failed:
+      "Nie można uzyskać dostępu do trwałego zapisu operacji. Sprawdź pamięć aplikacji i stan zapisu przed ponowieniem.",
     part_pick_legacy:
       "W tej karcie pozostało stare pobranie bez przypisanego konta. Sprawdź wydania z administratorem przed kolejnym pobraniem.",
     offline_account_mismatch:
-      "Konto uległo zmianie. Odśwież aplikację i zaloguj się na konto właściciela pobrania.",
+      "Konto uległo zmianie. Odśwież aplikację i zaloguj się na konto właściciela operacji.",
 
     operation_conflict:
-      "To pobranie ma już inny zapis. Odśwież listę części i sprawdź wydanie; nie twórz kolejnego.",
-    invalid_operation_id: "Odśwież aplikację, aby bezpiecznie pobrać część.",
+      "Ten identyfikator jest już przypisany do innej operacji. Sprawdź zapis z administratorem; nie twórz go ponownie.",
+    invalid_operation_id: "Odśwież aplikację, aby bezpiecznie zapisać operację.",
     part_pick_pending:
       "Poprzednie pobranie nie ma potwierdzenia. Ponów je z tymi samymi danymi przed kolejnym pobraniem.",
 

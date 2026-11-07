@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { sendStockMovement } from "@/lib/stockMovementRequest";
+import { offlineOwner } from "@/lib/offlineOwner";
 import { useDictionary } from "@/i18n";
 import { useAppDialog, appDialogApiMessage } from "@/components/AppDialogProvider";
 import { decimalStringForStorage, parseDecimalInput } from "@/lib/decimalInput";
@@ -26,6 +28,8 @@ export function useMaterialMovementForm({
 
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const owner = offlineOwner();
+  const inFlight = useRef(false);
 
   const [materialId, setMaterialId] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -50,6 +54,8 @@ export function useMaterialMovementForm({
       await appAlert({ message: apiErrors.invalid_quantity });
       return;
     }
+    if (inFlight.current) return;
+    inFlight.current = true;
     setIsSubmitting(true);
     try {
       const url = tab === "receipts" ? materialsApi.stockReceipts : materialsApi.stockIssues;
@@ -68,11 +74,7 @@ export function useMaterialMovementForm({
               notes: notes.trim() || undefined,
             };
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await sendStockMovement(url, JSON.stringify(body), owner);
       const parsed = await parseJsonUnknown(res);
       const code = readApiErrorString(parsed);
       if (!res.ok) {
@@ -83,10 +85,18 @@ export function useMaterialMovementForm({
       await loadMovements();
       onRefreshMaterials();
       await appAlert({ message: wh.movementSaveSuccess });
-    } catch {
-      await appAlert({ message: apiErrors.fetch_error });
+    } catch (error) {
+      await appAlert({
+        message: appDialogApiMessage(
+          apiErrors,
+          error instanceof Error ? error.message : undefined,
+          apiErrors.fetch_error
+        ),
+      });
+    } finally {
+      inFlight.current = false;
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   }
 
   return {

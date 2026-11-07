@@ -55,6 +55,10 @@ export const en: AppDictionary = {
       to: "To:",
     },
     warehouse: {
+      pendingMovementTitle: "Unconfirmed stock movement",
+      pendingMovementHint:
+        "The response may have been lost. Retry the saved details below; do not create the movement again.",
+      retryMovement: "Retry the same movement",
       adjustStock: "Adjust stock",
       stockColumn: "Stock",
       stockWithUnit: "{qty} {unit}",
@@ -111,14 +115,18 @@ export const en: AppDictionary = {
     },
   },
   apiErrors: {
+    stock_movement_pending:
+      "A previous stock movement is unconfirmed. Close the form and use “Retry the same movement” next to the saved operation.",
+    part_pick_storage_failed:
+      "Persistent operation storage is unavailable. Check app storage and the operation status before retrying.",
     part_pick_legacy:
       "This tab contains an old pick without an account owner. Check issues with an administrator before another pick.",
     offline_account_mismatch:
-      "The account has changed. Refresh the app and sign in as the owner of the pick.",
+      "The account has changed. Refresh and sign in as the operation owner.",
 
     operation_conflict:
-      "This request already has a different record. Refresh the parts list and check the issue; do not create another.",
-    invalid_operation_id: "Refresh the application to pick a part safely.",
+      "This identifier is assigned to another operation. Check the record with an administrator; do not create it again.",
+    invalid_operation_id: "Refresh the app to save the operation safely.",
     part_pick_pending:
       "The previous pick is unconfirmed. Retry with the same details before starting another pick.",
 

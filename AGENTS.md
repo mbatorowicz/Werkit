@@ -268,3 +268,7 @@ Nie usuwać bufora GPS po końcu pracy, 401/403 lub zmianie flag. Każdy punkt z
 ### Pobranie części — ponowienia (2026-11-06)
 
 POST części admin/worker wymaga Idempotency-Key. `part_pick_operations` (0038) zapisuje wynik atomowo z BOM/WZ; zachowuj klucz przy ponowieniu i nie kasuj potwierdzeń po zwrocie części. Formularze używają `partPickRequest`; nie zastępuj go zwykłym fetch ani nowym UUID przy błędzie sieci. Oczekujące pobrania w IndexedDB są przypisane do firma:użytkownik i odtwarzają formularz po restarcie. Nie przejmuj wpisów innego konta; oba endpointy wymagają X-Werkit-Offline-Owner. Szczegóły i granice trwałości: SYSTEM_MAP.
+
+### Ręczne PZ/WZ — ponowienia (2026-11-07)
+
+Cztery POST `/api/{dur,materials}/stock/{receipts,issues}` wymagają `Idempotency-Key` i `X-Werkit-Offline-Owner`. `ManualStockMovementService` zapisuje wynik atomowo z ruchem w `stock_movement_operations` (0039). Formularze używają `stockMovementRequest`, a `PendingStockMovements` udostępnia nieedytowalny zapis do świadomego ponowienia po restarcie. Nie zastępować zachowanego UUID nowym i nie usuwać oczekujących wpisów przy zmianie konta. Istniejący `partPickStore` jest współdzielony, lecz klucz zawiera konto i endpoint. Szczegóły: SYSTEM_MAP, sekcja „Ręczne PZ/WZ”.

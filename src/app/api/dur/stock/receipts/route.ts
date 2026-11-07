@@ -1,3 +1,5 @@
+import { requireStockMovementOperation } from "@/lib/stockMovementOperation";
+import { ManualStockMovementService } from "@/services/warehouse/ManualStockMovementService";
 import { parsePositiveDecimalField, normalizeDecimalBodyField } from "@/lib/decimalInput";
 import { jsonError, jsonOk, parseJsonBody, withApiErrorHandling } from "@/lib/apiRoute";
 import { guardAdminMutation } from "@/lib/requireAdminMutation";
@@ -31,6 +33,7 @@ export const POST = withApiErrorHandling(
     if (!scoped.ok) return scoped.response;
     const { companyId, session } = scoped.data;
     const userId = session.userId;
+    const operationId = requireStockMovementOperation(request, companyId, userId);
 
     const dur = await requireDurFeature(companyId);
     if (!dur.ok) return dur.response;
@@ -59,14 +62,21 @@ export const POST = withApiErrorHandling(
     }
 
     const { StockMovementService } = await import("@/services/dur/StockMovementService");
-    const receipt = await StockMovementService.addReceipt(companyId, userId, {
+    const input = {
       partId,
       quantity: qtyParsed.value,
       unitPrice,
       invoiceNumber: typeof body.invoiceNumber === "string" ? body.invoiceNumber : null,
       notes: typeof body.notes === "string" ? body.notes : null,
-    });
-
+    };
+    const receipt = await ManualStockMovementService.execute(
+      companyId,
+      userId,
+      operationId,
+      "dur:receipts",
+      input,
+      (tx) => StockMovementService.addReceipt(companyId, userId, input, tx)
+    );
     return jsonOk(receipt);
   },
   { defaultErrorCode: "save_error" }
