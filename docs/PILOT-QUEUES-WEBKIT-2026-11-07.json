@@ -1,0 +1,203 @@
+{
+  "engine": "webkit",
+  "buildMode": "production",
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Safari/605.1.15",
+  "status": "PASS",
+  "fullOfflineRestart": false,
+  "original": {
+    "actions": [
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "a47554b5-9df2-4d1b-9009-715c84ed4c95",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-webkit-1794043733175-A2",
+          "location": null,
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T09:28:54.831Z"
+        },
+        "createdAt": "2026-11-07T09:28:54.831Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      },
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "f19455ac-e4be-4e32-9429-337cc8262c14",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-webkit-1794043733175-A1",
+          "location": null,
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T09:28:54.472Z"
+        },
+        "createdAt": "2026-11-07T09:28:54.473Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      }
+    ],
+    "gps_queue_v2": [
+      {
+        "lat": 52.1,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "11c3a814-ab46-4104-90d9-9bbe1336be11",
+        "timestamp": "2026-11-07T09:28:54.374Z"
+      },
+      {
+        "lat": 52.11,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "b3966ff7-efb2-46e9-ab26-33c48d04e5c5",
+        "timestamp": "2026-11-07T09:28:54.376Z"
+      }
+    ]
+  },
+  "denied": 409,
+  "final": {
+    "gps": [
+      {
+        "client_point_id": "6289bdc3-cc1c-4496-b68f-6d3647b84f04",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "a7ef61ed-f3e7-4329-ad81-896d3afa58d4",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "71fd7d86-fd0e-4c5b-a622-a1083de08fbe",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "client_point_id": "feba44af-6eb6-4460-95fb-07b11db0b995",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "63b3845d-7d89-4061-86bb-0e86cd7ca8e6",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "08213562-ee74-44ad-8664-9747fe80a511",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "client_point_id": "11c3a814-ab46-4104-90d9-9bbe1336be11",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "b3966ff7-efb2-46e9-ab26-33c48d04e5c5",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "notes": [
+      {
+        "id": 1,
+        "note": "queue-chrome-1794043625983-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 2,
+        "note": "queue-chrome-1794043625983-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 3,
+        "note": "queue-chrome-1794043705837-B",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 4,
+        "note": "queue-chrome-1794043705837-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 5,
+        "note": "queue-chrome-1794043705837-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 6,
+        "note": "queue-webkit-1794043733175-B",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 7,
+        "note": "queue-webkit-1794043733175-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 8,
+        "note": "queue-webkit-1794043733175-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "operations": [
+      {
+        "id": "39ccbb29-779e-4516-b6bb-61cf6e34f9cc",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "3b481181-f380-4bb5-af14-1eb920fcd634",
+        "user_id": 2,
+        "company_id": 1
+      },
+      {
+        "id": "4228a5e7-60e6-42b2-a0fc-f25a53259ec5",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "4e5cecc9-0792-4836-9146-78b904e97cf4",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "98761bd4-e1b5-444b-a47f-f7e72b45b974",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "a47554b5-9df2-4d1b-9009-715c84ed4c95",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "d3b7de14-00d7-4154-a787-e908d43a1fad",
+        "user_id": 2,
+        "company_id": 1
+      },
+      {
+        "id": "f19455ac-e4be-4e32-9429-337cc8262c14",
+        "user_id": 1,
+        "company_id": 1
+      }
+    ]
+  },
+  "scenarios": [
+    "nonempty queues survive full restart",
+    "A-B-A and B independent sync",
+    "lost replies after server commit survive restart",
+    "GPS original session and exactly-once notes",
+    "queues empty only after acknowledgements"
+  ]
+}

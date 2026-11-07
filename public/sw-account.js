@@ -49,21 +49,29 @@ function privatePath(request, url) {
     ].includes(url.pathname)
   );
 }
-async function authTransition(request, path) {
+async function authTransition(request, path, sourceClientId) {
   authPending++;
+  let completed = false;
   try {
     await invalidateAccount(true);
-    return await authLocked(async () => {
+    const response = await authLocked(async () => {
       const response = await fetch(request, { cache: "no-store" });
       if (path === "/api/auth/login" && response.ok) {
         await locked(() => writeAccount({ owner: null, until: 0, blocked: false }));
       }
       return response;
     });
+    completed = response.ok;
+    return response;
   } finally {
     authPending--;
     const clients = await self.clients.matchAll();
-    for (const client of clients) client.postMessage({ type: "OFFLINE_ACCOUNT_CHANGED" });
+    // The initiating page handles its own login/logout navigation. Redirecting
+    // it again can cancel the response/navigation it is currently awaiting.
+    for (const client of clients) {
+      if (client.id !== sourceClientId || !completed)
+        client.postMessage({ type: "OFFLINE_ACCOUNT_CHANGED" });
+    }
   }
 }
 async function privateNetworkFirst(request) {

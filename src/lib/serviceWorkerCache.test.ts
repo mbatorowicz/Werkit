@@ -31,6 +31,7 @@ function harness(
     },
   };
   type Event = {
+    clientId?: string;
     request?: Request;
     respondWith?: (p: Promise<Response>) => void;
     waitUntil?: (p: Promise<void>) => void;
@@ -38,11 +39,19 @@ function harness(
   const listeners = new Map<string, (e: Event) => void>();
   const fetch = vi.fn<typeof globalThis.fetch>();
   const claim = vi.fn();
+  const sourceMessage = vi.fn();
+  const otherMessage = vi.fn();
   const context = createContext({
     self: {
       location: { origin: "https://werkit.test" },
       addEventListener: (name: string, fn: (e: Event) => void) => listeners.set(name, fn),
-      clients: { claim, matchAll: async () => [] },
+      clients: {
+        claim,
+        matchAll: async () => [
+          { id: "source", postMessage: sourceMessage },
+          { id: "other", postMessage: otherMessage },
+        ],
+      },
       skipWaiting: vi.fn(),
     },
     caches,
@@ -61,6 +70,8 @@ function harness(
     stores,
     fetch,
     claim,
+    sourceMessage,
+    otherMessage,
     activate: () =>
       new Promise<void>((resolve, reject) =>
         listeners.get("activate")!({ waitUntil: (p) => p.then(resolve, reject) })
@@ -70,6 +81,7 @@ function harness(
         const request = new Request(`https://werkit.test${path}`, { method });
         if (mode) Object.defineProperty(request, "mode", { value: mode });
         listeners.get("fetch")!({
+          clientId: "source",
           request,
           respondWith: (p) => p.then(resolve, reject),
         });
@@ -78,6 +90,23 @@ function harness(
 }
 
 describe("PWA account cache isolation", () => {
+  it("still hides the initiating account when offline logout cannot complete", async () => {
+    const h = harness();
+    h.fetch.mockRejectedValue(new Error("offline"));
+    await expect(h.request("/api/auth/logout", undefined, "POST")).rejects.toThrow("offline");
+    expect(h.sourceMessage).toHaveBeenCalledWith({ type: "OFFLINE_ACCOUNT_CHANGED" });
+    expect(h.otherMessage).toHaveBeenCalledWith({ type: "OFFLINE_ACCOUNT_CHANGED" });
+  });
+  it.each(["login", "logout"])(
+    "notifies other tabs without racing the initiating %s navigation",
+    async (action) => {
+      const h = harness();
+      h.fetch.mockResolvedValue(new Response("ok"));
+      await h.request(`/api/auth/${action}`, undefined, "POST");
+      expect(h.sourceMessage).not.toHaveBeenCalled();
+      expect(h.otherMessage).toHaveBeenCalledWith({ type: "OFFLINE_ACCOUNT_CHANGED" });
+    }
+  );
   it("cannot revive A after B's snapshot write fails, including a worker restart", async () => {
     const stores = new Map<string, Map<string, Response>>();
     let fail = false;

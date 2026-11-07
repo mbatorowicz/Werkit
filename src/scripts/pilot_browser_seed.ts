@@ -47,8 +47,8 @@ async function main() {
         status: "PENDING",
       })
       .returning();
-    await WorkerOrderService.acceptOrder(user.id, companyId, order.id);
-    accounts.push({ ...user, orderId: order.id });
+    const accepted = await WorkerOrderService.acceptOrder(user.id, companyId, order.id);
+    accounts.push({ ...user, orderId: order.id, sessionId: accepted });
   }
   const partId = await SparePartService.addPart(companyId, {
     name: "TEST browser part",

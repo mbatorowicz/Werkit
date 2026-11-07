@@ -1,0 +1,161 @@
+{
+  "engine": "chrome",
+  "buildMode": "production",
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/157.0.0.0 Safari/537.36",
+  "status": "PASS",
+  "fullOfflineRestart": true,
+  "original": {
+    "actions": [
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "39ccbb29-779e-4516-b6bb-61cf6e34f9cc",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-chrome-1794043705837-A2",
+          "location": {
+            "lat": 52.11,
+            "lng": 21
+          },
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T09:28:27.629Z"
+        },
+        "createdAt": "2026-11-07T09:28:27.629Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      },
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "4228a5e7-60e6-42b2-a0fc-f25a53259ec5",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-chrome-1794043705837-A1",
+          "location": {
+            "lat": 52.11,
+            "lng": 21
+          },
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T09:28:27.480Z"
+        },
+        "createdAt": "2026-11-07T09:28:27.480Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      }
+    ],
+    "gps_queue_v2": [
+      {
+        "lat": 52.11,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "63b3845d-7d89-4061-86bb-0e86cd7ca8e6",
+        "timestamp": "2026-11-07T09:28:27.394Z"
+      },
+      {
+        "lat": 52.1,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "feba44af-6eb6-4460-95fb-07b11db0b995",
+        "timestamp": "2026-11-07T09:28:27.393Z"
+      }
+    ]
+  },
+  "denied": 409,
+  "final": {
+    "gps": [
+      {
+        "client_point_id": "6289bdc3-cc1c-4496-b68f-6d3647b84f04",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "a7ef61ed-f3e7-4329-ad81-896d3afa58d4",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "71fd7d86-fd0e-4c5b-a622-a1083de08fbe",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "client_point_id": "feba44af-6eb6-4460-95fb-07b11db0b995",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "63b3845d-7d89-4061-86bb-0e86cd7ca8e6",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "notes": [
+      {
+        "id": 1,
+        "note": "queue-chrome-1794043625983-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 2,
+        "note": "queue-chrome-1794043625983-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 3,
+        "note": "queue-chrome-1794043705837-B",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 4,
+        "note": "queue-chrome-1794043705837-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 5,
+        "note": "queue-chrome-1794043705837-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "operations": [
+      {
+        "id": "39ccbb29-779e-4516-b6bb-61cf6e34f9cc",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "4228a5e7-60e6-42b2-a0fc-f25a53259ec5",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "4e5cecc9-0792-4836-9146-78b904e97cf4",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "98761bd4-e1b5-444b-a47f-f7e72b45b974",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "d3b7de14-00d7-4154-a787-e908d43a1fad",
+        "user_id": 2,
+        "company_id": 1
+      }
+    ]
+  },
+  "scenarios": [
+    "nonempty queues survive full restart",
+    "A-B-A and B independent sync",
+    "lost replies after server commit survive restart",
+    "GPS original session and exactly-once notes",
+    "queues empty only after acknowledgements"
+  ]
+}

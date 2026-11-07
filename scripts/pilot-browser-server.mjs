@@ -10,6 +10,7 @@ const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 const dir = resolve(".pilot-drill");
 const production = process.argv.includes("--production");
+const networkGateway = process.argv.includes("--network-gateway");
 mkdirSync(dir, { recursive: true });
 rmSync(resolve(dir, "browser-stop"), { force: true });
 writeFileSync(resolve(dir, "ca.pem"), getCACertificates("default").join("\n"));
@@ -34,6 +35,8 @@ function run(args, env = {}, binary = false) {
 let created = false;
 let app;
 let control;
+let gateway;
+let available = true;
 try {
   const source =
     process.env.POSTGRES_URL_NON_POOLING ||
@@ -165,6 +168,7 @@ try {
   const fixture = JSON.parse(readFileSync(env.PILOT_REPORT, "utf8"));
   fixture.profileRoot = resolve(dir, "browser-profiles");
   fixture.buildMode = production ? "production" : "development";
+  fixture.networkGateway = networkGateway;
   const log = openSync(resolve(dir, "browser-app.log"), "w");
   if (production) {
     const buildLog = openSync(resolve(dir, "browser-build.log"), "w");
@@ -185,18 +189,69 @@ try {
       "--hostname",
       "127.0.0.1",
       "--port",
-      "4317",
+      networkGateway ? "4319" : "4317",
     ],
     { env, stdio: ["ignore", log, log], windowsHide: true }
   );
+  if (networkGateway) {
+    gateway = http.createServer((req, res) => {
+      if (!available) {
+        req.socket.destroy();
+        return;
+      }
+      const upstream = http.request(
+        {
+          hostname: "127.0.0.1",
+          port: 4319,
+          path: req.url,
+          method: req.method,
+          headers: req.headers,
+        },
+        (response) => {
+          res.writeHead(response.statusCode || 502, response.headers);
+          response.pipe(res);
+        }
+      );
+      upstream.on("error", () => res.destroy());
+      req.pipe(upstream);
+    });
+    await new Promise((resolve, reject) => {
+      gateway.once("error", reject);
+      gateway.listen(4317, "127.0.0.1", resolve);
+    });
+  }
   control = http.createServer(async (req, res) => {
-    if (req.method !== "GET" || req.url !== "/state") {
+    if (
+      networkGateway &&
+      req.method === "POST" &&
+      ["/network/off", "/network/on"].includes(req.url)
+    ) {
+      available = req.url === "/network/on";
+      gateway.closeAllConnections();
+      res.end(JSON.stringify({ available }));
+      return;
+    }
+    if (req.method !== "GET" || !["/state", "/queue-state"].includes(req.url)) {
       res.writeHead(404).end();
       return;
     }
     const client = new pg.Client({ connectionString: url });
     try {
       await client.connect();
+      if (req.url === "/queue-state") {
+        const gps = await client.query(
+          "select g.client_point_id, g.work_session_id, s.user_id from gps_logs g join work_sessions s on s.id=g.work_session_id order by g.id"
+        );
+        const notes = await client.query(
+          "select n.id, n.note, n.work_session_id, s.user_id from session_notes n join work_sessions s on s.id=n.work_session_id order by n.id"
+        );
+        const operations = await client.query(
+          "select id, user_id, company_id from offline_operations order by id"
+        );
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ gps: gps.rows, notes: notes.rows, operations: operations.rows }));
+        return;
+      }
       const { rows } = await client.query(
         "select (select count(*)::int from stock_issues) as issues, (select count(*)::int from work_order_spare_parts) as lines, (select count(*)::int from part_pick_operations) as receipts, (select quantity from spare_part_inventory limit 1) as stock"
       );
@@ -220,6 +275,8 @@ try {
     await new Promise((r) => setTimeout(r, 1000));
 } finally {
   control?.close();
+  gateway?.closeAllConnections();
+  gateway?.close();
   if (app?.pid) spawnSync("taskkill", ["/PID", String(app.pid), "/T", "/F"], { windowsHide: true });
   if (created) run(["rm", "-f", "-v", name]);
 }

@@ -64,7 +64,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   if (request.method !== "GET") {
     if (url.pathname.startsWith("/api/auth/") || url.pathname.includes("impersonat")) {
-      event.respondWith(authTransition(request, url.pathname));
+      event.respondWith(authTransition(request, url.pathname, event.clientId));
     }
     return;
   }
