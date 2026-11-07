@@ -13,7 +13,7 @@ async (page) => {
     p = await context.newPage();
   };
   const login = async (index) => {
-    await p.goto(`${base}/login`);
+    if (p.url() !== `${base}/login`) await p.goto(`${base}/login`);
     await p.locator("#username").fill(fixture.accounts[index].usernameEmail);
     await p.locator("#password").fill(fixture.password);
     await p.getByRole("button", { name: "Zaloguj", exact: true }).click();
@@ -35,19 +35,32 @@ async (page) => {
   try {
     await open(); await login(0);
     const initial = (await info()).state;
-    const path = `**/api/worker/work-orders/${fixture.accounts[0].orderId}/spare-parts`;
+    const path = `/api/worker/work-orders/${fixture.accounts[0].orderId}/spare-parts`;
+    // Inject at the page fetch boundary: SW-owned requests are not reliably
+    // interceptable through Playwright routing in WebKit.
+    const injectFailure = async (mode) => p.evaluate(({ path, mode }) => {
+      const original = window.fetch.bind(window);
+      window.fetch = async (input, init) => {
+        const url = new URL(typeof input === "string" ? input : input.url ?? String(input), location.href);
+        if (url.pathname !== path || init?.method !== "POST") return original(input, init);
+        window.fetch = original;
+        window.__pilotPartPickKey = new Headers(init.headers).get("Idempotency-Key");
+        if (mode === "after-response") {
+          const response = await original(input, init);
+          if (response.status !== 200) throw new Error("Expected server commit before lost response");
+          await response.arrayBuffer();
+        }
+        throw new TypeError("Injected network failure");
+      };
+    }, { path, mode });
     let originalKey;
     const note = `lost-response-${Date.now()}`;
     await form(note);
-    await p.route(path, async route => {
-      if (route.request().method() !== "POST") return route.continue();
-      const response = await route.fetch();
-      assert(response.status() === 200, "Server must commit before response is lost");
-      originalKey = route.request().headers()["idempotency-key"];
-      await route.abort("failed");
-    });
+    await injectFailure("after-response");
     await p.getByRole("button", { name: "Pobierz z magazynu", exact: true }).click();
     await p.getByRole("button", { name: "OK", exact: true }).waitFor();
+    originalKey = await p.evaluate(() => window.__pilotPartPickKey);
+    assert(Boolean(originalKey), "Failure injection did not intercept request");
     const committed = (await info()).state;
     assert(committed.issues === initial.issues + 1 && committed.lines === initial.lines + 1 && committed.receipts === initial.receipts + 1 && Number(committed.stock) === Number(initial.stock) - 2, "Expected one committed issue");
     await context.close(); await open();
@@ -69,13 +82,11 @@ async (page) => {
     await p.getByRole("button", { name: "OK", exact: true }).click();
     await p.getByRole("combobox").waitFor({ state: "hidden" });
     await form(`never-sent-${Date.now()}`);
-    await p.route(path, async route => {
-      if (route.request().method() !== "POST") return route.continue();
-      originalKey = route.request().headers()["idempotency-key"];
-      await route.abort("failed");
-    });
+    await injectFailure("before-request");
     await p.getByRole("button", { name: "Pobierz z magazynu", exact: true }).click();
     await p.getByRole("button", { name: "OK", exact: true }).waitFor();
+    originalKey = await p.evaluate(() => window.__pilotPartPickKey);
+    assert(Boolean(originalKey), "Failure injection did not intercept request");
     assert(JSON.stringify((await info()).state) === JSON.stringify(committed), "Aborted request reached DB");
     await context.close(); await open(); await p.goto(`${base}/worker`);
     await p.getByPlaceholder("Np. numer seryjny", { exact: true }).waitFor();

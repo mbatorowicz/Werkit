@@ -109,13 +109,20 @@ async function privateNetworkFirst(request) {
           // An unobserved account change: discard the previous snapshot first.
           await caches.delete(PRIVATE_PREFIX + state.owner);
         }
-        const cache = await caches.open(PRIVATE_PREFIX + owner);
-        await cache.put(request, response.clone());
-        await writeAccount({
-          owner,
-          until: Math.min(until, Date.now() + 43200000),
-          blocked: false,
-        });
+        try {
+          const cache = await caches.open(PRIVATE_PREFIX + owner);
+          await cache.put(request, response.clone());
+          await writeAccount({
+            owner,
+            until: Math.min(until, Date.now() + 43200000),
+            blocked: false,
+          });
+        } catch {
+          // A network response is still valid when snapshot storage fails.
+          // The previous owner's cache has already been removed above; do not
+          // fall back to it or authorize an unwritten snapshot in this process.
+          accountState = { ...state, until: 0 };
+        }
       });
     }
     return epoch === accountEpoch && !authPending ? response : offlineResponse(request);

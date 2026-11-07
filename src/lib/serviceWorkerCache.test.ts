@@ -3,7 +3,10 @@ import { createContext, runInContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
 // Execute the shipped service worker, including its event handlers (not a copy).
-function harness(stores = new Map<string, Map<string, Response>>(), failCacheWrite = false) {
+function harness(
+  stores = new Map<string, Map<string, Response>>(),
+  failCacheWrite: boolean | (() => boolean) = false
+) {
   const key = (request: Request | string) => (typeof request === "string" ? request : request.url);
   const caches = {
     keys: async () => [...stores.keys()],
@@ -14,7 +17,8 @@ function harness(stores = new Map<string, Map<string, Response>>(), failCacheWri
       return {
         match: async (request: Request | string) => store.get(key(request))?.clone(),
         put: async (request: Request | string, response: Response) => {
-          if (failCacheWrite) throw new Error("Cache storage write failed");
+          if (typeof failCacheWrite === "function" ? failCacheWrite() : failCacheWrite)
+            throw new Error("Cache storage write failed");
           store.set(key(request), response.clone());
         },
       };
@@ -65,6 +69,47 @@ function harness(stores = new Map<string, Map<string, Response>>(), failCacheWri
 }
 
 describe("PWA account cache isolation", () => {
+  it("cannot revive A after B's snapshot write fails, including a worker restart", async () => {
+    const stores = new Map<string, Map<string, Response>>();
+    let fail = false;
+    const h = harness(stores, () => fail);
+    const live = (owner: string) =>
+      new Response(owner, {
+        headers: {
+          "X-Werkit-Offline-Owner": owner,
+          "X-Werkit-Offline-Until": String(Date.now() + 60000),
+        },
+      });
+    h.fetch.mockResolvedValue(live("1:1"));
+    expect((await h.request("/api/worker/session")).status).toBe(200);
+    fail = true;
+    // A failed refresh must not forget the owner whose old snapshot needs deletion.
+    expect((await h.request("/api/worker/session")).status).toBe(200);
+    h.fetch.mockResolvedValue(live("1:2"));
+    expect(await (await h.request("/api/worker/session")).text()).toBe("1:2");
+    expect(stores.has("werkit-account-v1-1:1")).toBe(false);
+    const restarted = harness(stores);
+    restarted.fetch.mockRejectedValue(new Error("offline"));
+    expect((await restarted.request("/api/worker/session")).status).toBe(503);
+  });
+
+  it("keeps a live private response when its offline snapshot cannot be written", async () => {
+    const h = harness(new Map(), true);
+    h.fetch.mockResolvedValue(
+      new Response("current account", {
+        headers: {
+          "X-Werkit-Offline-Owner": "1:1",
+          "X-Werkit-Offline-Until": String(Date.now() + 60000),
+        },
+      })
+    );
+    const response = await h.request("/api/worker/session");
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe("current account");
+    h.fetch.mockRejectedValue(new Error("offline"));
+    expect((await h.request("/api/worker/session")).status).toBe(503);
+  });
+
   it("serves a downloaded script even if storing it in Cache Storage fails", async () => {
     const h = harness(new Map(), true);
     h.fetch.mockResolvedValue(new Response("/* app */", { status: 200 }));

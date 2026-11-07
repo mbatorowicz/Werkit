@@ -5,38 +5,38 @@
       "scenario": "lost response + full browser restart + A-B-A",
       "status": "PASS",
       "before": {
-        "issues": 1,
-        "lines": 1,
-        "receipts": 1,
-        "stock": "8.00"
+        "issues": 2,
+        "lines": 2,
+        "receipts": 2,
+        "stock": "6.00"
       },
       "afterServerCommit": {
-        "issues": 2,
-        "lines": 2,
-        "receipts": 2,
-        "stock": "6.00"
+        "issues": 3,
+        "lines": 3,
+        "receipts": 3,
+        "stock": "4.00"
       },
       "afterReplay": {
-        "issues": 2,
-        "lines": 2,
-        "receipts": 2,
-        "stock": "6.00"
+        "issues": 3,
+        "lines": 3,
+        "receipts": 3,
+        "stock": "4.00"
       }
     },
     {
       "scenario": "request aborted before server + full restart + retry",
       "status": "PASS",
       "before": {
-        "issues": 2,
-        "lines": 2,
-        "receipts": 2,
-        "stock": "6.00"
-      },
-      "after": {
         "issues": 3,
         "lines": 3,
         "receipts": 3,
         "stock": "4.00"
+      },
+      "after": {
+        "issues": 4,
+        "lines": 4,
+        "receipts": 4,
+        "stock": "2.00"
       }
     }
   ]

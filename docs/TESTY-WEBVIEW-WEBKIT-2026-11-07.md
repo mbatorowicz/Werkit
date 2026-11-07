@@ -28,9 +28,13 @@ WebKit dwukrotnie ujawnił brak panelu części po restarcie. Oczekujący wpis I
 
 Drugi problem ujawnił się w kolejnym powtórzeniu: po restarcie profil WebKit otrzymywał 503 dla plików JavaScript i fontów, mimo działającego API. `cacheFirst` obejmował pobranie i zapis Cache Storage jednym `try`, więc błąd zapisu mógł zamienić poprawną odpowiedź sieci na „offline”. Odczyt i zapis cache są teraz opcjonalne; poprawna odpowiedź sieci nie przepada przy błędzie magazynu cache. Test regresji wymusza błąd zapisu i sprawdza odpowiedź 200 z treścią skryptu. Po tej zmianie ponowne pełne przebiegi obu silników przeszły. Nie przypisujemy każdego 503 konkretnej wewnętrznej przyczynie silnika WebKit bez jego śladu diagnostycznego.
 
-### Pozostała niepewność — restart istniejącego profilu WebKit
+Minimalna strona z rzeczywistym service workerem (bez bazy i logowania) potwierdziła `TypeError: Failed writing data to the file system`. Prywatne snapshoty również zamieniały poprawną odpowiedź serwera na 503 przy błędzie cache. Rozdzielono te przypadki. Cache poprzedniego właściciela nadal jest usuwany przed zapisem nowego; błąd zapisu nie autoryzuje niezapisanego snapshotu. Test regresji sprawdza A→B, błąd zapisu B i restart service workera offline: dane A nie wracają. Minimalna strona po poprawce przeszła trzy uruchomienia z odpowiedziami 200.
 
-Zachowany profil z nieudanego przebiegu nadal potrafi zwrócić 503 przy `/worker` po restarcie procesu, także po aktualizacji service workera. W IndexedDB pozostaje prawidłowy wpis oczekującego pobrania. Świeży profil przechodzi pełne scenariusze, lecz nie dowodzi to naprawy tego przypadku. Nie uznajemy restartu PWA w WebKit za bezwarunkowo zaliczony. Do dalszej diagnozy pozostaje obsługa prywatnych snapshotów/cache i powtórzenie na produkcyjnym buildzie oraz Safari na urządzeniu. Nie czyszczono danych problematycznego profilu, żeby nie zamaskować błędu.
+Końcowe testy wstrzykują błąd na granicy fetch aplikacji: odczytują rzeczywistą odpowiedź 200, po czym zgłaszają błąd przed przekazaniem jej aplikacji. Drugi scenariusz zgłasza błąd przed wysłaniem żądania. To symulacja, nie fizyczne odłączenie radia. Wcześniejsze page.route bywało pomijane dla żądań obsługiwanych przez service worker WebKit; wykryła to asercja stanu bazy. Końcowe testy potwierdzają przechwycenie żądania. [Ograniczenia routingu Playwright](https://playwright.dev/docs/service-workers).
+
+### Pozostała niepewność — istniejący profil WebKit
+
+Zachowany profil z wczesnego nieudanego przebiegu nadal miał problem z wejściem do aplikacji i późniejszym logowaniem po aktualizacji service workera. W IndexedDB pozostaje prawidłowy wpis oczekującego pobrania. Świeży profil przechodzi pełne scenariusze, lecz nie dowodzi to naprawy tego przypadku. Nie uznajemy restartu PWA w WebKit za bezwarunkowo zaliczony. Do dalszej diagnozy pozostaje przywrócenie logowania w tym profilu i powtórzenie na produkcyjnym buildzie oraz Safari na urządzeniu. Nie czyszczono danych problematycznego profilu, żeby nie zamaskować błędu. Błąd zapisu WebKit pod Windows nie dowodzi tego samego błędu na iOS.
 
 ## Powtórzenie
 

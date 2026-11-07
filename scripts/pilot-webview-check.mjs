@@ -7,6 +7,8 @@ const serial = "emulator-5580";
 const pkg = "com.werkit.pilot";
 const adb = (...args) => execFileSync(adbPath, ["-s", serial, ...args], { encoding: "utf8", windowsHide: true }).trim();
 if (adb("shell", "getprop", "ro.kernel.qemu") !== "1") throw new Error("Requires isolated emulator, never a personal phone");
+// Fresh fixture at the start only; all in-scenario restarts retain app data.
+adb("shell", "pm", "clear", pkg);
 adb("reverse", "tcp:4317", "tcp:4317");
 const client = await request.newContext();
 const android = {
@@ -25,6 +27,8 @@ const android = {
     const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`, { noDefaults: true });
     const context = browser.contexts()[0];
     const p = context.pages()[0] ?? await context.waitForEvent("page");
+    await p.waitForURL(/\/(worker|login)(?:\?.*)?$/, { timeout: 30000 });
+    await p.waitForLoadState("domcontentloaded", { timeout: 30000 });
     return {
       newPage: async () => p,
       close: async () => {
@@ -43,4 +47,3 @@ try {
   writeFileSync(".pilot-drill/webview-result.json", JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await client.dispose(); adb("reverse", "--remove", "tcp:4317"); }
-
