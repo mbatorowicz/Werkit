@@ -1,0 +1,183 @@
+{
+  "engine": "usb",
+  "device": {
+    "android": "16",
+    "sdk": "36",
+    "webview": "Current WebView package (name, version): (com.google.android.webview, 156.0.8078.47)",
+    "package": "com.werkit.pilot.usbtest.p20261107"
+  },
+  "buildMode": "production",
+  "browser": "Mozilla/5.0 (Linux; Android 16; 2602EPTC0G Build/BP2A.250605.031.A3; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/156.0.8078.47 Mobile Safari/537.36",
+  "status": "PASS",
+  "fullOfflineRestart": true,
+  "original": {
+    "actions": [
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "09a34cf2-e7a9-4cd2-8893-278acd712709",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-usb-1794046105365-A1",
+          "location": {
+            "lat": 52.11,
+            "lng": 21
+          },
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T10:08:09.721Z"
+        },
+        "createdAt": "2026-11-07T10:08:09.721Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      },
+      {
+        "owner": "1:1",
+        "protocolVersion": 2,
+        "id": "d20f8808-2449-4c9f-bc2f-3fdc0b8910d8",
+        "type": "save_note",
+        "payload": {
+          "note": "queue-usb-1794046105365-A2",
+          "location": {
+            "lat": 52.11,
+            "lng": 21
+          },
+          "sessionId": 1,
+          "occurredAt": "2026-11-07T10:08:09.916Z"
+        },
+        "createdAt": "2026-11-07T10:08:09.916Z",
+        "retryCount": 0,
+        "maxRetries": 5
+      }
+    ],
+    "gps_queue_v2": [
+      {
+        "lat": 52.1,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "c3f8c8dc-25bb-4fad-83f1-ee0e25180b70",
+        "timestamp": "2026-11-07T10:08:09.436Z"
+      },
+      {
+        "lat": 52.11,
+        "lng": 21,
+        "owner": "1:1",
+        "sessionId": 1,
+        "pointId": "df70fef0-afeb-4ca7-93cc-8dd5ae4bf2da",
+        "timestamp": "2026-11-07T10:08:09.444Z"
+      }
+    ]
+  },
+  "denied": 409,
+  "final": {
+    "gps": [
+      {
+        "client_point_id": "b2be5795-e236-4a0b-8a0e-02f9c5c56385",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "client_point_id": "cb6706f0-b2f3-43b3-902b-ca834318675e",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "48838146-6259-486f-8565-20475743e0e9",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "22150006-6bfd-4410-aab4-6e1375c43125",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "client_point_id": "c3f8c8dc-25bb-4fad-83f1-ee0e25180b70",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "client_point_id": "df70fef0-afeb-4ca7-93cc-8dd5ae4bf2da",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "notes": [
+      {
+        "id": 1,
+        "note": "queue-usb-1794046068770-B",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 2,
+        "note": "queue-usb-1794046068770-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 3,
+        "note": "queue-usb-1794046068770-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 4,
+        "note": "queue-usb-1794046105365-B",
+        "work_session_id": 2,
+        "user_id": 2
+      },
+      {
+        "id": 5,
+        "note": "queue-usb-1794046105365-A1",
+        "work_session_id": 1,
+        "user_id": 1
+      },
+      {
+        "id": 6,
+        "note": "queue-usb-1794046105365-A2",
+        "work_session_id": 1,
+        "user_id": 1
+      }
+    ],
+    "operations": [
+      {
+        "id": "07d8ab08-3398-4f26-abaa-a7747f66d5be",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "09a34cf2-e7a9-4cd2-8893-278acd712709",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "3f02a358-9bbe-441e-8d5a-ec64ad05276b",
+        "user_id": 1,
+        "company_id": 1
+      },
+      {
+        "id": "8464c777-1d9f-4902-ab1a-92d6bb4361d9",
+        "user_id": 2,
+        "company_id": 1
+      },
+      {
+        "id": "a243f311-fbcb-49c2-9f41-65414f32e12e",
+        "user_id": 2,
+        "company_id": 1
+      },
+      {
+        "id": "d20f8808-2449-4c9f-bc2f-3fdc0b8910d8",
+        "user_id": 1,
+        "company_id": 1
+      }
+    ]
+  },
+  "scenarios": [
+    "nonempty queues survive full restart",
+    "A-B-A and B independent sync",
+    "lost replies after server commit survive restart",
+    "GPS original session and exactly-once notes",
+    "queues empty only after acknowledgements"
+  ]
+}

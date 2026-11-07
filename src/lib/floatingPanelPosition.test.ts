@@ -9,6 +9,31 @@ function mockViewport(height: number) {
 }
 
 describe("computeFloatingPanelStyle", () => {
+  it("keeps an upward list above its anchor when the keyboard shrinks the visual viewport", () => {
+    vi.stubGlobal("window", { innerHeight: 812, visualViewport: { height: 481, offsetTop: 0 } });
+    const style = computeFloatingPanelStyle({
+      top: 449,
+      bottom: 493,
+      left: 46,
+      width: 278,
+    } as DOMRect);
+    expect(style.bottom).toBe(367);
+    expect(812 - style.bottom!).toBe(445);
+  });
+
+  it("includes visual viewport panning when deciding which side has room", () => {
+    vi.stubGlobal("window", { innerHeight: 812, visualViewport: { height: 481, offsetTop: 230 } });
+    const style = computeFloatingPanelStyle({
+      top: 449,
+      bottom: 493,
+      left: 46,
+      width: 278,
+    } as DOMRect);
+    expect(style.top).toBe(497);
+    expect(style.bottom).toBeUndefined();
+    expect(style.maxHeight).toBe(206);
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
   });

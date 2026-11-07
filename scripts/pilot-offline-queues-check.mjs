@@ -4,7 +4,8 @@ process.env.PLAYWRIGHT_BROWSERS_PATH = resolve(".pilot-drill/browser-engines");
 const { webkit, chromium, request } =
   await import("../.pilot-drill/browser-tools/node_modules/playwright/index.mjs");
 const engine = process.argv[2] || "webkit";
-const browserType = engine === "webkit" ? webkit : chromium;
+const usb = engine === "usb" ? await import("./pilot-usb-browser.mjs") : null;
+const browserType = usb?.usbBrowserType ?? (engine === "webkit" ? webkit : chromium);
 const client = await request.newContext();
 const { fixture } = await (await client.get("http://127.0.0.1:4318/state")).json();
 if (fixture.buildMode !== "production") throw new Error("Production build required");
@@ -25,7 +26,7 @@ const open = async (offline = false) => {
     ...(engine === "chrome" ? { channel: "chrome" } : {}),
   });
   await context.addInitScript(
-    ({ ownerA, ownerB }) => {
+    ({ ownerA, ownerB, notePrefix }) => {
       // Synthetic sensor readings enter the actual application watcher and queue.
       const watchers = new Map();
       let nextId = 1;
@@ -82,16 +83,20 @@ const open = async (offline = false) => {
         const mode = localStorage.getItem("pilot-queue-mode") || "blocked";
         if (owner === ownerB && mode === "B") return send(input, init);
         if (owner === ownerA && mode === "allow") return send(input, init);
-        if (owner === ownerA && mode === "lose" && !localStorage.getItem(`pilot-lost:${path}`)) {
+        if (
+          owner === ownerA &&
+          mode === "lose" &&
+          !localStorage.getItem(`pilot-lost:${notePrefix}:${path}`)
+        ) {
           const response = await original(input, init);
           if (response.status !== 200) throw new Error(`Expected commit: ${response.status}`);
           await response.arrayBuffer();
-          localStorage.setItem(`pilot-lost:${path}`, "1");
+          localStorage.setItem(`pilot-lost:${notePrefix}:${path}`, "1");
         }
         throw new TypeError("Injected queue network failure");
       };
     },
-    { ownerA, ownerB }
+    { ownerA, ownerB, notePrefix }
   );
   page = await context.newPage();
 };
@@ -129,6 +134,14 @@ const login = async (index) => {
   if (page.url() !== `${base}/login`) await page.goto(`${base}/login`);
   await page.locator("#username").fill(fixture.accounts[index].usernameEmail);
   await page.locator("#password").fill(fixture.password);
+  if (usb) {
+    await page.locator("#password").blur();
+    await page.waitForFunction(
+      () =>
+        !visualViewport ||
+        (visualViewport.offsetTop === 0 && visualViewport.height >= innerHeight - 1)
+    );
+  }
   await page.getByRole("button", { name: "Zaloguj", exact: true }).click();
   await page.waitForURL("**/worker");
   await page.getByRole("button", { name: /dodaj notatkę/i }).waitFor();
@@ -141,6 +154,14 @@ const logout = async () => {
 const note = async (suffix, queued = true) => {
   await page.getByRole("button", { name: /dodaj notatkę/i }).click();
   await page.locator("#worker-note-form textarea").fill(`${notePrefix}-${suffix}`);
+  if (usb) {
+    await page.locator("#worker-note-form textarea").blur();
+    await page.waitForFunction(
+      () =>
+        !visualViewport ||
+        (visualViewport.offsetTop === 0 && visualViewport.height >= innerHeight - 1)
+    );
+  }
   await page.locator('button[form="worker-note-form"]').click();
   if (queued) {
     await page.getByRole("button", { name: "OK", exact: true }).click();
@@ -158,6 +179,7 @@ const restart = async () => {
 };
 try {
   await open();
+  await mode("blocked");
   await login(0);
   await gps(52.1);
   await gps(52.11);
@@ -182,7 +204,7 @@ try {
   );
   await restart();
   assert(JSON.stringify(await queues()) === JSON.stringify(original), "Restart altered queues");
-  if (engine === "chrome" && process.argv.includes("--full-offline")) {
+  if ((engine === "chrome" || usb) && process.argv.includes("--full-offline")) {
     assert(fixture.networkGateway, "Network gateway required for full offline restart");
     await page.evaluate(() => navigator.serviceWorker.ready);
     await wait(
@@ -291,10 +313,13 @@ try {
     );
   const result = {
     engine,
+    ...(usb ? { device: usb.usbDevice } : {}),
     buildMode: fixture.buildMode,
     browser: await page.evaluate(() => navigator.userAgent),
     status: "PASS",
-    fullOfflineRestart: engine === "chrome" && process.argv.includes("--full-offline"),
+    fullOfflineRestart: Boolean(
+      (engine === "chrome" || usb) && process.argv.includes("--full-offline")
+    ),
     original,
     denied,
     final,
@@ -333,4 +358,5 @@ try {
   if (fixture.networkGateway) await client.post("http://127.0.0.1:4318/network/on").catch(() => {});
   await context?.close();
   await client.dispose();
+  await usb?.cleanupUsb();
 }

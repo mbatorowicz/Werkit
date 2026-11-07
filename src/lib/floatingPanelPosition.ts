@@ -20,13 +20,19 @@ export function getViewportHeight(): number {
 
 export function computeFloatingPanelStyle(rect: DOMRect): FloatingPanelStyle {
   const viewportHeight = getViewportHeight();
-  const spaceBelow = viewportHeight - rect.bottom - FLOATING_PANEL_VIEWPORT_MARGIN;
-  const spaceAbove = rect.top - FLOATING_PANEL_VIEWPORT_MARGIN;
+  const viewportTop = typeof window === "undefined" ? 0 : (window.visualViewport?.offsetTop ?? 0);
+  const spaceBelow = viewportTop + viewportHeight - rect.bottom - FLOATING_PANEL_VIEWPORT_MARGIN;
+  const spaceAbove = rect.top - viewportTop - FLOATING_PANEL_VIEWPORT_MARGIN;
   const openUpward = spaceBelow < FLOATING_PANEL_FLIP_THRESHOLD && spaceAbove > spaceBelow;
 
   if (openUpward) {
     return {
-      bottom: viewportHeight - rect.top + FLOATING_PANEL_GAP,
+      // Fixed positioning uses the layout viewport, even when the keyboard
+      // shrinks and pans the visual viewport on mobile.
+      bottom:
+        (typeof window === "undefined" ? viewportHeight : window.innerHeight) -
+        rect.top +
+        FLOATING_PANEL_GAP,
       left: rect.left,
       width: rect.width,
       maxHeight: Math.min(

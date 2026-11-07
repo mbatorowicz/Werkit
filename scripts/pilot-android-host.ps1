@@ -1,4 +1,5 @@
 # Builds an isolated WebView test host, never the production application package.
+param([switch]$PhysicalUsb)
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $true
 $workspace = (Get-Location).Path
@@ -7,6 +8,7 @@ $jdk = 'C:/Program Files/Android/Android Studio/jbr'
 $env:JAVA_HOME = $jdk
 $env:PATH = "$jdk/bin;$env:PATH"
 $build = Join-Path $workspace '.pilot-drill/android-host'
+if ($PhysicalUsb) { $build = Join-Path $workspace '.pilot-drill/android-usb-host-20261107' }
 New-Item -ItemType Directory -Force "$build/src", "$build/classes", "$build/dex" | Out-Null
 @'
 package com.werkit.pilot;
@@ -32,7 +34,9 @@ public class MainActivity extends Activity {
     super.onPause();
   }
 }
-'@ | Set-Content -LiteralPath "$build/src/MainActivity.java" -Encoding utf8
+'@ | ForEach-Object {
+  if ($PhysicalUsb) { $_.Replace('com.werkit.pilot', 'com.werkit.pilot.usbtest.p20261107').Replace('http://127.0.0.1:4317/worker', 'about:blank') } else { $_ }
+} | Set-Content -LiteralPath "$build/src/MainActivity.java" -Encoding utf8NoBOM
 @'
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.werkit.pilot">
 <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35"/>
@@ -40,7 +44,9 @@ public class MainActivity extends Activity {
 <application android:label="Werkit isolated WebView test" android:debuggable="true" android:usesCleartextTraffic="true">
 <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
 </application></manifest>
-'@ | Set-Content -LiteralPath "$build/AndroidManifest.xml" -Encoding utf8
+'@ | ForEach-Object {
+  if ($PhysicalUsb) { $_.Replace('com.werkit.pilot', 'com.werkit.pilot.usbtest.p20261107').Replace('Werkit isolated WebView test', 'Werkit USB test') } else { $_ }
+} | Set-Content -LiteralPath "$build/AndroidManifest.xml" -Encoding utf8NoBOM
 $androidJar = Join-Path $sdk 'platforms/android-36.1/android.jar'
 $tools = Join-Path $sdk 'build-tools/36.1.0'
 & "$jdk/bin/javac.exe" -source 8 -target 8 -classpath $androidJar -d "$build/classes" "$build/src/MainActivity.java"

@@ -16,6 +16,10 @@ async (page) => {
     if (p.url() !== `${base}/login`) await p.goto(`${base}/login`);
     await p.locator("#username").fill(fixture.accounts[index].usernameEmail);
     await p.locator("#password").fill(fixture.password);
+    if (browserType.name() === "physical-android-webview") {
+      await p.locator("#password").blur();
+      await p.waitForFunction(() => !window.visualViewport || (window.visualViewport.offsetTop === 0 && window.visualViewport.height >= innerHeight - 1));
+    }
     await p.getByRole("button", { name: "Zaloguj", exact: true }).click();
     await p.waitForURL("**/worker");
     await p.getByRole("button", { name: "Pobierz z magazynu", exact: true }).waitFor();
@@ -31,6 +35,12 @@ async (page) => {
     await p.getByRole("option").filter({ hasText: "TEST browser part" }).click();
     await p.getByPlaceholder("np. 2", { exact: true }).fill("2");
     await p.getByPlaceholder("Np. numer seryjny", { exact: true }).fill(note);
+    // A physical keyboard can pan the visual viewport. Finish editing before
+    // tapping submit, as a user dismissing the keyboard would do.
+    if (browserType.name() === "physical-android-webview") {
+      await p.getByPlaceholder("Np. numer seryjny", { exact: true }).blur();
+      await p.waitForFunction(() => !window.visualViewport || (window.visualViewport.offsetTop === 0 && window.visualViewport.height >= innerHeight - 1));
+    }
   };
   try {
     await open(); await login(0);
